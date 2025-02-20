@@ -1,4 +1,4 @@
-use prjcombine_int::db::{BelId, Dir};
+use prjcombine_interconnect::db::{BelId, Dir};
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::grid::{Dcms, GridKind};
 use prjcombine_virtex2_naming::ExpandedNamedDevice;

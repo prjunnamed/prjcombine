@@ -4,7 +4,7 @@ use std::{
 };
 
 use bitvec::prelude::*;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{Dir, PinDir},
     grid::{ColId, DieId, IntWire, RowId},
 };

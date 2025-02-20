@@ -1,7 +1,7 @@
 use bitvec::prelude::*;
 use prjcombine_collector::{extract_bitvec_val, xlat_bit, xlat_bitvec, xlat_enum, Diff};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_virtex2::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;

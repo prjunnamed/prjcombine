@@ -1,7 +1,7 @@
 use std::collections::{hash_map, BTreeSet, HashMap};
 
 use enum_map::EnumMap;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, WireKind},
     grid::{ColId, EdgeIoCoord, RowId},
 };

@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet};
 
-use prjcombine_int::grid::{ColId, DieId, EdgeIoCoord, ExpandedDieRef, LayerId, RowId};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedDieRef, LayerId, RowId};
 use prjcombine_virtex2::{
     expanded::ExpandedDevice,
     grid::{ColumnIoKind, ColumnKind, DcmPairKind, Grid, GridKind, RowIoKind},

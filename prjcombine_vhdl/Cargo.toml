@@ -1,0 +1,9 @@
+[package]
+name = "prjcombine_vhdl"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

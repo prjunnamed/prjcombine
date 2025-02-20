@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use prjcombine_int::db::PinDir;
+use prjcombine_interconnect::db::PinDir;
 use prjcombine_siliconblue::grid::GridKind;
 
 pub struct Primitive {

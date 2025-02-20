@@ -1,6 +1,6 @@
 use prjcombine_collector::{xlat_enum, Diff};
 use prjcombine_hammer::Session;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::NodeTileId,
     grid::{DieId, LayerId},
 };

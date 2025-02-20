@@ -10,8 +10,8 @@ path = "src/main.rs"
 [dependencies]
 clap.workspace = true
 arrayref.workspace = true
+prjcombine-xilinx-bitstream.workspace = true
 prjcombine_xilinx_geom.workspace = true
-prjcombine_virtex_bitstream.workspace = true
 
 [lints]
 workspace = true

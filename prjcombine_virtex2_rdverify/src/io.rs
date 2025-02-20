@@ -1,5 +1,5 @@
-use prjcombine_int::db::Dir;
-use prjcombine_int::grid::{ColId, DieId, RowId};
+use prjcombine_interconnect::db::Dir;
+use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::Coord;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::grid::{GridKind, IoDiffKind};

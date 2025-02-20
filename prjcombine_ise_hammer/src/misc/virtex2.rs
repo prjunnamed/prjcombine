@@ -7,10 +7,10 @@ use prjcombine_collector::{
     FeatureId, OcdMode,
 };
 use prjcombine_hammer::Session;
-use prjcombine_int::grid::DieId;
+use prjcombine_interconnect::grid::DieId;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::{grid::GridKind, grid::IoDiffKind, iob::IobKind};
-use prjcombine_virtex_bitstream::{BitTile, Reg};
+use prjcombine_xilinx_bitstream::{BitTile, Reg};
 use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use unnamed_entity::EntityId;
 

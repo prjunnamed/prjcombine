@@ -2,7 +2,7 @@ use std::{error::Error, path::PathBuf};
 
 use arrayref::array_ref;
 use clap::Parser;
-use prjcombine_virtex_bitstream::{KeyData, Reg};
+use prjcombine_xilinx_bitstream::{KeyData, Reg};
 use prjcombine_xilinx_geom::GeomDb;
 
 #[derive(Debug, Parser)]
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     let gedev = db.expand_grid(device);
     let bs_geom = gedev.bs_geom();
-    let bitstream = prjcombine_virtex_bitstream::parse(bs_geom, &bitdata, &KeyData::None);
+    let bitstream = prjcombine_xilinx_bitstream::parse(bs_geom, &bitdata, &KeyData::None);
     for (die, dbs) in &bitstream.die {
         if let Some(val) = dbs.regs[Reg::Idcode] {
             println!("DIE {die} IDCODE {val:08x}");

@@ -1,4 +1,4 @@
-use prjcombine_int::db::{Dir, IntDb, TermInfo, TermKind, WireKind};
+use prjcombine_interconnect::db::{Dir, IntDb, TermInfo, TermKind, WireKind};
 use prjcombine_rawdump::Part;
 
 use prjcombine_rdintb::IntBuilder;

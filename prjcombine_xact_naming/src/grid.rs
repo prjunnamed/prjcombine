@@ -3,7 +3,7 @@ use std::{
     ops::Range,
 };
 
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, NodeWireId},
     grid::{ColId, DieId, ExpandedGrid, NodeLoc, RowId},
 };

@@ -6,7 +6,7 @@ use prjcombine_types::{
     tiledb::{Tile, TileItem, TileItemKind},
     FbId, FbMcId, IoId,
 };
-use prjcombine_xc2c as xc2c;
+use prjcombine_coolrunner2 as coolrunner2;
 use prjcombine_xilinx_cpld::{
     bits::{extract_bool, extract_bool_to_enum, extract_enum, IBufOut, McOut},
     device::{Device, JtagPin, PkgPin},
@@ -22,7 +22,7 @@ use prjcombine_xilinx_recpld::{
 };
 use serde_json::json;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
-use xc2c::{BitCoord, BsLayout};
+use coolrunner2::{BitCoord, BsLayout};
 
 const JED_MC_BITS_SMALL: &[(&str, usize)] = &[
     ("CLK_MUX", 0),
@@ -114,10 +114,10 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &mut DevData) {
         let xlat_bit = |bit: usize| {
             let (row, column) = fpart.map.main[bit];
             let row = match dd.bs_layout {
-                xc2c::BsLayout::Narrow => {
+                coolrunner2::BsLayout::Narrow => {
                     row - fbr * 40 - mc.to_idx() as u32 / 2 * 5 - mc.to_idx() as u32 % 2 * 3
                 }
-                xc2c::BsLayout::Wide => row - fbr * 48 - mc.to_idx() as u32 * 3,
+                coolrunner2::BsLayout::Wide => row - fbr * 48 - mc.to_idx() as u32 * 3,
             };
             let column = dd.bs_cols - 1 - column as u32;
             let column = if fb.to_idx() % 2 == 0 {
@@ -126,8 +126,8 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &mut DevData) {
                 dd.imux_width * 2
                     + dd.mc_width * 2
                     + match dd.bs_layout {
-                        xc2c::BsLayout::Narrow => 112 * 2 + 32 * 2,
-                        xc2c::BsLayout::Wide => 112 * 2,
+                        coolrunner2::BsLayout::Narrow => 112 * 2 + 32 * 2,
+                        coolrunner2::BsLayout::Wide => 112 * 2,
                     }
                     - 1
                     - (column - dd.fb_cols[fbc as usize])
@@ -656,7 +656,7 @@ fn extract_imux_bits(
         let imux_col = dd.fb_cols[fbc]
             + dd.mc_width
             + 112
-            + if dd.bs_layout == xc2c::BsLayout::Narrow {
+            + if dd.bs_layout == coolrunner2::BsLayout::Narrow {
                 32
             } else {
                 0
@@ -702,8 +702,8 @@ fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> T
         );
         let item = TileItem {
             bits: (0..dd.imux_width)
-                .map(|j| xc2c::BitCoord {
-                    row: if i < 20 || dd.bs_layout == xc2c::BsLayout::Narrow {
+                .map(|j| coolrunner2::BitCoord {
+                    row: if i < 20 || dd.bs_layout == coolrunner2::BsLayout::Narrow {
                         i as u32
                     } else {
                         8 + i as u32
@@ -873,7 +873,7 @@ fn verify_jed(device: &Device, fpart: &FuzzDbPart, dd: &DevData) {
 struct DevData {
     bs_cols: u32,
     xfer_cols: Vec<u32>,
-    bs_layout: xc2c::BsLayout,
+    bs_layout: coolrunner2::BsLayout,
     fb_rows: u32,
     fb_cols: Vec<u32>,
     mc_width: u32,
@@ -930,20 +930,20 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         let bs_rows = fpart.map.dims.unwrap().1 as u32;
         let xfer_cols = fpart.map.transfer.iter().map(|&x| x as u32).collect();
         let bs_layout = match device.fbs {
-            2 | 4 | 16 => xc2c::BsLayout::Wide,
-            8 | 24 | 32 => xc2c::BsLayout::Narrow,
+            2 | 4 | 16 => coolrunner2::BsLayout::Wide,
+            8 | 24 | 32 => coolrunner2::BsLayout::Narrow,
             _ => unreachable!(),
         };
         let row_height = match bs_layout {
-            xc2c::BsLayout::Wide => 48,
-            xc2c::BsLayout::Narrow => 40,
+            coolrunner2::BsLayout::Wide => 48,
+            coolrunner2::BsLayout::Narrow => 40,
         };
         let mc_width = if device.fbs <= 4 {
             9
         } else {
             match bs_layout {
-                xc2c::BsLayout::Narrow => 15,
-                xc2c::BsLayout::Wide => 10,
+                coolrunner2::BsLayout::Narrow => 15,
+                coolrunner2::BsLayout::Wide => 10,
             }
         };
         let fb_cols = match device.fbs {
@@ -1065,7 +1065,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             if let Some(io) = device.cdr_pad {
                 io_special.insert("CDR".to_string(), convert_io(io));
             }
-            xc2c::Device {
+            coolrunner2::Device {
                 idcode_part: match (db.devices[did].device.fbs, db.devices[did].device.banks) {
                     (2, 1) => 0x6c18,
                     (2, 2) => 0x6e18,
@@ -1085,8 +1085,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                     .map(|(&k, v)| {
                         (
                             k,
-                            xc2c::Io {
-                                bank: xc2c::BankId::from_idx(v.bank.to_idx()),
+                            coolrunner2::Io {
+                                bank: coolrunner2::BankId::from_idx(v.bank.to_idx()),
                                 pad_distance: match device.fbs {
                                     2 => (v.pad + 44 - 6) % 44,
                                     4 => (v.pad + 81 - 12) % 81,
@@ -1119,11 +1119,11 @@ pub fn main() -> Result<(), Box<dyn Error>> {
 
     let mut bonds = EntityVec::new();
     let mut speeds = EntityVec::new();
-    let mut parts: Vec<xc2c::Part> = vec![];
+    let mut parts: Vec<coolrunner2::Part> = vec![];
     'parts: for spart in &db.parts {
         let package = &db.packages[spart.package];
-        let device = xc2c::DeviceId::from_idx(spart.device.to_idx());
-        let bond = xc2c::Bond {
+        let device = coolrunner2::DeviceId::from_idx(spart.device.to_idx());
+        let bond = coolrunner2::Bond {
             idcode_part: bond_idcode[spart.package],
             pins: package
                 .pins
@@ -1132,19 +1132,19 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                     (
                         k.clone(),
                         match *v {
-                            PkgPin::Nc => xc2c::Pad::Nc,
-                            PkgPin::Gnd => xc2c::Pad::Gnd,
-                            PkgPin::VccInt => xc2c::Pad::VccInt,
+                            PkgPin::Nc => coolrunner2::Pad::Nc,
+                            PkgPin::Gnd => coolrunner2::Pad::Gnd,
+                            PkgPin::VccInt => coolrunner2::Pad::VccInt,
                             PkgPin::VccIo(bank) => {
-                                xc2c::Pad::VccIo(xc2c::BankId::from_idx(bank.to_idx()))
+                                coolrunner2::Pad::VccIo(coolrunner2::BankId::from_idx(bank.to_idx()))
                             }
-                            PkgPin::VccAux => xc2c::Pad::VccAux,
-                            PkgPin::Io(IoId::Mc((fb, mc))) => xc2c::Pad::Iob(fb, mc),
-                            PkgPin::Io(IoId::Ipad(pad)) => xc2c::Pad::Ipad(pad),
-                            PkgPin::Jtag(JtagPin::Tck) => xc2c::Pad::Tck,
-                            PkgPin::Jtag(JtagPin::Tms) => xc2c::Pad::Tms,
-                            PkgPin::Jtag(JtagPin::Tdi) => xc2c::Pad::Tdi,
-                            PkgPin::Jtag(JtagPin::Tdo) => xc2c::Pad::Tdo,
+                            PkgPin::VccAux => coolrunner2::Pad::VccAux,
+                            PkgPin::Io(IoId::Mc((fb, mc))) => coolrunner2::Pad::Iob(fb, mc),
+                            PkgPin::Io(IoId::Ipad(pad)) => coolrunner2::Pad::Ipad(pad),
+                            PkgPin::Jtag(JtagPin::Tck) => coolrunner2::Pad::Tck,
+                            PkgPin::Jtag(JtagPin::Tms) => coolrunner2::Pad::Tms,
+                            PkgPin::Jtag(JtagPin::Tdi) => coolrunner2::Pad::Tdi,
+                            PkgPin::Jtag(JtagPin::Tdo) => coolrunner2::Pad::Tdo,
                             _ => unreachable!(),
                         },
                     )
@@ -1167,7 +1167,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 continue 'parts;
             }
         }
-        parts.push(xc2c::Part {
+        parts.push(coolrunner2::Part {
             name: spart.dev_name.clone(),
             device,
             packages: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
@@ -1175,7 +1175,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 .speeds
                 .iter()
                 .map(|sn| {
-                    let speed = xc2c::Speed {
+                    let speed = coolrunner2::Speed {
                         timing: sdb
                             .parts
                             .iter()
@@ -1198,7 +1198,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         })
     }
 
-    let database = xc2c::Database {
+    let database = coolrunner2::Database {
         devices,
         bonds,
         speeds,
@@ -1229,8 +1229,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             "imux_width": device.imux_width,
             "mc_width": device.mc_width,
             "bs_layout": match device.bs_layout {
-                xc2c::BsLayout::Narrow => "NARROW",
-                xc2c::BsLayout::Wide => "WIDE",
+                coolrunner2::BsLayout::Narrow => "NARROW",
+                coolrunner2::BsLayout::Wide => "WIDE",
             },
             "fb_rows": device.fb_rows,
             "fb_cols": device.fb_cols,
@@ -1252,17 +1252,17 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 "pins": serde_json::Map::from_iter(
                     bond.pins.iter().map(|(k, v)| {
                         (k.clone(), match v {
-                            xc2c::Pad::Nc => "NC".to_string(),
-                            xc2c::Pad::Gnd => "GND".to_string(),
-                            xc2c::Pad::VccInt => "VCCINT".to_string(),
-                            xc2c::Pad::VccIo(bank) => format!("VCCIO{bank}"),
-                            xc2c::Pad::VccAux => "VCCAUX".to_string(),
-                            xc2c::Pad::Iob(fb, mc) => format!("IOB_{fb}_{mc}"),
-                            xc2c::Pad::Ipad(ipad) => format!("IPAD{ipad}"),
-                            xc2c::Pad::Tck => "TCK".to_string(),
-                            xc2c::Pad::Tms => "TMS".to_string(),
-                            xc2c::Pad::Tdi => "TDI".to_string(),
-                            xc2c::Pad::Tdo => "TDO".to_string(),
+                            coolrunner2::Pad::Nc => "NC".to_string(),
+                            coolrunner2::Pad::Gnd => "GND".to_string(),
+                            coolrunner2::Pad::VccInt => "VCCINT".to_string(),
+                            coolrunner2::Pad::VccIo(bank) => format!("VCCIO{bank}"),
+                            coolrunner2::Pad::VccAux => "VCCAUX".to_string(),
+                            coolrunner2::Pad::Iob(fb, mc) => format!("IOB_{fb}_{mc}"),
+                            coolrunner2::Pad::Ipad(ipad) => format!("IPAD{ipad}"),
+                            coolrunner2::Pad::Tck => "TCK".to_string(),
+                            coolrunner2::Pad::Tms => "TMS".to_string(),
+                            coolrunner2::Pad::Tdi => "TDI".to_string(),
+                            coolrunner2::Pad::Tdo => "TDO".to_string(),
                         }.into())
                     })
                 ),

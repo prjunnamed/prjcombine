@@ -1,10 +1,10 @@
 use prjcombine_collector::{FeatureId, State};
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, Dir, NodeKindId, NodeTileId, NodeWireId},
     grid::{ColId, DieId, IntWire, LayerId, NodeLoc, RowId, TileIobId},
 };
 use prjcombine_virtex2::iob::IobKind;
-use prjcombine_virtex_bitstream::{BitTile, Reg};
+use prjcombine_xilinx_bitstream::{BitTile, Reg};
 use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use prjcombine_xilinx_naming::db::{IntfWireInNaming, IntfWireOutNaming, NodeRawTileId};
 use rand::prelude::*;

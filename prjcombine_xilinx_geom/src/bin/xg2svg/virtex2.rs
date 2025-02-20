@@ -1,4 +1,4 @@
-use prjcombine_int::grid::RowId;
+use prjcombine_interconnect::grid::RowId;
 use prjcombine_virtex2::expanded::ExpandedDevice;
 use prjcombine_virtex2::grid::{ColumnIoKind, ColumnKind, DcmPairKind, GridKind, RowIoKind};
 use unnamed_entity::EntityVec;

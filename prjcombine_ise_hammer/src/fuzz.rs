@@ -1,5 +1,5 @@
 use prjcombine_hammer::Session;
-use prjcombine_int::db::{BelId, NodeKindId};
+use prjcombine_interconnect::db::{BelId, NodeKindId};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
@@ -141,7 +141,7 @@ impl<'sm, 's, 'a, 'b> FuzzCtx<'sm, 's, 'a, 'b> {
 macro_rules! fuzz_wire {
     ($ctx:ident, (int $tile:expr, $wire:expr)) => {
         $crate::fgen::TileWire::IntWire((
-            <prjcombine_int::db::NodeTileId as unnamed_entity::EntityId>::from_idx($tile),
+            <prjcombine_interconnect::db::NodeTileId as unnamed_entity::EntityId>::from_idx($tile),
             $ctx.backend.egrid.db.get_wire(&$wire[..]),
         ))
     };

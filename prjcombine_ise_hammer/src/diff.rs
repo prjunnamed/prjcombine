@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 
 use prjcombine_collector::Collector;
 use prjcombine_types::tiledb::{DbValue, TileBit, TileItem};
-use prjcombine_virtex_bitstream::Bitstream;
+use prjcombine_xilinx_bitstream::Bitstream;
 use prjcombine_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use unnamed_entity::EntityId;
 

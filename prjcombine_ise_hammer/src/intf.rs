@@ -21,7 +21,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
         for (&wire, intf) in &node.intfs {
             match intf {
-                prjcombine_int::db::IntfInfo::OutputTestMux(inps) => {
+                prjcombine_interconnect::db::IntfInfo::OutputTestMux(inps) => {
                     let mux_name = if node.tiles.len() == 1 {
                         format!("MUX.{}", intdb.wires.key(wire.1))
                     } else {
@@ -53,7 +53,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                         }));
                     }
                 }
-                prjcombine_int::db::IntfInfo::InputDelay => {
+                prjcombine_interconnect::db::IntfInfo::InputDelay => {
                     assert_eq!(node.tiles.len(), 1);
                     let del_name = format!("DELAY.{}", intdb.wires.key(wire.1));
                     for val in ["0", "1"] {
@@ -96,7 +96,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut test_bits: Option<HashMap<_, _>> = None;
         for (&wire, intf) in &node.intfs {
             match intf {
-                prjcombine_int::db::IntfInfo::OutputTestMux(inps) => {
+                prjcombine_interconnect::db::IntfInfo::OutputTestMux(inps) => {
                     let mux_name = if node.tiles.len() == 1 {
                         format!("MUX.{}", intdb.wires.key(wire.1))
                     } else {
@@ -122,7 +122,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                     test_muxes.push((mux_name, mux_inps));
                 }
-                prjcombine_int::db::IntfInfo::InputDelay => {
+                prjcombine_interconnect::db::IntfInfo::InputDelay => {
                     let del_name = format!("DELAY.{}", intdb.wires.key(wire.1));
                     ctx.collect_enum_bool(name, "INTF", &del_name, "0", "1");
                 }

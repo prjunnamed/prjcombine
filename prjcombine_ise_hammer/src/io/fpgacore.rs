@@ -1,6 +1,6 @@
 use prjcombine_collector::{xlat_bit, xlat_bit_wide, xlat_bool, Diff};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::Dir;
+use prjcombine_interconnect::db::Dir;
 use prjcombine_types::tiledb::{TileBit, TileItem};
 
 use crate::{

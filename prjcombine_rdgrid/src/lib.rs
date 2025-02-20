@@ -1,6 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 
-use prjcombine_int::grid::{ColId, RowId};
+use prjcombine_interconnect::grid::{ColId, RowId};
 use prjcombine_rawdump::Part;
 use std::collections::BTreeSet;
 use unnamed_entity::EntityVec;

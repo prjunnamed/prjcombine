@@ -1,7 +1,7 @@
 use bitvec::vec::BitVec;
 use prjcombine_collector::{xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::{BelId, PinDir};
+use prjcombine_interconnect::db::{BelId, PinDir};
 use prjcombine_types::tiledb::TileItemKind;
 use prjcombine_virtex2::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;

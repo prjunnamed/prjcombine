@@ -1,5 +1,5 @@
 use enum_map::EnumMap;
-use prjcombine_int::db::{Dir, IntDb, NodeTileId, TermInfo, TermKind, WireKind};
+use prjcombine_interconnect::db::{Dir, IntDb, NodeTileId, TermInfo, TermKind, WireKind};
 use prjcombine_rawdump::{Part, TkWire};
 use prjcombine_versal_naming::DeviceNaming;
 use prjcombine_versal_naming::{

@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use prjcombine_collector::{xlat_bit, xlat_enum_ocd, Diff, FeatureId, OcdMode};
 use prjcombine_hammer::Session;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, NodeTileId, WireKind},
     grid::RowId,
 };

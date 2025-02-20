@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{ColId, DieId, RowId};
+use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, Part};
 use prjcombine_virtex4::grid::{
     ColumnKind, DisabledPart, Grid, GridKind, GtColumn, GtKind, Interposer, IoColumn, IoKind,

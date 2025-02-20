@@ -4,7 +4,7 @@ use prjcombine_collector::{
     xlat_enum_ocd, Collector, Diff, FeatureData, FeatureId, OcdMode, State,
 };
 use prjcombine_harvester::Harvester;
-use prjcombine_int::db::{MuxInfo, NodeKindId, NodeWireId};
+use prjcombine_interconnect::db::{MuxInfo, NodeKindId, NodeWireId};
 use prjcombine_siliconblue::{
     expanded::{BitOwner, ExpandedDevice},
     grid::GridKind,

@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{ColId, RowId};
+use prjcombine_interconnect::grid::{ColId, RowId};
 use prjcombine_rawdump::Part;
 use prjcombine_virtex4::grid::{ColumnKind, Grid, GridKind, GtColumn, GtKind, HardColumn, RegId};
 use std::collections::BTreeSet;

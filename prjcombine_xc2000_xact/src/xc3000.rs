@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{ColId, DieId, RowId};
+use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{expanded::ExpandedDevice, grid::Grid};
 use unnamed_entity::{EntityId, EntityVec};

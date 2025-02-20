@@ -4,7 +4,7 @@ use prjcombine_collector::{
     OcdMode,
 };
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_types::tiledb::{TileBit, TileItem};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;

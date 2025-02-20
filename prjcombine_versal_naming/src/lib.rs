@@ -1,7 +1,7 @@
 #![allow(clippy::too_many_arguments)]
 
 use enum_map::EnumMap;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{NodeKind, NodeKindId},
     grid::{ColId, DieId, NodeLoc, RowId},
 };

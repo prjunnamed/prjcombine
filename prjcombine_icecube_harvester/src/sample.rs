@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
 use prjcombine_harvester::Sample;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, NodeKindId, NodeWireId, WireId},
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId},
 };

@@ -4,7 +4,7 @@ use std::{
 };
 
 use itertools::Itertools;
-use prjcombine_int::grid::DieId;
+use prjcombine_interconnect::grid::DieId;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_virtex4::{
     bond::Bond,

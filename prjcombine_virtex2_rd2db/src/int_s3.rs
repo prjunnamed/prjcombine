@@ -1,4 +1,4 @@
-use prjcombine_int::db::{Dir, IntDb, NodeTileId, WireKind};
+use prjcombine_interconnect::db::{Dir, IntDb, NodeTileId, WireKind};
 use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_naming::db::{NamingDb, NodeExtPipNaming, NodeRawTileId};
 use unnamed_entity::EntityId;

@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use enum_map::EnumMap;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{
         BelId, BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind,
         WireKind,

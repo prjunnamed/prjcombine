@@ -6,7 +6,7 @@ use prjcombine_collector::{
     xlat_enum, Diff,
 };
 use prjcombine_hammer::Session;
-use prjcombine_int::db::Dir;
+use prjcombine_interconnect::db::Dir;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::grid::{ColumnKind, GridKind};
 use prjcombine_xilinx_geom::ExpandedDevice;

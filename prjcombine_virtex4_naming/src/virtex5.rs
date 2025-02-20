@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{ColId, DieId};
+use prjcombine_interconnect::grid::{ColId, DieId};
 use prjcombine_virtex4::{
     expanded::ExpandedDevice,
     grid::{ColumnKind, GtKind},

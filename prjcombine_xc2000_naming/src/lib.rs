@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{DieId, EdgeIoCoord, LayerId};
+use prjcombine_interconnect::grid::{DieId, EdgeIoCoord, LayerId};
 use prjcombine_xc2000::{
     expanded::ExpandedDevice,
     grid::{Grid, GridKind},

@@ -1,12 +1,12 @@
 use bitvec::vec::BitVec;
 use prjcombine_collector::{Diff, FeatureData, FeatureId, State};
 use prjcombine_hammer::{Backend, FuzzerId};
-use prjcombine_int::db::{BelId, WireId};
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, LayerId, NodeLoc, RowId};
+use prjcombine_interconnect::db::{BelId, WireId};
+use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, LayerId, NodeLoc, RowId};
 use prjcombine_toolchain::Toolchain;
 use prjcombine_types::tiledb::TileBit;
-use prjcombine_virtex_bitstream::{parse, KeyData, KeyDataAes, KeyDataDes, KeySeq};
-use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
+use prjcombine_xilinx_bitstream::{parse, KeyData, KeyDataAes, KeyDataDes, KeySeq};
+use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
 use prjcombine_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,

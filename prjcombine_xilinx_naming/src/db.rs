@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use prjcombine_int::db::{BelId, IntDb, NodeIriId, NodeWireId, WireId};
+use prjcombine_interconnect::db::{BelId, IntDb, NodeIriId, NodeWireId, WireId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{entity_id, EntityId, EntityMap, EntityPartVec, EntityVec};
 

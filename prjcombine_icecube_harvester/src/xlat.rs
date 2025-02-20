@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{Dir, WireId},
     grid::{ColId, DieId, IntWire, RowId},
 };

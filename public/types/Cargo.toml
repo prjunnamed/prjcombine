@@ -1,0 +1,16 @@
+[package]
+name = "prjcombine-types"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+bincode.workspace = true
+zstd.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+bitvec.workspace = true
+itertools.workspace = true
+unnamed_entity.workspace = true
+
+[lints]
+workspace = true

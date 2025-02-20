@@ -1,6 +1,6 @@
 use prjcombine_collector::{xlat_enum_ocd, OcdMode};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 

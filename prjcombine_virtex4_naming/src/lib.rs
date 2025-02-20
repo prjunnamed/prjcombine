@@ -1,5 +1,5 @@
 use enum_map::EnumMap;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::Dir,
     grid::{ColId, DieId, RowId},
 };

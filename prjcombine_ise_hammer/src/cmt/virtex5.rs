@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use bitvec::prelude::*;
 use prjcombine_collector::{extract_bitvec_val_part, xlat_bit, xlat_enum, Diff, OcdMode};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 

@@ -7,9 +7,9 @@ version.workspace = true
 serde.workspace = true
 enum-map.workspace = true
 unnamed_entity.workspace = true
-prjcombine_int.workspace = true
+prjcombine-interconnect.workspace = true
 prjcombine_xilinx_naming.workspace = true
-prjcombine_versal.workspace = true
+prjcombine-versal.workspace = true
 
 [lints]
 workspace = true

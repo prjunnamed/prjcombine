@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{ColId, DieId, EdgeIoCoord, ExpandedDieRef, LayerId, RowId};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedDieRef, LayerId, RowId};
 use prjcombine_virtex::{
     expanded::ExpandedDevice,
     grid::{DisabledPart, Grid, GridKind},

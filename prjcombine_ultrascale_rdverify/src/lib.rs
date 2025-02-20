@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{ColId, DieId, RowId, TileIobId};
+use prjcombine_interconnect::grid::{ColId, DieId, RowId, TileIobId};
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_ultrascale::bond::SharedCfgPin;

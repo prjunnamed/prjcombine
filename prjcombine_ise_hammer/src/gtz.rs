@@ -1,7 +1,7 @@
 use prjcombine_collector::OcdMode;
 use prjcombine_hammer::Session;
-use prjcombine_int::db::Dir;
-use prjcombine_virtex_bitstream::BitTile;
+use prjcombine_interconnect::db::Dir;
+use prjcombine_xilinx_bitstream::BitTile;
 use prjcombine_xilinx_geom::{ExpandedDevice, ExpandedNamedDevice};
 
 use crate::{

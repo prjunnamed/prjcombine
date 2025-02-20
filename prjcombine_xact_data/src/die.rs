@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, path::Path};
 use bytes::{Buf, Bytes};
 use enum_map::{enum_map, EnumMap};
 use ndarray::Array2;
-use prjcombine_int::db::Dir;
+use prjcombine_interconnect::db::Dir;
 use unnamed_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
 
 entity_id! {

@@ -1,7 +1,7 @@
-use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::{DieId, ExpandedGrid};
+use prjcombine_interconnect::db::IntDb;
+use prjcombine_interconnect::grid::{DieId, ExpandedGrid};
 use prjcombine_virtex4::gtz::GtzDb;
-use prjcombine_virtex_bitstream::BitstreamGeom;
+use prjcombine_xilinx_bitstream::BitstreamGeom;
 use prjcombine_xilinx_naming::db::NamingDb;
 use prjcombine_xilinx_naming::grid::ExpandedGridNaming;
 use serde::{Deserialize, Serialize};

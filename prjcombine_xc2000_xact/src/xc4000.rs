@@ -1,4 +1,4 @@
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::BelId,
     grid::{ColId, DieId, RowId},
 };

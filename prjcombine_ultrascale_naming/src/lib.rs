@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{NodeKind, NodeKindId},
     grid::{ColId, DieId, ExpandedGrid, RowId},
 };

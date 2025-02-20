@@ -1,9 +1,9 @@
 use prjcombine_collector::{xlat_bitvec, xlat_bool, xlat_enum_int, OcdMode};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::{Dir, NodeTileId};
+use prjcombine_interconnect::db::{Dir, NodeTileId};
 use prjcombine_types::tiledb::{TileBit, TileItem};
 use prjcombine_virtex::grid::GridKind;
-use prjcombine_virtex_bitstream::Reg;
+use prjcombine_xilinx_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 

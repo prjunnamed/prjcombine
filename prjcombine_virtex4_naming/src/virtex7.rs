@@ -1,5 +1,5 @@
 use enum_map::EnumMap;
-use prjcombine_int::{db::Dir, grid::RowId};
+use prjcombine_interconnect::{db::Dir, grid::RowId};
 use prjcombine_virtex4::{
     expanded::ExpandedDevice,
     grid::{ColumnKind, GtKind, Pcie2Kind, XadcIoLoc},

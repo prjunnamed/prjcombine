@@ -2,7 +2,7 @@ use std::collections::{btree_map, BTreeMap, HashSet};
 
 use prjcombine_collector::{xlat_bit, xlat_enum, xlat_enum_ocd, Diff, OcdMode};
 use prjcombine_hammer::{Fuzzer, Session};
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, NodeTileId, NodeWireId},
     grid::{IntWire, LayerId, NodeLoc},
 };
@@ -592,7 +592,7 @@ impl Prop for IntPip {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: prjcombine_int::grid::NodeLoc,
+        nloc: prjcombine_interconnect::grid::NodeLoc,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let rwt = backend
@@ -643,7 +643,7 @@ impl Prop for ClbSpecialMux {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        mut nloc: prjcombine_int::grid::NodeLoc,
+        mut nloc: prjcombine_interconnect::grid::NodeLoc,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let imux = backend.egrid.node_wire(nloc, self.wire);

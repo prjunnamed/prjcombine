@@ -1,10 +1,10 @@
 use prjcombine_collector::{xlat_bit, xlat_enum_ocd, Diff, OcdMode};
 use prjcombine_hammer::{Fuzzer, Session};
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, NodeTileId, NodeWireId, WireKind},
     grid::{IntWire, LayerId, NodeLoc},
 };
-use prjcombine_virtex_bitstream::BitTile;
+use prjcombine_xilinx_bitstream::BitTile;
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -348,7 +348,7 @@ impl Prop for IntPip {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: prjcombine_int::grid::NodeLoc,
+        nloc: prjcombine_interconnect::grid::NodeLoc,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let rwt = backend

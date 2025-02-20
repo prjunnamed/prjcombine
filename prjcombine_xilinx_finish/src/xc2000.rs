@@ -4,7 +4,7 @@ use std::{
 };
 
 use itertools::Itertools;
-use prjcombine_int::db::{BelInfo, NodeTileId};
+use prjcombine_interconnect::db::{BelInfo, NodeTileId};
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_xc2000::{
     bond::Bond,

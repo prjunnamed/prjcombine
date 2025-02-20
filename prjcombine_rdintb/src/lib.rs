@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
-use prjcombine_int::db::{
+use prjcombine_interconnect::db::{
     BelInfo, BelPin, Dir, IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, NodeIriId, NodeKind,
     NodeKindId, NodeTileId, NodeWireId, PinDir, TermInfo, TermKind, WireId, WireKind,
 };

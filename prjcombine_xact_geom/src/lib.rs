@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
-use prjcombine_int::db::IntDb;
+use prjcombine_interconnect::db::IntDb;
 use prjcombine_xact_naming::db::NamingDb;
 use prjcombine_xc2000::{
     bond::Bond,

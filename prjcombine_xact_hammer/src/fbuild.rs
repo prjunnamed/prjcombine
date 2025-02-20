@@ -1,7 +1,7 @@
 use bitvec::vec::BitVec;
 use prjcombine_collector::FeatureId;
 use prjcombine_hammer::Session;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, NodeKindId},
     grid::NodeLoc,
 };

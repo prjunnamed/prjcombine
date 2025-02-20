@@ -1,0 +1,58 @@
+[workspace]
+resolver = "3"
+members = [
+    "types",
+    "interconnect",
+    "siliconblue",
+    "xilinx-bitstream",
+    "xc2000",
+    "virtex",
+    "virtex2",
+    "spartan6",
+    "virtex4",
+    "ultrascale",
+    "versal",
+    "xc9500",
+    "xpla3",
+    "coolrunner2",
+]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+license = "0BSD OR Apache-2.0"
+repository = "https://github.com/prjunnamed/prjcombine"
+authors = []
+
+[workspace.dependencies]
+prjcombine-types = { path = "types" }
+prjcombine-interconnect = { path = "interconnect" }
+prjcombine-xilinx-bitstream = { path = "xilinx-bitstream" }
+bincode = "1.3"
+unnamed_entity = { version = "0.1.5", features = ["bitvec", "map", "serde"] }
+bitvec = { version = "1.0", features = ["serde"] }
+itertools = "0.14"
+arrayvec = "0.7.6"
+ndarray = { version = "0.16" }
+enum-map = { version = "2.4", features = ["serde"] }
+bimap = "0.6"
+arrayref = "0.3.6"
+des = "0.8.1"
+cbc = "0.1.2"
+aes = "0.8.4"
+sha2 = "0.10.8"
+assert_matches = "1.5"
+# these are slated to be removed, one way or another
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+zstd = "0.13"
+clap = { version = "4.1", features = ["derive"] }
+
+[workspace.lints.clippy]
+collapsible_else_if = "allow"
+bool_to_int_with_if = "allow"
+needless_range_loop = "allow"
+assigning_clones = "allow"
+large_enum_variant = "allow"
+nonminimal_bool = "allow"
+precedence = "allow"

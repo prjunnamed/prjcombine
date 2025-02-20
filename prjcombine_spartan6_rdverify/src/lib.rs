@@ -1,4 +1,4 @@
-use prjcombine_int::db::BelId;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_spartan6::grid::{ColumnKind, DisabledPart, Gts};

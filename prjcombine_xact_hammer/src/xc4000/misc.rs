@@ -1,6 +1,6 @@
 use prjcombine_collector::{xlat_bit, xlat_enum, Diff};
 use prjcombine_hammer::Session;
-use prjcombine_int::grid::{DieId, LayerId};
+use prjcombine_interconnect::grid::{DieId, LayerId};
 use prjcombine_xc2000::grid::GridKind;
 use unnamed_entity::EntityId;
 

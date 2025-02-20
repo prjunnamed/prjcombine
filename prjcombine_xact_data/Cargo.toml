@@ -10,7 +10,7 @@ regex.workspace = true
 enum-map.workspace = true
 clap.workspace = true
 unnamed_entity.workspace = true
-prjcombine_int.workspace = true
+prjcombine-interconnect.workspace = true
 
 [lints]
 workspace = true

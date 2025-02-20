@@ -3,11 +3,11 @@ use std::collections::{BTreeSet, HashMap};
 use bitvec::vec::BitVec;
 use prjcombine_collector::{FeatureId, State};
 use prjcombine_hammer::{BatchValue, Fuzzer, FuzzerGen};
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, NodeKindId},
     grid::NodeLoc,
 };
-use prjcombine_virtex_bitstream::BitTile;
+use prjcombine_xilinx_bitstream::BitTile;
 use prjcombine_xc2000::grid::GridKind;
 use rand::prelude::*;
 

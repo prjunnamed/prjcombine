@@ -4,9 +4,9 @@ use bitvec::prelude::*;
 
 use prjcombine_collector::{xlat_bit, xlat_bool, xlat_enum};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::Dir;
+use prjcombine_interconnect::db::Dir;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
-use prjcombine_virtex_bitstream::Reg;
+use prjcombine_xilinx_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{

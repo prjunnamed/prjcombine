@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, Dir},
     grid::{ColId, EdgeIoCoord, RowId},
 };

@@ -1,0 +1,696 @@
+use prjcombine_interconnect::db::IntDb;
+use prjcombine_interconnect::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId};
+use prjcombine_xilinx_bitstream::{
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
+};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+
+use crate::bond::SharedCfgPin;
+use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord};
+use crate::grid::{CfgRowKind, ColumnKind, DisabledPart, Grid};
+use crate::gtz::GtzDb;
+use bimap::BiHashMap;
+use std::collections::BTreeSet;
+
+struct Expander<'a, 'b> {
+    grid: &'b Grid,
+    die: ExpandedDieRefMut<'a, 'b>,
+    site_holes: Vec<Rect>,
+    int_holes: Vec<Rect>,
+    frame_info: Vec<FrameInfo>,
+    frames: DieFrameGeom,
+    col_cfg: ColId,
+    col_lio: Option<ColId>,
+    col_rio: Option<ColId>,
+    row_dcmiob: Option<RowId>,
+    row_iobdcm: Option<RowId>,
+    io: Vec<IoCoord>,
+    gt: Vec<(DieId, ColId, RowId)>,
+}
+
+impl Expander<'_, '_> {
+    fn is_site_hole(&self, col: ColId, row: RowId) -> bool {
+        for hole in &self.site_holes {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn is_int_hole(&self, col: ColId, row: RowId) -> bool {
+        for hole in &self.int_holes {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn fill_holes(&mut self) {
+        for &(bc, br) in &self.grid.holes_ppc {
+            self.int_holes.push(Rect {
+                col_l: bc + 1,
+                col_r: bc + 8,
+                row_b: br + 1,
+                row_t: br + 23,
+            });
+            self.site_holes.push(Rect {
+                col_l: bc,
+                col_r: bc + 9,
+                row_b: br,
+                row_t: br + 24,
+            });
+        }
+    }
+
+    fn fill_int(&mut self) {
+        for col in self.die.cols() {
+            for row in self.die.rows() {
+                if self.is_int_hole(col, row) {
+                    continue;
+                }
+                self.die.add_xnode((col, row), "INT", &[(col, row)]);
+            }
+        }
+    }
+
+    fn fill_lrio(&mut self) {
+        for col in [self.col_lio.unwrap(), self.col_rio.unwrap()] {
+            for row in self.die.rows() {
+                self.die.add_xnode((col, row), "INTF", &[(col, row)]);
+                self.die.add_xnode((col, row), "IO", &[(col, row)]);
+                let crd_n = IoCoord {
+                    die: self.die.die,
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(0),
+                };
+                let crd_p = IoCoord {
+                    die: self.die.die,
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(1),
+                };
+                self.io.extend([crd_n, crd_p]);
+
+                if row.to_idx() % 32 == 8 {
+                    self.die.add_xnode(
+                        (col, row),
+                        "HCLK_IOIS_DCI",
+                        &[(col, row - 2), (col, row - 1), (col, row)],
+                    );
+                } else if row.to_idx() % 32 == 24 {
+                    self.die.add_xnode(
+                        (col, row),
+                        "HCLK_IOIS_LVDS",
+                        &[(col, row - 2), (col, row - 1), (col, row)],
+                    );
+                }
+            }
+        }
+    }
+
+    fn fill_cfg(&mut self) {
+        let col = self.col_cfg;
+        let row_cfg = self.grid.row_reg_bot(self.grid.reg_cfg) - 8;
+        // CFG_CENTER
+        {
+            let row = row_cfg;
+            self.site_holes.push(Rect {
+                col_l: col,
+                col_r: col + 1,
+                row_b: row,
+                row_t: row + 16,
+            });
+            let crds: [_; 16] = core::array::from_fn(|i| (col, row + i));
+            for crd in crds {
+                self.die.add_xnode(crd, "INTF", &[crd]);
+            }
+            self.die.add_xnode(crds[0], "CFG", &crds);
+        }
+        let mut row_dcmiob = RowId::from_idx(0);
+        let mut row_iobdcm = RowId::from_idx(self.die.rows().len());
+        for &(row, kind) in &self.grid.rows_cfg {
+            match kind {
+                CfgRowKind::Sysmon => {
+                    self.site_holes.push(Rect {
+                        col_l: col,
+                        col_r: col + 1,
+                        row_b: row,
+                        row_t: row + 8,
+                    });
+                    let crds: [_; 8] = core::array::from_fn(|i| (col, row + i));
+                    for crd in crds {
+                        self.die.add_xnode(crd, "INTF", &[crd]);
+                    }
+                    self.die.add_xnode(crds[0], "SYSMON", &crds);
+                    if row < row_cfg {
+                        row_dcmiob = row_dcmiob.max(row + 8);
+                    } else {
+                        row_iobdcm = row_iobdcm.min(row);
+                    }
+                }
+                CfgRowKind::Dcm | CfgRowKind::Ccm => {
+                    self.site_holes.push(Rect {
+                        col_l: col,
+                        col_r: col + 1,
+                        row_b: row,
+                        row_t: row + 4,
+                    });
+                    let crds: [_; 4] = core::array::from_fn(|i| (col, row + i));
+                    for crd in crds {
+                        self.die.add_xnode(crd, "INTF", &[crd]);
+                    }
+                    self.die.add_xnode(
+                        (col, row),
+                        if kind == CfgRowKind::Ccm {
+                            "CCM"
+                        } else {
+                            "DCM"
+                        },
+                        &crds,
+                    );
+                    if row.to_idx() % 8 == 0 {
+                        let bt = if row < row_cfg { 'B' } else { 'T' };
+                        self.die
+                            .add_xnode((col, row), &format!("CLK_DCM_{bt}"), &[]);
+                    }
+                    if row < row_cfg {
+                        row_dcmiob = row_dcmiob.max(row + 4);
+                    } else {
+                        row_iobdcm = row_iobdcm.min(row);
+                    }
+                }
+            }
+        }
+        self.row_dcmiob = Some(row_dcmiob);
+        self.row_iobdcm = Some(row_iobdcm);
+    }
+
+    fn fill_cio(&mut self) {
+        let col = self.col_cfg;
+        for row in self.die.rows() {
+            if !self.is_site_hole(col, row) {
+                self.die.add_xnode((col, row), "INTF", &[(col, row)]);
+                self.die.add_xnode((col, row), "IO", &[(col, row)]);
+                let crd_n = IoCoord {
+                    die: self.die.die,
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(0),
+                };
+                let crd_p = IoCoord {
+                    die: self.die.die,
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(1),
+                };
+                self.io.extend([crd_n, crd_p]);
+            }
+
+            if row.to_idx() % 16 == 8 {
+                self.die.add_xnode((col, row), "CLK_HROW", &[]);
+
+                if row < self.row_dcmiob.unwrap() || row > self.row_iobdcm.unwrap() {
+                    self.die.add_xnode((col, row), "HCLK_DCM", &[]);
+                } else if row == self.row_dcmiob.unwrap() {
+                    self.die
+                        .add_xnode((col, row), "HCLK_DCMIOB", &[(col, row), (col, row + 1)]);
+                } else if row == self.row_iobdcm.unwrap() {
+                    self.die.add_xnode(
+                        (col, row),
+                        "HCLK_IOBDCM",
+                        &[(col, row - 2), (col, row - 1)],
+                    );
+                } else if row == self.grid.row_bufg() + 8 {
+                    self.die.add_xnode(
+                        (col, row),
+                        "HCLK_CENTER_ABOVE_CFG",
+                        &[(col, row), (col, row + 1)],
+                    );
+                } else {
+                    self.die.add_xnode(
+                        (col, row),
+                        "HCLK_CENTER",
+                        &[(col, row - 2), (col, row - 1)],
+                    );
+                }
+            }
+        }
+
+        {
+            let row = self.row_dcmiob.unwrap();
+            self.die.add_xnode((col, row), "CLK_IOB_B", &[]);
+        }
+        {
+            let row: RowId = self.row_iobdcm.unwrap() - 16;
+            self.die.add_xnode((col, row), "CLK_IOB_T", &[]);
+        }
+    }
+
+    fn fill_ppc(&mut self) {
+        for &(bc, br) in &self.grid.holes_ppc {
+            let col_l = bc;
+            let col_r = bc + 8;
+            for dy in 0..22 {
+                let row = br + 1 + dy;
+                self.die
+                    .fill_term_pair((col_l, row), (col_r, row), "PPC.E", "PPC.W");
+            }
+            let row_b = br;
+            let row_t = br + 23;
+            for dx in 0..7 {
+                let col = bc + 1 + dx;
+                self.die.fill_term_pair(
+                    (col, row_b),
+                    (col, row_t),
+                    if dx < 5 { "PPCA.N" } else { "PPCB.N" },
+                    if dx < 5 { "PPCA.S" } else { "PPCB.S" },
+                );
+            }
+            let mut crds = vec![];
+            for dy in 0..24 {
+                crds.push((col_l, br + dy));
+            }
+            for dy in 0..24 {
+                crds.push((col_r, br + dy));
+            }
+            for dx in 1..8 {
+                crds.push((bc + dx, row_b));
+            }
+            for dx in 1..8 {
+                crds.push((bc + dx, row_t));
+            }
+            for &(col, row) in &crds {
+                self.die.add_xnode((col, row), "INTF", &[(col, row)]);
+            }
+            self.die.add_xnode((bc, br), "PPC", &crds);
+        }
+    }
+
+    fn fill_term(&mut self) {
+        let row_b = self.die.rows().next().unwrap();
+        let row_t = self.die.rows().next_back().unwrap();
+        for col in self.die.cols() {
+            self.die.fill_term((col, row_b), "TERM.S");
+            self.die.fill_term((col, row_t), "TERM.N");
+        }
+        let col_l = self.die.cols().next().unwrap();
+        let col_r = self.die.cols().next_back().unwrap();
+        for row in self.die.rows() {
+            self.die.fill_term((col_l, row), "TERM.W");
+            self.die.fill_term((col_r, row), "TERM.E");
+        }
+
+        let term_s = "BRKH.S";
+        let term_n = "BRKH.N";
+        for col in self.die.cols() {
+            for row in self.die.rows() {
+                if row.to_idx() % 8 != 0 || row.to_idx() == 0 {
+                    continue;
+                }
+                if self.is_int_hole(col, row) {
+                    continue;
+                }
+                self.die
+                    .fill_term_pair((col, row - 1), (col, row), term_n, term_s);
+            }
+        }
+
+        let term_w = "CLB_BUFFER.W";
+        let term_e = "CLB_BUFFER.E";
+        for (col, &cd) in &self.grid.columns {
+            if !matches!(cd, ColumnKind::Io | ColumnKind::Cfg) || col == col_l || col == col_r {
+                continue;
+            }
+            for row in self.die.rows() {
+                self.die
+                    .fill_term_pair((col, row), (col + 1, row), term_e, term_w);
+            }
+        }
+    }
+
+    fn fill_clb(&mut self) {
+        for (col, &cd) in &self.grid.columns {
+            if cd != ColumnKind::ClbLM {
+                continue;
+            }
+            for row in self.die.rows() {
+                if self.is_site_hole(col, row) {
+                    continue;
+                }
+                self.die.add_xnode((col, row), "CLB", &[(col, row)]);
+            }
+        }
+    }
+
+    fn fill_bram_dsp(&mut self) {
+        for (col, &cd) in &self.grid.columns {
+            let kind = match cd {
+                ColumnKind::Bram => "BRAM",
+                ColumnKind::Dsp => "DSP",
+                _ => continue,
+            };
+            for row in self.die.rows() {
+                if row.to_idx() % 4 != 0 {
+                    continue;
+                }
+                if self.is_site_hole(col, row) {
+                    continue;
+                }
+                for dy in 0..4 {
+                    self.die
+                        .add_xnode((col, row + dy), "INTF", &[(col, row + dy)]);
+                }
+                self.die.add_xnode(
+                    (col, row),
+                    kind,
+                    &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
+                );
+            }
+        }
+    }
+
+    fn fill_gt(&mut self) {
+        for (col, &cd) in &self.grid.columns {
+            if cd != ColumnKind::Gt {
+                continue;
+            }
+            for reg in self.grid.regs() {
+                if reg.to_idx() % 2 != 0 {
+                    continue;
+                }
+                let row = self.grid.row_reg_bot(reg);
+                let crds: [_; 32] = core::array::from_fn(|i| (col, row + i));
+                for (col, row) in crds {
+                    self.die.add_xnode((col, row), "INTF", &[(col, row)]);
+                }
+                self.die.add_xnode((col, row), "MGT", &crds);
+                self.gt.push((self.die.die, col, row));
+            }
+        }
+    }
+
+    fn fill_hclk(&mut self) {
+        for col in self.die.cols() {
+            for row in self.die.rows() {
+                let crow = self.grid.row_hclk(row);
+                self.die[(col, row)].clkroot = (col, crow);
+                if row.to_idx() % 16 == 8 {
+                    if self.is_int_hole(col, row) {
+                        continue;
+                    }
+                    self.die.add_xnode((col, row), "HCLK", &[(col, row)]);
+                }
+            }
+        }
+    }
+
+    fn fill_frame_info(&mut self) {
+        let mut regs: Vec<_> = self.grid.regs().collect();
+        regs.sort_by_key(|&reg| {
+            let rreg = reg - self.grid.reg_cfg;
+            (rreg < 0, rreg.abs())
+        });
+        for _ in 0..self.grid.regs {
+            self.frames.col_frame.push(EntityVec::new());
+            self.frames.col_width.push(EntityVec::new());
+            self.frames.bram_frame.push(EntityPartVec::new());
+            self.frames.spine_frame.push(0);
+        }
+        for &reg in &regs {
+            let mut major = 0;
+            for &cd in self.grid.columns.values() {
+                // Fixed later for Bram
+                self.frames.col_frame[reg].push(self.frame_info.len());
+                let width = match cd {
+                    ColumnKind::ClbLM => 22,
+                    ColumnKind::Bram => 20,
+                    ColumnKind::Dsp => 21,
+                    ColumnKind::Io | ColumnKind::Cfg => 30,
+                    ColumnKind::Gt => 20,
+                    _ => unreachable!(),
+                };
+                self.frames.col_width[reg].push(width as usize);
+                if cd == ColumnKind::Bram {
+                    continue;
+                }
+                for minor in 0..width {
+                    let mut mask_mode = [FrameMaskMode::None; 4];
+                    if cd == ColumnKind::Gt && minor == 19 {
+                        mask_mode = [FrameMaskMode::DrpV4; 4];
+                    }
+                    if cd == ColumnKind::Cfg {
+                        for &(row, kind) in &self.grid.rows_cfg {
+                            if self.grid.row_to_reg(row) == reg {
+                                let idx = row.to_idx() / 4 % 4;
+                                match kind {
+                                    CfgRowKind::Dcm => {
+                                        if matches!(minor, 19 | 20) {
+                                            mask_mode[idx] = FrameMaskMode::DrpV4;
+                                        }
+                                    }
+                                    CfgRowKind::Ccm => (),
+                                    CfgRowKind::Sysmon => {
+                                        if matches!(minor, 19 | 20 | 21 | 24 | 25 | 26 | 27 | 28) {
+                                            mask_mode[idx] = FrameMaskMode::All;
+                                            mask_mode[idx + 1] = FrameMaskMode::All;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 0,
+                            region: (reg - self.grid.reg_cfg) as i32,
+                            major,
+                            minor,
+                        },
+                        mask_mode: mask_mode.into_iter().collect(),
+                    });
+                }
+                major += 1;
+                if cd == ColumnKind::Cfg {
+                    self.frames.spine_frame[reg] = self.frame_info.len();
+                    for minor in 0..3 {
+                        self.frame_info.push(FrameInfo {
+                            addr: FrameAddr {
+                                typ: 0,
+                                region: (reg - self.grid.reg_cfg) as i32,
+                                major,
+                                minor,
+                            },
+                            mask_mode: [FrameMaskMode::None; 4].into_iter().collect(),
+                        });
+                    }
+                    major += 1;
+                }
+            }
+        }
+        for &reg in &regs {
+            let mut major = 0;
+            for (col, &cd) in &self.grid.columns {
+                if cd != ColumnKind::Bram {
+                    continue;
+                }
+                self.frames.col_frame[reg][col] = self.frame_info.len();
+                for minor in 0..20 {
+                    let mask_mode = if minor == 19 {
+                        FrameMaskMode::BramV4
+                    } else {
+                        FrameMaskMode::None
+                    };
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 1,
+                            region: (reg - self.grid.reg_cfg) as i32,
+                            major,
+                            minor,
+                        },
+                        mask_mode: [mask_mode; 4].into_iter().collect(),
+                    });
+                }
+                major += 1;
+            }
+        }
+        for &reg in &regs {
+            let mut major = 0;
+            for (col, &cd) in &self.grid.columns {
+                if cd != ColumnKind::Bram {
+                    continue;
+                }
+                self.frames.bram_frame[reg].insert(col, self.frame_info.len());
+                for minor in 0..64 {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 2,
+                            region: (reg - self.grid.reg_cfg) as i32,
+                            major,
+                            minor,
+                        },
+                        mask_mode: [FrameMaskMode::All; 4].into_iter().collect(),
+                    });
+                }
+                major += 1;
+            }
+        }
+    }
+}
+
+pub fn expand_grid<'a>(
+    grids: &EntityVec<DieId, &'a Grid>,
+    disabled: &BTreeSet<DisabledPart>,
+    db: &'a IntDb,
+    gdb: &'a GtzDb,
+) -> ExpandedDevice<'a> {
+    let mut egrid = ExpandedGrid::new(db);
+    assert_eq!(grids.len(), 1);
+    let grid = grids.first().unwrap();
+    let col_cfg = grid
+        .columns
+        .iter()
+        .find_map(|(col, &cd)| {
+            if cd == ColumnKind::Cfg {
+                Some(col)
+            } else {
+                None
+            }
+        })
+        .unwrap();
+    let cols_io: Vec<_> = grid
+        .columns
+        .iter()
+        .filter_map(|(col, &cd)| {
+            if cd == ColumnKind::Io {
+                Some(col)
+            } else {
+                None
+            }
+        })
+        .collect();
+    assert_eq!(cols_io.len(), 2);
+    let col_lgt = grid
+        .cols_gt
+        .iter()
+        .find(|gtc| gtc.col < col_cfg)
+        .map(|x| x.col);
+    let col_rgt = grid
+        .cols_gt
+        .iter()
+        .find(|gtc| gtc.col > col_cfg)
+        .map(|x| x.col);
+    let (_, die) = egrid.add_die(grid.columns.len(), grid.regs * 16);
+    let mut expander = Expander {
+        grid,
+        die,
+        int_holes: vec![],
+        site_holes: vec![],
+        frame_info: vec![],
+        frames: DieFrameGeom {
+            col_frame: EntityVec::new(),
+            col_width: EntityVec::new(),
+            bram_frame: EntityVec::new(),
+            spine_frame: EntityVec::new(),
+        },
+        col_lio: Some(cols_io[0]),
+        col_cfg,
+        col_rio: Some(cols_io[1]),
+        row_dcmiob: None,
+        row_iobdcm: None,
+        io: vec![],
+        gt: vec![],
+    };
+
+    expander.fill_holes();
+    expander.fill_int();
+    expander.fill_cfg();
+    expander.fill_lrio();
+    expander.fill_cio();
+    expander.fill_ppc();
+    expander.fill_term();
+    expander.die.fill_main_passes();
+    expander.fill_clb();
+    expander.fill_bram_dsp();
+    expander.fill_gt();
+    expander.fill_hclk();
+    expander.fill_frame_info();
+
+    let int_holes = expander.int_holes;
+    let site_holes = expander.site_holes;
+    let frames = expander.frames;
+    let io = expander.io;
+    let gt = expander.gt;
+    let row_dcmiob = expander.row_dcmiob;
+    let row_iobdcm = expander.row_iobdcm;
+    let die_bs_geom = DieBitstreamGeom {
+        frame_len: 80 * 16 + 32,
+        frame_info: expander.frame_info,
+        bram_frame_len: 0,
+        bram_frame_info: vec![],
+        iob_frame_len: 0,
+    };
+    let bs_geom = BitstreamGeom {
+        kind: DeviceKind::Virtex4,
+        die: [die_bs_geom].into_iter().collect(),
+        die_order: vec![expander.die.die],
+        has_gtz_bot: false,
+        has_gtz_top: false,
+    };
+
+    let mut cfg_io = BiHashMap::new();
+    for i in 0..16 {
+        cfg_io.insert(
+            SharedCfgPin::Data(i as u8),
+            IoCoord {
+                die: DieId::from_idx(0),
+                col: col_cfg,
+                row: grid.row_reg_bot(grid.reg_cfg) - 16 + i / 2,
+                iob: TileIobId::from_idx(i & 1),
+            },
+        );
+    }
+    for i in 0..16 {
+        cfg_io.insert(
+            SharedCfgPin::Data(i as u8 + 16),
+            IoCoord {
+                die: DieId::from_idx(0),
+                col: col_cfg,
+                row: grid.row_reg_bot(grid.reg_cfg) + 8 + i / 2,
+                iob: TileIobId::from_idx(i & 1),
+            },
+        );
+    }
+
+    egrid.finish();
+    ExpandedDevice {
+        kind: grid.kind,
+        grids: grids.clone(),
+        interposer: None,
+        disabled: disabled.clone(),
+        int_holes: [int_holes].into_iter().collect(),
+        site_holes: [site_holes].into_iter().collect(),
+        egrid,
+        bs_geom,
+        frames: [frames].into_iter().collect(),
+        col_cfg,
+        col_clk: col_cfg,
+        col_lio: Some(cols_io[0]),
+        col_rio: Some(cols_io[1]),
+        col_lcio: None,
+        col_rcio: None,
+        col_lgt,
+        col_rgt,
+        col_mgt: None,
+        row_dcmiob,
+        row_iobdcm,
+        io,
+        gt,
+        gtz: Default::default(),
+        cfg_io,
+        banklut: EntityVec::new(),
+        gdb,
+    }
+}

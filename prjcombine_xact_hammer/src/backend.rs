@@ -9,12 +9,12 @@ use std::{
 use bitvec::prelude::*;
 use prjcombine_collector::{Diff, FeatureData, FeatureId, State};
 use prjcombine_hammer::{Backend, FuzzerId};
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::BelId,
     grid::{ExpandedGrid, IntWire, NodeLoc},
 };
 use prjcombine_types::tiledb::TileBit;
-use prjcombine_virtex_bitstream::{parse, BitPos, BitTile, Bitstream, BitstreamGeom, KeyData};
+use prjcombine_xilinx_bitstream::{parse, BitPos, BitTile, Bitstream, BitstreamGeom, KeyData};
 use prjcombine_xact_geom::Device;
 use prjcombine_xact_naming::grid::{ExpandedGridNaming, PipCoords};
 use prjcombine_xc2000::expanded::ExpandedDevice;

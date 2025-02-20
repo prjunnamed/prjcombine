@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{ColId, DieId};
+use prjcombine_interconnect::grid::{ColId, DieId};
 use prjcombine_rawdump::{Coord, NodeOrWire, Part, Tile, TkSiteSlot};
 use prjcombine_versal::grid::{
     BotKind, BramKind, CleKind, Column, ColumnKind, CpmKind, DisabledPart, Grid, GtRowKind,

@@ -6,7 +6,7 @@ use prjcombine_collector::{
     xlat_item_tile_fwd, Diff, OcdMode,
 };
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::grid::GridKind;
 use prjcombine_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};

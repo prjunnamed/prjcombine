@@ -4,7 +4,7 @@ use std::{
 };
 
 use ndarray::Array2;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, Dir, IntDb, MuxInfo, MuxKind, NodeKindId, NodeWireId, WireId, WireKind},
     grid::{ColId, DieId, ExpandedGrid, IntWire, NodeLoc, RowId},
 };

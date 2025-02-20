@@ -1,4 +1,4 @@
-use prjcombine_int::grid::ColId;
+use prjcombine_interconnect::grid::ColId;
 use prjcombine_rawdump::Part;
 use prjcombine_virtex4::grid::{
     ColumnKind, DisabledPart, Grid, GridKind, GtColumn, GtKind, HardColumn, RegId,

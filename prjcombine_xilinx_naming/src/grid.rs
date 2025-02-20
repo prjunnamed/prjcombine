@@ -1,6 +1,6 @@
 use std::collections::{hash_map, BTreeSet, HashMap};
 
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, Dir, NodeIriId, NodeKind, NodeKindId, NodeTileId, TermInfo, WireKind},
     grid::{ColId, DieId, ExpandedGrid, IntWire, LayerId, NodeLoc, NodePip, RowId, TracePip},
 };

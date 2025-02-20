@@ -1,4 +1,4 @@
-use prjcombine_int::db::BelId;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_rawdump::{Part, TkSiteSlot};
 use prjcombine_xc2000::grid::{Grid, GridKind, SharedCfgPin};
 use std::collections::{BTreeMap, BTreeSet, HashMap};

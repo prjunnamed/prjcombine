@@ -5,7 +5,10 @@ edition.workspace = true
 
 [dependencies]
 unnamed_entity.workspace = true
-prjcombine_types.workspace = true
+prjcombine-types.workspace = true
+prjcombine-xc9500.workspace = true
+prjcombine-xpla3.workspace = true
+prjcombine-coolrunner2.workspace = true
 prjcombine_vm6.workspace = true
 prjcombine_ise_dump.workspace = true
 clap.workspace = true
@@ -25,9 +28,6 @@ bincode.workspace = true
 zstd.workspace = true
 enum-map.workspace = true
 prjcombine_sdf.workspace = true
-prjcombine_xc9500.workspace = true
-prjcombine_xpla3.workspace = true
-prjcombine_xc2c.workspace = true
 
 [lints]
 workspace = true

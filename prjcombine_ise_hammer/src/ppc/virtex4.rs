@@ -1,5 +1,5 @@
 use prjcombine_hammer::Session;
-use prjcombine_int::db::PinDir;
+use prjcombine_interconnect::db::PinDir;
 use unnamed_entity::EntityId;
 
 use crate::{

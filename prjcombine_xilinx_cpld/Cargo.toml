@@ -9,7 +9,7 @@ serde.workspace = true
 enum-map.workspace = true
 bitvec.workspace = true
 itertools.workspace = true
-prjcombine_types.workspace = true
+prjcombine-types.workspace = true
 
 [lints]
 workspace = true

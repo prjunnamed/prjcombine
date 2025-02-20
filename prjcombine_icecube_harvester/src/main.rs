@@ -13,7 +13,7 @@ use parts::Part;
 use pkg::get_pkg_pins;
 use prims::{get_prims, Primitive};
 use prjcombine_harvester::Harvester;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, Dir, IntDb, MuxInfo, MuxKind, NodeKindId, NodeTileId, NodeWireId},
     grid::{ColId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };

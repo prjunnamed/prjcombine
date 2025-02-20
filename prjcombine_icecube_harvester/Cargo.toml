@@ -16,11 +16,11 @@ rayon.workspace = true
 rand.workspace = true
 enum-map.workspace = true
 unnamed_entity.workspace = true
-prjcombine_types.workspace = true
-prjcombine_int.workspace = true
+prjcombine-types.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-siliconblue.workspace = true
 prjcombine_collector.workspace = true
 prjcombine_harvester.workspace = true
-prjcombine_siliconblue.workspace = true
 
 [lints]
 workspace = true

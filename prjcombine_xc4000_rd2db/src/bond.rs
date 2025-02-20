@@ -1,4 +1,4 @@
-use prjcombine_int::grid::EdgeIoCoord;
+use prjcombine_interconnect::grid::EdgeIoCoord;
 use prjcombine_rawdump::PkgPin;
 use prjcombine_xc2000::{
     bond::{Bond, BondPin, CfgPin},

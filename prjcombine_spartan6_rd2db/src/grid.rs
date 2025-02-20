@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_int::grid::{ColId, EdgeIoCoord, RowId, TileIobId};
+use prjcombine_interconnect::grid::{ColId, EdgeIoCoord, RowId, TileIobId};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_spartan6::grid::{
     Column, ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, Mcb, McbIo, RegId, Row, SharedCfgPin,

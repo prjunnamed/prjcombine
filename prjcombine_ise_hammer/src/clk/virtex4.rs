@@ -1,6 +1,6 @@
 use prjcombine_collector::{xlat_bit, xlat_bit_wide, xlat_enum_ocd, Diff, OcdMode};
 use prjcombine_hammer::Session;
-use prjcombine_int::{
+use prjcombine_interconnect::{
     db::{BelId, Dir},
     grid::DieId,
 };

@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use prjcombine_int::grid::{ColId, RowId};
+use prjcombine_interconnect::grid::{ColId, RowId};
 use prjcombine_xc2000::{
     expanded::ExpandedDevice,
     grid::{Grid, GridKind},

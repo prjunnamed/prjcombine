@@ -1,6 +1,6 @@
 use prjcombine_collector::xlat_enum;
 use prjcombine_hammer::Session;
-use prjcombine_int::grid::{DieId, LayerId};
+use prjcombine_interconnect::grid::{DieId, LayerId};
 use unnamed_entity::EntityId;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};

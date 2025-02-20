@@ -8,7 +8,7 @@ use std::process::{Command, ExitStatus, Stdio};
 use std::{fs::File, path::Path};
 
 use bitvec::prelude::*;
-use prjcombine_int::db::PinDir;
+use prjcombine_interconnect::db::PinDir;
 use prjcombine_siliconblue::bitstream::Bitstream;
 use prjcombine_siliconblue::grid::GridKind;
 use tempfile::TempDir;

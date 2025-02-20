@@ -1,0 +1,19 @@
+[package]
+name = "prjcombine-xilinx-bitstream"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+arrayvec.workspace = true
+bitvec.workspace = true
+enum-map.workspace = true
+arrayref.workspace = true
+des.workspace = true
+cbc.workspace = true
+aes.workspace = true
+sha2.workspace = true
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+
+[lints]
+workspace = true

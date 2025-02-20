@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use bitvec::vec::BitVec;
 use prjcombine_collector::{xlat_bit, xlat_bitvec, xlat_bool, xlat_enum, Diff};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex::grid::GridKind;
 use prjcombine_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};

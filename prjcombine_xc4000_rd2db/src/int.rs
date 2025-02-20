@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use prjcombine_int::db::{
+use prjcombine_interconnect::db::{
     Dir, IntDb, NodeTileId, NodeWireId, TermInfo, TermKind, WireId, WireKind,
 };
 use prjcombine_rawdump::{Coord, Part};

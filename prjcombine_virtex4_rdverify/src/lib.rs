@@ -1,5 +1,5 @@
-use prjcombine_int::db::BelId;
-use prjcombine_int::grid::RowId;
+use prjcombine_interconnect::db::BelId;
+use prjcombine_interconnect::grid::RowId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_virtex4_naming::ExpandedNamedDevice;

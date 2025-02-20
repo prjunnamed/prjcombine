@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{DieId, EdgeIoCoord};
+use prjcombine_interconnect::grid::{DieId, EdgeIoCoord};
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::grid::GridKind;

@@ -4,7 +4,7 @@ use prjcombine_collector::{
     xlat_enum_ocd, Diff, OcdMode,
 };
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 

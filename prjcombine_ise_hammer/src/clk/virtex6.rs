@@ -1,6 +1,6 @@
 use prjcombine_collector::{xlat_bit, xlat_enum_ocd, Diff, OcdMode};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
+use prjcombine_interconnect::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
