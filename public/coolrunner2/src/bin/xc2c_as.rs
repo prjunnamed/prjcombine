@@ -128,7 +128,7 @@ fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile<BitCoord>, ite
             (item, true)
         };
         let item = &tile.items[name];
-        match &item.kind {
+        match item.kind {
             TileItemKind::Enum { .. } => unreachable!(),
             TileItemKind::BitVec { ref invert } => {
                 assert_eq!(item.bits.len(), 1);
