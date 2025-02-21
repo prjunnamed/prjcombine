@@ -152,9 +152,9 @@ impl Chip {
                     (key, format!("IOB_{fb}_{mc}"))
                 })
             ),
-            imux_bits: self.imux_bits.to_jzon(fb_bit_to_json),
+            imux_bits: self.imux_bits.to_json(fb_bit_to_json),
             uim_ibuf_bits: if let Some(ref bits) = self.uim_ibuf_bits {
-                bits.to_jzon(global_bit_to_json)
+                bits.to_json(global_bit_to_json)
             } else {
                 JsonValue::Null
             },
@@ -219,9 +219,9 @@ impl Database {
             bonds: Vec::from_iter(self.bonds.values().map(Bond::to_json)),
             speeds: Vec::from_iter(self.speeds.values().map(Speed::to_json)),
             parts: Vec::from_iter(self.parts.iter().map(Part::to_json)),
-            mc_bits: self.mc_bits.to_jzon(|bit| bit.into()),
-            fb_bits: self.fb_bits.to_jzon(fb_bit_to_json),
-            global_bits: self.global_bits.to_jzon(global_bit_to_json),
+            mc_bits: self.mc_bits.to_json(|bit| bit.into()),
+            fb_bits: self.fb_bits.to_json(fb_bit_to_json),
+            global_bits: self.global_bits.to_json(global_bit_to_json),
         }
     }
 }

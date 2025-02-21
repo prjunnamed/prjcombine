@@ -174,10 +174,10 @@ impl Chip {
                     (key, format!("IOB_{fb}_{mc}"))
                 })
             ),
-            mc_bits: self.mc_bits.to_jzon(bit_to_json),
-            global_bits: self.global_bits.to_jzon(bit_to_json),
+            mc_bits: self.mc_bits.to_json(bit_to_json),
+            global_bits: self.global_bits.to_json(bit_to_json),
             jed_global_bits: jed_bits_to_json(&self.jed_global_bits),
-            imux_bits: self.imux_bits.to_jzon(bit_to_json),
+            imux_bits: self.imux_bits.to_json(bit_to_json),
         }
     }
 }

@@ -153,9 +153,9 @@ impl Chip {
                     (key, format!("IOB_{fb}_{mc}"))
                 })
             ),
-            global_bits: self.global_bits.to_jzon(bit_to_json),
+            global_bits: self.global_bits.to_json(bit_to_json),
             jed_global_bits: jed_bits_to_json(&self.jed_global_bits),
-            imux_bits: self.imux_bits.to_jzon(bit_to_json),
+            imux_bits: self.imux_bits.to_json(bit_to_json),
         }
     }
 }
@@ -207,8 +207,8 @@ impl Database {
             bonds: Vec::from_iter(self.bonds.values().map(Bond::to_json)),
             speeds: Vec::from_iter(self.speeds.values().map(Speed::to_json)),
             parts: Vec::from_iter(self.parts.iter().map(Part::to_json)),
-            mc_bits: self.mc_bits.to_jzon(bit_to_json),
-            fb_bits: self.fb_bits.to_jzon(bit_to_json),
+            mc_bits: self.mc_bits.to_json(bit_to_json),
+            fb_bits: self.fb_bits.to_json(bit_to_json),
             jed_mc_bits_iob: jed_bits_to_json(&self.jed_mc_bits_iob),
             jed_mc_bits_buried: jed_bits_to_json(&self.jed_mc_bits_buried),
             jed_fb_bits: jed_bits_to_json(&self.jed_fb_bits),

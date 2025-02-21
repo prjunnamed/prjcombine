@@ -10,7 +10,6 @@ use bitvec::vec::BitVec;
 use itertools::*;
 use jzon::JsonValue;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub struct TileBit {
@@ -81,36 +80,7 @@ impl<T: Debug + Copy + Eq + Ord> Tile<T> {
         }
     }
 
-    pub fn to_json(&self, bit_to_json: impl Fn(T) -> serde_json::Value) -> serde_json::Value {
-        serde_json::Map::from_iter(self.items.iter().map(|(k, v)| {
-            (
-                k.clone(),
-                match &v.kind {
-                    TileItemKind::Enum { values } => json!({
-                        "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
-                        "values": serde_json::Map::from_iter(
-                            values.iter().map(|(vk, vv)| {
-                                (vk.clone(), Vec::from_iter(vv.iter().map(|x| *x)).into())
-                            })
-                        ),
-                    }),
-                    TileItemKind::BitVec { invert } => json!({
-                        "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
-                        "invert": if invert.iter().all(|x| !*x) {
-                            json!(false)
-                        } else if invert.iter().all(|x| *x) {
-                            json!(true)
-                        } else {
-                            json!(Vec::from_iter(invert.iter().map(|x| *x)))
-                        },
-                    }),
-                },
-            )
-        }))
-        .into()
-    }
-
-    pub fn to_jzon(&self, bit_to_json: impl Fn(T) -> JsonValue) -> JsonValue {
+    pub fn to_json(&self, bit_to_json: impl Fn(T) -> JsonValue) -> JsonValue {
         jzon::object::Object::from_iter(self.items.iter().map(|(name, item)| {
             (
                 name.clone(),
@@ -262,15 +232,7 @@ impl From<u32> for DbValue {
 }
 
 impl DbValue {
-    pub fn to_json(&self) -> serde_json::Value {
-        match self {
-            DbValue::String(s) => (&s[..]).into(),
-            DbValue::Int(i) => (*i).into(),
-            DbValue::BitVec(bv) => Vec::from_iter(bv.iter().map(|x| *x)).into(),
-        }
-    }
-
-    pub fn to_jzon(&self) -> JsonValue {
+    pub fn to_json(&self) -> JsonValue {
         match self {
             DbValue::String(s) => s.as_str().into(),
             DbValue::BitVec(bv) => Vec::from_iter(bv.iter().map(|x| *x)).into(),
@@ -357,25 +319,6 @@ impl TileDb {
             }
         }
     }
-
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "tiles": serde_json::Map::from_iter(self.tiles.iter().map(|(name, tile)| {
-                (
-                    name.clone(),
-                    tile.to_json(|crd| json!((crd.tile, crd.frame, crd.bit))),
-                )
-            })),
-            "misc_data": serde_json::Map::from_iter(self.misc_data.iter().map(|(k, v)| {
-                (k.clone(), v.to_json())
-            })),
-            "device_data": serde_json::Map::from_iter(self.device_data.iter().map(|(k, v)| {
-                (k.clone(), serde_json::Map::from_iter(v.iter().map(|(kk, vv)| {
-                    (kk.clone(), vv.to_json())
-                })).into())
-            })),
-        })
-    }
 }
 
 impl From<&TileDb> for JsonValue {
@@ -384,15 +327,15 @@ impl From<&TileDb> for JsonValue {
             tiles: jzon::object::Object::from_iter(tiledb.tiles.iter().map(|(name, tile)| {
                 (
                     name.clone(),
-                    tile.to_jzon(|crd| jzon::array![crd.tile, crd.frame, crd.bit]),
+                    tile.to_json(|crd| jzon::array![crd.tile, crd.frame, crd.bit]),
                 )
             })),
             misc_data: jzon::object::Object::from_iter(tiledb.misc_data.iter().map(|(k, v)| {
-                (k.as_str(), v.to_jzon())
+                (k.as_str(), v.to_json())
             })),
             "device_data": jzon::object::Object::from_iter(tiledb.device_data.iter().map(|(k, v)| {
                 (k.as_str(), jzon::object::Object::from_iter(v.iter().map(|(kk, vv)| {
-                    (kk.as_str(), vv.to_jzon())
+                    (kk.as_str(), vv.to_json())
                 })))
             })),
         }

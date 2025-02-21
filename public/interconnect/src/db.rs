@@ -1,7 +1,6 @@
 use enum_map::Enum;
 use jzon::JsonValue;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
 
@@ -307,109 +306,8 @@ impl TermIndex {
     }
 }
 
-impl IntDb {
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "wires": Vec::from_iter(self.wires.iter().map(|(_, name, wire)| {
-                json!({
-                    "name": name,
-                    "kind": wire.to_string(self),
-                })
-            })),
-            "nodes": serde_json::Map::from_iter(self.nodes.iter().map(|(_, name, node)| {
-                (name.into(), json!({
-                    "tiles": node.tiles.len(),
-                    "muxes": serde_json::Map::from_iter(node.muxes.iter().map(|(wt, mux)| {
-                        (
-                            format!("{}:{}", wt.0, self.wires.key(wt.1)),
-                            json!({
-                                "kind": match mux.kind {
-                                    MuxKind::Plain => "PLAIN",
-                                    MuxKind::Inv => "INV",
-                                    MuxKind::OptInv => "OPTINV",
-                                },
-                                "ins": Vec::from_iter(mux.ins.iter().map(|wf| format!(
-                                    "{}:{}", wf.0, self.wires.key(wf.1)
-                                ))),
-                            })
-                        )
-                    })),
-                    "iris": node.iris.len(),
-                    "intfs": serde_json::Map::from_iter(node.intfs.iter().map(|(wt, intf)| {
-                        (
-                            format!("{}:{}", wt.0, self.wires.key(wt.1)),
-                            match intf {
-                                IntfInfo::OutputTestMux(ins) => json!({
-                                    "kind": "OUTPUT_TEST_MUX",
-                                    "ins": Vec::from_iter(ins.iter().map(|wf| format!(
-                                        "{}:{}", wf.0, self.wires.key(wf.1)
-                                    ))),
-                                }),
-                                IntfInfo::OutputTestMuxPass(ins, def) => json!({
-                                    "kind": "OUTPUT_TEST_MUX_PASS",
-                                    "ins": Vec::from_iter(ins.iter().map(|wf| format!(
-                                        "{}:{}", wf.0, self.wires.key(wf.1)
-                                    ))),
-                                    "default": format!("{}:{}", def.0, self.wires.key(def.1)),
-                                }),
-                                IntfInfo::InputDelay => json!({
-                                    "kind": "INPUT_DELAY",
-                                }),
-                                IntfInfo::InputIri(iri, pin) => json!({
-                                    "kind": "INPUT_IRI",
-                                    "iri": iri,
-                                    "pin": pin.to_string(),
-                                }),
-                                IntfInfo::InputIriDelay(iri, pin) => json!({
-                                    "kind": "INPUT_IRI_DELAY",
-                                    "iri": iri,
-                                    "pin": pin.to_string(),
-                                }),
-                            }
-                        )
-                    })),
-                    "bels": Vec::from_iter(node.bels.iter().map(|(_, name, bel)| json!({
-                        "name": name,
-                        "pins": serde_json::Map::from_iter(bel.pins.iter().map(|(pname, pin)| (pname.to_string(), json!({
-                            "wires": Vec::from_iter(pin.wires.iter().map(|wf| format!(
-                                "{}:{}", wf.0, self.wires.key(wf.1)
-                            ))),
-                            "dir": match pin.dir {
-                                PinDir::Input => "INPUT",
-                                PinDir::Output => "OUTPUT",
-                                PinDir::Inout => "INOUT",
-                            },
-                            "is_intf_in": pin.is_intf_in,
-                        })))),
-                    }))),
-                }))
-            })),
-            "terms": serde_json::Map::from_iter(self.terms.iter().map(|(_, name, term)| {
-                (name.into(), json!({
-                    "dir": term.dir.to_string(),
-                    "wires": serde_json::Map::from_iter(term.wires.iter().map(|(wire, ti)|
-                        (self.wires.key(wire).to_string(), match *ti {
-                            TermInfo::BlackHole => json!({
-                                "kind": "BLACKHOLE",
-                            }),
-                            TermInfo::PassNear(wf) => json!({
-                                "kind": "PASS_NEAR",
-                                "wire": self.wires.key(wf),
-                            }),
-                            TermInfo::PassFar(wf) => json!({
-                                "kind": "PASS_FAR",
-                                "wire": self.wires.key(wf),
-                            }),
-                        })
-                    ))
-                }))
-            })),
-        })
-    }
-}
-
 impl MuxInfo {
-    pub fn to_jzon(&self, db: &IntDb) -> JsonValue {
+    pub fn to_json(&self, db: &IntDb) -> JsonValue {
         jzon::object! {
             kind: match self.kind {
                 MuxKind::Plain => "PLAIN",
@@ -424,7 +322,7 @@ impl MuxInfo {
 }
 
 impl IntfInfo {
-    pub fn to_jzon(&self, db: &IntDb) -> JsonValue {
+    pub fn to_json(&self, db: &IntDb) -> JsonValue {
         match self {
             IntfInfo::OutputTestMux(ins) => jzon::object! {
                 kind: "OUTPUT_TEST_MUX",
@@ -458,7 +356,7 @@ impl IntfInfo {
 }
 
 impl BelPin {
-    pub fn to_jzon(&self, db: &IntDb) -> JsonValue {
+    pub fn to_json(&self, db: &IntDb) -> JsonValue {
         jzon::object! {
             wires: Vec::from_iter(self.wires.iter().map(|wf| format!(
                 "{}:{}", wf.0, db.wires.key(wf.1)
@@ -474,28 +372,28 @@ impl BelPin {
 }
 
 impl NodeKind {
-    pub fn to_jzon(&self, db: &IntDb) -> JsonValue {
+    pub fn to_json(&self, db: &IntDb) -> JsonValue {
         jzon::object! {
             tiles: self.tiles.len(),
             muxes: jzon::object::Object::from_iter(self.muxes.iter().map(|(wt, mux)| (
                 format!("{}:{}", wt.0, db.wires.key(wt.1)),
-                mux.to_jzon(db),
+                mux.to_json(db),
             ))),
             iris: self.iris.len(),
             intfs: jzon::object::Object::from_iter(self.intfs.iter().map(|(wt, intf)| (
                 format!("{}:{}", wt.0, db.wires.key(wt.1)),
-                intf.to_jzon(db),
+                intf.to_json(db),
             ))),
             bels: Vec::from_iter(self.bels.iter().map(|(_, name, bel)| jzon::object! {
                 name: name.as_str(),
-                pins: jzon::object::Object::from_iter(bel.pins.iter().map(|(pname, pin)| (pname.as_str(), pin.to_jzon(db)))),
+                pins: jzon::object::Object::from_iter(bel.pins.iter().map(|(pname, pin)| (pname.as_str(), pin.to_json(db)))),
             })),
         }
     }
 }
 
 impl TermInfo {
-    pub fn to_jzon(self, db: &IntDb) -> JsonValue {
+    pub fn to_json(self, db: &IntDb) -> JsonValue {
         match self {
             TermInfo::BlackHole => jzon::object! {
                 kind: "BLACKHOLE",
@@ -513,11 +411,11 @@ impl TermInfo {
 }
 
 impl TermKind {
-    pub fn to_jzon(&self, db: &IntDb) -> JsonValue {
+    pub fn to_json(&self, db: &IntDb) -> JsonValue {
         jzon::object! {
             dir: self.dir.to_string(),
             wires: jzon::object::Object::from_iter(self.wires.iter().map(|(wire, ti)|
-                (db.wires.key(wire).to_string(), ti.to_jzon(db))
+                (db.wires.key(wire).to_string(), ti.to_json(db))
             ))
 
         }
@@ -534,10 +432,10 @@ impl From<&IntDb> for JsonValue {
                 }
             })),
             nodes: jzon::object::Object::from_iter(db.nodes.iter().map(|(_, name, node)| {
-                (name.as_str(), node.to_jzon(db))
+                (name.as_str(), node.to_json(db))
             })),
             terms: jzon::object::Object::from_iter(db.terms.iter().map(|(_, name, term)| {
-                (name.as_str(), term.to_jzon(db))
+                (name.as_str(), term.to_json(db))
             })),
 
         }

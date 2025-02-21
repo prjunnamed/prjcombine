@@ -45,7 +45,6 @@ sha2 = "0.10.8"
 assert_matches = "1.5"
 # these are slated to be removed, one way or another
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
 zstd = "0.13"
 clap = { version = "4.1", features = ["derive"] }
 
