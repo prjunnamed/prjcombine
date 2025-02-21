@@ -8,10 +8,9 @@ use std::{
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_coolrunner2::{BitCoord, Chip, Database};
+use prjcombine_coolrunner2::{Chip, Database};
 use prjcombine_types::{
-    FbId, FbMcId, IoId,
-    tiledb::{Tile, TileItemKind},
+    tiledb::{Tile, TileBit, TileItemKind}, FbId, FbMcId, IoId
 };
 use unnamed_entity::EntityId;
 
@@ -32,7 +31,7 @@ struct PTermData {
     im_f: BitVec,
 }
 
-fn init_tile(tile: &Tile<BitCoord>) -> BTreeMap<String, BitVec> {
+fn init_tile(tile: &Tile<TileBit>) -> BTreeMap<String, BitVec> {
     tile.items
         .iter()
         .map(|(k, v)| (k.clone(), BitVec::repeat(true, v.bits.len())))
@@ -41,7 +40,7 @@ fn init_tile(tile: &Tile<BitCoord>) -> BTreeMap<String, BitVec> {
 
 impl Bitstream {
     fn new(chip: &Chip) -> Self {
-        let fbs = (0..(chip.fb_rows as usize * chip.fb_cols.len() * 2))
+        let fbs = (0..(chip.fb_rows * chip.fb_cols.len() * 2))
             .map(|_| FbData {
                 imux: init_tile(&chip.imux_bits),
                 mcs: core::array::from_fn(|_| init_tile(&chip.mc_bits)),
@@ -102,7 +101,7 @@ impl Bitstream {
     }
 }
 
-fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile<BitCoord>, item: &str) {
+fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile<TileBit>, item: &str) {
     if let Some((name, val)) = item.split_once('=') {
         let item = &tile.items[name];
         let val = match &item.kind {

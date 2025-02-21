@@ -2,10 +2,9 @@ use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_coolrunner2::{BitCoord, Chip, Database};
+use prjcombine_coolrunner2::{Chip, Database};
 use prjcombine_types::{
-    FbId, FbMcId, IoId,
-    tiledb::{Tile, TileItemKind},
+    tiledb::{Tile, TileBit, TileItemKind}, FbId, FbMcId, IoId
 };
 use unnamed_entity::EntityId;
 
@@ -30,7 +29,7 @@ impl Bitstream {
     fn from_jed(fuses: &BitVec, chip: &Chip, db: &Database) -> Self {
         let mut fbs = vec![];
         let mut pos = 0;
-        for fb in 0..(chip.fb_cols.len() * chip.fb_rows as usize * 2) {
+        for fb in 0..(chip.fb_cols.len() * chip.fb_rows * 2) {
             let mut fbd = FbData {
                 imux: BTreeMap::new(),
                 mcs: core::array::from_fn(|_| BTreeMap::new()),
@@ -42,8 +41,8 @@ impl Bitstream {
             };
             for i in 0..40 {
                 let n = format!("IM[{i}].MUX");
-                let data = fuses[pos..(pos + chip.imux_width as usize)].to_bitvec();
-                pos += chip.imux_width as usize;
+                let data = fuses[pos..(pos + chip.imux_width)].to_bitvec();
+                pos += chip.imux_width;
                 fbd.imux.insert(n, data);
             }
             for i in 0..56 {
@@ -148,7 +147,7 @@ fn parse_jed(jed: &str) -> (String, BitVec) {
     (device.unwrap(), res.unwrap())
 }
 
-fn print_tile(data: &BTreeMap<String, BitVec>, tile: &Tile<BitCoord>) {
+fn print_tile(data: &BTreeMap<String, BitVec>, tile: &Tile<TileBit>) {
     for (k, v) in data {
         let item = &tile.items[k];
         print!(" {k}=");

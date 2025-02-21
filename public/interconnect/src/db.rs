@@ -351,7 +351,6 @@ impl IntfInfo {
                 pin: pin.to_string(),
             },
         }
-        .into()
     }
 }
 
