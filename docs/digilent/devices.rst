@@ -56,4 +56,27 @@ The following devices implement the Digilent Adept protocol:
     - supports inter-byte delay
     - supports both shift directions
 
+- Coolrunner II CPLD Starter Board, AT90USB162-based
+
+  - product name: ``CoolRunner 2 Starter 2``
+  - product id: ``0x009``
+  - variant id: ``0x001`` (XC2C256)
+  - firmware id: ``0x26``
+  - DMGT power control capability
+  - one DJTG port
+
+    - JTAG chain consists of the CPLD only
+    - supports set speed; supported frequencies are:
+
+      - 4MHz
+      - 2MHz
+      - 1MHz
+      - 500kHz
+      - 250kHz
+      - 125kHz
+      - 62.5kHz
+
+  - one DEPP port
+  - one DSPI port (the port is not, in fact, connected to anything)
+
 .. todo:: list very incomplete

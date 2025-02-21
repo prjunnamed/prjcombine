@@ -10,5 +10,8 @@ Digilent Adept Programmers
    djtg
    dpio
    depp
+   dstm
    dspi
+   dtwi
+   daci
    devices

@@ -194,7 +194,7 @@ A secret 16-bit nonce must first be set via the ``SET_SECRET_HANDSHAKE``
 request, then this request must be used to get a 32-bit MAC from the device.
 
 - ``bmRequestType``: ``0xc0``
-- ``bRequest``: ``0xe9``
+- ``bRequest``: ``0xec``
 - ``wValue``: 0
 - ``wIndex``: 0
 - ``wLength``: 4
@@ -222,7 +222,13 @@ The following subsystems can exist:
 - ``0x02``: DJTG (JTAG, bit 0 in ``GET_CAPS``)
 - ``0x03``: DPIO (simple GPIO, bit 1 in ``GET_CAPS``)
 - ``0x04``: DEPP (EPP-like parallel port, bit 2 in ``GET_CAPS``)
+- ``0x05``: DSTM (FX2 FIFO interface, bit 3 in ``GET_CAPS``)
 - ``0x06``: DSPI (SPI, bit 4 in ``GET_CAPS``)
+- ``0x07``: DTWI (I²C / SMBus, bit 5 in ``GET_CAPS``)
+- ``0x08``: DACI (UART, bit 6 in ``GET_CAPS``)
+- ``0x09``: DAIO (analog I/O, bit 7 in ``GET_CAPS``)
+- ``0x0a``: DEMC (electro-mechanical control, bit 8 in ``GET_CAPS``)
+- ``0x0c``: DGIO (general sensor and user I/O, bit 10 in ``GET_CAPS``)
 
 .. todo:: list incomplete
 
