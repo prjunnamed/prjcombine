@@ -9,14 +9,14 @@ use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_ultrascale::{
     bond::Bond,
+    chip::{Chip, CleMKind, ColumnKindLeft, DisabledPart, HardRowKind, Interposer, IoRowKind},
     db::{Database, DeviceCombo, Part},
-    grid::{CleMKind, ColumnKindLeft, DisabledPart, Grid, HardRowKind, Interposer, IoRowKind},
 };
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
-    grids: EntityVec<DieId, &'a Grid>,
+    grids: EntityVec<DieId, &'a Chip>,
     interposer: &'a Interposer,
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
@@ -271,7 +271,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         let speeds = EntityVec::from_iter(speeds.into_values());
         let part = Part {
             name: name.into(),
-            grids,
+            chips: grids,
             interposer,
             bonds: dev_bonds,
             speeds,
@@ -290,7 +290,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     // TODO: resort int
 
     Database {
-        grids,
+        chips: grids,
         interposers,
         bonds,
         parts,

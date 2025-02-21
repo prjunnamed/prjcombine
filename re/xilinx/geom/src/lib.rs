@@ -27,7 +27,7 @@ pub enum Grid {
     Virtex2(prjcombine_virtex2::chip::Chip),
     Spartan6(prjcombine_spartan6::chip::Chip),
     Virtex4(prjcombine_virtex4::chip::Chip),
-    Ultrascale(prjcombine_ultrascale::grid::Grid),
+    Ultrascale(prjcombine_ultrascale::chip::Chip),
     Versal(prjcombine_versal::grid::Grid),
 }
 
@@ -56,7 +56,7 @@ pub enum DisabledPart {
     Virtex(prjcombine_virtex::chip::DisabledPart),
     Spartan6(prjcombine_spartan6::chip::DisabledPart),
     Virtex4(prjcombine_virtex4::chip::DisabledPart),
-    Ultrascale(prjcombine_ultrascale::grid::DisabledPart),
+    Ultrascale(prjcombine_ultrascale::chip::DisabledPart),
     Versal(prjcombine_versal::grid::DisabledPart),
 }
 
@@ -71,7 +71,7 @@ pub struct DeviceCombo {
 pub enum Interposer {
     None,
     Virtex4(prjcombine_virtex4::chip::Interposer),
-    Ultrascale(prjcombine_ultrascale::grid::Interposer),
+    Ultrascale(prjcombine_ultrascale::chip::Interposer),
     Versal(prjcombine_versal::grid::Interposer),
 }
 
@@ -326,8 +326,8 @@ impl GeomDb {
             }
             Grid::Ultrascale(grid) => {
                 let intdb = &self.ints[match grid.kind {
-                    prjcombine_ultrascale::grid::GridKind::Ultrascale => "ultrascale",
-                    prjcombine_ultrascale::grid::GridKind::UltrascalePlus => "ultrascaleplus",
+                    prjcombine_ultrascale::chip::ChipKind::Ultrascale => "ultrascale",
+                    prjcombine_ultrascale::chip::ChipKind::UltrascalePlus => "ultrascaleplus",
                 }];
                 let disabled = dev
                     .disabled
@@ -432,8 +432,8 @@ impl GeomDb {
             }
             ExpandedDevice::Ultrascale(edev) => {
                 let ndb = &self.namings[match edev.kind {
-                    prjcombine_ultrascale::grid::GridKind::Ultrascale => "ultrascale",
-                    prjcombine_ultrascale::grid::GridKind::UltrascalePlus => "ultrascaleplus",
+                    prjcombine_ultrascale::chip::ChipKind::Ultrascale => "ultrascale",
+                    prjcombine_ultrascale::chip::ChipKind::UltrascalePlus => "ultrascaleplus",
                 }];
                 let naming = match self.dev_namings[dev.naming] {
                     DeviceNaming::Ultrascale(ref x) => x,

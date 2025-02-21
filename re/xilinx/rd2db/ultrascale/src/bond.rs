@@ -4,15 +4,15 @@ use prjcombine_ultrascale::bond::{
     Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, HbmPin, PsPin, RfAdcPin, RfDacPin,
     SharedCfgPin, SysMonPin,
 };
+use prjcombine_ultrascale::chip::{Chip, ChipKind, DisabledPart, IoRowKind};
 use prjcombine_ultrascale::expanded::{IoCoord, IoDiffKind, IoKind};
-use prjcombine_ultrascale::grid::{DisabledPart, Grid, GridKind, IoRowKind};
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_grid::split_num;
 
-fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin, pgrid: &Grid) -> Option<BondPin> {
+fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin, pgrid: &Chip) -> Option<BondPin> {
     match &pin.func[..] {
         "NC" => return Some(BondPin::Nc),
         "GND" => return Some(BondPin::Gnd),
@@ -178,7 +178,7 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin, pgrid: &Grid) -> Option<BondPin> {
 }
 
 pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
-    let pgrid = endev.edev.grids[endev.edev.interposer.primary];
+    let pgrid = endev.edev.chips[endev.edev.interposer.primary];
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
     let io_lookup: HashMap<_, _> = endev
@@ -195,7 +195,7 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
             gt_channel_lookup.insert(name, (gt.crd, i));
         }
     }
-    let is_zynq = endev.edev.grids[endev.edev.interposer.primary].ps.is_some()
+    let is_zynq = endev.edev.chips[endev.edev.interposer.primary].ps.is_some()
         && !endev.edev.disabled.contains(&DisabledPart::Ps);
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
@@ -367,7 +367,7 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                     Some(SharedCfgPin::SmbAlert) => exp_func += "_SMBALERT",
                     Some(SharedCfgPin::I2cSclk) => exp_func += "_I2C_SCLK",
                     Some(SharedCfgPin::I2cSda) => {
-                        exp_func += if endev.edev.kind == GridKind::Ultrascale || pgrid.has_csec {
+                        exp_func += if endev.edev.kind == ChipKind::Ultrascale || pgrid.has_csec {
                             "_I2C_SDA"
                         } else {
                             "_PERSTN1_I2C_SDA"
@@ -539,10 +539,10 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                 }
             } else if pad.starts_with("SYSMON") {
                 let exp_site = match endev.edev.kind {
-                    GridKind::Ultrascale => {
+                    ChipKind::Ultrascale => {
                         format!("SYSMONE1_X0Y{}", endev.edev.interposer.primary.to_idx())
                     }
-                    GridKind::UltrascalePlus => {
+                    ChipKind::UltrascalePlus => {
                         format!("SYSMONE4_X0Y{}", endev.edev.interposer.primary.to_idx())
                     }
                 };

@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::grid::{
-    ColSide, ColumnKindRight, DisabledPart, Grid, GridKind, HardRowKind, Interposer, IoRowKind,
+use crate::chip::{
+    Chip, ChipKind, ColSide, ColumnKindRight, DisabledPart, HardRowKind, Interposer, IoRowKind,
     RegId,
 };
 
@@ -86,8 +86,8 @@ pub struct GtInfo {
 }
 
 pub struct ExpandedDevice<'a> {
-    pub kind: GridKind,
-    pub grids: EntityVec<DieId, &'a Grid>,
+    pub kind: ChipKind,
+    pub chips: EntityVec<DieId, &'a Chip>,
     pub interposer: &'a Interposer,
     pub egrid: ExpandedGrid<'a>,
     pub disabled: BTreeSet<DisabledPart>,
@@ -106,7 +106,7 @@ pub struct ExpandedDevice<'a> {
 
 impl ExpandedDevice<'_> {
     pub fn in_site_hole(&self, die: DieId, col: ColId, row: RowId, side: ColSide) -> bool {
-        if let Some(ps) = self.grids[die].ps {
+        if let Some(ps) = self.chips[die].ps {
             if row.to_idx() < ps.height() {
                 if col < ps.col {
                     return true;
@@ -116,9 +116,9 @@ impl ExpandedDevice<'_> {
                 }
             }
         }
-        if self.grids[die].has_hbm
+        if self.chips[die].has_hbm
             && side == ColSide::Right
-            && matches!(self.grids[die].columns[col].r, ColumnKindRight::Dsp(_))
+            && matches!(self.chips[die].columns[col].r, ColumnKindRight::Dsp(_))
             && row.to_idx() < 15
         {
             return true;
@@ -129,8 +129,8 @@ impl ExpandedDevice<'_> {
     pub fn get_io_info(&self, io: IoCoord) -> IoInfo {
         match io {
             IoCoord::Hpio(hpio) => {
-                let grid = self.grids[hpio.die];
-                let iocol = grid
+                let chip = self.chips[hpio.die];
+                let iocol = chip
                     .cols_io
                     .iter()
                     .find(|iocol| iocol.col == hpio.col)
@@ -171,7 +171,7 @@ impl ExpandedDevice<'_> {
                     is_gc: matches!(idx, 21 | 22 | 23 | 24 | 26 | 27 | 28 | 29),
                     is_dbc: matches!(idx, 0 | 1 | 6 | 7 | 39 | 40 | 45 | 46),
                     is_qbc: matches!(idx, 13 | 14 | 19 | 20 | 26 | 27 | 32 | 33),
-                    sm_pair: if grid.has_csec {
+                    sm_pair: if chip.has_csec {
                         None
                     } else {
                         match idx {
@@ -197,8 +197,8 @@ impl ExpandedDevice<'_> {
                 }
             }
             IoCoord::Hdio(hdio) => {
-                let grid = self.grids[hdio.die];
-                let hcol = grid
+                let chip = self.chips[hdio.die];
+                let hcol = chip
                     .cols_hard
                     .iter()
                     .find(|hcol| hcol.col == hdio.col + 1)
@@ -251,12 +251,12 @@ impl ExpandedDevice<'_> {
                 }
             }
             IoCoord::HdioLc(hdio) => {
-                let grid = self.grids[hdio.die];
+                let chip = self.chips[hdio.die];
                 let x = self.bankxlut[hdio.col];
                 let y =
                     self.bankylut[hdio.die][hdio.reg] + if hdio.iob.to_idx() >= 42 { 1 } else { 0 };
                 let bank = x + y;
-                let is_ams = hdio.reg == grid.reg_cfg() + 1;
+                let is_ams = hdio.reg == chip.reg_cfg() + 1;
                 IoInfo {
                     kind: IoKind::Hdio,
                     bank,
@@ -304,8 +304,8 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn get_gt_info(&self, gt: GtCoord) -> GtInfo {
-        let grid = self.grids[gt.die];
-        let iocol = grid
+        let chip = self.chips[gt.die];
+        let iocol = chip
             .cols_io
             .iter()
             .find(|iocol| iocol.col == gt.col)
@@ -318,11 +318,11 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn is_hdiolc(&self, crd: HdioCoord) -> bool {
-        let grid = self.grids[crd.die];
-        if grid.cols_io.iter().any(|iocol| iocol.col == crd.col) {
+        let chip = self.chips[crd.die];
+        if chip.cols_io.iter().any(|iocol| iocol.col == crd.col) {
             true
         } else {
-            let hcol = grid
+            let hcol = chip
                 .cols_hard
                 .iter()
                 .find(|hcol| hcol.col == crd.col + 1)

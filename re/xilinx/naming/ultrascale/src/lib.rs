@@ -6,11 +6,11 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_ultrascale::{
-    expanded::{ExpandedDevice, GtCoord, IoCoord},
-    grid::{
-        BramKind, CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DisabledPart, DspKind,
-        GridKind, HardKind, HardRowKind, IoRowKind, PsIntfKind, RegId,
+    chip::{
+        BramKind, ChipKind, CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DisabledPart,
+        DspKind, HardKind, HardRowKind, IoRowKind, PsIntfKind, RegId,
     },
+    expanded::{ExpandedDevice, GtCoord, IoCoord},
 };
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -98,8 +98,8 @@ struct ASwitchGrid {
 fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
     let mut xlut = EntityVec::new();
     let mut asx = 0;
-    let dev_has_hbm = edev.grids.first().unwrap().has_hbm;
-    let pgrid = edev.grids[edev.interposer.primary];
+    let dev_has_hbm = edev.chips.first().unwrap().has_hbm;
+    let pgrid = edev.chips[edev.interposer.primary];
     for &cd in pgrid.columns.values() {
         let cfg = asx;
         let gt = asx;
@@ -130,8 +130,8 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
                     asx += 8;
                 } else if has_hpio {
                     match edev.kind {
-                        GridKind::Ultrascale => asx += 5,
-                        GridKind::UltrascalePlus => asx += 8,
+                        ChipKind::Ultrascale => asx += 5,
+                        ChipKind::UltrascalePlus => asx += 8,
                     }
                 }
             }
@@ -149,8 +149,8 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
                     asx += 8;
                 } else if has_hpio {
                     match edev.kind {
-                        GridKind::Ultrascale => asx += 5,
-                        GridKind::UltrascalePlus => asx += 8,
+                        ChipKind::Ultrascale => asx += 5,
+                        ChipKind::UltrascalePlus => asx += 8,
                     }
                 } else if has_gt {
                     asx += 1;
@@ -188,10 +188,10 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
         });
     }
 
-    let mut ylut: EntityVec<_, _> = edev.grids.ids().map(|_| EntityVec::new()).collect();
+    let mut ylut: EntityVec<_, _> = edev.chips.ids().map(|_| EntityVec::new()).collect();
 
     let mut asy = if dev_has_hbm { 2 } else { 0 };
-    for (die, &grid) in &edev.grids {
+    for (die, &grid) in &edev.chips {
         for reg in grid.regs() {
             let skip = edev.disabled.contains(&DisabledPart::Region(die, reg));
             let has_hdio = grid.cols_hard.iter().any(|x| {
@@ -221,17 +221,17 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
 
             let cfg = asy;
             let mut cmt = asy;
-            if has_cfg || (grid.kind == GridKind::UltrascalePlus && (has_hpio || has_hdiolc_l)) {
+            if has_cfg || (grid.kind == ChipKind::UltrascalePlus && (has_hpio || has_hdiolc_l)) {
                 asy += 1;
             }
             let gt = asy;
             if has_gt {
                 asy += match grid.kind {
-                    GridKind::Ultrascale => 4,
-                    GridKind::UltrascalePlus => 5,
+                    ChipKind::Ultrascale => 4,
+                    ChipKind::UltrascalePlus => 5,
                 };
             }
-            if grid.kind == GridKind::Ultrascale {
+            if grid.kind == ChipKind::Ultrascale {
                 cmt = asy;
                 if has_hpio | has_hrio {
                     asy += 1;
@@ -275,7 +275,7 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
     let mut brxlut = EntityVec::new();
     let mut gtbxlut = EntityVec::new();
     let mut vsxlut = EntityVec::new();
-    let pgrid = edev.grids[edev.interposer.primary];
+    let pgrid = edev.chips[edev.interposer.primary];
 
     let mut brx = 0;
     let mut gtbx = 0;
@@ -286,7 +286,7 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
         let lgtbx = gtbx;
         match cd.l {
             ColumnKindLeft::CleM(CleMKind::ClkBuf) => (),
-            ColumnKindLeft::CleM(CleMKind::Laguna) if edev.kind == GridKind::UltrascalePlus => {
+            ColumnKindLeft::CleM(CleMKind::Laguna) if edev.kind == ChipKind::UltrascalePlus => {
                 brx += 2;
                 gtbx += 2;
             }
@@ -298,18 +298,18 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
                 }
             }
             ColumnKindLeft::Bram(_) | ColumnKindLeft::Uram => match edev.kind {
-                GridKind::Ultrascale => {
+                ChipKind::Ultrascale => {
                     brx += 2;
                     gtbx += 2;
                 }
-                GridKind::UltrascalePlus => {
+                ChipKind::UltrascalePlus => {
                     brx += 4;
                     gtbx += 4;
                     vsx += 2;
                 }
             },
             ColumnKindLeft::Io(_) => {
-                if edev.kind == GridKind::Ultrascale {
+                if edev.kind == ChipKind::Ultrascale {
                     brx += 1;
                 }
                 gtbx += 1;
@@ -319,7 +319,7 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
         let rbrx = brx;
         let rgtbx = gtbx;
         match cd.r {
-            ColumnKindRight::CleL(_) if edev.kind == GridKind::Ultrascale => {
+            ColumnKindRight::CleL(_) if edev.kind == ChipKind::Ultrascale => {
                 brx += 1;
                 gtbx += 1;
             }
@@ -342,11 +342,11 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
         gtbxlut.push((lgtbx, rgtbx));
     }
 
-    let mut gtbylut: EntityVec<_, _> = edev.grids.ids().map(|_| EntityVec::new()).collect();
-    let mut brylut: EntityVec<_, _> = edev.grids.ids().map(|_| EntityVec::new()).collect();
+    let mut gtbylut: EntityVec<_, _> = edev.chips.ids().map(|_| EntityVec::new()).collect();
+    let mut brylut: EntityVec<_, _> = edev.chips.ids().map(|_| EntityVec::new()).collect();
     let mut gtby = 0;
     let mut bry = 0;
-    for (die, &grid) in &edev.grids {
+    for (die, &grid) in &edev.chips {
         for reg in grid.regs() {
             let skip = edev.disabled.contains(&DisabledPart::Region(die, reg));
             let has_hprio = grid.cols_io.iter().any(|x| {
@@ -357,10 +357,10 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
             }) && !skip;
             if has_hprio {
                 match edev.kind {
-                    GridKind::Ultrascale => {
+                    ChipKind::Ultrascale => {
                         gtbylut[die].push((gtby, gtby + 24));
                     }
-                    GridKind::UltrascalePlus => {
+                    ChipKind::UltrascalePlus => {
                         gtbylut[die].push((gtby, gtby + 18));
                     }
                 }
@@ -397,7 +397,7 @@ struct IoGrid {
 }
 
 fn make_io_grid(edev: &ExpandedDevice) -> IoGrid {
-    let pgrid = edev.grids[edev.interposer.primary];
+    let pgrid = edev.chips[edev.interposer.primary];
 
     let mut iox = 0;
     let mut hpio_xlut = EntityPartVec::new();
@@ -406,7 +406,7 @@ fn make_io_grid(edev: &ExpandedDevice) -> IoGrid {
         if let ColumnKindLeft::Io(idx) = cd.l {
             let mut has_hdiolc = false;
             let mut has_hpio = false;
-            for grid in edev.grids.values() {
+            for grid in edev.chips.values() {
                 let iocol = &grid.cols_io[idx];
                 if iocol
                     .regs
@@ -453,10 +453,10 @@ fn make_io_grid(edev: &ExpandedDevice) -> IoGrid {
         is_cfg_io_hrio = ioc_cfg.regs[pgrid.reg_cfg()] == IoRowKind::Hrio;
     }
 
-    let mut hdio_ylut: EntityVec<_, _> = edev.grids.ids().map(|_| EntityPartVec::new()).collect();
-    let mut hpio_ylut: EntityVec<_, _> = edev.grids.ids().map(|_| EntityPartVec::new()).collect();
+    let mut hdio_ylut: EntityVec<_, _> = edev.chips.ids().map(|_| EntityPartVec::new()).collect();
+    let mut hpio_ylut: EntityVec<_, _> = edev.chips.ids().map(|_| EntityPartVec::new()).collect();
     let mut ioy = 0;
-    for (die, &grid) in &edev.grids {
+    for (die, &grid) in &edev.chips {
         for reg in grid.regs() {
             let skip = edev.disabled.contains(&DisabledPart::Region(die, reg));
             let has_hdio = grid
@@ -526,7 +526,7 @@ impl ExpandedNamedDevice<'_> {
     pub fn get_io_name(&self, io: IoCoord) -> &str {
         match io {
             IoCoord::Hpio(hpio) => {
-                let grid = self.edev.grids[hpio.die];
+                let grid = self.edev.chips[hpio.die];
                 let iocol = grid
                     .cols_io
                     .iter()
@@ -552,7 +552,7 @@ impl ExpandedNamedDevice<'_> {
                     .unwrap()
             }
             IoCoord::Hdio(hdio) => {
-                let grid = self.edev.grids[hdio.die];
+                let grid = self.edev.chips[hdio.die];
                 let (row, idx) = if hdio.iob.to_idx() < 12 {
                     (grid.row_reg_bot(hdio.reg), hdio.iob.to_idx())
                 } else {
@@ -568,7 +568,7 @@ impl ExpandedNamedDevice<'_> {
                     .unwrap()
             }
             IoCoord::HdioLc(hdio) => {
-                let grid = self.edev.grids[hdio.die];
+                let grid = self.edev.chips[hdio.die];
                 let (row, idx) = if hdio.iob.to_idx() < 42 {
                     (grid.row_reg_bot(hdio.reg), hdio.iob.to_idx())
                 } else {
@@ -589,7 +589,7 @@ impl ExpandedNamedDevice<'_> {
     pub fn get_gts(&self) -> Vec<Gt<'_>> {
         let mut res = vec![];
         for &crd in &self.edev.gt {
-            let grid = self.edev.grids[crd.die];
+            let grid = self.edev.chips[crd.die];
             let gt_info = self.edev.get_gt_info(crd);
             let row = grid.row_reg_rclk(crd.reg);
             let (name_common, name_channel) = match gt_info.kind {
@@ -705,42 +705,42 @@ fn get_bram_tk(
     col: ColId,
     row: RowId,
 ) -> &'static str {
-    let grid = edev.grids[die];
+    let grid = edev.chips[die];
     let in_laguna = has_laguna && grid.is_laguna_row(row);
     let cd = grid.columns[col];
     match (grid.kind, cd.l, col < grid.col_cfg()) {
-        (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::Plain), true) => "RCLK_BRAM_L",
-        (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::Plain), false) => "RCLK_BRAM_R",
-        (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::BramClmp), true) => {
+        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::Plain), true) => "RCLK_BRAM_L",
+        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::Plain), false) => "RCLK_BRAM_R",
+        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::BramClmp), true) => {
             "RCLK_RCLK_BRAM_L_BRAMCLMP_FT"
         }
-        (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::AuxClmp), true) => {
+        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::AuxClmp), true) => {
             "RCLK_RCLK_BRAM_L_AUXCLMP_FT"
         }
-        (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::BramClmpMaybe), true) => {
+        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::BramClmpMaybe), true) => {
             if in_laguna {
                 "RCLK_BRAM_L"
             } else {
                 "RCLK_RCLK_BRAM_L_BRAMCLMP_FT"
             }
         }
-        (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::AuxClmpMaybe), true) => {
+        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::AuxClmpMaybe), true) => {
             if in_laguna {
                 "RCLK_BRAM_L"
             } else {
                 "RCLK_RCLK_BRAM_L_AUXCLMP_FT"
             }
         }
-        (GridKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Plain), true) => {
+        (ChipKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Plain), true) => {
             "RCLK_BRAM_INTF_L"
         }
-        (GridKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Plain), false) => {
+        (ChipKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Plain), false) => {
             "RCLK_BRAM_INTF_R"
         }
-        (GridKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Td), true) => {
+        (ChipKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Td), true) => {
             "RCLK_BRAM_INTF_TD_L"
         }
-        (GridKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Td), false) => {
+        (ChipKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Td), false) => {
             "RCLK_BRAM_INTF_TD_R"
         }
         _ => unreachable!(),
@@ -756,7 +756,7 @@ pub fn name_device<'a>(
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
 
     let mut int_grid = ngrid.bel_multi_grid(|_, node, _| node == "INT");
-    if edev.kind == GridKind::Ultrascale
+    if edev.kind == ChipKind::Ultrascale
         && edev.disabled.contains(&DisabledPart::Region(
             DieId::from_idx(0),
             RegId::from_idx(0),
@@ -844,7 +844,7 @@ pub fn name_device<'a>(
     let rfdac_grid = ngrid.bel_multi_grid(|_, node, _| node == "RFDAC_R");
 
     for die in egrid.dies() {
-        let grid = edev.grids[die.die];
+        let grid = edev.chips[die.die];
         let has_laguna = grid
             .columns
             .values()
@@ -888,26 +888,26 @@ pub fn name_device<'a>(
                             ngrid.name_node(nloc, "INT", [format!("INT_X{x}Y{y}")]);
                         }
                         "INTF.W" => match grid.kind {
-                            GridKind::Ultrascale => {
+                            ChipKind::Ultrascale => {
                                 ngrid.name_node(
                                     nloc,
                                     "INTF.W",
                                     [format!("INT_INTERFACE_L_X{x}Y{y}")],
                                 );
                             }
-                            GridKind::UltrascalePlus => {
+                            ChipKind::UltrascalePlus => {
                                 ngrid.name_node(nloc, "INTF.W", [format!("INT_INTF_L_X{x}Y{y}")]);
                             }
                         },
                         "INTF.E" => match grid.kind {
-                            GridKind::Ultrascale => {
+                            ChipKind::Ultrascale => {
                                 ngrid.name_node(
                                     nloc,
                                     "INTF.E",
                                     [format!("INT_INTERFACE_R_X{x}Y{y}")],
                                 );
                             }
-                            GridKind::UltrascalePlus => {
+                            ChipKind::UltrascalePlus => {
                                 ngrid.name_node(nloc, "INTF.E", [format!("INT_INTF_R_X{x}Y{y}")]);
                             }
                         },
@@ -927,7 +927,7 @@ pub fn name_device<'a>(
                                         );
                                     }
                                     _ => {
-                                        let kind = if grid.kind == GridKind::Ultrascale {
+                                        let kind = if grid.kind == ChipKind::Ultrascale {
                                             "INT_INT_INTERFACE_GT_LEFT_FT"
                                         } else {
                                             "INT_INTF_L_TERM_GT"
@@ -945,7 +945,7 @@ pub fn name_device<'a>(
                             | ColumnKindLeft::DfeC
                             | ColumnKindLeft::DfeDF
                             | ColumnKindLeft::DfeE => {
-                                let kind = if grid.kind == GridKind::Ultrascale {
+                                let kind = if grid.kind == ChipKind::Ultrascale {
                                     "INT_INTERFACE_PCIE_L"
                                 } else {
                                     "INT_INTF_L_PCIE4"
@@ -956,7 +956,7 @@ pub fn name_device<'a>(
                         },
                         "INTF.E.DELAY" => match grid.columns[col].r {
                             ColumnKindRight::Gt(_) | ColumnKindRight::Io(_) => {
-                                let kind = if grid.kind == GridKind::Ultrascale {
+                                let kind = if grid.kind == ChipKind::Ultrascale {
                                     "INT_INTERFACE_GT_R"
                                 } else {
                                     "INT_INTF_R_TERM_GT"
@@ -975,7 +975,7 @@ pub fn name_device<'a>(
                             | ColumnKindRight::DfeC
                             | ColumnKindRight::DfeDF
                             | ColumnKindRight::DfeE => {
-                                let kind = if grid.kind == GridKind::Ultrascale {
+                                let kind = if grid.kind == ChipKind::Ultrascale {
                                     "INT_INTERFACE_PCIE_R"
                                 } else {
                                     "INT_INTF_R_PCIE4"
@@ -1017,7 +1017,7 @@ pub fn name_device<'a>(
                             let rx = rclk_int_grid.xlut[col];
                             let ry = rclk_int_grid.ylut[die.die][row];
                             match grid.kind {
-                                GridKind::Ultrascale => {
+                                ChipKind::Ultrascale => {
                                     nnode.add_bel(
                                         0,
                                         format!("BUFCE_LEAF_X16_X{rx}Y{y}", y = ry * 2),
@@ -1027,7 +1027,7 @@ pub fn name_device<'a>(
                                         format!("BUFCE_LEAF_X16_X{rx}Y{y}", y = ry * 2 + 1),
                                     );
                                 }
-                                GridKind::UltrascalePlus => {
+                                ChipKind::UltrascalePlus => {
                                     for i in 0..16 {
                                         nnode.add_bel(
                                             i,
@@ -1065,10 +1065,10 @@ pub fn name_device<'a>(
                         }
                         "CLEM" => {
                             let tk = match (grid.kind, col < grid.col_cfg()) {
-                                (GridKind::Ultrascale, true) => "CLE_M",
-                                (GridKind::Ultrascale, false) => "CLE_M_R",
-                                (GridKind::UltrascalePlus, true) => "CLEM",
-                                (GridKind::UltrascalePlus, false) => "CLEM_R",
+                                (ChipKind::Ultrascale, true) => "CLE_M",
+                                (ChipKind::Ultrascale, false) => "CLE_M_R",
+                                (ChipKind::UltrascalePlus, true) => "CLEM",
+                                (ChipKind::UltrascalePlus, false) => "CLEM_R",
                             };
                             let nnode = ngrid.name_node(nloc, "CLEM", [format!("{tk}_X{x}Y{y}")]);
                             if !(row.to_idx() % 60 == 59
@@ -1096,8 +1096,8 @@ pub fn name_device<'a>(
                         }
                         "LAGUNA" => {
                             let (x, tk) = match grid.kind {
-                                GridKind::Ultrascale => (x, "LAGUNA_TILE"),
-                                GridKind::UltrascalePlus => (x - 1, "LAG_LAG"),
+                                ChipKind::Ultrascale => (x, "LAGUNA_TILE"),
+                                ChipKind::UltrascalePlus => (x - 1, "LAG_LAG"),
                             };
                             let nnode = ngrid.name_node(nloc, "LAGUNA", [format!("{tk}_X{x}Y{y}")]);
                             let lx0 = laguna_grid.xlut[col] * 2;
@@ -1168,13 +1168,13 @@ pub fn name_device<'a>(
                             let ColumnKindLeft::Hard(_, idx) = grid.columns[col].l else {
                                 unreachable!()
                             };
-                            let x = if grid.kind == GridKind::UltrascalePlus && !hdio_cfg_only[idx]
+                            let x = if grid.kind == ChipKind::UltrascalePlus && !hdio_cfg_only[idx]
                             {
                                 x
                             } else {
                                 x - 1
                             };
-                            let tk = if grid.kind == GridKind::Ultrascale {
+                            let tk = if grid.kind == ChipKind::Ultrascale {
                                 "CFG_CFG"
                             } else if !grid.has_csec {
                                 "CFG_CONFIG"
@@ -1198,14 +1198,14 @@ pub fn name_device<'a>(
                             let ColumnKindLeft::Hard(_, idx) = grid.columns[col].l else {
                                 unreachable!()
                             };
-                            let x = if grid.kind == GridKind::UltrascalePlus
+                            let x = if grid.kind == ChipKind::UltrascalePlus
                                 && (!hdio_cfg_only[idx] || grid.has_csec)
                             {
                                 x
                             } else {
                                 x - 1
                             };
-                            let tk = if grid.kind == GridKind::Ultrascale {
+                            let tk = if grid.kind == ChipKind::Ultrascale {
                                 "CFGIO_IOB"
                             } else if !grid.has_csec {
                                 "CFGIO_IOB20"
@@ -1220,7 +1220,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(1, format!("PMV2_X{sx}Y{sy}"));
                             nnode.add_bel(2, format!("PMVIOB_X{sx}Y{sy}"));
                             nnode.add_bel(3, format!("MTBF3_X{sx}Y{sy}"));
-                            if grid.kind == GridKind::UltrascalePlus {
+                            if grid.kind == ChipKind::UltrascalePlus {
                                 nnode.add_bel(4, format!("CFGIO_SITE_X{sx}Y{sy}"));
                             }
                         }
@@ -1228,7 +1228,7 @@ pub fn name_device<'a>(
                             let ColumnKindLeft::Hard(_, idx) = grid.columns[col].l else {
                                 unreachable!()
                             };
-                            let x = if grid.kind == GridKind::UltrascalePlus
+                            let x = if grid.kind == ChipKind::UltrascalePlus
                                 && (!hdio_cfg_only[idx] || grid.has_csec)
                             {
                                 x
@@ -1239,7 +1239,7 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = ams_grid.xlut[col];
                             let sy = ams_grid.ylut[die.die][row];
-                            let bk = if grid.kind == GridKind::Ultrascale {
+                            let bk = if grid.kind == ChipKind::Ultrascale {
                                 "SYSMONE1"
                             } else {
                                 "SYSMONE4"
@@ -1270,7 +1270,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(0, format!("PCIE4CE4_X{sx}Y{sy}"));
                         }
                         "CMAC" => {
-                            let name = if grid.kind == GridKind::Ultrascale {
+                            let name = if grid.kind == ChipKind::Ultrascale {
                                 let x = if col == grid.col_cfg() { x - 1 } else { x };
                                 format!("CMAC_CMAC_FT_X{x}Y{y}")
                             } else {
@@ -1279,14 +1279,14 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = cmac_grid.xlut[col];
                             let sy = cmac_grid.ylut[die.die][row];
-                            if grid.kind == GridKind::Ultrascale {
+                            if grid.kind == ChipKind::Ultrascale {
                                 nnode.add_bel(0, format!("CMAC_SITE_X{sx}Y{sy}"));
                             } else {
                                 nnode.add_bel(0, format!("CMACE4_X{sx}Y{sy}"));
                             }
                         }
                         "ILKN" => {
-                            let name = if grid.kind == GridKind::Ultrascale {
+                            let name = if grid.kind == ChipKind::Ultrascale {
                                 format!("ILMAC_ILMAC_FT_X{x}Y{y}", x = x - 1)
                             } else {
                                 format!("ILKN_ILKN_FT_X{x}Y{y}", x = x - 1)
@@ -1294,7 +1294,7 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = ilkn_grid.xlut[col];
                             let sy = ilkn_grid.ylut[die.die][row];
-                            if grid.kind == GridKind::Ultrascale {
+                            if grid.kind == ChipKind::Ultrascale {
                                 nnode.add_bel(0, format!("ILKN_SITE_X{sx}Y{sy}"));
                             } else {
                                 nnode.add_bel(0, format!("ILKNE4_X{sx}Y{sy}"));
@@ -2009,43 +2009,43 @@ pub fn name_device<'a>(
                         "GTH_L" | "GTH_R" | "GTY_L" | "GTY_R" | "GTF_L" | "GTF_R" | "GTM_L"
                         | "GTM_R" | "HSADC_R" | "HSDAC_R" | "RFADC_R" | "RFDAC_R" => {
                             let (tk, gtk, gtk_grid) = match (grid.kind, &kind[..]) {
-                                (GridKind::Ultrascale, "GTH_L") => {
+                                (ChipKind::Ultrascale, "GTH_L") => {
                                     ("GTH_QUAD_LEFT_FT", "GTH", &gth_grid)
                                 }
-                                (GridKind::Ultrascale, "GTY_L") => {
+                                (ChipKind::Ultrascale, "GTY_L") => {
                                     ("GTY_QUAD_LEFT_FT", "GTY", &gty_grid)
                                 }
-                                (GridKind::Ultrascale, "GTH_R") => ("GTH_R", "GTH", &gth_grid),
-                                (GridKind::UltrascalePlus, "GTH_L") => {
+                                (ChipKind::Ultrascale, "GTH_R") => ("GTH_R", "GTH", &gth_grid),
+                                (ChipKind::UltrascalePlus, "GTH_L") => {
                                     ("GTH_QUAD_LEFT", "GTH", &gth_grid)
                                 }
-                                (GridKind::UltrascalePlus, "GTH_R") => {
+                                (ChipKind::UltrascalePlus, "GTH_R") => {
                                     ("GTH_QUAD_RIGHT", "GTH", &gth_grid)
                                 }
-                                (GridKind::UltrascalePlus, "GTY_L") => ("GTY_L", "GTY", &gty_grid),
-                                (GridKind::UltrascalePlus, "GTY_R") => ("GTY_R", "GTY", &gty_grid),
-                                (GridKind::UltrascalePlus, "GTF_L") => {
+                                (ChipKind::UltrascalePlus, "GTY_L") => ("GTY_L", "GTY", &gty_grid),
+                                (ChipKind::UltrascalePlus, "GTY_R") => ("GTY_R", "GTY", &gty_grid),
+                                (ChipKind::UltrascalePlus, "GTF_L") => {
                                     ("GTFY_QUAD_LEFT_FT", "GTF", &gtf_grid)
                                 }
-                                (GridKind::UltrascalePlus, "GTF_R") => {
+                                (ChipKind::UltrascalePlus, "GTF_R") => {
                                     ("GTFY_QUAD_RIGHT_FT", "GTF", &gtf_grid)
                                 }
-                                (GridKind::UltrascalePlus, "GTM_L") => {
+                                (ChipKind::UltrascalePlus, "GTM_L") => {
                                     ("GTM_DUAL_LEFT_FT", "GTM", &gtm_grid)
                                 }
-                                (GridKind::UltrascalePlus, "GTM_R") => {
+                                (ChipKind::UltrascalePlus, "GTM_R") => {
                                     ("GTM_DUAL_RIGHT_FT", "GTM", &gtm_grid)
                                 }
-                                (GridKind::UltrascalePlus, "HSADC_R") => {
+                                (ChipKind::UltrascalePlus, "HSADC_R") => {
                                     ("HSADC_HSADC_RIGHT_FT", "HSADC", &hsadc_grid)
                                 }
-                                (GridKind::UltrascalePlus, "HSDAC_R") => {
+                                (ChipKind::UltrascalePlus, "HSDAC_R") => {
                                     ("HSDAC_HSDAC_RIGHT_FT", "HSDAC", &hsdac_grid)
                                 }
-                                (GridKind::UltrascalePlus, "RFADC_R") => {
+                                (ChipKind::UltrascalePlus, "RFADC_R") => {
                                     ("RFADC_RFADC_RIGHT_FT", "RFADC", &rfadc_grid)
                                 }
-                                (GridKind::UltrascalePlus, "RFDAC_R") => {
+                                (ChipKind::UltrascalePlus, "RFDAC_R") => {
                                     ("RFDAC_RFDAC_RIGHT_FT", "RFDAC", &rfdac_grid)
                                 }
                                 _ => unreachable!(),
@@ -2057,7 +2057,7 @@ pub fn name_device<'a>(
                             for i in 0..24 {
                                 nnode.add_bel(i, format!("BUFG_GT_X{gtx}Y{y}", y = gty * 24 + i));
                             }
-                            if grid.kind == GridKind::Ultrascale {
+                            if grid.kind == ChipKind::Ultrascale {
                                 for i in 0..11 {
                                     nnode.add_bel(
                                         24 + i,
@@ -2164,30 +2164,30 @@ pub fn name_device<'a>(
                         "RCLK_V_SINGLE_L.CLE" => {
                             let is_l = col < grid.col_cfg();
                             let tk = match (grid.kind, grid.columns[col].l, is_l) {
-                                (GridKind::Ultrascale, ColumnKindLeft::CleL, true) => "RCLK_CLEL_L",
-                                (GridKind::Ultrascale, ColumnKindLeft::CleL, false) => {
+                                (ChipKind::Ultrascale, ColumnKindLeft::CleL, true) => "RCLK_CLEL_L",
+                                (ChipKind::Ultrascale, ColumnKindLeft::CleL, false) => {
                                     "RCLK_CLEL_R"
                                 }
-                                (GridKind::Ultrascale, ColumnKindLeft::CleM(_), true) => {
+                                (ChipKind::Ultrascale, ColumnKindLeft::CleM(_), true) => {
                                     "RCLK_CLE_M_L"
                                 }
-                                (GridKind::Ultrascale, ColumnKindLeft::CleM(_), false) => {
+                                (ChipKind::Ultrascale, ColumnKindLeft::CleM(_), false) => {
                                     "RCLK_CLE_M_R"
                                 }
-                                (GridKind::UltrascalePlus, ColumnKindLeft::CleL, true) => {
+                                (ChipKind::UltrascalePlus, ColumnKindLeft::CleL, true) => {
                                     "RCLK_CLEL_L_L"
                                 }
-                                (GridKind::UltrascalePlus, ColumnKindLeft::CleL, false) => {
+                                (ChipKind::UltrascalePlus, ColumnKindLeft::CleL, false) => {
                                     "RCLK_CLEL_L_R"
                                 }
-                                (GridKind::UltrascalePlus, ColumnKindLeft::CleM(subkind), true) => {
+                                (ChipKind::UltrascalePlus, ColumnKindLeft::CleM(subkind), true) => {
                                     if grid.is_dmc && subkind == CleMKind::Laguna {
                                         "RCLK_CLEM_DMC_L"
                                     } else {
                                         "RCLK_CLEM_L"
                                     }
                                 }
-                                (GridKind::UltrascalePlus, ColumnKindLeft::CleM(_), false) => {
+                                (ChipKind::UltrascalePlus, ColumnKindLeft::CleM(_), false) => {
                                     "RCLK_CLEM_R"
                                 }
                                 _ => unreachable!(),
@@ -2208,16 +2208,16 @@ pub fn name_device<'a>(
                             let bry = clk_grid.brylut[die.die][reg];
                             let mut gtbx = clk_grid.gtbxlut[col].0;
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
-                            if grid.kind == GridKind::UltrascalePlus
+                            if grid.kind == ChipKind::UltrascalePlus
                                 && grid.columns[col].l == ColumnKindLeft::CleM(CleMKind::Laguna)
                             {
                                 brx += 1;
                                 gtbx += 1;
                             }
                             match grid.kind {
-                                GridKind::Ultrascale => nnode
+                                ChipKind::Ultrascale => nnode
                                     .add_bel(0, format!("BUFCE_ROW_X{brx}Y{y}", y = bry * 25 + 24)),
-                                GridKind::UltrascalePlus => {
+                                ChipKind::UltrascalePlus => {
                                     nnode.add_bel(0, format!("BUFCE_ROW_FSR_X{brx}Y{bry}"))
                                 }
                             }
@@ -2312,8 +2312,8 @@ pub fn name_device<'a>(
                             let mut brx = clk_grid.brxlut[col].1;
                             let mut gtbx = clk_grid.gtbxlut[col].1;
                             let tk = match grid.kind {
-                                GridKind::Ultrascale => "RCLK_DSP_L",
-                                GridKind::UltrascalePlus => {
+                                ChipKind::Ultrascale => "RCLK_DSP_L",
+                                ChipKind::UltrascalePlus => {
                                     let is_l = col < grid.col_cfg();
                                     let mut is_dc12 = grid.is_dc12();
                                     if grid.is_nocfg() && !grid.has_csec {
@@ -2370,7 +2370,7 @@ pub fn name_device<'a>(
                             let bry = clk_grid.brylut[die.die][reg];
                             for i in 0..2 {
                                 match grid.kind {
-                                    GridKind::Ultrascale => nnode.add_bel(
+                                    ChipKind::Ultrascale => nnode.add_bel(
                                         i,
                                         format!(
                                             "BUFCE_ROW_X{x}Y{y}",
@@ -2378,7 +2378,7 @@ pub fn name_device<'a>(
                                             y = bry * 25 + 24
                                         ),
                                     ),
-                                    GridKind::UltrascalePlus => nnode.add_bel(
+                                    ChipKind::UltrascalePlus => nnode.add_bel(
                                         i,
                                         format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,),
                                     ),
@@ -2474,8 +2474,8 @@ pub fn name_device<'a>(
                         }
                         "RCLK_SPLITTER" => {
                             let tk = match grid.kind {
-                                GridKind::Ultrascale => "RCLK_DSP_CLKBUF_L",
-                                GridKind::UltrascalePlus => "RCLK_DSP_INTF_CLKBUF_L",
+                                ChipKind::Ultrascale => "RCLK_DSP_CLKBUF_L",
+                                ChipKind::UltrascalePlus => "RCLK_DSP_INTF_CLKBUF_L",
                             };
                             ngrid.name_node(
                                 nloc,
@@ -2495,11 +2495,11 @@ pub fn name_device<'a>(
                                 ColumnKindLeft::Hard(_, idx) => {
                                     let col_hard = &grid.cols_hard[idx];
                                     match (grid.kind, col_hard.regs[reg]) {
-                                        (GridKind::Ultrascale, HardRowKind::Cfg) => {
+                                        (ChipKind::Ultrascale, HardRowKind::Cfg) => {
                                             format!("CFG_CFG_X{x}Y{y}", x = x - 1, y = y - 30)
                                         }
                                         (_, HardRowKind::Ams) => {
-                                            let x = if grid.kind == GridKind::UltrascalePlus
+                                            let x = if grid.kind == ChipKind::UltrascalePlus
                                                 && (!hdio_cfg_only[idx] || grid.has_csec)
                                             {
                                                 x
@@ -2508,21 +2508,21 @@ pub fn name_device<'a>(
                                             };
                                             format!("RCLK_AMS_CFGIO_X{x}Y{y}", y = y - 1)
                                         }
-                                        (GridKind::Ultrascale, HardRowKind::Pcie) => {
+                                        (ChipKind::Ultrascale, HardRowKind::Pcie) => {
                                             format!("PCIE_X{x}Y{y}", x = x - 1, y = y - 30)
                                         }
-                                        (GridKind::Ultrascale, HardRowKind::Cmac) => {
+                                        (ChipKind::Ultrascale, HardRowKind::Cmac) => {
                                             let x = if col == grid.col_cfg() { x - 1 } else { x };
                                             format!("CMAC_CMAC_FT_X{x}Y{y}", y = y - 30)
                                         }
-                                        (GridKind::Ultrascale, HardRowKind::Ilkn) => {
+                                        (ChipKind::Ultrascale, HardRowKind::Ilkn) => {
                                             format!(
                                                 "ILMAC_ILMAC_FT_X{x}Y{y}",
                                                 x = x - 1,
                                                 y = y - 30
                                             )
                                         }
-                                        (GridKind::UltrascalePlus, HardRowKind::Cfg) => {
+                                        (ChipKind::UltrascalePlus, HardRowKind::Cfg) => {
                                             let x = if hdio_cfg_only[idx] { x - 1 } else { x };
                                             let tkn = if grid.has_csec {
                                                 "CSEC_CONFIG_FT"
@@ -2531,34 +2531,34 @@ pub fn name_device<'a>(
                                             };
                                             format!("{tkn}_X{x}Y{y}", y = y - 30)
                                         }
-                                        (GridKind::UltrascalePlus, HardRowKind::Pcie) => {
+                                        (ChipKind::UltrascalePlus, HardRowKind::Pcie) => {
                                             format!(
                                                 "PCIE4_PCIE4_FT_X{x}Y{y}",
                                                 x = x - 1,
                                                 y = y - 30
                                             )
                                         }
-                                        (GridKind::UltrascalePlus, HardRowKind::PciePlus) => {
+                                        (ChipKind::UltrascalePlus, HardRowKind::PciePlus) => {
                                             format!(
                                                 "PCIE4C_PCIE4C_FT_X{x}Y{y}",
                                                 x = x - 1,
                                                 y = y - 30
                                             )
                                         }
-                                        (GridKind::UltrascalePlus, HardRowKind::Cmac) => {
+                                        (ChipKind::UltrascalePlus, HardRowKind::Cmac) => {
                                             format!("CMAC_X{x}Y{y}", x = x - 1, y = y - 30)
                                         }
-                                        (GridKind::UltrascalePlus, HardRowKind::Ilkn) => {
+                                        (ChipKind::UltrascalePlus, HardRowKind::Ilkn) => {
                                             format!("ILKN_ILKN_FT_X{x}Y{y}", x = x - 1, y = y - 30)
                                         }
-                                        (GridKind::UltrascalePlus, HardRowKind::DfeA) => {
+                                        (ChipKind::UltrascalePlus, HardRowKind::DfeA) => {
                                             format!(
                                                 "DFE_DFE_TILEA_FT_X{x}Y{y}",
                                                 x = x - 1,
                                                 y = y - 30
                                             )
                                         }
-                                        (GridKind::UltrascalePlus, HardRowKind::DfeG) => {
+                                        (ChipKind::UltrascalePlus, HardRowKind::DfeG) => {
                                             format!(
                                                 "DFE_DFE_TILEG_FT_X{x}Y{y}",
                                                 x = x - 1,

@@ -1,8 +1,8 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
-use prjcombine_ultrascale::expanded::ExpandedDevice;
-use prjcombine_ultrascale::grid::{
+use prjcombine_ultrascale::chip::{
     CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, HardRowKind, IoRowKind,
 };
+use prjcombine_ultrascale::expanded::ExpandedDevice;
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::drawer::Drawer;
@@ -24,7 +24,7 @@ const H_HBM: f64 = 40.;
 pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     let mut x = 0.;
     let mut col_x = EntityVec::new();
-    let pgrid = edev.grids.first().unwrap();
+    let pgrid = edev.chips.first().unwrap();
     x += W_TERM;
     for (col, &cd) in &pgrid.columns {
         if pgrid.cols_vbrk.contains(&col) {
@@ -64,7 +64,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     let mut y = 0.;
     let mut die_y: EntityVec<DieId, _> = EntityVec::new();
     let mut row_y = EntityVec::new();
-    for (_, grid) in &edev.grids {
+    for (_, grid) in &edev.chips {
         let term_y_b = y;
         let mut die_row_y = EntityVec::new();
         y += H_TERM;
@@ -122,7 +122,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     drawer.bel_class("dfeg", "#cc0033");
     drawer.bel_class("sdfec", "#cc3333");
 
-    for (die, grid) in &edev.grids {
+    for (die, grid) in &edev.chips {
         for (col, &cd) in &grid.columns {
             match cd.l {
                 ColumnKindLeft::CleL | ColumnKindLeft::CleM(_) => {

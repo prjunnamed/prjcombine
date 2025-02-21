@@ -10,7 +10,7 @@ entity_id! {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub enum GridKind {
+pub enum ChipKind {
     Ultrascale,
     UltrascalePlus,
 }
@@ -29,8 +29,8 @@ pub struct Interposer {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Grid {
-    pub kind: GridKind,
+pub struct Chip {
+    pub kind: ChipKind,
     pub columns: EntityVec<ColId, Column>,
     pub cols_vbrk: BTreeSet<ColId>,
     pub cols_fsr_gap: BTreeSet<ColId>,
@@ -203,7 +203,7 @@ pub enum DisabledPart {
     HbmLeft,
 }
 
-impl Grid {
+impl Chip {
     pub fn row_to_reg(&self, row: RowId) -> RegId {
         RegId::from_idx(row.to_idx() / 60)
     }
@@ -282,8 +282,8 @@ impl Grid {
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "kind": match self.kind {
-                GridKind::Ultrascale => "ultrascale",
-                GridKind::UltrascalePlus => "ultrascaleplus",
+                ChipKind::Ultrascale => "ultrascale",
+                ChipKind::UltrascalePlus => "ultrascaleplus",
             },
             "columns": Vec::from_iter(self.columns.values().map(|column| json!({
                 "l": match column.l {
@@ -379,7 +379,7 @@ impl Grid {
     }
 }
 
-impl std::fmt::Display for Grid {
+impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\tKIND: {v:?}", v = self.kind)?;
         if let Some(ps) = self.ps {

@@ -1,10 +1,10 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId, TileIobId};
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_rawdump::{Coord, NodeId, Part, TkSiteSlot};
-use prjcombine_ultrascale::grid::{
-    BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart,
-    DspKind, Grid, GridKind, HardColumn, HardKind, HardRowKind, Interposer, IoColumn, IoRowKind,
-    Ps, PsIntfKind, RegId,
+use prjcombine_ultrascale::chip::{
+    BramKind, Chip, ChipKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight,
+    DisabledPart, DspKind, HardColumn, HardKind, HardRowKind, Interposer, IoColumn, IoRowKind, Ps,
+    PsIntfKind, RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityVec};
@@ -573,7 +573,7 @@ fn prepend_reg<T: Copy>(v: &mut EntityVec<RegId, T>, x: T) {
 pub fn make_grids(
     rd: &Part,
 ) -> (
-    EntityVec<DieId, Grid>,
+    EntityVec<DieId, Chip>,
     Interposer,
     BTreeSet<DisabledPart>,
     DeviceNaming,
@@ -587,9 +587,9 @@ pub fn make_grids(
     rows_slr_split.insert(rd.height);
     let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
     let kind = if is_plus {
-        GridKind::UltrascalePlus
+        ChipKind::UltrascalePlus
     } else {
-        GridKind::Ultrascale
+        ChipKind::Ultrascale
     };
 
     let mut rclk_alt_pins = BTreeMap::new();
@@ -689,7 +689,7 @@ pub fn make_grids(
                 .is_empty();
 
         assert_eq!(int.rows.len() % 60, 0);
-        grids.push(Grid {
+        grids.push(Chip {
             kind,
             columns,
             cols_vbrk,
