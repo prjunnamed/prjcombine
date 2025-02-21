@@ -76,12 +76,7 @@ impl Database {
                     "bonds": serde_json::Map::from_iter(part.bonds.iter().map(|(_, name, bond)| (name.clone(), bond.to_idx().into()))),
                     "speeds": part.speeds,
                     "combos": part.combos,
-                    "disabled": Vec::from_iter(part.disabled.iter().map(|dis| match dis {
-                        DisabledPart::Emac(row) => format!("EMAC:{row}"),
-                        DisabledPart::GtxRow(reg) => format!("GTX:{reg}"),
-                        DisabledPart::SysMon => "SYSMON".to_string(),
-                        DisabledPart::Gtp => "GTP".to_string(),
-                    })),
+                    "disabled": Vec::from_iter(part.disabled.iter().map(|dis| dis.to_string())),
                 })
             })),
             "int": self.int.to_json(),

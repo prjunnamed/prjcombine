@@ -113,6 +113,17 @@ pub enum DisabledPart {
     Gtp,
 }
 
+impl std::fmt::Display for DisabledPart {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DisabledPart::Emac(row) => write!(f, "EMAC:{row}"),
+            DisabledPart::GtxRow(reg) => write!(f, "GTX:{reg}"),
+            DisabledPart::SysMon => write!(f, "SYSMON"),
+            DisabledPart::Gtp => write!(f, "GTP"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Interposer {
     pub primary: DieId,

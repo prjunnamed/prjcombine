@@ -191,6 +191,19 @@ pub enum DisabledPart {
     Region(DieId, RegId),
 }
 
+impl std::fmt::Display for DisabledPart {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DisabledPart::HardIp(die, col, reg) => write!(f, "HARD_IP:{die}:{col}:{reg}"),
+            DisabledPart::HardIpSite(die, col, reg) => write!(f, "HARD_IP_SITE:{die}:{col}:{reg}"),
+            DisabledPart::HdioDpll(die, col, reg) => write!(f, "HDIO_DPLL:{die}:{col}:{reg}"),
+            DisabledPart::Column(die, col) => write!(f, "COLUMN:{die}:{col}"),
+            DisabledPart::GtRight(die, reg) => write!(f, "GT_RIGHT:{die}:{reg}"),
+            DisabledPart::Region(die, reg) => write!(f, "REGION:{die}:{reg}"),
+        }
+    }
+}
+
 impl Chip {
     pub const ROWS_PER_REG: usize = 48;
 

@@ -203,6 +203,27 @@ pub enum DisabledPart {
     HbmLeft,
 }
 
+impl std::fmt::Display for DisabledPart {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DisabledPart::Region(die, reg) => write!(f, "REGION:{die}:{reg}"),
+            DisabledPart::TopRow(die, reg) => write!(f, "TOP_ROW:{die}:{reg}"),
+            DisabledPart::HardIp(die, col, reg) => write!(f, "HARD_IP:{die}:{col}:{reg}"),
+            DisabledPart::Gt(die, col, reg) => write!(f, "GT:{die}:{col}:{reg}"),
+            DisabledPart::GtBufs(die, col, reg) => write!(f, "GT_BUFS:{die}:{col}:{reg}"),
+            DisabledPart::GtmSpareBufs(die, col, reg) => write!(f, "GTM_SPARE_BUFS:{die}:{col}:{reg}"),
+            DisabledPart::HdioIob(die, col, reg, iob) => write!(f, "HDIO:{die}:{col}:{reg}:{iob}"),
+            DisabledPart::HpioIob(die, col, reg, iob) => write!(f, "HPIO:{die}:{col}:{reg}:{iob}"),
+            DisabledPart::HpioDci(die, col, reg) => write!(f, "HPIO_DCI:{die}:{col}:{reg}"),
+            DisabledPart::Dfe => write!(f, "DFE"),
+            DisabledPart::Sdfec => write!(f, "SDFEC"),
+            DisabledPart::Ps => write!(f, "PS"),
+            DisabledPart::Vcu => write!(f, "VCU"),
+            DisabledPart::HbmLeft => write!(f, "HBM_LEFT"),
+        }
+    }
+}
+
 impl Chip {
     pub fn row_to_reg(&self, row: RowId) -> RegId {
         RegId::from_idx(row.to_idx() / 60)

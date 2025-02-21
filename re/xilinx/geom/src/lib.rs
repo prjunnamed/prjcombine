@@ -60,6 +60,18 @@ pub enum DisabledPart {
     Versal(prjcombine_versal::chip::DisabledPart),
 }
 
+impl std::fmt::Display for DisabledPart {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DisabledPart::Virtex(dis) => write!(f, "{dis}"),
+            DisabledPart::Spartan6(dis) => write!(f, "{dis}"),
+            DisabledPart::Virtex4(dis) => write!(f, "{dis}"),
+            DisabledPart::Ultrascale(dis) => write!(f, "{dis}"),
+            DisabledPart::Versal(dis) => write!(f, "{dis}"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DeviceCombo {
     pub name: String,

@@ -92,7 +92,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             for disabled in &dev.disabled {
-                println!("\tDISABLED {disabled:?}");
+                println!("\tDISABLED {disabled}");
             }
             for bond in dev.bonds.values() {
                 println!("\tBOND {n}: {i}", n = bond.name, i = bond.bond);
