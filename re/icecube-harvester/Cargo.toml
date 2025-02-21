@@ -15,6 +15,7 @@ clap.workspace = true
 rayon.workspace = true
 rand.workspace = true
 enum-map.workspace = true
+jzon.workspace = true
 unnamed_entity.workspace = true
 prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true

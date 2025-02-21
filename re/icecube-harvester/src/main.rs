@@ -9,6 +9,7 @@ use clap::Parser;
 use collect::collect;
 use generate::{GeneratorConfig, generate};
 use intdb::{MiscNodeBuilder, make_intdb};
+use jzon::JsonValue;
 use parts::Part;
 use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
@@ -1447,7 +1448,7 @@ impl PartContext<'_> {
             .unwrap();
         std::fs::write(
             format!("databases/{}.json", self.part.name),
-            db.to_json().to_string(),
+            JsonValue::from(&db).to_string(),
         )
         .unwrap();
     }

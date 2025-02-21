@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
 use itertools::Itertools;
+use jzon::JsonValue;
 use prjcombine_interconnect::{db::Dir, grid::EdgeIoCoord};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum CfgPin {
@@ -95,13 +95,15 @@ impl Bond {
         }
         ExpandedBond { bond: self, ios }
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "pins": serde_json::Map::from_iter(
-                self.pins.iter().map(|(pin, pad)| (pin.clone(),  pad.to_string().into()))
+impl From<&Bond> for JsonValue {
+    fn from(bond: &Bond) -> Self {
+        jzon::object! {
+            pins: jzon::object::Object::from_iter(
+                bond.pins.iter().map(|(k, v)| (k, v.to_string()))
             ),
-        })
+        }
     }
 }
 

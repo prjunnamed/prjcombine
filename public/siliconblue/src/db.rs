@@ -1,9 +1,9 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
+use jzon::JsonValue;
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_types::tiledb::TileDb;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 
 use crate::{bond::Bond, chip::Chip};
@@ -45,21 +45,28 @@ impl Database {
         cf.finish()?;
         Ok(())
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "chips": Vec::from_iter(self.chips.values().map(|chip| chip.to_json())),
-            "bonds": Vec::from_iter(self.bonds.values().map(|bond| bond.to_json())),
-            "parts": Vec::from_iter(self.parts.iter().map(|part| {
-                json!({
-                    "name": part.name,
-                    "chip": part.chip,
-                    "bonds": serde_json::Map::from_iter(part.bonds.iter().map(|(name, bond)| (name.clone(), bond.to_idx().into()))),
-                    "speeds": part.speeds,
-                })
-            })),
-            "int": self.int.to_json(),
-            "tiles": self.tiles.to_json(),
-        })
+impl From<&Part> for JsonValue {
+    fn from(part: &Part) -> Self {
+        jzon::object! {
+            name: part.name.as_str(),
+            chip: part.chip.to_idx(),
+            bonds: jzon::object::Object::from_iter(part.bonds.iter().map(|(name, bond)| (name.as_str(), bond.to_idx()))),
+            speeds: Vec::from_iter(part.speeds.iter().map(|x| x.as_str())),
+            temps: Vec::from_iter(part.temps.iter().map(|x| x.as_str())),
+        }
+    }
+}
+
+impl From<&Database> for JsonValue {
+    fn from(db: &Database) -> Self {
+        jzon::object! {
+            chips: Vec::from_iter(db.chips.values()),
+            bonds: Vec::from_iter(db.bonds.values()),
+            parts: Vec::from_iter(db.parts.iter()),
+            int: &db.int,
+            tiles: &db.tiles,
+        }
     }
 }

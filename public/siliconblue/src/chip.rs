@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use jzon::JsonValue;
 use prjcombine_interconnect::{
     db::{BelId, Dir, NodeTileId},
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use unnamed_entity::{EntityId, EntityIds, EntityVec};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -334,10 +334,21 @@ impl Chip {
             54
         }
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "kind": match self.kind {
+impl From<&ExtraNode> for JsonValue {
+    fn from(node: &ExtraNode) -> Self {
+        jzon::object! {
+            io: Vec::from_iter(node.io.iter().map(|io| io.to_string())),
+            tiles: Vec::from_iter(node.tiles.values().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
+        }
+    }
+}
+
+impl From<&Chip> for JsonValue {
+    fn from(chip: &Chip) -> Self {
+        jzon::object! {
+            kind: match chip.kind {
                 ChipKind::Ice65L01 => "ice65l01",
                 ChipKind::Ice65L04 => "ice65l04",
                 ChipKind::Ice65L08 => "ice65l08",
@@ -351,19 +362,21 @@ impl Chip {
                 ChipKind::Ice40T01 => "ice40t01",
                 ChipKind::Ice40T05 => "ice40t05",
             },
-            "columns": self.columns,
-            "col_bio_split": self.col_bio_split,
-            "cols_bram": self.cols_bram,
-            "rows": self.rows,
-            "row_mid": self.row_mid,
-            "rows_colbuf": self.rows_colbuf,
-            "cfg_io": serde_json::Map::from_iter(self.cfg_io.iter().map(|(k, io)| {
-                (k.to_string(), io.to_string().into())
+            columns: chip.columns,
+            col_bio_split: chip.col_bio_split.to_idx(),
+            cols_bram: Vec::from_iter(chip.cols_bram.iter().map(|col| col.to_idx())),
+            rows: chip.rows,
+            row_mid: chip.row_mid.to_idx(),
+            rows_colbuf: Vec::from_iter(chip.rows_colbuf.iter().map(|(row_mid, row_start, row_end)| {
+                jzon::array![row_mid.to_idx(), row_start.to_idx(), row_end.to_idx()]
             })),
-            "io_iob": serde_json::Map::from_iter(self.io_iob.iter().map(|(&k, &v)| (k.to_string(), json!(v.to_string())))),
-            "io_od": Vec::from_iter(self.io_od.iter().map(|crd| crd.to_string())),
-            "extra_nodes": serde_json::Map::from_iter(self.extra_nodes.iter().map(|(&k, v)| (k.to_string(), json!(v)))),
-        })
+            cfg_io: jzon::object::Object::from_iter(chip.cfg_io.iter().map(|(k, io)| {
+                (k.to_string(), io.to_string())
+            })),
+            io_iob: jzon::object::Object::from_iter(chip.io_iob.iter().map(|(&k, &v)| (k.to_string(), v.to_string()))),
+            io_od: Vec::from_iter(chip.io_od.iter().map(|crd| crd.to_string())),
+            extra_nodes: jzon::object::Object::from_iter(chip.extra_nodes.iter().map(|(&k, v)| (k.to_string(), v))),
+        }
     }
 }
 
