@@ -1,6 +1,7 @@
 use std::{collections::btree_map, path::PathBuf};
 
 use clap::Parser;
+use jzon::JsonValue;
 use prjcombine_re_xilinx_geom::Chip;
 use prjcombine_types::tiledb::TileDb;
 
@@ -74,17 +75,17 @@ fn main() {
             Chip::Xc2000(_) => {
                 let db = xc2000::finish(xact, Some(geom), tiledb);
                 db.to_file(&args.db).unwrap();
-                std::fs::write(args.json, db.to_json().to_string()).unwrap();
+                std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
             }
             Chip::Virtex(_) => {
                 let db = virtex::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
-                std::fs::write(args.json, db.to_json().to_string()).unwrap();
+                std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
             }
             Chip::Virtex2(_) => {
                 let db = virtex2::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
-                std::fs::write(args.json, db.to_json().to_string()).unwrap();
+                std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
             }
             Chip::Spartan6(_) => {
                 let db = spartan6::finish(geom, tiledb);
@@ -106,6 +107,6 @@ fn main() {
     } else {
         let db = xc2000::finish(xact, None, tiledb);
         db.to_file(&args.db).unwrap();
-        std::fs::write(args.json, db.to_json().to_string()).unwrap();
+        std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
     }
 }

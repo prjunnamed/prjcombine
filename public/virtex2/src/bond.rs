@@ -1,7 +1,7 @@
 use itertools::Itertools;
+use jzon::JsonValue;
 use prjcombine_interconnect::grid::EdgeIoCoord;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -15,6 +15,22 @@ pub enum GtPin {
     VtTx,
     AVccAuxRx,
     AVccAuxTx,
+}
+
+impl std::fmt::Display for GtPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GtPin::RxP => write!(f, "RXP"),
+            GtPin::RxN => write!(f, "RXN"),
+            GtPin::TxP => write!(f, "TXP"),
+            GtPin::TxN => write!(f, "TXN"),
+            GtPin::GndA => write!(f, "GNDA"),
+            GtPin::VtRx => write!(f, "VTRX"),
+            GtPin::VtTx => write!(f, "VTTX"),
+            GtPin::AVccAuxRx => write!(f, "AVCCAUXRX"),
+            GtPin::AVccAuxTx => write!(f, "AVCCAUXTX"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -34,6 +50,26 @@ pub enum CfgPin {
     Suspend,
 }
 
+impl std::fmt::Display for CfgPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CfgPin::Cclk => write!(f, "CCLK"),
+            CfgPin::Done => write!(f, "DONE"),
+            CfgPin::M0 => write!(f, "M0"),
+            CfgPin::M1 => write!(f, "M1"),
+            CfgPin::M2 => write!(f, "M2"),
+            CfgPin::ProgB => write!(f, "PROG_B"),
+            CfgPin::Tck => write!(f, "TCK"),
+            CfgPin::Tms => write!(f, "TMS"),
+            CfgPin::Tdi => write!(f, "TDI"),
+            CfgPin::Tdo => write!(f, "TDO"),
+            CfgPin::PwrdwnB => write!(f, "PWRDWN_B"),
+            CfgPin::HswapEn => write!(f, "HSWAP_EN"),
+            CfgPin::Suspend => write!(f, "SUSPEND"),
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     Io(EdgeIoCoord),
@@ -48,6 +84,25 @@ pub enum BondPin {
     Cfg(CfgPin),
     Dxn,
     Dxp,
+}
+
+impl std::fmt::Display for BondPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BondPin::Io(io) => write!(f, "{io}"),
+            BondPin::Gt(bank, gtpin) => write!(f, "GT{bank}_{gtpin}"),
+            BondPin::Nc => write!(f, "NC"),
+            BondPin::Gnd => write!(f, "GND"),
+            BondPin::VccInt => write!(f, "VCCINT"),
+            BondPin::VccAux => write!(f, "VCCAUX"),
+            BondPin::VccO(bank) => write!(f, "VCCO{bank}"),
+            BondPin::VccBatt => write!(f, "VCCBATT"),
+            BondPin::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
+            BondPin::Dxn => write!(f, "DXN"),
+            BondPin::Dxp => write!(f, "DXP"),
+            BondPin::Rsvd => write!(f, "RSVD"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -86,54 +141,19 @@ impl Bond {
             gts,
         }
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "pins": serde_json::Map::from_iter(
-                self.pins.iter().map(|(pin, pad)| (pin.clone(), match pad {
-                    BondPin::Io(io) => io.to_string(),
-                    BondPin::Gt(bank, pad) => match pad {
-                        GtPin::RxP => format!("GT{bank}_RXP"),
-                        GtPin::RxN => format!("GT{bank}_RXN"),
-                        GtPin::TxP => format!("GT{bank}_TXP"),
-                        GtPin::TxN => format!("GT{bank}_TXN"),
-                        GtPin::GndA => format!("GT{bank}_GNDA"),
-                        GtPin::VtRx => format!("GT{bank}_VTRX"),
-                        GtPin::VtTx => format!("GT{bank}_VTTX"),
-                        GtPin::AVccAuxRx => format!("GT{bank}_AVCCAUXRX"),
-                        GtPin::AVccAuxTx => format!("GT{bank}_AVCCAUXTX"),
-                    },
-                    BondPin::Gnd => "GND".to_string(),
-                    BondPin::VccO(bank) => format!("VCCO{bank}"),
-                    BondPin::Nc => "NC".to_string(),
-                    BondPin::Cfg(cfg_pin) => match cfg_pin {
-                        CfgPin::Cclk => "CCLK",
-                        CfgPin::Done => "DONE",
-                        CfgPin::ProgB => "PROG_B",
-                        CfgPin::PwrdwnB => "PWRDWN_B",
-                        CfgPin::M0 => "M0",
-                        CfgPin::M1 => "M1",
-                        CfgPin::M2 => "M2",
-                        CfgPin::Tck => "TCK",
-                        CfgPin::Tms => "TMS",
-                        CfgPin::Tdi => "TDI",
-                        CfgPin::Tdo => "TDO",
-                        CfgPin::HswapEn => "HSWAP_EN",
-                        CfgPin::Suspend => "SUSPEND",
-                    }.to_string(),
-                    BondPin::VccInt => "VCCINT".to_string(),
-                    BondPin::VccAux => "VCCAUX".to_string(),
-                    BondPin::VccBatt => "VCCBATT".to_string(),
-                    BondPin::Dxn => "DXN".to_string(),
-                    BondPin::Dxp => "DXP".to_string(),
-                    BondPin::Rsvd => "RSVD".to_string(),
-                }.into()))
+impl From<&Bond> for JsonValue {
+    fn from(bond: &Bond) -> Self {
+        jzon::object! {
+            pins: jzon::object::Object::from_iter(
+                bond.pins.iter().map(|(k, v)| (k, v.to_string()))
             ),
-            "io_banks": serde_json::Map::from_iter(self.io_banks.iter().map(|(k, v)| (
-                k.to_string(), (*v).into()
+            io_banks: jzon::object::Object::from_iter(bond.io_banks.iter().map(|(k, v)| (
+                k.to_string(), *v
             ))),
-            "vref": Vec::from_iter(self.vref.iter().map(|io| io.to_string())),
-        })
+            vref: Vec::from_iter(bond.vref.iter().map(|io| io.to_string())),
+        }
     }
 }
 
@@ -150,47 +170,7 @@ impl std::fmt::Display for Bond {
         }
         writeln!(f, "\tPINS:")?;
         for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
-            write!(f, "\t\t{pin:4}: ")?;
-            match pad {
-                BondPin::Io(io) => write!(f, "{io}")?,
-                BondPin::Gt(bank, gtpin) => {
-                    write!(f, "GT{bank}.")?;
-                    match gtpin {
-                        GtPin::RxP => write!(f, "RXP")?,
-                        GtPin::RxN => write!(f, "RXN")?,
-                        GtPin::TxP => write!(f, "TXP")?,
-                        GtPin::TxN => write!(f, "TXN")?,
-                        GtPin::GndA => write!(f, "GNDA")?,
-                        GtPin::VtRx => write!(f, "VTRX")?,
-                        GtPin::VtTx => write!(f, "VTTX")?,
-                        GtPin::AVccAuxRx => write!(f, "AVCCAUXRX")?,
-                        GtPin::AVccAuxTx => write!(f, "AVCCAUXTX")?,
-                    }
-                }
-                BondPin::Nc => write!(f, "NC")?,
-                BondPin::Gnd => write!(f, "GND")?,
-                BondPin::VccInt => write!(f, "VCCINT")?,
-                BondPin::VccAux => write!(f, "VCCAUX")?,
-                BondPin::VccO(bank) => write!(f, "VCCO{bank}")?,
-                BondPin::VccBatt => write!(f, "VCC_BATT")?,
-                BondPin::Cfg(CfgPin::Cclk) => write!(f, "CCLK")?,
-                BondPin::Cfg(CfgPin::Done) => write!(f, "DONE")?,
-                BondPin::Cfg(CfgPin::M0) => write!(f, "M0")?,
-                BondPin::Cfg(CfgPin::M1) => write!(f, "M1")?,
-                BondPin::Cfg(CfgPin::M2) => write!(f, "M2")?,
-                BondPin::Cfg(CfgPin::ProgB) => write!(f, "PROG_B")?,
-                BondPin::Cfg(CfgPin::Tck) => write!(f, "TCK")?,
-                BondPin::Cfg(CfgPin::Tms) => write!(f, "TMS")?,
-                BondPin::Cfg(CfgPin::Tdi) => write!(f, "TDI")?,
-                BondPin::Cfg(CfgPin::Tdo) => write!(f, "TDO")?,
-                BondPin::Cfg(CfgPin::PwrdwnB) => write!(f, "PWRDWN_B")?,
-                BondPin::Cfg(CfgPin::HswapEn) => write!(f, "HSWAP_EN")?,
-                BondPin::Cfg(CfgPin::Suspend) => write!(f, "SUSPEND")?,
-                BondPin::Dxn => write!(f, "DXN")?,
-                BondPin::Dxp => write!(f, "DXP")?,
-                BondPin::Rsvd => write!(f, "RSVD")?,
-            }
-            writeln!(f)?;
+            writeln!(f, "\t\t{pin:4}: {pad}")?;
         }
         writeln!(f, "\tVREF:")?;
         for v in &self.vref {

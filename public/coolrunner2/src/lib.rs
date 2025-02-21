@@ -52,7 +52,7 @@ pub struct BitCoord {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub enum BondPad {
+pub enum BondPin {
     Nc,
     Gnd,
     VccInt,
@@ -66,20 +66,20 @@ pub enum BondPad {
     Tdo,
 }
 
-impl std::fmt::Display for BondPad {
+impl std::fmt::Display for BondPin {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BondPad::Nc => write!(f, "NC"),
-            BondPad::Gnd => write!(f, "GND"),
-            BondPad::VccInt => write!(f, "VCCINT"),
-            BondPad::VccIo(bank) => write!(f, "VCCIO{bank}"),
-            BondPad::VccAux => write!(f, "VCCAUX"),
-            BondPad::Iob(fb, mc) => write!(f, "IOB_{fb}_{mc}"),
-            BondPad::Ipad(ipad) => write!(f, "IPAD{ipad}"),
-            BondPad::Tck => write!(f, "TCK"),
-            BondPad::Tms => write!(f, "TMS"),
-            BondPad::Tdi => write!(f, "TDI"),
-            BondPad::Tdo => write!(f, "TDO"),
+            BondPin::Nc => write!(f, "NC"),
+            BondPin::Gnd => write!(f, "GND"),
+            BondPin::VccInt => write!(f, "VCCINT"),
+            BondPin::VccIo(bank) => write!(f, "VCCIO{bank}"),
+            BondPin::VccAux => write!(f, "VCCAUX"),
+            BondPin::Iob(fb, mc) => write!(f, "IOB_{fb}_{mc}"),
+            BondPin::Ipad(ipad) => write!(f, "IPAD{ipad}"),
+            BondPin::Tck => write!(f, "TCK"),
+            BondPin::Tms => write!(f, "TMS"),
+            BondPin::Tdi => write!(f, "TDI"),
+            BondPin::Tdo => write!(f, "TDO"),
         }
     }
 }
@@ -87,7 +87,7 @@ impl std::fmt::Display for BondPad {
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Bond {
     pub idcode_part: u32,
-    pub pins: BTreeMap<String, BondPad>,
+    pub pins: BTreeMap<String, BondPin>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]

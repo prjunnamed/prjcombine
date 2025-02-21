@@ -55,11 +55,11 @@ impl Database {
     }
 }
 
-impl DeviceCombo {
-    pub fn to_json(&self) -> JsonValue {
+impl From<&DeviceCombo> for JsonValue {
+    fn from(combo: &DeviceCombo) -> Self {
         jzon::object! {
-            devbond: self.devbond.to_idx(),
-            speed: self.speed.to_idx(),
+            devbond: combo.devbond.to_idx(),
+            speed: combo.speed.to_idx(),
         }
     }
 }
@@ -71,19 +71,19 @@ impl From<&Part> for JsonValue {
             chip: part.chip.to_idx(),
             bonds: jzon::object::Object::from_iter(part.bonds.iter().map(|(_, name, bond)| (name.as_str(), bond.to_idx()))),
             speeds: Vec::from_iter(part.speeds.values().map(|x| x.as_str())),
-            combos: Vec::from_iter(part.combos.iter().map(DeviceCombo::to_json)),
+            combos: Vec::from_iter(part.combos.iter()),
         }
     }
 }
 
-impl Database {
-    pub fn to_json(&self) -> JsonValue {
+impl From<&Database> for JsonValue {
+    fn from(db: &Database) -> Self {
         jzon::object! {
-            chips: Vec::from_iter(self.chips.values()),
-            bonds: Vec::from_iter(self.bonds.values()),
-            parts: Vec::from_iter(self.parts.iter()),
-            int: &self.int,
-            tiles: &self.tiles,
+            chips: Vec::from_iter(db.chips.values()),
+            bonds: Vec::from_iter(db.bonds.values()),
+            parts: Vec::from_iter(db.parts.iter()),
+            int: &db.int,
+            tiles: &db.tiles,
         }
     }
 }

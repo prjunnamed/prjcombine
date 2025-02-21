@@ -1127,19 +1127,19 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                     (
                         k.clone(),
                         match *v {
-                            PkgPin::Nc => coolrunner2::BondPad::Nc,
-                            PkgPin::Gnd => coolrunner2::BondPad::Gnd,
-                            PkgPin::VccInt => coolrunner2::BondPad::VccInt,
-                            PkgPin::VccIo(bank) => coolrunner2::BondPad::VccIo(
+                            PkgPin::Nc => coolrunner2::BondPin::Nc,
+                            PkgPin::Gnd => coolrunner2::BondPin::Gnd,
+                            PkgPin::VccInt => coolrunner2::BondPin::VccInt,
+                            PkgPin::VccIo(bank) => coolrunner2::BondPin::VccIo(
                                 coolrunner2::BankId::from_idx(bank.to_idx()),
                             ),
-                            PkgPin::VccAux => coolrunner2::BondPad::VccAux,
-                            PkgPin::Io(IoId::Mc((fb, mc))) => coolrunner2::BondPad::Iob(fb, mc),
-                            PkgPin::Io(IoId::Ipad(pad)) => coolrunner2::BondPad::Ipad(pad),
-                            PkgPin::Jtag(JtagPin::Tck) => coolrunner2::BondPad::Tck,
-                            PkgPin::Jtag(JtagPin::Tms) => coolrunner2::BondPad::Tms,
-                            PkgPin::Jtag(JtagPin::Tdi) => coolrunner2::BondPad::Tdi,
-                            PkgPin::Jtag(JtagPin::Tdo) => coolrunner2::BondPad::Tdo,
+                            PkgPin::VccAux => coolrunner2::BondPin::VccAux,
+                            PkgPin::Io(IoId::Mc((fb, mc))) => coolrunner2::BondPin::Iob(fb, mc),
+                            PkgPin::Io(IoId::Ipad(pad)) => coolrunner2::BondPin::Ipad(pad),
+                            PkgPin::Jtag(JtagPin::Tck) => coolrunner2::BondPin::Tck,
+                            PkgPin::Jtag(JtagPin::Tms) => coolrunner2::BondPin::Tms,
+                            PkgPin::Jtag(JtagPin::Tdi) => coolrunner2::BondPin::Tdi,
+                            PkgPin::Jtag(JtagPin::Tdo) => coolrunner2::BondPin::Tdo,
                             _ => unreachable!(),
                         },
                     )

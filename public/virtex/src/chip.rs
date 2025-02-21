@@ -1,9 +1,9 @@
+use jzon::JsonValue;
 use prjcombine_interconnect::{
     db::BelId,
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityIds};
 
@@ -23,6 +23,18 @@ pub enum SharedCfgPin {
     Dout,
 }
 
+impl std::fmt::Display for SharedCfgPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SharedCfgPin::Data(i) => write!(f, "D{i}"),
+            SharedCfgPin::CsB => write!(f, "CS_B"),
+            SharedCfgPin::RdWrB => write!(f, "RDWR_B"),
+            SharedCfgPin::Dout => write!(f, "DOUT"),
+            SharedCfgPin::InitB => write!(f, "INIT_B"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Chip {
     pub kind: ChipKind,
@@ -39,6 +51,15 @@ pub enum DisabledPart {
     PrimaryDlls,
     // Virtex-E: a BRAM column is disabled
     Bram(ColId),
+}
+
+impl std::fmt::Display for DisabledPart {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DisabledPart::PrimaryDlls => write!(f, "PRIMARY_DLLS"),
+            DisabledPart::Bram(col) => write!(f, "BRAM_COL:{col}"),
+        }
+    }
 }
 
 impl Chip {
@@ -183,28 +204,26 @@ impl Chip {
         }
         res
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "kind": match self.kind {
+impl From<&Chip> for JsonValue {
+    fn from(chip: &Chip) -> Self {
+        jzon::object! {
+            kind: match chip.kind {
                 ChipKind::Virtex => "virtex",
                 ChipKind::VirtexE => "virtexe",
                 ChipKind::VirtexEM => "virtexem",
             },
-            "columns": self.columns,
-            "cols_bram": self.cols_bram,
-            "cols_clkv": self.cols_clkv,
-            "rows": self.rows,
-            "cfg_io": serde_json::Map::from_iter(self.cfg_io.iter().map(|(k, io)| {
-                (match k {
-                    SharedCfgPin::Data(i) => format!("D{i}"),
-                    SharedCfgPin::CsB => "CS_B".to_string(),
-                    SharedCfgPin::RdWrB => "RDWR_B".to_string(),
-                    SharedCfgPin::Dout => "DOUT".to_string(),
-                    SharedCfgPin::InitB => "INIT_B".to_string(),
-                }, io.to_string().into())
-            }))
-        })
+            columns: chip.columns,
+            cols_bram: Vec::from_iter(chip.cols_bram.iter().map(|x| x.to_idx())),
+            cols_clkv: Vec::from_iter(chip.cols_clkv.iter().map(|(col_mid, col_start, col_end)| {
+                jzon::array![col_mid.to_idx(), col_start.to_idx(), col_end.to_idx()]
+            })),
+            rows: chip.rows,
+            cfg_io: jzon::object::Object::from_iter(chip.cfg_io.iter().map(|(k, io)| {
+                (k.to_string(), io.to_string())
+            })),
+        }
     }
 }
 
@@ -239,7 +258,7 @@ impl std::fmt::Display for Chip {
         }
         writeln!(f, "\tCFG PINS:")?;
         for (k, v) in &self.cfg_io {
-            writeln!(f, "\t\t{k:?}: {v}",)?;
+            writeln!(f, "\t\t{k}: {v}",)?;
         }
         Ok(())
     }

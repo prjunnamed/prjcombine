@@ -1,7 +1,7 @@
+use jzon::JsonValue;
 use prjcombine_interconnect::db::{BelId, Dir};
 use prjcombine_interconnect::grid::{ColId, Coord, EdgeIoCoord, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::collections::BTreeMap;
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -133,6 +133,30 @@ pub enum SharedCfgPin {
     Addr(u8), // ×20 on 3s100e, ×24 on other Spartan 3E, ×26 on Spartan 3A
     // Spartan 3A only.
     Awake,
+}
+
+impl std::fmt::Display for SharedCfgPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SharedCfgPin::Data(i) => write!(f, "D{i}"),
+            SharedCfgPin::Addr(i) => write!(f, "A{i}"),
+            SharedCfgPin::CsiB => write!(f, "CSI_B"),
+            SharedCfgPin::CsoB => write!(f, "CSO_B"),
+            SharedCfgPin::RdWrB => write!(f, "RDWR_B"),
+            SharedCfgPin::Dout => write!(f, "DOUT"),
+            SharedCfgPin::InitB => write!(f, "INIT_B"),
+            SharedCfgPin::Cclk => write!(f, "CCLK"),
+            SharedCfgPin::M0 => write!(f, "M0"),
+            SharedCfgPin::M1 => write!(f, "M1"),
+            SharedCfgPin::M2 => write!(f, "M2"),
+            SharedCfgPin::Ldc0 => write!(f, "LDC0"),
+            SharedCfgPin::Ldc1 => write!(f, "LDC1"),
+            SharedCfgPin::Ldc2 => write!(f, "LDC2"),
+            SharedCfgPin::Hdc => write!(f, "HDC"),
+            SharedCfgPin::HswapEn => write!(f, "HSWAP_EN"),
+            SharedCfgPin::Awake => write!(f, "AWAKE"),
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
@@ -722,10 +746,12 @@ impl Chip {
             unreachable!()
         }
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "kind": match self.kind {
+impl From<&Chip> for JsonValue {
+    fn from(chip: &Chip) -> Self {
+        jzon::object! {
+            kind: match chip.kind {
                 ChipKind::Virtex2 => "virtex2",
                 ChipKind::Virtex2P => "virtex2p",
                 ChipKind::Virtex2PX => "virtex2px",
@@ -735,17 +761,17 @@ impl Chip {
                 ChipKind::Spartan3ADsp => "spartan3adsp",
                 ChipKind::FpgaCore => "fpgacore",
             },
-            "columns": Vec::from_iter(self.columns.values().map(|column| {
-                json!({
-                    "kind": match column.kind {
+            columns: Vec::from_iter(chip.columns.values().map(|column| {
+                jzon::object! {
+                    kind: match column.kind {
                         ColumnKind::Io => "IO".to_string(),
                         ColumnKind::Clb => "CLB".to_string(),
                         ColumnKind::Bram => "BRAM".to_string(),
                         ColumnKind::BramCont(i) => format!("BRAM_CONT:{i}"),
                         ColumnKind::Dsp => "DSP".to_string(),
                     },
-                    "io": match column.io {
-                        ColumnIoKind::None => serde_json::Value::Null,
+                    io: match column.io {
+                        ColumnIoKind::None => JsonValue::Null,
                         ColumnIoKind::Single => "SINGLE".into(),
                         ColumnIoKind::Double(i) => format!("DOUBLE:{i}").into(),
                         ColumnIoKind::Triple(i) => format!("TRIPLE:{i}").into(),
@@ -758,16 +784,16 @@ impl Chip {
                         ColumnIoKind::DoubleRight(i) => format!("DOUBLE_RIGHT:{i}").into(),
                         ColumnIoKind::DoubleRightClk(i) => format!("DOUBLE_RIGHT_CLK:{i}").into(),
                     },
-                })
+                }
             })),
-            "cols_clkv": self.cols_clkv,
-            "cols_gt": Vec::from_iter(self.cols_gt.iter().map(|(col, (bank_b, bank_t))| json!({
-                "column": col,
-                "bank_b": bank_b,
-                "bank_t": bank_t,
-            }))),
-            "rows": Vec::from_iter(self.rows.values().map(|io| match io {
-                RowIoKind::None => serde_json::Value::Null,
+            cols_clkv: chip.cols_clkv.map(|(col_l, col_r)| jzon::array![col_l.to_idx(), col_r.to_idx()]),
+            "cols_gt": Vec::from_iter(chip.cols_gt.iter().map(|(col, (bank_b, bank_t))| jzon::object! {
+                column: col.to_idx(),
+                bank_b: *bank_b,
+                bank_t: *bank_t,
+            })),
+            rows: Vec::from_iter(chip.rows.values().map(|io| match io {
+                RowIoKind::None => JsonValue::Null,
                 RowIoKind::Single => "SINGLE".into(),
                 RowIoKind::Double(i) => format!("DOUBLE:{i}").into(),
                 RowIoKind::Triple(i) => format!("TRIPLE:{i}").into(),
@@ -775,53 +801,37 @@ impl Chip {
                 RowIoKind::DoubleBot(i) => format!("DOUBLE_BOT:{i}").into(),
                 RowIoKind::DoubleTop(i) => format!("DOUBLE_TOP:{i}").into(),
             })),
-            "rows_ram": self.rows_ram,
-            "rows_hclk": self.rows_hclk,
-            "row_pci": self.row_pci,
-            "holes_ppc": self.holes_ppc,
-            "dcms": match self.dcms {
-                None => serde_json::Value::Null,
+            rows_ram: chip.rows_ram.map(|(row_b, row_t)| jzon::array![row_b.to_idx(), row_t.to_idx()]),
+            rows_hclk: Vec::from_iter(chip.rows_hclk.iter().map(|(row_mid, row_start, row_end)| {
+                jzon::array![row_mid.to_idx(), row_start.to_idx(), row_end.to_idx()]
+            })),
+            row_pci: chip.row_pci.map(|row| row.to_idx()),
+            holes_ppc: Vec::from_iter(chip.holes_ppc.iter().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
+            dcms: match chip.dcms {
+                None => JsonValue::Null,
                 Some(dcms) => match dcms {
                     Dcms::Two => 2,
                     Dcms::Four => 4,
                     Dcms::Eight => 8,
                 }.into()
             },
-            "has_ll": self.has_ll,
-            "cfg_io": serde_json::Map::from_iter(self.cfg_io.iter().map(|(k, io)| {
-                (match k {
-                    SharedCfgPin::Data(i) => format!("D{i}"),
-                    SharedCfgPin::Addr(i) => format!("A{i}"),
-                    SharedCfgPin::CsiB => "CSI_B".to_string(),
-                    SharedCfgPin::CsoB => "CSO_B".to_string(),
-                    SharedCfgPin::RdWrB => "RDWR_B".to_string(),
-                    SharedCfgPin::Dout => "DOUT".to_string(),
-                    SharedCfgPin::InitB => "INIT_B".to_string(),
-                    SharedCfgPin::Cclk => "CCLK".to_string(),
-                    SharedCfgPin::M0 => "M0".to_string(),
-                    SharedCfgPin::M1 => "M1".to_string(),
-                    SharedCfgPin::M2 => "M2".to_string(),
-                    SharedCfgPin::Ldc0 => "LDC0".to_string(),
-                    SharedCfgPin::Ldc1 => "LDC1".to_string(),
-                    SharedCfgPin::Ldc2 => "LDC2".to_string(),
-                    SharedCfgPin::Hdc => "HDC".to_string(),
-                    SharedCfgPin::HswapEn => "HSWAP_EN".to_string(),
-                    SharedCfgPin::Awake => "AWAKE".to_string(),
-                }, io.to_string().into())
+            has_ll: chip.has_ll,
+            cfg_io: jzon::object::Object::from_iter(chip.cfg_io.iter().map(|(k, io)| {
+                (k.to_string(), io.to_string())
             })),
-            "dci_io": serde_json::Map::from_iter(self.dci_io.iter().map(|(k, (io_a, io_b))| {
-                (k.to_string(), json!({
-                    "vrp": io_a.to_string(),
-                    "vrn": io_b.to_string(),
-                }))
+            dci_io: jzon::object::Object::from_iter(chip.dci_io.iter().map(|(k, (io_a, io_b))| {
+                (k.to_string(), jzon::object! {
+                    vrp: io_a.to_string(),
+                    vrn: io_b.to_string(),
+                })
             })),
-            "dci_io_alt": serde_json::Map::from_iter(self.dci_io_alt.iter().map(|(k, (io_a, io_b))| {
-                (k.to_string(), json!({
-                    "vrp": io_a.to_string(),
-                    "vrn": io_b.to_string(),
-                }))
+            dci_io_alt: jzon::object::Object::from_iter(chip.dci_io_alt.iter().map(|(k, (io_a, io_b))| {
+                (k.to_string(), jzon::object! {
+                    vrp: io_a.to_string(),
+                    vrn: io_b.to_string(),
+                })
             })),
-        })
+        }
     }
 }
 
