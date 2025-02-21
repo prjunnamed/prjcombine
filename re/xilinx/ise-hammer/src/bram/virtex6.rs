@@ -2,7 +2,7 @@ use bitvec::prelude::*;
 use prjcombine_re_collector::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::grid::GridKind;
+use prjcombine_virtex4::chip::ChipKind;
 
 use crate::{
     backend::IseBackend,
@@ -157,7 +157,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (tile_mutex "MODE", "FULL"),
             (mode "RAMB36E1")
         ]);
-        if edev.kind == GridKind::Virtex7 {
+        if edev.kind == ChipKind::Virtex7 {
             fuzz_enum!(ctx, "EN_PWRGATE", ["NONE", "LEFT", "RIGHT", "BOTH"], [
                 (global_mutex "BRAM_OPT", "NONE"),
                 (tile_mutex "MODE", "FULL"),
@@ -224,7 +224,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
         }
 
-        if edev.kind == GridKind::Virtex6 {
+        if edev.kind == ChipKind::Virtex6 {
             for val in ["0", "1", "10", "11", "100", "101", "110", "111"] {
                 for opt in ["TWR_DLY_L", "TWR_DLY_U"] {
                     fuzz_one!(ctx, opt, val, [
@@ -410,7 +410,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (attr "FIFO_MODE", "FIFO36_72")
         ]);
 
-        if edev.kind == GridKind::Virtex6 {
+        if edev.kind == ChipKind::Virtex6 {
             fuzz_enum!(ctx, "RSTREG_PRIORITY", ["REGCE", "RSTREG"], [
                 (global_mutex "BRAM_OPT", "NONE"),
                 (tile_mutex "MODE", "FULL"),
@@ -470,7 +470,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             "TEST_ATTRIBUTES",
             "",
         )];
-        if edev.kind == GridKind::Virtex6 {
+        if edev.kind == ChipKind::Virtex6 {
             fuzz_multi_extras!(ctx, "TEST_ATTRIBUTES", "", 20, [], (global_hex "TEST_ATTRIBUTES"), extras);
         } else {
             fuzz_multi_extras!(ctx, "TEST_ATTRIBUTES", "", 19, [], (global_hex "TEST_ATTRIBUTES"), extras);
@@ -622,7 +622,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (mode "RAMB18E1")
         ]);
 
-        if edev.kind == GridKind::Virtex7 {
+        if edev.kind == ChipKind::Virtex7 {
             fuzz_enum!(ctx, "EN_PWRGATE", ["NONE", "LEFT", "RIGHT", "BOTH"], [
                 (global_mutex "BRAM_OPT", "NONE"),
                 (tile_mutex "MODE", "HALF"),
@@ -714,7 +714,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (attr "FIFO_MODE", "FIFO18_36")
             ]);
 
-            if edev.kind == GridKind::Virtex6 {
+            if edev.kind == ChipKind::Virtex6 {
                 fuzz_enum!(ctx, "RSTREG_PRIORITY", ["REGCE", "RSTREG"], [
                     (global_mutex "BRAM_OPT", "NONE"),
                     (tile_mutex "MODE", "HALF"),
@@ -740,7 +740,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
         }
     }
-    if edev.kind == GridKind::Virtex7 {
+    if edev.kind == ChipKind::Virtex7 {
         let mut ctx = FuzzCtx::new(session, backend, "BRAM", "BRAM_ADDR", TileBits::Bram);
         ctx.bel_name = "BRAM".into();
         for (ab, abrw) in [('A', "ARD"), ('B', "BWR")] {
@@ -1220,7 +1220,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.tiledb
         .insert(tile, "BRAM", "FIFO_WIDTH", xlat_enum(diffs));
 
-    if edev.kind == GridKind::Virtex6 {
+    if edev.kind == ChipKind::Virtex6 {
         for (bel_bram, bel_fifo) in [("BRAM_F", "FIFO_F"), ("BRAM_H0", "FIFO_H0")] {
             for val in ["REGCE", "RSTREG"] {
                 let diff = ctx.state.get_diff(tile, bel_fifo, "RSTREG_PRIORITY", val);
@@ -1251,7 +1251,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = ctx.extract_enum_bool(tile, bel, "EN_ECC_READ", "FALSE", "TRUE");
         ctx.tiledb.insert(tile, "BRAM", "EN_ECC_READ", item);
         let item = ctx.extract_enum_bool(tile, bel, "EN_ECC_WRITE.READ", "FALSE", "TRUE");
-        if edev.kind == GridKind::Virtex7 {
+        if edev.kind == ChipKind::Virtex7 {
             let item = ctx.extract_enum_bool(tile, bel, "EN_ECC_WRITE", "FALSE", "TRUE");
             ctx.tiledb.insert(tile, "BRAM", "EN_ECC_WRITE", item);
         } else {
@@ -1270,7 +1270,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let diff_f = ctx
             .state
             .get_diff(tile, "BRAM_F", "RDADDR_COLLISION_HWCONFIG", val);
-        if edev.kind == GridKind::Virtex7 {
+        if edev.kind == ChipKind::Virtex7 {
             assert_eq!(
                 diff_f,
                 ctx.state
@@ -1310,7 +1310,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.tiledb
         .insert(tile, "BRAM", "RDADDR_COLLISION_HWCONFIG_U", item);
 
-    if edev.kind == GridKind::Virtex7 {
+    if edev.kind == ChipKind::Virtex7 {
         for val in ["NONE", "LEFT", "RIGHT", "BOTH"] {
             let diff_f = ctx.state.get_diff(tile, "BRAM_F", "EN_PWRGATE", val);
             assert_eq!(
@@ -1382,7 +1382,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         ctx.tiledb.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
     }
-    if edev.kind == GridKind::Virtex6 {
+    if edev.kind == ChipKind::Virtex6 {
         for attr in ["TWR_DLY_L", "TWR_DLY_U"] {
             let mut diffs = vec![];
             for (ival, val) in ["0", "1", "10", "11", "100", "101", "110", "111"]
@@ -1472,7 +1472,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .assert_empty();
     }
 
-    if edev.kind == GridKind::Virtex7 {
+    if edev.kind == ChipKind::Virtex7 {
         let bel = "BRAM";
         for ab in ['A', 'B'] {
             for i in 0..15 {

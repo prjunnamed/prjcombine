@@ -26,7 +26,7 @@ pub enum Grid {
     Virtex(prjcombine_virtex::chip::Chip),
     Virtex2(prjcombine_virtex2::chip::Chip),
     Spartan6(prjcombine_spartan6::chip::Chip),
-    Virtex4(prjcombine_virtex4::grid::Grid),
+    Virtex4(prjcombine_virtex4::chip::Chip),
     Ultrascale(prjcombine_ultrascale::grid::Grid),
     Versal(prjcombine_versal::grid::Grid),
 }
@@ -55,7 +55,7 @@ pub struct DeviceBond {
 pub enum DisabledPart {
     Virtex(prjcombine_virtex::chip::DisabledPart),
     Spartan6(prjcombine_spartan6::chip::DisabledPart),
-    Virtex4(prjcombine_virtex4::grid::DisabledPart),
+    Virtex4(prjcombine_virtex4::chip::DisabledPart),
     Ultrascale(prjcombine_ultrascale::grid::DisabledPart),
     Versal(prjcombine_versal::grid::DisabledPart),
 }
@@ -70,7 +70,7 @@ pub struct DeviceCombo {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Interposer {
     None,
-    Virtex4(prjcombine_virtex4::grid::Interposer),
+    Virtex4(prjcombine_virtex4::chip::Interposer),
     Ultrascale(prjcombine_ultrascale::grid::Interposer),
     Versal(prjcombine_versal::grid::Interposer),
 }
@@ -298,10 +298,10 @@ impl GeomDb {
             }
             Grid::Virtex4(grid) => {
                 let intdb = &self.ints[match grid.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => "virtex4",
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => "virtex5",
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => "virtex6",
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => "virtex7",
+                    prjcombine_virtex4::chip::ChipKind::Virtex4 => "virtex4",
+                    prjcombine_virtex4::chip::ChipKind::Virtex5 => "virtex5",
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => "virtex6",
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => "virtex7",
                 }];
                 let disabled = dev
                     .disabled
@@ -421,10 +421,10 @@ impl GeomDb {
             }
             ExpandedDevice::Virtex4(edev) => {
                 let ndb = &self.namings[match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => "virtex4",
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => "virtex5",
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => "virtex6",
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => "virtex7",
+                    prjcombine_virtex4::chip::ChipKind::Virtex4 => "virtex4",
+                    prjcombine_virtex4::chip::ChipKind::Virtex5 => "virtex5",
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => "virtex6",
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => "virtex7",
                 }];
                 ExpandedNamedDevice::Virtex4(prjcombine_re_xilinx_naming_virtex4::name_device(
                     edev, ndb,

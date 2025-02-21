@@ -2,7 +2,7 @@ use unnamed_entity::{EntityId, EntityVec};
 
 use prjcombine_interconnect::grid::{ColId, RowId};
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_virtex4::grid::{CfgRowKind, ColumnKind, Grid, GridKind, GtColumn, GtKind, RegId};
+use prjcombine_virtex4::chip::{CfgRowKind, Chip, ChipKind, ColumnKind, GtColumn, GtKind, RegId};
 use std::collections::BTreeSet;
 
 use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int, find_columns, find_row, find_rows};
@@ -101,13 +101,13 @@ fn get_rows_cfg(rd: &Part, int: &IntGrid) -> Vec<(RowId, CfgRowKind)> {
     res
 }
 
-pub fn make_grid(rd: &Part) -> Grid {
+pub fn make_grid(rd: &Part) -> Chip {
     let int = extract_int(rd, &["INT", "INT_SO"], &[]);
     let columns = make_columns(rd, &int);
     let cols_gt = get_cols_gt(&int, &columns);
     let reg_cfg = get_reg_cfg(rd, &int);
-    Grid {
-        kind: GridKind::Virtex4,
+    Chip {
+        kind: ChipKind::Virtex4,
         columns,
         cols_vbrk: get_cols_vbrk(rd, &int),
         cols_mgt_buf: BTreeSet::new(),

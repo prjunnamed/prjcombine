@@ -1,6 +1,6 @@
 use prjcombine_interconnect::grid::{ColId, RowId};
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_virtex4::grid::{ColumnKind, Grid, GridKind, GtColumn, GtKind, HardColumn, RegId};
+use prjcombine_virtex4::chip::{Chip, ChipKind, ColumnKind, GtColumn, GtKind, HardColumn, RegId};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -118,13 +118,13 @@ fn get_cols_gt(rd: &Part, int: &IntGrid, cols: &EntityVec<ColId, ColumnKind>) ->
         .collect()
 }
 
-pub fn make_grid(rd: &Part) -> Grid {
+pub fn make_grid(rd: &Part) -> Chip {
     let int = extract_int(rd, &["INT"], &[]);
     let columns = make_columns(rd, &int);
     let cols_gt = get_cols_gt(rd, &int, &columns);
     let reg_cfg = get_reg_cfg(rd, &int);
-    Grid {
-        kind: GridKind::Virtex5,
+    Chip {
+        kind: ChipKind::Virtex5,
         columns,
         cols_vbrk: get_cols_vbrk(rd, &int),
         cols_mgt_buf: get_cols_mgt_buf(rd, &int),

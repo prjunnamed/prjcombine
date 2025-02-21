@@ -295,7 +295,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     ) {
         for i in 0..5 {
             let mut extras = vec![];
-            let cols_mgt_buf = &edev.grids[DieId::from_idx(0)].cols_mgt_buf;
+            let cols_mgt_buf = &edev.chips[DieId::from_idx(0)].cols_mgt_buf;
             let num_l = cols_mgt_buf
                 .iter()
                 .copied()

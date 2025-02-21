@@ -150,14 +150,14 @@ fn verify_bufgctrl(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
     vrf.claim_pip(bel.crd(), bel.wire("GCLK"), bel.wire("O"));
     vrf.claim_pip(bel.crd(), bel.wire("GFB"), bel.wire("O"));
     let srow = if is_b {
-        endev.edev.grids[bel.die].row_bufg() - 30
+        endev.edev.chips[bel.die].row_bufg() - 30
     } else {
-        if endev.edev.grids[bel.die].reg_cfg.to_idx() == endev.edev.grids[bel.die].regs - 1 {
+        if endev.edev.chips[bel.die].reg_cfg.to_idx() == endev.edev.chips[bel.die].regs - 1 {
             vrf.claim_node(&[bel.fwire("MUXBUS0")]);
             vrf.claim_node(&[bel.fwire("MUXBUS1")]);
             return;
         }
-        endev.edev.grids[bel.die].row_bufg() + 20
+        endev.edev.chips[bel.die].row_bufg() + 20
     };
     let obel = vrf.find_bel(bel.die, (bel.col, srow), "CLK_IOB").unwrap();
     let idx0 = (bel.bid.to_idx() % 16) * 2;
@@ -266,7 +266,7 @@ fn verify_clk_mux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
         _ => (),
     }
 
-    let is_b = bel.row < endev.edev.grids[bel.die].row_bufg();
+    let is_b = bel.row < endev.edev.chips[bel.die].row_bufg();
     let is_hrow_b = bel.row.to_idx() % 20 == 0;
 
     if is_b != is_hrow_b {
@@ -978,7 +978,7 @@ fn verify_clk_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
         }
     }
     for i in 0..32 {
-        let orow = endev.edev.grids[bel.die].row_bufg() - 10;
+        let orow = endev.edev.chips[bel.die].row_bufg() - 10;
         let obel = vrf
             .find_bel(bel.die, (bel.col, orow), &format!("BUFGCTRL{i}"))
             .unwrap();
@@ -1036,9 +1036,9 @@ fn verify_hclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
     // actually sourced from HCLK_IOI, but instead pretend it's sourced from the edge because the
     // HCLK_IOI may be missing.
     let scol = if lr == 'L' {
-        endev.edev.grids[bel.die].columns.first_id().unwrap()
+        endev.edev.chips[bel.die].columns.first_id().unwrap()
     } else {
-        endev.edev.grids[bel.die].columns.last_id().unwrap()
+        endev.edev.chips[bel.die].columns.last_id().unwrap()
     };
     if bel.col == scol {
         for i in 0..4 {
@@ -1072,10 +1072,10 @@ fn verify_hclk_cmt_hclk(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_hclk_cmt_giob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let srow = if bel.row < endev.edev.grids[bel.die].row_bufg() {
-        endev.edev.grids[bel.die].row_bufg() - 30
+    let srow = if bel.row < endev.edev.chips[bel.die].row_bufg() {
+        endev.edev.chips[bel.die].row_bufg() - 30
     } else {
-        endev.edev.grids[bel.die].row_bufg() + 20
+        endev.edev.chips[bel.die].row_bufg() + 20
     };
     let obel = vrf.find_bel(bel.die, (bel.col, srow), "CLK_IOB").unwrap();
     for i in 0..10 {
@@ -1101,9 +1101,9 @@ fn verify_mgt_conn(
 ) {
     let dx = if is_l { -1 } else { 1 };
     let scol = if is_l {
-        endev.edev.grids[bel.die].columns.first_id().unwrap()
+        endev.edev.chips[bel.die].columns.first_id().unwrap()
     } else {
-        endev.edev.grids[bel.die].columns.last_id().unwrap()
+        endev.edev.chips[bel.die].columns.last_id().unwrap()
     };
     if let Some(obel) = vrf.find_bel_walk(bel, dx, 0, "HCLK_BRAM_MGT") {
         for i in 0..5 {
@@ -1228,9 +1228,9 @@ fn verify_bufio(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_rclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let is_l = bel.col < endev.edev.col_cfg;
     let scol = if is_l {
-        endev.edev.grids[bel.die].columns.first_id().unwrap()
+        endev.edev.chips[bel.die].columns.first_id().unwrap()
     } else {
-        endev.edev.grids[bel.die].columns.last_id().unwrap()
+        endev.edev.chips[bel.die].columns.last_id().unwrap()
     };
     if let Some(obel) = vrf
         .find_bel(bel.die, (scol, bel.row - 10), "GTP_DUAL")
@@ -1281,9 +1281,9 @@ fn verify_ioclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
     // actually sourced from HCLK_IOI, but instead pretend it's sourced from the edge because the
     // HCLK_IOI may be missing.
     let scol = if lr == 'L' {
-        endev.edev.grids[bel.die].columns.first_id().unwrap()
+        endev.edev.chips[bel.die].columns.first_id().unwrap()
     } else {
-        endev.edev.grids[bel.die].columns.last_id().unwrap()
+        endev.edev.chips[bel.die].columns.last_id().unwrap()
     };
     let obel = vrf.find_bel(bel.die, (scol, bel.row), "HCLK").unwrap();
     for i in 0..4 {
@@ -1418,7 +1418,7 @@ pub fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
     if endev.edev.col_rgt.is_none() {
         let nnode = &endev.ngrid.nodes[&(
             DieId::from_idx(0),
-            endev.edev.grids.first().unwrap().columns.last_id().unwrap(),
+            endev.edev.chips.first().unwrap().columns.last_id().unwrap(),
             RowId::from_idx(0),
             LayerId::from_idx(0),
         )];

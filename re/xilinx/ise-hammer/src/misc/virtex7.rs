@@ -72,7 +72,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ]);
     }
 
-    if edev.grids.len() == 1 && !edev.grids.first().unwrap().has_ps {
+    if edev.chips.len() == 1 && !edev.chips.first().unwrap().has_ps {
         let ctx = FuzzCtx::new(session, backend, "CFG", "ICAP1", TileBits::MainAuto);
         let obel_top = ctx.bel;
         fuzz_one!(ctx, "ENABLE", "1", [], [(mode "ICAP")]);
@@ -101,7 +101,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ]);
     }
     {
-        if edev.grids.len() == 1 {
+        if edev.chips.len() == 1 {
             let ctx = FuzzCtx::new(session, backend, "CFG", "STARTUP", TileBits::Null);
             fuzz_one!(ctx, "PRESENT", "1", [], [(mode "STARTUP")]);
             for val in ["CCLK", "USERCLK", "JTAGCLK"] {
@@ -119,7 +119,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_one!(ctx, "PIN.GTS", "1", [(mode "STARTUP"), (nopin "GSR")], [(pin "GTS")]);
         fuzz_one!(ctx, "PIN.GSR", "1", [(mode "STARTUP"), (nopin "GTS")], [(pin "GSR")]);
         fuzz_one!(ctx, "PIN.USRCCLKO", "1", [(mode "STARTUP")], [(pin "USRCCLKO")]);
-        if edev.grids.first().unwrap().regs > 1 {
+        if edev.chips.first().unwrap().regs > 1 {
             fuzz_one!(ctx, "PIN.KEYCLEARB", "1", [
                 (mode "STARTUP"),
                 (global_opt "ENCRYPT", "YES")
@@ -129,7 +129,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
         fuzz_enum!(ctx, "PROG_USR", ["FALSE", "TRUE"], [(mode "STARTUP")]);
     }
-    if edev.grids.len() == 1 {
+    if edev.chips.len() == 1 {
         let ctx = FuzzCtx::new(session, backend, "CFG", "CAPTURE", TileBits::Null);
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "CAPTURE")]);
         for val in ["FALSE", "TRUE"] {
@@ -142,7 +142,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ]);
         }
     }
-    if edev.grids.len() == 1 {
+    if edev.chips.len() == 1 {
         let ctx = FuzzCtx::new(session, backend, "CFG", "CFG_IO_ACCESS", TileBits::MainAuto);
         fuzz_one_extras!(ctx, "ENABLE", "1", [
             (no_global_opt "CFGIOACCESS_TDO")
@@ -171,7 +171,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ),
         ]);
     }
-    if edev.grids.len() == 1 {
+    if edev.chips.len() == 1 {
         let ctx = FuzzCtx::new(session, backend, "CFG", "FRAME_ECC", TileBits::Null);
         fuzz_one_extras!(ctx, "PRESENT", "1", [
             (no_global_opt "GLUTMASK_B")
@@ -453,7 +453,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             &["DISABLE", "ENABLE"],
         ),
     ] {
-        if edev.grids.first().unwrap().has_ps
+        if edev.chips.first().unwrap().has_ps
             && matches!(
                 attr,
                 "SELECTMAP_ABORT"
@@ -545,7 +545,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
     }
 
-    if edev.grids.first().unwrap().regs != 1 {
+    if edev.chips.first().unwrap().regs != 1 {
         let extras = vec![
             ExtraFeature::new(
                 ExtraFeatureKind::Reg(Reg::Ctl0),
@@ -585,7 +585,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         )];
         fuzz_multi_extras!(ctx, opt, "", width, [], (global_bin opt), extras);
     }
-    if !edev.grids.first().unwrap().has_ps {
+    if !edev.chips.first().unwrap().has_ps {
         let extras = vec![ExtraFeature::new(
             ExtraFeatureKind::Reg(Reg::Bspi),
             "REG.BSPI",
@@ -848,7 +848,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "BSCAN_COMMON";
         ctx.collect_bitvec(tile, bel, "USERID", "");
     }
-    if edev.grids.len() == 1 && !edev.grids.first().unwrap().has_ps {
+    if edev.chips.len() == 1 && !edev.chips.first().unwrap().has_ps {
         for bel in ["ICAP0", "ICAP1"] {
             ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
             // ???
@@ -877,7 +877,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool_wide(tile, bel, "PROG_USR", "FALSE", "TRUE");
         let item = ctx.extract_bit_wide(tile, bel, "PIN.USRCCLKO", "1");
         ctx.tiledb.insert(tile, bel, "USRCCLK_ENABLE", item);
-        if edev.grids.first().unwrap().regs > 1 {
+        if edev.chips.first().unwrap().regs > 1 {
             let item = ctx.extract_bit_wide(tile, bel, "PIN.KEYCLEARB", "1");
             ctx.tiledb.insert(tile, bel, "KEY_CLEAR_ENABLE", item);
         }
@@ -886,7 +886,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "DCIRESET";
         ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
     }
-    if edev.grids.len() == 1 {
+    if edev.chips.len() == 1 {
         let bel = "CFG_IO_ACCESS";
         ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
         ctx.state
@@ -931,10 +931,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "MATCH_CYCLE",
             &["0", "1", "2", "3", "4", "5", "6", "NOWAIT"],
         );
-        if edev.grids.len() == 1 {
+        if edev.chips.len() == 1 {
             ctx.collect_enum(tile, bel, "STARTUPCLK", &["CCLK", "USERCLK", "JTAGCLK"]);
         }
-        if !edev.grids.first().unwrap().has_ps {
+        if !edev.chips.first().unwrap().has_ps {
             ctx.collect_enum_ocd(
                 tile,
                 bel,
@@ -949,7 +949,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "DONE_PIPE", "NO", "YES");
         ctx.collect_enum_bool(tile, bel, "DONE_SIGNALS_POWERDOWN", "DISABLE", "ENABLE");
         let bel = "CAPTURE";
-        if edev.grids.len() == 1 {
+        if edev.chips.len() == 1 {
             ctx.collect_enum_bool(tile, bel, "ONESHOT", "FALSE", "TRUE");
         }
         ctx.tiledb.insert(
@@ -981,7 +981,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "REG.COR1";
         let bel = "MISC";
 
-        if !edev.grids.first().unwrap().has_ps {
+        if !edev.chips.first().unwrap().has_ps {
             ctx.collect_enum(tile, bel, "BPI_PAGE_SIZE", &["1", "4", "8"]);
             ctx.collect_enum(tile, bel, "BPI_1ST_READ_CYCLE", &["1", "2", "3", "4"]);
         }
@@ -1039,14 +1039,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "OVERTEMP_POWERDOWN", "DISABLE", "ENABLE");
         ctx.collect_enum_bool(tile, bel, "CONFIG_FALLBACK", "DISABLE", "ENABLE");
         ctx.collect_enum_bool(tile, bel, "INIT_SIGNALS_ERROR", "DISABLE", "ENABLE");
-        if !edev.grids.first().unwrap().has_ps {
+        if !edev.chips.first().unwrap().has_ps {
             ctx.collect_enum_bool(tile, bel, "SELECTMAP_ABORT", "DISABLE", "ENABLE");
         }
         ctx.collect_enum(tile, bel, "ENCRYPT_KEY_SELECT", &["BBRAM", "EFUSE"]);
         ctx.collect_enum_bool(tile, bel, "SEC_ALL", "NO", "YES");
         ctx.collect_enum_bool(tile, bel, "SEC_ERROR", "NO", "YES");
         ctx.collect_enum_bool(tile, bel, "SEC_STATUS", "NO", "YES");
-        if edev.grids.first().unwrap().regs > 1 {
+        if edev.chips.first().unwrap().regs > 1 {
             ctx.collect_bit(tile, bel, "ENCRYPT", "YES");
         }
         ctx.collect_enum_bool(tile, bel, "PERSIST", "NO", "CTLREG");
@@ -1081,7 +1081,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "VGG_SEL", "");
         ctx.collect_bitvec(tile, bel, "VGG_NEG_GAIN_SEL", "");
         ctx.collect_bitvec(tile, bel, "VGG_POS_GAIN_SEL", "");
-        if edev.grids.first().unwrap().regs > 1 {
+        if edev.chips.first().unwrap().regs > 1 {
             let mut diff = ctx.state.get_diff(tile, bel, "ENCRYPT", "YES");
             diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "VGG_POS_GAIN_SEL"), 1, 0);
             diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "VGG_NEG_GAIN_SEL"), 0xf, 0);
@@ -1089,7 +1089,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff.assert_empty();
         }
     }
-    if !edev.grids.first().unwrap().has_ps {
+    if !edev.chips.first().unwrap().has_ps {
         let tile = "REG.BSPI";
         let bel = "MISC";
         ctx.collect_enum(tile, bel, "SPI_BUSWIDTH", &["1", "2", "4"]);
@@ -1120,14 +1120,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         };
         ctx.tiledb.insert(tile, bel, "BPI_SYNC_MODE", item);
     }
-    if !edev.grids.first().unwrap().has_ps {
+    if !edev.chips.first().unwrap().has_ps {
         let tile = "REG.WBSTAR";
         let bel = "MISC";
         ctx.collect_bitvec(tile, bel, "NEXT_CONFIG_ADDR", "");
         ctx.collect_bitvec(tile, bel, "REVISION_SELECT", "");
         ctx.collect_enum_bool(tile, bel, "REVISION_SELECT_TRISTATE", "DISABLE", "ENABLE");
     }
-    if !edev.grids.first().unwrap().has_ps {
+    if !edev.chips.first().unwrap().has_ps {
         let tile = "REG.TIMER";
         let bel = "MISC";
         ctx.collect_bitvec(tile, bel, "TIMER", "");

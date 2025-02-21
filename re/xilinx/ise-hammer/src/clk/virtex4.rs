@@ -71,11 +71,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ]);
             }
             let has_other = if tile == "CLK_DCM_T" {
-                edev.grids
+                edev.chips
                     .values()
                     .any(|grid| grid.regs - grid.reg_clk.to_idx() > 2)
             } else {
-                edev.grids.values().any(|grid| grid.reg_clk.to_idx() > 2)
+                edev.chips.values().any(|grid| grid.reg_clk.to_idx() > 2)
             };
             if has_other {
                 let obel = BelId::from_idx(0);
@@ -245,7 +245,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 "HCLK_IOBDCM" => (true, false),
                 "HCLK_CENTER" => (
                     true,
-                    edev.grids[DieId::from_idx(0)].row_bufg() - edev.row_dcmiob.unwrap() > 24,
+                    edev.chips[DieId::from_idx(0)].row_bufg() - edev.row_dcmiob.unwrap() > 24,
                 ),
                 _ => unreachable!(),
             };
@@ -414,7 +414,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                             (pip (pin format!("MGT{i}")), (pin format!("MGT_O_{ud}{i}")))
                         ], extras);
                     } else {
-                        if !edev.grids[DieId::from_idx(0)].cols_vbrk.is_empty() {
+                        if !edev.chips[DieId::from_idx(0)].cols_vbrk.is_empty() {
                             extras.push(ExtraFeature::new(
                                 ExtraFeatureKind::MgtRepeater(
                                     if i < 2 { Dir::W } else { Dir::E },
@@ -485,11 +485,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 vals.push((dcm.clone(), ctx.state.get_diff(tile, bel, &mux, &dcm)));
             }
             let has_other = if tile == "CLK_DCM_T" {
-                edev.grids
+                edev.chips
                     .values()
                     .any(|grid| grid.regs - grid.reg_clk.to_idx() > 2)
             } else {
-                edev.grids.values().any(|grid| grid.reg_clk.to_idx() > 2)
+                edev.chips.values().any(|grid| grid.reg_clk.to_idx() > 2)
             };
             if has_other {
                 vals.push((
@@ -612,7 +612,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "HCLK_IOBDCM" => (true, false),
                 "HCLK_CENTER" => (
                     true,
-                    edev.grids[DieId::from_idx(0)].row_bufg() - edev.row_dcmiob.unwrap() > 24,
+                    edev.chips[DieId::from_idx(0)].row_bufg() - edev.row_dcmiob.unwrap() > 24,
                 ),
                 _ => unreachable!(),
             };
@@ -788,7 +788,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
     }
-    if edev.col_lgt.is_some() && !edev.grids[DieId::from_idx(0)].cols_vbrk.is_empty() {
+    if edev.col_lgt.is_some() && !edev.chips[DieId::from_idx(0)].cols_vbrk.is_empty() {
         let tile = "HCLK_MGT_REPEATER";
         let bel = "HCLK_MGT_REPEATER";
         let item = ctx.extract_bit(tile, bel, "BUF.MGT0.DCM", "1");

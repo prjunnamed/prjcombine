@@ -279,7 +279,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
             }
         }
         ExpandedDevice::Virtex4(ref edev) => match edev.kind {
-            prjcombine_virtex4::grid::GridKind::Virtex4 => {
+            prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                 if !opts.skip_core {
                     clb::virtex2::add_fuzzers(&mut hammer, &backend);
                     bram::virtex4::add_fuzzers(&mut hammer, &backend);
@@ -307,7 +307,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     gt::virtex4::add_fuzzers(&mut hammer, &backend);
                 }
             }
-            prjcombine_virtex4::grid::GridKind::Virtex5 => {
+            prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                 if !opts.skip_core {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
                     bram::virtex5::add_fuzzers(&mut hammer, &backend);
@@ -346,7 +346,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     gt::virtex5::add_fuzzers(&mut hammer, &backend);
                 }
             }
-            prjcombine_virtex4::grid::GridKind::Virtex6 => {
+            prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                 if !opts.skip_core {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
                     bram::virtex6::add_fuzzers(&mut hammer, &backend);
@@ -377,7 +377,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     gt::virtex6_gth::add_fuzzers(&mut hammer, &backend);
                 }
             }
-            prjcombine_virtex4::grid::GridKind::Virtex7 => {
+            prjcombine_virtex4::chip::ChipKind::Virtex7 => {
                 if !opts.skip_core {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
                     bram::virtex6::add_fuzzers(&mut hammer, &backend);
@@ -550,7 +550,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
             }
         }
         ExpandedDevice::Virtex4(ref edev) => match edev.kind {
-            prjcombine_virtex4::grid::GridKind::Virtex4 => {
+            prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                 if !opts.skip_core {
                     clb::virtex2::collect_fuzzers(&mut ctx);
                     bram::virtex4::collect_fuzzers(&mut ctx);
@@ -578,7 +578,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     gt::virtex4::collect_fuzzers(&mut ctx);
                 }
             }
-            prjcombine_virtex4::grid::GridKind::Virtex5 => {
+            prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                 if !opts.skip_core {
                     clb::virtex5::collect_fuzzers(&mut ctx);
                     bram::virtex5::collect_fuzzers(&mut ctx);
@@ -611,7 +611,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     gt::virtex5::collect_fuzzers(&mut ctx);
                 }
             }
-            prjcombine_virtex4::grid::GridKind::Virtex6 => {
+            prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                 if !opts.skip_core {
                     clb::virtex5::collect_fuzzers(&mut ctx);
                     bram::virtex6::collect_fuzzers(&mut ctx);
@@ -642,7 +642,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     gt::virtex6_gth::collect_fuzzers(&mut ctx);
                 }
             }
-            prjcombine_virtex4::grid::GridKind::Virtex7 => {
+            prjcombine_virtex4::chip::ChipKind::Virtex7 => {
                 if !opts.skip_core {
                     clb::virtex5::collect_fuzzers(&mut ctx);
                     bram::virtex6::collect_fuzzers(&mut ctx);
@@ -836,7 +836,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             prjcombine_re_xilinx_geom::Grid::Virtex4(grid) => match grid.kind {
-                prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                     run(&tc, &db, parts_dict[&"xc4vfx60"], &mut tiledb, &opts);
                     if !opts.skip_io {
                         let mut xopts = opts;
@@ -854,7 +854,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                     }
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                     run(&tc, &db, parts_dict[&"xc5vtx150t"], &mut tiledb, &opts);
                     if !opts.skip_gt {
                         let mut xopts = opts;
@@ -877,7 +877,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                     }
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                     run(&tc, &db, parts_dict[&"xc6vlx75t"], &mut tiledb, &opts);
                     if !opts.skip_gt {
                         let mut xopts = opts;
@@ -894,7 +894,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                     }
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex7 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex7 => {
                     run(&tc, &db, parts_dict[&"xc7k70t"], &mut tiledb, &opts);
                     if !opts.skip_gt {
                         // GTP

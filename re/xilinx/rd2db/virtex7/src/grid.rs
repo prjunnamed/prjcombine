@@ -1,7 +1,7 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
-use prjcombine_virtex4::grid::{
-    ColumnKind, DisabledPart, Grid, GridKind, GtColumn, GtKind, Interposer, IoColumn, IoKind,
+use prjcombine_virtex4::chip::{
+    Chip, ChipKind, ColumnKind, DisabledPart, GtColumn, GtKind, Interposer, IoColumn, IoKind,
     Pcie2, Pcie2Kind, RegId,
 };
 use std::collections::BTreeSet;
@@ -270,7 +270,7 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> Vec<GtC
     res
 }
 
-pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, Interposer, BTreeSet<DisabledPart>) {
+pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Chip>, Interposer, BTreeSet<DisabledPart>) {
     let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["B_TERM_INT_SLV"])
         .into_iter()
         .map(|x| x as u16)
@@ -323,8 +323,8 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, Interposer, BTreeSet<Di
         assert_eq!(row_cfg.to_idx() % 50, 0);
         assert_eq!(row_clk.to_idx() % 50, 0);
         assert_eq!(int.rows.len() % 50, 0);
-        let slr = grids.push(Grid {
-            kind: GridKind::Virtex7,
+        let slr = grids.push(Chip {
+            kind: ChipKind::Virtex7,
             columns: columns.clone(),
             cols_vbrk: cols_vbrk.clone(),
             cols_mgt_buf: BTreeSet::new(),

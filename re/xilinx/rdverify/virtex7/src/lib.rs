@@ -6,8 +6,8 @@ use prjcombine_re_xilinx_naming_virtex4::{ExpandedNamedDevice, ExpandedNamedGtz}
 use prjcombine_re_xilinx_rawdump::{Part, Source};
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePin, SitePinDir, Verifier, verify};
 use prjcombine_virtex4::{
+    chip::DisabledPart,
     expanded::ExpandedGtz,
-    grid::DisabledPart,
     gtz::{GtzIntColId, GtzIntRowId},
 };
 use std::collections::{HashMap, HashSet};
@@ -348,7 +348,7 @@ fn verify_int_lclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
         "INT_LCLK_R" => ("HCLK_R", 0..6),
         _ => unreachable!(),
     };
-    let srow = endev.edev.grids[bel.die].row_hclk(bel.row);
+    let srow = endev.edev.chips[bel.die].row_hclk(bel.row);
     let ud = if bel.row.to_idx() % 50 < 25 { 'D' } else { 'U' };
     let obel = vrf.find_bel(bel.die, (bel.col, srow), hclk).unwrap();
     for i in rng {
@@ -401,7 +401,7 @@ fn verify_hclk_l(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
         }
     }
     let obel = vrf.find_bel_sibling(bel, "HCLK_R");
-    let grid = endev.edev.grids[bel.die];
+    let grid = endev.edev.chips[bel.die];
     let obel_hrow = vrf
         .find_bel(bel.die, (endev.edev.col_clk, bel.row), "CLK_HROW")
         .unwrap();
@@ -575,7 +575,7 @@ fn verify_clk_rebuf(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_clk_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = endev.edev.grids[bel.die];
+    let grid = endev.edev.chips[bel.die];
     let obel_casc = vrf.find_bel_delta(
         bel,
         0,
@@ -1203,7 +1203,7 @@ fn verify_ilogic(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
             bel.die,
             (
                 ColId::from_idx(bel.col.to_idx() ^ 1),
-                endev.edev.grids[bel.die].row_hclk(bel.row),
+                endev.edev.chips[bel.die].row_hclk(bel.row),
             ),
             cmt,
         )
@@ -1354,7 +1354,7 @@ fn verify_ologic(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
             bel.die,
             (
                 ColId::from_idx(bel.col.to_idx() ^ 1),
-                endev.edev.grids[bel.die].row_hclk(bel.row),
+                endev.edev.chips[bel.die].row_hclk(bel.row),
             ),
             cmt,
         )
@@ -1492,7 +1492,7 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = endev.edev.grids[bel.die];
+    let grid = endev.edev.chips[bel.die];
     let srow = grid.row_hclk(bel.row);
     let obel = vrf.find_bel(bel.die, (bel.col, srow), "HCLK_IOI").unwrap();
     let ud = if bel.row.to_idx() % 50 < 25 { 'D' } else { 'U' };
@@ -1954,7 +1954,7 @@ fn verify_bufmrce(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_hclk_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = endev.edev.grids[bel.die];
+    let grid = endev.edev.chips[bel.die];
     let obel_hrow = vrf
         .find_bel(bel.die, (endev.edev.col_clk, bel.row), "CLK_HROW")
         .unwrap();
@@ -2695,7 +2695,7 @@ fn verify_in_fifo(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
     vrf.claim_pip(bel.crd(), bel.wire("WREN"), bel.wire("PHASER_WREN"));
 
     let pidx = (bel.row.to_idx() % 50 - 1) / 12;
-    let srow = endev.edev.grids[bel.die].row_hclk(bel.row);
+    let srow = endev.edev.chips[bel.die].row_hclk(bel.row);
     let obel = vrf
         .find_bel(bel.die, (bel.col, srow), &format!("PHASER_IN{pidx}"))
         .unwrap();
@@ -2709,7 +2709,7 @@ fn verify_out_fifo(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
     vrf.claim_pip(bel.crd(), bel.wire("RDEN"), bel.wire("PHASER_RDEN"));
 
     let pidx = (bel.row.to_idx() % 50 - 1) / 12;
-    let srow = endev.edev.grids[bel.die].row_hclk(bel.row);
+    let srow = endev.edev.chips[bel.die].row_hclk(bel.row);
     let obel = vrf
         .find_bel(bel.die, (bel.col, srow), &format!("PHASER_OUT{pidx}"))
         .unwrap();
@@ -3004,7 +3004,7 @@ fn verify_gtp_channel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
     let obel = vrf
         .find_bel(
             bel.die,
-            (bel.col, endev.edev.grids[bel.die].row_hclk(bel.row)),
+            (bel.col, endev.edev.chips[bel.die].row_hclk(bel.row)),
             "GTP_COMMON",
         )
         .unwrap();
@@ -3070,7 +3070,7 @@ fn verify_gtxh_channel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
     let obel = vrf
         .find_bel(
             bel.die,
-            (bel.col, endev.edev.grids[bel.die].row_hclk(bel.row)),
+            (bel.col, endev.edev.chips[bel.die].row_hclk(bel.row)),
             if is_gth { "GTH_COMMON" } else { "GTX_COMMON" },
         )
         .unwrap();
@@ -3706,7 +3706,7 @@ fn verify_gtz(
     let (sdie, srow) = if gtz.side == Dir::S {
         (DieId::from_idx(0), RowId::from_idx(4))
     } else {
-        let sdie = endev.edev.grids.last_id().unwrap();
+        let sdie = endev.edev.chips.last_id().unwrap();
         (sdie, vrf.grid.die(sdie).rows().next_back().unwrap() - 19)
     };
     let obel_rebuf = vrf

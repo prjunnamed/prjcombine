@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     grid::{ColId, DieId, ExpandedDieRef, RowId},
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
-use prjcombine_virtex4::{expanded::ExpandedDevice, grid::CfgRowKind};
+use prjcombine_virtex4::{chip::CfgRowKind, expanded::ExpandedDevice};
 use unnamed_entity::EntityId;
 
 use crate::ExpandedNamedDevice;
@@ -62,7 +62,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     };
 
     for die in egrid.dies() {
-        let grid = edev.grids[die.die];
+        let grid = edev.chips[die.die];
         for col in die.cols() {
             for row in die.rows() {
                 for (layer, node) in &die[(col, row)].nodes {

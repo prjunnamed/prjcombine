@@ -186,7 +186,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .insert(name, "INTF", "TEST_ENABLE", xlat_bit(test_diff));
         if let ExpandedDevice::Virtex4(edev) = ctx.edev {
             match edev.kind {
-                prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                     for (_, mux_inps) in &mut test_muxes {
                         for (in_name, diff) in mux_inps {
                             if in_name.starts_with("IMUX.CLK")
@@ -202,7 +202,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                     }
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                     let mut new_test_muxes = vec![];
                     let mut known_bits = HashSet::new();
                     for (mux_name, mux_inps) in &test_muxes {

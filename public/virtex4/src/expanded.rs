@@ -1,5 +1,5 @@
 use crate::bond::{PsPin, SharedCfgPin};
-use crate::grid::{DisabledPart, Grid, GridKind, GtKind, Interposer, IoKind, RegId, XadcIoLoc};
+use crate::chip::{Chip, ChipKind, DisabledPart, GtKind, Interposer, IoKind, RegId, XadcIoLoc};
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use bimap::BiHashMap;
 use enum_map::EnumMap;
@@ -18,8 +18,8 @@ pub struct DieFrameGeom {
 }
 
 pub struct ExpandedDevice<'a> {
-    pub kind: GridKind,
-    pub grids: EntityVec<DieId, &'a Grid>,
+    pub kind: ChipKind,
+    pub chips: EntityVec<DieId, &'a Chip>,
     pub egrid: ExpandedGrid<'a>,
     pub gdb: &'a GtzDb,
     pub disabled: BTreeSet<DisabledPart>,
@@ -109,10 +109,10 @@ pub struct ExpandedGtz {
 
 impl ExpandedDevice<'_> {
     pub fn adjust_vivado(&mut self) {
-        if self.kind == GridKind::Virtex7 {
+        if self.kind == ChipKind::Virtex7 {
             let lvb6 = self.egrid.db.wires.get("LVB.6").unwrap().0;
             let mut cursed_wires = HashSet::new();
-            for i in 1..self.grids.len() {
+            for i in 1..self.chips.len() {
                 let dieid_s = DieId::from_idx(i - 1);
                 let dieid_n = DieId::from_idx(i);
                 let die_s = self.egrid.die(dieid_s);
@@ -150,12 +150,12 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn get_io_info(&self, io: IoCoord) -> IoInfo {
-        let grid = self.grids[io.die];
-        let reg = grid.row_to_reg(io.row);
+        let chip = self.chips[io.die];
+        let reg = chip.row_to_reg(io.row);
         match self.kind {
-            GridKind::Virtex4 => {
+            ChipKind::Virtex4 => {
                 let (bank, biob, pkgid, is_gc) = if io.col == self.col_cfg {
-                    if io.row < grid.row_bufg() {
+                    if io.row < chip.row_bufg() {
                         if io.row < self.row_dcmiob.unwrap() + 8 {
                             (
                                 4,
@@ -163,7 +163,7 @@ impl ExpandedDevice<'_> {
                                 (8 - (io.row.to_idx() % 8)),
                                 true,
                             )
-                        } else if io.row >= grid.row_bufg() - 16 {
+                        } else if io.row >= chip.row_bufg() - 16 {
                             (
                                 2,
                                 (io.row.to_idx() % 8) * 2,
@@ -193,7 +193,7 @@ impl ExpandedDevice<'_> {
                                 (8 - (io.row.to_idx() % 8)),
                                 true,
                             )
-                        } else if io.row < grid.row_bufg() + 16 {
+                        } else if io.row < chip.row_bufg() + 16 {
                             (
                                 1,
                                 (io.row.to_idx() % 8) * 2,
@@ -218,7 +218,7 @@ impl ExpandedDevice<'_> {
                     }
                 } else if Some(io.col) == self.col_lio {
                     (
-                        match grid.regs {
+                        match chip.regs {
                             4 => [7, 5][reg.to_idx() / 2],
                             6 => [7, 9, 5][reg.to_idx() / 2],
                             8 => [7, 11, 9, 5][reg.to_idx() / 2],
@@ -232,7 +232,7 @@ impl ExpandedDevice<'_> {
                     )
                 } else {
                     (
-                        match grid.regs {
+                        match chip.regs {
                             4 => [8, 6][reg.to_idx() / 2],
                             6 => [8, 10, 6][reg.to_idx() / 2],
                             8 => [8, 12, 10, 6][reg.to_idx() / 2],
@@ -289,8 +289,8 @@ impl ExpandedDevice<'_> {
                     },
                 }
             }
-            GridKind::Virtex5 => {
-                let rr = reg - grid.reg_cfg;
+            ChipKind::Virtex5 => {
+                let rr = reg - chip.reg_cfg;
                 let bank = if io.col == self.col_cfg {
                     (if rr <= -4 {
                         6 + (-rr - 4) * 2
@@ -363,7 +363,7 @@ impl ExpandedDevice<'_> {
                     },
                 }
             }
-            GridKind::Virtex6 => {
+            ChipKind::Virtex6 => {
                 let bank = (if Some(io.col) == self.col_lio {
                     15
                 } else if Some(io.col) == self.col_lcio {
@@ -374,7 +374,7 @@ impl ExpandedDevice<'_> {
                     45
                 } else {
                     unreachable!()
-                } - grid.reg_cfg.to_idx()
+                } - chip.reg_cfg.to_idx()
                     + reg.to_idx()) as u32;
                 let is_vr = match bank {
                     34 => io.row.to_idx() % 40 == 0,
@@ -419,11 +419,11 @@ impl ExpandedDevice<'_> {
                     },
                 }
             }
-            GridKind::Virtex7 => {
+            ChipKind::Virtex7 => {
                 let x = if Some(io.col) == self.col_lio { 0 } else { 20 };
-                let y = self.banklut[io.die] + reg.to_idx() as u32 - grid.reg_cfg.to_idx() as u32;
+                let y = self.banklut[io.die] + reg.to_idx() as u32 - chip.reg_cfg.to_idx() as u32;
                 let bank = x + y;
-                let iocol = grid
+                let iocol = chip
                     .cols_io
                     .iter()
                     .find(|iocol| iocol.col == io.col)
@@ -472,14 +472,14 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn get_gt_info(&self, die: DieId, col: ColId, row: RowId) -> GtInfo {
-        let grid = self.grids[die];
-        let reg = grid.row_to_reg(row);
-        let gtcol = grid.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
+        let chip = self.chips[die];
+        let reg = chip.row_to_reg(row);
+        let gtcol = chip.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
         let kind = gtcol.regs[reg].unwrap();
         let bank = match self.kind {
-            GridKind::Virtex4 => {
+            ChipKind::Virtex4 => {
                 let lr = if Some(col) == self.col_lgt { 'L' } else { 'R' };
-                let banks: &[u32] = match (lr, grid.regs) {
+                let banks: &[u32] = match (lr, chip.regs) {
                     ('L', 4) => &[105, 102],
                     ('L', 6) => &[105, 103, 102],
                     ('L', 8) => &[106, 105, 103, 102],
@@ -494,20 +494,20 @@ impl ExpandedDevice<'_> {
                 };
                 banks[row.to_idx() / 32]
             }
-            GridKind::Virtex5 => {
-                (if reg < grid.reg_cfg {
-                    113 + (grid.reg_cfg - reg - 1) * 4
+            ChipKind::Virtex5 => {
+                (if reg < chip.reg_cfg {
+                    113 + (chip.reg_cfg - reg - 1) * 4
                 } else {
-                    111 + (reg - grid.reg_cfg) * 4
+                    111 + (reg - chip.reg_cfg) * 4
                 }) as u32
                     + if col.to_idx() != 0 { 1 } else { 0 }
             }
-            GridKind::Virtex6 => {
-                (reg - grid.reg_cfg + if col.to_idx() == 0 { 105 } else { 115 }) as u32
+            ChipKind::Virtex6 => {
+                (reg - chip.reg_cfg + if col.to_idx() == 0 { 105 } else { 115 }) as u32
             }
-            GridKind::Virtex7 => {
+            ChipKind::Virtex7 => {
                 if kind == GtKind::Gtp {
-                    if grid.has_ps {
+                    if chip.has_ps {
                         112
                     } else {
                         let x = if gtcol.is_middle && col > self.col_clk {
@@ -520,7 +520,7 @@ impl ExpandedDevice<'_> {
                     }
                 } else {
                     let x = if col.to_idx() == 0 { 200 } else { 100 };
-                    let y = self.banklut[die] + reg.to_idx() as u32 - grid.reg_cfg.to_idx() as u32;
+                    let y = self.banklut[die] + reg.to_idx() as u32 - chip.reg_cfg.to_idx() as u32;
                     x + y
                 }
             }
@@ -537,7 +537,7 @@ impl ExpandedDevice<'_> {
     ) -> Option<(IoCoord, IoCoord)> {
         assert_eq!(col, self.col_cfg);
         match self.kind {
-            GridKind::Virtex4 => {
+            ChipKind::Virtex4 => {
                 let dy = match idx {
                     0 => return None,
                     1 => 0,
@@ -564,7 +564,7 @@ impl ExpandedDevice<'_> {
                     },
                 ))
             }
-            GridKind::Virtex5 => {
+            ChipKind::Virtex5 => {
                 let dy = [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19][idx];
                 Some((
                     IoCoord {
@@ -581,7 +581,7 @@ impl ExpandedDevice<'_> {
                     },
                 ))
             }
-            GridKind::Virtex6 => {
+            ChipKind::Virtex6 => {
                 let cl = self.col_lio.unwrap_or_else(|| self.col_lcio.unwrap());
                 let cr = self.col_rcio.unwrap();
                 let (col_io, dy) = [
@@ -617,9 +617,9 @@ impl ExpandedDevice<'_> {
                     },
                 ))
             }
-            GridKind::Virtex7 => {
-                let grid = self.grids[die];
-                let vaux = match grid.get_xadc_io_loc() {
+            ChipKind::Virtex7 => {
+                let chip = self.chips[die];
+                let vaux = match chip.get_xadc_io_loc() {
                     XadcIoLoc::Left => {
                         let col_lio = self.col_lio.unwrap();
                         [
@@ -739,7 +739,7 @@ impl ExpandedDevice<'_> {
 
     pub fn get_ps_pins(&self) -> Vec<PsPin> {
         let mut res = vec![];
-        if self.grids.first().unwrap().has_ps {
+        if self.chips.first().unwrap().has_ps {
             for i in 0..54 {
                 res.push(PsPin::Mio(i));
             }
@@ -780,17 +780,17 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn btile_main(&self, die: DieId, col: ColId, row: RowId) -> BitTile {
-        let reg = self.grids[die].row_to_reg(row);
-        let rd = (row - self.grids[die].row_reg_bot(reg)) as usize;
-        let (height, bit, flip) = if self.kind == GridKind::Virtex4 {
-            let flip = reg < self.grids[die].reg_cfg;
+        let reg = self.chips[die].row_to_reg(row);
+        let rd = (row - self.chips[die].row_reg_bot(reg)) as usize;
+        let (height, bit, flip) = if self.kind == ChipKind::Virtex4 {
+            let flip = reg < self.chips[die].reg_cfg;
             let pos = if flip { 15 - rd } else { rd } * 80;
             (80, if pos < 640 { pos } else { pos + 32 }, flip)
         } else {
             (
                 64,
                 64 * rd
-                    + if row >= self.grids[die].row_reg_hclk(reg) {
+                    + if row >= self.chips[die].row_reg_hclk(reg) {
                         32
                     } else {
                         0
@@ -809,11 +809,11 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn btile_hclk(&self, die: DieId, col: ColId, row: RowId) -> BitTile {
-        let reg = self.grids[die].row_to_reg(row);
-        let bit = if self.kind == GridKind::Virtex4 {
-            80 * self.grids[die].rows_per_reg() / 2
+        let reg = self.chips[die].row_to_reg(row);
+        let bit = if self.kind == ChipKind::Virtex4 {
+            80 * self.chips[die].rows_per_reg() / 2
         } else {
-            64 * self.grids[die].rows_per_reg() / 2
+            64 * self.chips[die].rows_per_reg() / 2
         };
         BitTile::Main(
             die,
@@ -826,17 +826,17 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn btile_spine(&self, die: DieId, row: RowId) -> BitTile {
-        let reg = self.grids[die].row_to_reg(row);
-        let rd = (row - self.grids[die].row_reg_bot(reg)) as usize;
-        let (height, bit, flip) = if self.kind == GridKind::Virtex4 {
-            let flip = reg < self.grids[die].reg_cfg;
+        let reg = self.chips[die].row_to_reg(row);
+        let rd = (row - self.chips[die].row_reg_bot(reg)) as usize;
+        let (height, bit, flip) = if self.kind == ChipKind::Virtex4 {
+            let flip = reg < self.chips[die].reg_cfg;
             let pos = if flip { 15 - rd } else { rd } * 80;
             (80, if pos < 640 { pos } else { pos + 32 }, flip)
         } else {
             (
                 64,
                 64 * rd
-                    + if row >= self.grids[die].row_reg_hclk(reg) {
+                    + if row >= self.chips[die].row_reg_hclk(reg) {
                         32
                     } else {
                         0
@@ -848,8 +848,8 @@ impl ExpandedDevice<'_> {
             die,
             self.frames[die].spine_frame[reg],
             match self.kind {
-                GridKind::Virtex4 => 3,
-                GridKind::Virtex5 => 4,
+                ChipKind::Virtex4 => 3,
+                ChipKind::Virtex5 => 4,
                 _ => unreachable!(),
             },
             bit,
@@ -859,18 +859,18 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn btile_spine_hclk(&self, die: DieId, row: RowId) -> BitTile {
-        let reg = self.grids[die].row_to_reg(row);
-        let bit = if self.kind == GridKind::Virtex4 {
-            80 * self.grids[die].rows_per_reg() / 2
+        let reg = self.chips[die].row_to_reg(row);
+        let bit = if self.kind == ChipKind::Virtex4 {
+            80 * self.chips[die].rows_per_reg() / 2
         } else {
-            64 * self.grids[die].rows_per_reg() / 2
+            64 * self.chips[die].rows_per_reg() / 2
         };
         BitTile::Main(
             die,
             self.frames[die].spine_frame[reg],
             match self.kind {
-                GridKind::Virtex4 => 3,
-                GridKind::Virtex5 => 4,
+                ChipKind::Virtex4 => 3,
+                ChipKind::Virtex5 => 4,
                 _ => unreachable!(),
             },
             bit,
@@ -880,17 +880,17 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn btile_bram(&self, die: DieId, col: ColId, row: RowId) -> BitTile {
-        let reg = self.grids[die].row_to_reg(row);
-        let rd = (row - self.grids[die].row_reg_bot(reg)) as usize;
-        let (width, bit, flip) = if self.kind == GridKind::Virtex4 {
-            let flip = reg < self.grids[die].reg_cfg;
+        let reg = self.chips[die].row_to_reg(row);
+        let rd = (row - self.chips[die].row_reg_bot(reg)) as usize;
+        let (width, bit, flip) = if self.kind == ChipKind::Virtex4 {
+            let flip = reg < self.chips[die].reg_cfg;
             let pos = if flip { 12 - rd } else { rd } * 80;
             (64, if pos < 640 { pos } else { pos + 32 }, flip)
         } else {
             (
                 128,
                 64 * rd
-                    + if row >= self.grids[die].row_reg_hclk(reg) {
+                    + if row >= self.chips[die].row_reg_hclk(reg) {
                         32
                     } else {
                         0

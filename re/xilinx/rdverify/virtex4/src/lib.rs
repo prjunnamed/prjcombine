@@ -382,7 +382,7 @@ fn verify_clk_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
         }
     }
     for i in 0..32 {
-        let orow = endev.edev.grids[bel.die].row_bufg() - 8;
+        let orow = endev.edev.chips[bel.die].row_bufg() - 8;
         let obel = vrf
             .find_bel(bel.die, (bel.col, orow), &format!("BUFGCTRL{i}"))
             .unwrap();
@@ -412,7 +412,7 @@ fn verify_clk_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             vrf.claim_pip(obel.crd(), obel.wire("CLKOUT"), obel.wire("O"));
         }
     }
-    let dy = if bel.row < endev.edev.grids[bel.die].row_bufg() {
+    let dy = if bel.row < endev.edev.chips[bel.die].row_bufg() {
         -8
     } else {
         16
@@ -458,7 +458,7 @@ fn verify_clk_dcm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             ]);
         }
     }
-    let dy = if bel.row < endev.edev.grids[bel.die].row_bufg() {
+    let dy = if bel.row < endev.edev.chips[bel.die].row_bufg() {
         -8
     } else {
         8
@@ -753,7 +753,7 @@ fn verify_hclk_dcm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
             for i in 0..4 {
                 if endev.edev.col_lgt.is_some() || !has_sysmon_s {
                     let skip = endev.edev.col_lgt.is_none()
-                        && bel.row.to_idx() == endev.edev.grids[bel.die].regs * 16 - 8;
+                        && bel.row.to_idx() == endev.edev.chips[bel.die].regs * 16 - 8;
                     if !skip {
                         vrf.claim_node(&[bel.fwire(&format!("MGT{i}"))]);
                     }
@@ -837,7 +837,7 @@ fn verify_hclk_dcm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
 }
 
 fn verify_hclk_dcm_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let srow = if bel.row <= endev.edev.grids[bel.die].row_bufg() {
+    let srow = if bel.row <= endev.edev.chips[bel.die].row_bufg() {
         endev.edev.row_dcmiob.unwrap()
     } else {
         endev.edev.row_iobdcm.unwrap() - 16
@@ -966,7 +966,7 @@ fn verify_dcm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     vrf.claim_node(&[bel.fwire("TO_BUFG11")]);
     vrf.claim_node(&[bel.fwire("LOCKED_BUF")]);
     vrf.claim_pip(bel.crd(), bel.wire("LOCKED_BUF"), bel.wire("LOCKED"));
-    let dy = if bel.row < endev.edev.grids[bel.die].row_bufg() {
+    let dy = if bel.row < endev.edev.chips[bel.die].row_bufg() {
         -4
     } else {
         4
@@ -1185,7 +1185,7 @@ fn verify_ccm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
             vrf.claim_pip(bel.crd(), bel.wire(&opin), ibel.wire(ipin));
         }
     }
-    let dy = if bel.row < endev.edev.grids[bel.die].row_bufg() {
+    let dy = if bel.row < endev.edev.chips[bel.die].row_bufg() {
         -4
     } else {
         4

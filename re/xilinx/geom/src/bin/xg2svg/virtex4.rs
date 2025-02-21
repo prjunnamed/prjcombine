@@ -1,6 +1,6 @@
 use prjcombine_interconnect::grid::{ColId, DieId};
+use prjcombine_virtex4::chip::{CfgRowKind, ChipKind, ColumnKind, GtKind, RegId};
 use prjcombine_virtex4::expanded::ExpandedDevice;
-use prjcombine_virtex4::grid::{CfgRowKind, ColumnKind, GridKind, GtKind, RegId};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::drawer::Drawer;
@@ -20,7 +20,7 @@ const H_HCLK: f64 = 2.;
 const H_BRKH: f64 = 2.;
 
 pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
-    let fgrid = edev.grids.first().unwrap();
+    let fgrid = edev.chips.first().unwrap();
     let mut x = 0.;
     let mut col_x = EntityVec::new();
     x += W_TERM;
@@ -33,8 +33,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             ColumnKind::Bram => W_BRAM,
             ColumnKind::Io => W_IO,
             ColumnKind::Cfg => match edev.kind {
-                GridKind::Virtex7 => W_CLB,
-                GridKind::Virtex6 => W_CMT,
+                ChipKind::Virtex7 => W_CLB,
+                ChipKind::Virtex6 => W_CMT,
                 _ => W_IO,
             },
             ColumnKind::Cmt => W_CMT,
@@ -42,7 +42,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         };
         col_x.push((x, x + w));
         x += w;
-        if cd == ColumnKind::Cfg && matches!(edev.kind, GridKind::Virtex4 | GridKind::Virtex5) {
+        if cd == ColumnKind::Cfg && matches!(edev.kind, ChipKind::Virtex4 | ChipKind::Virtex5) {
             x += W_SPINE;
         }
     }
@@ -53,7 +53,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     let mut row_y = EntityVec::new();
     let mut y = 0.;
     let rpr = fgrid.rows_per_reg();
-    for (_, grid) in &edev.grids {
+    for (_, grid) in &edev.chips {
         let term_y_b = y;
         let mut die_row_y = EntityVec::new();
         y += H_TERM;
@@ -99,8 +99,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     drawer.bel_class("bufg", "#aa5500");
     drawer.bel_class("bufh", "#ffaa00");
 
-    let bram_rows = if edev.kind == GridKind::Virtex4 { 4 } else { 5 };
-    for (die, grid) in &edev.grids {
+    let bram_rows = if edev.kind == ChipKind::Virtex4 { 4 } else { 5 };
+    for (die, grid) in &edev.chips {
         for (col, &cd) in &grid.columns {
             match cd {
                 ColumnKind::ClbLL | ColumnKind::ClbLM => {
@@ -141,7 +141,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         )
                     }
                 }
-                ColumnKind::Cfg if edev.kind == GridKind::Virtex7 => {
+                ColumnKind::Cfg if edev.kind == ChipKind::Virtex7 => {
                     for reg in grid.regs() {
                         drawer.bel_rect(
                             col_x[col].0,
@@ -152,7 +152,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         );
                     }
                 }
-                ColumnKind::Cfg if edev.kind == GridKind::Virtex6 => {
+                ColumnKind::Cfg if edev.kind == ChipKind::Virtex6 => {
                     for reg in grid.regs() {
                         drawer.bel_rect(
                             col_x[col].0,
@@ -259,13 +259,13 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             continue;
                         }
                         let h = match edev.kind {
-                            GridKind::Virtex6 => {
+                            ChipKind::Virtex6 => {
                                 if row.to_idx() % 2 == 1 {
                                     continue;
                                 }
                                 2
                             }
-                            GridKind::Virtex7 => {
+                            ChipKind::Virtex7 => {
                                 if matches!(row.to_idx() % 50, 0 | 49) {
                                     1
                                 } else if row.to_idx() % 2 == 0 {
@@ -335,8 +335,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         }
         for &(col, row) in &grid.holes_ppc {
             let (w, h) = match edev.kind {
-                GridKind::Virtex4 => (9, 24),
-                GridKind::Virtex5 => (14, 40),
+                ChipKind::Virtex4 => (9, 24),
+                ChipKind::Virtex5 => (14, 40),
                 _ => unreachable!(),
             };
             drawer.bel_rect(
@@ -368,8 +368,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         if let Some(ref hc) = grid.col_hard {
             for &row in &hc.rows_emac {
                 let height = match edev.kind {
-                    GridKind::Virtex5 => 10,
-                    GridKind::Virtex6 => 10,
+                    ChipKind::Virtex5 => 10,
+                    ChipKind::Virtex6 => 10,
                     _ => unreachable!(),
                 };
                 drawer.bel_rect(
@@ -382,8 +382,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             }
             for &row in &hc.rows_pcie {
                 let (w, h) = match edev.kind {
-                    GridKind::Virtex5 => (1, 40),
-                    GridKind::Virtex6 => (4, 20),
+                    ChipKind::Virtex5 => (1, 40),
+                    ChipKind::Virtex6 => (4, 20),
                     _ => unreachable!(),
                 };
                 drawer.bel_rect(
@@ -397,7 +397,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         }
         let col = edev.col_cfg;
         match grid.kind {
-            GridKind::Virtex4 => {
+            ChipKind::Virtex4 => {
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col].1,
@@ -437,7 +437,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     }
                 }
             }
-            GridKind::Virtex5 => {
+            ChipKind::Virtex5 => {
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col].1,
@@ -455,7 +455,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     );
                 }
             }
-            GridKind::Virtex6 => {
+            ChipKind::Virtex6 => {
                 drawer.bel_rect(
                     col_x[col - 6].0,
                     col_x[col - 1].1,
@@ -464,7 +464,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     "cfg",
                 );
             }
-            GridKind::Virtex7 => {
+            ChipKind::Virtex7 => {
                 drawer.bel_rect(
                     col_x[col - 6].0,
                     col_x[col - 1].1,

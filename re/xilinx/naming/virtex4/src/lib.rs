@@ -6,8 +6,8 @@ use prjcombine_interconnect::{
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{
     bond::PsPin,
+    chip::{CfgRowKind, ChipKind, GtKind, RegId},
     expanded::{ExpandedDevice, IoCoord},
-    grid::{CfgRowKind, GridKind, GtKind, RegId},
     gtz::GtzIntColId,
 };
 use unnamed_entity::{EntityId, EntityVec};
@@ -60,11 +60,11 @@ pub struct ExpandedNamedDevice<'a> {
 impl ExpandedNamedDevice<'_> {
     pub fn get_io_name(&self, io: IoCoord) -> &str {
         match self.edev.kind {
-            GridKind::Virtex4 | GridKind::Virtex5 | GridKind::Virtex6 => self
+            ChipKind::Virtex4 | ChipKind::Virtex5 | ChipKind::Virtex6 => self
                 .ngrid
                 .get_bel_name(io.die, io.col, io.row, &format!("IOB{}", io.iob))
                 .unwrap(),
-            GridKind::Virtex7 => {
+            ChipKind::Virtex7 => {
                 if matches!(io.row.to_idx() % 50, 0 | 49) {
                     self.ngrid
                         .get_bel_name(io.die, io.col, io.row, "IOB")
@@ -80,9 +80,9 @@ impl ExpandedNamedDevice<'_> {
 
     pub fn get_sysmons(&self) -> Vec<SysMon<'_>> {
         let mut res = vec![];
-        for (die, grid) in &self.edev.grids {
+        for (die, grid) in &self.edev.chips {
             match self.edev.kind {
-                GridKind::Virtex4 => {
+                ChipKind::Virtex4 => {
                     let mut idx = 0;
                     for &(row, kind) in &grid.rows_cfg {
                         let col = self.edev.col_cfg;
@@ -103,7 +103,7 @@ impl ExpandedNamedDevice<'_> {
                         idx += 1;
                     }
                 }
-                GridKind::Virtex5 => {
+                ChipKind::Virtex5 => {
                     let col = self.edev.col_cfg;
                     let row = grid.row_reg_hclk(grid.reg_cfg - 1);
                     res.push(SysMon {
@@ -118,7 +118,7 @@ impl ExpandedNamedDevice<'_> {
                             .collect(),
                     });
                 }
-                GridKind::Virtex6 => {
+                ChipKind::Virtex6 => {
                     let col = self.edev.col_cfg;
                     let row = grid.row_reg_bot(grid.reg_cfg);
                     res.push(SysMon {
@@ -133,7 +133,7 @@ impl ExpandedNamedDevice<'_> {
                             .collect(),
                     });
                 }
-                GridKind::Virtex7 => {
+                ChipKind::Virtex7 => {
                     if grid.regs > 1 {
                         let col = self.edev.col_cfg;
                         let row = grid.row_reg_hclk(grid.reg_cfg);
@@ -160,7 +160,7 @@ impl ExpandedNamedDevice<'_> {
         for &(die, col, row) in &self.edev.gt {
             let gt_info = self.edev.get_gt_info(die, col, row);
             let gt = match self.edev.kind {
-                GridKind::Virtex4 | GridKind::Virtex5 => Gt {
+                ChipKind::Virtex4 | ChipKind::Virtex5 => Gt {
                     die,
                     col,
                     row,
@@ -191,7 +191,7 @@ impl ExpandedNamedDevice<'_> {
                         ),
                     ],
                 },
-                GridKind::Virtex6 => Gt {
+                ChipKind::Virtex6 => Gt {
                     die,
                     col,
                     row,
@@ -259,7 +259,7 @@ impl ExpandedNamedDevice<'_> {
                         ),
                     ],
                 },
-                GridKind::Virtex7 => {
+                ChipKind::Virtex7 => {
                     let channel_rows = [row - 25, row - 25 + 11, row - 25 + 28, row - 25 + 39];
                     Gt {
                         die,
@@ -336,7 +336,7 @@ impl ExpandedNamedDevice<'_> {
             PsPin::DdrWeB => "IOPAD.DDRWEB".to_string(),
         };
         let die = DieId::from_idx(0);
-        let grid = self.edev.grids[die];
+        let grid = self.edev.chips[die];
         let col = grid.col_ps();
         let row = grid.row_reg_bot(RegId::from_idx(grid.regs - 1));
         self.ngrid.get_bel_name(die, col, row, &key).unwrap()
@@ -345,9 +345,9 @@ impl ExpandedNamedDevice<'_> {
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     match edev.kind {
-        GridKind::Virtex4 => virtex4::name_device(edev, ndb),
-        GridKind::Virtex5 => virtex5::name_device(edev, ndb),
-        GridKind::Virtex6 => virtex6::name_device(edev, ndb),
-        GridKind::Virtex7 => virtex7::name_device(edev, ndb),
+        ChipKind::Virtex4 => virtex4::name_device(edev, ndb),
+        ChipKind::Virtex5 => virtex5::name_device(edev, ndb),
+        ChipKind::Virtex6 => virtex6::name_device(edev, ndb),
+        ChipKind::Virtex7 => virtex7::name_device(edev, ndb),
     }
 }

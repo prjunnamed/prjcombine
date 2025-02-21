@@ -516,14 +516,14 @@ impl<'a> Backend for IseBackend<'a> {
                                             ("IOB", "I", vec![("IMUX", "I"), ("BYPASS_MUX", "I")])
                                         }
                                         ExpandedDevice::Virtex4(edev) => match edev.kind {
-                                            prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                                            prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                                                 ("IOB", "I", vec![("INBUFUSED", "0")])
                                             }
-                                            prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                                            prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                                                 ("IOB", "I", vec![("IMUX", "I")])
                                             }
-                                            prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
-                                            prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                                            prjcombine_virtex4::chip::ChipKind::Virtex6 => todo!(),
+                                            prjcombine_virtex4::chip::ChipKind::Virtex7 => todo!(),
                                         },
                                         _ => unreachable!(),
                                     },

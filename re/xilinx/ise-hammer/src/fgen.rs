@@ -119,7 +119,7 @@ fn resolve_tile_relation(
                 unreachable!()
             };
             match edev.kind {
-                prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                     loc.2 = match dir {
                         Dir::N => edev.row_iobdcm.unwrap() - 16,
                         Dir::S => edev.row_dcmiob.unwrap(),
@@ -135,9 +135,9 @@ fn resolve_tile_relation(
                     loc.3 = layer;
                     Some(loc)
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
-                prjcombine_virtex4::grid::GridKind::Virtex6
-                | prjcombine_virtex4::grid::GridKind::Virtex7 => unreachable!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex5 => todo!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex6
+                | prjcombine_virtex4::chip::ChipKind::Virtex7 => unreachable!(),
             }
         }
         TileRelation::ClkDcm => {
@@ -145,12 +145,12 @@ fn resolve_tile_relation(
                 unreachable!()
             };
             match edev.kind {
-                prjcombine_virtex4::grid::GridKind::Virtex4 => {
-                    let is_t = loc.2 > edev.grids[loc.0].row_bufg();
+                prjcombine_virtex4::chip::ChipKind::Virtex4 => {
+                    let is_t = loc.2 > edev.chips[loc.0].row_bufg();
                     loop {
                         if is_t {
                             loc.2 += 8;
-                            if loc.2.to_idx() >= edev.grids[loc.0].rows().len() {
+                            if loc.2.to_idx() >= edev.chips[loc.0].rows().len() {
                                 return None;
                             }
                         } else {
@@ -169,9 +169,9 @@ fn resolve_tile_relation(
                         }
                     }
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
-                prjcombine_virtex4::grid::GridKind::Virtex6
-                | prjcombine_virtex4::grid::GridKind::Virtex7 => unreachable!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex5 => todo!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex6
+                | prjcombine_virtex4::chip::ChipKind::Virtex7 => unreachable!(),
             }
         }
         TileRelation::ClkHrow(delta) => match backend.edev {
@@ -198,9 +198,9 @@ fn resolve_tile_relation(
                 unreachable!()
             };
             match edev.kind {
-                prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                     loc.1 = edev.col_cfg;
-                    loc.2 = edev.grids[loc.0].row_bufg() - 8;
+                    loc.2 = edev.chips[loc.0].row_bufg() - 8;
                     let Some((layer, _)) =
                         backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
                             backend.egrid.db.nodes.key(node.kind) == "CFG"
@@ -211,9 +211,9 @@ fn resolve_tile_relation(
                     loc.3 = layer;
                     Some(loc)
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
-                prjcombine_virtex4::grid::GridKind::Virtex6
-                | prjcombine_virtex4::grid::GridKind::Virtex7 => unreachable!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex5 => todo!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex6
+                | prjcombine_virtex4::chip::ChipKind::Virtex7 => unreachable!(),
             }
         }
         TileRelation::Rclk => {
@@ -225,7 +225,7 @@ fn resolve_tile_relation(
         TileRelation::HclkDcm => match backend.edev {
             ExpandedDevice::Virtex4(edev) => {
                 loc.1 = edev.col_clk;
-                loc.2 = edev.grids[loc.0].row_hclk(loc.2);
+                loc.2 = edev.chips[loc.0].row_hclk(loc.2);
                 let Some((layer, _)) = backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
                     backend.egrid.db.nodes.key(node.kind) == "HCLK_DCM"
                 }) else {
@@ -241,7 +241,7 @@ fn resolve_tile_relation(
                 unreachable!()
             };
             match edev.kind {
-                prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                     match dir {
                         Dir::S => {
                             if loc.2.to_idx() == 0 {
@@ -251,7 +251,7 @@ fn resolve_tile_relation(
                         }
                         Dir::N => {
                             loc.2 += 32;
-                            if loc.2.to_idx() >= edev.grids[loc.0].rows().len() {
+                            if loc.2.to_idx() >= edev.chips[loc.0].rows().len() {
                                 return None;
                             }
                         }
@@ -267,9 +267,9 @@ fn resolve_tile_relation(
                     loc.3 = layer;
                     Some(loc)
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
-                prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
-                prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex5 => todo!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex6 => todo!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex7 => todo!(),
             }
         }
         TileRelation::Delta(dx, dy, kind) => {
@@ -328,7 +328,7 @@ fn resolve_tile_relation(
             let ExpandedDevice::Virtex4(edev) = backend.edev else {
                 unreachable!()
             };
-            loc.2 = edev.grids[loc.0].row_reg_hclk(edev.grids[loc.0].row_to_reg(loc.2));
+            loc.2 = edev.chips[loc.0].row_reg_hclk(edev.chips[loc.0].row_to_reg(loc.2));
             let (layer, _) = backend
                 .egrid
                 .find_node_loc(loc.0, (loc.1, loc.2), |node| node.kind == kind)?;
@@ -386,7 +386,7 @@ fn resolve_bel_relation(
                 unreachable!()
             };
             match edev.kind {
-                prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                     loc.1 = if loc.1 <= edev.col_clk {
                         edev.col_lio.unwrap()
                     } else {
@@ -412,7 +412,7 @@ fn resolve_bel_relation(
                         .0;
                     Some((loc, bel))
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                     loc.1 = if loc.1 <= edev.col_clk {
                         edev.col_lio?
                     } else {
@@ -433,7 +433,7 @@ fn resolve_bel_relation(
                         .0;
                     Some((loc, bel))
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                     loc.1 = edev.col_clk;
                     let Some((layer, node)) =
                         backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
@@ -446,7 +446,7 @@ fn resolve_bel_relation(
                     let bel = backend.egrid.db.nodes[node.kind].bels.get("CMT").unwrap().0;
                     Some((loc, bel))
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex7 => todo!(),
             }
         }
         BelRelation::Ioclk(dir) => {
@@ -454,10 +454,10 @@ fn resolve_bel_relation(
                 unreachable!()
             };
             match edev.kind {
-                prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                     match dir {
                         Dir::S => {
-                            if loc.1 == edev.col_cfg && loc.2 == edev.grids[loc.0].row_bufg() + 8 {
+                            if loc.1 == edev.col_cfg && loc.2 == edev.chips[loc.0].row_bufg() + 8 {
                                 return None;
                             }
                             if loc.2.to_idx() < 16 {
@@ -466,11 +466,11 @@ fn resolve_bel_relation(
                             loc.2 -= 16;
                         }
                         Dir::N => {
-                            if loc.1 == edev.col_cfg && loc.2 == edev.grids[loc.0].row_bufg() - 8 {
+                            if loc.1 == edev.col_cfg && loc.2 == edev.chips[loc.0].row_bufg() - 8 {
                                 return None;
                             }
                             loc.2 += 16;
-                            if loc.2.to_idx() >= edev.grids[loc.0].rows().len() {
+                            if loc.2.to_idx() >= edev.chips[loc.0].rows().len() {
                                 return None;
                             }
                         }
@@ -496,9 +496,9 @@ fn resolve_bel_relation(
                         .0;
                     Some((loc, bel))
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
-                prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
-                prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex5 => todo!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex6 => todo!(),
+                prjcombine_virtex4::chip::ChipKind::Virtex7 => todo!(),
             }
         }
     }
@@ -633,7 +633,7 @@ fn resolve_intf_test_pip<'a>(
         .egrid
         .resolve_wire((loc.0, node.tiles[wire_from.0], wire_from.1))?;
     if let ExpandedDevice::Virtex4(edev) = backend.edev {
-        if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex5
+        if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5
             && ndb.node_namings.key(nnode.naming) == "INTF.PPC_R"
             && intdb.wires.key(wire_from.1).starts_with("TEST")
         {
@@ -925,7 +925,7 @@ impl<'a> TileKV<'a> {
                         }
                     }
                     ExpandedDevice::Virtex4(edev) => {
-                        if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex4 {
+                        if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4 {
                             // avoid CLK in center column — using it on DCM tiles causes the inverter bit to be auto-set
                             if intdb.wires.key(wire.1).starts_with("IMUX.CLK")
                                 && loc.1 == edev.col_clk
@@ -1871,12 +1871,12 @@ impl<'a> TileKV<'a> {
                 ExpandedDevice::Virtex4(edev) => {
                     match dir {
                         Dir::S => {
-                            if loc.2 >= edev.grids[loc.0].row_hclk(loc.2) {
+                            if loc.2 >= edev.chips[loc.0].row_hclk(loc.2) {
                                 return None;
                             }
                         }
                         Dir::N => {
-                            if loc.2 < edev.grids[loc.0].row_hclk(loc.2) {
+                            if loc.2 < edev.chips[loc.0].row_hclk(loc.2) {
                                 return None;
                             }
                         }
@@ -1891,7 +1891,7 @@ impl<'a> TileKV<'a> {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                         let (vr_row, io_row) = get_v4_center_dci_rows(edev, *bank);
                         // Ensure nothing is placed in VR.
                         if let Some(vr_row) = vr_row {
@@ -1922,7 +1922,7 @@ impl<'a> TileKV<'a> {
                         // Avoid interference.
                         fuzzer = fuzzer.base(Key::GlobalOpt("MATCH_CYCLE".into()), "NOWAIT");
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                         let (vr_row, io_row) = get_v4_center_dci_rows(edev, *bank);
                         // Ensure nothing is placed in VR.
                         if let Some(vr_row) = vr_row {
@@ -1951,7 +1951,7 @@ impl<'a> TileKV<'a> {
                         // Avoid interference.
                         fuzzer = fuzzer.base(Key::GlobalOpt("MATCH_CYCLE".into()), "NOWAIT");
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                         assert_eq!(*bank, 25);
                         let (vr_row, io_row) = get_v4_center_dci_rows(edev, *bank);
                         // Ensure nothing is placed in VR.
@@ -1980,7 +1980,7 @@ impl<'a> TileKV<'a> {
                             .egrid
                             .find_node_loc(
                                 loc.0,
-                                (edev.col_lcio.unwrap(), edev.grids[loc.0].row_bufg() + 20),
+                                (edev.col_lcio.unwrap(), edev.chips[loc.0].row_bufg() + 20),
                                 |node| edev.egrid.db.nodes.key(node.kind) == "HCLK_IOI",
                             )
                             .unwrap();
@@ -1989,7 +1989,7 @@ impl<'a> TileKV<'a> {
                                 (
                                     loc.0,
                                     edev.col_lcio.unwrap(),
-                                    edev.grids[loc.0].row_bufg() + 20,
+                                    edev.chips[loc.0].row_bufg() + 20,
                                     layer,
                                 ),
                                 "VCCO".to_string(),
@@ -2002,18 +2002,18 @@ impl<'a> TileKV<'a> {
                         // Avoid interference.
                         fuzzer = fuzzer.base(Key::GlobalOpt("MATCH_CYCLE".into()), "NOWAIT");
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => {
-                        let anchor_reg = if edev.grids[loc.0].has_ps {
-                            prjcombine_virtex4::grid::RegId::from_idx(
-                                edev.grids[loc.0].regs - 2 + *bank as usize,
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => {
+                        let anchor_reg = if edev.chips[loc.0].has_ps {
+                            prjcombine_virtex4::chip::RegId::from_idx(
+                                edev.chips[loc.0].regs - 2 + *bank as usize,
                             )
                         } else {
-                            prjcombine_virtex4::grid::RegId::from_idx(*bank as usize)
+                            prjcombine_virtex4::chip::RegId::from_idx(*bank as usize)
                         };
                         // Ensure nothing is placed in VR.
                         for row in [
-                            edev.grids[loc.0].row_reg_hclk(anchor_reg) - 25,
-                            edev.grids[loc.0].row_reg_hclk(anchor_reg) + 24,
+                            edev.chips[loc.0].row_reg_hclk(anchor_reg) - 25,
+                            edev.chips[loc.0].row_reg_hclk(anchor_reg) + 24,
                         ] {
                             let site = backend
                                 .ngrid
@@ -2021,7 +2021,7 @@ impl<'a> TileKV<'a> {
                                 .unwrap();
                             fuzzer = fuzzer.base(Key::SiteMode(site), None);
                         }
-                        let io_row = edev.grids[loc.0].row_reg_hclk(anchor_reg) - 24;
+                        let io_row = edev.chips[loc.0].row_reg_hclk(anchor_reg) - 24;
                         let site = backend
                             .ngrid
                             .get_bel_name(loc.0, edev.col_rio.unwrap(), io_row, "IOB0")
@@ -2044,7 +2044,7 @@ impl<'a> TileKV<'a> {
                                 loc.0,
                                 (
                                     edev.col_rio.unwrap(),
-                                    edev.grids[loc.0].row_reg_hclk(anchor_reg),
+                                    edev.chips[loc.0].row_reg_hclk(anchor_reg),
                                 ),
                                 |node| edev.egrid.db.nodes.key(node.kind) == "HCLK_IOI_HP",
                             )
@@ -2054,7 +2054,7 @@ impl<'a> TileKV<'a> {
                                 (
                                     loc.0,
                                     edev.col_rio.unwrap(),
-                                    edev.grids[loc.0].row_reg_hclk(anchor_reg),
+                                    edev.chips[loc.0].row_reg_hclk(anchor_reg),
                                     layer,
                                 ),
                                 "VCCO".to_string(),
@@ -2075,9 +2075,9 @@ impl<'a> TileKV<'a> {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex5
-                    | prjcombine_virtex4::grid::GridKind::Virtex6 => {
-                        let col = if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex6 {
+                    prjcombine_virtex4::chip::ChipKind::Virtex5
+                    | prjcombine_virtex4::chip::ChipKind::Virtex6 => {
+                        let col = if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex6 {
                             edev.col_lcio.unwrap()
                         } else {
                             edev.col_cfg
@@ -2085,8 +2085,8 @@ impl<'a> TileKV<'a> {
                         let (_, io_row) = get_v4_center_dci_rows(edev, *bank_a);
                         // Ensure nothing else in the bank.
                         let bot =
-                            edev.grids[loc.0].row_reg_bot(edev.grids[loc.0].row_to_reg(io_row));
-                        for i in 0..edev.grids[loc.0].rows_per_reg() {
+                            edev.chips[loc.0].row_reg_bot(edev.chips[loc.0].row_to_reg(io_row));
+                        for i in 0..edev.chips[loc.0].rows_per_reg() {
                             let row = bot + i;
                             for bel in ["IOB0", "IOB1"] {
                                 if row == io_row && bel == "IOB0" {
@@ -2110,7 +2110,7 @@ impl<'a> TileKV<'a> {
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "OUSED".into()), "0");
                         fuzzer = fuzzer.base(
                             Key::SiteAttr(site, "OSTANDARD".into()),
-                            if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex6 {
+                            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex6 {
                                 "LVDCI_25"
                             } else {
                                 "LVDCI_33"
@@ -2121,8 +2121,8 @@ impl<'a> TileKV<'a> {
                         let (_, io_row) = get_v4_center_dci_rows(edev, *bank_b);
                         // Ensure nothing else in the bank.
                         let bot =
-                            edev.grids[loc.0].row_reg_bot(edev.grids[loc.0].row_to_reg(io_row));
-                        for i in 0..edev.grids[loc.0].rows_per_reg() {
+                            edev.chips[loc.0].row_reg_bot(edev.chips[loc.0].row_to_reg(io_row));
+                        for i in 0..edev.chips[loc.0].rows_per_reg() {
                             let row = bot + i;
                             for bel in ["IOB0", "IOB1"] {
                                 if row == io_row && bel == "IOB0" {
@@ -2147,7 +2147,7 @@ impl<'a> TileKV<'a> {
                         fuzzer = fuzzer.fuzz(
                             Key::SiteAttr(site, "OSTANDARD".into()),
                             None,
-                            if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex6 {
+                            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex6 {
                                 "LVDCI_25"
                             } else {
                                 "LVDCI_33"
@@ -2155,25 +2155,25 @@ impl<'a> TileKV<'a> {
                         );
                         fuzzer = fuzzer.fuzz(Key::DciCascade(*bank_b), None, *bank_a);
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => {
                         fuzzer = fuzzer.base(Key::GlobalOpt("UNCONSTRAINEDPINS".into()), "ALLOW");
-                        let (anchor_reg_a, anchor_reg_b) = if edev.grids[loc.0].has_ps {
+                        let (anchor_reg_a, anchor_reg_b) = if edev.chips[loc.0].has_ps {
                             (
-                                prjcombine_virtex4::grid::RegId::from_idx(
-                                    edev.grids[loc.0].regs - 2 + *bank_a as usize,
+                                prjcombine_virtex4::chip::RegId::from_idx(
+                                    edev.chips[loc.0].regs - 2 + *bank_a as usize,
                                 ),
-                                prjcombine_virtex4::grid::RegId::from_idx(
-                                    edev.grids[loc.0].regs - 2 + *bank_b as usize,
+                                prjcombine_virtex4::chip::RegId::from_idx(
+                                    edev.chips[loc.0].regs - 2 + *bank_b as usize,
                                 ),
                             )
                         } else {
                             (
-                                prjcombine_virtex4::grid::RegId::from_idx(*bank_a as usize),
-                                prjcombine_virtex4::grid::RegId::from_idx(*bank_b as usize),
+                                prjcombine_virtex4::chip::RegId::from_idx(*bank_a as usize),
+                                prjcombine_virtex4::chip::RegId::from_idx(*bank_b as usize),
                             )
                         };
-                        let hclk_a = edev.grids[loc.0].row_reg_hclk(anchor_reg_a);
-                        let hclk_b = edev.grids[loc.0].row_reg_hclk(anchor_reg_b);
+                        let hclk_a = edev.chips[loc.0].row_reg_hclk(anchor_reg_a);
+                        let hclk_b = edev.chips[loc.0].row_reg_hclk(anchor_reg_b);
                         let io_row = hclk_a - 24;
                         let col = edev.col_rio.unwrap();
                         // Ensure nothing else in the bank.
@@ -2266,9 +2266,9 @@ impl<'a> TileKV<'a> {
                         }
                     }
                     if let Some((col_gt, _)) = edev.col_mgt {
-                        let gtcol = edev.grids[loc.0].get_col_gt(col_gt).unwrap();
+                        let gtcol = edev.chips[loc.0].get_col_gt(col_gt).unwrap();
                         if loc.1 > col_gt
-                            && gtcol.regs[edev.grids[loc.0].row_to_reg(loc.2)].is_some()
+                            && gtcol.regs[edev.chips[loc.0].row_to_reg(loc.2)].is_some()
                         {
                             tgt_col_gt = Some(col_gt);
                         }
@@ -2280,9 +2280,9 @@ impl<'a> TileKV<'a> {
                         }
                     }
                     if let Some((_, col_gt)) = edev.col_mgt {
-                        let gtcol = edev.grids[loc.0].get_col_gt(col_gt).unwrap();
+                        let gtcol = edev.chips[loc.0].get_col_gt(col_gt).unwrap();
                         if loc.1 > col_gt
-                            && gtcol.regs[edev.grids[loc.0].row_to_reg(loc.2)].is_some()
+                            && gtcol.regs[edev.chips[loc.0].row_to_reg(loc.2)].is_some()
                         {
                             tgt_col_gt = Some(col_gt);
                         }
@@ -2965,14 +2965,14 @@ fn get_v4_vref_rows(
     row: RowId,
 ) -> Vec<RowId> {
     match edev.kind {
-        prjcombine_virtex4::grid::GridKind::Virtex4 => {
-            let row_cfg = edev.grids[die].row_reg_bot(edev.grids[die].reg_cfg);
+        prjcombine_virtex4::chip::ChipKind::Virtex4 => {
+            let row_cfg = edev.chips[die].row_reg_bot(edev.chips[die].reg_cfg);
             if Some(col) == edev.col_lio || Some(col) == edev.col_rio {
-                let mut reg = edev.grids[die].row_to_reg(row);
+                let mut reg = edev.chips[die].row_to_reg(row);
                 if reg.to_idx() % 2 == 1 {
                     reg -= 1;
                 }
-                let bot = edev.grids[die].row_reg_bot(reg);
+                let bot = edev.chips[die].row_reg_bot(reg);
                 vec![bot + 4, bot + 12, bot + 20, bot + 28]
             } else if row < edev.row_dcmiob.unwrap() + 8 {
                 vec![edev.row_dcmiob.unwrap() + 4]
@@ -2996,29 +2996,29 @@ fn get_v4_vref_rows(
                 vec![edev.row_iobdcm.unwrap() - 4]
             }
         }
-        prjcombine_virtex4::grid::GridKind::Virtex5 => {
-            let reg = edev.grids[die].row_to_reg(row);
-            let bot = edev.grids[die].row_reg_bot(reg);
+        prjcombine_virtex4::chip::ChipKind::Virtex5 => {
+            let reg = edev.chips[die].row_to_reg(row);
+            let bot = edev.chips[die].row_reg_bot(reg);
             if col == edev.col_cfg
-                && (reg == edev.grids[die].reg_cfg || reg == edev.grids[die].reg_cfg - 2)
+                && (reg == edev.chips[die].reg_cfg || reg == edev.chips[die].reg_cfg - 2)
             {
                 vec![bot + 15]
             } else if col == edev.col_cfg
-                && (reg == edev.grids[die].reg_cfg - 1 || reg == edev.grids[die].reg_cfg + 1)
+                && (reg == edev.chips[die].reg_cfg - 1 || reg == edev.chips[die].reg_cfg + 1)
             {
                 vec![bot + 5]
             } else {
                 vec![bot + 5, bot + 15]
             }
         }
-        prjcombine_virtex4::grid::GridKind::Virtex6 => {
-            let reg = edev.grids[die].row_to_reg(row);
-            let bot = edev.grids[die].row_reg_bot(reg);
+        prjcombine_virtex4::chip::ChipKind::Virtex6 => {
+            let reg = edev.chips[die].row_to_reg(row);
+            let bot = edev.chips[die].row_reg_bot(reg);
             vec![bot + 10, bot + 30]
         }
-        prjcombine_virtex4::grid::GridKind::Virtex7 => {
-            let reg = edev.grids[die].row_to_reg(row);
-            let bot = edev.grids[die].row_reg_bot(reg);
+        prjcombine_virtex4::chip::ChipKind::Virtex7 => {
+            let reg = edev.chips[die].row_to_reg(row);
+            let bot = edev.chips[die].row_reg_bot(reg);
             vec![bot + 11, bot + 37]
         }
     }
@@ -3031,14 +3031,14 @@ fn get_v4_vr_row(
     row: RowId,
 ) -> RowId {
     match edev.kind {
-        prjcombine_virtex4::grid::GridKind::Virtex4 => {
-            let row_cfg = edev.grids[die].row_reg_bot(edev.grids[die].reg_cfg);
+        prjcombine_virtex4::chip::ChipKind::Virtex4 => {
+            let row_cfg = edev.chips[die].row_reg_bot(edev.chips[die].reg_cfg);
             if Some(col) == edev.col_lio || Some(col) == edev.col_rio {
-                let mut reg = edev.grids[die].row_to_reg(row);
+                let mut reg = edev.chips[die].row_to_reg(row);
                 if reg.to_idx() % 2 == 1 {
                     reg -= 1;
                 }
-                let bot = edev.grids[die].row_reg_bot(reg);
+                let bot = edev.chips[die].row_reg_bot(reg);
                 bot + 9
             } else if row < edev.row_dcmiob.unwrap() + 8 {
                 edev.row_dcmiob.unwrap() + 1
@@ -3050,11 +3050,11 @@ fn get_v4_vr_row(
                 edev.row_iobdcm.unwrap() - 2
             }
         }
-        prjcombine_virtex4::grid::GridKind::Virtex5 => {
-            let row_cfg = edev.grids[die].row_reg_bot(edev.grids[die].reg_cfg);
+        prjcombine_virtex4::chip::ChipKind::Virtex5 => {
+            let row_cfg = edev.chips[die].row_reg_bot(edev.chips[die].reg_cfg);
             if Some(col) == edev.col_lio || Some(col) == edev.col_rio {
-                let reg = edev.grids[die].row_to_reg(row);
-                let bot = edev.grids[die].row_reg_bot(reg);
+                let reg = edev.chips[die].row_to_reg(row);
+                let bot = edev.chips[die].row_reg_bot(reg);
                 bot + 7
             } else if row < row_cfg - 20 {
                 edev.row_dcmiob.unwrap() + 2
@@ -3066,19 +3066,19 @@ fn get_v4_vr_row(
                 edev.row_iobdcm.unwrap() - 3
             }
         }
-        prjcombine_virtex4::grid::GridKind::Virtex6 => {
-            let reg = edev.grids[die].row_to_reg(row);
-            if reg == edev.grids[die].reg_cfg {
-                edev.grids[die].row_reg_bot(reg) + 6
-            } else if reg == edev.grids[die].reg_cfg - 1 && Some(col) == edev.col_lcio {
-                edev.grids[die].row_reg_bot(reg) + 4
-            } else if reg == edev.grids[die].reg_cfg - 1 && Some(col) == edev.col_rcio {
-                edev.grids[die].row_reg_bot(reg) + 0
+        prjcombine_virtex4::chip::ChipKind::Virtex6 => {
+            let reg = edev.chips[die].row_to_reg(row);
+            if reg == edev.chips[die].reg_cfg {
+                edev.chips[die].row_reg_bot(reg) + 6
+            } else if reg == edev.chips[die].reg_cfg - 1 && Some(col) == edev.col_lcio {
+                edev.chips[die].row_reg_bot(reg) + 4
+            } else if reg == edev.chips[die].reg_cfg - 1 && Some(col) == edev.col_rcio {
+                edev.chips[die].row_reg_bot(reg) + 0
             } else {
-                edev.grids[die].row_reg_bot(reg) + 14
+                edev.chips[die].row_reg_bot(reg) + 14
             }
         }
-        prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+        prjcombine_virtex4::chip::ChipKind::Virtex7 => todo!(),
     }
 }
 
@@ -3088,22 +3088,22 @@ fn get_v4_center_dci_rows(
 ) -> (Option<RowId>, RowId) {
     let die = DieId::from_idx(0);
     match edev.kind {
-        prjcombine_virtex4::grid::GridKind::Virtex4 => match bank {
+        prjcombine_virtex4::chip::ChipKind::Virtex4 => match bank {
             1 => (
-                if edev.grids[die].row_bufg() == edev.row_iobdcm.unwrap() - 24 {
+                if edev.chips[die].row_bufg() == edev.row_iobdcm.unwrap() - 24 {
                     None
                 } else {
                     Some(edev.row_iobdcm.unwrap() - 16 - 2)
                 },
-                edev.grids[die].row_bufg() + 8,
+                edev.chips[die].row_bufg() + 8,
             ),
             2 => (
-                if edev.grids[die].row_bufg() == edev.row_dcmiob.unwrap() + 24 {
+                if edev.chips[die].row_bufg() == edev.row_dcmiob.unwrap() + 24 {
                     None
                 } else {
                     Some(edev.row_dcmiob.unwrap() + 16 + 1)
                 },
-                edev.grids[die].row_bufg() - 9,
+                edev.chips[die].row_bufg() - 9,
             ),
             3 => (
                 Some(edev.row_iobdcm.unwrap() - 2),
@@ -3112,31 +3112,31 @@ fn get_v4_center_dci_rows(
             4 => (Some(edev.row_dcmiob.unwrap() + 1), edev.row_dcmiob.unwrap()),
             _ => unreachable!(),
         },
-        prjcombine_virtex4::grid::GridKind::Virtex5 => match bank {
-            1 => (None, edev.grids[die].row_bufg() + 10),
-            2 => (None, edev.grids[die].row_bufg() - 11),
+        prjcombine_virtex4::chip::ChipKind::Virtex5 => match bank {
+            1 => (None, edev.chips[die].row_bufg() + 10),
+            2 => (None, edev.chips[die].row_bufg() - 11),
             3 => (
-                Some(edev.grids[die].row_bufg() + 30 - 3),
-                edev.grids[die].row_bufg() + 30 - 1,
+                Some(edev.chips[die].row_bufg() + 30 - 3),
+                edev.chips[die].row_bufg() + 30 - 1,
             ),
             4 => (
-                Some(edev.grids[die].row_bufg() - 30 + 2),
-                edev.grids[die].row_bufg() - 30,
+                Some(edev.chips[die].row_bufg() - 30 + 2),
+                edev.chips[die].row_bufg() - 30,
             ),
             _ => unreachable!(),
         },
-        prjcombine_virtex4::grid::GridKind::Virtex6 => match bank {
+        prjcombine_virtex4::chip::ChipKind::Virtex6 => match bank {
             24 => (
-                Some(edev.grids[die].row_bufg() - 40 + 4),
-                edev.grids[die].row_bufg() - 40,
+                Some(edev.chips[die].row_bufg() - 40 + 4),
+                edev.chips[die].row_bufg() - 40,
             ),
             25 => (
-                Some(edev.grids[die].row_bufg() + 6),
-                edev.grids[die].row_bufg(),
+                Some(edev.chips[die].row_bufg() + 6),
+                edev.chips[die].row_bufg(),
             ),
             26 => (
-                Some(edev.grids[die].row_bufg() + 40 + 16),
-                edev.grids[die].row_bufg() + 40,
+                Some(edev.chips[die].row_bufg() + 40 + 16),
+                edev.chips[die].row_bufg() + 40,
             ),
             _ => unreachable!(),
         },
@@ -3414,10 +3414,10 @@ impl<'a> BelKV {
             BelKV::PrepVref => match backend.edev {
                 ExpandedDevice::Virtex4(edev) => {
                     let is_vref_row = match edev.kind {
-                        prjcombine_virtex4::grid::GridKind::Virtex4 => loc.2.to_idx() % 8 == 4,
-                        prjcombine_virtex4::grid::GridKind::Virtex5 => loc.2.to_idx() % 10 == 5,
-                        prjcombine_virtex4::grid::GridKind::Virtex6 => loc.2.to_idx() % 20 == 10,
-                        prjcombine_virtex4::grid::GridKind::Virtex7 => {
+                        prjcombine_virtex4::chip::ChipKind::Virtex4 => loc.2.to_idx() % 8 == 4,
+                        prjcombine_virtex4::chip::ChipKind::Virtex5 => loc.2.to_idx() % 10 == 5,
+                        prjcombine_virtex4::chip::ChipKind::Virtex6 => loc.2.to_idx() % 20 == 10,
+                        prjcombine_virtex4::chip::ChipKind::Virtex7 => {
                             matches!(loc.2.to_idx() % 50, 11 | 37)
                         }
                     };
@@ -3425,7 +3425,7 @@ impl<'a> BelKV {
                         return None;
                     }
                     let vref_rows = get_v4_vref_rows(edev, loc.0, loc.1, loc.2);
-                    if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex4 {
+                    if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4 {
                         let (layer, _) = edev
                             .egrid
                             .find_node_loc(loc.0, (loc.1, vref_rows[0]), |node| {
@@ -3438,7 +3438,7 @@ impl<'a> BelKV {
                             "EXCLUSIVE",
                         );
                     } else {
-                        let hclk_row = edev.grids[loc.0].row_hclk(loc.2);
+                        let hclk_row = edev.chips[loc.0].row_hclk(loc.2);
                         // Take exclusive mutex on VREF.
                         let (layer, _) = edev
                             .egrid
@@ -3475,7 +3475,7 @@ impl<'a> BelKV {
             },
             BelKV::PrepVrefInternal(vref) => match backend.edev {
                 ExpandedDevice::Virtex4(edev) => {
-                    let hclk_row = edev.grids[loc.0].row_hclk(loc.2);
+                    let hclk_row = edev.chips[loc.0].row_hclk(loc.2);
                     // Take exclusive mutex on VREF.
                     let (layer, _) = edev
                         .egrid
@@ -3518,7 +3518,7 @@ impl<'a> BelKV {
             BelKV::PrepDci => match backend.edev {
                 ExpandedDevice::Virtex4(edev) => {
                     match edev.kind {
-                        prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                        prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                             if loc.1 == edev.col_cfg {
                                 // Center column is more trouble than it's worth.
                                 return None;
@@ -3577,7 +3577,7 @@ impl<'a> BelKV {
                                 fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                         }
-                        prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                        prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                             if loc.1 == edev.col_cfg {
                                 // Center column is more trouble than it's worth.
                                 return None;
@@ -3618,7 +3618,7 @@ impl<'a> BelKV {
                                 .get_bel_name(
                                     loc.0,
                                     edev.col_cfg,
-                                    edev.grids[loc.0].row_bufg() - 30,
+                                    edev.chips[loc.0].row_bufg() - 30,
                                     "IOB0",
                                 )
                                 .unwrap();
@@ -3634,17 +3634,17 @@ impl<'a> BelKV {
                                     .get_bel_name(
                                         loc.0,
                                         edev.col_cfg,
-                                        edev.grids[loc.0].row_bufg() - 30 + 2,
+                                        edev.chips[loc.0].row_bufg() - 30 + 2,
                                         bel,
                                     )
                                     .unwrap();
                                 fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                         }
-                        prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                        prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                             // Avoid bank 25, which is our (arbitrary) anchor.
                             if loc.1 == edev.col_lcio.unwrap()
-                                && edev.grids[loc.0].row_to_reg(loc.2) == edev.grids[loc.0].reg_cfg
+                                && edev.chips[loc.0].row_to_reg(loc.2) == edev.chips[loc.0].reg_cfg
                             {
                                 return None;
                             }
@@ -3666,13 +3666,13 @@ impl<'a> BelKV {
                                 .egrid
                                 .find_node_loc(
                                     loc.0,
-                                    (loc.1, edev.grids[loc.0].row_hclk(loc.2)),
+                                    (loc.1, edev.chips[loc.0].row_hclk(loc.2)),
                                     |node| edev.egrid.db.nodes.key(node.kind) == "HCLK_IOI",
                                 )
                                 .unwrap();
                             fuzzer = fuzzer.fuzz(
                                 Key::TileMutex(
-                                    (loc.0, loc.1, edev.grids[loc.0].row_hclk(loc.2), layer),
+                                    (loc.0, loc.1, edev.chips[loc.0].row_hclk(loc.2), layer),
                                     "BANK_DCI".to_string(),
                                 ),
                                 None,
@@ -3686,7 +3686,7 @@ impl<'a> BelKV {
                                 .get_bel_name(
                                     loc.0,
                                     edev.col_lcio.unwrap(),
-                                    edev.grids[loc.0].row_bufg(),
+                                    edev.chips[loc.0].row_bufg(),
                                     "IOB0",
                                 )
                                 .unwrap();
@@ -3702,7 +3702,7 @@ impl<'a> BelKV {
                                     .get_bel_name(
                                         loc.0,
                                         edev.col_lcio.unwrap(),
-                                        edev.grids[loc.0].row_bufg() + 6,
+                                        edev.chips[loc.0].row_bufg() + 6,
                                         bel,
                                     )
                                     .unwrap();
@@ -3713,7 +3713,7 @@ impl<'a> BelKV {
                                 .egrid
                                 .find_node_loc(
                                     loc.0,
-                                    (edev.col_lcio.unwrap(), edev.grids[loc.0].row_bufg() + 20),
+                                    (edev.col_lcio.unwrap(), edev.chips[loc.0].row_bufg() + 20),
                                     |node| edev.egrid.db.nodes.key(node.kind) == "HCLK_IOI",
                                 )
                                 .unwrap();
@@ -3722,7 +3722,7 @@ impl<'a> BelKV {
                                     (
                                         loc.0,
                                         edev.col_lcio.unwrap(),
-                                        edev.grids[loc.0].row_bufg() + 20,
+                                        edev.chips[loc.0].row_bufg() + 20,
                                         layer,
                                     ),
                                     "VCCO".to_string(),
@@ -3730,24 +3730,24 @@ impl<'a> BelKV {
                                 "2500",
                             );
                         }
-                        prjcombine_virtex4::grid::GridKind::Virtex7 => {
+                        prjcombine_virtex4::chip::ChipKind::Virtex7 => {
                             // Avoid anchor bank.
-                            let anchor_reg = if edev.grids[loc.0].has_ps {
-                                prjcombine_virtex4::grid::RegId::from_idx(
-                                    edev.grids[loc.0].regs - 1,
+                            let anchor_reg = if edev.chips[loc.0].has_ps {
+                                prjcombine_virtex4::chip::RegId::from_idx(
+                                    edev.chips[loc.0].regs - 1,
                                 )
                             } else {
-                                prjcombine_virtex4::grid::RegId::from_idx(0)
+                                prjcombine_virtex4::chip::RegId::from_idx(0)
                             };
                             if loc.1 == edev.col_rio.unwrap()
-                                && edev.grids[loc.0].row_to_reg(loc.2) == anchor_reg
+                                && edev.chips[loc.0].row_to_reg(loc.2) == anchor_reg
                             {
                                 return None;
                             }
                             // Ensure nothing is placed in VR.
                             for row in [
-                                edev.grids[loc.0].row_hclk(loc.2) - 25,
-                                edev.grids[loc.0].row_hclk(loc.2) + 24,
+                                edev.chips[loc.0].row_hclk(loc.2) - 25,
+                                edev.chips[loc.0].row_hclk(loc.2) + 24,
                             ] {
                                 let site = backend
                                     .ngrid
@@ -3760,13 +3760,13 @@ impl<'a> BelKV {
                                 .egrid
                                 .find_node_loc(
                                     loc.0,
-                                    (loc.1, edev.grids[loc.0].row_hclk(loc.2)),
+                                    (loc.1, edev.chips[loc.0].row_hclk(loc.2)),
                                     |node| edev.egrid.db.nodes.key(node.kind) == "HCLK_IOI_HP",
                                 )
                                 .unwrap();
                             fuzzer = fuzzer.fuzz(
                                 Key::TileMutex(
-                                    (loc.0, loc.1, edev.grids[loc.0].row_hclk(loc.2), layer),
+                                    (loc.0, loc.1, edev.chips[loc.0].row_hclk(loc.2), layer),
                                     "BANK_DCI".to_string(),
                                 ),
                                 None,
@@ -3780,7 +3780,7 @@ impl<'a> BelKV {
                                 .get_bel_name(
                                     loc.0,
                                     edev.col_rio.unwrap(),
-                                    edev.grids[loc.0].row_reg_bot(anchor_reg) + 1,
+                                    edev.chips[loc.0].row_reg_bot(anchor_reg) + 1,
                                     "IOB0",
                                 )
                                 .unwrap();
@@ -3791,8 +3791,8 @@ impl<'a> BelKV {
                                 fuzzer.base(Key::SiteAttr(site, "OSTANDARD".into()), "LVDCI_18");
                             // Ensure anchor VR IOBs are free.
                             for row in [
-                                edev.grids[loc.0].row_reg_hclk(anchor_reg) - 25,
-                                edev.grids[loc.0].row_reg_hclk(anchor_reg) + 24,
+                                edev.chips[loc.0].row_reg_hclk(anchor_reg) - 25,
+                                edev.chips[loc.0].row_reg_hclk(anchor_reg) + 24,
                             ] {
                                 let site = backend
                                     .ngrid
@@ -3807,7 +3807,7 @@ impl<'a> BelKV {
                                     loc.0,
                                     (
                                         edev.col_rio.unwrap(),
-                                        edev.grids[loc.0].row_reg_hclk(anchor_reg),
+                                        edev.chips[loc.0].row_reg_hclk(anchor_reg),
                                     ),
                                     |node| edev.egrid.db.nodes.key(node.kind) == "HCLK_IOI_HP",
                                 )
@@ -3817,7 +3817,7 @@ impl<'a> BelKV {
                                     (
                                         loc.0,
                                         edev.col_rio.unwrap(),
-                                        edev.grids[loc.0].row_reg_hclk(anchor_reg),
+                                        edev.chips[loc.0].row_reg_hclk(anchor_reg),
                                         layer,
                                     ),
                                     "VCCO".to_string(),
@@ -3833,7 +3833,7 @@ impl<'a> BelKV {
             BelKV::PrepDiffOut => match backend.edev {
                 ExpandedDevice::Virtex4(edev) => {
                     match edev.kind {
-                        prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                        prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                             // Skip non-NC pads.
                             if loc.1 == edev.col_cfg {
                                 return None;
@@ -3858,10 +3858,10 @@ impl<'a> BelKV {
                                 "EXCLUSIVE",
                             );
                         }
-                        prjcombine_virtex4::grid::GridKind::Virtex5
-                        | prjcombine_virtex4::grid::GridKind::Virtex6
-                        | prjcombine_virtex4::grid::GridKind::Virtex7 => {
-                            let lvds_row = edev.grids[loc.0].row_hclk(loc.2);
+                        prjcombine_virtex4::chip::ChipKind::Virtex5
+                        | prjcombine_virtex4::chip::ChipKind::Virtex6
+                        | prjcombine_virtex4::chip::ChipKind::Virtex7 => {
+                            let lvds_row = edev.chips[loc.0].row_hclk(loc.2);
                             // Take exclusive mutex on bank LVDS.
                             let (layer, _) = edev
                                 .egrid
@@ -4317,7 +4317,7 @@ impl<'a> TileFuzzKV<'a> {
             }
             TileFuzzKV::IntfTestPip(wa, wb) => {
                 if let ExpandedDevice::Virtex4(edev) = backend.edev {
-                    if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex4
+                    if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4
                         && backend.egrid.db.wires.key(wa.1).starts_with("TEST")
                         && loc.1 == edev.col_cfg
                     {
@@ -4467,9 +4467,9 @@ impl BelFuzzKV {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                let reg = edev.grids[loc.0].row_to_reg(loc.2);
-                let bot = edev.grids[loc.0].row_reg_bot(reg);
-                for i in 0..edev.grids[loc.0].rows_per_reg() {
+                let reg = edev.chips[loc.0].row_to_reg(loc.2);
+                let bot = edev.chips[loc.0].row_reg_bot(reg);
+                for i in 0..edev.chips[loc.0].rows_per_reg() {
                     let row = bot + i;
                     for bel in ["IODELAY0", "IODELAY1"] {
                         if let Some(site) = backend.ngrid.get_bel_name(loc.0, loc.1, row, bel) {
@@ -4625,7 +4625,7 @@ impl TileBits {
                     ]
                 }
                 ExpandedDevice::Virtex4(edev) => {
-                    if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex4 {
+                    if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4 {
                         vec![
                             edev.btile_main(die, col, row),
                             edev.btile_main(die, col, row + 1),
@@ -4838,7 +4838,7 @@ impl TileBits {
                 }
                 ExpandedDevice::Spartan6(_) => todo!(),
                 ExpandedDevice::Virtex4(edev) => match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                         let mut res = vec![];
                         for i in 0..16 {
                             res.push(edev.btile_main(die, col, row + i));
@@ -4851,12 +4851,12 @@ impl TileBits {
                         res.push(edev.btile_spine(
                             die,
                             RowId::from_idx(
-                                edev.grids[die].regs * edev.grids[die].rows_per_reg() - 1,
+                                edev.chips[die].regs * edev.chips[die].rows_per_reg() - 1,
                             ),
                         ));
                         res
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                         let mut res = vec![];
                         for i in 0..20 {
                             res.push(edev.btile_main(die, col, row + i));
@@ -4866,8 +4866,8 @@ impl TileBits {
                         }
                         res
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => todo!(),
                 },
                 _ => todo!(),
             },
@@ -4945,23 +4945,23 @@ impl TileBits {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                         let mut res = vec![];
                         for i in 0..16 {
                             res.push(edev.btile_spine(die, row + i));
                         }
-                        if row < edev.grids[die].row_bufg() {
+                        if row < edev.chips[die].row_bufg() {
                             res.push(edev.btile_spine(die, RowId::from_idx(0)))
                         } else {
                             res.push(
-                                edev.btile_spine(die, edev.grids[die].rows().next_back().unwrap()),
+                                edev.btile_spine(die, edev.chips[die].rows().next_back().unwrap()),
                             )
                         }
                         res
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
-                    prjcombine_virtex4::grid::GridKind::Virtex6
-                    | prjcombine_virtex4::grid::GridKind::Virtex7 => unreachable!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex5 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex6
+                    | prjcombine_virtex4::chip::ChipKind::Virtex7 => unreachable!(),
                 }
             }
             TileBits::ClkHrow => {
@@ -4969,24 +4969,24 @@ impl TileBits {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                         vec![
                             edev.btile_spine(die, row - 1),
                             edev.btile_spine(die, row),
                             edev.btile_spine_hclk(die, row),
                             edev.btile_hclk(die, ColId::from_idx(0), row),
-                            edev.btile_hclk(die, edev.grids[die].columns.last_id().unwrap(), row),
+                            edev.btile_hclk(die, edev.chips[die].columns.last_id().unwrap(), row),
                         ]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                         vec![
                             edev.btile_spine(die, row - 1),
                             edev.btile_spine(die, row),
                             edev.btile_spine_hclk(die, row),
                         ]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => unreachable!(),
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => unreachable!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => {
                         let mut res = vec![];
                         for i in 0..8 {
                             res.push(edev.btile_main(die, col, row - 4 + i));
@@ -5084,12 +5084,12 @@ impl TileBits {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => todo!(),
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => (0..20)
+                    prjcombine_virtex4::chip::ChipKind::Virtex4 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex5 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => (0..20)
                         .map(|i| edev.btile_main(die, col + 3, row + i))
                         .collect(),
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => todo!(),
                 }
             }
             TileBits::Pcie3 => {
@@ -5121,11 +5121,11 @@ impl TileBits {
                 }
                 ExpandedDevice::Virtex4(edev) => {
                     let mut res = vec![];
-                    for i in 0..edev.grids[die].rows_per_reg() {
+                    for i in 0..edev.chips[die].rows_per_reg() {
                         res.push(edev.btile_main(
                             die,
                             col,
-                            edev.grids[die].row_hclk(row) - edev.grids[die].rows_per_reg() / 2 + i,
+                            edev.chips[die].row_hclk(row) - edev.chips[die].rows_per_reg() / 2 + i,
                         ));
                     }
                     res.push(edev.btile_hclk(die, col, row));
@@ -5135,8 +5135,8 @@ impl TileBits {
             },
             TileBits::Mgt => match backend.edev {
                 ExpandedDevice::Virtex4(edev) => match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => todo!(),
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex4 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                         let mut res = vec![];
                         for i in 0..20 {
                             res.push(edev.btile_main(die, col, row + i));
@@ -5144,7 +5144,7 @@ impl TileBits {
                         res.push(edev.btile_hclk(die, col, row + 10));
                         res
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                         let mut res = vec![];
                         for i in 0..40 {
                             res.push(edev.btile_main(die, col, row - 20 + i));
@@ -5152,7 +5152,7 @@ impl TileBits {
                         res.push(edev.btile_hclk(die, col, row));
                         res
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => todo!(),
                 },
                 _ => unreachable!(),
             },
@@ -5160,7 +5160,7 @@ impl TileBits {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex7);
+                assert_eq!(edev.kind, prjcombine_virtex4::chip::ChipKind::Virtex7);
                 assert_eq!(loc.1.to_idx() % 2, 0);
                 vec![
                     edev.btile_hclk(loc.0, loc.1, loc.2),
@@ -5171,7 +5171,7 @@ impl TileBits {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex7);
+                assert_eq!(edev.kind, prjcombine_virtex4::chip::ChipKind::Virtex7);
                 let col = if loc.1.to_idx() % 2 == 0 {
                     loc.1 - 1
                 } else {
@@ -5191,7 +5191,7 @@ impl TileBits {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex7);
+                assert_eq!(edev.kind, prjcombine_virtex4::chip::ChipKind::Virtex7);
                 let col = if loc.1.to_idx() % 2 == 0 {
                     loc.1 - 1
                 } else {
@@ -5706,8 +5706,8 @@ impl ExtraFeatureKind {
                 };
                 let row = match dir_row {
                     None => loc.2,
-                    Some(Dir::S) => edev.grids[DieId::from_idx(0)].row_bufg() - 8,
-                    Some(Dir::N) => edev.grids[DieId::from_idx(0)].row_bufg() + 8,
+                    Some(Dir::S) => edev.chips[DieId::from_idx(0)].row_bufg() - 8,
+                    Some(Dir::N) => edev.chips[DieId::from_idx(0)].row_bufg() + 8,
                     _ => unreachable!(),
                 };
                 let mut res = vec![];
@@ -5716,7 +5716,7 @@ impl ExtraFeatureKind {
                     Dir::E => false,
                     _ => unreachable!(),
                 };
-                for &col in &edev.grids[DieId::from_idx(0)].cols_vbrk {
+                for &col in &edev.chips[DieId::from_idx(0)].cols_vbrk {
                     if (col < edev.col_cfg) == is_l {
                         res.push(vec![edev.btile_hclk(
                             DieId::from_idx(0),
@@ -5734,7 +5734,7 @@ impl ExtraFeatureKind {
                 let row = loc.2 + delta;
                 let mut res = vec![];
                 let is_l = loc.1 < edev.col_cfg;
-                for &col in &edev.grids[DieId::from_idx(0)].cols_vbrk {
+                for &col in &edev.chips[DieId::from_idx(0)].cols_vbrk {
                     if (col < edev.col_cfg) == is_l {
                         res.push(vec![edev.btile_hclk(
                             DieId::from_idx(0),
@@ -5796,7 +5796,7 @@ impl ExtraFeatureKind {
                 if col.to_idx() % 2 == 1 {
                     col -= 1;
                 }
-                let row = edev.grids[loc.0].row_hclk(loc.2 + dy);
+                let row = edev.chips[loc.0].row_hclk(loc.2 + dy);
                 vec![vec![
                     edev.btile_hclk(loc.0, col, row),
                     edev.btile_hclk(loc.0, col + 1, row),
@@ -5825,7 +5825,7 @@ impl ExtraFeatureKind {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                let grid = edev.grids[loc.0];
+                let grid = edev.chips[loc.0];
                 let col = if loc.1 < edev.col_clk {
                     let mut range = grid.cols_mgt_buf.range(..loc.1);
                     range.next_back()
@@ -5847,7 +5847,7 @@ impl ExtraFeatureKind {
                 } else {
                     loc.1 - 1
                 };
-                let row = loc.2 + edev.grids[loc.0].rows_per_reg() / 2;
+                let row = loc.2 + edev.chips[loc.0].rows_per_reg() / 2;
                 vec![vec![
                     edev.btile_hclk(loc.0, col, row),
                     edev.btile_hclk(loc.0, col + 1, row),
@@ -5881,16 +5881,16 @@ impl ExtraFeatureKind {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4
-                    | prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex4
+                    | prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                         get_v4_vref_rows(edev, loc.0, loc.1, loc.2)
                             .into_iter()
                             .map(|vref_row| vec![edev.btile_main(loc.0, loc.1, vref_row)])
                             .collect()
                     }
 
-                    prjcombine_virtex4::grid::GridKind::Virtex6
-                    | prjcombine_virtex4::grid::GridKind::Virtex7 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex6
+                    | prjcombine_virtex4::chip::ChipKind::Virtex7 => {
                         get_v4_vref_rows(edev, loc.0, loc.1, loc.2)
                             .into_iter()
                             .map(|vref_row| {
@@ -5908,43 +5908,43 @@ impl ExtraFeatureKind {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4
-                    | prjcombine_virtex4::grid::GridKind::Virtex5 => vec![vec![edev.btile_main(
+                    prjcombine_virtex4::chip::ChipKind::Virtex4
+                    | prjcombine_virtex4::chip::ChipKind::Virtex5 => vec![vec![edev.btile_main(
                         loc.0,
                         loc.1,
                         get_v4_vr_row(edev, loc.0, loc.1, loc.2),
                     )]],
 
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                         let vr_row = get_v4_vr_row(edev, loc.0, loc.1, loc.2);
                         vec![vec![
                             edev.btile_main(loc.0, loc.1, vr_row),
                             edev.btile_main(loc.0, loc.1, vr_row + 1),
                         ]]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => unreachable!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => unreachable!(),
                 }
             }
             ExtraFeatureKind::VrBot => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex7);
+                assert_eq!(edev.kind, prjcombine_virtex4::chip::ChipKind::Virtex7);
                 vec![vec![edev.btile_main(
                     loc.0,
                     loc.1,
-                    edev.grids[loc.0].row_hclk(loc.2) - 25,
+                    edev.chips[loc.0].row_hclk(loc.2) - 25,
                 )]]
             }
             ExtraFeatureKind::VrTop => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex7);
+                assert_eq!(edev.kind, prjcombine_virtex4::chip::ChipKind::Virtex7);
                 vec![vec![edev.btile_main(
                     loc.0,
                     loc.1,
-                    edev.grids[loc.0].row_hclk(loc.2) + 24,
+                    edev.chips[loc.0].row_hclk(loc.2) + 24,
                 )]]
             }
             ExtraFeatureKind::HclkIoDci(kind) => {
@@ -5952,8 +5952,8 @@ impl ExtraFeatureKind {
                     unreachable!()
                 };
                 let row = get_v4_vr_row(edev, loc.0, loc.1, loc.2);
-                let reg = edev.grids[loc.0].row_to_reg(row);
-                let row = edev.grids[loc.0].row_reg_hclk(reg);
+                let reg = edev.chips[loc.0].row_to_reg(row);
+                let row = edev.chips[loc.0].row_reg_hclk(reg);
                 if backend
                     .egrid
                     .find_node(loc.0, (loc.1, row), |node| {
@@ -5970,7 +5970,7 @@ impl ExtraFeatureKind {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex4);
+                assert_eq!(edev.kind, prjcombine_virtex4::chip::ChipKind::Virtex4);
                 assert_ne!(loc.1, edev.col_cfg);
                 let row = RowId::from_idx(loc.2.to_idx() / 32 * 32 + 24);
                 vec![vec![edev.btile_hclk(loc.0, loc.1, row)]]
@@ -5990,46 +5990,46 @@ impl ExtraFeatureKind {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => vec![
+                    prjcombine_virtex4::chip::ChipKind::Virtex4 => vec![
                         (0..16)
                             .map(|i| {
                                 edev.btile_main(
                                     loc.0,
                                     edev.col_cfg,
-                                    edev.grids[loc.0].row_bufg() - 8 + i,
+                                    edev.chips[loc.0].row_bufg() - 8 + i,
                                 )
                             })
                             .collect(),
                     ],
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => vec![
+                    prjcombine_virtex4::chip::ChipKind::Virtex5 => vec![
                         (0..20)
                             .map(|i| {
                                 edev.btile_main(
                                     loc.0,
                                     edev.col_cfg,
-                                    edev.grids[loc.0].row_bufg() - 10 + i,
+                                    edev.chips[loc.0].row_bufg() - 10 + i,
                                 )
                             })
                             .collect(),
                     ],
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => vec![
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => vec![
                         (0..80)
                             .map(|i| {
                                 edev.btile_main(
                                     loc.0,
                                     edev.col_cfg,
-                                    edev.grids[loc.0].row_bufg() - 40 + i,
+                                    edev.chips[loc.0].row_bufg() - 40 + i,
                                 )
                             })
                             .collect(),
                     ],
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => vec![
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => vec![
                         (0..50)
                             .map(|i| {
                                 edev.btile_main(
                                     loc.0,
                                     edev.col_cfg,
-                                    edev.grids[loc.0].row_bufg() - 50 + i,
+                                    edev.chips[loc.0].row_bufg() - 50 + i,
                                 )
                             })
                             .collect(),
@@ -6045,39 +6045,39 @@ impl ExtraFeatureKind {
                     .die
                     .ids()
                     .map(|die| match edev.kind {
-                        prjcombine_virtex4::grid::GridKind::Virtex4 => (0..16)
+                        prjcombine_virtex4::chip::ChipKind::Virtex4 => (0..16)
                             .map(|i| {
                                 edev.btile_main(
                                     die,
                                     edev.col_cfg,
-                                    edev.grids[die].row_bufg() - 8 + i,
+                                    edev.chips[die].row_bufg() - 8 + i,
                                 )
                             })
                             .collect(),
-                        prjcombine_virtex4::grid::GridKind::Virtex5 => (0..20)
+                        prjcombine_virtex4::chip::ChipKind::Virtex5 => (0..20)
                             .map(|i| {
                                 edev.btile_main(
                                     die,
                                     edev.col_cfg,
-                                    edev.grids[die].row_bufg() - 10 + i,
+                                    edev.chips[die].row_bufg() - 10 + i,
                                 )
                             })
                             .collect(),
-                        prjcombine_virtex4::grid::GridKind::Virtex6 => (0..80)
+                        prjcombine_virtex4::chip::ChipKind::Virtex6 => (0..80)
                             .map(|i| {
                                 edev.btile_main(
                                     die,
                                     edev.col_cfg,
-                                    edev.grids[die].row_bufg() - 40 + i,
+                                    edev.chips[die].row_bufg() - 40 + i,
                                 )
                             })
                             .collect(),
-                        prjcombine_virtex4::grid::GridKind::Virtex7 => (0..50)
+                        prjcombine_virtex4::chip::ChipKind::Virtex7 => (0..50)
                             .map(|i| {
                                 edev.btile_main(
                                     die,
                                     edev.col_cfg,
-                                    edev.grids[die].row_bufg() - 50 + i,
+                                    edev.chips[die].row_bufg() - 50 + i,
                                 )
                             })
                             .collect(),
@@ -6093,15 +6093,15 @@ impl ExtraFeatureKind {
                     .die
                     .ids()
                     .map(|die| match edev.kind {
-                        prjcombine_virtex4::grid::GridKind::Virtex4
-                        | prjcombine_virtex4::grid::GridKind::Virtex5
-                        | prjcombine_virtex4::grid::GridKind::Virtex6 => unreachable!(),
-                        prjcombine_virtex4::grid::GridKind::Virtex7 => (0..25)
+                        prjcombine_virtex4::chip::ChipKind::Virtex4
+                        | prjcombine_virtex4::chip::ChipKind::Virtex5
+                        | prjcombine_virtex4::chip::ChipKind::Virtex6 => unreachable!(),
+                        prjcombine_virtex4::chip::ChipKind::Virtex7 => (0..25)
                             .map(|i| {
                                 edev.btile_main(
                                     die,
                                     edev.col_cfg,
-                                    edev.grids[die].row_bufg() + 25 + i,
+                                    edev.chips[die].row_bufg() + 25 + i,
                                 )
                             })
                             .collect(),
@@ -6114,27 +6114,27 @@ impl ExtraFeatureKind {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4
-                    | prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex4
+                    | prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                         let (_, io_row) = get_v4_center_dci_rows(edev, bank);
                         vec![vec![edev.btile_main(loc.0, edev.col_cfg, io_row)]]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                         let (_, io_row) = get_v4_center_dci_rows(edev, bank);
                         vec![vec![
                             edev.btile_main(loc.0, edev.col_lcio.unwrap(), io_row),
                             edev.btile_main(loc.0, edev.col_lcio.unwrap(), io_row + 1),
                         ]]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => {
-                        let anchor_reg = if edev.grids[loc.0].has_ps {
-                            prjcombine_virtex4::grid::RegId::from_idx(
-                                edev.grids[loc.0].regs - 2 + bank as usize,
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => {
+                        let anchor_reg = if edev.chips[loc.0].has_ps {
+                            prjcombine_virtex4::chip::RegId::from_idx(
+                                edev.chips[loc.0].regs - 2 + bank as usize,
                             )
                         } else {
-                            prjcombine_virtex4::grid::RegId::from_idx(bank as usize)
+                            prjcombine_virtex4::chip::RegId::from_idx(bank as usize)
                         };
-                        let io_row = edev.grids[loc.0].row_reg_hclk(anchor_reg) - 24;
+                        let io_row = edev.chips[loc.0].row_reg_hclk(anchor_reg) - 24;
                         vec![vec![
                             edev.btile_main(loc.0, edev.col_rio.unwrap(), io_row),
                             edev.btile_main(loc.0, edev.col_rio.unwrap(), io_row + 1),
@@ -6148,49 +6148,49 @@ impl ExtraFeatureKind {
                 };
                 let (vr_row, _) = get_v4_center_dci_rows(edev, bank);
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4
-                    | prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex4
+                    | prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                         vec![vec![edev.btile_main(loc.0, edev.col_cfg, vr_row.unwrap())]]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => vec![vec![
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => vec![vec![
                         edev.btile_main(loc.0, edev.col_lcio.unwrap(), vr_row.unwrap()),
                         edev.btile_main(loc.0, edev.col_lcio.unwrap(), vr_row.unwrap() + 1),
                     ]],
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => todo!(),
                 }
             }
             ExtraFeatureKind::CenterDciVrBot(bank) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                let anchor_reg = if edev.grids[loc.0].has_ps {
-                    prjcombine_virtex4::grid::RegId::from_idx(
-                        edev.grids[loc.0].regs - 2 + bank as usize,
+                let anchor_reg = if edev.chips[loc.0].has_ps {
+                    prjcombine_virtex4::chip::RegId::from_idx(
+                        edev.chips[loc.0].regs - 2 + bank as usize,
                     )
                 } else {
-                    prjcombine_virtex4::grid::RegId::from_idx(bank as usize)
+                    prjcombine_virtex4::chip::RegId::from_idx(bank as usize)
                 };
                 vec![vec![edev.btile_main(
                     loc.0,
                     edev.col_rio.unwrap(),
-                    edev.grids[loc.0].row_reg_hclk(anchor_reg) - 25,
+                    edev.chips[loc.0].row_reg_hclk(anchor_reg) - 25,
                 )]]
             }
             ExtraFeatureKind::CenterDciVrTop(bank) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                let anchor_reg = if edev.grids[loc.0].has_ps {
-                    prjcombine_virtex4::grid::RegId::from_idx(
-                        edev.grids[loc.0].regs - 2 + bank as usize,
+                let anchor_reg = if edev.chips[loc.0].has_ps {
+                    prjcombine_virtex4::chip::RegId::from_idx(
+                        edev.chips[loc.0].regs - 2 + bank as usize,
                     )
                 } else {
-                    prjcombine_virtex4::grid::RegId::from_idx(bank as usize)
+                    prjcombine_virtex4::chip::RegId::from_idx(bank as usize)
                 };
                 vec![vec![edev.btile_main(
                     loc.0,
                     edev.col_rio.unwrap(),
-                    edev.grids[loc.0].row_reg_hclk(anchor_reg) + 24,
+                    edev.chips[loc.0].row_reg_hclk(anchor_reg) + 24,
                 )]]
             }
 
@@ -6199,33 +6199,33 @@ impl ExtraFeatureKind {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4
-                    | prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex4
+                    | prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                         let (vr_row, io_row) = get_v4_center_dci_rows(edev, bank);
                         let row = vr_row.unwrap_or(io_row);
-                        let reg = edev.grids[loc.0].row_to_reg(row);
-                        let row = edev.grids[loc.0].row_reg_hclk(reg);
+                        let reg = edev.chips[loc.0].row_to_reg(row);
+                        let row = edev.chips[loc.0].row_reg_hclk(reg);
                         vec![vec![edev.btile_hclk(loc.0, edev.col_cfg, row)]]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                         let (vr_row, io_row) = get_v4_center_dci_rows(edev, bank);
                         let row = vr_row.unwrap_or(io_row);
-                        let reg = edev.grids[loc.0].row_to_reg(row);
-                        let row = edev.grids[loc.0].row_reg_hclk(reg);
+                        let reg = edev.chips[loc.0].row_to_reg(row);
+                        let row = edev.chips[loc.0].row_reg_hclk(reg);
                         vec![vec![edev.btile_hclk(loc.0, edev.col_lcio.unwrap(), row)]]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => {
-                        let anchor_reg = if edev.grids[loc.0].has_ps {
-                            prjcombine_virtex4::grid::RegId::from_idx(
-                                edev.grids[loc.0].regs - bank as usize,
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => {
+                        let anchor_reg = if edev.chips[loc.0].has_ps {
+                            prjcombine_virtex4::chip::RegId::from_idx(
+                                edev.chips[loc.0].regs - bank as usize,
                             )
                         } else {
-                            prjcombine_virtex4::grid::RegId::from_idx(bank as usize)
+                            prjcombine_virtex4::chip::RegId::from_idx(bank as usize)
                         };
                         vec![vec![edev.btile_hclk(
                             loc.0,
                             edev.col_rio.unwrap(),
-                            edev.grids[loc.0].row_reg_hclk(anchor_reg),
+                            edev.chips[loc.0].row_reg_hclk(anchor_reg),
                         )]]
                     }
                 }
@@ -6234,7 +6234,7 @@ impl ExtraFeatureKind {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                let grid = &edev.grids[loc.0];
+                let grid = &edev.chips[loc.0];
                 let (row_a, row_b) = if bank == 1 {
                     (grid.row_bufg() + 8, edev.row_iobdcm.unwrap() - 32)
                 } else {
@@ -6263,10 +6263,10 @@ impl ExtraFeatureKind {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                let reg = edev.grids[loc.0].row_to_reg(loc.2);
-                let bot = edev.grids[loc.0].row_reg_bot(reg);
+                let reg = edev.chips[loc.0].row_to_reg(loc.2);
+                let bot = edev.chips[loc.0].row_reg_bot(reg);
                 let mut res = vec![];
-                for i in 0..edev.grids[loc.0].rows_per_reg() {
+                for i in 0..edev.chips[loc.0].rows_per_reg() {
                     let row = bot + i;
                     if edev
                         .egrid
@@ -6274,15 +6274,15 @@ impl ExtraFeatureKind {
                         .is_some()
                     {
                         res.push(match edev.kind {
-                            prjcombine_virtex4::grid::GridKind::Virtex4
-                            | prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                            prjcombine_virtex4::chip::ChipKind::Virtex4
+                            | prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                                 vec![edev.btile_main(loc.0, loc.1, row)]
                             }
-                            prjcombine_virtex4::grid::GridKind::Virtex6 => vec![
+                            prjcombine_virtex4::chip::ChipKind::Virtex6 => vec![
                                 edev.btile_main(loc.0, loc.1, row),
                                 edev.btile_main(loc.0, loc.1, row + 1),
                             ],
-                            prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                            prjcombine_virtex4::chip::ChipKind::Virtex7 => todo!(),
                         });
                     }
                 }
@@ -6373,10 +6373,10 @@ impl ExtraFeatureKind {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => todo!(),
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
-                        let row = edev.grids[loc.0].row_hclk(loc.2 + dy);
+                    prjcombine_virtex4::chip::ChipKind::Virtex4 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex5 => todo!(),
+                    prjcombine_virtex4::chip::ChipKind::Virtex6 => {
+                        let row = edev.chips[loc.0].row_hclk(loc.2 + dy);
                         let mut res = vec![];
                         for i in 0..40 {
                             res.push(edev.btile_main(loc.0, loc.1, row - 20 + i));
@@ -6384,8 +6384,8 @@ impl ExtraFeatureKind {
                         res.push(edev.btile_hclk(loc.0, loc.1, row));
                         vec![res]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => {
-                        let row = edev.grids[loc.0].row_hclk(loc.2 + dy);
+                    prjcombine_virtex4::chip::ChipKind::Virtex7 => {
+                        let row = edev.chips[loc.0].row_hclk(loc.2 + dy);
                         let mut res = vec![];
                         for i in 0..50 {
                             res.push(edev.btile_main(loc.0, loc.1, row - 25 + i));
@@ -6428,10 +6428,10 @@ impl ExtraFeatureKind {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex7);
+                assert_eq!(edev.kind, prjcombine_virtex4::chip::ChipKind::Virtex7);
                 (0..24)
                     .map(|i| {
-                        let row = edev.grids[loc.0].row_hclk(loc.2) - 24 + i * 2;
+                        let row = edev.chips[loc.0].row_hclk(loc.2) - 24 + i * 2;
                         vec![
                             edev.btile_main(loc.0, loc.1, row),
                             edev.btile_main(loc.0, loc.1, row + 1),

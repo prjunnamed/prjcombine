@@ -9,14 +9,14 @@ use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_virtex4::{
     bond::Bond,
+    chip::{Chip, DisabledPart, GtKind, Interposer},
     db::{Database, DeviceCombo, Part},
-    grid::{DisabledPart, Grid, GtKind, Interposer},
 };
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
-    grids: EntityVec<DieId, &'a Grid>,
+    grids: EntityVec<DieId, &'a Chip>,
     interposer: Option<&'a Interposer>,
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
@@ -79,7 +79,7 @@ static RE_VIRTEX456: LazyLock<Regex> =
 static RE_VIRTEX7: LazyLock<Regex> =
     LazyLock::new(|| Regex::new("^(xc|xa|xq|xqr)7(s|a|k|v|vx|vh|z)([0-9]+)t?s?([il]?)$").unwrap());
 
-fn sort_key<'a>(name: &'a str, grid: &Grid) -> SortKey<'a> {
+fn sort_key<'a>(name: &'a str, grid: &Chip) -> SortKey<'a> {
     let width = grid.columns.len();
     let height = grid.regs;
 
@@ -278,7 +278,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         let speeds = EntityVec::from_iter(speeds.into_values());
         let part = Part {
             name: name.into(),
-            grids,
+            chips: grids,
             interposer,
             bonds: dev_bonds,
             speeds,
@@ -297,7 +297,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     // TODO: resort int
 
     Database {
-        grids,
+        chips: grids,
         interposers,
         bonds,
         parts,

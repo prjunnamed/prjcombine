@@ -21,10 +21,10 @@ pub enum Mode {
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     let mode = match backend.edev {
         ExpandedDevice::Virtex4(edev) => match edev.kind {
-            prjcombine_virtex4::grid::GridKind::Virtex4 => unreachable!(),
-            prjcombine_virtex4::grid::GridKind::Virtex5 => Mode::Virtex5,
-            prjcombine_virtex4::grid::GridKind::Virtex6 => Mode::Virtex6,
-            prjcombine_virtex4::grid::GridKind::Virtex7 => Mode::Virtex7,
+            prjcombine_virtex4::chip::ChipKind::Virtex4 => unreachable!(),
+            prjcombine_virtex4::chip::ChipKind::Virtex5 => Mode::Virtex5,
+            prjcombine_virtex4::chip::ChipKind::Virtex6 => Mode::Virtex6,
+            prjcombine_virtex4::chip::ChipKind::Virtex7 => Mode::Virtex7,
         },
         ExpandedDevice::Spartan6(_) => Mode::Spartan6,
         _ => unreachable!(),
@@ -800,10 +800,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mode = match ctx.edev {
         ExpandedDevice::Virtex4(edev) => match edev.kind {
-            prjcombine_virtex4::grid::GridKind::Virtex4 => unreachable!(),
-            prjcombine_virtex4::grid::GridKind::Virtex5 => Mode::Virtex5,
-            prjcombine_virtex4::grid::GridKind::Virtex6 => Mode::Virtex6,
-            prjcombine_virtex4::grid::GridKind::Virtex7 => Mode::Virtex7,
+            prjcombine_virtex4::chip::ChipKind::Virtex4 => unreachable!(),
+            prjcombine_virtex4::chip::ChipKind::Virtex5 => Mode::Virtex5,
+            prjcombine_virtex4::chip::ChipKind::Virtex6 => Mode::Virtex6,
+            prjcombine_virtex4::chip::ChipKind::Virtex7 => Mode::Virtex7,
         },
         ExpandedDevice::Spartan6(_) => Mode::Spartan6,
         _ => unreachable!(),

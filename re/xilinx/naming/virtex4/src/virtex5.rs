@@ -1,8 +1,8 @@
 use prjcombine_interconnect::grid::{ColId, DieId};
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{
+    chip::{ColumnKind, GtKind},
     expanded::ExpandedDevice,
-    grid::{ColumnKind, GtKind},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -16,7 +16,7 @@ struct Namer<'a> {
 
 impl Namer<'_> {
     fn fill_rxlut(&mut self) {
-        let grid = &self.edev.grids[DieId::from_idx(0)];
+        let grid = &self.edev.chips[DieId::from_idx(0)];
         let mut rx = 0;
         for (col, &kind) in &grid.columns {
             if grid.cols_vbrk.contains(&col) {
@@ -71,7 +71,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
     let mgt = if edev.col_lgt.is_some() { "_MGT" } else { "" };
     for die in egrid.dies() {
-        let grid = edev.grids[die.die];
+        let grid = edev.chips[die.die];
         for col in die.cols() {
             for row in die.rows() {
                 for (layer, node) in &die[(col, row)].nodes {

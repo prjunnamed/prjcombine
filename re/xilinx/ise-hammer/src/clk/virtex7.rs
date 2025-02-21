@@ -192,7 +192,7 @@ pub fn add_fuzzers<'a>(
             ], [
                 (pip (pin "O"), (pin "FB"))
             ]);
-            if edev.grids.first().unwrap().regs == 1 {
+            if edev.chips.first().unwrap().regs == 1 {
                 let extras = vec![ExtraFeature::new(
                     ExtraFeatureKind::ClkRebuf(Dir::S, clk_bufg_rebuf),
                     "CLK_BUFG_REBUF",
@@ -507,7 +507,7 @@ pub fn add_fuzzers<'a>(
             let bel_d = BelId::from_idx(i / 2);
             let bel_u = BelId::from_idx(16 + i / 2);
             if i % 2 == 0 {
-                if edev.grids.values().any(|grid| grid.regs > 1) {
+                if edev.chips.values().any(|grid| grid.regs > 1) {
                     fuzz_one!(ctx, format!("BUF.GCLK{i}_D"), "1", [
                         (global_mutex "GCLK", "REBUF_D0"),
                         (pip (pin format!("GCLK{i}_D")), (bel_pin bel_d, "CLKIN")),
@@ -542,7 +542,7 @@ pub fn add_fuzzers<'a>(
                     ], extras);
                 }
             } else {
-                if edev.grids.values().any(|grid| grid.regs > 1) {
+                if edev.chips.values().any(|grid| grid.regs > 1) {
                     fuzz_one!(ctx, format!("BUF.GCLK{i}_U"), "1", [
                         (global_mutex "GCLK", "REBUF_U1"),
                         (pip (pin format!("GCLK{i}_U")), (bel_pin bel_u, "CLKIN")),
@@ -1087,7 +1087,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
         for i in 0..32 {
             ctx.collect_bit(tile, bel, &format!("ENABLE.GCLK{i}_D"), "1");
             ctx.collect_bit(tile, bel, &format!("ENABLE.GCLK{i}_U"), "1");
-            if edev.grids.values().any(|grid| grid.regs > 1) {
+            if edev.chips.values().any(|grid| grid.regs > 1) {
                 ctx.collect_bit(tile, bel, &format!("BUF.GCLK{i}_D"), "1");
                 ctx.collect_bit(tile, bel, &format!("BUF.GCLK{i}_U"), "1");
             }

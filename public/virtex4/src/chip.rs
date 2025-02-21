@@ -9,8 +9,8 @@ entity_id! {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Grid {
-    pub kind: GridKind,
+pub struct Chip {
+    pub kind: ChipKind,
     pub columns: EntityVec<ColId, ColumnKind>,
     pub cols_vbrk: BTreeSet<ColId>,
     pub cols_mgt_buf: BTreeSet<ColId>,
@@ -32,7 +32,7 @@ pub struct Grid {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub enum GridKind {
+pub enum ChipKind {
     Virtex4,
     Virtex5,
     Virtex6,
@@ -127,14 +127,14 @@ pub enum XadcIoLoc {
     Both,
 }
 
-impl Grid {
+impl Chip {
     #[inline]
     pub fn rows_per_reg(&self) -> usize {
         match self.kind {
-            GridKind::Virtex4 => 16,
-            GridKind::Virtex5 => 20,
-            GridKind::Virtex6 => 40,
-            GridKind::Virtex7 => 50,
+            ChipKind::Virtex4 => 16,
+            ChipKind::Virtex5 => 20,
+            ChipKind::Virtex6 => 40,
+            ChipKind::Virtex7 => 50,
         }
     }
 
@@ -184,7 +184,7 @@ impl Grid {
     }
 
     pub fn get_xadc_io_loc(&self) -> XadcIoLoc {
-        assert_eq!(self.kind, GridKind::Virtex7);
+        assert_eq!(self.kind, ChipKind::Virtex7);
         assert!(self.regs > 1);
         if self.has_ps {
             XadcIoLoc::Right
@@ -196,7 +196,7 @@ impl Grid {
     }
 
     pub fn get_cmt_rows(&self) -> Vec<RowId> {
-        assert_eq!(self.kind, GridKind::Virtex5);
+        assert_eq!(self.kind, ChipKind::Virtex5);
         let mut res = vec![];
         if self.reg_cfg.to_idx() > 2 {
             res.push(self.row_reg_bot(self.reg_cfg - 3));
@@ -216,10 +216,10 @@ impl Grid {
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "kind": match self.kind {
-                GridKind::Virtex4 => "virtex4",
-                GridKind::Virtex5 => "virtex5",
-                GridKind::Virtex6 => "virtex6",
-                GridKind::Virtex7 => "virtex7",
+                ChipKind::Virtex4 => "virtex4",
+                ChipKind::Virtex5 => "virtex5",
+                ChipKind::Virtex6 => "virtex6",
+                ChipKind::Virtex7 => "virtex7",
             },
             "columns": Vec::from_iter(self.columns.values().map(|kind| match kind {
                 ColumnKind::ClbLL => "CLBLL".to_string(),
@@ -281,7 +281,7 @@ impl Grid {
     }
 }
 
-impl std::fmt::Display for Grid {
+impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\tKIND: {v:?}", v = self.kind)?;
         if self.has_ps {
@@ -367,8 +367,8 @@ impl std::fmt::Display for Grid {
         writeln!(f, "\tCLK REG: {v:?}", v = self.reg_clk.to_idx())?;
         for &(col, row) in &self.holes_ppc {
             let (col_r, row_t): (ColId, RowId) = match self.kind {
-                GridKind::Virtex4 => (col + 9, row + 24),
-                GridKind::Virtex5 => (col + 14, row + 40),
+                ChipKind::Virtex4 => (col + 9, row + 24),
+                ChipKind::Virtex5 => (col + 14, row + 40),
                 _ => unreachable!(),
             };
             writeln!(

@@ -11,12 +11,12 @@ use std::collections::{BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPin;
+use crate::chip::{Chip, ColumnKind, DisabledPart, GtKind};
 use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord};
-use crate::grid::{ColumnKind, DisabledPart, Grid, GtKind};
 use crate::gtz::GtzDb;
 
 struct Expander<'a, 'b> {
-    grid: &'b Grid,
+    chip: &'b Chip,
     disabled: &'b BTreeSet<DisabledPart>,
     die: ExpandedDieRefMut<'a, 'b>,
     site_holes: Vec<Rect>,
@@ -53,8 +53,8 @@ impl Expander<'_, '_> {
     }
 
     fn fill_holes(&mut self) {
-        let row_b = self.grid.row_reg_bot(self.grid.reg_cfg - 1);
-        let row_t = self.grid.row_reg_bot(self.grid.reg_cfg + 1);
+        let row_b = self.chip.row_reg_bot(self.chip.reg_cfg - 1);
+        let row_t = self.chip.row_reg_bot(self.chip.reg_cfg + 1);
         self.site_holes.push(Rect {
             col_l: self.col_cfg - 6,
             col_r: self.col_cfg,
@@ -67,7 +67,7 @@ impl Expander<'_, '_> {
             row_b,
             row_t,
         });
-        if let Some(ref hard) = self.grid.col_hard {
+        if let Some(ref hard) = self.chip.col_hard {
             let col = hard.col;
             for &row in &hard.rows_pcie {
                 self.site_holes.push(Rect {
@@ -95,7 +95,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_int(&mut self) {
-        for (col, &kind) in &self.grid.columns {
+        for (col, &kind) in &self.chip.columns {
             for row in self.die.rows() {
                 if self.is_int_hole(col, row) {
                     continue;
@@ -120,14 +120,14 @@ impl Expander<'_, '_> {
     }
 
     fn fill_cfg(&mut self) {
-        let row_b = self.grid.row_reg_bot(self.grid.reg_cfg - 1);
-        let row_t = self.grid.row_reg_bot(self.grid.reg_cfg + 1);
+        let row_b = self.chip.row_reg_bot(self.chip.reg_cfg - 1);
+        let row_t = self.chip.row_reg_bot(self.chip.reg_cfg + 1);
         for dx in 0..6 {
             let col = self.col_cfg - 6 + dx;
             if row_b.to_idx() != 0 {
                 self.die.fill_term((col, row_b - 1), "TERM.N");
             }
-            if row_t.to_idx() != self.grid.regs * 40 {
+            if row_t.to_idx() != self.chip.regs * 40 {
                 self.die.fill_term((col, row_t), "TERM.S");
             }
         }
@@ -155,7 +155,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_clb(&mut self) {
-        for (col, &cd) in &self.grid.columns {
+        for (col, &cd) in &self.chip.columns {
             let kind = match cd {
                 ColumnKind::ClbLL => "CLBLL",
                 ColumnKind::ClbLM => "CLBLM",
@@ -171,7 +171,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_hard(&mut self) {
-        if let Some(ref hard) = self.grid.col_hard {
+        if let Some(ref hard) = self.chip.col_hard {
             let col = hard.col;
             for &br in &hard.rows_emac {
                 for dy in 0..10 {
@@ -218,7 +218,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_bram_dsp(&mut self) {
-        for (col, &cd) in &self.grid.columns {
+        for (col, &cd) in &self.chip.columns {
             let kind = match cd {
                 ColumnKind::Bram => "BRAM",
                 ColumnKind::Dsp => "DSP",
@@ -228,7 +228,7 @@ impl Expander<'_, '_> {
                 if row.to_idx() % 5 != 0 {
                     continue;
                 }
-                if let Some(ref hard) = self.grid.col_hard {
+                if let Some(ref hard) = self.chip.col_hard {
                     if hard.col == col && self.hard_skip.contains(&row) {
                         continue;
                     }
@@ -287,17 +287,17 @@ impl Expander<'_, '_> {
 
     fn fill_cmt(&mut self) {
         let col = self.col_cfg;
-        for reg in self.grid.regs() {
-            let row_hclk = self.grid.row_reg_hclk(reg);
+        for reg in self.chip.regs() {
+            let row_hclk = self.chip.row_reg_hclk(reg);
             let crds: [_; 40] = core::array::from_fn(|dy| (col, row_hclk - 20 + dy));
             self.die.add_xnode((col, row_hclk), "CMT", &crds);
             let row: RowId = row_hclk - 20;
-            if reg < self.grid.reg_cfg - 1 {
+            if reg < self.chip.reg_cfg - 1 {
                 self.die
                     .add_xnode((col, row), "PMVIOB", &[(col, row), (col, row + 1)]);
-            } else if reg == self.grid.reg_cfg - 1 {
+            } else if reg == self.chip.reg_cfg - 1 {
                 // CMT_PMVB, empty
-            } else if reg == self.grid.reg_cfg {
+            } else if reg == self.chip.reg_cfg {
                 self.die.add_xnode(
                     (col, row),
                     "CMT_BUFG_TOP",
@@ -308,9 +308,9 @@ impl Expander<'_, '_> {
             }
 
             let row: RowId = row_hclk + 18;
-            if reg < self.grid.reg_cfg - 1 {
+            if reg < self.chip.reg_cfg - 1 {
                 self.die.add_xnode((col, row + 2), "GCLK_BUF", &[]);
-            } else if reg == self.grid.reg_cfg - 1 {
+            } else if reg == self.chip.reg_cfg - 1 {
                 self.die.add_xnode(
                     (col, row + 2),
                     "CMT_BUFG_BOT",
@@ -324,13 +324,13 @@ impl Expander<'_, '_> {
     }
 
     fn fill_gt(&mut self) {
-        for gtc in &self.grid.cols_gt {
+        for gtc in &self.chip.cols_gt {
             let col = gtc.col;
-            for reg in self.grid.regs() {
+            for reg in self.chip.regs() {
                 if self.disabled.contains(&DisabledPart::GtxRow(reg)) {
                     continue;
                 }
-                let row = self.grid.row_reg_hclk(reg);
+                let row = self.chip.row_reg_hclk(reg);
                 let crds: [_; 40] = core::array::from_fn(|dy| (col, row - 20 + dy));
                 let kind = gtc.regs[reg].unwrap();
                 match kind {
@@ -372,12 +372,12 @@ impl Expander<'_, '_> {
                     }
                     self.die
                         .add_xnode((col, row), "HCLK", &[(col, row - 1), (col, row)]);
-                    if col == self.grid.cols_qbuf.unwrap().0
-                        || col == self.grid.cols_qbuf.unwrap().1
+                    if col == self.chip.cols_qbuf.unwrap().0
+                        || col == self.chip.cols_qbuf.unwrap().1
                     {
                         self.die.add_xnode((col, row), "HCLK_QBUF", &[]);
                     }
-                    if self.grid.cols_mgt_buf.contains(&col) {
+                    if self.chip.cols_mgt_buf.contains(&col) {
                         self.die.add_xnode((col, row), "MGT_BUF", &[]);
                     }
                 }
@@ -386,18 +386,18 @@ impl Expander<'_, '_> {
     }
 
     fn fill_frame_info(&mut self) {
-        let mut regs: Vec<_> = self.grid.regs().collect();
+        let mut regs: Vec<_> = self.chip.regs().collect();
         regs.sort_by_key(|&reg| {
-            let rreg = reg - self.grid.reg_cfg;
+            let rreg = reg - self.chip.reg_cfg;
             (rreg < 0, rreg.abs())
         });
-        for _ in 0..self.grid.regs {
+        for _ in 0..self.chip.regs {
             self.frames.col_frame.push(EntityVec::new());
             self.frames.col_width.push(EntityVec::new());
             self.frames.bram_frame.push(EntityPartVec::new());
         }
         for &reg in &regs {
-            for (col, &cd) in &self.grid.columns {
+            for (col, &cd) in &self.chip.columns {
                 self.frames.col_frame[reg].push(self.frame_info.len());
                 let width = match cd {
                     ColumnKind::ClbLL => 36,
@@ -420,14 +420,14 @@ impl Expander<'_, '_> {
                         mask_mode[0] = FrameMaskMode::CmtDrpHclk(24, 13);
                         mask_mode[1] = FrameMaskMode::CmtDrpHclk(25, 13);
                     }
-                    if cd == ColumnKind::Cfg && matches!(minor, 34 | 35) && reg == self.grid.reg_cfg
+                    if cd == ColumnKind::Cfg && matches!(minor, 34 | 35) && reg == self.chip.reg_cfg
                     {
                         mask_mode[0] = FrameMaskMode::DrpHclk(23, 13);
                         mask_mode[1] = FrameMaskMode::DrpHclk(23, 13);
                     }
-                    if let Some(ref hard) = self.grid.col_hard {
+                    if let Some(ref hard) = self.chip.col_hard {
                         if col == hard.col
-                            && hard.rows_pcie.contains(&self.grid.row_reg_bot(reg))
+                            && hard.rows_pcie.contains(&self.chip.row_reg_bot(reg))
                             && matches!(minor, 26 | 27)
                         {
                             mask_mode[0] = FrameMaskMode::DrpHclk(24, 13);
@@ -437,7 +437,7 @@ impl Expander<'_, '_> {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 0,
-                            region: (reg - self.grid.reg_cfg) as i32,
+                            region: (reg - self.chip.reg_cfg) as i32,
                             major: col.to_idx() as u32,
                             minor,
                         },
@@ -448,7 +448,7 @@ impl Expander<'_, '_> {
         }
         for &reg in &regs {
             let mut major = 0;
-            for (col, &cd) in &self.grid.columns {
+            for (col, &cd) in &self.chip.columns {
                 if cd != ColumnKind::Bram {
                     continue;
                 }
@@ -457,7 +457,7 @@ impl Expander<'_, '_> {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 1,
-                            region: (reg - self.grid.reg_cfg) as i32,
+                            region: (reg - self.chip.reg_cfg) as i32,
                             major,
                             minor,
                         },
@@ -471,17 +471,17 @@ impl Expander<'_, '_> {
 }
 
 pub fn expand_grid<'a>(
-    grids: &EntityVec<DieId, &'a Grid>,
+    chips: &EntityVec<DieId, &'a Chip>,
     disabled: &BTreeSet<DisabledPart>,
     db: &'a IntDb,
     gdb: &'a GtzDb,
 ) -> ExpandedDevice<'a> {
     let mut egrid = ExpandedGrid::new(db);
-    assert_eq!(grids.len(), 1);
-    let grid = grids.first().unwrap();
-    let (_, die) = egrid.add_die(grid.columns.len(), grid.regs * 40);
+    assert_eq!(chips.len(), 1);
+    let chip = chips.first().unwrap();
+    let (_, die) = egrid.add_die(chip.columns.len(), chip.regs * 40);
 
-    let col_cfg = grid
+    let col_cfg = chip
         .columns
         .iter()
         .find_map(|(col, &cd)| {
@@ -492,7 +492,7 @@ pub fn expand_grid<'a>(
             }
         })
         .unwrap();
-    let cols_lio: Vec<_> = grid
+    let cols_lio: Vec<_> = chip
         .columns
         .iter()
         .filter_map(|(col, &cd)| {
@@ -508,7 +508,7 @@ pub fn expand_grid<'a>(
         [l, lc] => (Some(l), Some(lc)),
         _ => unreachable!(),
     };
-    let cols_rio: Vec<_> = grid
+    let cols_rio: Vec<_> = chip
         .columns
         .iter()
         .filter_map(|(col, &cd)| {
@@ -524,19 +524,19 @@ pub fn expand_grid<'a>(
         [rc, r] => (Some(r), Some(rc)),
         _ => unreachable!(),
     };
-    let col_lgt = grid
+    let col_lgt = chip
         .cols_gt
         .iter()
         .find(|gtc| gtc.col < col_cfg)
         .map(|x| x.col);
-    let col_rgt = grid
+    let col_rgt = chip
         .cols_gt
         .iter()
         .find(|gtc| gtc.col > col_cfg)
         .map(|x| x.col);
 
     let mut expander = Expander {
-        grid,
+        chip,
         disabled,
         die,
         int_holes: vec![],
@@ -651,7 +651,7 @@ pub fn expand_grid<'a>(
             IoCoord {
                 die: DieId::from_idx(0),
                 col,
-                row: grid.row_reg_bot(grid.reg_cfg) - 40 + dy,
+                row: chip.row_reg_bot(chip.reg_cfg) - 40 + dy,
                 iob: TileIobId::from_idx(iob),
             },
         )
@@ -660,8 +660,8 @@ pub fn expand_grid<'a>(
 
     egrid.finish();
     ExpandedDevice {
-        kind: grid.kind,
-        grids: grids.clone(),
+        kind: chip.kind,
+        chips: chips.clone(),
         interposer: None,
         disabled: disabled.clone(),
         int_holes: [int_holes].into_iter().collect(),

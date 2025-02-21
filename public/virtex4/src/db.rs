@@ -8,12 +8,12 @@ use unnamed_entity::{EntityId, EntityMap, EntityVec, entity_id};
 
 use crate::{
     bond::Bond,
-    grid::{DisabledPart, Grid, Interposer},
+    chip::{Chip, DisabledPart, Interposer},
     gtz::GtzDb,
 };
 
 entity_id! {
-    pub id GridId usize;
+    pub id ChipId usize;
     pub id InterposerId usize;
     pub id BondId usize;
     pub id DevBondId usize;
@@ -29,7 +29,7 @@ pub struct DeviceCombo {
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Part {
     pub name: String,
-    pub grids: EntityVec<DieId, GridId>,
+    pub chips: EntityVec<DieId, ChipId>,
     pub interposer: Option<InterposerId>,
     pub bonds: EntityMap<DevBondId, String, BondId>,
     pub speeds: EntityVec<DevSpeedId, String>,
@@ -39,7 +39,7 @@ pub struct Part {
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Database {
-    pub grids: EntityVec<GridId, Grid>,
+    pub chips: EntityVec<ChipId, Chip>,
     pub interposers: EntityVec<InterposerId, Interposer>,
     pub bonds: EntityVec<BondId, Bond>,
     pub parts: Vec<Part>,
@@ -65,14 +65,14 @@ impl Database {
 
     pub fn to_json(&self) -> serde_json::Value {
         json!({
-            "grids": Vec::from_iter(self.grids.values().map(|grid| grid.to_json())),
+            "chips": Vec::from_iter(self.chips.values().map(|chip| chip.to_json())),
             "interposers": self.interposers,
             "bonds": Vec::from_iter(self.bonds.values().map(|bond| bond.to_json())),
             "parts": Vec::from_iter(self.parts.iter().map(|part| {
                 json!({
                     "name": part.name,
                     "interposer": part.interposer,
-                    "grids": part.grids,
+                    "chips": part.chips,
                     "bonds": serde_json::Map::from_iter(part.bonds.iter().map(|(_, name, bond)| (name.clone(), bond.to_idx().into()))),
                     "speeds": part.speeds,
                     "combos": part.combos,

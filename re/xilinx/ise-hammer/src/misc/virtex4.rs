@@ -238,7 +238,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ] {
                 let idx = if name.ends_with('1') { 1 } else { 0 };
                 let mut extras = vec![];
-                if !edev.grids[DieId::from_idx(0)].cols_vbrk.is_empty() {
+                if !edev.chips[DieId::from_idx(0)].cols_vbrk.is_empty() {
                     extras.push(ExtraFeature::new(
                         ExtraFeatureKind::MgtRepeater(
                             if name.starts_with("MGT_L") {
@@ -547,7 +547,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_bit(tile, bel, attr, "1");
             }
         }
-        if !edev.grids[DieId::from_idx(0)].cols_vbrk.is_empty() {
+        if !edev.chips[DieId::from_idx(0)].cols_vbrk.is_empty() {
             let tile = "HCLK_MGT_REPEATER";
             let bel = "HCLK_MGT_REPEATER";
             let item = ctx.extract_bit(tile, bel, "BUF.MGT0.CFG", "1");

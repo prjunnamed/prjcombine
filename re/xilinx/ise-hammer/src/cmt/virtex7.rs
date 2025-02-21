@@ -813,7 +813,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (pip (bel_pin bel_hclk, format!("CCIO{ccio}")), (pin "I"))
         ]);
     }
-    if edev.grids.first().unwrap().regs > 1 {
+    if edev.chips.first().unwrap().regs > 1 {
         let mut ctx = FuzzCtx::new(session, backend, "CMT", "CMT_A", TileBits::Cmt);
         ctx.bel_name = "CMT_BOT".to_string();
         let extras = vec![ExtraFeature::new(
@@ -873,7 +873,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ]);
         }
     }
-    if edev.grids.first().unwrap().regs > 1 {
+    if edev.chips.first().unwrap().regs > 1 {
         let mut ctx = FuzzCtx::new(session, backend, "CMT", "CMT_D", TileBits::Cmt);
         ctx.bel_name = "CMT_TOP".to_string();
         let extras = vec![ExtraFeature::new(
@@ -964,7 +964,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ], [
             (pip (bel_pin_far bel_pc, "PHYCTLEMPTY"), (bel_pin bel_pc, "SYNC_BB"))
         ]);
-        if edev.grids.first().unwrap().regs > 1 {
+        if edev.chips.first().unwrap().regs > 1 {
             fuzz_one!(ctx, "ENABLE.SYNC_BB", "BOT", [
                 (tile_mutex "SYNC_BB", "TEST"),
                 (no_related TileRelation::Delta(0, -50, node_cmt)),
@@ -2028,7 +2028,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 xlat_bit_wide(diff),
             );
         }
-        if edev.grids.first().unwrap().regs > 1 {
+        if edev.chips.first().unwrap().regs > 1 {
             ctx.collect_bit(tile, bel, "ENABLE.SYNC_BB_S", "1");
             ctx.collect_bit(tile, bel, "BUF.SYNC_BB.U", "1");
             let mut diff = ctx.state.get_diff(tile, bel, "BUF.SYNC_BB.D", "1");
@@ -2076,7 +2076,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 &["FREQ_BB0", "FREQ_BB1", "FREQ_BB2", "FREQ_BB3", pll_clkout],
             );
         }
-        if edev.grids.first().unwrap().regs > 1 {
+        if edev.chips.first().unwrap().regs > 1 {
             ctx.collect_bit(tile, bel, "ENABLE.SYNC_BB_N", "1");
             ctx.collect_bit(tile, bel, "BUF.SYNC_BB.D", "1");
             let mut diff = ctx.state.get_diff(tile, bel, "BUF.SYNC_BB.U", "1");
