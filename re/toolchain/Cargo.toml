@@ -1,0 +1,14 @@
+[package]
+name = "prjcombine-re-toolchain"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+nix.workspace = true
+serde.workspace = true
+tempfile.workspace = true
+toml.workspace = true
+which.workspace = true
+
+[lints]
+workspace = true

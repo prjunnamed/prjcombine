@@ -1,0 +1,16 @@
+[package]
+name = "prjcombine-re-xilinx-v2xdl-verify"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rand.workspace = true
+clap.workspace = true
+tempfile.workspace = true
+simple-error.workspace = true
+rayon.workspace = true
+prjcombine-re-toolchain.workspace = true
+prjcombine-re-xilinx-xdl.workspace = true
+
+[lints]
+workspace = true

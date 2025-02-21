@@ -1,0 +1,29 @@
+[package]
+name = "prjcombine-re-xilinx-xact-hammer"
+edition.workspace = true
+version.workspace = true
+
+[[bin]]
+name = "xact_hammer"
+path = "src/main.rs"
+
+[dependencies]
+bitvec.workspace = true
+itertools.workspace = true
+clap.workspace = true
+tempfile.workspace = true
+simple-error.workspace = true
+rand.workspace = true
+unnamed_entity.workspace = true
+prjcombine-types.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-xilinx-bitstream.workspace = true
+prjcombine-xc2000.workspace = true
+prjcombine-re-hammer.workspace = true
+prjcombine-re-collector.workspace = true
+prjcombine-re-xilinx-xact-naming.workspace = true
+prjcombine-re-xilinx-xact-xc2000.workspace = true
+prjcombine-re-xilinx-xact-geom.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,18 @@
+[package]
+name = "prjcombine-re-xilinx-rd2db-versal"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+enum-map.workspace = true
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-versal.workspace = true
+prjcombine-re-xilinx-rawdump.workspace = true
+prjcombine-re-xilinx-naming.workspace = true
+prjcombine-re-xilinx-naming-versal.workspace = true
+prjcombine-re-xilinx-rd2db-interconnect.workspace = true
+prjcombine-re-xilinx-rd2db-grid.workspace = true
+
+[lints]
+workspace = true

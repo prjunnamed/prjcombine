@@ -1,0 +1,18 @@
+[package]
+name = "prjcombine-re-hammer"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+unnamed_entity.workspace = true
+serde.workspace = true
+bitvec.workspace = true
+bimap.workspace = true
+rand.workspace = true
+std-semaphore.workspace = true
+itertools.workspace = true
+derive-where.workspace = true
+indicatif.workspace = true
+
+[lints]
+workspace = true

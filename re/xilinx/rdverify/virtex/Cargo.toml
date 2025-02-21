@@ -1,0 +1,15 @@
+[package]
+name = "prjcombine-re-xilinx-rdverify-virtex"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-virtex.workspace = true
+prjcombine-re-xilinx-rawdump.workspace = true
+prjcombine-re-xilinx-naming-virtex.workspace = true
+prjcombine-re-xilinx-rdverify.workspace = true
+
+[lints]
+workspace = true

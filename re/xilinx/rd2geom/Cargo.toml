@@ -1,0 +1,59 @@
+[package]
+name = "prjcombine-re-xilinx-rd2geom"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "xrd2geom"
+path = "src/main.rs"
+
+[dependencies]
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-virtex2.workspace = true
+prjcombine-virtex4.workspace = true
+prjcombine-ultrascale.workspace = true
+prjcombine-versal.workspace = true
+prjcombine-re-xilinx-rawdump.workspace = true
+prjcombine-re-xilinx-naming.workspace = true
+prjcombine-re-xilinx-naming-xc2000.workspace = true
+prjcombine-re-xilinx-naming-virtex.workspace = true
+prjcombine-re-xilinx-naming-virtex2.workspace = true
+prjcombine-re-xilinx-naming-spartan6.workspace = true
+prjcombine-re-xilinx-naming-virtex4.workspace = true
+prjcombine-re-xilinx-naming-ultrascale.workspace = true
+prjcombine-re-xilinx-naming-versal.workspace = true
+prjcombine-re-xilinx-geom.workspace = true
+prjcombine-re-xilinx-rd2db-interconnect.workspace = true
+prjcombine-re-xilinx-rd2db-grid.workspace = true
+prjcombine-re-xilinx-rd2db-xc4000.workspace = true
+prjcombine-re-xilinx-rd2db-xc5200.workspace = true
+prjcombine-re-xilinx-rd2db-virtex.workspace = true
+prjcombine-re-xilinx-rd2db-virtex2.workspace = true
+prjcombine-re-xilinx-rd2db-spartan6.workspace = true
+prjcombine-re-xilinx-rd2db-virtex4.workspace = true
+prjcombine-re-xilinx-rd2db-virtex5.workspace = true
+prjcombine-re-xilinx-rd2db-virtex6.workspace = true
+prjcombine-re-xilinx-rd2db-virtex7.workspace = true
+prjcombine-re-xilinx-rd2db-ultrascale.workspace = true
+prjcombine-re-xilinx-rd2db-versal.workspace = true
+prjcombine-re-xilinx-rdverify.workspace = true
+prjcombine-re-xilinx-rdverify-xc4000.workspace = true
+prjcombine-re-xilinx-rdverify-xc5200.workspace = true
+prjcombine-re-xilinx-rdverify-virtex.workspace = true
+prjcombine-re-xilinx-rdverify-virtex2.workspace = true
+prjcombine-re-xilinx-rdverify-spartan6.workspace = true
+prjcombine-re-xilinx-rdverify-virtex4.workspace = true
+prjcombine-re-xilinx-rdverify-virtex5.workspace = true
+prjcombine-re-xilinx-rdverify-virtex6.workspace = true
+prjcombine-re-xilinx-rdverify-virtex7.workspace = true
+prjcombine-re-xilinx-rdverify-ultrascale.workspace = true
+prjcombine-re-xilinx-rdverify-versal.workspace = true
+clap.workspace = true
+simple-error.workspace = true
+serde.workspace = true
+enum-map.workspace = true
+std-semaphore.workspace = true
+
+[lints]
+workspace = true

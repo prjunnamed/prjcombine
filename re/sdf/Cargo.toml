@@ -1,0 +1,10 @@
+[package]
+name = "prjcombine-re-sdf"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+indexmap.workspace = true
+
+[lints]
+workspace = true

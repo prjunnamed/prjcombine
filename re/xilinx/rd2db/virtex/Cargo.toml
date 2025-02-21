@@ -1,0 +1,17 @@
+[package]
+name = "prjcombine-re-xilinx-rd2db-virtex"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-virtex.workspace = true
+prjcombine-re-xilinx-rawdump.workspace = true
+prjcombine-re-xilinx-naming.workspace = true
+prjcombine-re-xilinx-naming-virtex.workspace = true
+prjcombine-re-xilinx-rd2db-interconnect.workspace = true
+prjcombine-re-xilinx-rd2db-grid.workspace = true
+
+[lints]
+workspace = true

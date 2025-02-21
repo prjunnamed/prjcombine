@@ -1,0 +1,28 @@
+[package]
+name = "prjcombine-re-xilinx-finish"
+edition.workspace = true
+version.workspace = true
+
+[[bin]]
+name = "xilinx_finish"
+path = "src/main.rs"
+
+[dependencies]
+prjcombine-types.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-xc2000.workspace = true
+prjcombine-virtex.workspace = true
+prjcombine-virtex2.workspace = true
+prjcombine-spartan6.workspace = true
+prjcombine-virtex4.workspace = true
+prjcombine-ultrascale.workspace = true
+prjcombine-re-xilinx-xact-geom.workspace = true
+prjcombine-re-xilinx-geom.workspace = true
+serde_json.workspace = true
+itertools.workspace = true
+regex.workspace = true
+clap.workspace = true
+unnamed_entity.workspace = true
+
+[lints]
+workspace = true

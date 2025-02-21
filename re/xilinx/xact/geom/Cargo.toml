@@ -1,0 +1,19 @@
+[package]
+name = "prjcombine-re-xilinx-xact-geom"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+clap.workspace = true
+serde.workspace = true
+zstd.workspace = true
+bincode.workspace = true
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-xc2000.workspace = true
+prjcombine-xilinx-bitstream.workspace = true
+prjcombine-re-xilinx-xact-naming.workspace = true
+prjcombine-re-xilinx-xact-xc2000.workspace = true
+
+[lints]
+workspace = true

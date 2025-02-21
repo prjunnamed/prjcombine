@@ -1,0 +1,34 @@
+[package]
+name = "prjcombine-re-xilinx-geom"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+unnamed_entity.workspace = true
+prjcombine-types.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-xilinx-bitstream.workspace = true
+prjcombine-xc2000.workspace = true
+prjcombine-virtex.workspace = true
+prjcombine-virtex2.workspace = true
+prjcombine-spartan6.workspace = true
+prjcombine-virtex4.workspace = true
+prjcombine-ultrascale.workspace = true
+prjcombine-versal.workspace = true
+prjcombine-re-xilinx-naming.workspace = true
+prjcombine-re-xilinx-naming-xc2000.workspace = true
+prjcombine-re-xilinx-naming-virtex.workspace = true
+prjcombine-re-xilinx-naming-virtex2.workspace = true
+prjcombine-re-xilinx-naming-spartan6.workspace = true
+prjcombine-re-xilinx-naming-virtex4.workspace = true
+prjcombine-re-xilinx-naming-ultrascale.workspace = true
+prjcombine-re-xilinx-naming-versal.workspace = true
+serde.workspace = true
+bincode.workspace = true
+zstd.workspace = true
+clap.workspace = true
+rayon.workspace = true
+itertools.workspace = true
+
+[lints]
+workspace = true

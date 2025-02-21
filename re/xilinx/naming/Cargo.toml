@@ -1,0 +1,12 @@
+[package]
+name = "prjcombine-re-xilinx-naming"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+serde.workspace = true
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+
+[lints]
+workspace = true

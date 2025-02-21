@@ -5,71 +5,67 @@
 [workspace]
 resolver = "3"
 members = [
-	"prjcombine_toolchain",
-	"prjcombine_rawdump",
-	"prjcombine_rdbuild",
-	"prjcombine_ise_dump",
-	"prjcombine_vivado_dump",
-	"prjcombine_lattice_dump",
-	"prjcombine_lattice_rawdump",
-	"prjcombine_xilinx_naming",
-	"prjcombine_xc2000_naming",
-	"prjcombine_virtex_naming",
-	"prjcombine_virtex2_naming",
-	"prjcombine_virtex4_naming",
-	"prjcombine_spartan6_naming",
-	"prjcombine_ultrascale_naming",
-	"prjcombine_versal_naming",
-	"prjcombine_rdgrid",
-	"prjcombine_rdintb",
-	"prjcombine_rdverify",
-	"prjcombine_xc4000_rdverify",
-	"prjcombine_xc5200_rdverify",
-	"prjcombine_virtex_rdverify",
-	"prjcombine_virtex2_rdverify",
-	"prjcombine_spartan6_rdverify",
-	"prjcombine_virtex4_rdverify",
-	"prjcombine_virtex5_rdverify",
-	"prjcombine_virtex6_rdverify",
-	"prjcombine_virtex7_rdverify",
-	"prjcombine_ultrascale_rdverify",
-	"prjcombine_versal_rdverify",
-	"prjcombine_xc4000_rd2db",
-	"prjcombine_xc5200_rd2db",
-	"prjcombine_virtex_rd2db",
-	"prjcombine_virtex2_rd2db",
-	"prjcombine_spartan6_rd2db",
-	"prjcombine_virtex4_rd2db",
-	"prjcombine_virtex5_rd2db",
-	"prjcombine_virtex6_rd2db",
-	"prjcombine_virtex7_rd2db",
-	"prjcombine_ultrascale_rd2db",
-	"prjcombine_versal_rd2db",
-	"prjcombine_xilinx_geom",
-	"prjcombine_xilinx_rd2geom",
-	"prjcombine_xdl",
-	"prjcombine_v2xdl_verify",
-	"prjcombine_hammer",
-	"prjcombine_collector",
-	"prjcombine_ise_hammer",
-	"prjcombine_xact_naming",
-	"prjcombine_xc2000_xact",
-	"prjcombine_xact_data",
-	"prjcombine_xact_geom",
-	"prjcombine_xact_dump",
-	"prjcombine_xact_hammer",
-	"prjcombine_xilinx_rdis",
-	"prjcombine_xilinx_finish",
-	"prjcombine_harvester",
-	"prjcombine_icecube_harvester",
-	"prjcombine_vm6",
-	"prjcombine_xilinx_cpld",
-	"prjcombine_xilinx_recpld",
-	"prjcombine_sdf",
+	"re/toolchain",
+	"re/hammer",
+	"re/collector",
+	"re/harvester",
+	"re/sdf",
+	"re/xilinx/rawdump",
+	"re/xilinx/xdl",
+	"re/xilinx/v2xdl-verify",
+	"re/xilinx/ise-dump",
+	"re/xilinx/vivado-dump",
+	"re/xilinx/naming",
+	"re/xilinx/naming/xc2000",
+	"re/xilinx/naming/virtex",
+	"re/xilinx/naming/virtex2",
+	"re/xilinx/naming/virtex4",
+	"re/xilinx/naming/spartan6",
+	"re/xilinx/naming/ultrascale",
+	"re/xilinx/naming/versal",
+	"re/xilinx/geom",
+	"re/xilinx/rdbuild",
+	"re/xilinx/rd2db/grid",
+	"re/xilinx/rd2db/interconnect",
+	"re/xilinx/rd2db/xc4000",
+	"re/xilinx/rd2db/xc5200",
+	"re/xilinx/rd2db/virtex",
+	"re/xilinx/rd2db/virtex2",
+	"re/xilinx/rd2db/spartan6",
+	"re/xilinx/rd2db/virtex4",
+	"re/xilinx/rd2db/virtex5",
+	"re/xilinx/rd2db/virtex6",
+	"re/xilinx/rd2db/virtex7",
+	"re/xilinx/rd2db/ultrascale",
+	"re/xilinx/rd2db/versal",
+	"re/xilinx/rdverify",
+	"re/xilinx/rdverify/xc4000",
+	"re/xilinx/rdverify/xc5200",
+	"re/xilinx/rdverify/virtex",
+	"re/xilinx/rdverify/virtex2",
+	"re/xilinx/rdverify/spartan6",
+	"re/xilinx/rdverify/virtex4",
+	"re/xilinx/rdverify/virtex5",
+	"re/xilinx/rdverify/virtex6",
+	"re/xilinx/rdverify/virtex7",
+	"re/xilinx/rdverify/ultrascale",
+	"re/xilinx/rdverify/versal",
+	"re/xilinx/rd2geom",
+	"re/xilinx/ise-hammer",
+	"re/xilinx/xact/naming",
+	"re/xilinx/xact/xc2000",
+	"re/xilinx/xact/geom",
+	"re/xilinx/xact/data",
+	"re/xilinx/xact/dump",
+	"re/xilinx/xact/hammer",
+	"re/xilinx/finish",
+	"re/xilinx/rdis",
+	"re/xilinx/cpld",
+	"re/icecube-harvester",
+	"re/lattice/dump",
+	"re/lattice/rawdump",
 ]
-exclude = [
-	"public"
-]
+exclude = ["public"]
 
 [workspace.package]
 edition = "2021"
@@ -114,56 +110,55 @@ sha2 = "0.10.8"
 assert_matches = "1.5"
 clap = { version = "4.1", features = ["derive"] }
 # RE-only crates and their dependencies
-prjcombine_rawdump = { path = "prjcombine_rawdump" }
-prjcombine_rdbuild = { path = "prjcombine_rdbuild" }
-prjcombine_toolchain = { path = "prjcombine_toolchain" }
-prjcombine_xdl = { path = "prjcombine_xdl" }
-prjcombine_xilinx_naming = { path = "prjcombine_xilinx_naming" }
-prjcombine_rdgrid = { path = "prjcombine_rdgrid" }
-prjcombine_rdintb = { path = "prjcombine_rdintb" }
-prjcombine_rdverify = { path = "prjcombine_rdverify" }
-prjcombine_xc2000_naming = { path = "prjcombine_xc2000_naming" }
-prjcombine_xc4000_rdverify = { path = "prjcombine_xc4000_rdverify" }
-prjcombine_xc4000_rd2db = { path = "prjcombine_xc4000_rd2db" }
-prjcombine_xc5200_rdverify = { path = "prjcombine_xc5200_rdverify" }
-prjcombine_xc5200_rd2db = { path = "prjcombine_xc5200_rd2db" }
-prjcombine_virtex_naming = { path = "prjcombine_virtex_naming" }
-prjcombine_virtex_rdverify = { path = "prjcombine_virtex_rdverify" }
-prjcombine_virtex_rd2db = { path = "prjcombine_virtex_rd2db" }
-prjcombine_virtex2_naming = { path = "prjcombine_virtex2_naming" }
-prjcombine_virtex2_rdverify = { path = "prjcombine_virtex2_rdverify" }
-prjcombine_virtex2_rd2db = { path = "prjcombine_virtex2_rd2db" }
-prjcombine_virtex4_naming = { path = "prjcombine_virtex4_naming" }
-prjcombine_virtex4_rdverify = { path = "prjcombine_virtex4_rdverify" }
-prjcombine_virtex4_rd2db = { path = "prjcombine_virtex4_rd2db" }
-prjcombine_virtex5_rdverify = { path = "prjcombine_virtex5_rdverify" }
-prjcombine_virtex5_rd2db = { path = "prjcombine_virtex5_rd2db" }
-prjcombine_virtex6_rdverify = { path = "prjcombine_virtex6_rdverify" }
-prjcombine_virtex6_rd2db = { path = "prjcombine_virtex6_rd2db" }
-prjcombine_virtex7_rdverify = { path = "prjcombine_virtex7_rdverify" }
-prjcombine_virtex7_rd2db = { path = "prjcombine_virtex7_rd2db" }
-prjcombine_spartan6_rd2db = { path = "prjcombine_spartan6_rd2db" }
-prjcombine_spartan6_naming = { path = "prjcombine_spartan6_naming" }
-prjcombine_spartan6_rdverify = { path = "prjcombine_spartan6_rdverify" }
-prjcombine_ultrascale_naming = { path = "prjcombine_ultrascale_naming" }
-prjcombine_ultrascale_rdverify = { path = "prjcombine_ultrascale_rdverify" }
-prjcombine_ultrascale_rd2db = { path = "prjcombine_ultrascale_rd2db" }
-prjcombine_versal_naming = { path = "prjcombine_versal_naming" }
-prjcombine_versal_rdverify = { path = "prjcombine_versal_rdverify" }
-prjcombine_versal_rd2db = { path = "prjcombine_versal_rd2db" }
-prjcombine_xilinx_geom = { path = "prjcombine_xilinx_geom" }
-prjcombine_lattice_rawdump = { path = "prjcombine_lattice_rawdump" }
-prjcombine_hammer = { path = "prjcombine_hammer" }
-prjcombine_collector = { path = "prjcombine_collector" }
-prjcombine_xact_naming = { path = "prjcombine_xact_naming" }
-prjcombine_xc2000_xact = { path = "prjcombine_xc2000_xact" }
-prjcombine_xact_geom = { path = "prjcombine_xact_geom" }
-prjcombine_xact_data = { path = "prjcombine_xact_data" }
-prjcombine_harvester = { path = "prjcombine_harvester" }
-prjcombine_vm6 = { path = "prjcombine_vm6" }
-prjcombine_xilinx_cpld = { path = "prjcombine_xilinx_cpld" }
-prjcombine_ise_dump = { path = "prjcombine_ise_dump" }
-prjcombine_sdf = { path = "prjcombine_sdf" }
+prjcombine-re-toolchain = { path = "re/toolchain" }
+prjcombine-re-hammer = { path = "re/hammer" }
+prjcombine-re-collector = { path = "re/collector" }
+prjcombine-re-harvester = { path = "re/harvester" }
+prjcombine-re-sdf = { path = "re/sdf" }
+prjcombine-re-xilinx-rawdump = { path = "re/xilinx/rawdump" }
+prjcombine-re-xilinx-rdbuild = { path = "re/xilinx/rdbuild" }
+prjcombine-re-xilinx-xdl = { path = "re/xilinx/xdl" }
+prjcombine-re-xilinx-ise-dump = { path = "re/xilinx/ise-dump" }
+prjcombine-re-xilinx-naming = { path = "re/xilinx/naming" }
+prjcombine-re-xilinx-naming-xc2000 = { path = "re/xilinx/naming/xc2000" }
+prjcombine-re-xilinx-naming-virtex = { path = "re/xilinx/naming/virtex" }
+prjcombine-re-xilinx-naming-virtex2 = { path = "re/xilinx/naming/virtex2" }
+prjcombine-re-xilinx-naming-spartan6 = { path = "re/xilinx/naming/spartan6" }
+prjcombine-re-xilinx-naming-virtex4 = { path = "re/xilinx/naming/virtex4" }
+prjcombine-re-xilinx-naming-ultrascale = { path = "re/xilinx/naming/ultrascale" }
+prjcombine-re-xilinx-naming-versal = { path = "re/xilinx/naming/versal" }
+prjcombine-re-xilinx-geom = { path = "re/xilinx/geom" }
+prjcombine-re-xilinx-rd2db-grid = { path = "re/xilinx/rd2db/grid" }
+prjcombine-re-xilinx-rd2db-interconnect = { path = "re/xilinx/rd2db/interconnect" }
+prjcombine-re-xilinx-rd2db-xc4000 = { path = "re/xilinx/rd2db/xc4000" }
+prjcombine-re-xilinx-rd2db-xc5200 = { path = "re/xilinx/rd2db/xc5200" }
+prjcombine-re-xilinx-rd2db-virtex = { path = "re/xilinx/rd2db/virtex" }
+prjcombine-re-xilinx-rd2db-virtex2 = { path = "re/xilinx/rd2db/virtex2" }
+prjcombine-re-xilinx-rd2db-spartan6 = { path = "re/xilinx/rd2db/spartan6" }
+prjcombine-re-xilinx-rd2db-virtex4 = { path = "re/xilinx/rd2db/virtex4" }
+prjcombine-re-xilinx-rd2db-virtex5 = { path = "re/xilinx/rd2db/virtex5" }
+prjcombine-re-xilinx-rd2db-virtex6 = { path = "re/xilinx/rd2db/virtex6" }
+prjcombine-re-xilinx-rd2db-virtex7 = { path = "re/xilinx/rd2db/virtex7" }
+prjcombine-re-xilinx-rd2db-ultrascale = { path = "re/xilinx/rd2db/ultrascale" }
+prjcombine-re-xilinx-rd2db-versal = { path = "re/xilinx/rd2db/versal" }
+prjcombine-re-xilinx-rdverify = { path = "re/xilinx/rdverify" }
+prjcombine-re-xilinx-rdverify-xc4000 = { path = "re/xilinx/rdverify/xc4000" }
+prjcombine-re-xilinx-rdverify-xc5200 = { path = "re/xilinx/rdverify/xc5200" }
+prjcombine-re-xilinx-rdverify-virtex = { path = "re/xilinx/rdverify/virtex" }
+prjcombine-re-xilinx-rdverify-virtex2 = { path = "re/xilinx/rdverify/virtex2" }
+prjcombine-re-xilinx-rdverify-virtex4 = { path = "re/xilinx/rdverify/virtex4" }
+prjcombine-re-xilinx-rdverify-virtex5 = { path = "re/xilinx/rdverify/virtex5" }
+prjcombine-re-xilinx-rdverify-virtex6 = { path = "re/xilinx/rdverify/virtex6" }
+prjcombine-re-xilinx-rdverify-virtex7 = { path = "re/xilinx/rdverify/virtex7" }
+prjcombine-re-xilinx-rdverify-spartan6 = { path = "re/xilinx/rdverify/spartan6" }
+prjcombine-re-xilinx-rdverify-ultrascale = { path = "re/xilinx/rdverify/ultrascale" }
+prjcombine-re-xilinx-rdverify-versal = { path = "re/xilinx/rdverify/versal" }
+prjcombine-re-xilinx-xact-naming = { path = "re/xilinx/xact/naming" }
+prjcombine-re-xilinx-xact-xc2000 = { path = "re/xilinx/xact/xc2000" }
+prjcombine-re-xilinx-xact-geom = { path = "re/xilinx/xact/geom" }
+prjcombine-re-xilinx-xact-data = { path = "re/xilinx/xact/data" }
+prjcombine-re-xilinx-cpld = { path = "re/xilinx/cpld" }
+prjcombine-re-lattice-rawdump = { path = "re/lattice/rawdump" }
 indexmap = { version = "2", features = ["serde"] }
 rand = { version = "0.9", features = ["small_rng"] }
 nix = { version = "0.29", features = ["fs"] }

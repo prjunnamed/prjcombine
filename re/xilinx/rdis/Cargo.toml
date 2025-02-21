@@ -1,0 +1,17 @@
+[package]
+name = "prjcombine-re-xilinx-rdis"
+edition.workspace = true
+version.workspace = true
+
+[[bin]]
+name = "xrdis"
+path = "src/main.rs"
+
+[dependencies]
+clap.workspace = true
+arrayref.workspace = true
+prjcombine-xilinx-bitstream.workspace = true
+prjcombine-re-xilinx-geom.workspace = true
+
+[lints]
+workspace = true

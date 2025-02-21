@@ -1,0 +1,14 @@
+[package]
+name = "prjcombine-re-xilinx-naming-virtex4"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+enum-map.workspace = true
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-virtex4.workspace = true
+prjcombine-re-xilinx-naming.workspace = true
+
+[lints]
+workspace = true

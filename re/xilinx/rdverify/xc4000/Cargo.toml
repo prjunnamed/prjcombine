@@ -1,0 +1,16 @@
+[package]
+name = "prjcombine-re-xilinx-rdverify-xc4000"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-xc2000.workspace = true
+prjcombine-re-xilinx-rawdump.workspace = true
+prjcombine-re-xilinx-naming.workspace = true
+prjcombine-re-xilinx-naming-xc2000.workspace = true
+prjcombine-re-xilinx-rdverify.workspace = true
+
+[lints]
+workspace = true

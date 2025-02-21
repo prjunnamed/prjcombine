@@ -1,0 +1,19 @@
+[package]
+name = "prjcombine-re-xilinx-xact-dump"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+enum-map.workspace = true
+ndarray.workspace = true
+clap.workspace = true
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-xc2000.workspace = true
+prjcombine-re-xilinx-xact-naming.workspace = true
+prjcombine-re-xilinx-xact-xc2000.workspace = true
+prjcombine-re-xilinx-xact-geom.workspace = true
+prjcombine-re-xilinx-xact-data.workspace = true
+
+[lints]
+workspace = true

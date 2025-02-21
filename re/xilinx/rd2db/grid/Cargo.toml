@@ -1,0 +1,12 @@
+[package]
+name = "prjcombine-re-xilinx-rd2db-grid"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-re-xilinx-rawdump.workspace = true
+
+[lints]
+workspace = true

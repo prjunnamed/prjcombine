@@ -1,0 +1,14 @@
+[package]
+name = "prjcombine-re-xilinx-rdverify"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bitvec.workspace = true
+unnamed_entity.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-re-xilinx-naming.workspace = true
+prjcombine-re-xilinx-rawdump.workspace = true
+
+[lints]
+workspace = true

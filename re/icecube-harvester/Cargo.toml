@@ -1,0 +1,26 @@
+[package]
+name = "prjcombine-re-icecube-harvester"
+edition.workspace = true
+version.workspace = true
+
+[[bin]]
+name = "icecube_harvester"
+path = "src/main.rs"
+
+
+[dependencies]
+tempfile.workspace = true
+bitvec.workspace = true
+clap.workspace = true
+rayon.workspace = true
+rand.workspace = true
+enum-map.workspace = true
+unnamed_entity.workspace = true
+prjcombine-types.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-siliconblue.workspace = true
+prjcombine-re-harvester.workspace = true
+prjcombine-re-collector.workspace = true
+
+[lints]
+workspace = true

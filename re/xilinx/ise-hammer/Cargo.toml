@@ -1,0 +1,35 @@
+[package]
+name = "prjcombine-re-xilinx-ise-hammer"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "ise_hammer"
+path = "src/main.rs"
+
+[dependencies]
+unnamed_entity.workspace = true
+bitvec.workspace = true
+clap.workspace = true
+rand.workspace = true
+simple-error.workspace = true
+serde_json.workspace = true
+itertools.workspace = true
+hex.workspace = true
+prjcombine-types.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-xc2000.workspace = true
+prjcombine-virtex.workspace = true
+prjcombine-virtex2.workspace = true
+prjcombine-spartan6.workspace = true
+prjcombine-virtex4.workspace = true
+prjcombine-xilinx-bitstream.workspace = true
+prjcombine-re-toolchain.workspace = true
+prjcombine-re-hammer.workspace = true
+prjcombine-re-collector.workspace = true
+prjcombine-re-xilinx-xdl.workspace = true
+prjcombine-re-xilinx-naming.workspace = true
+prjcombine-re-xilinx-geom.workspace = true
+
+[lints]
+workspace = true
