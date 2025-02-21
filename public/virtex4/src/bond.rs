@@ -457,7 +457,6 @@ impl From<&Bond> for JsonValue {
     }
 }
 
-
 fn pad_sort_key(name: &str) -> (usize, &str, u32) {
     let pos = name.find(|x: char| x.is_ascii_digit()).unwrap();
     (pos, &name[..pos], name[pos..].parse().unwrap())

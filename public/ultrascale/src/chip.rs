@@ -1,7 +1,7 @@
 use enum_map::Enum;
+use jzon::JsonValue;
 use prjcombine_interconnect::grid::{ColId, DieId, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
 
@@ -211,7 +211,9 @@ impl std::fmt::Display for DisabledPart {
             DisabledPart::HardIp(die, col, reg) => write!(f, "HARD_IP:{die}:{col}:{reg}"),
             DisabledPart::Gt(die, col, reg) => write!(f, "GT:{die}:{col}:{reg}"),
             DisabledPart::GtBufs(die, col, reg) => write!(f, "GT_BUFS:{die}:{col}:{reg}"),
-            DisabledPart::GtmSpareBufs(die, col, reg) => write!(f, "GTM_SPARE_BUFS:{die}:{col}:{reg}"),
+            DisabledPart::GtmSpareBufs(die, col, reg) => {
+                write!(f, "GTM_SPARE_BUFS:{die}:{col}:{reg}")
+            }
             DisabledPart::HdioIob(die, col, reg, iob) => write!(f, "HDIO:{die}:{col}:{reg}:{iob}"),
             DisabledPart::HpioIob(die, col, reg, iob) => write!(f, "HPIO:{die}:{col}:{reg}:{iob}"),
             DisabledPart::HpioDci(die, col, reg) => write!(f, "HPIO_DCI:{die}:{col}:{reg}"),
@@ -299,15 +301,61 @@ impl Chip {
             .iter()
             .any(|x| matches!(x.regs[reg_cfg], IoRowKind::Hpio | IoRowKind::Hrio))
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "kind": match self.kind {
+impl From<&HardColumn> for JsonValue {
+    fn from(hcol: &HardColumn) -> Self {
+        jzon::object! {
+            col: hcol.col.to_idx(),
+            regs: Vec::from_iter(hcol.regs.values().map(|kind| match kind {
+                HardRowKind::None => JsonValue::Null,
+                HardRowKind::Cfg => "CFG".into(),
+                HardRowKind::Ams => "AMS".into(),
+                HardRowKind::Pcie => "PCIE".into(),
+                HardRowKind::PciePlus => "PCIE4C".into(),
+                HardRowKind::Cmac => "CMAC".into(),
+                HardRowKind::Ilkn => "ILKN".into(),
+                HardRowKind::DfeA => "DFE_A".into(),
+                HardRowKind::DfeG => "DFE_G".into(),
+                HardRowKind::Hdio => "HDIO".into(),
+                HardRowKind::HdioAms => "HDIO:AMS".into(),
+                HardRowKind::HdioLc => "HDIOLC".into(),
+            })),
+        }
+    }
+}
+
+impl From<&IoColumn> for JsonValue {
+    fn from(iocol: &IoColumn) -> Self {
+        jzon::object! {
+            col: iocol.col.to_idx(),
+            regs: Vec::from_iter(iocol.regs.values().map(|kind| match kind {
+                IoRowKind::None => JsonValue::Null,
+                IoRowKind::Hpio => "HPIO".into(),
+                IoRowKind::Hrio => "HRIO".into(),
+                IoRowKind::HdioLc => "HDIOLC".into(),
+                IoRowKind::Gth => "GTH".into(),
+                IoRowKind::Gty => "GTY".into(),
+                IoRowKind::Gtm => "GTM".into(),
+                IoRowKind::Gtf => "GTF".into(),
+                IoRowKind::HsAdc => "HSADC".into(),
+                IoRowKind::HsDac => "HSDAC".into(),
+                IoRowKind::RfAdc => "RFADC".into(),
+                IoRowKind::RfDac => "RFDAC".into(),
+            })),
+        }
+    }
+}
+
+impl From<&Chip> for JsonValue {
+    fn from(chip: &Chip) -> Self {
+        jzon::object! {
+            kind: match chip.kind {
                 ChipKind::Ultrascale => "ultrascale",
                 ChipKind::UltrascalePlus => "ultrascaleplus",
             },
-            "columns": Vec::from_iter(self.columns.values().map(|column| json!({
-                "l": match column.l {
+            columns: Vec::from_iter(chip.columns.values().map(|column| jzon::object! {
+                l: match column.l {
                     ColumnKindLeft::CleL => "CLEL".to_string(),
                     ColumnKindLeft::CleM(CleMKind::Plain) => "CLEM".to_string(),
                     ColumnKindLeft::CleM(CleMKind::ClkBuf) => "CLEM:CLKBUF".to_string(),
@@ -329,7 +377,7 @@ impl Chip {
                     ColumnKindLeft::DfeDF => "DFE_DF".to_string(),
                     ColumnKindLeft::DfeE => "DFE_E".to_string(),
                 },
-                "r": match column.r {
+                r: match column.r {
                     ColumnKindRight::CleL(CleLKind::Plain) => "CLEL".to_string(),
                     ColumnKindRight::CleL(CleLKind::Dcg10) => "CLEL:DCG10".to_string(),
                     ColumnKindRight::Dsp(DspKind::Plain) => "DSP".to_string(),
@@ -345,58 +393,34 @@ impl Chip {
                     ColumnKindRight::DfeDF => "DFE_DF".to_string(),
                     ColumnKindRight::DfeE => "DFE_E".to_string(),
                 },
-                "clk_l": column.clk_l,
-                "clk_r": column.clk_r,
-            }))),
-            "cols_vbrk": self.cols_vbrk,
-            "cols_fsr_gap": self.cols_fsr_gap,
-            "cols_hard": Vec::from_iter(self.cols_hard.iter().map(|hcol| json!({
-                "col": hcol.col,
-                "regs": Vec::from_iter(hcol.regs.values().map(|kind| match kind {
-                    HardRowKind::None => serde_json::Value::Null,
-                    HardRowKind::Cfg => "CFG".into(),
-                    HardRowKind::Ams => "AMS".into(),
-                    HardRowKind::Pcie => "PCIE".into(),
-                    HardRowKind::PciePlus => "PCIE4C".into(),
-                    HardRowKind::Cmac => "CMAC".into(),
-                    HardRowKind::Ilkn => "ILKN".into(),
-                    HardRowKind::DfeA => "DFE_A".into(),
-                    HardRowKind::DfeG => "DFE_G".into(),
-                    HardRowKind::Hdio => "HDIO".into(),
-                    HardRowKind::HdioAms => "HDIO:AMS".into(),
-                    HardRowKind::HdioLc => "HDIOLC".into(),
-                })),
-            }))),
-            "cols_io": Vec::from_iter(self.cols_io.iter().map(|iocol| json!({
-                "col": iocol.col,
-                "regs": Vec::from_iter(iocol.regs.values().map(|kind| match kind {
-                    IoRowKind::None => serde_json::Value::Null,
-                    IoRowKind::Hpio => "HPIO".into(),
-                    IoRowKind::Hrio => "HRIO".into(),
-                    IoRowKind::HdioLc => "HDIOLC".into(),
-                    IoRowKind::Gth => "GTH".into(),
-                    IoRowKind::Gty => "GTY".into(),
-                    IoRowKind::Gtm => "GTM".into(),
-                    IoRowKind::Gtf => "GTF".into(),
-                    IoRowKind::HsAdc => "HSADC".into(),
-                    IoRowKind::HsDac => "HSDAC".into(),
-                    IoRowKind::RfAdc => "RFADC".into(),
-                    IoRowKind::RfDac => "RFDAC".into(),
-                })),
-            }))),
-            "regs": self.regs,
-            "ps": match self.ps {
-                None => serde_json::Value::Null,
-                Some(ps) => json!({
-                    "col": ps.col,
-                    "has_vcu": ps.has_vcu,
-                }),
+                clk_l: column.clk_l.to_vec(),
+                clk_r: column.clk_r.to_vec(),
+            })),
+            cols_vbrk: Vec::from_iter(chip.cols_vbrk.iter().map(|col| col.to_idx())),
+            cols_fsr_gap: Vec::from_iter(chip.cols_fsr_gap.iter().map(|col| col.to_idx())),
+            cols_hard: Vec::from_iter(chip.cols_hard.iter()),
+            cols_io: Vec::from_iter(chip.cols_io.iter()),
+            regs: chip.regs,
+            ps: match chip.ps {
+                None => JsonValue::Null,
+                Some(ps) => jzon::object! {
+                    col: ps.col.to_idx(),
+                    has_vcu: ps.has_vcu,
+                },
             },
-            "has_hbm": self.has_hbm,
-            "has_csec": self.has_csec,
-            "is_alt_cfg": self.is_alt_cfg,
-            "is_dmc": self.is_dmc,
-        })
+            has_hbm: chip.has_hbm,
+            has_csec: chip.has_csec,
+            is_alt_cfg: chip.is_alt_cfg,
+            is_dmc: chip.is_dmc,
+        }
+    }
+}
+
+impl From<&Interposer> for JsonValue {
+    fn from(interp: &Interposer) -> Self {
+        jzon::object! {
+            primary: interp.primary.to_idx(),
+        }
     }
 }
 

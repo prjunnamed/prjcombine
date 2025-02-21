@@ -270,7 +270,7 @@ impl DbValue {
         }
     }
 
-    pub fn to_jzon(&self) -> JsonValue { 
+    pub fn to_jzon(&self) -> JsonValue {
         match self {
             DbValue::String(s) => s.as_str().into(),
             DbValue::BitVec(bv) => Vec::from_iter(bv.iter().map(|x| *x)).into(),

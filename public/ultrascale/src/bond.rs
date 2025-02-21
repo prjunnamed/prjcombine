@@ -1,7 +1,7 @@
 use itertools::Itertools;
+use jzon::JsonValue;
 use prjcombine_interconnect::grid::{DieId, TileIobId};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::collections::BTreeMap;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -529,13 +529,15 @@ impl Bond {
             sysmons,
         }
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "pins": serde_json::Map::from_iter(
-                self.pins.iter().map(|(pin, pad)| (pin.clone(), pad.to_string().into()))
+impl From<&Bond> for JsonValue {
+    fn from(bond: &Bond) -> Self {
+        jzon::object! {
+            pins: jzon::object::Object::from_iter(
+                bond.pins.iter().map(|(k, v)| (k, v.to_string()))
             ),
-        })
+        }
     }
 }
 
