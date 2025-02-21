@@ -16,7 +16,7 @@ use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
-    grids: EntityVec<DieId, &'a Chip>,
+    chips: EntityVec<DieId, &'a Chip>,
     interposer: &'a Interposer,
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
@@ -95,9 +95,9 @@ static RE_ULTRASCALE: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 fn sort_key<'a>(name: &'a str, part: &TmpPart) -> SortKey<'a> {
-    let grid = part.grids.first().unwrap();
-    let width = grid.columns.len();
-    let height = grid.regs;
+    let chip = part.chips.first().unwrap();
+    let width = chip.columns.len();
+    let height = chip.regs;
     let captures = RE_ULTRASCALE
         .captures(name)
         .unwrap_or_else(|| panic!("ummm {name}?"));
@@ -134,20 +134,20 @@ fn sort_key<'a>(name: &'a str, part: &TmpPart) -> SortKey<'a> {
         "_LR" => Suffix::Lr,
         _ => unreachable!(),
     };
-    let kind = if grid.ps.is_some() {
-        if grid
+    let kind = if chip.ps.is_some() {
+        if chip
             .cols_hard
             .iter()
             .any(|hcol| hcol.regs.values().any(|&kind| kind == HardRowKind::DfeA))
         {
             DeviceKind::ZynqDfe
-        } else if grid
+        } else if chip
             .cols_io
             .iter()
             .any(|iocol| iocol.regs.values().any(|&kind| kind == IoRowKind::RfAdc))
         {
             DeviceKind::ZynqRfAdc
-        } else if grid
+        } else if chip
             .cols_io
             .iter()
             .any(|iocol| iocol.regs.values().any(|&kind| kind == IoRowKind::HsAdc))
@@ -156,11 +156,11 @@ fn sort_key<'a>(name: &'a str, part: &TmpPart) -> SortKey<'a> {
         } else {
             DeviceKind::Zynq
         }
-    } else if grid.has_csec {
+    } else if chip.has_csec {
         DeviceKind::Spartan
-    } else if grid.has_hbm {
+    } else if chip.has_hbm {
         DeviceKind::VirtexHbm
-    } else if grid
+    } else if chip
         .columns
         .values()
         .any(|col| col.l == ColumnKindLeft::CleM(CleMKind::Laguna))
@@ -174,7 +174,7 @@ fn sort_key<'a>(name: &'a str, part: &TmpPart) -> SortKey<'a> {
         kind,
         height,
         width,
-        die_num: part.grids.len(),
+        die_num: part.chips.len(),
         part_kind,
         size_neg: -size,
         ps,
@@ -187,11 +187,11 @@ fn sort_key<'a>(name: &'a str, part: &TmpPart) -> SortKey<'a> {
 pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     for dev in &geom.devices {
-        let grids = dev.grids.map_values(|&grid| {
-            let prjcombine_re_xilinx_geom::Grid::Ultrascale(ref grid) = geom.grids[grid] else {
+        let chips = dev.chips.map_values(|&chip| {
+            let prjcombine_re_xilinx_geom::Chip::Ultrascale(ref chip) = geom.chips[chip] else {
                 unreachable!()
             };
-            grid
+            chip
         });
         let interposer = match geom.interposers[dev.interposer] {
             prjcombine_re_xilinx_geom::Interposer::Ultrascale(ref interposer) => interposer,
@@ -208,14 +208,14 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
             })
             .collect();
         let tpart = tmp_parts.entry(&dev.name).or_insert_with(|| TmpPart {
-            grids: grids.clone(),
+            chips: chips.clone(),
             interposer,
             disabled: disabled.clone(),
             bonds: Default::default(),
             speeds: Default::default(),
             combos: Default::default(),
         });
-        assert_eq!(tpart.grids, grids);
+        assert_eq!(tpart.chips, chips);
         assert_eq!(tpart.interposer, interposer);
         assert_eq!(tpart.disabled, disabled);
         for devbond in dev.bonds.values() {
@@ -242,7 +242,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
             ));
         }
     }
-    let mut grids = EntitySet::new();
+    let mut chips = EntitySet::new();
     let mut interposers = EntitySet::new();
     let mut bonds = EntitySet::new();
     let mut parts = vec![];
@@ -250,7 +250,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         .into_iter()
         .sorted_by_key(|(name, tpart)| sort_key(name, tpart))
     {
-        let grids = tpart.grids.map_values(|&grid| grids.insert(grid.clone()).0);
+        let chips = tpart.chips.map_values(|&chip| chips.insert(chip.clone()).0);
         let interposer = interposers.insert(tpart.interposer.clone()).0;
         let mut dev_bonds = EntityMap::new();
         for (bname, bond) in tpart.bonds {
@@ -271,7 +271,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         let speeds = EntityVec::from_iter(speeds.into_values());
         let part = Part {
             name: name.into(),
-            chips: grids,
+            chips,
             interposer,
             bonds: dev_bonds,
             speeds,
@@ -280,7 +280,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         };
         parts.push(part);
     }
-    let grids = grids.into_vec();
+    let chips = chips.into_vec();
     let interposers = interposers.into_vec();
     let bonds = bonds.into_vec();
 
@@ -290,7 +290,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     // TODO: resort int
 
     Database {
-        chips: grids,
+        chips,
         interposers,
         bonds,
         parts,

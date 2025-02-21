@@ -3246,7 +3246,7 @@ impl<'a> BelKV {
                         let ExpandedNamedDevice::Spartan6(endev) = backend.endev else {
                             unreachable!()
                         };
-                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
+                        let crd = endev.chip.get_io_crd(loc.1, loc.2, bel);
                         if !ebond.ios.contains_key(&crd) {
                             return None;
                         }
@@ -3324,7 +3324,7 @@ impl<'a> BelKV {
                         let ExpandedNamedDevice::Virtex2(endev) = backend.endev else {
                             unreachable!()
                         };
-                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
+                        let crd = endev.chip.get_io_crd(loc.1, loc.2, bel);
                         if !ebond.bond.vref.contains(&crd) {
                             return None;
                         }
@@ -3334,7 +3334,7 @@ impl<'a> BelKV {
                         let ExpandedNamedDevice::Spartan6(endev) = backend.endev else {
                             unreachable!()
                         };
-                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
+                        let crd = endev.chip.get_io_crd(loc.1, loc.2, bel);
                         if !ebond.bond.vref.contains(&crd) {
                             return None;
                         }
@@ -3950,7 +3950,7 @@ impl<'a> BelKV {
                         let ExpandedNamedDevice::Virtex2(endev) = backend.endev else {
                             unreachable!()
                         };
-                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
+                        let crd = endev.chip.get_io_crd(loc.1, loc.2, bel);
                         let orig_io_info = edev.chip.get_io_info(crd);
                         for io in edev.chip.get_bonded_ios() {
                             let io_info = edev.chip.get_io_info(io);

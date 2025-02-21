@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityVec, entity_id};
 
 entity_id! {
-    pub id GridId usize;
+    pub id ChipId usize;
     pub id BondId usize;
 }
 
@@ -25,13 +25,13 @@ pub struct DeviceBond {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Device {
     pub name: String,
-    pub grid: GridId,
+    pub chip: ChipId,
     pub bonds: Vec<DeviceBond>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GeomDb {
-    pub grids: EntityVec<GridId, Chip>,
+    pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
     pub devices: Vec<Device>,
     pub ints: BTreeMap<String, IntDb>,
@@ -54,8 +54,8 @@ impl GeomDb {
     }
 
     pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice {
-        let grid = &self.grids[dev.grid];
-        let intdb = &self.ints[match grid.kind {
+        let chip = &self.chips[dev.chip];
+        let intdb = &self.ints[match chip.kind {
             ChipKind::Xc2000 => "xc2000",
             ChipKind::Xc3000 => "xc3000",
             ChipKind::Xc3000A => "xc3000a",
@@ -69,7 +69,7 @@ impl GeomDb {
             ChipKind::SpartanXl => "spartanxl",
             ChipKind::Xc5200 => "xc5200",
         }];
-        grid.expand_grid(intdb)
+        chip.expand_grid(intdb)
     }
 
     pub fn name<'a>(&'a self, _dev: &Device, edev: &'a ExpandedDevice) -> ExpandedNamedDevice<'a> {

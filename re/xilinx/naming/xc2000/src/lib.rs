@@ -9,13 +9,13 @@ use unnamed_entity::EntityId;
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,
     pub ngrid: ExpandedGridNaming<'a>,
-    pub grid: &'a Chip,
+    pub chip: &'a Chip,
 }
 
 impl<'a> ExpandedNamedDevice<'a> {
     pub fn get_io_name(&'a self, io: EdgeIoCoord) -> &'a str {
         let die = self.edev.egrid.die(DieId::from_idx(0));
-        let (col, row, bel) = self.grid.get_io_loc(io);
+        let (col, row, bel) = self.chip.get_io_loc(io);
         let nnode = &self.ngrid.nodes[&(die.die, col, row, LayerId::from_idx(0))];
         &nnode.bels[bel]
     }

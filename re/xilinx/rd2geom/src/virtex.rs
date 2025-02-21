@@ -1,4 +1,4 @@
-use prjcombine_re_xilinx_geom::{Bond, DisabledPart, Grid};
+use prjcombine_re_xilinx_geom::{Bond, Chip, DisabledPart};
 use prjcombine_re_xilinx_naming_virtex::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
 
@@ -22,7 +22,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let disabled = disabled.into_iter().map(DisabledPart::Virtex).collect();
     make_device(
         rd,
-        Grid::Virtex(grid),
+        Chip::Virtex(grid),
         bonds,
         disabled,
         "virtex",

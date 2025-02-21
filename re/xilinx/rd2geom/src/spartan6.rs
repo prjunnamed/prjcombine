@@ -1,4 +1,4 @@
-use prjcombine_re_xilinx_geom::{Bond, DisabledPart, Grid};
+use prjcombine_re_xilinx_geom::{Bond, Chip, DisabledPart};
 use prjcombine_re_xilinx_naming_spartan6::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
 
@@ -23,7 +23,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
 
     make_device(
         rd,
-        Grid::Spartan6(grid),
+        Chip::Spartan6(grid),
         bonds,
         disabled,
         "spartan6",

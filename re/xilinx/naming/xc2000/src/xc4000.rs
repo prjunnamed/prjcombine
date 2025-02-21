@@ -13,23 +13,23 @@ use unnamed_entity::EntityId;
 
 use crate::ExpandedNamedDevice;
 
-fn get_tile_kind(grid: &Chip, col: ColId, row: RowId) -> &'static str {
-    if col == grid.col_lio() {
-        if row == grid.row_bio() {
+fn get_tile_kind(chip: &Chip, col: ColId, row: RowId) -> &'static str {
+    if col == chip.col_lio() {
+        if row == chip.row_bio() {
             "LL"
-        } else if row == grid.row_tio() {
+        } else if row == chip.row_tio() {
             "UL"
-        } else if row == grid.row_bio() + 1 {
+        } else if row == chip.row_bio() + 1 {
             "LEFTSB"
-        } else if row == grid.row_tio() - 1 {
+        } else if row == chip.row_tio() - 1 {
             "LEFTT"
-        } else if grid.kind.is_xl() && row == grid.row_qb() {
+        } else if chip.kind.is_xl() && row == chip.row_qb() {
             if row.to_idx() % 2 == 0 {
                 "LEFTF"
             } else {
                 "LEFTSF"
             }
-        } else if grid.kind.is_xl() && row == grid.row_qt() - 1 {
+        } else if chip.kind.is_xl() && row == chip.row_qt() - 1 {
             if row.to_idx() % 2 == 0 {
                 "LEFTF1"
             } else {
@@ -40,28 +40,28 @@ fn get_tile_kind(grid: &Chip, col: ColId, row: RowId) -> &'static str {
         } else {
             "LEFTS"
         }
-    } else if col == grid.col_rio() {
-        let row_f = if grid.is_buff_large {
-            grid.row_qb() + 1
+    } else if col == chip.col_rio() {
+        let row_f = if chip.is_buff_large {
+            chip.row_qb() + 1
         } else {
-            grid.row_qb()
+            chip.row_qb()
         };
-        let row_f1 = if grid.is_buff_large {
-            grid.row_qt() - 2
+        let row_f1 = if chip.is_buff_large {
+            chip.row_qt() - 2
         } else {
-            grid.row_qt() - 1
+            chip.row_qt() - 1
         };
-        if row == grid.row_bio() {
+        if row == chip.row_bio() {
             "LR"
-        } else if row == grid.row_tio() {
+        } else if row == chip.row_tio() {
             "UR"
-        } else if row == grid.row_bio() + 1 {
+        } else if row == chip.row_bio() + 1 {
             "RTSB"
-        } else if row == grid.row_tio() - 1 {
+        } else if row == chip.row_tio() - 1 {
             "RTT"
-        } else if grid.kind.is_xl() && row == row_f {
+        } else if chip.kind.is_xl() && row == row_f {
             if row.to_idx() % 2 == 0 { "RTF" } else { "RTSF" }
-        } else if grid.kind.is_xl() && row == row_f1 {
+        } else if chip.kind.is_xl() && row == row_f1 {
             if row.to_idx() % 2 == 0 {
                 "RTF1"
             } else {
@@ -72,20 +72,20 @@ fn get_tile_kind(grid: &Chip, col: ColId, row: RowId) -> &'static str {
         } else {
             "RTS"
         }
-    } else if row == grid.row_bio() {
-        if col == grid.col_lio() + 1 {
+    } else if row == chip.row_bio() {
+        if col == chip.col_lio() + 1 {
             "BOTSL"
-        } else if col == grid.col_rio() - 1 {
+        } else if col == chip.col_rio() - 1 {
             "BOTRR"
         } else if col.to_idx() % 2 == 0 {
             "BOT"
         } else {
             "BOTS"
         }
-    } else if row == grid.row_tio() {
-        if col == grid.col_lio() + 1 {
+    } else if row == chip.row_tio() {
+        if col == chip.col_lio() + 1 {
             "TOPSL"
-        } else if col == grid.col_rio() - 1 {
+        } else if col == chip.col_rio() - 1 {
             "TOPRR"
         } else if col.to_idx() % 2 == 0 {
             "TOP"
@@ -97,29 +97,29 @@ fn get_tile_kind(grid: &Chip, col: ColId, row: RowId) -> &'static str {
     }
 }
 
-fn get_tile_name(grid: &Chip, col: ColId, row: RowId) -> String {
-    let r = grid.row_tio().to_idx() - row.to_idx();
+fn get_tile_name(chip: &Chip, col: ColId, row: RowId) -> String {
+    let r = chip.row_tio().to_idx() - row.to_idx();
     let c = col.to_idx();
-    if col == grid.col_lio() {
-        if row == grid.row_bio() {
+    if col == chip.col_lio() {
+        if row == chip.row_bio() {
             "BL".into()
-        } else if row == grid.row_tio() {
+        } else if row == chip.row_tio() {
             "TL".into()
         } else {
             format!("LR{r}")
         }
-    } else if col == grid.col_rio() {
-        if row == grid.row_bio() {
+    } else if col == chip.col_rio() {
+        if row == chip.row_bio() {
             "BR".into()
-        } else if row == grid.row_tio() {
+        } else if row == chip.row_tio() {
             "TR".into()
         } else {
             format!("RR{r}")
         }
     } else {
-        if row == grid.row_bio() {
+        if row == chip.row_bio() {
             format!("BC{c}")
-        } else if row == grid.row_tio() {
+        } else if row == chip.row_tio() {
             format!("TC{c}")
         } else {
             format!("R{r}C{c}")
@@ -129,7 +129,7 @@ fn get_tile_name(grid: &Chip, col: ColId, row: RowId) -> String {
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let egrid = &edev.egrid;
-    let grid = edev.chip;
+    let chip = edev.chip;
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
     ngrid.tie_kind = Some("TIE".to_string());
     ngrid.tie_pin_gnd = Some("O".to_string());
@@ -140,22 +140,22 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     let nloc = (die.die, col, row, layer);
                     let kind = egrid.db.nodes.key(node.kind);
                     let c = col.to_idx();
-                    let r = grid.row_tio() - row;
+                    let r = chip.row_tio() - row;
                     match &kind[..] {
                         "CNR.BL" => {
                             let nnode = ngrid.name_node(
                                 nloc,
                                 "CNR.BL",
                                 [
-                                    get_tile_name(grid, col, row),
-                                    get_tile_name(grid, col + 1, row),
+                                    get_tile_name(chip, col, row),
+                                    get_tile_name(chip, col + 1, row),
                                 ],
                             );
-                            if grid.kind == ChipKind::SpartanXl {
+                            if chip.kind == ChipKind::SpartanXl {
                                 nnode.add_bel(0, "BUFGLS_SSW".to_string());
                                 nnode.add_bel(1, "BUFGLS_WSW".to_string());
                                 nnode.add_bel(2, "RDBK".to_string());
-                            } else if grid.kind.is_xl() {
+                            } else if chip.kind.is_xl() {
                                 nnode.add_bel(0, format!("PULLUP_R{r}C{c}.8"));
                                 nnode.add_bel(1, format!("PULLUP_R{r}C{c}.7"));
                                 nnode.add_bel(2, format!("PULLUP_R{r}C{c}.6"));
@@ -197,17 +197,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 nloc,
                                 "CNR.TL",
                                 [
-                                    get_tile_name(grid, col, row),
-                                    get_tile_name(grid, col + 1, row),
-                                    get_tile_name(grid, col, row - 1),
-                                    get_tile_name(grid, col + 1, row - 1),
+                                    get_tile_name(chip, col, row),
+                                    get_tile_name(chip, col + 1, row),
+                                    get_tile_name(chip, col, row - 1),
+                                    get_tile_name(chip, col + 1, row - 1),
                                 ],
                             );
-                            if grid.kind == ChipKind::SpartanXl {
+                            if chip.kind == ChipKind::SpartanXl {
                                 nnode.add_bel(0, "BUFGLS_NNW".to_string());
                                 nnode.add_bel(1, "BUFGLS_WNW".to_string());
                                 nnode.add_bel(2, "BSCAN".to_string());
-                            } else if grid.kind.is_xl() {
+                            } else if chip.kind.is_xl() {
                                 nnode.add_bel(0, format!("PULLUP_R{r}C{c}.1"));
                                 nnode.add_bel(1, format!("PULLUP_R{r}C{c}.2"));
                                 nnode.add_bel(2, format!("PULLUP_R{r}C{c}.3"));
@@ -240,13 +240,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CNR.BR" => {
                             let nnode =
-                                ngrid.name_node(nloc, "CNR.BR", [get_tile_name(grid, col, row)]);
-                            if grid.kind == ChipKind::SpartanXl {
+                                ngrid.name_node(nloc, "CNR.BR", [get_tile_name(chip, col, row)]);
+                            if chip.kind == ChipKind::SpartanXl {
                                 nnode.add_bel(0, "BUFGLS_SSE".to_string());
                                 nnode.add_bel(1, "BUFGLS_ESE".to_string());
                                 nnode.add_bel(2, "STARTUP".to_string());
                                 nnode.add_bel(3, "RDCLK".to_string());
-                            } else if grid.kind.is_xl() {
+                            } else if chip.kind.is_xl() {
                                 nnode.add_bel(0, format!("PULLUP_R{r}C{c}.8"));
                                 nnode.add_bel(1, format!("PULLUP_R{r}C{c}.7"));
                                 nnode.add_bel(2, format!("PULLUP_R{r}C{c}.6"));
@@ -285,17 +285,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 nloc,
                                 "CNR.TR",
                                 [
-                                    get_tile_name(grid, col, row),
-                                    get_tile_name(grid, col, row - 1),
+                                    get_tile_name(chip, col, row),
+                                    get_tile_name(chip, col, row - 1),
                                 ],
                             );
-                            if grid.kind == ChipKind::SpartanXl {
+                            if chip.kind == ChipKind::SpartanXl {
                                 nnode.add_bel(0, "BUFGLS_NNE".to_string());
                                 nnode.add_bel(1, "BUFGLS_ENE".to_string());
                                 nnode.add_bel(2, "UPDATE".to_string());
                                 nnode.add_bel(3, "OSC".to_string());
                                 nnode.add_bel(4, "TDO".to_string());
-                            } else if grid.kind.is_xl() {
+                            } else if chip.kind.is_xl() {
                                 nnode.add_bel(0, format!("PULLUP_R{r}C{c}.1"));
                                 nnode.add_bel(1, format!("PULLUP_R{r}C{c}.2"));
                                 nnode.add_bel(2, format!("PULLUP_R{r}C{c}.3"));
@@ -331,20 +331,20 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         _ if kind.starts_with("IO.L") => {
-                            let kind = get_tile_kind(grid, col, row);
-                            let kind_s = get_tile_kind(grid, col, row - 1);
+                            let kind = get_tile_kind(chip, col, row);
+                            let kind_s = get_tile_kind(chip, col, row - 1);
                             let mut names = vec![
-                                get_tile_name(grid, col, row),
-                                get_tile_name(grid, col, row - 1),
-                                get_tile_name(grid, col + 1, row),
-                                get_tile_name(grid, col, row + 1),
+                                get_tile_name(chip, col, row),
+                                get_tile_name(chip, col, row - 1),
+                                get_tile_name(chip, col + 1, row),
+                                get_tile_name(chip, col, row + 1),
                             ];
-                            if grid.kind == ChipKind::Xc4000Xv {
+                            if chip.kind == ChipKind::Xc4000Xv {
                                 names.push(format!("LHIR{r}"));
                             }
                             let nnode = ngrid.name_node(nloc, &format!("{kind}.{kind_s}"), names);
-                            let p = (grid.columns - 2) * 4
-                                + (grid.rows - 2) * 2
+                            let p = (chip.columns - 2) * 4
+                                + (chip.rows - 2) * 2
                                 + (row.to_idx() - 1) * 2
                                 + 1;
                             nnode.add_bel(0, format!("PAD{}", p + 1));
@@ -353,30 +353,30 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(3, format!("TBUF_R{r}C{c}.1"));
                             nnode.add_bel(4, format!("PULLUP_R{r}C{c}.2"));
                             nnode.add_bel(5, format!("PULLUP_R{r}C{c}.1"));
-                            if grid.kind != ChipKind::SpartanXl {
+                            if chip.kind != ChipKind::SpartanXl {
                                 nnode.add_bel(6, format!("DEC_R{r}C{c}.1"));
                                 nnode.add_bel(7, format!("DEC_R{r}C{c}.2"));
                                 nnode.add_bel(8, format!("DEC_R{r}C{c}.3"));
                             }
-                            if grid.kind == ChipKind::Xc4000Xv {
+                            if chip.kind == ChipKind::Xc4000Xv {
                                 nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
                                 nnode.tie_rt = NodeRawTileId::from_idx(4);
                             }
                         }
                         _ if kind.starts_with("IO.R") => {
-                            let kind = get_tile_kind(grid, col, row);
-                            let kind_s = get_tile_kind(grid, col, row - 1);
+                            let kind = get_tile_kind(chip, col, row);
+                            let kind_s = get_tile_kind(chip, col, row - 1);
                             let mut names = vec![
-                                get_tile_name(grid, col, row),
-                                get_tile_name(grid, col, row - 1),
-                                get_tile_name(grid, col, row + 1),
+                                get_tile_name(chip, col, row),
+                                get_tile_name(chip, col, row - 1),
+                                get_tile_name(chip, col, row + 1),
                             ];
-                            if grid.kind == ChipKind::Xc4000Xv {
+                            if chip.kind == ChipKind::Xc4000Xv {
                                 names.push(format!("RHIR{r}"));
                             }
                             let nnode = ngrid.name_node(nloc, &format!("{kind}.{kind_s}"), names);
-                            let p = (grid.columns - 2) * 2
-                                + (grid.row_tio().to_idx() - row.to_idx() - 1) * 2
+                            let p = (chip.columns - 2) * 2
+                                + (chip.row_tio().to_idx() - row.to_idx() - 1) * 2
                                 + 1;
                             nnode.add_bel(0, format!("PAD{p}"));
                             nnode.add_bel(1, format!("PAD{}", p + 1));
@@ -384,7 +384,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(3, format!("TBUF_R{r}C{c}.1"));
                             nnode.add_bel(4, format!("PULLUP_R{r}C{c}.2"));
                             nnode.add_bel(5, format!("PULLUP_R{r}C{c}.1"));
-                            if grid.kind != ChipKind::SpartanXl {
+                            if chip.kind != ChipKind::SpartanXl {
                                 nnode.add_bel(6, format!("DEC_R{r}C{c}.1"));
                                 nnode.add_bel(7, format!("DEC_R{r}C{c}.2"));
                                 nnode.add_bel(8, format!("DEC_R{r}C{c}.3"));
@@ -393,26 +393,26 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
                         }
                         _ if kind.starts_with("IO.B") => {
-                            let kind = get_tile_kind(grid, col, row);
-                            let kind_e = get_tile_kind(grid, col + 1, row);
+                            let kind = get_tile_kind(chip, col, row);
+                            let kind_e = get_tile_kind(chip, col + 1, row);
                             let mut names = vec![
-                                get_tile_name(grid, col, row),
-                                get_tile_name(grid, col, row + 1),
-                                get_tile_name(grid, col + 1, row),
-                                get_tile_name(grid, col - 1, row),
+                                get_tile_name(chip, col, row),
+                                get_tile_name(chip, col, row + 1),
+                                get_tile_name(chip, col + 1, row),
+                                get_tile_name(chip, col - 1, row),
                             ];
-                            if grid.kind == ChipKind::Xc4000Xv {
+                            if chip.kind == ChipKind::Xc4000Xv {
                                 names.push(format!("BVIC{c}"));
                             }
                             let nnode = ngrid.name_node(nloc, &format!("{kind}.{kind_e}"), names);
-                            let p = (grid.columns - 2) * 2
-                                + (grid.rows - 2) * 2
-                                + (grid.col_rio().to_idx() - col.to_idx() - 1) * 2
+                            let p = (chip.columns - 2) * 2
+                                + (chip.rows - 2) * 2
+                                + (chip.col_rio().to_idx() - col.to_idx() - 1) * 2
                                 + 1;
 
                             nnode.add_bel(0, format!("PAD{}", p + 1));
                             nnode.add_bel(1, format!("PAD{p}"));
-                            if grid.kind != ChipKind::SpartanXl {
+                            if chip.kind != ChipKind::SpartanXl {
                                 nnode.add_bel(2, format!("DEC_R{r}C{c}.1"));
                                 nnode.add_bel(3, format!("DEC_R{r}C{c}.2"));
                                 nnode.add_bel(4, format!("DEC_R{r}C{c}.3"));
@@ -420,46 +420,46 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
                         }
                         _ if kind.starts_with("IO.T") => {
-                            let kind = get_tile_kind(grid, col, row);
-                            let kind_e = get_tile_kind(grid, col + 1, row);
+                            let kind = get_tile_kind(chip, col, row);
+                            let kind_e = get_tile_kind(chip, col + 1, row);
                             let mut names = vec![
-                                get_tile_name(grid, col, row),
-                                get_tile_name(grid, col + 1, row),
-                                get_tile_name(grid, col - 1, row),
+                                get_tile_name(chip, col, row),
+                                get_tile_name(chip, col + 1, row),
+                                get_tile_name(chip, col - 1, row),
                             ];
-                            if grid.kind == ChipKind::Xc4000Xv {
+                            if chip.kind == ChipKind::Xc4000Xv {
                                 names.push(format!("TVIC{c}"));
                             }
                             let nnode = ngrid.name_node(nloc, &format!("{kind}.{kind_e}"), names);
                             let p = (col.to_idx() - 1) * 2 + 1;
                             nnode.add_bel(0, format!("PAD{p}"));
                             nnode.add_bel(1, format!("PAD{}", p + 1));
-                            if grid.kind != ChipKind::SpartanXl {
+                            if chip.kind != ChipKind::SpartanXl {
                                 nnode.add_bel(2, format!("DEC_R{r}C{c}.1"));
                                 nnode.add_bel(3, format!("DEC_R{r}C{c}.2"));
                                 nnode.add_bel(4, format!("DEC_R{r}C{c}.3"));
                             }
-                            if grid.kind == ChipKind::Xc4000Xv {
+                            if chip.kind == ChipKind::Xc4000Xv {
                                 nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
                                 nnode.tie_rt = NodeRawTileId::from_idx(3);
                             }
                         }
                         _ if kind.starts_with("CLB") => {
                             let mut naming = "CLB".to_string();
-                            if row == grid.row_tio() - 1 {
-                                let kind_n = get_tile_kind(grid, col, row + 1);
+                            if row == chip.row_tio() - 1 {
+                                let kind_n = get_tile_kind(chip, col, row + 1);
                                 write!(naming, ".{kind_n}").unwrap();
                             }
-                            if col == grid.col_rio() - 1 {
-                                let kind_e = get_tile_kind(grid, col + 1, row);
+                            if col == chip.col_rio() - 1 {
+                                let kind_e = get_tile_kind(chip, col + 1, row);
                                 write!(naming, ".{kind_e}").unwrap();
                             }
                             let mut names = vec![
-                                get_tile_name(grid, col, row),
-                                get_tile_name(grid, col, row + 1),
-                                get_tile_name(grid, col + 1, row),
+                                get_tile_name(chip, col, row),
+                                get_tile_name(chip, col, row + 1),
+                                get_tile_name(chip, col + 1, row),
                             ];
-                            if grid.kind == ChipKind::Xc4000Xv {
+                            if chip.kind == ChipKind::Xc4000Xv {
                                 names.extend([
                                     format!("VIR{r}C{c}"),
                                     format!("HIR{r}C{c}"),
@@ -480,7 +480,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             ngrid.name_node(nloc, "LLH.IO.T", ["TM".into()]);
                         }
                         _ if kind.starts_with("LLH.CLB") => {
-                            let naming = if row < grid.row_mid() {
+                            let naming = if row < chip.row_mid() {
                                 "LLH.CLB.B"
                             } else {
                                 "LLH.CLB.T"
@@ -498,9 +498,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
 
                         "LLHQ.IO.B" => {
-                            let lr = if col == grid.col_ql() {
+                            let lr = if col == chip.col_ql() {
                                 'L'
-                            } else if col == grid.col_qr() {
+                            } else if col == chip.col_qr() {
                                 'R'
                             } else {
                                 unreachable!()
@@ -508,9 +508,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             ngrid.name_node(nloc, "LLHQ.IO.B", [format!("BQ{lr}")]);
                         }
                         "LLHQ.IO.T" => {
-                            let lr = if col == grid.col_ql() {
+                            let lr = if col == chip.col_ql() {
                                 'L'
-                            } else if col == grid.col_qr() {
+                            } else if col == chip.col_qr() {
                                 'R'
                             } else {
                                 unreachable!()
@@ -518,22 +518,22 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             ngrid.name_node(nloc, "LLHQ.IO.T", [format!("TQ{lr}")]);
                         }
                         _ if kind.starts_with("LLHQ.CLB") => {
-                            let lr = if col == grid.col_ql() {
+                            let lr = if col == chip.col_ql() {
                                 'L'
-                            } else if col == grid.col_qr() {
+                            } else if col == chip.col_qr() {
                                 'R'
                             } else {
                                 unreachable!()
                             };
-                            let naming = if grid.kind != ChipKind::Xc4000Xv {
+                            let naming = if chip.kind != ChipKind::Xc4000Xv {
                                 "LLHQ.CLB"
-                            } else if row >= grid.row_qb() && row < grid.row_qt() {
+                            } else if row >= chip.row_qb() && row < chip.row_qt() {
                                 "LLHQ.CLB.I"
                             } else {
                                 "LLHQ.CLB.O"
                             };
                             let nnode = ngrid.name_node(nloc, naming, [format!("VQ{lr}R{r}")]);
-                            if grid.kind == ChipKind::Xc4000Xla {
+                            if chip.kind == ChipKind::Xc4000Xla {
                                 nnode.add_bel(0, format!("PULLUP_R{r}C{cc}.4", cc = c - 1));
                                 nnode.add_bel(1, format!("PULLUP_R{r}C{c}.2"));
                                 nnode.add_bel(2, format!("PULLUP_R{r}C{cc}.3", cc = c - 1));
@@ -568,7 +568,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(7, format!("PULLUP_R{r}C{c}.5"));
                         }
                         _ if kind.starts_with("LLHC.CLB") => {
-                            let naming = if row >= grid.row_qb() && row < grid.row_qt() {
+                            let naming = if row >= chip.row_qb() && row < chip.row_qt() {
                                 "LLHC.CLB.I"
                             } else {
                                 "LLHC.CLB.O"
@@ -580,9 +580,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(3, format!("PULLUP_R{r}C{c}.3"));
                         }
                         _ if kind.starts_with("LLVQ.IO.L") => {
-                            let bt = if row == grid.row_qb() {
+                            let bt = if row == chip.row_qb() {
                                 'B'
-                            } else if row == grid.row_qt() {
+                            } else if row == chip.row_qt() {
                                 'T'
                             } else {
                                 unreachable!()
@@ -592,14 +592,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(0, format!("BUFF_{sn}W"));
                         }
                         _ if kind.starts_with("LLVQ.IO.R") => {
-                            let bt = if row == grid.row_qb() {
+                            let bt = if row == chip.row_qb() {
                                 'B'
-                            } else if row == grid.row_qt() {
+                            } else if row == chip.row_qt() {
                                 'T'
                             } else {
                                 unreachable!()
                             };
-                            let naming = if grid.is_buff_large {
+                            let naming = if chip.is_buff_large {
                                 if bt == 'B' {
                                     "LLVQ.IO.R.B"
                                 } else {
@@ -617,9 +617,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(0, format!("BUFF_{sn}E"));
                         }
                         "LLVQ.CLB" => {
-                            let bt = if row == grid.row_qb() {
+                            let bt = if row == chip.row_qb() {
                                 'B'
-                            } else if row == grid.row_qt() {
+                            } else if row == chip.row_qt() {
                                 'T'
                             } else {
                                 unreachable!()
@@ -655,16 +655,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
 
                         "CLKQ" => {
-                            let bt = if row == grid.row_qb() {
+                            let bt = if row == chip.row_qb() {
                                 'B'
-                            } else if row == grid.row_qt() {
+                            } else if row == chip.row_qt() {
                                 'T'
                             } else {
                                 unreachable!()
                             };
-                            let lr = if col == grid.col_ql() {
+                            let lr = if col == chip.col_ql() {
                                 'L'
-                            } else if col == grid.col_qr() {
+                            } else if col == chip.col_qr() {
                                 'R'
                             } else {
                                 unreachable!()
@@ -676,9 +676,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             ngrid.name_node(nloc, "CLKC", ["M".into()]);
                         }
                         "CLKQC" => {
-                            let bt = if row == grid.row_qb() {
+                            let bt = if row == chip.row_qb() {
                                 'B'
-                            } else if row == grid.row_qt() {
+                            } else if row == chip.row_qt() {
                                 'T'
                             } else {
                                 unreachable!()
@@ -692,5 +692,5 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
         }
     }
-    ExpandedNamedDevice { edev, ngrid, grid }
+    ExpandedNamedDevice { edev, ngrid, chip }
 }

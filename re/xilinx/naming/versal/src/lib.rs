@@ -273,13 +273,13 @@ pub fn name_device<'a>(
         },
         |_, node, _| matches!(node, "RCLK_INTF.E" | "RCLK_INTF.E.HALF"),
         |_, _, _, nloc| {
-            let grid = edev.chips[nloc.0];
-            let cd = &grid.columns[nloc.1];
+            let chip = edev.chips[nloc.0];
+            let cd = &chip.columns[nloc.1];
             match cd.l {
                 ColumnKind::Dsp => (0, 0),
                 ColumnKind::Hard => {
-                    let hc = grid.get_col_hard(nloc.1).unwrap();
-                    let reg = grid.row_to_reg(nloc.2);
+                    let hc = chip.get_col_hard(nloc.1).unwrap();
+                    let reg = chip.row_to_reg(nloc.2);
                     if matches!(
                         hc.regs[reg],
                         HardRowKind::DcmacT | HardRowKind::HscT | HardRowKind::IlknT
@@ -293,13 +293,13 @@ pub fn name_device<'a>(
             }
         },
         |_, _, _, nloc| {
-            let grid = edev.chips[nloc.0];
-            let cd = &grid.columns[nloc.1];
+            let chip = edev.chips[nloc.0];
+            let cd = &chip.columns[nloc.1];
             match cd.r {
                 ColumnKind::Dsp => (1, 64),
                 ColumnKind::Hard => {
-                    let hc = grid.get_col_hard(nloc.1 + 1).unwrap();
-                    let reg = grid.row_to_reg(nloc.2);
+                    let hc = chip.get_col_hard(nloc.1 + 1).unwrap();
+                    let reg = chip.row_to_reg(nloc.2);
                     if matches!(
                         hc.regs[reg],
                         HardRowKind::DcmacT | HardRowKind::HscT | HardRowKind::IlknT
@@ -360,8 +360,8 @@ pub fn name_device<'a>(
         |_, node, _| node == "RCLK_DFX.E",
         |_, _, _, _| (1, 1),
         |_, _, _, nloc| {
-            let grid = edev.chips[nloc.0];
-            if grid.columns[nloc.1].r == ColumnKind::Bram(BramKind::MaybeClkBufNoPd) {
+            let chip = edev.chips[nloc.0];
+            if chip.columns[nloc.1].r == ColumnKind::Bram(BramKind::MaybeClkBufNoPd) {
                 (2, 1)
             } else {
                 (1, 1)
@@ -505,10 +505,10 @@ pub fn name_device<'a>(
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
 
     for die in egrid.dies() {
-        let grid = edev.chips[die.die];
+        let chip = edev.chips[die.die];
         for col in die.cols() {
             for row in die.rows() {
-                let reg = grid.row_to_reg(row);
+                let reg = chip.row_to_reg(row);
                 for (layer, node) in &die[(col, row)].nodes {
                     let nloc = (die.die, col, row, layer);
                     let kind = egrid.db.nodes.key(node.kind);
@@ -526,7 +526,7 @@ pub fn name_device<'a>(
                             } else {
                                 'R'
                             };
-                            let vr = if grid.is_vr { "_VR" } else { "" };
+                            let vr = if chip.is_vr { "_VR" } else { "" };
                             ngrid.name_node(
                                 nloc,
                                 "RCLK",
@@ -549,11 +549,11 @@ pub fn name_device<'a>(
                                 _ => unreachable!(),
                             };
                             let bump_cur = col >= edev.col_cfrm[die.die]
-                                && grid.cols_vbrk.contains(&(col + 1));
+                                && chip.cols_vbrk.contains(&(col + 1));
                             let bump_prev = col.to_idx() > 0
-                                && matches!(grid.columns[col - 1].r, ColumnKind::Cle(_))
+                                && matches!(chip.columns[col - 1].r, ColumnKind::Cle(_))
                                 && (col - 1) >= edev.col_cfrm[die.die]
-                                && grid.cols_vbrk.contains(&col);
+                                && chip.cols_vbrk.contains(&col);
                             ngrid.name_node(
                                 nloc,
                                 kind,
@@ -573,11 +573,11 @@ pub fn name_device<'a>(
                             );
                         }
                         "RCLK_CLE" | "RCLK_CLE.HALF" => {
-                            let ColumnKind::Cle(cle_kind) = grid.columns[col].l else {
+                            let ColumnKind::Cle(cle_kind) = chip.columns[col].l else {
                                 unreachable!()
                             };
                             let naming = &if cle_kind == CleKind::Plain {
-                                if grid.is_vr {
+                                if chip.is_vr {
                                     format!("{kind}.VR")
                                 } else {
                                     kind.to_string()
@@ -590,7 +590,7 @@ pub fn name_device<'a>(
                                 naming,
                                 [int_grid.name(
                                     if cle_kind == CleKind::Plain {
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_CLE_VR_CORE"
                                         } else {
                                             "RCLK_CLE_CORE"
@@ -606,7 +606,7 @@ pub fn name_device<'a>(
                                     0,
                                 )],
                             );
-                            let swz = if cle_kind == CleKind::Plain && !grid.is_vr {
+                            let swz = if cle_kind == CleKind::Plain && !chip.is_vr {
                                 BUFDIV_LEAF_SWZ_A
                             } else {
                                 BUFDIV_LEAF_SWZ_B
@@ -615,7 +615,7 @@ pub fn name_device<'a>(
                                 nnode.add_bel(
                                     i,
                                     bufdiv_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "BUFDIV_LEAF_ULVT"
                                         } else {
                                             "BUFDIV_LEAF"
@@ -637,7 +637,7 @@ pub fn name_device<'a>(
                             } else {
                                 "ROCF"
                             };
-                            let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
+                            let bt = if chip.is_reg_top(reg) { 'T' } else { 'B' };
                             let name = int_grid.name(
                                 &match &kind[..] {
                                     "INTF.W" => format!("INTF_{ocf}_{bt}L_TILE"),
@@ -674,7 +674,7 @@ pub fn name_device<'a>(
                             } else {
                                 "ROCF"
                             };
-                            let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
+                            let bt = if chip.is_reg_top(reg) { 'T' } else { 'B' };
                             let name = int_grid.name(
                                 &match &kind[..] {
                                     "INTF.E" => format!("INTF_{ocf}_{bt}R_TILE"),
@@ -769,16 +769,16 @@ pub fn name_device<'a>(
                             };
                             let name = int_grid.name(
                                 if kind.contains("BOT") {
-                                    if matches!(grid.columns[col].l, ColumnKind::Cle(_))
-                                        && grid.columns[col].has_bli_bot_l
+                                    if matches!(chip.columns[col].l, ColumnKind::Cle(_))
+                                        && chip.columns[col].has_bli_bot_l
                                     {
                                         "BLI_CLE_BOT_CORE_1"
                                     } else {
                                         "BLI_CLE_BOT_CORE"
                                     }
                                 } else {
-                                    if matches!(grid.columns[col].l, ColumnKind::Cle(_))
-                                        && grid.columns[col].has_bli_top_l
+                                    if matches!(chip.columns[col].l, ColumnKind::Cle(_))
+                                        && chip.columns[col].has_bli_top_l
                                     {
                                         "BLI_CLE_TOP_CORE_1"
                                     } else {
@@ -807,11 +807,11 @@ pub fn name_device<'a>(
                         }
                         "RCLK_INTF.W" | "RCLK_INTF.W.HALF" => {
                             let srow = if reg.to_idx() % 2 == 1 { row - 1 } else { row };
-                            let (subkind, name, swz, wide) = match grid.columns[col].l {
+                            let (subkind, name, swz, wide) = match chip.columns[col].l {
                                 ColumnKind::Dsp => (
-                                    if grid.is_vr { "DSP.VR" } else { "DSP" },
+                                    if chip.is_vr { "DSP.VR" } else { "DSP" },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_DSP_VR_CORE"
                                         } else {
                                             "RCLK_DSP_CORE"
@@ -823,7 +823,7 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         BUFDIV_LEAF_SWZ_BH
                                     } else {
                                         BUFDIV_LEAF_SWZ_AH
@@ -831,9 +831,9 @@ pub fn name_device<'a>(
                                     true,
                                 ),
                                 ColumnKind::Bram(BramKind::Plain) => (
-                                    if grid.is_vr { "BRAM.VR" } else { "BRAM" },
+                                    if chip.is_vr { "BRAM.VR" } else { "BRAM" },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_BRAM_VR_CORE"
                                         } else {
                                             "RCLK_BRAM_CORE"
@@ -845,7 +845,7 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         BUFDIV_LEAF_SWZ_B
                                     } else {
                                         BUFDIV_LEAF_SWZ_A
@@ -853,9 +853,9 @@ pub fn name_device<'a>(
                                     false,
                                 ),
                                 ColumnKind::Uram => (
-                                    if grid.is_vr { "URAM.VR" } else { "URAM" },
+                                    if chip.is_vr { "URAM.VR" } else { "URAM" },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_URAM_VR_CORE"
                                         } else {
                                             "RCLK_URAM_CORE"
@@ -867,7 +867,7 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         BUFDIV_LEAF_SWZ_B
                                     } else {
                                         BUFDIV_LEAF_SWZ_A
@@ -875,9 +875,9 @@ pub fn name_device<'a>(
                                     false,
                                 ),
                                 ColumnKind::Gt => (
-                                    if grid.is_vr { "GT.VR" } else { "GT" },
+                                    if chip.is_vr { "GT.VR" } else { "GT" },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_INTF_TERM_LEFT_VR_CORE"
                                         } else {
                                             "RCLK_INTF_TERM_LEFT_CORE"
@@ -889,7 +889,7 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         BUFDIV_LEAF_SWZ_B
                                     } else {
                                         BUFDIV_LEAF_SWZ_A
@@ -897,9 +897,9 @@ pub fn name_device<'a>(
                                     false,
                                 ),
                                 ColumnKind::Cfrm => (
-                                    if grid.is_vr { "CFRM.VR" } else { "CFRM" },
+                                    if chip.is_vr { "CFRM.VR" } else { "CFRM" },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_INTF_OPT_VR_CORE"
                                         } else {
                                             "RCLK_INTF_OPT_CORE"
@@ -911,7 +911,7 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         BUFDIV_LEAF_SWZ_B
                                     } else {
                                         BUFDIV_LEAF_SWZ_A
@@ -919,9 +919,9 @@ pub fn name_device<'a>(
                                     false,
                                 ),
                                 ColumnKind::VNoc | ColumnKind::VNoc2 | ColumnKind::VNoc4 => (
-                                    if grid.is_vr { "VNOC.VR" } else { "VNOC" },
+                                    if chip.is_vr { "VNOC.VR" } else { "VNOC" },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_INTF_L_VR_CORE"
                                         } else {
                                             "RCLK_INTF_L_CORE"
@@ -937,13 +937,13 @@ pub fn name_device<'a>(
                                     false,
                                 ),
                                 ColumnKind::Hard => {
-                                    let hc = grid.get_col_hard(col).unwrap();
+                                    let hc = chip.get_col_hard(col).unwrap();
                                     if reg.to_idx() % 2 == 0 {
                                         if hc.regs[reg] == HardRowKind::Hdio {
                                             (
-                                                if grid.is_vr { "HDIO.VR" } else { "HDIO" },
+                                                if chip.is_vr { "HDIO.VR" } else { "HDIO" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HDIO_VR_CORE"
                                                     } else {
                                                         "RCLK_HDIO_CORE"
@@ -955,7 +955,7 @@ pub fn name_device<'a>(
                                                     0,
                                                     0,
                                                 ),
-                                                if grid.is_vr {
+                                                if chip.is_vr {
                                                     BUFDIV_LEAF_SWZ_BH
                                                 } else {
                                                     BUFDIV_LEAF_SWZ_AH
@@ -964,9 +964,9 @@ pub fn name_device<'a>(
                                             )
                                         } else {
                                             (
-                                                if grid.is_vr { "HB.VR" } else { "HB" },
+                                                if chip.is_vr { "HB.VR" } else { "HB" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HB_VR_CORE"
                                                     } else {
                                                         "RCLK_HB_CORE"
@@ -978,7 +978,7 @@ pub fn name_device<'a>(
                                                     0,
                                                     0,
                                                 ),
-                                                if grid.is_vr {
+                                                if chip.is_vr {
                                                     BUFDIV_LEAF_SWZ_BH
                                                 } else {
                                                     BUFDIV_LEAF_SWZ_AH
@@ -989,9 +989,9 @@ pub fn name_device<'a>(
                                     } else {
                                         if hc.regs[reg] == HardRowKind::Hdio {
                                             (
-                                                if grid.is_vr { "HDIO.VR" } else { "HDIO" },
+                                                if chip.is_vr { "HDIO.VR" } else { "HDIO" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HDIO_VR_CORE"
                                                     } else {
                                                         "RCLK_HDIO_CORE"
@@ -1003,7 +1003,7 @@ pub fn name_device<'a>(
                                                     0,
                                                     0,
                                                 ),
-                                                if grid.is_vr {
+                                                if chip.is_vr {
                                                     BUFDIV_LEAF_SWZ_BH
                                                 } else {
                                                     BUFDIV_LEAF_SWZ_AH
@@ -1012,9 +1012,9 @@ pub fn name_device<'a>(
                                             )
                                         } else if hc.regs[reg - 1] == HardRowKind::Hdio {
                                             (
-                                                if grid.is_vr { "HB_HDIO.VR" } else { "HB_HDIO" },
+                                                if chip.is_vr { "HB_HDIO.VR" } else { "HB_HDIO" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HB_HDIO_VR_CORE"
                                                     } else {
                                                         "RCLK_HB_HDIO_CORE"
@@ -1051,9 +1051,9 @@ pub fn name_device<'a>(
                                                 | HardRowKind::IlknT
                                         ) {
                                             (
-                                                if grid.is_vr { "HB_FULL.VR" } else { "HB_FULL" },
+                                                if chip.is_vr { "HB_FULL.VR" } else { "HB_FULL" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HB_FULL_R_VR_CORE"
                                                     } else {
                                                         "RCLK_HB_FULL_R_CORE"
@@ -1070,9 +1070,9 @@ pub fn name_device<'a>(
                                             )
                                         } else {
                                             (
-                                                if grid.is_vr { "HB.VR" } else { "HB" },
+                                                if chip.is_vr { "HB.VR" } else { "HB" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HB_VR_CORE"
                                                     } else {
                                                         "RCLK_HB_CORE"
@@ -1084,7 +1084,7 @@ pub fn name_device<'a>(
                                                     0,
                                                     0,
                                                 ),
-                                                if grid.is_vr {
+                                                if chip.is_vr {
                                                     BUFDIV_LEAF_SWZ_BH
                                                 } else {
                                                     BUFDIV_LEAF_SWZ_AH
@@ -1102,7 +1102,7 @@ pub fn name_device<'a>(
                                     i,
                                     if wide {
                                         bufdiv_grid.name(
-                                            if grid.is_vr {
+                                            if chip.is_vr {
                                                 "BUFDIV_LEAF_ULVT"
                                             } else {
                                                 "BUFDIV_LEAF"
@@ -1116,7 +1116,7 @@ pub fn name_device<'a>(
                                         )
                                     } else {
                                         bufdiv_grid.name(
-                                            if grid.is_vr {
+                                            if chip.is_vr {
                                                 "BUFDIV_LEAF_ULVT"
                                             } else {
                                                 "BUFDIV_LEAF"
@@ -1134,11 +1134,11 @@ pub fn name_device<'a>(
                         }
                         "RCLK_INTF.E" | "RCLK_INTF.E.HALF" => {
                             let srow = if reg.to_idx() % 2 == 1 { row - 1 } else { row };
-                            let (subkind, name, swz) = match grid.columns[col].r {
+                            let (subkind, name, swz) = match chip.columns[col].r {
                                 ColumnKind::Dsp => (
-                                    if grid.is_vr { "DSP.VR" } else { "DSP" },
+                                    if chip.is_vr { "DSP.VR" } else { "DSP" },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_DSP_VR_CORE"
                                         } else {
                                             "RCLK_DSP_CORE"
@@ -1150,16 +1150,16 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         BUFDIV_LEAF_SWZ_B
                                     } else {
                                         BUFDIV_LEAF_SWZ_A
                                     },
                                 ),
                                 ColumnKind::Bram(BramKind::Plain) => (
-                                    if grid.is_vr { "BRAM.VR" } else { "BRAM" },
+                                    if chip.is_vr { "BRAM.VR" } else { "BRAM" },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_BRAM_VR_CORE"
                                         } else {
                                             "RCLK_BRAM_CORE"
@@ -1171,20 +1171,20 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         BUFDIV_LEAF_SWZ_B
                                     } else {
                                         BUFDIV_LEAF_SWZ_A
                                     },
                                 ),
                                 ColumnKind::Bram(BramKind::ClkBuf) => (
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         "BRAM.CLKBUF.VR"
                                     } else {
                                         "BRAM.CLKBUF"
                                     },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_BRAM_CLKBUF_VR_CORE"
                                         } else {
                                             "RCLK_BRAM_CLKBUF_CORE"
@@ -1196,20 +1196,20 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         BUFDIV_LEAF_SWZ_B
                                     } else {
                                         BUFDIV_LEAF_SWZ_A
                                     },
                                 ),
                                 ColumnKind::Bram(BramKind::ClkBufNoPd) => (
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         "BRAM.CLKBUF.NOPD.VR"
                                     } else {
                                         "BRAM.CLKBUF.NOPD"
                                     },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_BRAM_CLKBUF_NOPD_VR_CORE"
                                         } else {
                                             "RCLK_BRAM_CLKBUF_NOPD_CORE"
@@ -1224,24 +1224,24 @@ pub fn name_device<'a>(
                                     BUFDIV_LEAF_SWZ_B,
                                 ),
                                 ColumnKind::Bram(BramKind::MaybeClkBufNoPd) => (
-                                    if row.to_idx() < grid.get_ps_height() {
-                                        if grid.is_vr { "BRAM.VR" } else { "BRAM" }
+                                    if row.to_idx() < chip.get_ps_height() {
+                                        if chip.is_vr { "BRAM.VR" } else { "BRAM" }
                                     } else {
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "BRAM.CLKBUF.NOPD.VR"
                                         } else {
                                             "BRAM.CLKBUF.NOPD"
                                         }
                                     },
                                     int_grid.name(
-                                        if row.to_idx() < grid.get_ps_height() {
-                                            if grid.is_vr {
+                                        if row.to_idx() < chip.get_ps_height() {
+                                            if chip.is_vr {
                                                 "RCLK_BRAM_VR_CORE"
                                             } else {
                                                 "RCLK_BRAM_CORE"
                                             }
                                         } else {
-                                            if grid.is_vr {
+                                            if chip.is_vr {
                                                 "RCLK_BRAM_CLKBUF_NOPD_VR_CORE"
                                             } else {
                                                 "RCLK_BRAM_CLKBUF_NOPD_CORE"
@@ -1254,16 +1254,16 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if grid.is_vr || row.to_idx() >= grid.get_ps_height() {
+                                    if chip.is_vr || row.to_idx() >= chip.get_ps_height() {
                                         BUFDIV_LEAF_SWZ_B
                                     } else {
                                         BUFDIV_LEAF_SWZ_A
                                     },
                                 ),
                                 ColumnKind::Uram => (
-                                    if grid.is_vr { "URAM.VR" } else { "URAM" },
+                                    if chip.is_vr { "URAM.VR" } else { "URAM" },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_URAM_VR_CORE"
                                         } else {
                                             "RCLK_URAM_CORE"
@@ -1275,18 +1275,18 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if grid.is_vr {
+                                    if chip.is_vr {
                                         BUFDIV_LEAF_SWZ_B
                                     } else {
                                         BUFDIV_LEAF_SWZ_A
                                     },
                                 ),
                                 ColumnKind::Gt => {
-                                    if reg.to_idx() == 1 && matches!(grid.right, RightKind::Term2) {
+                                    if reg.to_idx() == 1 && matches!(chip.right, RightKind::Term2) {
                                         (
-                                            if grid.is_vr { "GT.ALT.VR" } else { "GT.ALT" },
+                                            if chip.is_vr { "GT.ALT.VR" } else { "GT.ALT" },
                                             int_grid.name(
-                                                if grid.is_vr {
+                                                if chip.is_vr {
                                                     "RCLK_INTF_TERM2_RIGHT_VR_CORE"
                                                 } else {
                                                     "RCLK_INTF_TERM2_RIGHT_CORE"
@@ -1302,9 +1302,9 @@ pub fn name_device<'a>(
                                         )
                                     } else {
                                         (
-                                            if grid.is_vr { "GT.VR" } else { "GT" },
+                                            if chip.is_vr { "GT.VR" } else { "GT" },
                                             int_grid.name(
-                                                if grid.is_vr {
+                                                if chip.is_vr {
                                                     "RCLK_INTF_TERM_RIGHT_VR_CORE"
                                                 } else {
                                                     "RCLK_INTF_TERM_RIGHT_CORE"
@@ -1316,7 +1316,7 @@ pub fn name_device<'a>(
                                                 0,
                                                 0,
                                             ),
-                                            if grid.is_vr {
+                                            if chip.is_vr {
                                                 BUFDIV_LEAF_SWZ_B
                                             } else {
                                                 BUFDIV_LEAF_SWZ_A
@@ -1325,9 +1325,9 @@ pub fn name_device<'a>(
                                     }
                                 }
                                 ColumnKind::VNoc | ColumnKind::VNoc2 | ColumnKind::VNoc4 => (
-                                    if grid.is_vr { "VNOC.VR" } else { "VNOC" },
+                                    if chip.is_vr { "VNOC.VR" } else { "VNOC" },
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_INTF_R_VR_CORE"
                                         } else {
                                             "RCLK_INTF_R_CORE"
@@ -1342,13 +1342,13 @@ pub fn name_device<'a>(
                                     BUFDIV_LEAF_SWZ_B,
                                 ),
                                 ColumnKind::Hard => {
-                                    let hc = grid.get_col_hard(col + 1).unwrap();
+                                    let hc = chip.get_col_hard(col + 1).unwrap();
                                     if reg.to_idx() % 2 == 0 {
                                         if hc.regs[reg] == HardRowKind::Hdio {
                                             (
-                                                if grid.is_vr { "HDIO.VR" } else { "HDIO" },
+                                                if chip.is_vr { "HDIO.VR" } else { "HDIO" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HDIO_VR_CORE"
                                                     } else {
                                                         "RCLK_HDIO_CORE"
@@ -1360,7 +1360,7 @@ pub fn name_device<'a>(
                                                     0,
                                                     0,
                                                 ),
-                                                if grid.is_vr {
+                                                if chip.is_vr {
                                                     BUFDIV_LEAF_SWZ_B
                                                 } else {
                                                     BUFDIV_LEAF_SWZ_A
@@ -1368,9 +1368,9 @@ pub fn name_device<'a>(
                                             )
                                         } else {
                                             (
-                                                if grid.is_vr { "HB.VR" } else { "HB" },
+                                                if chip.is_vr { "HB.VR" } else { "HB" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HB_VR_CORE"
                                                     } else {
                                                         "RCLK_HB_CORE"
@@ -1382,7 +1382,7 @@ pub fn name_device<'a>(
                                                     0,
                                                     0,
                                                 ),
-                                                if grid.is_vr {
+                                                if chip.is_vr {
                                                     BUFDIV_LEAF_SWZ_B
                                                 } else {
                                                     BUFDIV_LEAF_SWZ_A
@@ -1392,9 +1392,9 @@ pub fn name_device<'a>(
                                     } else {
                                         if hc.regs[reg] == HardRowKind::Hdio {
                                             (
-                                                if grid.is_vr { "HDIO.VR" } else { "HDIO" },
+                                                if chip.is_vr { "HDIO.VR" } else { "HDIO" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HDIO_VR_CORE"
                                                     } else {
                                                         "RCLK_HDIO_CORE"
@@ -1406,7 +1406,7 @@ pub fn name_device<'a>(
                                                     0,
                                                     0,
                                                 ),
-                                                if grid.is_vr {
+                                                if chip.is_vr {
                                                     BUFDIV_LEAF_SWZ_B
                                                 } else {
                                                     BUFDIV_LEAF_SWZ_A
@@ -1414,9 +1414,9 @@ pub fn name_device<'a>(
                                             )
                                         } else if hc.regs[reg - 1] == HardRowKind::Hdio {
                                             (
-                                                if grid.is_vr { "HB_HDIO.VR" } else { "HB_HDIO" },
+                                                if chip.is_vr { "HB_HDIO.VR" } else { "HB_HDIO" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HB_HDIO_VR_CORE"
                                                     } else {
                                                         "RCLK_HB_HDIO_CORE"
@@ -1451,9 +1451,9 @@ pub fn name_device<'a>(
                                                 | HardRowKind::IlknT
                                         ) {
                                             (
-                                                if grid.is_vr { "HB_FULL.VR" } else { "HB_FULL" },
+                                                if chip.is_vr { "HB_FULL.VR" } else { "HB_FULL" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HB_FULL_L_VR_CORE"
                                                     } else {
                                                         "RCLK_HB_FULL_L_CORE"
@@ -1469,9 +1469,9 @@ pub fn name_device<'a>(
                                             )
                                         } else {
                                             (
-                                                if grid.is_vr { "HB.VR" } else { "HB" },
+                                                if chip.is_vr { "HB.VR" } else { "HB" },
                                                 int_grid.name(
-                                                    if grid.is_vr {
+                                                    if chip.is_vr {
                                                         "RCLK_HB_VR_CORE"
                                                     } else {
                                                         "RCLK_HB_CORE"
@@ -1483,7 +1483,7 @@ pub fn name_device<'a>(
                                                     0,
                                                     0,
                                                 ),
-                                                if grid.is_vr {
+                                                if chip.is_vr {
                                                     BUFDIV_LEAF_SWZ_B
                                                 } else {
                                                     BUFDIV_LEAF_SWZ_A
@@ -1499,7 +1499,7 @@ pub fn name_device<'a>(
                                 nnode.add_bel(
                                     i,
                                     bufdiv_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "BUFDIV_LEAF_ULVT"
                                         } else {
                                             "BUFDIV_LEAF"
@@ -1516,11 +1516,11 @@ pub fn name_device<'a>(
                         }
                         "RCLK_DFX.W" => {
                             let srow = if reg.to_idx() % 2 == 1 { row - 1 } else { row };
-                            let (subkind, name) = match grid.columns[col].l {
+                            let (subkind, name) = match chip.columns[col].l {
                                 ColumnKind::Dsp => (
                                     "DSP",
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_DSP_VR_CORE"
                                         } else {
                                             "RCLK_DSP_CORE"
@@ -1536,7 +1536,7 @@ pub fn name_device<'a>(
                                 ColumnKind::Bram(BramKind::Plain) => (
                                     "BRAM",
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_BRAM_VR_CORE"
                                         } else {
                                             "RCLK_BRAM_CORE"
@@ -1552,7 +1552,7 @@ pub fn name_device<'a>(
                                 ColumnKind::Uram => (
                                     "URAM",
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_URAM_VR_CORE"
                                         } else {
                                             "RCLK_URAM_CORE"
@@ -1567,7 +1567,7 @@ pub fn name_device<'a>(
                                 ),
                                 _ => unreachable!(),
                             };
-                            let vr = if grid.is_vr { ".VR" } else { "" };
+                            let vr = if chip.is_vr { ".VR" } else { "" };
                             let nnode =
                                 ngrid.name_node(nloc, &format!("{kind}.{subkind}{vr}"), [name]);
                             nnode.add_bel(
@@ -1577,11 +1577,11 @@ pub fn name_device<'a>(
                         }
                         "RCLK_DFX.E" => {
                             let srow = if reg.to_idx() % 2 == 1 { row - 1 } else { row };
-                            let (subkind, name, dx) = match grid.columns[col].r {
+                            let (subkind, name, dx) = match chip.columns[col].r {
                                 ColumnKind::Bram(BramKind::Plain) => (
                                     "BRAM",
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_BRAM_VR_CORE"
                                         } else {
                                             "RCLK_BRAM_CORE"
@@ -1598,7 +1598,7 @@ pub fn name_device<'a>(
                                 ColumnKind::Bram(BramKind::ClkBuf) => (
                                     "BRAM.CLKBUF",
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_BRAM_CLKBUF_VR_CORE"
                                         } else {
                                             "RCLK_BRAM_CLKBUF_CORE"
@@ -1615,7 +1615,7 @@ pub fn name_device<'a>(
                                 ColumnKind::Bram(BramKind::ClkBufNoPd) => (
                                     "BRAM.CLKBUF.NOPD",
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_BRAM_CLKBUF_NOPD_VR_CORE"
                                         } else {
                                             "RCLK_BRAM_CLKBUF_NOPD_CORE"
@@ -1630,20 +1630,20 @@ pub fn name_device<'a>(
                                     0,
                                 ),
                                 ColumnKind::Bram(BramKind::MaybeClkBufNoPd) => (
-                                    if row.to_idx() < grid.get_ps_height() {
+                                    if row.to_idx() < chip.get_ps_height() {
                                         "BRAM"
                                     } else {
                                         "BRAM.CLKBUF.NOPD"
                                     },
                                     int_grid.name(
-                                        if row.to_idx() < grid.get_ps_height() {
-                                            if grid.is_vr {
+                                        if row.to_idx() < chip.get_ps_height() {
+                                            if chip.is_vr {
                                                 "RCLK_BRAM_VR_CORE"
                                             } else {
                                                 "RCLK_BRAM_CORE"
                                             }
                                         } else {
-                                            if grid.is_vr {
+                                            if chip.is_vr {
                                                 "RCLK_BRAM_CLKBUF_NOPD_VR_CORE"
                                             } else {
                                                 "RCLK_BRAM_CLKBUF_NOPD_CORE"
@@ -1656,7 +1656,7 @@ pub fn name_device<'a>(
                                         0,
                                         0,
                                     ),
-                                    if row.to_idx() < grid.get_ps_height() {
+                                    if row.to_idx() < chip.get_ps_height() {
                                         0
                                     } else {
                                         1
@@ -1665,7 +1665,7 @@ pub fn name_device<'a>(
                                 ColumnKind::Uram => (
                                     "URAM",
                                     int_grid.name(
-                                        if grid.is_vr {
+                                        if chip.is_vr {
                                             "RCLK_URAM_VR_CORE"
                                         } else {
                                             "RCLK_URAM_CORE"
@@ -1681,7 +1681,7 @@ pub fn name_device<'a>(
                                 ),
                                 _ => unreachable!(),
                             };
-                            let vr = if grid.is_vr { ".VR" } else { "" };
+                            let vr = if chip.is_vr { ".VR" } else { "" };
                             let nnode =
                                 ngrid.name_node(nloc, &format!("{kind}.{subkind}{vr}"), [name]);
                             nnode.add_bel(
@@ -1699,13 +1699,13 @@ pub fn name_device<'a>(
                         }
                         "RCLK_HDIO" | "RCLK_HB_HDIO" => {
                             let srow = if reg.to_idx() % 2 == 1 { row - 1 } else { row };
-                            let naming = if grid.is_vr {
+                            let naming = if chip.is_vr {
                                 format!("{kind}.VR")
                             } else {
                                 kind.to_string()
                             };
                             let name = int_grid.name(
-                                &if grid.is_vr {
+                                &if chip.is_vr {
                                     format!("{kind}_VR_CORE")
                                 } else {
                                     format!("{kind}_CORE")
@@ -1720,7 +1720,7 @@ pub fn name_device<'a>(
                             ngrid.name_node(nloc, &naming, [name]);
                         }
                         "CLE_L" | "CLE_L.VR" => {
-                            let tkn = if !grid.is_vr {
+                            let tkn = if !chip.is_vr {
                                 "CLE_E_CORE"
                             } else {
                                 "CLE_E_VR_CORE"
@@ -1746,7 +1746,7 @@ pub fn name_device<'a>(
                             }
                         }
                         "CLE_R" | "CLE_R.VR" => {
-                            let tkn = if !grid.is_vr {
+                            let tkn = if !chip.is_vr {
                                 "CLE_W_CORE"
                             } else {
                                 "CLE_W_VR_CORE"
@@ -1777,7 +1777,7 @@ pub fn name_device<'a>(
                             } else {
                                 "ROCF"
                             };
-                            let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
+                            let bt = if chip.is_reg_top(reg) { 'T' } else { 'B' };
                             let name = int_grid.name(
                                 &format!("DSP_{ocf}_{bt}_TILE"),
                                 die.die,
@@ -1832,7 +1832,7 @@ pub fn name_device<'a>(
                             } else {
                                 "ROCF"
                             };
-                            let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
+                            let bt = if chip.is_reg_top(reg) { 'T' } else { 'B' };
                             let name = int_grid.name(
                                 &format!("BRAM_{ocf}_{bt}{lr}_TILE"),
                                 die.die,
@@ -1886,7 +1886,7 @@ pub fn name_device<'a>(
                             } else {
                                 "ROCF"
                             };
-                            let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
+                            let bt = if chip.is_reg_top(reg) { 'T' } else { 'B' };
                             let name = int_grid.name(
                                 &format!("{kind}_{ocf}_{bt}L_TILE"),
                                 die.die,
@@ -1926,7 +1926,7 @@ pub fn name_device<'a>(
                                 "DFE_CFC_TOP" => ("DFE_CFC", "DFE_CFC_TOP", &dfe_cfc_top_grid),
                                 _ => unreachable!(),
                             };
-                            let bt = if grid.is_reg_top(reg) { "TOP" } else { "BOT" };
+                            let bt = if chip.is_reg_top(reg) { "TOP" } else { "BOT" };
                             let name = int_grid.name(
                                 &format!("{tk}_{bt}_TILE"),
                                 die.die,
@@ -1966,7 +1966,7 @@ pub fn name_device<'a>(
                         }
                         "HDIO" => {
                             let name = int_grid.name(
-                                if grid.is_reg_top(reg) {
+                                if chip.is_reg_top(reg) {
                                     "HDIO_TILE"
                                 } else {
                                     "HDIO_BOT_TILE"
@@ -2396,7 +2396,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(0, vnoc_grid.name_manual("SYSMON_SAT", die.die, sx, sy));
                         }
                         "SYSMON_SAT.LGT" | "SYSMON_SAT.RGT" => {
-                            let bt = if grid.is_reg_top(reg) { "TOP" } else { "BOT" };
+                            let bt = if chip.is_reg_top(reg) { "TOP" } else { "BOT" };
                             let nnode = ngrid.name_node(
                                 nloc,
                                 kind,
@@ -2431,7 +2431,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(0, vnoc_grid.name_manual("DPLL", die.die, sx, sy));
                         }
                         "BFR_B.E" => {
-                            let bt = if grid.is_reg_top(reg) { "TOP" } else { "BOT" };
+                            let bt = if chip.is_reg_top(reg) { "TOP" } else { "BOT" };
                             let nnode = ngrid.name_node(
                                 nloc,
                                 kind,

@@ -1,7 +1,7 @@
 use std::{collections::btree_map, path::PathBuf};
 
 use clap::Parser;
-use prjcombine_re_xilinx_geom::Grid;
+use prjcombine_re_xilinx_geom::Chip;
 use prjcombine_types::tiledb::TileDb;
 
 mod spartan6;
@@ -69,39 +69,39 @@ fn main() {
         .collect();
     let tiledb = merge_tiledb(tiledb);
     if let Some(geom) = geom {
-        let grid = geom.grids.first().unwrap();
-        match grid {
-            Grid::Xc2000(_) => {
+        let chip = geom.chips.first().unwrap();
+        match chip {
+            Chip::Xc2000(_) => {
                 let db = xc2000::finish(xact, Some(geom), tiledb);
                 db.to_file(&args.db).unwrap();
                 std::fs::write(args.json, db.to_json().to_string()).unwrap();
             }
-            Grid::Virtex(_) => {
+            Chip::Virtex(_) => {
                 let db = virtex::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
                 std::fs::write(args.json, db.to_json().to_string()).unwrap();
             }
-            Grid::Virtex2(_) => {
+            Chip::Virtex2(_) => {
                 let db = virtex2::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
                 std::fs::write(args.json, db.to_json().to_string()).unwrap();
             }
-            Grid::Spartan6(_) => {
+            Chip::Spartan6(_) => {
                 let db = spartan6::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
                 std::fs::write(args.json, db.to_json().to_string()).unwrap();
             }
-            Grid::Virtex4(_) => {
+            Chip::Virtex4(_) => {
                 let db = virtex4::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
                 std::fs::write(args.json, db.to_json().to_string()).unwrap();
             }
-            Grid::Ultrascale(_) => {
+            Chip::Ultrascale(_) => {
                 let db = ultrascale::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
                 std::fs::write(args.json, db.to_json().to_string()).unwrap();
             }
-            Grid::Versal(_) => todo!(),
+            Chip::Versal(_) => todo!(),
         }
     } else {
         let db = xc2000::finish(xact, None, tiledb);

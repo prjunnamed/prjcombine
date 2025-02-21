@@ -738,8 +738,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|part| (&part.name[..], part))
         .collect();
     if args.parts.is_empty() {
-        match db.grids.first().unwrap() {
-            prjcombine_re_xilinx_geom::Grid::Virtex(_) => {
+        match db.chips.first().unwrap() {
+            prjcombine_re_xilinx_geom::Chip::Virtex(_) => {
                 run(&tc, &db, parts_dict[&"xcv400"], &mut tiledb, &opts);
                 run(&tc, &db, parts_dict[&"xc2s50e"], &mut tiledb, &opts);
                 run(&tc, &db, parts_dict[&"xc2s50"], &mut tiledb, &opts);
@@ -753,7 +753,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
             }
-            prjcombine_re_xilinx_geom::Grid::Virtex2(grid) => match grid.kind {
+            prjcombine_re_xilinx_geom::Chip::Virtex2(grid) => match grid.kind {
                 prjcombine_virtex2::chip::ChipKind::Virtex2
                 | prjcombine_virtex2::chip::ChipKind::Virtex2P
                 | prjcombine_virtex2::chip::ChipKind::Virtex2PX => {
@@ -824,7 +824,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
             },
-            prjcombine_re_xilinx_geom::Grid::Spartan6(_) => {
+            prjcombine_re_xilinx_geom::Chip::Spartan6(_) => {
                 run(&tc, &db, parts_dict[&"xc6slx75t"], &mut tiledb, &opts);
                 if !args.skip_devdata {
                     let mut xopts = opts;
@@ -835,7 +835,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
             }
-            prjcombine_re_xilinx_geom::Grid::Virtex4(grid) => match grid.kind {
+            prjcombine_re_xilinx_geom::Chip::Virtex4(grid) => match grid.kind {
                 prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                     run(&tc, &db, parts_dict[&"xc4vfx60"], &mut tiledb, &opts);
                     if !opts.skip_io {

@@ -23,7 +23,7 @@ impl<'a> ExpandedNamedDevice<'a> {
 
 struct Namer<'a> {
     edev: &'a ExpandedDevice<'a>,
-    grid: &'a Chip,
+    chip: &'a Chip,
     die: ExpandedDieRef<'a, 'a>,
     ngrid: ExpandedGridNaming<'a>,
     clut: EntityPartVec<ColId, usize>,
@@ -35,7 +35,7 @@ struct Namer<'a> {
 
 impl Namer<'_> {
     fn fill_rlut(&mut self) {
-        let n = self.grid.rows;
+        let n = self.chip.rows;
         for row in self.die.rows() {
             self.rlut.push(n - row.to_idx() - 1);
         }
@@ -46,7 +46,7 @@ impl Namer<'_> {
         let mut bramc = 0;
         let mut brambelc = 0;
         for col in self.die.cols() {
-            if self.grid.cols_bram.contains(&col) {
+            if self.chip.cols_bram.contains(&col) {
                 self.bramclut.insert(col, bramc);
                 bramc += 1;
                 if !self.edev.disabled.contains(&DisabledPart::Bram(col)) {
@@ -62,10 +62,10 @@ impl Namer<'_> {
 
     fn fill_clkclut(&mut self) {
         let mut cc = 1;
-        for &(col_m, _, _) in &self.grid.cols_clkv {
-            if col_m != self.grid.col_lio() + 1
-                && col_m != self.grid.col_rio() - 1
-                && col_m != self.grid.col_clk()
+        for &(col_m, _, _) in &self.chip.cols_clkv {
+            if col_m != self.chip.col_lio() + 1
+                && col_m != self.chip.col_rio() - 1
+                && col_m != self.chip.col_clk()
             {
                 self.clkclut.insert(col_m, cc);
                 cc += 1;
@@ -77,11 +77,11 @@ impl Namer<'_> {
         let mut ctr_pad = 1;
         let mut ctr_empty = 1;
         for col in self.die.cols() {
-            let row = self.grid.row_tio();
-            if self.grid.cols_bram.contains(&col) {
+            let row = self.chip.row_tio();
+            if self.chip.cols_bram.contains(&col) {
                 continue;
             }
-            if col == self.grid.col_lio() || col == self.grid.col_rio() {
+            if col == self.chip.col_lio() || col == self.chip.col_rio() {
                 continue;
             }
             let nnode = self
@@ -99,8 +99,8 @@ impl Namer<'_> {
             ctr_empty += 1;
         }
         for row in self.die.rows().rev() {
-            let col = self.grid.col_rio();
-            if row == self.grid.row_bio() || row == self.grid.row_tio() {
+            let col = self.chip.col_rio();
+            if row == self.chip.row_bio() || row == self.chip.row_tio() {
                 continue;
             }
             let nnode = self
@@ -118,11 +118,11 @@ impl Namer<'_> {
             ctr_pad += 1;
         }
         for col in self.die.cols().rev() {
-            let row = self.grid.row_bio();
-            if self.grid.cols_bram.contains(&col) {
+            let row = self.chip.row_bio();
+            if self.chip.cols_bram.contains(&col) {
                 continue;
             }
-            if col == self.grid.col_lio() || col == self.grid.col_rio() {
+            if col == self.chip.col_lio() || col == self.chip.col_rio() {
                 continue;
             }
             let nnode = self
@@ -140,8 +140,8 @@ impl Namer<'_> {
             ctr_empty += 1;
         }
         for row in self.die.rows() {
-            let col = self.grid.col_lio();
-            if row == self.grid.row_bio() || row == self.grid.row_tio() {
+            let col = self.chip.col_lio();
+            if row == self.chip.row_bio() || row == self.chip.row_tio() {
                 continue;
             }
             let nnode = self
@@ -163,10 +163,10 @@ impl Namer<'_> {
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let egrid = &edev.egrid;
-    let grid = edev.chip;
+    let chip = edev.chip;
     let mut namer = Namer {
         edev,
-        grid,
+        chip,
         die: egrid.die(DieId::from_idx(0)),
         ngrid: ExpandedGridNaming::new(ndb, egrid),
         clut: EntityPartVec::new(),
@@ -179,7 +179,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     namer.fill_clut();
     namer.fill_clkclut();
     namer.fill_rlut();
-    let bram_mid = grid.cols_bram.len() / 2;
+    let bram_mid = chip.cols_bram.len() / 2;
 
     for die in egrid.dies() {
         for col in die.cols() {
@@ -240,8 +240,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "BRAM_BOT" => {
-                            let name = if grid.kind == ChipKind::Virtex {
-                                if col == grid.col_lio() + 1 {
+                            let name = if chip.kind == ChipKind::Virtex {
+                                if col == chip.col_lio() + 1 {
                                     "LBRAM_BOT".to_string()
                                 } else {
                                     "RBRAM_BOT".to_string()
@@ -253,8 +253,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let c = namer.bramclut[col];
                             let naming = if c + 2 == bram_mid
                                 || c == bram_mid + 1
-                                || col == grid.col_lio() + 1
-                                || col == grid.col_rio() - 1
+                                || col == chip.col_lio() + 1
+                                || col == chip.col_rio() - 1
                             {
                                 "BRAM_BOT.BOT"
                             } else {
@@ -263,8 +263,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             namer.ngrid.name_node(nloc, naming, [name]);
                         }
                         "BRAM_TOP" => {
-                            let name = if grid.kind == ChipKind::Virtex {
-                                if col == grid.col_lio() + 1 {
+                            let name = if chip.kind == ChipKind::Virtex {
+                                if col == chip.col_lio() + 1 {
                                     "LBRAM_TOP".to_string()
                                 } else {
                                     "RBRAM_TOP".to_string()
@@ -276,8 +276,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let c = namer.bramclut[col];
                             let naming = if c + 2 == bram_mid
                                 || c == bram_mid + 1
-                                || col == grid.col_lio() + 1
-                                || col == grid.col_rio() - 1
+                                || col == chip.col_lio() + 1
+                                || col == chip.col_rio() - 1
                             {
                                 "BRAM_TOP.TOP"
                             } else {
@@ -288,20 +288,20 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         "LBRAM" | "RBRAM" | "MBRAM" => {
                             let r = namer.rlut[row];
                             let c = namer.bramclut[col];
-                            let mut names = vec![if grid.kind == ChipKind::Virtex {
+                            let mut names = vec![if chip.kind == ChipKind::Virtex {
                                 format!("{kind}R{r}")
                             } else {
                                 format!("BRAMR{r}C{c}")
                             }];
                             if r >= 5 {
                                 let pr = r - 4;
-                                if grid.kind == ChipKind::Virtex {
+                                if chip.kind == ChipKind::Virtex {
                                     names.push(format!("{kind}R{pr}"));
                                 } else {
                                     names.push(format!("BRAMR{pr}C{c}"));
                                 }
                             };
-                            let br = (grid.rows - 1 - row.to_idx() - 4) / 4;
+                            let br = (chip.rows - 1 - row.to_idx() - 4) / 4;
                             let bc = namer.brambelclut[col];
                             let nnode = namer.ngrid.name_node(nloc, kind, names);
                             nnode.add_bel(0, format!("RAMB4_R{br}C{bc}"));
@@ -321,7 +321,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(3, "GCLKBUF3".to_string());
                         }
                         "DLL.BOT" => {
-                            let (naming, name, bname) = if col < grid.col_clk() {
+                            let (naming, name, bname) = if col < chip.col_clk() {
                                 ("DLL.BL", "LBRAM_BOT", "DLL1")
                             } else {
                                 ("DLL.BR", "RBRAM_BOT", "DLL0")
@@ -333,7 +333,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(0, bname.to_string());
                         }
                         "DLL.TOP" => {
-                            let (naming, name, bname) = if col < grid.col_clk() {
+                            let (naming, name, bname) = if col < chip.col_clk() {
                                 ("DLL.TL", "LBRAM_TOP", "DLL3")
                             } else {
                                 ("DLL.TR", "RBRAM_TOP", "DLL2")
@@ -352,13 +352,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 sp
                             };
-                            let bt = if row == grid.row_bio() { 'B' } else { 'T' };
-                            let name = if row == grid.row_bio() {
+                            let bt = if row == chip.row_bio() { 'B' } else { 'T' };
+                            let name = if row == chip.row_bio() {
                                 format!("BRAM_BOTC{c}")
                             } else {
                                 format!("BRAM_TOPC{c}")
                             };
-                            let lr = if col < grid.col_clk() { 'L' } else { 'R' };
+                            let lr = if col < chip.col_clk() { 'L' } else { 'R' };
                             let dll = match (lr, bt) {
                                 ('R', 'B') => 0,
                                 ('L', 'B') => 1,
@@ -366,7 +366,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 ('L', 'T') => 3,
                                 _ => unreachable!(),
                             };
-                            let naming = if grid.cols_bram.len() == 4 && sp == "S" {
+                            let naming = if chip.cols_bram.len() == 4 && sp == "S" {
                                 format!("DLL{sp}.{bt}{lr}.GCLK")
                             } else {
                                 format!("DLL{sp}.{bt}{lr}")
@@ -386,8 +386,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(0, "RPCILOGIC".to_string());
                         }
                         "CLKV_BRAM_BOT" => {
-                            let name = if grid.kind == ChipKind::Virtex {
-                                let lr = if col < grid.col_clk() { 'L' } else { 'R' };
+                            let name = if chip.kind == ChipKind::Virtex {
+                                let lr = if col < chip.col_clk() { 'L' } else { 'R' };
                                 format!("{lr}BRAM_BOT")
                             } else {
                                 let c = namer.bramclut[col];
@@ -396,8 +396,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             namer.ngrid.name_node(nloc, "CLKV_BRAM_BOT", [name]);
                         }
                         "CLKV_BRAM_TOP" => {
-                            let name = if grid.kind == ChipKind::Virtex {
-                                let lr = if col < grid.col_clk() { 'L' } else { 'R' };
+                            let name = if chip.kind == ChipKind::Virtex {
+                                let lr = if col < chip.col_clk() { 'L' } else { 'R' };
                                 format!("{lr}BRAM_TOP")
                             } else {
                                 let c = namer.bramclut[col];
@@ -406,15 +406,15 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             namer.ngrid.name_node(nloc, "CLKV_BRAM_TOP", [name]);
                         }
                         "CLKV.NULL" => {
-                            let (name, naming) = if col == grid.col_clk() {
-                                if row == grid.row_bio() {
+                            let (name, naming) = if col == chip.col_clk() {
+                                if row == chip.row_bio() {
                                     ("BM".to_string(), "CLKV.CLKB")
                                 } else {
                                     ("TM".to_string(), "CLKV.CLKT")
                                 }
                             } else {
                                 let c = namer.clkclut[col];
-                                if row == grid.row_bio() {
+                                if row == chip.row_bio() {
                                     (format!("GCLKBC{c}"), "CLKV.GCLKB")
                                 } else {
                                     (format!("GCLKTC{c}"), "CLKV.GCLKT")
@@ -436,8 +436,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 .name_node(nloc, "CLKV.GCLKV", [format!("GCLKVR{r}C{c}")]);
                         }
                         "BRAM_CLKH" => {
-                            let name = if grid.kind == ChipKind::Virtex {
-                                if col == grid.col_lio() + 1 {
+                            let name = if chip.kind == ChipKind::Virtex {
+                                if col == chip.col_lio() + 1 {
                                     "LBRAMM".to_string()
                                 } else {
                                     "RBRAMM".to_string()
@@ -468,6 +468,6 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     ExpandedNamedDevice {
         edev,
         ngrid: namer.ngrid,
-        grid,
+        grid: chip,
     }
 }

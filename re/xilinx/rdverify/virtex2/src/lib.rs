@@ -14,7 +14,7 @@ fn get_bel_iob<'a>(
     vrf: &Verifier<'a>,
     crd: EdgeIoCoord,
 ) -> BelContext<'a> {
-    let (col, row, bel) = endev.grid.get_io_loc(crd);
+    let (col, row, bel) = endev.chip.get_io_loc(crd);
     vrf.find_bel(
         DieId::from_idx(0),
         (col, row),
@@ -41,7 +41,7 @@ fn verify_rll(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if endev.grid.kind == ChipKind::Virtex2PX {
+    if endev.chip.kind == ChipKind::Virtex2PX {
         vrf.verify_bel(
             bel,
             "GT10",
@@ -59,7 +59,7 @@ fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelConte
             vrf.claim_node(&[bel.fwire(pin)]);
             vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
             let obel = vrf
-                .find_bel(bel.die, (endev.grid.col_clk - 1, bel.row), oname)
+                .find_bel(bel.die, (endev.chip.col_clk - 1, bel.row), oname)
                 .unwrap();
             vrf.verify_node(&[bel.fwire_far(pin), obel.fwire_far("I")]);
         }
@@ -80,7 +80,7 @@ fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelConte
             &[],
         );
         let obel = vrf
-            .find_bel(bel.die, (endev.grid.col_clk, bel.row), "BREFCLK")
+            .find_bel(bel.die, (endev.chip.col_clk, bel.row), "BREFCLK")
             .unwrap();
         for pin in ["BREFCLK", "BREFCLK2"] {
             vrf.claim_node(&[bel.fwire(pin)]);
@@ -103,7 +103,7 @@ fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelConte
 }
 
 fn verify_mult(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if matches!(endev.grid.kind, ChipKind::Spartan3E | ChipKind::Spartan3A) {
+    if matches!(endev.chip.kind, ChipKind::Spartan3E | ChipKind::Spartan3A) {
         let carry: Vec<_> = (0..18)
             .map(|x| (format!("BCOUT{x}"), format!("BCIN{x}")))
             .collect();
@@ -123,7 +123,7 @@ fn verify_mult(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCon
                 vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
             }
         }
-        if endev.grid.kind == ChipKind::Spartan3A {
+        if endev.chip.kind == ChipKind::Spartan3A {
             let obel = vrf.find_bel_sibling(bel, "BRAM");
             for ab in ['A', 'B'] {
                 for i in 0..16 {
@@ -175,7 +175,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
     match bel.key {
         "RLL" => verify_rll(vrf, bel),
         _ if bel.key.starts_with("SLICE") => {
-            if endev.grid.kind.is_virtex2() {
+            if endev.chip.kind.is_virtex2() {
                 clb::verify_slice_v2(endev, vrf, bel);
             } else {
                 clb::verify_slice_s3(vrf, bel);
@@ -192,7 +192,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
         "RANDOR_OUT" => (),
 
         "BRAM" => {
-            let kind = match endev.grid.kind {
+            let kind = match endev.chip.kind {
                 ChipKind::Spartan3A => "RAMB16BWE",
                 ChipKind::Spartan3ADsp => "RAMB16BWER",
                 _ => "RAMB16",
@@ -228,7 +228,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
         _ if bel.key.starts_with("GCLKH") => clk::verify_gclkh(endev, vrf, bel),
         "GCLKC" => clk::verify_gclkc(endev, vrf, bel),
         "CLKC" => {
-            if endev.grid.kind.is_virtex2() {
+            if endev.chip.kind.is_virtex2() {
                 clk::verify_clkc_v2(endev, vrf, bel);
             } else {
                 clk::verify_clkc_s3(endev, vrf, bel);
@@ -256,7 +256,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
         }
         "DCM" => {
             vrf.verify_bel(bel, bel.key, &[], &[]);
-            if endev.grid.kind.is_virtex2p() {
+            if endev.chip.kind.is_virtex2p() {
                 // just some detritus.
                 vrf.claim_node(&[(bel.crd(), "BRAM_IOIS_DATA29")]);
                 vrf.claim_pip(bel.crd(), "BRAM_IOIS_DATA29", "BRAM_IOIS_VCC_WIRE");
@@ -264,7 +264,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
         }
         "ICAP" => {
             vrf.verify_bel(bel, bel.key, &[], &[]);
-            if endev.grid.kind == ChipKind::Spartan3E {
+            if endev.chip.kind == ChipKind::Spartan3E {
                 // eh.
                 vrf.claim_node(&[bel.fwire("I2")]);
             }
@@ -297,7 +297,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
 }
 
 fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
-    if endev.grid.kind.is_spartan3ea() {
+    if endev.chip.kind.is_spartan3ea() {
         vrf.kill_stub_out("IOIS_STUB_F1_B3");
         vrf.kill_stub_out("IOIS_STUB_F2_B3");
         vrf.kill_stub_out("IOIS_STUB_F3_B3");

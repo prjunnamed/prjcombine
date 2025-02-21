@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use prjcombine_re_xilinx_geom::{Bond, Grid};
+use prjcombine_re_xilinx_geom::{Bond, Chip};
 use prjcombine_re_xilinx_naming_virtex2::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_virtex2::chip::ChipKind;
@@ -35,7 +35,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     };
     make_device(
         rd,
-        Grid::Virtex2(grid),
+        Chip::Virtex2(grid),
         bonds,
         BTreeSet::new(),
         intdb_name,

@@ -26,15 +26,15 @@ fn make_int_tie_grid(
         }
     }
     let mut tiexlut = EntityPartVec::new();
-    let pgrid = edev.chips[edev.interposer.unwrap().primary];
+    let pchip = edev.chips[edev.interposer.unwrap().primary];
     let mut tiex = 0;
     for col in int_grid.xlut.ids() {
-        if pgrid.columns[col] == ColumnKind::Dsp && col.to_idx() % 2 == 0 {
+        if pchip.columns[col] == ColumnKind::Dsp && col.to_idx() % 2 == 0 {
             tiex += 1;
         }
         tiexlut.insert(col, tiex);
         tiex += 1;
-        if pgrid.columns[col] == ColumnKind::Dsp && col.to_idx() % 2 == 1 {
+        if pchip.columns[col] == ColumnKind::Dsp && col.to_idx() % 2 == 1 {
             tiex += 1;
         }
     }
@@ -43,14 +43,14 @@ fn make_int_tie_grid(
 }
 
 fn make_raw_grid(edev: &ExpandedDevice) -> BelMultiGrid {
-    let pgrid = edev.chips[edev.interposer.unwrap().primary];
+    let pchip = edev.chips[edev.interposer.unwrap().primary];
     let mut xlut = EntityPartVec::new();
     let mut rx = 0;
-    for (col, &kind) in &pgrid.columns {
-        if pgrid.has_ps && pgrid.regs == 2 && col.to_idx() < 6 {
+    for (col, &kind) in &pchip.columns {
+        if pchip.has_ps && pchip.regs == 2 && col.to_idx() < 6 {
             continue;
         }
-        if pgrid.cols_vbrk.contains(&col) && rx != 0 {
+        if pchip.cols_vbrk.contains(&col) && rx != 0 {
             rx += 1;
         }
         if kind == ColumnKind::Bram && col.to_idx() == 0 {
@@ -61,8 +61,8 @@ fn make_raw_grid(edev: &ExpandedDevice) -> BelMultiGrid {
             ColumnKind::ClbLL | ColumnKind::ClbLM => rx += 2,
             ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Clk | ColumnKind::Cfg => rx += 3,
             ColumnKind::Io => {
-                if col == pgrid.columns.first_id().unwrap()
-                    || col == pgrid.columns.last_id().unwrap()
+                if col == pchip.columns.first_id().unwrap()
+                    || col == pchip.columns.last_id().unwrap()
                 {
                     rx += 5;
                 } else {
@@ -93,14 +93,14 @@ fn make_raw_grid(edev: &ExpandedDevice) -> BelMultiGrid {
 }
 
 fn make_ipad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
-    let pgrid = edev.chips[edev.interposer.unwrap().primary];
+    let pchip = edev.chips[edev.interposer.unwrap().primary];
     let mut is_7k70t = false;
     if let Some(rgt) = edev.col_rgt {
-        let gtcol = pgrid.get_col_gt(rgt).unwrap();
-        if rgt == pgrid.columns.last_id().unwrap() - 6
+        let gtcol = pchip.get_col_gt(rgt).unwrap();
+        if rgt == pchip.columns.last_id().unwrap() - 6
             && gtcol.regs.values().any(|&y| y == Some(GtKind::Gtx))
-            && pgrid.regs == 4
-            && !pgrid.has_ps
+            && pchip.regs == 4
+            && !pchip.has_ps
         {
             is_7k70t = true;
         }
@@ -108,14 +108,14 @@ fn make_ipad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
 
     let mut xlut = EntityPartVec::new();
     let mut ipx = 0;
-    for (col, &kind) in &pgrid.columns {
-        for gtcol in pgrid.cols_gt.iter() {
+    for (col, &kind) in &pchip.columns {
+        for gtcol in pchip.cols_gt.iter() {
             if gtcol.col == col {
                 xlut.insert(col, ipx);
                 ipx += 1;
             }
         }
-        if kind == ColumnKind::Cfg && pgrid.regs > 1 {
+        if kind == ColumnKind::Cfg && pchip.regs > 1 {
             xlut.insert(col, ipx);
             if !is_7k70t {
                 ipx += 1;
@@ -135,12 +135,12 @@ fn make_ipad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
         ipy += 6;
     }
     for (die, dylut) in &mut ylut {
-        let grid = edev.chips[die];
+        let chip = edev.chips[die];
         for row in edev.egrid.die[die].rows() {
             if matches!(row.to_idx() % 50, 0 | 11 | 22 | 28 | 39) {
-                let reg = grid.row_to_reg(row);
+                let reg = chip.row_to_reg(row);
                 let mut has_gt = false;
-                for gtcol in grid.cols_gt.iter() {
+                for gtcol in chip.cols_gt.iter() {
                     if gtcol.regs[reg].is_some() {
                         has_gt = true;
                     }
@@ -150,13 +150,13 @@ fn make_ipad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
                     ipy += 6;
                 }
             }
-            if !is_7k70t && row == grid.row_reg_hclk(grid.reg_cfg) {
+            if !is_7k70t && row == chip.row_reg_hclk(chip.reg_cfg) {
                 dylut.insert(row, ipy);
                 ipy += 6;
             }
         }
         if is_7k70t {
-            dylut.insert(grid.row_reg_hclk(grid.reg_cfg), ipy + 6);
+            dylut.insert(chip.row_reg_hclk(chip.reg_cfg), ipy + 6);
         }
     }
 
@@ -164,12 +164,12 @@ fn make_ipad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
 }
 
 fn make_opad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
-    let pgrid = edev.chips[edev.interposer.unwrap().primary];
+    let pchip = edev.chips[edev.interposer.unwrap().primary];
 
     let mut xlut = EntityPartVec::new();
     let mut opx = 0;
-    for (col, &kind) in &pgrid.columns {
-        for gtcol in pgrid.cols_gt.iter() {
+    for (col, &kind) in &pchip.columns {
+        for gtcol in pchip.cols_gt.iter() {
             if gtcol.col == col {
                 xlut.insert(col, opx);
                 opx += 1;
@@ -189,12 +189,12 @@ fn make_opad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
         opy += 2;
     }
     for (die, dylut) in &mut ylut {
-        let grid = edev.chips[die];
+        let chip = edev.chips[die];
         for row in edev.egrid.die[die].rows() {
-            let reg = grid.row_to_reg(row);
+            let reg = chip.row_to_reg(row);
             if matches!(row.to_idx() % 50, 0 | 11 | 28 | 39) {
                 let mut has_gt = false;
-                for gtcol in grid.cols_gt.iter() {
+                for gtcol in chip.cols_gt.iter() {
                     if gtcol.regs[reg].is_some() {
                         has_gt = true;
                     }
@@ -250,8 +250,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     });
     let mut pmviob_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "CFG" | "CLK_PMVIOB"));
     for (die, ylut) in &mut pmviob_grid.ylut {
-        let grid = edev.chips[die];
-        if grid.reg_cfg == grid.reg_clk {
+        let chip = edev.chips[die];
+        if chip.reg_cfg == chip.reg_clk {
             for val in ylut.values_mut() {
                 *val ^= 1;
             }
@@ -334,7 +334,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         });
     }
     for die in egrid.dies() {
-        let grid = edev.chips[die.die];
+        let chip = edev.chips[die.die];
         let has_slr_d = die.die != edev.chips.first_id().unwrap();
         let has_slr_u = die.die != edev.chips.last_id().unwrap();
         let has_gtz_d =
@@ -343,7 +343,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             die.die == edev.chips.last_id().unwrap() && edev.interposer.unwrap().gtz_top;
         for col in die.cols() {
             for row in die.rows() {
-                let reg = grid.row_to_reg(row);
+                let reg = chip.row_to_reg(row);
                 for (layer, node) in &die[(col, row)].nodes {
                     let nloc = (die.die, col, row, layer);
                     let kind = egrid.db.nodes.key(node.kind);
@@ -361,7 +361,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let tie_y = tie_grid.ylut[die.die][row];
                             nnode.tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
                         }
-                        "INTF" => match grid.columns[col] {
+                        "INTF" => match chip.columns[col] {
                             ColumnKind::ClbLL => {
                                 ngrid.name_node(
                                     nloc,
@@ -396,7 +396,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                         }
                         "INTF.DELAY" => 'intf: {
-                            for gtcol in &grid.cols_gt {
+                            for gtcol in &chip.cols_gt {
                                 if gtcol.col != col {
                                     continue;
                                 }
@@ -438,7 +438,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     break 'intf;
                                 }
                             }
-                            for pcie2 in &grid.holes_pcie2 {
+                            for pcie2 in &chip.holes_pcie2 {
                                 if row < pcie2.row || row > pcie2.row + 25 {
                                     continue;
                                 }
@@ -469,7 +469,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     break 'intf;
                                 }
                             }
-                            for &(pcol, prow) in &grid.holes_pcie3 {
+                            for &(pcol, prow) in &chip.holes_pcie3 {
                                 if row < prow || row > prow + 50 {
                                     continue;
                                 }
@@ -493,7 +493,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "HCLK" => {
                             let mut suf = "";
-                            if grid.has_slr && !(col >= edev.col_cfg - 6 && col < edev.col_cfg) {
+                            if chip.has_slr && !(col >= edev.col_cfg - 6 && col < edev.col_cfg) {
                                 if row.to_idx() < 50 {
                                     if has_slr_d {
                                         suf = "_SLV";
@@ -502,7 +502,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                         suf = "_SLV";
                                     }
                                 }
-                                if row.to_idx() >= grid.regs * 50 - 50 {
+                                if row.to_idx() >= chip.regs * 50 - 50 {
                                     if has_slr_u {
                                         suf = "_SLV";
                                     }
@@ -657,8 +657,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IO_HP_BOT" | "IO_HP_TOP" | "IO_HP_PAIR" | "IO_HR_BOT" | "IO_HR_TOP"
                         | "IO_HR_PAIR" => {
-                            let is_term = col == grid.columns.first_id().unwrap()
-                                || col == grid.columns.last_id().unwrap();
+                            let is_term = col == chip.columns.first_id().unwrap()
+                                || col == chip.columns.last_id().unwrap();
                             let is_l = col < edev.col_clk;
                             let is_single = !kind.ends_with("_PAIR");
                             let is_hp = kind.starts_with("IO_HP");
@@ -745,8 +745,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "HCLK_IOI_HP" | "HCLK_IOI_HR" => {
-                            let is_term = col == grid.columns.first_id().unwrap()
-                                || col == grid.columns.last_id().unwrap();
+                            let is_term = col == chip.columns.first_id().unwrap()
+                                || col == chip.columns.last_id().unwrap();
                             let is_l = col < edev.col_clk;
                             let is_hp = kind == "HCLK_IOI_HP";
                             let tk = if is_hp {
@@ -951,7 +951,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         "CLK_HROW" => {
                             let ctb_y = tie_grid.ylut[die.die][row] / 50 * 48;
                             let bufh_y = tie_grid.ylut[die.die][row] / 50 * 12;
-                            let naming = if reg < grid.reg_clk {
+                            let naming = if reg < chip.reg_clk {
                                 "CLK_HROW_BOT_R"
                             } else {
                                 "CLK_HROW_TOP_R"
@@ -982,7 +982,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(57, format!("GCLK_TEST_BUF_X3Y{y}", y = ctb_y + 16));
                         }
                         "CLK_BUFG" => {
-                            let naming = if reg < grid.reg_clk {
+                            let naming = if reg < chip.reg_clk {
                                 "CLK_BUFG_BOT_R"
                             } else {
                                 "CLK_BUFG_TOP_R"
@@ -1105,7 +1105,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(14, format!("EFUSE_USR_X0Y{di}"));
                         }
                         "XADC" => {
-                            let io_loc = grid.get_xadc_io_loc();
+                            let io_loc = chip.get_xadc_io_loc();
                             let naming = match io_loc {
                                 XadcIoLoc::Right => "XADC.R",
                                 XadcIoLoc::Left => "XADC.L",
@@ -1194,7 +1194,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "GTP_CHANNEL" | "GTP_CHANNEL_MID" | "GTX_CHANNEL" | "GTH_CHANNEL" => {
-                            let gtcol = grid.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
+                            let gtcol = chip.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
                             let idx = match row.to_idx() % 50 {
                                 0 => 0,
                                 11 => 1,
@@ -1246,7 +1246,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(4, format!("OPAD_X{opx}Y{opy}"));
                         }
                         "GTP_COMMON" | "GTP_COMMON_MID" | "GTX_COMMON" | "GTH_COMMON" => {
-                            let gtcol = grid.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
+                            let gtcol = chip.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
                             let gkind = match gtcol.regs[reg].unwrap() {
                                 GtKind::Gtp => "GTP",
                                 GtKind::Gtx => "GTX",
@@ -1291,7 +1291,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(6, format!("IPAD_X{ipx}Y{y}", y = ipy - 1));
                         }
                         "BRKH_GTX" => {
-                            let gtcol = grid.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
+                            let gtcol = chip.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
                             ngrid.name_node(
                                 nloc,
                                 kind,

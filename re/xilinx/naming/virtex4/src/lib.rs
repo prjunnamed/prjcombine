@@ -80,11 +80,11 @@ impl ExpandedNamedDevice<'_> {
 
     pub fn get_sysmons(&self) -> Vec<SysMon<'_>> {
         let mut res = vec![];
-        for (die, grid) in &self.edev.chips {
+        for (die, chip) in &self.edev.chips {
             match self.edev.kind {
                 ChipKind::Virtex4 => {
                     let mut idx = 0;
-                    for &(row, kind) in &grid.rows_cfg {
+                    for &(row, kind) in &chip.rows_cfg {
                         let col = self.edev.col_cfg;
                         if kind != CfgRowKind::Sysmon {
                             continue;
@@ -105,7 +105,7 @@ impl ExpandedNamedDevice<'_> {
                 }
                 ChipKind::Virtex5 => {
                     let col = self.edev.col_cfg;
-                    let row = grid.row_reg_hclk(grid.reg_cfg - 1);
+                    let row = chip.row_reg_hclk(chip.reg_cfg - 1);
                     res.push(SysMon {
                         die,
                         col,
@@ -120,7 +120,7 @@ impl ExpandedNamedDevice<'_> {
                 }
                 ChipKind::Virtex6 => {
                     let col = self.edev.col_cfg;
-                    let row = grid.row_reg_bot(grid.reg_cfg);
+                    let row = chip.row_reg_bot(chip.reg_cfg);
                     res.push(SysMon {
                         die,
                         col,
@@ -134,9 +134,9 @@ impl ExpandedNamedDevice<'_> {
                     });
                 }
                 ChipKind::Virtex7 => {
-                    if grid.regs > 1 {
+                    if chip.regs > 1 {
                         let col = self.edev.col_cfg;
-                        let row = grid.row_reg_hclk(grid.reg_cfg);
+                        let row = chip.row_reg_hclk(chip.reg_cfg);
                         res.push(SysMon {
                             die,
                             col,
@@ -336,9 +336,9 @@ impl ExpandedNamedDevice<'_> {
             PsPin::DdrWeB => "IOPAD.DDRWEB".to_string(),
         };
         let die = DieId::from_idx(0);
-        let grid = self.edev.chips[die];
-        let col = grid.col_ps();
-        let row = grid.row_reg_bot(RegId::from_idx(grid.regs - 1));
+        let chip = self.edev.chips[die];
+        let col = chip.col_ps();
+        let row = chip.row_reg_bot(RegId::from_idx(chip.regs - 1));
         self.ngrid.get_bel_name(die, col, row, &key).unwrap()
     }
 }

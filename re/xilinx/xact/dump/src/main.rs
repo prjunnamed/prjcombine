@@ -39,7 +39,7 @@ fn main() {
         _ => panic!("ummm {}?", args.family),
     };
     let mut db = GeomDb {
-        grids: Default::default(),
+        chips: Default::default(),
         bonds: Default::default(),
         devices: Default::default(),
         ints: Default::default(),
@@ -56,12 +56,12 @@ fn main() {
             continue;
         }
         println!("{} {}", part.name, part.package);
-        let grid = match die_cache.entry(part.die_file.clone()) {
+        let chip = match die_cache.entry(part.die_file.clone()) {
             btree_map::Entry::Vacant(entry) => {
                 let die = Die::parse(&args.xact, &part.die_file);
-                let (grid, intdb, ndb) = match family {
-                    PartKind::Xc2000 => xc2000::dump_grid(&die),
-                    PartKind::Xc3000 => xc3000::dump_grid(
+                let (chip, intdb, ndb) = match family {
+                    PartKind::Xc2000 => xc2000::dump_chip(&die),
+                    PartKind::Xc3000 => xc3000::dump_chip(
                         &die,
                         if args.family == "xc3000a" {
                             ChipKind::Xc3000A
@@ -69,14 +69,14 @@ fn main() {
                             ChipKind::Xc3000
                         },
                     ),
-                    PartKind::Xc4000 => xc4000::dump_grid(
+                    PartKind::Xc4000 => xc4000::dump_chip(
                         &die,
                         part.kv.get("NOBLOCK").map(|x| &x[..]).unwrap_or(&[]),
                     ),
-                    PartKind::Xc5200 => xc5200::dump_grid(&die),
+                    PartKind::Xc5200 => xc5200::dump_chip(&die),
                     PartKind::Xc7000 => unreachable!(),
                 };
-                let grid = db.grids.push(grid);
+                let chip = db.chips.push(chip);
                 match db.ints.entry(args.family.clone()) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(intdb);
@@ -111,15 +111,15 @@ fn main() {
                         }
                     }
                 }
-                entry.insert(grid);
-                grid
+                entry.insert(chip);
+                chip
             }
             btree_map::Entry::Occupied(entry) => *entry.get(),
         };
         let name = format!("xc{}", part.name);
         let device = devices.entry(name.clone()).or_insert(Device {
             name,
-            grid,
+            chip,
             bonds: Default::default(),
         });
         let pkg = get_pkg(&args.xact, &part.pkg_file);
@@ -132,14 +132,14 @@ fn main() {
                 let pin_xtl2 = &part.kv["OSCIOB2"][0];
                 let io_xtl1 = bond.pins[pin_xtl1];
                 let io_xtl2 = bond.pins[pin_xtl2];
-                assert_eq!(io_xtl1, BondPin::Io(endev.grid.io_xtl1()));
-                assert_eq!(io_xtl2, BondPin::Io(endev.grid.io_xtl2()));
+                assert_eq!(io_xtl1, BondPin::Io(endev.chip.io_xtl1()));
+                assert_eq!(io_xtl2, BondPin::Io(endev.chip.io_xtl2()));
                 if !cfg_io.is_empty() {
-                    let grid = &mut db.grids[grid];
-                    if grid.cfg_io.is_empty() {
-                        grid.cfg_io = cfg_io;
+                    let chip = &mut db.chips[chip];
+                    if chip.cfg_io.is_empty() {
+                        chip.cfg_io = cfg_io;
                     } else {
-                        assert_eq!(grid.cfg_io, cfg_io);
+                        assert_eq!(chip.cfg_io, cfg_io);
                     }
                 }
                 bond
@@ -150,18 +150,18 @@ fn main() {
                 let pin_xtl2 = &part.kv["OSCIOB2"][0];
                 let io_xtl1 = bond.pins[pin_xtl1];
                 let io_xtl2 = bond.pins[pin_xtl2];
-                assert_eq!(io_xtl1, BondPin::Io(endev.grid.io_xtl1()));
-                assert_eq!(io_xtl2, BondPin::Io(endev.grid.io_xtl2()));
+                assert_eq!(io_xtl1, BondPin::Io(endev.chip.io_xtl1()));
+                assert_eq!(io_xtl2, BondPin::Io(endev.chip.io_xtl2()));
                 let pad_tclk = &part.kv["TCLKIOB"][0];
-                assert_eq!(pad_tclk, endev.get_io_name(endev.grid.io_tclk()));
+                assert_eq!(pad_tclk, endev.get_io_name(endev.chip.io_tclk()));
                 let pad_bclk = &part.kv["BCLKIOB"][0];
-                assert_eq!(pad_bclk, endev.get_io_name(endev.grid.io_xtl2()));
+                assert_eq!(pad_bclk, endev.get_io_name(endev.chip.io_xtl2()));
                 if !cfg_io.is_empty() {
-                    let grid = &mut db.grids[grid];
-                    if grid.cfg_io.is_empty() {
-                        grid.cfg_io = cfg_io;
+                    let chip = &mut db.chips[chip];
+                    if chip.cfg_io.is_empty() {
+                        chip.cfg_io = cfg_io;
                     } else {
-                        assert_eq!(grid.cfg_io, cfg_io);
+                        assert_eq!(chip.cfg_io, cfg_io);
                     }
                 }
                 bond
@@ -169,11 +169,11 @@ fn main() {
             PartKind::Xc4000 => {
                 let (bond, cfg_io) = xc4000::make_bond(&endev, &part.package, &pkg);
                 if !cfg_io.is_empty() {
-                    let grid = &mut db.grids[grid];
-                    if grid.cfg_io.is_empty() {
-                        grid.cfg_io = cfg_io;
+                    let chip = &mut db.chips[chip];
+                    if chip.cfg_io.is_empty() {
+                        chip.cfg_io = cfg_io;
                     } else {
-                        assert_eq!(grid.cfg_io, cfg_io);
+                        assert_eq!(chip.cfg_io, cfg_io);
                     }
                 }
                 bond
@@ -181,11 +181,11 @@ fn main() {
             PartKind::Xc5200 => {
                 let (bond, cfg_io) = xc5200::make_bond(&endev, &part.package, &pkg);
                 if !cfg_io.is_empty() {
-                    let grid = &mut db.grids[grid];
-                    if grid.cfg_io.is_empty() {
-                        grid.cfg_io = cfg_io;
+                    let chip = &mut db.chips[chip];
+                    if chip.cfg_io.is_empty() {
+                        chip.cfg_io = cfg_io;
                     } else {
-                        assert_eq!(grid.cfg_io, cfg_io);
+                        assert_eq!(chip.cfg_io, cfg_io);
                     }
                 }
                 bond

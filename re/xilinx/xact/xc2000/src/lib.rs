@@ -11,7 +11,7 @@ use unnamed_entity::{EntityId, EntityVec};
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,
     pub ngrid: ExpandedGridNaming<'a>,
-    pub grid: &'a Chip,
+    pub chip: &'a Chip,
     pub col_x: EntityVec<ColId, Range<usize>>,
     pub row_y: EntityVec<RowId, Range<usize>>,
     pub clk_x: Option<Range<usize>>,
@@ -21,7 +21,7 @@ pub struct ExpandedNamedDevice<'a> {
 impl<'a> ExpandedNamedDevice<'a> {
     pub fn get_io_name(&'a self, io: EdgeIoCoord) -> &'a str {
         let die = self.edev.egrid.die(DieId::from_idx(0));
-        let (col, row, bel) = self.grid.get_io_loc(io);
+        let (col, row, bel) = self.chip.get_io_loc(io);
         let nnode = &self.ngrid.nodes[&(die.die, col, row, LayerId::from_idx(0))];
         &nnode.bels[bel][0]
     }

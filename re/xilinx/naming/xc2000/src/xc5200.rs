@@ -161,6 +161,6 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     ExpandedNamedDevice {
         edev,
         ngrid,
-        grid: edev.chip,
+        chip: edev.chip,
     }
 }

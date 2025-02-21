@@ -33,12 +33,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         print!("{}", geom.gtz);
     }
     if args.grids || args.devices {
-        for (gid, grid) in &geom.grids {
+        for (gid, grid) in &geom.chips {
             print!("GRID {gid}:");
             for dev in &geom.devices {
-                for (did, &die) in &dev.grids {
+                for (did, &die) in &dev.chips {
                     if die == gid {
-                        if dev.grids.len() == 1 {
+                        if dev.chips.len() == 1 {
                             print!(" {dev}", dev = dev.name);
                         } else {
                             print!(" {dev}.{did}", dev = dev.name);
@@ -87,7 +87,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 n = dev.name,
                 ip = dev.interposer
             );
-            for (_, &gid) in &dev.grids {
+            for (_, &gid) in &dev.chips {
                 print!(" {gid}");
             }
             println!();

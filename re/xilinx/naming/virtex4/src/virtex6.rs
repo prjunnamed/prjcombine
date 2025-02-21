@@ -10,7 +10,7 @@ use crate::ExpandedNamedDevice;
 
 struct Namer<'a> {
     ngrid: ExpandedGridNaming<'a>,
-    grid: &'a Chip,
+    chip: &'a Chip,
     tiexlut: EntityVec<ColId, usize>,
     rxlut: EntityVec<ColId, usize>,
 }
@@ -18,8 +18,8 @@ struct Namer<'a> {
 impl Namer<'_> {
     fn fill_rxlut(&mut self) {
         let mut rx = 0;
-        for (col, &kind) in &self.grid.columns {
-            if self.grid.cols_vbrk.contains(&col) {
+        for (col, &kind) in &self.chip.columns {
+            if self.chip.cols_vbrk.contains(&col) {
                 rx += 1;
             }
             self.rxlut.push(rx);
@@ -42,7 +42,7 @@ impl Namer<'_> {
 
     fn fill_tiexlut(&mut self) {
         let mut tie_x = 0;
-        for &kind in self.grid.columns.values() {
+        for &kind in self.chip.columns.values() {
             self.tiexlut.push(tie_x);
             tie_x += 1;
             if kind == ColumnKind::Dsp {
@@ -74,7 +74,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
     let mut namer = Namer {
         ngrid,
-        grid: edev.chips[DieId::from_idx(0)],
+        chip: edev.chips[DieId::from_idx(0)],
         tiexlut: EntityVec::new(),
         rxlut: EntityVec::new(),
     };
@@ -83,7 +83,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     namer.fill_rxlut();
 
     for die in egrid.dies() {
-        let grid = edev.chips[die.die];
+        let chip = edev.chips[die.die];
         for col in die.cols() {
             for row in die.rows() {
                 for (layer, node) in &die[(col, row)].nodes {
@@ -101,7 +101,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.tie_name = Some(format!("TIEOFF_X{tie_x}Y{y}"));
                         }
                         "INTF" => {
-                            if grid.columns[col] == ColumnKind::Io && col < edev.col_cfg {
+                            if chip.columns[col] == ColumnKind::Io && col < edev.col_cfg {
                                 namer.ngrid.name_node(
                                     nloc,
                                     "INTF.IOI_L",
@@ -116,7 +116,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "INTF.DELAY" => {
-                            if grid.columns[col] == ColumnKind::Gt {
+                            if chip.columns[col] == ColumnKind::Gt {
                                 if col.to_idx() == 0 {
                                     namer.ngrid.name_node(
                                         nloc,
@@ -131,7 +131,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     );
                                 }
                             } else {
-                                let hard = grid.col_hard.as_ref().unwrap();
+                                let hard = chip.col_hard.as_ref().unwrap();
                                 if col == hard.col {
                                     namer.ngrid.name_node(
                                         nloc,
@@ -158,7 +158,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         "HCLK" => {
                             let mut naming = "HCLK";
                             let mut name = format!("HCLK_X{x}Y{y}", y = y - 1);
-                            if col == grid.cols_qbuf.unwrap().0 || col == grid.cols_qbuf.unwrap().1
+                            if col == chip.cols_qbuf.unwrap().0 || col == chip.cols_qbuf.unwrap().1
                             {
                                 naming = "HCLK.QBUF";
                                 name = format!("HCLK_QBUF_X{x}Y{y}", y = y - 1);
@@ -307,12 +307,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(9, format!("DCI_X{iox}Y{hy}"));
                         }
                         "CMT" => {
-                            let naming = if row < grid.row_bufg() {
+                            let naming = if row < chip.row_bufg() {
                                 "CMT.BOT"
                             } else {
                                 "CMT.TOP"
                             };
-                            let bt = if row < grid.row_bufg() { "BOT" } else { "TOP" };
+                            let bt = if row < chip.row_bufg() { "BOT" } else { "TOP" };
                             let nnode = namer.ngrid.name_node(
                                 nloc,
                                 naming,
@@ -337,7 +337,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(26, format!("PPR_FRAME_X{bx}Y{by}"));
                         }
                         "PMVIOB" => {
-                            let naming = if row < grid.row_bufg() {
+                            let naming = if row < chip.row_bufg() {
                                 "CMT_PMVA_BELOW"
                             } else {
                                 "CMT_PMVA"
@@ -377,7 +377,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "GCLK_BUF" => {
-                            let name = if row < grid.row_bufg() {
+                            let name = if row < chip.row_bufg() {
                                 format!("CMT_PMVB_BUF_BELOW_X{x}Y{y}", y = y - 2)
                             } else {
                                 format!("CMT_PMVB_BUF_ABOVE_X{x}Y{y}")
@@ -419,10 +419,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                             let ipx = if edev.col_lgt.is_some() { 1 } else { 0 };
                             let mut ipy = 0;
-                            if !grid.cols_gt.is_empty() {
+                            if !chip.cols_gt.is_empty() {
                                 ipy += 6;
-                                for reg in grid.regs() {
-                                    if reg < grid.reg_cfg
+                                for reg in chip.regs() {
+                                    if reg < chip.reg_cfg
                                         && !edev.disabled.contains(&DisabledPart::GtxRow(reg))
                                     {
                                         ipy += 24;

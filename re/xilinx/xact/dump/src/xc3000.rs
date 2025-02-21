@@ -406,7 +406,7 @@ pub fn make_intdb() -> IntDb {
     db
 }
 
-pub fn make_grid(die: &Die, kind: ChipKind) -> Chip {
+pub fn make_chip(die: &Die, kind: ChipKind) -> Chip {
     let pd_clb = die
         .primdefs
         .iter()
@@ -435,8 +435,8 @@ pub fn make_grid(die: &Die, kind: ChipKind) -> Chip {
     }
 }
 
-pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
-    let grid = make_grid(die, kind);
+pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
+    let chip = make_chip(die, kind);
     let mut intdb = make_intdb();
     let mut ndb = NamingDb::default();
     for name in intdb.nodes.keys() {
@@ -471,21 +471,21 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     }
     let c20_x = Vec::from_iter(c20_x);
     let c20_y = Vec::from_iter(c20_y);
-    assert_eq!(c20_x.len(), grid.columns - 1);
-    assert_eq!(c20_y.len(), grid.rows - 1);
+    assert_eq!(c20_x.len(), chip.columns - 1);
+    assert_eq!(c20_y.len(), chip.rows - 1);
     ndb.tile_widths.insert("L".into(), c20_x[0] - 1);
     ndb.tile_widths.insert("C".into(), c20_x[1] - c20_x[0]);
     ndb.tile_widths.insert(
         "R".into(),
-        die.matrix.as_ref().unwrap().dim().0 - (c20_x[grid.columns - 2] - 1),
+        die.matrix.as_ref().unwrap().dim().0 - (c20_x[chip.columns - 2] - 1),
     );
     ndb.tile_heights.insert("B".into(), c20_y[0] + 2);
     ndb.tile_heights.insert("C".into(), c20_y[1] - c20_y[0]);
     ndb.tile_heights.insert(
         "T".into(),
-        die.matrix.as_ref().unwrap().dim().1 - (c20_y[grid.rows - 2] + 2),
+        die.matrix.as_ref().unwrap().dim().1 - (c20_y[chip.rows - 2] + 2),
     );
-    let edev = grid.expand_grid(&intdb);
+    let edev = chip.expand_grid(&intdb);
     let endev = name_device(&edev, &ndb);
 
     let mut extractor = Extractor::new(die, &edev.egrid, &endev.ngrid);
@@ -554,7 +554,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     // long verticals + GCLK
     for col in die.cols() {
         let mut queue = vec![];
-        for row in [grid.row_bio() + 1, grid.row_tio() - 1] {
+        for row in [chip.row_bio() + 1, chip.row_tio() - 1] {
             let by = endev.row_y[row].start;
             let ty = endev.row_y[row].end;
             let mut nets = vec![];
@@ -570,7 +570,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if col == grid.col_lio() {
+            let wires = if col == chip.col_lio() {
                 &[
                     "IOCLK.L0",
                     "IOCLK.L1",
@@ -581,7 +581,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                     "ACLK.V",
                     "GCLK.V",
                 ][..]
-            } else if col == grid.col_rio() {
+            } else if col == chip.col_rio() {
                 &[
                     "GCLK.V",
                     "LONG.V0",
@@ -608,7 +608,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     // long horizontals
     for row in die.rows() {
         let mut queue = vec![];
-        for col in [grid.col_lio() + 1, grid.col_rio() - 1] {
+        for col in [chip.col_lio() + 1, chip.col_rio() - 1] {
             let lx = endev.col_x[col].start;
             let rx = endev.col_x[col].end;
             let mut nets = vec![];
@@ -624,9 +624,9 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if row == grid.row_bio() {
+            let wires = if row == chip.row_bio() {
                 &["IOCLK.B0", "IOCLK.B1", "LONG.IO.B0", "LONG.IO.B1"][..]
-            } else if row == grid.row_tio() {
+            } else if row == chip.row_tio() {
                 &["LONG.IO.T1", "LONG.IO.T0", "IOCLK.T1", "IOCLK.T0"][..]
             } else {
                 &[][..]
@@ -659,7 +659,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 assert_ne!(rwt.1.1, rwf.1.1);
                 // LLV
                 let col = rwt.1.0;
-                let row = grid.row_mid();
+                let row = chip.row_mid();
                 let layer = edev
                     .egrid
                     .find_node_layer(die.die, (col, row), |node| node.starts_with("LLV"))
@@ -668,7 +668,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             } else {
                 assert_eq!(rwt.1.1, rwf.1.1);
                 // LLH
-                let col = grid.col_mid();
+                let col = chip.col_mid();
                 let row = rwt.1.1;
                 let layer = edev
                     .egrid
@@ -686,7 +686,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     let mut queue = vec![];
     for col in die.cols() {
         let mut x = endev.col_x[col].end;
-        if col == grid.col_rio() {
+        if col == chip.col_rio() {
             x = endev.col_x[col].start + 8;
         }
         for row in die.rows() {
@@ -700,7 +700,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if row == grid.row_bio() {
+            let wires = if row == chip.row_bio() {
                 &[
                     "SINGLE.H.B4",
                     "SINGLE.H.B3",
@@ -713,7 +713,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                     "SINGLE.H1",
                     "SINGLE.H0",
                 ][..]
-            } else if row == grid.row_tio() {
+            } else if row == chip.row_tio() {
                 &[
                     "SINGLE.H.T4",
                     "SINGLE.H.T3",
@@ -740,7 +740,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     // vertical singles
     for row in die.rows() {
         let mut y = endev.row_y[row].start;
-        if row == grid.row_bio() {
+        if row == chip.row_bio() {
             y = endev.row_y[row + 1].start - 8;
         }
         for col in die.cols() {
@@ -754,7 +754,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if col == grid.col_lio() {
+            let wires = if col == chip.col_lio() {
                 &[
                     "SINGLE.V.L0",
                     "SINGLE.V.L1",
@@ -762,7 +762,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                     "SINGLE.V.L3",
                     "SINGLE.V.L4",
                 ][..]
-            } else if col == grid.col_rio() {
+            } else if col == chip.col_rio() {
                 &[
                     "SINGLE.V0",
                     "SINGLE.V1",
@@ -804,7 +804,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 let net_u = extractor.matrix_nets[(x, y + 1)].net_b.unwrap();
                 let net_d = extractor.matrix_nets[(x, y)].net_b.unwrap();
                 if let NetBinding::Int(rw) = extractor.nets[net_u].binding {
-                    if rw.1.1 == grid.row_bio() {
+                    if rw.1.1 == chip.row_bio() {
                         if extractor.nets[net_d].binding == NetBinding::None {
                             let sw =
                                 intdb.get_wire(&format!("{wn}.STUB", wn = intdb.wires.key(rw.2)));
@@ -860,8 +860,8 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
         };
         let col = xlut.binary_search(&pip.0).unwrap_err();
         let row = ylut.binary_search(&pip.1).unwrap_err();
-        assert!(col == grid.col_lio() || col == grid.col_rio());
-        assert!(row == grid.row_bio() || row == grid.row_tio());
+        assert!(col == chip.col_lio() || col == chip.col_rio());
+        assert!(row == chip.row_bio() || row == chip.row_tio());
         queue.push((net, (die.die, (col, row), intdb.get_wire(nwn))));
     }
     for (net, wire) in queue {
@@ -890,7 +890,7 @@ pub fn dump_grid(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
 
     let finisher = extractor.finish();
     finisher.finish(&mut intdb, &mut ndb);
-    (grid, intdb, ndb)
+    (chip, intdb, ndb)
 }
 
 pub fn make_bond(
@@ -899,7 +899,7 @@ pub fn make_bond(
     pkg: &BTreeMap<String, String>,
 ) -> (Bond, BTreeMap<SharedCfgPin, EdgeIoCoord>) {
     let io_lookup: BTreeMap<_, _> = endev
-        .grid
+        .chip
         .get_bonded_ios()
         .into_iter()
         .map(|io| (endev.get_io_name(io), io))
@@ -933,7 +933,7 @@ pub fn make_bond(
             &["P1", "P35"][..],
             &["P18", "P52"][..],
         ),
-        "pc84" if endev.grid.columns < 14 => (
+        "pc84" if endev.chip.columns < 14 => (
             "P12",
             "P31",
             "P32",
@@ -943,7 +943,7 @@ pub fn make_bond(
             &["P1", "P43"][..],
             &["P22", "P64"][..],
         ),
-        "pc84" if endev.grid.columns >= 14 => (
+        "pc84" if endev.chip.columns >= 14 => (
             "P12",
             "P31",
             "P32",
@@ -974,7 +974,7 @@ pub fn make_bond(
             &["P19", "P41", "P61", "P77", "P101", "P123", "P139", "P158"][..],
             &["P20", "P43", "P60", "P79", "P100", "P122", "P140", "P157"][..],
         ),
-        "pq208" if endev.grid.columns == 16 => (
+        "pq208" if endev.chip.columns == 16 => (
             "P3",
             "P48",
             "P50",
@@ -984,7 +984,7 @@ pub fn make_bond(
             &["P2", "P25", "P49", "P79", "P101", "P131", "P160", "P182"][..],
             &["P26", "P55", "P78", "P106", "P130", "P154", "P183", "P205"][..],
         ),
-        "pq208" if endev.grid.columns == 22 => (
+        "pq208" if endev.chip.columns == 22 => (
             "P1",
             "P50",
             "P52",
@@ -1262,7 +1262,7 @@ pub fn make_bond(
             };
             cfg_io.insert(fun, io);
         }
-    } else if name == "pc84" && endev.grid.columns < 14 {
+    } else if name == "pc84" && endev.chip.columns < 14 {
         for (pin, fun) in [
             ("P2", SharedCfgPin::Addr(13)),
             ("P3", SharedCfgPin::Addr(6)),

@@ -787,7 +787,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     db
 }
 
-pub fn make_grid(die: &Die) -> Chip {
+pub fn make_chip(die: &Die) -> Chip {
     let mut kind = ChipKind::Xc4000;
     for pd in die.primdefs.values() {
         if pd.name == "iobh_bl" {
@@ -809,9 +809,9 @@ pub fn make_grid(die: &Die) -> Chip {
     }
 }
 
-pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
-    let mut grid = make_grid(die);
-    let mut intdb = make_intdb(grid.kind);
+pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
+    let mut chip = make_chip(die);
+    let mut intdb = make_intdb(chip.kind);
     let mut ndb = NamingDb::default();
     for name in intdb.nodes.keys() {
         ndb.node_namings.insert(name.clone(), NodeNaming::default());
@@ -824,7 +824,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         ndb.tile_heights
             .insert(key.into(), die.tiledefs[kind].matrix.dim().1);
     }
-    let edev = grid.expand_grid(&intdb);
+    let edev = chip.expand_grid(&intdb);
     let endev = name_device(&edev, &ndb);
 
     let mut extractor = Extractor::new(die, &edev.egrid, &endev.ngrid);
@@ -849,7 +849,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                     }
                 }
                 for (bel, key, bel_info) in &node_kind.bels {
-                    if key == "CLKH" && grid.kind != ChipKind::Xc4000H {
+                    if key == "CLKH" && chip.kind != ChipKind::Xc4000H {
                         continue;
                     }
                     let bel_names = &nnode.bels[bel];
@@ -926,13 +926,13 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                             extractor.net_bel(o, nloc, bel, "O");
                             let mut o = extractor.consume_all_bwd(o, nloc);
                             assert_eq!(o.len(), 2);
-                            if col == grid.col_lio() {
+                            if col == chip.col_lio() {
                                 o.sort_by_key(|(_, pip)| pip.x);
-                            } else if col == grid.col_rio() {
+                            } else if col == chip.col_rio() {
                                 o.sort_by_key(|(_, pip)| !pip.x);
-                            } else if row == grid.row_bio() {
+                            } else if row == chip.row_bio() {
                                 o.sort_by_key(|(_, pip)| pip.y);
-                            } else if row == grid.row_tio() {
+                            } else if row == chip.row_tio() {
                                 o.sort_by_key(|(_, pip)| !pip.y);
                             }
                             extractor.net_bel_int(o[0].0, nloc, bel, "O1");
@@ -948,16 +948,16 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                                 i.push((net, pip));
                             }
                             assert_eq!(i.len(), 2);
-                            if col == grid.col_lio() {
+                            if col == chip.col_lio() {
                                 i.sort_by_key(|(_, pip)| pip.0);
-                            } else if col == grid.col_rio() {
+                            } else if col == chip.col_rio() {
                                 i.sort_by_key(|(_, pip)| !pip.0);
-                            } else if row == grid.row_bio() {
+                            } else if row == chip.row_bio() {
                                 i.sort_by_key(|(_, pip)| pip.1);
-                            } else if row == grid.row_tio() {
+                            } else if row == chip.row_tio() {
                                 i.sort_by_key(|(_, pip)| !pip.1);
                             }
-                            let lrbt = if col == grid.col_lio() || col == grid.col_rio() {
+                            let lrbt = if col == chip.col_lio() || col == chip.col_rio() {
                                 "LR"
                             } else {
                                 "BT"
@@ -1047,7 +1047,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
     // long verticals + GCLK
     for col in die.cols() {
         let mut queue = vec![];
-        for row in [grid.row_mid() - 1, grid.row_mid()] {
+        for row in [chip.row_mid() - 1, chip.row_mid()] {
             let by = endev.row_y[row].start;
             let ty = endev.row_y[row].end;
             let mut nets = vec![];
@@ -1063,8 +1063,8 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if col == grid.col_lio() {
-                if grid.kind == ChipKind::Xc4000A {
+            let wires = if col == chip.col_lio() {
+                if chip.kind == ChipKind::Xc4000A {
                     &[
                         "LONG.IO.V0",
                         "LONG.IO.V1",
@@ -1085,8 +1085,8 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                         "GCLK3",
                     ][..]
                 }
-            } else if col == grid.col_rio() {
-                if grid.kind == ChipKind::Xc4000A {
+            } else if col == chip.col_rio() {
+                if chip.kind == ChipKind::Xc4000A {
                     &[
                         "LONG.V0",
                         "LONG.V1",
@@ -1118,7 +1118,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                     ][..]
                 }
             } else {
-                if grid.kind == ChipKind::Xc4000A {
+                if chip.kind == ChipKind::Xc4000A {
                     &[
                         "LONG.V0", "LONG.V1", "LONG.V2", "LONG.V3", "GCLK0", "GCLK1", "GCLK2",
                         "GCLK3",
@@ -1143,7 +1143,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
     // long horizontals
     for row in die.rows() {
         let mut queue = vec![];
-        for col in [grid.col_mid() - 1, grid.col_mid()] {
+        for col in [chip.col_mid() - 1, chip.col_mid()] {
             let lx = endev.col_x[col].start;
             let rx = endev.col_x[col].end;
             let mut nets = vec![];
@@ -1159,8 +1159,8 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if row == grid.row_bio() {
-                if grid.kind == ChipKind::Xc4000A {
+            let wires = if row == chip.row_bio() {
+                if chip.kind == ChipKind::Xc4000A {
                     &["LONG.IO.H0", "LONG.IO.H1", "LONG.H2", "LONG.H3"][..]
                 } else {
                     &[
@@ -1173,8 +1173,8 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                         "LONG.H5",
                     ][..]
                 }
-            } else if row == grid.row_tio() {
-                if grid.kind == ChipKind::Xc4000A {
+            } else if row == chip.row_tio() {
+                if chip.kind == ChipKind::Xc4000A {
                     &["LONG.H0", "LONG.H1", "LONG.IO.H0", "LONG.IO.H1"][..]
                 } else {
                     &[
@@ -1188,7 +1188,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                     ][..]
                 }
             } else {
-                if grid.kind == ChipKind::Xc4000A {
+                if chip.kind == ChipKind::Xc4000A {
                     &["LONG.H0", "LONG.H3"][..]
                 } else {
                     &["LONG.H0", "LONG.H1", "LONG.H4", "LONG.H5"][..]
@@ -1207,16 +1207,16 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
 
     // boxes — pin single and double wires
     for col in die.cols() {
-        if col == grid.col_lio() {
+        if col == chip.col_lio() {
             continue;
         }
         for row in die.rows() {
-            if row == grid.row_tio() {
+            if row == chip.row_tio() {
                 continue;
             }
             let tile = &extractor.die.newtiles[&(endev.col_x[col].start, endev.row_y[row].start)];
             assert_eq!(tile.boxes.len(), 1);
-            let num_singles = if grid.kind == ChipKind::Xc4000A { 4 } else { 8 };
+            let num_singles = if chip.kind == ChipKind::Xc4000A { 4 } else { 8 };
             let num_sd = num_singles + 2;
             for i in 0..num_singles {
                 let net_n = extractor.box_net(tile.boxes[0], 1 + i);
@@ -1251,12 +1251,12 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
     // io doubles
     let mut queue = vec![];
     for col in die.cols() {
-        if col == grid.col_lio() {
+        if col == chip.col_lio() {
             continue;
         }
         let x = endev.col_x[col].start;
         {
-            let row = grid.row_bio();
+            let row = chip.row_bio();
             let mut nets = vec![];
             for y in endev.row_y[row].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_l else {
@@ -1267,7 +1267,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if grid.kind == ChipKind::Xc4000A {
+            let wires = if chip.kind == ChipKind::Xc4000A {
                 &[
                     "IO.DOUBLE.0.S.2",
                     "IO.DOUBLE.0.S.1",
@@ -1293,7 +1293,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             }
         }
         {
-            let row = grid.row_tio();
+            let row = chip.row_tio();
             let mut nets = vec![];
             for y in endev.row_y[row].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_l else {
@@ -1304,7 +1304,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if grid.kind == ChipKind::Xc4000A {
+            let wires = if chip.kind == ChipKind::Xc4000A {
                 &[
                     "IO.DOUBLE.0.N.0",
                     "IO.DOUBLE.0.N.1",
@@ -1331,12 +1331,12 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         }
     }
     for row in die.rows() {
-        if row == grid.row_bio() {
+        if row == chip.row_bio() {
             continue;
         }
         let y = endev.row_y[row].start;
         {
-            let col = grid.col_lio();
+            let col = chip.col_lio();
             let mut nets = vec![];
             for x in endev.col_x[col].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_b else {
@@ -1347,7 +1347,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if grid.kind == ChipKind::Xc4000A {
+            let wires = if chip.kind == ChipKind::Xc4000A {
                 &[
                     "IO.DOUBLE.0.W.0",
                     "IO.DOUBLE.0.W.1",
@@ -1373,7 +1373,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             }
         }
         {
-            let col = grid.col_rio();
+            let col = chip.col_rio();
             let mut nets = vec![];
             for x in endev.col_x[col].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_b else {
@@ -1384,7 +1384,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if grid.kind == ChipKind::Xc4000A {
+            let wires = if chip.kind == ChipKind::Xc4000A {
                 &[
                     "IO.DOUBLE.0.E.2",
                     "IO.DOUBLE.0.E.1",
@@ -1416,13 +1416,13 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
 
     // DBUF
     for col in die.cols() {
-        if col == grid.col_lio() {
+        if col == chip.col_lio() {
             continue;
         }
         for (row, w_h0, w_h1) in [
             (
-                grid.row_bio(),
-                if col == grid.col_rio() {
+                chip.row_bio(),
+                if col == chip.col_rio() {
                     "IO.DOUBLE.0.E.1"
                 } else {
                     "IO.DOUBLE.0.S.0"
@@ -1430,8 +1430,8 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 "IO.DOUBLE.0.S.2",
             ),
             (
-                grid.row_tio(),
-                if col == grid.col_rio() {
+                chip.row_tio(),
+                if col == chip.col_rio() {
                     "IO.DOUBLE.0.E.2"
                 } else {
                     "IO.DOUBLE.0.N.2"
@@ -1467,13 +1467,13 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         }
     }
     for row in die.rows() {
-        if row == grid.row_tio() {
+        if row == chip.row_tio() {
             continue;
         }
         for (col, w_v0, w_v1) in [
             (
-                grid.col_lio(),
-                if row == grid.row_bio() {
+                chip.col_lio(),
+                if row == chip.row_bio() {
                     "IO.DOUBLE.0.S.0"
                 } else {
                     "IO.DOUBLE.0.W.0"
@@ -1481,8 +1481,8 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 "IO.DOUBLE.0.W.2",
             ),
             (
-                grid.col_rio(),
-                if row == grid.row_bio() {
+                chip.col_rio(),
+                if row == chip.row_bio() {
                     "IO.DOUBLE.0.S.1"
                 } else {
                     "IO.DOUBLE.0.E.2"
@@ -1540,29 +1540,29 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
 
     let nloc_ll = (
         die.die,
-        grid.col_lio(),
-        grid.row_bio(),
+        chip.col_lio(),
+        chip.row_bio(),
         LayerId::from_idx(0),
     );
     let nloc_ul = (
         die.die,
-        grid.col_lio(),
-        grid.row_tio(),
+        chip.col_lio(),
+        chip.row_tio(),
         LayerId::from_idx(0),
     );
     let nloc_lr = (
         die.die,
-        grid.col_rio(),
-        grid.row_bio(),
+        chip.col_rio(),
+        chip.row_bio(),
         LayerId::from_idx(0),
     );
     let nloc_ur = (
         die.die,
-        grid.col_rio(),
-        grid.row_tio(),
+        chip.col_rio(),
+        chip.row_tio(),
         LayerId::from_idx(0),
     );
-    let bidx = if grid.kind == ChipKind::Xc4000A { 4 } else { 8 };
+    let bidx = if chip.kind == ChipKind::Xc4000A { 4 } else { 8 };
     let i_ll_h = extractor.get_bel_net(nloc_ll, BelId::from_idx(bidx), "O");
     let i_ll_v = extractor.get_bel_net(nloc_ll, BelId::from_idx(bidx + 1), "O");
     let i_ul_h = extractor.get_bel_net(nloc_ul, BelId::from_idx(bidx), "O");
@@ -1597,7 +1597,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                                     continue;
                                 };
                                 let wkey = intdb.wires.key(rw.2);
-                                let is_o2 = if col == grid.col_lio() || col == grid.col_rio() {
+                                let is_o2 = if col == chip.col_lio() || col == chip.col_rio() {
                                     wkey.starts_with("SINGLE.V")
                                         || wkey.starts_with("DOUBLE.V")
                                         || wkey.starts_with("LONG.V")
@@ -1652,7 +1652,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                                     );
                                 }
                             }
-                            if grid.kind == ChipKind::Xc4000H {
+                            if chip.kind == ChipKind::Xc4000H {
                                 let net_gnd = extractor.get_bel_net(nloc, bel, "GND");
                                 for (opin, onet) in [
                                     ("O0", net_o0),
@@ -1673,13 +1673,13 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                         }
                         "CLB" => {
                             let net_cin = extractor.get_bel_net(nloc, bel, "CIN");
-                            let net_cout_b = if row != grid.row_bio() + 1 {
+                            let net_cout_b = if row != chip.row_bio() + 1 {
                                 extractor.get_bel_net(
                                     (die.die, col, row - 1, LayerId::from_idx(0)),
                                     bel,
                                     "COUT",
                                 )
-                            } else if col != grid.col_lio() + 1 {
+                            } else if col != chip.col_lio() + 1 {
                                 extractor.get_bel_net(
                                     (die.die, col - 1, row, LayerId::from_idx(0)),
                                     bel,
@@ -1695,13 +1695,13 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                             let crd = extractor.use_pip(net_cin, net_cout_b);
                             let pip = extractor.xlat_pip_loc(nloc, crd);
                             extractor.bel_pip(nnode.naming, bel, "CIN.B", pip);
-                            let net_cout_t = if row != grid.row_tio() - 1 {
+                            let net_cout_t = if row != chip.row_tio() - 1 {
                                 extractor.get_bel_net(
                                     (die.die, col, row + 1, LayerId::from_idx(0)),
                                     bel,
                                     "COUT",
                                 )
-                            } else if col != grid.col_lio() + 1 {
+                            } else if col != chip.col_lio() + 1 {
                                 extractor.get_bel_net(
                                     (die.die, col - 1, row, LayerId::from_idx(0)),
                                     bel,
@@ -1748,7 +1748,7 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
     }
 
     let io_lookup: BTreeMap<_, _> = endev
-        .grid
+        .chip
         .get_bonded_ios()
         .into_iter()
         .map(|io| (endev.get_io_name(io).to_string(), io))
@@ -1759,10 +1759,10 @@ pub fn dump_grid(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
 
     for pad in noblock {
         let io = io_lookup[pad];
-        grid.unbonded_io.insert(io);
+        chip.unbonded_io.insert(io);
     }
 
-    (grid, intdb, ndb)
+    (chip, intdb, ndb)
 }
 
 pub fn make_bond(
@@ -1771,7 +1771,7 @@ pub fn make_bond(
     pkg: &BTreeMap<String, String>,
 ) -> (Bond, BTreeMap<SharedCfgPin, EdgeIoCoord>) {
     let io_lookup: BTreeMap<_, _> = endev
-        .grid
+        .chip
         .get_bonded_ios()
         .into_iter()
         .map(|io| (endev.get_io_name(io), io))

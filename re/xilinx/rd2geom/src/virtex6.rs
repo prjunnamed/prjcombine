@@ -1,4 +1,4 @@
-use prjcombine_re_xilinx_geom::{Bond, DisabledPart, Grid};
+use prjcombine_re_xilinx_geom::{Bond, Chip, DisabledPart};
 use prjcombine_re_xilinx_naming_virtex4::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
 use unnamed_entity::EntityVec;
@@ -26,7 +26,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let disabled = disabled.into_iter().map(DisabledPart::Virtex4).collect();
     make_device(
         rd,
-        Grid::Virtex4(grid),
+        Chip::Virtex4(grid),
         bonds,
         disabled,
         "virtex6",

@@ -1,8 +1,8 @@
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_xilinx_geom::{
-    Bond, BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DeviceNaming,
-    DeviceNamingId, DisabledPart, GeomDb, Grid, GridId, Interposer, InterposerId,
+    Bond, BondId, Chip, ChipId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo,
+    DeviceNaming, DeviceNamingId, DisabledPart, GeomDb, Interposer, InterposerId,
 };
 use prjcombine_re_xilinx_naming::db::{IntfWireOutNaming, NamingDb};
 use prjcombine_re_xilinx_rawdump::Part;
@@ -12,7 +12,7 @@ use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 pub struct PreDevice {
     pub name: String,
-    pub grids: EntityVec<DieId, Grid>,
+    pub grids: EntityVec<DieId, Chip>,
     pub interposer: Interposer,
     pub bonds: EntityVec<DevBondId, (String, Bond)>,
     pub speeds: EntityVec<DevSpeedId, String>,
@@ -28,7 +28,7 @@ pub struct PreDevice {
 #[allow(clippy::too_many_arguments)]
 pub fn make_device_multi(
     rd: &Part,
-    grids: EntityVec<DieId, Grid>,
+    grids: EntityVec<DieId, Chip>,
     interposer: Interposer,
     gtz: GtzDb,
     mut bonds: Vec<(String, Bond)>,
@@ -68,7 +68,7 @@ pub fn make_device_multi(
 
 pub fn make_device(
     rd: &Part,
-    grid: Grid,
+    grid: Chip,
     bonds: Vec<(String, Bond)>,
     disabled: BTreeSet<DisabledPart>,
     intdb_name: impl Into<String>,
@@ -92,7 +92,7 @@ pub fn make_device(
 }
 
 pub struct DbBuilder {
-    grids: EntityVec<GridId, Grid>,
+    grids: EntityVec<ChipId, Chip>,
     bonds: EntityVec<BondId, Bond>,
     interposers: EntityVec<InterposerId, Interposer>,
     dev_namings: EntityVec<DeviceNamingId, DeviceNaming>,
@@ -116,7 +116,7 @@ impl DbBuilder {
         }
     }
 
-    pub fn insert_grid(&mut self, grid: Grid) -> GridId {
+    pub fn insert_grid(&mut self, grid: Chip) -> ChipId {
         for (i, g) in self.grids.iter() {
             if g == &grid {
                 return i;
@@ -162,7 +162,7 @@ impl DbBuilder {
         let interposer = self.insert_interposer(pre.interposer);
         self.devices.push(Device {
             name: pre.name,
-            grids,
+            chips: grids,
             interposer,
             bonds,
             speeds: pre.speeds,
@@ -297,7 +297,7 @@ impl DbBuilder {
 
     pub fn finish(self) -> GeomDb {
         GeomDb {
-            grids: self.grids,
+            chips: self.grids,
             bonds: self.bonds,
             interposers: self.interposers,
             dev_namings: self.dev_namings,

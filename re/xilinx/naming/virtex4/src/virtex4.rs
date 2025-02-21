@@ -62,7 +62,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     };
 
     for die in egrid.dies() {
-        let grid = edev.chips[die.die];
+        let chip = edev.chips[die.die];
         for col in die.cols() {
             for row in die.rows() {
                 for (layer, node) in &die[(col, row)].nodes {
@@ -164,7 +164,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(5, format!("IOB_X{iox}Y{ioy1}"));
                         }
                         "DCM" => {
-                            let naming = if row < grid.row_reg_bot(grid.reg_cfg) {
+                            let naming = if row < chip.row_reg_bot(chip.reg_cfg) {
                                 "DCM_BOT"
                             } else {
                                 "DCM"
@@ -217,7 +217,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let ipy0 = if row.to_idx() == 0 {
                                 0
                             } else if edev.col_lgt.is_some() {
-                                grid.regs * 3
+                                chip.regs * 3
                             } else {
                                 2
                             };
@@ -365,7 +365,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     .name_node(nloc, naming, [name0, name1, name_clk]);
                             let gtx = mgt_grid.xlut[col];
                             let gty = mgt_grid.ylut[row];
-                            let has_bot_sysmon = grid
+                            let has_bot_sysmon = chip
                                 .rows_cfg
                                 .contains(&(RowId::from_idx(0), CfgRowKind::Sysmon));
                             let ipx = if col.to_idx() == 0 {
@@ -403,7 +403,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 [name, name_io0, name_io1, name_io2],
                             );
                             let iox = io_grid.xlut[col];
-                            let reg = grid.row_to_reg(row).to_idx();
+                            let reg = chip.row_to_reg(row).to_idx();
                             let brx = if Some(col) == edev.col_lio { 0 } else { 1 };
                             nnode.add_bel(0, format!("BUFR_X{brx}Y{y}", y = reg * 2 + 1));
                             nnode.add_bel(1, format!("BUFR_X{brx}Y{y}", y = reg * 2));
@@ -425,7 +425,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     .name_node(nloc, kind, [name, name_io0, name_io1]);
                             let iox = io_grid.xlut[col];
                             let dciy = dci_grid.ylut[row];
-                            let reg = grid.row_to_reg(row).to_idx();
+                            let reg = chip.row_to_reg(row).to_idx();
                             nnode.add_bel(0, format!("BUFIO_X{iox}Y{y}", y = reg * 2 + 1));
                             nnode.add_bel(1, format!("BUFIO_X{iox}Y{y}", y = reg * 2));
                             nnode.add_bel(2, format!("IDELAYCTRL_X{iox}Y{reg}"));
@@ -441,7 +441,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     .name_node(nloc, kind, [name, name_io0, name_io1]);
                             let iox = io_grid.xlut[col];
                             let dciy = dci_grid.ylut[row];
-                            let reg = grid.row_to_reg(row).to_idx();
+                            let reg = chip.row_to_reg(row).to_idx();
                             nnode.add_bel(0, format!("BUFIO_X{iox}Y{y}", y = reg * 2 + 1));
                             nnode.add_bel(1, format!("BUFIO_X{iox}Y{y}", y = reg * 2));
                             nnode.add_bel(2, format!("IDELAYCTRL_X{iox}Y{reg}"));
@@ -459,7 +459,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                             let iox = io_grid.xlut[col];
                             let dciy = dci_grid.ylut[row];
-                            let reg = grid.row_to_reg(row).to_idx();
+                            let reg = chip.row_to_reg(row).to_idx();
                             nnode.add_bel(0, format!("BUFIO_X{iox}Y{y}", y = reg * 2 + 1));
                             nnode.add_bel(1, format!("BUFIO_X{iox}Y{y}", y = reg * 2));
                             nnode.add_bel(2, format!("IDELAYCTRL_X{iox}Y{reg}"));
@@ -477,7 +477,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                             let iox = io_grid.xlut[col];
                             let dciy = dci_grid.ylut[row];
-                            let reg = grid.row_to_reg(row).to_idx();
+                            let reg = chip.row_to_reg(row).to_idx();
                             nnode.add_bel(0, format!("BUFIO_X{iox}Y{y}", y = reg * 2 + 1));
                             nnode.add_bel(1, format!("BUFIO_X{iox}Y{y}", y = reg * 2));
                             nnode.add_bel(2, format!("IDELAYCTRL_X{iox}Y{reg}"));
@@ -494,7 +494,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             namer.ngrid.name_node(nloc, "CLK_HROW", [name_hrow]);
                         }
                         "CLK_DCM_B" | "CLK_DCM_T" => {
-                            let bt = if row < grid.row_reg_bot(grid.reg_cfg) {
+                            let bt = if row < chip.row_reg_bot(chip.reg_cfg) {
                                 'B'
                             } else {
                                 'T'
@@ -503,7 +503,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             namer.ngrid.name_node(nloc, kind, [name]);
                         }
                         "CLK_IOB_B" | "CLK_IOB_T" => {
-                            let bt = if row < grid.row_reg_bot(grid.reg_cfg) {
+                            let bt = if row < chip.row_reg_bot(chip.reg_cfg) {
                                 'B'
                             } else {
                                 'T'

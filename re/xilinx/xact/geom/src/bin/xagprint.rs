@@ -30,10 +30,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     if args.grids || args.devices {
-        for (gid, grid) in &geom.grids {
+        for (gid, grid) in &geom.chips {
             print!("GRID {gid}:");
             for dev in &geom.devices {
-                if dev.grid == gid {
+                if dev.chip == gid {
                     print!(" {dev}", dev = dev.name);
                 }
             }
@@ -61,7 +61,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if args.devices {
         for dev in &geom.devices {
-            println!("DEVICE {n} GRIDS {g}", n = dev.name, g = dev.grid);
+            println!("DEVICE {n} GRIDS {g}", n = dev.name, g = dev.chip);
             for bond in &dev.bonds {
                 println!("\tBOND {n}: {i}", n = bond.name, i = bond.bond);
             }

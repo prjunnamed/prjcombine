@@ -16,7 +16,7 @@ use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
-    grids: EntityVec<DieId, &'a Chip>,
+    chips: EntityVec<DieId, &'a Chip>,
     interposer: Option<&'a Interposer>,
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
@@ -79,9 +79,9 @@ static RE_VIRTEX456: LazyLock<Regex> =
 static RE_VIRTEX7: LazyLock<Regex> =
     LazyLock::new(|| Regex::new("^(xc|xa|xq|xqr)7(s|a|k|v|vx|vh|z)([0-9]+)t?s?([il]?)$").unwrap());
 
-fn sort_key<'a>(name: &'a str, grid: &Chip) -> SortKey<'a> {
-    let width = grid.columns.len();
-    let height = grid.regs;
+fn sort_key<'a>(name: &'a str, chip: &Chip) -> SortKey<'a> {
+    let width = chip.columns.len();
+    let height = chip.regs;
 
     if let Some(captures) = RE_VIRTEX456.captures(name) {
         let prefix = match &captures[1] {
@@ -111,7 +111,7 @@ fn sort_key<'a>(name: &'a str, grid: &Chip) -> SortKey<'a> {
             kind,
             height,
             width,
-            has_gth: grid
+            has_gth: chip
                 .cols_gt
                 .iter()
                 .any(|gtcol| gtcol.regs.values().any(|&kind| kind == Some(GtKind::Gth))),
@@ -137,32 +137,32 @@ fn sort_key<'a>(name: &'a str, grid: &Chip) -> SortKey<'a> {
             "i" => Suffix::I,
             _ => unreachable!(),
         };
-        let kind = if grid.has_ps {
+        let kind = if chip.has_ps {
             DeviceKind::Zynq
-        } else if grid
+        } else if chip
             .cols_gt
             .iter()
             .any(|gtcol| gtcol.regs.values().any(|&kind| kind == Some(GtKind::Gth)))
         {
-            if grid.has_slr {
+            if chip.has_slr {
                 DeviceKind::VirtexGthSlr
             } else {
                 DeviceKind::VirtexGth
             }
-        } else if grid.cols_io.len() == 2 && grid.cols_io[1].col != grid.columns.last_id().unwrap()
+        } else if chip.cols_io.len() == 2 && chip.cols_io[1].col != chip.columns.last_id().unwrap()
         {
-            if grid.has_slr {
+            if chip.has_slr {
                 DeviceKind::VirtexSlr
             } else {
                 DeviceKind::Virtex
             }
-        } else if grid
+        } else if chip
             .cols_gt
             .iter()
             .any(|gtcol| gtcol.regs.values().any(|&kind| kind == Some(GtKind::Gtx)))
         {
             DeviceKind::Kintex
-        } else if grid
+        } else if chip
             .cols_gt
             .iter()
             .any(|gtcol| gtcol.regs.values().any(|&kind| kind == Some(GtKind::Gtp)))
@@ -191,11 +191,11 @@ fn sort_key<'a>(name: &'a str, grid: &Chip) -> SortKey<'a> {
 pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     for dev in &geom.devices {
-        let grids = dev.grids.map_values(|&grid| {
-            let prjcombine_re_xilinx_geom::Grid::Virtex4(ref grid) = geom.grids[grid] else {
+        let chips = dev.chips.map_values(|&chip| {
+            let prjcombine_re_xilinx_geom::Chip::Virtex4(ref chip) = geom.chips[chip] else {
                 unreachable!()
             };
-            grid
+            chip
         });
         let interposer = match geom.interposers[dev.interposer] {
             prjcombine_re_xilinx_geom::Interposer::None => None,
@@ -213,14 +213,14 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
             })
             .collect();
         let tpart = tmp_parts.entry(&dev.name).or_insert_with(|| TmpPart {
-            grids: grids.clone(),
+            chips: chips.clone(),
             interposer,
             disabled: disabled.clone(),
             bonds: Default::default(),
             speeds: Default::default(),
             combos: Default::default(),
         });
-        assert_eq!(tpart.grids, grids);
+        assert_eq!(tpart.chips, chips);
         assert_eq!(tpart.interposer, interposer);
         assert_eq!(tpart.disabled, disabled);
         for devbond in dev.bonds.values() {
@@ -247,15 +247,15 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
             ));
         }
     }
-    let mut grids = EntitySet::new();
+    let mut chips = EntitySet::new();
     let mut interposers = EntitySet::new();
     let mut bonds = EntitySet::new();
     let mut parts = vec![];
     for (name, tpart) in tmp_parts
         .into_iter()
-        .sorted_by_key(|(name, tpart)| sort_key(name, tpart.grids.first().unwrap()))
+        .sorted_by_key(|(name, tpart)| sort_key(name, tpart.chips.first().unwrap()))
     {
-        let grids = tpart.grids.map_values(|&grid| grids.insert(grid.clone()).0);
+        let chips = tpart.chips.map_values(|&chip| chips.insert(chip.clone()).0);
         let interposer = tpart
             .interposer
             .map(|interposer| interposers.insert(interposer.clone()).0);
@@ -278,7 +278,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         let speeds = EntityVec::from_iter(speeds.into_values());
         let part = Part {
             name: name.into(),
-            chips: grids,
+            chips,
             interposer,
             bonds: dev_bonds,
             speeds,
@@ -287,7 +287,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         };
         parts.push(part);
     }
-    let grids = grids.into_vec();
+    let chips = chips.into_vec();
     let interposers = interposers.into_vec();
     let bonds = bonds.into_vec();
 
@@ -297,7 +297,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     // TODO: resort int
 
     Database {
-        chips: grids,
+        chips,
         interposers,
         bonds,
         parts,

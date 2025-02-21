@@ -15,7 +15,7 @@ use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
-    grid: &'a Chip,
+    chip: &'a Chip,
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
@@ -52,7 +52,7 @@ static RE_SPARTAN6T: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc6slx[0-9]
 static RE_ASPARTAN6T: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xa6slx[0-9]+t$").unwrap());
 static RE_QSPARTAN6T: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xq6slx[0-9]+t$").unwrap());
 
-fn sort_key<'a>(name: &'a str, tpart: &TmpPart, grid: &Chip) -> SortKey<'a> {
+fn sort_key<'a>(name: &'a str, tpart: &TmpPart, chip: &Chip) -> SortKey<'a> {
     let part_kind = if RE_SPARTAN6.is_match(name) {
         PartKind::Spartan6
     } else if RE_ASPARTAN6.is_match(name) {
@@ -73,8 +73,8 @@ fn sort_key<'a>(name: &'a str, tpart: &TmpPart, grid: &Chip) -> SortKey<'a> {
         panic!("ummm {name}?")
     };
     SortKey {
-        width: grid.columns.len(),
-        height: grid.rows.len(),
+        width: chip.columns.len(),
+        height: chip.rows.len(),
         has_disabled_clb: tpart
             .disabled
             .iter()
@@ -87,8 +87,8 @@ fn sort_key<'a>(name: &'a str, tpart: &TmpPart, grid: &Chip) -> SortKey<'a> {
 pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     for dev in &geom.devices {
-        let prjcombine_re_xilinx_geom::Grid::Spartan6(ref grid) =
-            geom.grids[*dev.grids.first().unwrap()]
+        let prjcombine_re_xilinx_geom::Chip::Spartan6(ref chip) =
+            geom.chips[*dev.chips.first().unwrap()]
         else {
             unreachable!()
         };
@@ -103,13 +103,13 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
             })
             .collect();
         let tpart = tmp_parts.entry(&dev.name).or_insert_with(|| TmpPart {
-            grid,
+            chip,
             disabled: disabled.clone(),
             bonds: Default::default(),
             speeds: Default::default(),
             combos: Default::default(),
         });
-        assert_eq!(tpart.grid, grid);
+        assert_eq!(tpart.chip, chip);
         assert_eq!(tpart.disabled, disabled);
         for devbond in dev.bonds.values() {
             let prjcombine_re_xilinx_geom::Bond::Spartan6(ref bond) = geom.bonds[devbond.bond]
@@ -135,14 +135,14 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
             ));
         }
     }
-    let mut grids = EntitySet::new();
+    let mut chips = EntitySet::new();
     let mut bonds = EntitySet::new();
     let mut parts = vec![];
     for (name, tpart) in tmp_parts
         .into_iter()
-        .sorted_by_key(|(name, tpart)| sort_key(name, tpart, tpart.grid))
+        .sorted_by_key(|(name, tpart)| sort_key(name, tpart, tpart.chip))
     {
-        let grid = grids.insert(tpart.grid.clone()).0;
+        let chip = chips.insert(tpart.chip.clone()).0;
         let mut dev_bonds = EntityMap::new();
         for (bname, bond) in tpart.bonds {
             let bond = bonds.insert(bond.clone()).0;
@@ -162,7 +162,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         let speeds = EntityVec::from_iter(speeds.into_values());
         let part = Part {
             name: name.into(),
-            chip: grid,
+            chip,
             bonds: dev_bonds,
             speeds,
             combos,
@@ -170,7 +170,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         };
         parts.push(part);
     }
-    let grids = grids.into_vec();
+    let chips = chips.into_vec();
     let bonds = bonds.into_vec();
 
     assert_eq!(geom.ints.len(), 1);
@@ -179,7 +179,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     // TODO: resort int
 
     Database {
-        chips: grids,
+        chips,
         bonds,
         parts,
         int,

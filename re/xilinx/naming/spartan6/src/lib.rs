@@ -17,7 +17,7 @@ use unnamed_entity::{EntityId, EntityVec};
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,
     pub ngrid: ExpandedGridNaming<'a>,
-    pub grid: &'a Chip,
+    pub chip: &'a Chip,
 }
 
 pub struct Gt<'a> {
@@ -32,7 +32,7 @@ pub struct Gt<'a> {
 impl<'a> ExpandedNamedDevice<'a> {
     pub fn get_io_name(&'a self, io: EdgeIoCoord) -> &'a str {
         let die = DieId::from_idx(0);
-        let (col, row, bel) = self.grid.get_io_loc(io);
+        let (col, row, bel) = self.chip.get_io_loc(io);
         let layer = self
             .edev
             .egrid
@@ -59,10 +59,10 @@ impl<'a> ExpandedNamedDevice<'a> {
         Gt {
             col,
             row,
-            bank: if row < self.grid.row_clk() {
-                if col < self.grid.col_clk { 245 } else { 267 }
+            bank: if row < self.chip.row_clk() {
+                if col < self.chip.col_clk { 245 } else { 267 }
             } else {
-                if col < self.grid.col_clk { 101 } else { 123 }
+                if col < self.chip.col_clk { 101 } else { 123 }
             },
             pads_clk: vec![
                 (
@@ -101,18 +101,18 @@ impl<'a> ExpandedNamedDevice<'a> {
         if self.edev.disabled.contains(&DisabledPart::Gtp) {
             vec![]
         } else {
-            match self.grid.gts {
+            match self.chip.gts {
                 Gts::None => vec![],
-                Gts::Single(cl) => vec![self.get_gt(cl, self.grid.row_tio_outer())],
+                Gts::Single(cl) => vec![self.get_gt(cl, self.chip.row_tio_outer())],
                 Gts::Double(cl, cr) => vec![
-                    self.get_gt(cl, self.grid.row_tio_outer()),
-                    self.get_gt(cr, self.grid.row_tio_outer()),
+                    self.get_gt(cl, self.chip.row_tio_outer()),
+                    self.get_gt(cr, self.chip.row_tio_outer()),
                 ],
                 Gts::Quad(cl, cr) => vec![
-                    self.get_gt(cl, self.grid.row_tio_outer()),
-                    self.get_gt(cr, self.grid.row_tio_outer()),
-                    self.get_gt(cl, self.grid.row_bio_outer()),
-                    self.get_gt(cr, self.grid.row_bio_outer()),
+                    self.get_gt(cl, self.chip.row_tio_outer()),
+                    self.get_gt(cr, self.chip.row_tio_outer()),
+                    self.get_gt(cl, self.chip.row_bio_outer()),
+                    self.get_gt(cr, self.chip.row_bio_outer()),
                 ],
             }
         }
@@ -1667,6 +1667,6 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     ExpandedNamedDevice {
         edev,
         ngrid: namer.ngrid,
-        grid,
+        chip: grid,
     }
 }

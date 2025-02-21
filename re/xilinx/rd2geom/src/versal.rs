@@ -1,4 +1,4 @@
-use prjcombine_re_xilinx_geom::{Bond, DeviceNaming, DisabledPart, Grid, Interposer};
+use prjcombine_re_xilinx_geom::{Bond, Chip, DeviceNaming, DisabledPart, Interposer};
 use prjcombine_re_xilinx_naming_versal::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_versal::expand::expand_grid;
@@ -20,7 +20,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     if verify {
         verify_device(&endev, rd);
     }
-    let grids = grids.into_map_values(Grid::Versal);
+    let grids = grids.into_map_values(Chip::Versal);
     let disabled = disabled.into_iter().map(DisabledPart::Versal).collect();
     make_device_multi(
         rd,

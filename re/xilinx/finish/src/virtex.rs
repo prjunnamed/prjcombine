@@ -15,7 +15,7 @@ use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
-    grid: &'a Chip,
+    chip: &'a Chip,
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
@@ -46,7 +46,7 @@ static RE_QRVIRTEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xqvr[0-9]+e?
 static RE_SPARTAN2: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc2s[0-9]+e?$").unwrap());
 static RE_ASPARTAN2: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xa2s[0-9]+e?$").unwrap());
 
-fn sort_key<'a>(name: &'a str, grid: &'a Chip) -> SortKey<'a> {
+fn sort_key<'a>(name: &'a str, chip: &'a Chip) -> SortKey<'a> {
     let part_kind = if RE_VIRTEX.is_match(name) {
         PartKind::Virtex
     } else if RE_QVIRTEX.is_match(name) {
@@ -61,9 +61,9 @@ fn sort_key<'a>(name: &'a str, grid: &'a Chip) -> SortKey<'a> {
         panic!("ummm {name}?")
     };
     SortKey {
-        kind: grid.kind,
-        width: grid.columns,
-        height: grid.rows,
+        kind: chip.kind,
+        width: chip.columns,
+        height: chip.rows,
         part_kind,
         name,
     }
@@ -72,8 +72,8 @@ fn sort_key<'a>(name: &'a str, grid: &'a Chip) -> SortKey<'a> {
 pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     for dev in &geom.devices {
-        let prjcombine_re_xilinx_geom::Grid::Virtex(ref grid) =
-            geom.grids[*dev.grids.first().unwrap()]
+        let prjcombine_re_xilinx_geom::Chip::Virtex(ref chip) =
+            geom.chips[*dev.chips.first().unwrap()]
         else {
             unreachable!()
         };
@@ -88,13 +88,13 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
             })
             .collect();
         let tpart = tmp_parts.entry(&dev.name).or_insert_with(|| TmpPart {
-            grid,
+            chip,
             disabled: disabled.clone(),
             bonds: Default::default(),
             speeds: Default::default(),
             combos: Default::default(),
         });
-        assert_eq!(tpart.grid, grid);
+        assert_eq!(tpart.chip, chip);
         assert_eq!(tpart.disabled, disabled);
         for devbond in dev.bonds.values() {
             let prjcombine_re_xilinx_geom::Bond::Virtex(ref bond) = geom.bonds[devbond.bond] else {
@@ -119,14 +119,14 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
             ));
         }
     }
-    let mut grids = EntitySet::new();
+    let mut chips = EntitySet::new();
     let mut bonds = EntitySet::new();
     let mut parts = vec![];
     for (name, tpart) in tmp_parts
         .into_iter()
-        .sorted_by_key(|(name, tpart)| sort_key(name, tpart.grid))
+        .sorted_by_key(|(name, tpart)| sort_key(name, tpart.chip))
     {
-        let grid = grids.insert(tpart.grid.clone()).0;
+        let chip = chips.insert(tpart.chip.clone()).0;
         let mut dev_bonds = EntityMap::new();
         for (bname, bond) in tpart.bonds {
             let bond = bonds.insert(bond.clone()).0;
@@ -146,7 +146,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         let speeds = EntityVec::from_iter(speeds.into_values());
         let part = Part {
             name: name.into(),
-            chip: grid,
+            chip,
             bonds: dev_bonds,
             speeds,
             combos,
@@ -154,7 +154,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         };
         parts.push(part);
     }
-    let grids = grids.into_vec();
+    let chips = chips.into_vec();
     let bonds = bonds.into_vec();
 
     assert_eq!(geom.ints.len(), 1);
@@ -163,7 +163,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     // TODO: resort int
 
     Database {
-        chips: grids,
+        chips,
         bonds,
         parts,
         int,

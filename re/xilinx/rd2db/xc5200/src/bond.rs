@@ -15,7 +15,7 @@ pub fn make_bond(
 ) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let io_lookup: HashMap<_, _> = endev
-        .grid
+        .chip
         .get_bonded_ios()
         .into_iter()
         .map(|io| (endev.get_io_name(io), io))

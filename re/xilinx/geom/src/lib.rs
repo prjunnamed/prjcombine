@@ -12,7 +12,7 @@ use std::path::Path;
 use unnamed_entity::{EntityVec, entity_id};
 
 entity_id! {
-    pub id GridId usize;
+    pub id ChipId usize;
     pub id InterposerId usize;
     pub id BondId usize;
     pub id DevBondId usize;
@@ -21,7 +21,7 @@ entity_id! {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Grid {
+pub enum Chip {
     Xc2000(prjcombine_xc2000::chip::Chip),
     Virtex(prjcombine_virtex::chip::Chip),
     Virtex2(prjcombine_virtex2::chip::Chip),
@@ -31,16 +31,16 @@ pub enum Grid {
     Versal(prjcombine_versal::chip::Chip),
 }
 
-impl std::fmt::Display for Grid {
+impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Grid::Xc2000(grid) => write!(f, "{grid}"),
-            Grid::Virtex(grid) => write!(f, "{grid}"),
-            Grid::Virtex2(grid) => write!(f, "{grid}"),
-            Grid::Spartan6(grid) => write!(f, "{grid}"),
-            Grid::Virtex4(grid) => write!(f, "{grid}"),
-            Grid::Ultrascale(grid) => write!(f, "{grid}"),
-            Grid::Versal(grid) => write!(f, "{grid}"),
+            Chip::Xc2000(chip) => write!(f, "{chip}"),
+            Chip::Virtex(chip) => write!(f, "{chip}"),
+            Chip::Virtex2(chip) => write!(f, "{chip}"),
+            Chip::Spartan6(chip) => write!(f, "{chip}"),
+            Chip::Virtex4(chip) => write!(f, "{chip}"),
+            Chip::Ultrascale(chip) => write!(f, "{chip}"),
+            Chip::Versal(chip) => write!(f, "{chip}"),
         }
     }
 }
@@ -89,7 +89,7 @@ impl std::fmt::Display for Interposer {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Device {
     pub name: String,
-    pub grids: EntityVec<DieId, GridId>,
+    pub chips: EntityVec<DieId, ChipId>,
     pub interposer: InterposerId,
     pub bonds: EntityVec<DevBondId, DeviceBond>,
     pub speeds: EntityVec<DevSpeedId, String>,
@@ -150,7 +150,7 @@ impl Bond {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GeomDb {
-    pub grids: EntityVec<GridId, Grid>,
+    pub chips: EntityVec<ChipId, Chip>,
     pub interposers: EntityVec<InterposerId, Interposer>,
     pub bonds: EntityVec<BondId, Bond>,
     pub dev_namings: EntityVec<DeviceNamingId, DeviceNaming>,
@@ -243,10 +243,10 @@ impl GeomDb {
     }
 
     pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice {
-        let fgrid = &self.grids[*dev.grids.first().unwrap()];
-        match fgrid {
-            Grid::Xc2000(grid) => {
-                let intdb = &self.ints[match grid.kind {
+        let fchip = &self.chips[*dev.chips.first().unwrap()];
+        match fchip {
+            Chip::Xc2000(chip) => {
+                let intdb = &self.ints[match chip.kind {
                     prjcombine_xc2000::chip::ChipKind::Xc2000 => "xc2000",
                     prjcombine_xc2000::chip::ChipKind::Xc3000 => "xc3000",
                     prjcombine_xc2000::chip::ChipKind::Xc3000A => "xc3000a",
@@ -260,9 +260,9 @@ impl GeomDb {
                     prjcombine_xc2000::chip::ChipKind::SpartanXl => "spartanxl",
                     prjcombine_xc2000::chip::ChipKind::Xc5200 => "xc5200",
                 }];
-                ExpandedDevice::Xc2000(grid.expand_grid(intdb))
+                ExpandedDevice::Xc2000(chip.expand_grid(intdb))
             }
-            Grid::Virtex(grid) => {
+            Chip::Virtex(chip) => {
                 let intdb = &self.ints["virtex"];
                 let disabled = dev
                     .disabled
@@ -272,19 +272,19 @@ impl GeomDb {
                         _ => unreachable!(),
                     })
                     .collect();
-                ExpandedDevice::Virtex(grid.expand_grid(&disabled, intdb))
+                ExpandedDevice::Virtex(chip.expand_grid(&disabled, intdb))
             }
-            Grid::Virtex2(grid) => {
-                let intdb = if grid.kind.is_virtex2() {
+            Chip::Virtex2(chip) => {
+                let intdb = if chip.kind.is_virtex2() {
                     &self.ints["virtex2"]
-                } else if grid.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
+                } else if chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
                     &self.ints["fpgacore"]
                 } else {
                     &self.ints["spartan3"]
                 };
-                ExpandedDevice::Virtex2(grid.expand_grid(intdb))
+                ExpandedDevice::Virtex2(chip.expand_grid(intdb))
             }
-            Grid::Spartan6(grid) => {
+            Chip::Spartan6(chip) => {
                 let intdb = &self.ints["spartan6"];
                 let disabled = dev
                     .disabled
@@ -294,10 +294,10 @@ impl GeomDb {
                         _ => unreachable!(),
                     })
                     .collect();
-                ExpandedDevice::Spartan6(grid.expand_grid(intdb, &disabled))
+                ExpandedDevice::Spartan6(chip.expand_grid(intdb, &disabled))
             }
-            Grid::Virtex4(grid) => {
-                let intdb = &self.ints[match grid.kind {
+            Chip::Virtex4(chip) => {
+                let intdb = &self.ints[match chip.kind {
                     prjcombine_virtex4::chip::ChipKind::Virtex4 => "virtex4",
                     prjcombine_virtex4::chip::ChipKind::Virtex5 => "virtex5",
                     prjcombine_virtex4::chip::ChipKind::Virtex6 => "virtex6",
@@ -316,16 +316,16 @@ impl GeomDb {
                     Interposer::Virtex4(ref ip) => Some(ip),
                     _ => unreachable!(),
                 };
-                let grids = dev.grids.map_values(|&x| match self.grids[x] {
-                    Grid::Virtex4(ref x) => x,
+                let chips = dev.chips.map_values(|&x| match self.chips[x] {
+                    Chip::Virtex4(ref x) => x,
                     _ => unreachable!(),
                 });
                 ExpandedDevice::Virtex4(prjcombine_virtex4::expand_grid(
-                    &grids, interposer, &disabled, intdb, &self.gtz,
+                    &chips, interposer, &disabled, intdb, &self.gtz,
                 ))
             }
-            Grid::Ultrascale(grid) => {
-                let intdb = &self.ints[match grid.kind {
+            Chip::Ultrascale(chip) => {
+                let intdb = &self.ints[match chip.kind {
                     prjcombine_ultrascale::chip::ChipKind::Ultrascale => "ultrascale",
                     prjcombine_ultrascale::chip::ChipKind::UltrascalePlus => "ultrascaleplus",
                 }];
@@ -341,15 +341,15 @@ impl GeomDb {
                     Interposer::Ultrascale(ref ip) => ip,
                     _ => unreachable!(),
                 };
-                let grids = dev.grids.map_values(|&x| match self.grids[x] {
-                    Grid::Ultrascale(ref x) => x,
+                let chips = dev.chips.map_values(|&x| match self.chips[x] {
+                    Chip::Ultrascale(ref x) => x,
                     _ => unreachable!(),
                 });
                 ExpandedDevice::Ultrascale(prjcombine_ultrascale::expand_grid(
-                    &grids, interposer, &disabled, intdb,
+                    &chips, interposer, &disabled, intdb,
                 ))
             }
-            Grid::Versal(_) => {
+            Chip::Versal(_) => {
                 let intdb = &self.ints["versal"];
                 let disabled = dev
                     .disabled
@@ -363,12 +363,12 @@ impl GeomDb {
                     Interposer::Versal(ref ip) => ip,
                     _ => unreachable!(),
                 };
-                let grids = dev.grids.map_values(|&x| match self.grids[x] {
-                    Grid::Versal(ref x) => x,
+                let chips = dev.chips.map_values(|&x| match self.chips[x] {
+                    Chip::Versal(ref x) => x,
                     _ => unreachable!(),
                 });
                 ExpandedDevice::Versal(prjcombine_versal::expand::expand_grid(
-                    &grids, interposer, &disabled, intdb,
+                    &chips, interposer, &disabled, intdb,
                 ))
             }
         }

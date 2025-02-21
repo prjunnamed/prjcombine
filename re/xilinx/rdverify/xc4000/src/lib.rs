@@ -11,7 +11,7 @@ fn verify_clb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         &[],
     );
     vrf.claim_node(&[bel.fwire("COUT")]);
-    if !endev.grid.kind.is_clb_xl() {
+    if !endev.chip.kind.is_clb_xl() {
         vrf.claim_pip(bel.crd(), bel.wire("CIN.B"), bel.wire("COUT"));
         vrf.claim_pip(bel.crd(), bel.wire("CIN.T"), bel.wire("COUT"));
         vrf.claim_node(&[bel.fwire("CIN")]);
@@ -66,7 +66,7 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_tbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "TBUF", &[], &[]);
-    if endev.grid.kind == ChipKind::Xc4000E {
+    if endev.chip.kind == ChipKind::Xc4000E {
         let node = &vrf.db.nodes[bel.node.kind];
         let naming = &vrf.ndb.node_namings[bel.nnode.naming];
         let i = &bel.bel.pins["I"];
@@ -98,7 +98,7 @@ fn verify_bufge(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bufgls(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if !endev.grid.kind.is_xl() {
+    if !endev.chip.kind.is_xl() {
         let kind = if bel.name.unwrap().starts_with("BUFGP") {
             "PRI-CLK"
         } else if bel.name.unwrap().starts_with("BUFGS") {
@@ -185,7 +185,7 @@ fn verify_tbuf_splitter(vrf: &mut Verifier, bel: &BelContext) {
 }
 
 fn verify_clkh(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
-    if endev.grid.kind == ChipKind::SpartanXl {
+    if endev.chip.kind == ChipKind::SpartanXl {
         for opin in ["O0", "O1", "O2", "O3"] {
             for ipin in [
                 "I.LL.H", "I.LL.V", "I.UL.H", "I.UL.V", "I.LR.H", "I.LR.V", "I.UR.H", "I.UR.V",
@@ -206,10 +206,10 @@ fn verify_clkh(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
             }
         }
     }
-    let col_l = endev.grid.col_lio();
-    let col_r = endev.grid.col_rio();
-    let row_b = endev.grid.row_bio();
-    let row_t = endev.grid.row_tio();
+    let col_l = endev.chip.col_lio();
+    let col_r = endev.chip.col_rio();
+    let row_b = endev.chip.row_bio();
+    let row_t = endev.chip.row_tio();
     for (pin, col, row, key) in [
         ("I.LL.H", col_l, row_b, "BUFGLS.H"),
         ("I.LL.V", col_l, row_b, "BUFGLS.V"),
@@ -230,13 +230,13 @@ fn verify_buff(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
     vrf.claim_node(&[bel.fwire("I")]);
     vrf.claim_pip(bel.crd(), bel.wire("I"), bel.wire_far("I"));
     let (row, key) = match (
-        bel.col < endev.grid.col_mid(),
-        bel.row < endev.grid.row_mid(),
+        bel.col < endev.chip.col_mid(),
+        bel.row < endev.chip.row_mid(),
     ) {
         (true, true) => (bel.row, "IOB1"),
         (true, false) => (bel.row - 1, "IOB0"),
         (false, true) => (
-            if endev.grid.is_buff_large {
+            if endev.chip.is_buff_large {
                 bel.row + 1
             } else {
                 bel.row
@@ -244,7 +244,7 @@ fn verify_buff(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
             "IOB1",
         ),
         (false, false) => (
-            if endev.grid.is_buff_large {
+            if endev.chip.is_buff_large {
                 bel.row - 2
             } else {
                 bel.row - 1
@@ -257,10 +257,10 @@ fn verify_buff(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
 }
 
 fn verify_clkc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
-    let col_l = endev.grid.col_lio();
-    let col_r = endev.grid.col_rio();
-    let row_b = endev.grid.row_bio();
-    let row_t = endev.grid.row_tio();
+    let col_l = endev.chip.col_lio();
+    let col_r = endev.chip.col_rio();
+    let row_b = endev.chip.row_bio();
+    let row_t = endev.chip.row_tio();
     for (opin, ipin, col, row) in [
         ("O.LL.V", "I.LL.V", col_l, row_b),
         ("O.UL.V", "I.UL.V", col_l, row_t),
@@ -275,10 +275,10 @@ fn verify_clkc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
 }
 
 fn verify_clkqc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
-    let col_l = endev.grid.col_lio();
-    let col_r = endev.grid.col_rio();
-    let row_b = endev.grid.row_bio();
-    let row_t = endev.grid.row_tio();
+    let col_l = endev.chip.col_lio();
+    let col_r = endev.chip.col_rio();
+    let row_b = endev.chip.row_bio();
+    let row_t = endev.chip.row_tio();
     for (opin, ipin, col, row) in [
         ("O.LL.H", "I.LL.H", col_l, row_b),
         ("O.UL.H", "I.UL.H", col_l, row_t),
@@ -292,7 +292,7 @@ fn verify_clkqc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
     let obel = vrf
         .find_bel(
             bel.die,
-            (endev.grid.col_mid(), endev.grid.row_mid()),
+            (endev.chip.col_mid(), endev.chip.row_mid()),
             "CLKC",
         )
         .unwrap();
@@ -308,10 +308,10 @@ fn verify_clkqc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
 }
 
 fn verify_clkq(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
-    let col_l = endev.grid.col_lio();
-    let col_r = endev.grid.col_rio();
-    let row_b = endev.grid.row_bio();
-    let row_t = endev.grid.row_tio();
+    let col_l = endev.chip.col_lio();
+    let col_r = endev.chip.col_rio();
+    let row_b = endev.chip.row_bio();
+    let row_t = endev.chip.row_tio();
     for (pin, col, row, key) in [
         ("LL.H", col_l, row_b, "BUFGLS.H"),
         ("LL.V", col_l, row_b, "BUFGLS.V"),

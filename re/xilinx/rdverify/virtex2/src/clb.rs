@@ -120,7 +120,7 @@ pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
             continue;
         }
         let mut scol = bel.col - 1;
-        if endev.grid.columns[scol].kind == ColumnKind::Bram {
+        if endev.chip.columns[scol].kind == ColumnKind::Bram {
             scol -= 1;
         }
         if let Some(obel) = vrf.find_bel(bel.die, (scol, bel.row), sbel) {
@@ -253,7 +253,7 @@ pub fn verify_randor(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
         ],
         &[],
     );
-    if bel.row == endev.grid.row_bot() {
+    if bel.row == endev.chip.row_bot() {
         for pin in ["CIN0", "CIN1", "CPREV", "O"] {
             vrf.claim_node(&[bel.fwire(pin)]);
         }

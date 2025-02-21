@@ -71,7 +71,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
     let mgt = if edev.col_lgt.is_some() { "_MGT" } else { "" };
     for die in egrid.dies() {
-        let grid = edev.chips[die.die];
+        let chip = edev.chips[die.die];
         for col in die.cols() {
             for row in die.rows() {
                 for (layer, node) in &die[(col, row)].nodes {
@@ -95,7 +95,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                         }
                         "INTF.DELAY" => {
-                            if grid.columns[col] == ColumnKind::Gt {
+                            if chip.columns[col] == ColumnKind::Gt {
                                 if col.to_idx() == 0 {
                                     namer.ngrid.name_node(
                                         nloc,
@@ -111,7 +111,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 }
                             } else {
                                 'intf: {
-                                    if let Some(ref hard) = grid.col_hard {
+                                    if let Some(ref hard) = chip.col_hard {
                                         if hard.col == col {
                                             for &hrow in &hard.rows_emac {
                                                 if row >= hrow && row < hrow + 10 {
@@ -135,7 +135,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                             }
                                         }
                                     }
-                                    for &(pcol, prow) in &grid.holes_ppc {
+                                    for &(pcol, prow) in &chip.holes_ppc {
                                         if row >= prow && row < prow + 40 {
                                             if col == pcol {
                                                 namer.ngrid.name_node(
@@ -159,11 +159,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "HCLK" => {
-                            let reg = grid.row_to_reg(row);
-                            let kind = match grid.columns[col] {
+                            let reg = chip.row_to_reg(row);
+                            let kind = match chip.columns[col] {
                                 ColumnKind::Gt => {
                                     let gtc =
-                                        grid.cols_gt.iter().find(|gtc| gtc.col == col).unwrap();
+                                        chip.cols_gt.iter().find(|gtc| gtc.col == col).unwrap();
                                     match gtc.regs[reg].unwrap() {
                                         GtKind::Gtp => "HCLK_GT3",
                                         GtKind::Gtx => {
@@ -198,7 +198,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "BRAM" => {
                             let mut tk = "BRAM";
-                            if let Some(ref hard) = grid.col_hard {
+                            if let Some(ref hard) = chip.col_hard {
                                 if hard.col == col {
                                     tk = "PCIE_BRAM";
                                 }
@@ -228,8 +228,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 0 => {
                                     if col.to_idx() == 0 {
                                         "LIOB"
-                                    } else if row >= grid.row_bufg() + 10
-                                        && row < grid.row_bufg() + 20
+                                    } else if row >= chip.row_bufg() + 10
+                                        && row < chip.row_bufg() + 20
                                     {
                                         "RIOB"
                                     } else {
@@ -319,7 +319,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let gtx = gt_grid.xlut[col];
                             let gty = gt_grid.ylut[row];
                             let ipx = if col.to_idx() == 0 { 0 } else { gtx + 1 };
-                            let ipy = if gty < grid.reg_cfg.to_idx() {
+                            let ipy = if gty < chip.reg_cfg.to_idx() {
                                 gty * 6
                             } else {
                                 gty * 6 + 6
@@ -345,7 +345,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CFG" => {
                             let rx = namer.rxlut[col] + 3;
-                            let ry = grid.reg_cfg.to_idx() * 22;
+                            let ry = chip.reg_cfg.to_idx() * 22;
                             let nnode = namer.ngrid.name_node(
                                 nloc,
                                 kind,
@@ -355,8 +355,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 ],
                             );
                             let ipx = if edev.col_lgt.is_some() { 1 } else { 0 };
-                            let ipy = if !grid.cols_gt.is_empty() {
-                                grid.reg_cfg.to_idx() * 6
+                            let ipy = if !chip.cols_gt.is_empty() {
+                                chip.reg_cfg.to_idx() * 6
                             } else {
                                 0
                             };
@@ -388,7 +388,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             namer.ngrid.name_node(nloc, kind, [name_hrow]);
                         }
                         "CLK_CMT_B" | "CLK_CMT_T" => {
-                            let naming = if row < grid.row_bufg() {
+                            let naming = if row < chip.row_bufg() {
                                 "CLK_CMT_BOT"
                             } else {
                                 "CLK_CMT_TOP"
@@ -403,7 +403,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             namer.ngrid.name_node(nloc, kind, [name]);
                         }
                         "CLK_MGT_B" | "CLK_MGT_T" => {
-                            let naming = if row < grid.row_bufg() {
+                            let naming = if row < chip.row_bufg() {
                                 "CLK_MGT_BOT"
                             } else {
                                 "CLK_MGT_TOP"
@@ -488,9 +488,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(7, format!("DCI_X{iox}Y{banky}"));
                         }
                         "HCLK_CMT" => {
-                            let bmt = if row + 30 == grid.row_bufg() {
+                            let bmt = if row + 30 == chip.row_bufg() {
                                 "BOT"
-                            } else if row == grid.row_bufg() + 30 {
+                            } else if row == chip.row_bufg() + 30 {
                                 "TOP"
                             } else {
                                 "MID"
@@ -501,7 +501,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "PMVBRAM" => {
                             let mut kind = "BRAM";
-                            if let Some(ref hard) = grid.col_hard {
+                            if let Some(ref hard) = chip.col_hard {
                                 if hard.col == col {
                                     kind = "PCIE_BRAM";
                                 }

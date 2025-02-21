@@ -15,7 +15,7 @@ use regex::Regex;
 use unnamed_entity::{EntityId, EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
-    grid: &'a Chip,
+    chip: &'a Chip,
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
@@ -81,7 +81,7 @@ static RE_SPARTANXL: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xcs[0-9]{2}
 static RE_5200: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc52[0-9]{2}$").unwrap());
 static RE_5200L: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc52[0-9]{2}l$").unwrap());
 
-fn sort_key<'a>(name: &'a str, grid: &'a Chip) -> SortKey<'a> {
+fn sort_key<'a>(name: &'a str, chip: &'a Chip) -> SortKey<'a> {
     let part_kind = if RE_2000.is_match(name) {
         PartKind::Xc2000
     } else if RE_2000L.is_match(name) {
@@ -130,8 +130,8 @@ fn sort_key<'a>(name: &'a str, grid: &'a Chip) -> SortKey<'a> {
         panic!("ummm {name}?")
     };
     SortKey {
-        width: grid.columns,
-        height: grid.rows,
+        width: chip.columns,
+        height: chip.rows,
         part_kind,
         name,
     }
@@ -146,12 +146,12 @@ pub fn finish(
     if let Some(ref xact) = xact {
         for dev in &xact.devices {
             let tpart = tmp_parts.entry(&dev.name).or_insert_with(|| TmpPart {
-                grid: &xact.grids[dev.grid],
+                chip: &xact.chips[dev.chip],
                 bonds: Default::default(),
                 speeds: Default::default(),
                 combos: Default::default(),
             });
-            assert_eq!(tpart.grid, &xact.grids[dev.grid]);
+            assert_eq!(tpart.chip, &xact.chips[dev.chip]);
             for bond in &dev.bonds {
                 match tpart.bonds.entry(&bond.name) {
                     btree_map::Entry::Vacant(entry) => {
@@ -166,18 +166,18 @@ pub fn finish(
     }
     if let Some(ref geom) = geom {
         for dev in &geom.devices {
-            let prjcombine_re_xilinx_geom::Grid::Xc2000(ref grid) =
-                geom.grids[*dev.grids.first().unwrap()]
+            let prjcombine_re_xilinx_geom::Chip::Xc2000(ref chip) =
+                geom.chips[*dev.chips.first().unwrap()]
             else {
                 unreachable!()
             };
             let tpart = tmp_parts.entry(&dev.name).or_insert_with(|| TmpPart {
-                grid,
+                chip,
                 bonds: Default::default(),
                 speeds: Default::default(),
                 combos: Default::default(),
             });
-            assert_eq!(tpart.grid, grid);
+            assert_eq!(tpart.chip, chip);
             for devbond in dev.bonds.values() {
                 let prjcombine_re_xilinx_geom::Bond::Xc2000(ref bond) = geom.bonds[devbond.bond]
                 else {
@@ -208,9 +208,9 @@ pub fn finish(
     let mut parts = vec![];
     for (name, tpart) in tmp_parts
         .into_iter()
-        .sorted_by_key(|(name, tpart)| sort_key(name, tpart.grid))
+        .sorted_by_key(|(name, tpart)| sort_key(name, tpart.chip))
     {
-        let grid = chips.insert(tpart.grid.clone()).0;
+        let chip = chips.insert(tpart.chip.clone()).0;
         let mut dev_bonds = EntityMap::new();
         for (bname, bond) in tpart.bonds {
             let bond = bonds.insert(bond.clone()).0;
@@ -230,7 +230,7 @@ pub fn finish(
         let speeds = EntityVec::from_iter(speeds.into_values());
         let part = Part {
             name: name.into(),
-            chip: grid,
+            chip,
             bonds: dev_bonds,
             speeds,
             combos,

@@ -18,10 +18,10 @@ fn verify_pci_ce(
     crd: Coord,
     wire: &str,
 ) {
-    if col == endev.grid.col_left() || col == endev.grid.col_right() {
-        if row < endev.grid.row_mid() {
-            for &(srow, _, _) in &endev.grid.rows_hclk {
-                if srow > endev.grid.row_mid() {
+    if col == endev.chip.col_left() || col == endev.chip.col_right() {
+        if row < endev.chip.row_mid() {
+            for &(srow, _, _) in &endev.chip.rows_hclk {
+                if srow > endev.chip.row_mid() {
                     break;
                 }
                 if row < srow {
@@ -31,8 +31,8 @@ fn verify_pci_ce(
                 }
             }
         } else {
-            for &(srow, _, _) in endev.grid.rows_hclk.iter().rev() {
-                if srow <= endev.grid.row_mid() {
+            for &(srow, _, _) in endev.chip.rows_hclk.iter().rev() {
+                if srow <= endev.chip.row_mid() {
                     break;
                 }
                 if row >= srow {
@@ -43,15 +43,15 @@ fn verify_pci_ce(
             }
         }
         let obel = vrf
-            .find_bel(die, (col, endev.grid.row_mid()), "PCILOGICSE")
+            .find_bel(die, (col, endev.chip.row_mid()), "PCILOGICSE")
             .unwrap();
         let pip = &obel.naming.pins["PCI_CE"].pips[0];
         vrf.verify_node(&[(obel.crds[pip.tile], &pip.wire_to), (crd, wire)]);
     } else {
-        if endev.grid.kind == ChipKind::Spartan3A {
-            if let Some((col_l, col_r)) = endev.grid.cols_clkv {
+        if endev.chip.kind == ChipKind::Spartan3A {
+            if let Some((col_l, col_r)) = endev.chip.cols_clkv {
                 if col >= col_l && col < col_r {
-                    let (scol, kind) = if col < endev.grid.col_clk {
+                    let (scol, kind) = if col < endev.chip.col_clk {
                         (col_l, "PCI_CE_E")
                     } else {
                         (col_r, "PCI_CE_W")
@@ -62,10 +62,10 @@ fn verify_pci_ce(
                 }
             }
         }
-        let scol = if col < endev.grid.col_clk {
-            endev.grid.col_left()
+        let scol = if col < endev.chip.col_clk {
+            endev.chip.col_left()
         } else {
-            endev.grid.col_right()
+            endev.chip.col_right()
         };
         let obel = vrf.find_bel(die, (scol, row), "PCI_CE_CNR").unwrap();
         vrf.verify_node(&[obel.fwire("O"), (crd, wire)]);
@@ -73,12 +73,12 @@ fn verify_pci_ce(
 }
 
 pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let io = endev.grid.get_io_crd(bel.col, bel.row, bel.bid);
-    let io_info = endev.grid.get_io_info(io);
+    let io = endev.chip.get_io_crd(bel.col, bel.row, bel.bid);
+    let io_info = endev.chip.get_io_info(io);
     let tn = &bel.nnode.names[NodeRawTileId::from_idx(0)];
     let is_ipad = tn.contains("IBUFS") || (tn.contains("IOIB") && bel.bid.to_idx() == 2);
     let kind = if matches!(
-        endev.grid.kind,
+        endev.chip.kind,
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp
     ) {
         let is_tb = matches!(io_info.bank, 0 | 2);
@@ -119,7 +119,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
         ("DIFFO_IN", SitePinDir::In),
     ];
     if matches!(
-        endev.grid.kind,
+        endev.chip.kind,
         ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp
     ) {
         pins.extend([
@@ -133,12 +133,12 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             ("IDDRIN2", SitePinDir::In),
         ]);
     }
-    if endev.grid.kind == ChipKind::Spartan3ADsp {
+    if endev.chip.kind == ChipKind::Spartan3ADsp {
         pins.extend([("OAUX", SitePinDir::In), ("TAUX", SitePinDir::In)]);
     }
     vrf.verify_bel(bel, kind, &pins, &[]);
     // diff pairing
-    if !endev.grid.kind.is_virtex2() || io_info.diff != IoDiffKind::None {
+    if !endev.chip.kind.is_virtex2() || io_info.diff != IoDiffKind::None {
         for pin in ["PADOUT", "DIFFI_IN", "DIFFO_IN", "DIFFO_OUT"] {
             vrf.claim_node(&[bel.fwire(pin)]);
         }
@@ -156,7 +156,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
         }
     }
     if matches!(
-        endev.grid.kind,
+        endev.chip.kind,
         ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp
     ) {
         for pin in [
@@ -183,7 +183,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             bel.wire_far("PCI_CE"),
         );
     }
-    if endev.grid.kind == ChipKind::Spartan3ADsp {
+    if endev.chip.kind == ChipKind::Spartan3ADsp {
         for pin in ["OAUX", "TAUX"] {
             vrf.claim_node(&[bel.fwire(pin)]);
         }
@@ -201,14 +201,14 @@ pub fn verify_pcilogicse(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         ],
         &[],
     );
-    let edge = if bel.col == endev.grid.col_left() {
+    let edge = if bel.col == endev.chip.col_left() {
         Dir::W
-    } else if bel.col == endev.grid.col_right() {
+    } else if bel.col == endev.chip.col_right() {
         Dir::E
     } else {
         unreachable!()
     };
-    let pci_rdy = endev.grid.get_pci_io(edge);
+    let pci_rdy = endev.chip.get_pci_io(edge);
     for (pin, crd) in ["IRDY", "TRDY"].into_iter().zip(pci_rdy) {
         vrf.claim_node(&[bel.fwire(pin)]);
         vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));

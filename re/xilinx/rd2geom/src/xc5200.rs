@@ -1,4 +1,4 @@
-use prjcombine_re_xilinx_geom::{Bond, Grid};
+use prjcombine_re_xilinx_geom::{Bond, Chip};
 use prjcombine_re_xilinx_naming_xc2000::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
 use std::collections::{BTreeMap, BTreeSet};
@@ -24,7 +24,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     grid.cfg_io = cfg_io;
     make_device(
         rd,
-        Grid::Xc2000(grid),
+        Chip::Xc2000(grid),
         bonds,
         BTreeSet::new(),
         "xc5200",
