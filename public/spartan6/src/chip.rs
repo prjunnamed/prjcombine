@@ -1,9 +1,9 @@
+use jzon::JsonValue;
 use prjcombine_interconnect::{
     db::BelId,
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::collections::BTreeMap;
 use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
 
@@ -56,6 +56,34 @@ pub enum SharedCfgPin {
     CmpMosi,
     Awake,
     Scp(u8), // ×8
+}
+
+impl std::fmt::Display for SharedCfgPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SharedCfgPin::Data(i) => write!(f, "D{i}"),
+            SharedCfgPin::Addr(i) => write!(f, "A{i}"),
+            SharedCfgPin::Scp(i) => write!(f, "SCP{i}"),
+            SharedCfgPin::CsoB => write!(f, "CSO_B"),
+            SharedCfgPin::RdWrB => write!(f, "RDWR_B"),
+            SharedCfgPin::Dout => write!(f, "DOUT"),
+            SharedCfgPin::InitB => write!(f, "INIT_B"),
+            SharedCfgPin::Cclk => write!(f, "CCLK"),
+            SharedCfgPin::UserCclk => write!(f, "USER_CCLK"),
+            SharedCfgPin::Mosi => write!(f, "MOSI"),
+            SharedCfgPin::CmpMosi => write!(f, "CMP_MOSI"),
+            SharedCfgPin::CmpClk => write!(f, "CMP_CLK"),
+            SharedCfgPin::FcsB => write!(f, "FCS_B"),
+            SharedCfgPin::FoeB => write!(f, "FOE_B"),
+            SharedCfgPin::FweB => write!(f, "FWE_B"),
+            SharedCfgPin::Ldc => write!(f, "LDC"),
+            SharedCfgPin::M0 => write!(f, "M0"),
+            SharedCfgPin::M1 => write!(f, "M1"),
+            SharedCfgPin::Hdc => write!(f, "HDC"),
+            SharedCfgPin::HswapEn => write!(f, "HSWAP_EN"),
+            SharedCfgPin::Awake => write!(f, "AWAKE"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -129,6 +157,18 @@ pub enum DisabledPart {
     ClbColumn(ColId),
     BramRegion(ColId, RegId),
     DspRegion(ColId, RegId),
+}
+
+impl std::fmt::Display for DisabledPart {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DisabledPart::ClbColumn(col) => write!(f, "CLB_COL:{col}"),
+            DisabledPart::BramRegion(col, reg) => write!(f, "BRAM_REG:{col}:{reg}"),
+            DisabledPart::DspRegion(col, reg) => write!(f, "DSP_REG:{col}:{reg}"),
+            DisabledPart::Mcb => write!(f, "MCB"),
+            DisabledPart::Gtp => write!(f, "GTP"),
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
@@ -387,12 +427,44 @@ impl Chip {
         }
         res
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "columns": Vec::from_iter(self.columns.values().map(|column| {
-                json!({
-                    "kind": match column.kind {
+impl From<&McbIo> for JsonValue {
+    fn from(io: &McbIo) -> Self {
+        jzon::object! {
+            row: io.row.to_idx(),
+            iob: io.iob.to_idx(),
+        }
+    }
+}
+
+impl From<&Mcb> for JsonValue {
+    fn from(mcb: &Mcb) -> Self {
+        jzon::object! {
+            row_mcb: mcb.row_mcb.to_idx(),
+            row_mui: Vec::from_iter(mcb.row_mui.iter().map(|row| row.to_idx())),
+            iop_dq: Vec::from_iter(mcb.iop_dq.iter().map(|row| row.to_idx())),
+            iop_dqs: Vec::from_iter(mcb.iop_dqs.iter().map(|row| row.to_idx())),
+            io_dm: Vec::from_iter(mcb.io_dm.iter()),
+            iop_clk: mcb.iop_clk.to_idx(),
+            io_addr: Vec::from_iter(mcb.io_addr.iter()),
+            io_ba: Vec::from_iter(mcb.io_ba.iter()),
+            io_ras: &mcb.io_ras,
+            io_cas: &mcb.io_cas,
+            io_we: &mcb.io_we,
+            io_odt: &mcb.io_odt,
+            io_cke: &mcb.io_cke,
+            io_reset: &mcb.io_reset,
+        }
+    }
+}
+
+impl From<&Chip> for JsonValue {
+    fn from(chip: &Chip) -> Self {
+        jzon::object! {
+            columns: Vec::from_iter(chip.columns.values().map(|column| {
+                jzon::object! {
+                    kind: match column.kind {
                         ColumnKind::Io => "IO",
                         ColumnKind::CleXL => "CLEXL",
                         ColumnKind::CleXM => "CLEXM",
@@ -401,74 +473,57 @@ impl Chip {
                         ColumnKind::Dsp => "DSP",
                         ColumnKind::DspPlus => "DSP_PLUS",
                     },
-                    "bio": match column.bio {
+                    bio: match column.bio {
                         ColumnIoKind::None => "NONE",
                         ColumnIoKind::Both => "BOTH",
                         ColumnIoKind::Outer => "OUTER",
                         ColumnIoKind::Inner => "INNER",
                     },
-                    "tio": match column.tio {
+                    tio: match column.tio {
                         ColumnIoKind::None => "NONE",
                         ColumnIoKind::Both => "BOTH",
                         ColumnIoKind::Outer => "OUTER",
                         ColumnIoKind::Inner => "INNER",
                     },
-                })
+                }
             })),
-            "col_clk": self.col_clk,
-            "cols_clk_fold": self.cols_clk_fold,
-            "cols_reg_buf": self.cols_reg_buf,
-            "rows": self.rows,
-            "rows_midbuf": self.rows_midbuf,
-            "rows_hclkbuf": self.rows_hclkbuf,
-            "rows_pci_ce_split": self.rows_pci_ce_split,
-            "rows_bank_split": self.rows_bank_split,
-            "row_mcb_split": self.row_mcb_split,
-            "gts": match self.gts {
-                Gts::None => serde_json::Value::Null,
-                Gts::Single(col_l) => json!({
-                    "num": 1,
-                    "col_l": col_l,
-                }),
-                Gts::Double(col_l, col_r) => json!({
-                    "num": 2,
-                    "col_l": col_l,
-                    "col_r": col_r,
-                }),
-                Gts::Quad(col_l, col_r) => json!({
-                    "num": 4,
-                    "col_l": col_l,
-                    "col_r": col_r,
-                }),
+            col_clk: chip.col_clk.to_idx(),
+            cols_clk_fold: chip.cols_clk_fold.map(|(col_l, col_r)| jzon::array![col_l.to_idx(), col_r.to_idx()]),
+            cols_reg_buf: jzon::array![chip.cols_reg_buf.0.to_idx(), chip.cols_reg_buf.1.to_idx()],
+            rows: Vec::from_iter(chip.rows.values().map(|row| {
+                jzon::object! {
+                    lio: row.lio,
+                    rio: row.rio,
+                }
+            })),
+            rows_midbuf: jzon::array![chip.rows_midbuf.0.to_idx(), chip.rows_midbuf.1.to_idx()],
+            rows_hclkbuf: jzon::array![chip.rows_hclkbuf.0.to_idx(), chip.rows_hclkbuf.1.to_idx()],
+            rows_pci_ce_split: jzon::array![chip.rows_pci_ce_split.0.to_idx(), chip.rows_pci_ce_split.1.to_idx()],
+            rows_bank_split: chip.rows_bank_split.map(|(row_l, row_r)| jzon::array![row_l.to_idx(), row_r.to_idx()]),
+            row_mcb_split: chip.row_mcb_split.map(|row| row.to_idx()),
+            gts: match chip.gts {
+                Gts::None => JsonValue::Null,
+                Gts::Single(col_l) => jzon::object! {
+                    num: 1,
+                    col_l: col_l.to_idx(),
+                },
+                Gts::Double(col_l, col_r) => jzon::object! {
+                    num: 2,
+                    col_l: col_l.to_idx(),
+                    col_r: col_r.to_idx(),
+                },
+                Gts::Quad(col_l, col_r) => jzon::object! {
+                    num: 4,
+                    col_l: col_l.to_idx(),
+                    col_r: col_r.to_idx(),
+                },
             },
-            "mcbs": self.mcbs,
-            "cfg_io": serde_json::Map::from_iter(self.cfg_io.iter().map(|(k, io)| {
-                (match k {
-                    SharedCfgPin::Data(i) => format!("D{i}"),
-                    SharedCfgPin::Addr(i) => format!("A{i}"),
-                    SharedCfgPin::Scp(i) => format!("SCP{i}"),
-                    SharedCfgPin::CsoB => "CSO_B".to_string(),
-                    SharedCfgPin::RdWrB => "RDWR_B".to_string(),
-                    SharedCfgPin::Dout => "DOUT".to_string(),
-                    SharedCfgPin::InitB => "INIT_B".to_string(),
-                    SharedCfgPin::Cclk => "CCLK".to_string(),
-                    SharedCfgPin::UserCclk => "USER_CCLK".to_string(),
-                    SharedCfgPin::Mosi => "MOSI".to_string(),
-                    SharedCfgPin::CmpMosi => "CMP_MOSI".to_string(),
-                    SharedCfgPin::CmpClk => "CMP_CLK".to_string(),
-                    SharedCfgPin::FcsB => "FCS_B".to_string(),
-                    SharedCfgPin::FoeB => "FOE_B".to_string(),
-                    SharedCfgPin::FweB => "FWE_B".to_string(),
-                    SharedCfgPin::Ldc => "LDC".to_string(),
-                    SharedCfgPin::M0 => "M0".to_string(),
-                    SharedCfgPin::M1 => "M1".to_string(),
-                    SharedCfgPin::Hdc => "HDC".to_string(),
-                    SharedCfgPin::HswapEn => "HSWAP_EN".to_string(),
-                    SharedCfgPin::Awake => "AWAKE".to_string(),
-                }, io.to_string().into())
+            mcbs: Vec::from_iter(chip.mcbs.iter()),
+            cfg_io: jzon::object::Object::from_iter(chip.cfg_io.iter().map(|(k, io)| {
+                (k.to_string(), io.to_string())
             })),
-            "has_encrypt": self.has_encrypt,
-        })
+            has_encrypt: chip.has_encrypt,
+        }
     }
 }
 

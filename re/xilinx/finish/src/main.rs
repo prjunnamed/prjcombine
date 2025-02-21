@@ -90,7 +90,7 @@ fn main() {
             Chip::Spartan6(_) => {
                 let db = spartan6::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
-                std::fs::write(args.json, db.to_json().to_string()).unwrap();
+                std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
             }
             Chip::Virtex4(_) => {
                 let db = virtex4::finish(geom, tiledb);
