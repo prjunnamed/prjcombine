@@ -1,12 +1,12 @@
 use bitvec::prelude::*;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_re_collector::{
-    extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd, Diff,
-    OcdMode,
+    Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum,
+    xlat_enum_ocd,
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_interconnect::db::BelId;
-use prjcombine_types::tiledb::{TileBit, TileItem};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_types::tiledb::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -19,7 +19,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let ExpandedDevice::Virtex4(ref edev) = backend.edev else {
+    let ExpandedDevice::Virtex4(edev) = backend.edev else {
         unreachable!()
     };
     let node_cmt = backend.egrid.db.get_node("CMT");
@@ -1227,7 +1227,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let ExpandedDevice::Virtex4(ref edev) = ctx.edev else {
+    let ExpandedDevice::Virtex4(edev) = ctx.edev else {
         unreachable!()
     };
     {

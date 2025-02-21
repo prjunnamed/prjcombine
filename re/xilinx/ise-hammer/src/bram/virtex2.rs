@@ -17,7 +17,7 @@ pub fn add_fuzzers<'a>(
     devdata_only: bool,
 ) {
     let grid_kind = match backend.edev {
-        ExpandedDevice::Virtex2(ref edev) => edev.grid.kind,
+        ExpandedDevice::Virtex2(edev) => edev.grid.kind,
         _ => unreachable!(),
     };
     let tile_name = match grid_kind {
@@ -351,7 +351,7 @@ pub fn add_fuzzers<'a>(
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let grid_kind = match ctx.edev {
-        ExpandedDevice::Virtex2(ref edev) => edev.grid.kind,
+        ExpandedDevice::Virtex2(edev) => edev.grid.kind,
         _ => unreachable!(),
     };
     let int_tiles = match grid_kind {

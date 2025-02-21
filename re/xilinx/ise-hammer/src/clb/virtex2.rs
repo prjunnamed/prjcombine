@@ -19,7 +19,7 @@ pub enum Mode {
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     let mode = match backend.edev {
-        ExpandedDevice::Virtex2(ref edev) => {
+        ExpandedDevice::Virtex2(edev) => {
             if edev.grid.kind.is_virtex2() {
                 Mode::Virtex2
             } else {
@@ -616,7 +616,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mode = match ctx.edev {
-        ExpandedDevice::Virtex2(ref edev) => {
+        ExpandedDevice::Virtex2(edev) => {
             if edev.grid.kind.is_virtex2() {
                 Mode::Virtex2
             } else {

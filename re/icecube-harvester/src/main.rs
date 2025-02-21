@@ -1146,7 +1146,7 @@ impl PartContext<'_> {
                     }
                 };
                 let dir = ManuallyDrop::new(result.dir.take());
-                if let Some(ref dir) = &*dir {
+                if let Some(ref dir) = *dir {
                     println!("YAY {}", dir.path().to_string_lossy());
                 }
                 let (sample, cur_pips) = make_sample(
@@ -1182,7 +1182,7 @@ impl PartContext<'_> {
                 }
                 drop(muxes);
                 if let Some(sample_id) = harvester.add_sample(sample) {
-                    if let Some(ref dir) = &*dir {
+                    if let Some(ref dir) = *dir {
                         println!("SAMPLE {sample_id} {}", dir.path().to_string_lossy());
                     }
                 }

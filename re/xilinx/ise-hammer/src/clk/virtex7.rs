@@ -17,7 +17,7 @@ pub fn add_fuzzers<'a>(
     backend: &IseBackend<'a>,
     bali_only: bool,
 ) {
-    let ExpandedDevice::Virtex4(ref edev) = backend.edev else {
+    let ExpandedDevice::Virtex4(edev) = backend.edev else {
         unreachable!()
     };
     let int = backend.egrid.db.get_node("INT");
@@ -718,7 +718,7 @@ pub fn add_fuzzers<'a>(
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
-    let ExpandedDevice::Virtex4(ref edev) = ctx.edev else {
+    let ExpandedDevice::Virtex4(edev) = ctx.edev else {
         unreachable!()
     };
 

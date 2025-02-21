@@ -102,7 +102,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
         if args.pips {
-            for (&(wf, wt), pip) in grid.pips.iter().sorted_by_key(|(&k, _)| k) {
+            for (&(wf, wt), pip) in grid.pips.iter().sorted_by_key(|&(&k, _)| k) {
                 print!(
                     "\tPIP {wt} <- {wf}",
                     wt = grid.nodes.key(wt),

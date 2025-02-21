@@ -13,7 +13,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let ExpandedDevice::Xc2000(ref edev) = backend.edev else {
+    let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
     };
     let kind = edev.grid.kind;
@@ -397,7 +397,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let ExpandedDevice::Xc2000(ref edev) = ctx.edev else {
+    let ExpandedDevice::Xc2000(edev) = ctx.edev else {
         unreachable!()
     };
     let kind = edev.grid.kind;

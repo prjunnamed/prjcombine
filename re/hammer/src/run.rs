@@ -442,8 +442,8 @@ impl<'a, B: Backend> Session<'a, B> {
         let fgens = core::mem::take(&mut self.fgens);
         for i in gens {
             let mut chain = self.install_fuzzer(state, &*fgens[i].fgen).1;
-            while let Some(gen) = chain {
-                chain = self.install_fuzzer(state, &*gen).1;
+            while let Some(generator) = chain {
+                chain = self.install_fuzzer(state, &*generator).1;
             }
         }
         self.fgens = fgens;

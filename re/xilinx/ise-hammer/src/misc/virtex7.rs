@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let ExpandedDevice::Virtex4(ref edev) = backend.edev else {
+    let ExpandedDevice::Virtex4(edev) = backend.edev else {
         unreachable!()
     };
     let ctx = FuzzCtx::new_fake_tile(session, backend, "NULL", "NULL", TileBits::Null);
@@ -815,7 +815,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let ExpandedDevice::Virtex4(ref edev) = ctx.edev else {
+    let ExpandedDevice::Virtex4(edev) = ctx.edev else {
         unreachable!()
     };
     let tile = "CFG";

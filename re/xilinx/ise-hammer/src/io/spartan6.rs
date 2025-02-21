@@ -142,7 +142,7 @@ const IOSTDS_BT: &[Iostd] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let ExpandedDevice::Spartan6(ref edev) = backend.edev else {
+    let ExpandedDevice::Spartan6(edev) = backend.edev else {
         unreachable!()
     };
     let package = backend
@@ -1478,7 +1478,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let ExpandedDevice::Spartan6(ref edev) = ctx.edev else {
+    let ExpandedDevice::Spartan6(edev) = ctx.edev else {
         unreachable!()
     };
     for tile in ["IOI.LR", "IOI.BT"] {

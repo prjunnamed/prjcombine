@@ -1,12 +1,12 @@
-use prjcombine_re_collector::{FeatureId, State};
 use prjcombine_interconnect::{
     db::{BelId, Dir, NodeKindId, NodeTileId, NodeWireId},
     grid::{ColId, DieId, IntWire, LayerId, NodeLoc, RowId, TileIobId},
 };
-use prjcombine_virtex2::iob::IobKind;
-use prjcombine_xilinx_bitstream::{BitTile, Reg};
+use prjcombine_re_collector::{FeatureId, State};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, IntfWireOutNaming, NodeRawTileId};
+use prjcombine_virtex2::iob::IobKind;
+use prjcombine_xilinx_bitstream::{BitTile, Reg};
 use rand::prelude::*;
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::EntityId;
@@ -775,8 +775,8 @@ impl<'a> TileKV<'a> {
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         Some(match self {
             TileKV::Nop => fuzzer,
-            TileKV::Bel(bel, ref inner) => inner.apply(backend, loc, *bel, fuzzer)?,
-            TileKV::IobBel(tile, bel, ref inner) => {
+            TileKV::Bel(bel, inner) => inner.apply(backend, loc, *bel, fuzzer)?,
+            TileKV::IobBel(tile, bel, inner) => {
                 let ioi_loc = find_ioi(backend, loc, *tile);
                 inner.apply(backend, ioi_loc, *bel, fuzzer)?
             }
@@ -1305,8 +1305,8 @@ impl<'a> TileKV<'a> {
                 }
                 fuzzer
             }
-            TileKV::Raw(ref key, ref val) => fuzzer.base(key.clone(), val.clone()),
-            TileKV::TileRelated(relation, ref chain) => {
+            TileKV::Raw(key, val) => fuzzer.base(key.clone(), val.clone()),
+            TileKV::TileRelated(relation, chain) => {
                 let loc = resolve_tile_relation(backend, loc, *relation)?;
                 chain.apply(backend, loc, fuzzer)?
             }
@@ -2362,8 +2362,8 @@ fn drive_xc4000_wire<'a>(
     let (_, (acol, arow), _) = wire_avoid;
     let fuzzer = fuzzer.fuzz(Key::NodeMutex(wire_target), None, "EXCLUSIVE");
     // println!("DRIVING {wire_target:?} {wname}");
-    if wire_target.1 .1 != edev.grid.row_bio()
-        && wire_target.1 .1 != edev.grid.row_tio()
+    if wire_target.1.1 != edev.grid.row_bio()
+        && wire_target.1.1 != edev.grid.row_tio()
         && (wname == "LONG.H2" || wname == "LONG.H3")
     {
         let bel = if wname == "LONG.H3" { "TBUF1" } else { "TBUF0" };
@@ -3905,7 +3905,7 @@ impl<'a> BelKV {
                         let ExpandedBond::Virtex(ref ebond) = backend.ebonds[pkg] else {
                             unreachable!()
                         };
-                        let ExpandedNamedDevice::Virtex(ref endev) = backend.endev else {
+                        let ExpandedNamedDevice::Virtex(endev) = backend.endev else {
                             unreachable!()
                         };
                         let bel_key = backend.egrid.db.nodes[node.kind].bels.key(bel);
@@ -3916,17 +3916,9 @@ impl<'a> BelKV {
                             (
                                 None,
                                 if loc.2 == edev.grid.row_bio() {
-                                    if bel_key == "GCLKIOB0" {
-                                        4
-                                    } else {
-                                        5
-                                    }
+                                    if bel_key == "GCLKIOB0" { 4 } else { 5 }
                                 } else {
-                                    if bel_key == "GCLKIOB0" {
-                                        1
-                                    } else {
-                                        0
-                                    }
+                                    if bel_key == "GCLKIOB0" { 1 } else { 0 }
                                 },
                             )
                         };
@@ -3955,7 +3947,7 @@ impl<'a> BelKV {
                         let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[pkg] else {
                             unreachable!()
                         };
-                        let ExpandedNamedDevice::Virtex2(ref endev) = backend.endev else {
+                        let ExpandedNamedDevice::Virtex2(endev) = backend.endev else {
                             unreachable!()
                         };
                         let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
@@ -4045,7 +4037,7 @@ impl<'a> BelKV {
                         let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[pkg] else {
                             unreachable!()
                         };
-                        let ExpandedNamedDevice::Virtex2(ref endev) = backend.endev else {
+                        let ExpandedNamedDevice::Virtex2(endev) = backend.endev else {
                             unreachable!()
                         };
                         let crd = edev.grid.get_io_crd(loc.1, loc.2, bel);
@@ -4211,12 +4203,7 @@ impl<'a> BelKV {
                     .unwrap();
                 let fuzzer = fuzzer.fuzz(Key::NodeMutex(res_wire), None, "EXCLUSIVE");
                 if *drive {
-                    let oloc = (
-                        res_wire.0,
-                        res_wire.1 .0,
-                        res_wire.1 .1,
-                        LayerId::from_idx(0),
-                    );
+                    let oloc = (res_wire.0, res_wire.1.0, res_wire.1.1, LayerId::from_idx(0));
                     let onode = backend.egrid.node(oloc);
                     let onode_data = &backend.egrid.db.nodes[onode.kind];
                     let wt = (NodeTileId::from_idx(0), res_wire.2);
@@ -4309,8 +4296,8 @@ impl<'a> TileFuzzKV<'a> {
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         let node = backend.egrid.node(loc);
         Some(match self {
-            TileFuzzKV::Bel(bel, ref inner) => inner.apply(backend, loc, *bel, fuzzer)?,
-            TileFuzzKV::IobBel(tile, bel, ref inner) => {
+            TileFuzzKV::Bel(bel, inner) => inner.apply(backend, loc, *bel, fuzzer)?,
+            TileFuzzKV::IobBel(tile, bel, inner) => {
                 let ioi_loc = find_ioi(backend, loc, *tile);
                 inner.apply(backend, ioi_loc, *bel, fuzzer)?
             }
@@ -4365,7 +4352,7 @@ impl<'a> TileFuzzKV<'a> {
             TileFuzzKV::RowMutexExclusive(name) => {
                 fuzzer.fuzz(Key::RowMutex(name.clone(), loc.2), None, "EXCLUSIVE")
             }
-            TileFuzzKV::TileRelated(relation, ref chain) => {
+            TileFuzzKV::TileRelated(relation, chain) => {
                 let loc = resolve_tile_relation(backend, loc, *relation)?;
                 chain.apply(backend, loc, fuzzer)?
             }
@@ -4392,7 +4379,7 @@ impl<'a> TileFuzzKV<'a> {
                     .bank;
                 fuzzer.fuzz(Key::VccoSenseMode(bank), None, mode.clone())
             }
-            TileFuzzKV::Raw(ref key, ref vala, ref valb) => {
+            TileFuzzKV::Raw(key, vala, valb) => {
                 fuzzer.fuzz(key.clone(), vala.clone(), valb.clone())
             }
         })
@@ -6003,42 +5990,50 @@ impl ExtraFeatureKind {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => vec![(0..16)
-                        .map(|i| {
-                            edev.btile_main(
-                                loc.0,
-                                edev.col_cfg,
-                                edev.grids[loc.0].row_bufg() - 8 + i,
-                            )
-                        })
-                        .collect()],
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => vec![(0..20)
-                        .map(|i| {
-                            edev.btile_main(
-                                loc.0,
-                                edev.col_cfg,
-                                edev.grids[loc.0].row_bufg() - 10 + i,
-                            )
-                        })
-                        .collect()],
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => vec![(0..80)
-                        .map(|i| {
-                            edev.btile_main(
-                                loc.0,
-                                edev.col_cfg,
-                                edev.grids[loc.0].row_bufg() - 40 + i,
-                            )
-                        })
-                        .collect()],
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => vec![(0..50)
-                        .map(|i| {
-                            edev.btile_main(
-                                loc.0,
-                                edev.col_cfg,
-                                edev.grids[loc.0].row_bufg() - 50 + i,
-                            )
-                        })
-                        .collect()],
+                    prjcombine_virtex4::grid::GridKind::Virtex4 => vec![
+                        (0..16)
+                            .map(|i| {
+                                edev.btile_main(
+                                    loc.0,
+                                    edev.col_cfg,
+                                    edev.grids[loc.0].row_bufg() - 8 + i,
+                                )
+                            })
+                            .collect(),
+                    ],
+                    prjcombine_virtex4::grid::GridKind::Virtex5 => vec![
+                        (0..20)
+                            .map(|i| {
+                                edev.btile_main(
+                                    loc.0,
+                                    edev.col_cfg,
+                                    edev.grids[loc.0].row_bufg() - 10 + i,
+                                )
+                            })
+                            .collect(),
+                    ],
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => vec![
+                        (0..80)
+                            .map(|i| {
+                                edev.btile_main(
+                                    loc.0,
+                                    edev.col_cfg,
+                                    edev.grids[loc.0].row_bufg() - 40 + i,
+                                )
+                            })
+                            .collect(),
+                    ],
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => vec![
+                        (0..50)
+                            .map(|i| {
+                                edev.btile_main(
+                                    loc.0,
+                                    edev.col_cfg,
+                                    edev.grids[loc.0].row_bufg() - 50 + i,
+                                )
+                            })
+                            .collect(),
+                    ],
                 }
             }
             ExtraFeatureKind::AllCfg => {
@@ -6339,9 +6334,11 @@ impl ExtraFeatureKind {
                         } else {
                             16
                         };
-                        return vec![(0..height)
-                            .map(|i| edev.btile_main(die, loc.1, row + i))
-                            .collect()];
+                        return vec![
+                            (0..height)
+                                .map(|i| edev.btile_main(die, loc.1, row + i))
+                                .collect(),
+                        ];
                     }
                 }
             }

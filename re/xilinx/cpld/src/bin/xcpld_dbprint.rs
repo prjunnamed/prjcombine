@@ -54,10 +54,10 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 pad = io.pad,
                 bank = io.bank.to_idx()
             );
-            if let Some((idx, _)) = device.device.clk_pads.iter().find(|(_, &y)| y == ioid) {
+            if let Some((idx, _)) = device.device.clk_pads.iter().find(|&(_, &y)| y == ioid) {
                 print!(" FCLK{idx}", idx = idx.to_idx());
             }
-            if let Some((idx, _)) = device.device.oe_pads.iter().find(|(_, &y)| y == ioid) {
+            if let Some((idx, _)) = device.device.oe_pads.iter().find(|&(_, &y)| y == ioid) {
                 print!(" FOE{idx}", idx = idx.to_idx());
             }
             if device.device.sr_pad == Some(ioid) {

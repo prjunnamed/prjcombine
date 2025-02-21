@@ -2712,7 +2712,7 @@ const GTZ_HEX_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let ExpandedNamedDevice::Virtex4(ref endev) = backend.endev else {
+    let ExpandedNamedDevice::Virtex4(endev) = backend.endev else {
         unreachable!()
     };
     for dir in [Dir::S, Dir::N] {
@@ -2779,7 +2779,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let ExpandedDevice::Virtex4(ref edev) = ctx.edev else {
+    let ExpandedDevice::Virtex4(edev) = ctx.edev else {
         unreachable!()
     };
     if edev.gtz.values().any(|x| x.is_some()) {

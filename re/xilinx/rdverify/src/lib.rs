@@ -273,7 +273,7 @@ impl<'a> Verifier<'a> {
                             }
                         }
                         for (w, ii) in &nk.intfs {
-                            match ii {
+                            match *ii {
                                 IntfInfo::OutputTestMux(ref wfs) => {
                                     let wt = (die.die, node.tiles[w.0], w.1);
                                     if let Some(wt) = self.ngrid.resolve_wire_raw(wt) {

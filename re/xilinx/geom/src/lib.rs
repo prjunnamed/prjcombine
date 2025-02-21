@@ -296,7 +296,7 @@ impl GeomDb {
                     .collect();
                 ExpandedDevice::Spartan6(grid.expand_grid(intdb, &disabled))
             }
-            Grid::Virtex4(ref grid) => {
+            Grid::Virtex4(grid) => {
                 let intdb = &self.ints[match grid.kind {
                     prjcombine_virtex4::grid::GridKind::Virtex4 => "virtex4",
                     prjcombine_virtex4::grid::GridKind::Virtex5 => "virtex5",
@@ -324,7 +324,7 @@ impl GeomDb {
                     &grids, interposer, &disabled, intdb, &self.gtz,
                 ))
             }
-            Grid::Ultrascale(ref grid) => {
+            Grid::Ultrascale(grid) => {
                 let intdb = &self.ints[match grid.kind {
                     prjcombine_ultrascale::grid::GridKind::Ultrascale => "ultrascale",
                     prjcombine_ultrascale::grid::GridKind::UltrascalePlus => "ultrascaleplus",

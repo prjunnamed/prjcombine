@@ -21,7 +21,7 @@ pub fn add_fuzzers<'a>(
     devdata_only: bool,
 ) {
     let (edev, grid_kind) = match backend.edev {
-        ExpandedDevice::Virtex2(ref edev) => (edev, edev.grid.kind),
+        ExpandedDevice::Virtex2(edev) => (edev, edev.grid.kind),
         _ => unreachable!(),
     };
 
@@ -454,7 +454,7 @@ pub fn add_fuzzers<'a>(
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let (edev, grid_kind) = match ctx.edev {
-        ExpandedDevice::Virtex2(ref edev) => (edev, edev.grid.kind),
+        ExpandedDevice::Virtex2(edev) => (edev, edev.grid.kind),
         _ => unreachable!(),
     };
     let intdb = ctx.edev.egrid().db;
