@@ -8,14 +8,14 @@ use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_virtex::{
     bond::Bond,
+    chip::{Chip, ChipKind, DisabledPart},
     db::{Database, DeviceCombo, Part},
-    grid::{DisabledPart, Grid, GridKind},
 };
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
-    grid: &'a Grid,
+    grid: &'a Chip,
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
@@ -33,7 +33,7 @@ enum PartKind {
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct SortKey<'a> {
-    kind: GridKind,
+    kind: ChipKind,
     width: usize,
     height: usize,
     part_kind: PartKind,
@@ -46,7 +46,7 @@ static RE_QRVIRTEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xqvr[0-9]+e?
 static RE_SPARTAN2: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc2s[0-9]+e?$").unwrap());
 static RE_ASPARTAN2: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xa2s[0-9]+e?$").unwrap());
 
-fn sort_key<'a>(name: &'a str, grid: &'a Grid) -> SortKey<'a> {
+fn sort_key<'a>(name: &'a str, grid: &'a Chip) -> SortKey<'a> {
     let part_kind = if RE_VIRTEX.is_match(name) {
         PartKind::Virtex
     } else if RE_QVIRTEX.is_match(name) {
@@ -146,7 +146,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         let speeds = EntityVec::from_iter(speeds.into_values());
         let part = Part {
             name: name.into(),
-            grid,
+            chip: grid,
             bonds: dev_bonds,
             speeds,
             combos,
@@ -163,7 +163,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     // TODO: resort int
 
     Database {
-        grids,
+        chips: grids,
         bonds,
         parts,
         int,

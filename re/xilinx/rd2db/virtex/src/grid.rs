@@ -5,19 +5,19 @@ use prjcombine_interconnect::{
     grid::{ColId, EdgeIoCoord},
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
-use prjcombine_virtex::grid::{DisabledPart, Grid, GridKind, SharedCfgPin};
+use prjcombine_virtex::chip::{Chip, ChipKind, DisabledPart, SharedCfgPin};
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int, find_columns};
 
-fn get_kind(rd: &Part) -> GridKind {
+fn get_kind(rd: &Part) -> ChipKind {
     match &rd.family[..] {
-        "virtex" | "spartan2" => GridKind::Virtex,
+        "virtex" | "spartan2" => ChipKind::Virtex,
         "virtexe" | "spartan2e" => {
             if find_columns(rd, &["MBRAM"]).contains(&6) {
-                GridKind::VirtexEM
+                ChipKind::VirtexEM
             } else {
-                GridKind::VirtexE
+                ChipKind::VirtexE
             }
         }
         _ => panic!("unknown family {}", rd.family),
@@ -72,7 +72,7 @@ fn add_disabled_brams(disabled: &mut BTreeSet<DisabledPart>, rd: &Part, int: &In
     }
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
+fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
     let mut io_lookup = HashMap::new();
     for (&crd, tile) in &rd.tiles {
         let tk = &rd.tile_kinds[tile.kind];
@@ -146,7 +146,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
     }
 }
 
-pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
+pub fn make_grid(rd: &Part) -> (Chip, BTreeSet<DisabledPart>) {
     // This list of int tiles is incomplete, but suffices for the purpose of grid determination
     let int = extract_int(
         rd,
@@ -159,7 +159,7 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
     let mut disabled = BTreeSet::new();
     add_disabled_dlls(&mut disabled, rd);
     add_disabled_brams(&mut disabled, rd, &int);
-    let mut grid = Grid {
+    let mut grid = Chip {
         kind,
         columns: int.cols.len(),
         cols_bram: get_cols_bram(rd, &int),

@@ -1,15 +1,15 @@
 use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedDieRef, LayerId, RowId};
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex::{
+    chip::{Chip, ChipKind, DisabledPart},
     expanded::ExpandedDevice,
-    grid::{DisabledPart, Grid, GridKind},
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,
     pub ngrid: ExpandedGridNaming<'a>,
-    pub grid: &'a Grid,
+    pub grid: &'a Chip,
 }
 
 impl<'a> ExpandedNamedDevice<'a> {
@@ -23,7 +23,7 @@ impl<'a> ExpandedNamedDevice<'a> {
 
 struct Namer<'a> {
     edev: &'a ExpandedDevice<'a>,
-    grid: &'a Grid,
+    grid: &'a Chip,
     die: ExpandedDieRef<'a, 'a>,
     ngrid: ExpandedGridNaming<'a>,
     clut: EntityPartVec<ColId, usize>,
@@ -163,7 +163,7 @@ impl Namer<'_> {
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let egrid = &edev.egrid;
-    let grid = edev.grid;
+    let grid = edev.chip;
     let mut namer = Namer {
         edev,
         grid,
@@ -240,7 +240,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "BRAM_BOT" => {
-                            let name = if grid.kind == GridKind::Virtex {
+                            let name = if grid.kind == ChipKind::Virtex {
                                 if col == grid.col_lio() + 1 {
                                     "LBRAM_BOT".to_string()
                                 } else {
@@ -263,7 +263,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             namer.ngrid.name_node(nloc, naming, [name]);
                         }
                         "BRAM_TOP" => {
-                            let name = if grid.kind == GridKind::Virtex {
+                            let name = if grid.kind == ChipKind::Virtex {
                                 if col == grid.col_lio() + 1 {
                                     "LBRAM_TOP".to_string()
                                 } else {
@@ -288,14 +288,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         "LBRAM" | "RBRAM" | "MBRAM" => {
                             let r = namer.rlut[row];
                             let c = namer.bramclut[col];
-                            let mut names = vec![if grid.kind == GridKind::Virtex {
+                            let mut names = vec![if grid.kind == ChipKind::Virtex {
                                 format!("{kind}R{r}")
                             } else {
                                 format!("BRAMR{r}C{c}")
                             }];
                             if r >= 5 {
                                 let pr = r - 4;
-                                if grid.kind == GridKind::Virtex {
+                                if grid.kind == ChipKind::Virtex {
                                     names.push(format!("{kind}R{pr}"));
                                 } else {
                                     names.push(format!("BRAMR{pr}C{c}"));
@@ -386,7 +386,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(0, "RPCILOGIC".to_string());
                         }
                         "CLKV_BRAM_BOT" => {
-                            let name = if grid.kind == GridKind::Virtex {
+                            let name = if grid.kind == ChipKind::Virtex {
                                 let lr = if col < grid.col_clk() { 'L' } else { 'R' };
                                 format!("{lr}BRAM_BOT")
                             } else {
@@ -396,7 +396,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             namer.ngrid.name_node(nloc, "CLKV_BRAM_BOT", [name]);
                         }
                         "CLKV_BRAM_TOP" => {
-                            let name = if grid.kind == GridKind::Virtex {
+                            let name = if grid.kind == ChipKind::Virtex {
                                 let lr = if col < grid.col_clk() { 'L' } else { 'R' };
                                 format!("{lr}BRAM_TOP")
                             } else {
@@ -436,7 +436,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 .name_node(nloc, "CLKV.GCLKV", [format!("GCLKVR{r}C{c}")]);
                         }
                         "BRAM_CLKH" => {
-                            let name = if grid.kind == GridKind::Virtex {
+                            let name = if grid.kind == ChipKind::Virtex {
                                 if col == grid.col_lio() + 1 {
                                     "LBRAMM".to_string()
                                 } else {

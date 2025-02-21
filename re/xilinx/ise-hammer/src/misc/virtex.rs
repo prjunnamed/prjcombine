@@ -3,7 +3,7 @@ use prjcombine_re_collector::{OcdMode, xlat_bitvec, xlat_bool, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::{TileBit, TileItem};
-use prjcombine_virtex::grid::GridKind;
+use prjcombine_virtex::chip::ChipKind;
 use prjcombine_xilinx_bitstream::Reg;
 use unnamed_entity::EntityId;
 
@@ -234,7 +234,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert_int_inv(&[tile], tile, bel, pin, item);
         }
         present.assert_empty();
-        if edev.grid.kind == GridKind::Virtex {
+        if edev.chip.kind == ChipKind::Virtex {
             let d0 = ctx.state.get_diff(tile, bel, "PCI_DELAY", "00");
             let d1 = ctx.state.get_diff(tile, bel, "PCI_DELAY", "01");
             let d2 = ctx.state.get_diff(tile, bel, "PCI_DELAY", "10");
@@ -261,7 +261,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "M0PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "M1PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "M2PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        if edev.grid.kind == GridKind::Virtex && ctx.device.name.contains("2s") {
+        if edev.chip.kind == ChipKind::Virtex && ctx.device.name.contains("2s") {
             ctx.collect_enum(tile, bel, "POWERDOWNPIN", &["PULLUP", "PULLNONE"]);
             ctx.collect_enum(tile, bel, "PDSTATUSPIN", &["PULLUP", "PULLNONE"]);
             ctx.collect_enum(tile, bel, "POWERUP_DELAY", &["100US", "200US", "400US"]);
@@ -310,7 +310,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for attr in ["IBCLK_N2", "IBCLK_N4", "IBCLK_N8", "IBCLK_N16", "IBCLK_N32"] {
             ctx.state.get_diff(tile, bel, attr, "1").assert_empty();
         }
-        if edev.grid.kind == GridKind::Virtex && ctx.device.name.contains("2s") {
+        if edev.chip.kind == ChipKind::Virtex && ctx.device.name.contains("2s") {
             ctx.collect_enum(tile, bel, "POWERUP_CLK", &["USERCLK", "INTOSC", "CCLK"]);
         } else {
             for (attr, val) in [

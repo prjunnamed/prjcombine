@@ -8,7 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityIds};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum GridKind {
+pub enum ChipKind {
     Virtex,
     VirtexE,
     VirtexEM,
@@ -24,8 +24,8 @@ pub enum SharedCfgPin {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Grid {
-    pub kind: GridKind,
+pub struct Chip {
+    pub kind: ChipKind,
     pub columns: usize,
     pub cols_bram: BTreeSet<ColId>,
     pub cols_clkv: Vec<(ColId, ColId, ColId)>,
@@ -41,7 +41,7 @@ pub enum DisabledPart {
     Bram(ColId),
 }
 
-impl Grid {
+impl Chip {
     pub fn row_mid(&self) -> RowId {
         RowId::from_idx(self.rows / 2)
     }
@@ -187,9 +187,9 @@ impl Grid {
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "kind": match self.kind {
-                GridKind::Virtex => "virtex",
-                GridKind::VirtexE => "virtexe",
-                GridKind::VirtexEM => "virtexem",
+                ChipKind::Virtex => "virtex",
+                ChipKind::VirtexE => "virtexe",
+                ChipKind::VirtexEM => "virtexem",
             },
             "columns": self.columns,
             "cols_bram": self.cols_bram,
@@ -208,7 +208,7 @@ impl Grid {
     }
 }
 
-impl std::fmt::Display for Grid {
+impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\tKIND: {k:?}", k = self.kind)?;
         writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;

@@ -34,7 +34,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (mode "DLL")
         ], vec![
             ExtraFeature::new(
-                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_tio()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_lio(), edev.chip.row_tio()),
                 "CNR.TL",
                 "MISC",
                 "DLL_ENABLE",

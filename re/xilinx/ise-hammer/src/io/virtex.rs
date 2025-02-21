@@ -6,7 +6,7 @@ use prjcombine_re_collector::{Diff, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum}
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
-use prjcombine_virtex::grid::GridKind;
+use prjcombine_virtex::chip::ChipKind;
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -36,7 +36,7 @@ fn has_any_vref<'a>(
         }
     }
     for &(_, col, row, _) in &edev.egrid.node_index[node_kind] {
-        let crd = edev.grid.get_io_crd(col, row, bel);
+        let crd = edev.chip.get_io_crd(col, row, bel);
         if let Some(&pkg) = bonded_ios.get(&crd) {
             return Some(pkg);
         }
@@ -250,7 +250,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (attr "IMUX", "0"),
                 (pin "I")
             ]);
-            let iostds_cmos = if edev.grid.kind == GridKind::Virtex {
+            let iostds_cmos = if edev.chip.kind == ChipKind::Virtex {
                 IOSTDS_CMOS_V
             } else {
                 IOSTDS_CMOS_VE
@@ -338,7 +338,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     ]);
                 }
             }
-            if edev.grid.kind != GridKind::Virtex {
+            if edev.chip.kind != ChipKind::Virtex {
                 for &iostd in IOSTDS_DIFF {
                     fuzz_one!(ctx, "ISTD", iostd, [
                         (package package),
@@ -462,9 +462,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Virtex(edev) = ctx.edev else {
         unreachable!()
     };
-    let kind = match edev.grid.kind {
-        GridKind::Virtex => "V",
-        GridKind::VirtexE | GridKind::VirtexEM => "VE",
+    let kind = match edev.chip.kind {
+        ChipKind::Virtex => "V",
+        ChipKind::VirtexE | ChipKind::VirtexEM => "VE",
     };
     for side in ['L', 'R', 'B', 'T'] {
         let tile = &format!("IO.{side}");
@@ -688,7 +688,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut diffs_istd = vec![];
             let mut diffs_iostd_misc = HashMap::new();
             let mut diffs_iostd_misc_vec = vec![("NONE", !&present)];
-            let iostds: Vec<_> = if edev.grid.kind == GridKind::Virtex {
+            let iostds: Vec<_> = if edev.chip.kind == ChipKind::Virtex {
                 IOSTDS_CMOS_V
                     .iter()
                     .map(|&x| ("CMOS", x))
@@ -761,7 +761,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .into_keys()
                 .collect();
 
-            let tag = if edev.grid.kind == GridKind::Virtex {
+            let tag = if edev.chip.kind == ChipKind::Virtex {
                 "V"
             } else {
                 "VE"
@@ -894,7 +894,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
     }
-    if edev.grid.kind != GridKind::Virtex {
+    if edev.chip.kind != ChipKind::Virtex {
         for tile in if ctx.device.name.contains("2s") {
             ["CLKB_2DLL", "CLKT_2DLL"]
         } else {

@@ -4,7 +4,7 @@ use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, Row
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::grid::{DisabledPart, Grid};
+use crate::chip::{Chip, DisabledPart};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Io {
@@ -13,7 +13,7 @@ pub struct Io {
 }
 
 pub struct ExpandedDevice<'a> {
-    pub grid: &'a Grid,
+    pub chip: &'a Chip,
     pub egrid: ExpandedGrid<'a>,
     pub bs_geom: BitstreamGeom,
     pub spine_frame: usize,
@@ -25,9 +25,9 @@ pub struct ExpandedDevice<'a> {
 
 impl ExpandedDevice<'_> {
     pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
-        let width = if col == self.grid.col_lio() || col == self.grid.col_rio() {
+        let width = if col == self.chip.col_lio() || col == self.chip.col_rio() {
             54
-        } else if self.grid.cols_bram.contains(&col) {
+        } else if self.chip.cols_bram.contains(&col) {
             27
         } else {
             48

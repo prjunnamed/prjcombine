@@ -101,86 +101,86 @@ impl Chip {
 
     pub fn expand_grid<'a>(&'a self, db: &'a IntDb) -> ExpandedDevice<'a> {
         let mut egrid = ExpandedGrid::new(db);
-        let (_, mut grid) = egrid.add_die(self.columns, self.rows);
+        let (_, mut die) = egrid.add_die(self.columns, self.rows);
 
         let mut row_framebit = EntityVec::new();
         let mut llv_framebit = EntityPartVec::new();
         let mut frame_len = 0;
         let mut frame_info = vec![];
-        let mut col_frame: EntityVec<_, _> = grid.cols().map(|_| 0).collect();
+        let mut col_frame: EntityVec<_, _> = die.cols().map(|_| 0).collect();
         let mut llh_frame = EntityPartVec::new();
 
         match self.kind {
             ChipKind::Xc2000 => {
-                for col in grid.cols() {
+                for col in die.cols() {
                     if col == self.col_lio() {
-                        for row in grid.rows() {
+                        for row in die.rows() {
                             if row == self.row_bio() {
-                                grid.add_xnode((col, row), "CLB.BL", &[(col, row), (col + 1, row)]);
+                                die.add_xnode((col, row), "CLB.BL", &[(col, row), (col + 1, row)]);
                             } else if row == self.row_tio() {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     "CLB.TL",
                                     &[(col, row), (col, row - 1), (col + 1, row)],
                                 );
                             } else if row == self.row_mid() - 1 {
-                                grid.add_xnode((col, row), "CLB.ML", &[(col, row), (col, row - 1)]);
+                                die.add_xnode((col, row), "CLB.ML", &[(col, row), (col, row - 1)]);
                             } else {
-                                grid.add_xnode((col, row), "CLB.L", &[(col, row), (col, row - 1)]);
+                                die.add_xnode((col, row), "CLB.L", &[(col, row), (col, row - 1)]);
                             }
                         }
                     } else if col == self.col_rio() {
-                        for row in grid.rows() {
+                        for row in die.rows() {
                             if row == self.row_bio() {
-                                grid.add_xnode((col, row), "CLB.BR", &[(col, row)]);
+                                die.add_xnode((col, row), "CLB.BR", &[(col, row)]);
                             } else if row == self.row_tio() {
-                                grid.add_xnode((col, row), "CLB.TR", &[(col, row), (col, row - 1)]);
+                                die.add_xnode((col, row), "CLB.TR", &[(col, row), (col, row - 1)]);
                             } else if row == self.row_mid() - 1 {
-                                grid.add_xnode((col, row), "CLB.MR", &[(col, row), (col, row - 1)]);
+                                die.add_xnode((col, row), "CLB.MR", &[(col, row), (col, row - 1)]);
                             } else {
-                                grid.add_xnode((col, row), "CLB.R", &[(col, row), (col, row - 1)]);
+                                die.add_xnode((col, row), "CLB.R", &[(col, row), (col, row - 1)]);
                             }
                         }
                     } else {
-                        for row in grid.rows() {
+                        for row in die.rows() {
                             if row == self.row_bio() {
                                 let kind = if col == self.col_rio() - 1 {
                                     "CLB.BR1"
                                 } else {
                                     "CLB.B"
                                 };
-                                grid.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
+                                die.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
                             } else if row == self.row_tio() {
                                 let kind = if col == self.col_rio() - 1 {
                                     "CLB.TR1"
                                 } else {
                                     "CLB.T"
                                 };
-                                grid.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
+                                die.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
                             } else {
-                                grid.add_xnode((col, row), "CLB", &[(col, row)]);
+                                die.add_xnode((col, row), "CLB", &[(col, row)]);
                             }
                         }
                     }
                 }
-                for row in grid.rows() {
+                for row in die.rows() {
                     for &col in &self.cols_bidi {
-                        grid.add_xnode((col, row), "BIDIH", &[]);
+                        die.add_xnode((col, row), "BIDIH", &[]);
                     }
                 }
-                for col in grid.cols() {
+                for col in die.cols() {
                     for &row in &self.rows_bidi {
-                        grid.add_xnode((col, row), "BIDIV", &[]);
+                        die.add_xnode((col, row), "BIDIV", &[]);
                     }
                 }
-                for col in grid.cols() {
-                    for row in grid.rows() {
-                        grid[(col, row)].clkroot = (ColId::from_idx(0), RowId::from_idx(0));
+                for col in die.cols() {
+                    for row in die.rows() {
+                        die[(col, row)].clkroot = (ColId::from_idx(0), RowId::from_idx(0));
                     }
                 }
-                grid.fill_main_passes();
+                die.fill_main_passes();
 
-                for row in grid.rows() {
+                for row in die.rows() {
                     if self.rows_bidi.contains(&row) {
                         llv_framebit.insert(row, frame_len);
                         frame_len += 1;
@@ -189,7 +189,7 @@ impl Chip {
                     frame_len += self.btile_height_main(row);
                 }
 
-                for col in grid.cols().rev() {
+                for col in die.cols().rev() {
                     let width = self.btile_width_main(col);
                     col_frame[col] = frame_info.len();
                     for _ in 0..width {
@@ -225,8 +225,8 @@ impl Chip {
             ChipKind::Xc3000 | ChipKind::Xc3000A => {
                 let s = if self.is_small { "S" } else { "" };
 
-                for col in grid.cols() {
-                    for row in grid.rows() {
+                for col in die.cols() {
+                    for row in die.rows() {
                         let mut subkind =
                             (row.to_idx() + 2 * (self.columns - 1 - col.to_idx())) % 3;
                         if subkind == 1 && col == self.col_rio() && row == self.row_tio() - 1 {
@@ -235,19 +235,19 @@ impl Chip {
                         }
                         if col == self.col_lio() {
                             if row == self.row_bio() {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     &format!("CLB.BL{s}.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row + 1)],
                                 );
                             } else if row == self.row_tio() {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     &format!("CLB.TL{s}.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row - 1)],
                                 );
                             } else {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     &format!("CLB.L.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row - 1), (col, row + 1)],
@@ -255,19 +255,19 @@ impl Chip {
                             }
                         } else if col == self.col_rio() {
                             if row == self.row_bio() {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     &format!("CLB.BR{s}.{subkind}"),
                                     &[(col, row), (col, row + 1)],
                                 );
                             } else if row == self.row_tio() {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     &format!("CLB.TR{s}.{subkind}"),
                                     &[(col, row), (col, row - 1)],
                                 );
                             } else {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     &format!("CLB.R.{subkind}"),
                                     &[(col, row), (col, row - 1), (col, row + 1)],
@@ -275,19 +275,19 @@ impl Chip {
                             }
                         } else {
                             if row == self.row_bio() {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     &format!("CLB.B.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row + 1)],
                                 );
                             } else if row == self.row_tio() {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     &format!("CLB.T{s}.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row - 1)],
                                 );
                             } else {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     &format!("CLB.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row - 1), (col, row + 1)],
@@ -299,23 +299,23 @@ impl Chip {
                 {
                     let col = self.col_mid();
                     let row = self.row_bio();
-                    grid.fill_term_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
-                    grid.add_xnode((col, row), "LLH.B", &[(col - 1, row), (col, row)]);
+                    die.fill_term_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
+                    die.add_xnode((col, row), "LLH.B", &[(col - 1, row), (col, row)]);
                     let row = self.row_tio();
-                    grid.fill_term_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
-                    grid.add_xnode((col, row), "LLH.T", &[(col - 1, row), (col, row)]);
+                    die.fill_term_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
+                    die.add_xnode((col, row), "LLH.T", &[(col - 1, row), (col, row)]);
                 }
                 if self.is_small {
                     let row = self.row_mid();
                     let col = self.col_lio();
-                    grid.fill_term_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
-                    grid.add_xnode((col, row), "LLV.LS", &[(col, row - 1), (col, row)]);
+                    die.fill_term_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
+                    die.add_xnode((col, row), "LLV.LS", &[(col, row - 1), (col, row)]);
                     let col = self.col_rio();
-                    grid.fill_term_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
-                    grid.add_xnode((col, row), "LLV.RS", &[(col, row - 1), (col, row)]);
+                    die.fill_term_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
+                    die.add_xnode((col, row), "LLV.RS", &[(col, row - 1), (col, row)]);
                 } else {
                     let row = self.row_mid();
-                    for col in grid.cols() {
+                    for col in die.cols() {
                         let kind = if col == self.col_lio() {
                             "LLV.L"
                         } else if col == self.col_rio() {
@@ -323,18 +323,18 @@ impl Chip {
                         } else {
                             "LLV"
                         };
-                        grid.fill_term_pair((col, row - 1), (col, row), "LLV.N", "LLV.S");
-                        grid.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
+                        die.fill_term_pair((col, row - 1), (col, row), "LLV.N", "LLV.S");
+                        die.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
                     }
                 }
-                for col in grid.cols() {
-                    for row in grid.rows() {
-                        grid[(col, row)].clkroot = (ColId::from_idx(0), RowId::from_idx(0));
+                for col in die.cols() {
+                    for row in die.rows() {
+                        die[(col, row)].clkroot = (ColId::from_idx(0), RowId::from_idx(0));
                     }
                 }
-                grid.fill_main_passes();
+                die.fill_main_passes();
 
-                for row in grid.rows() {
+                for row in die.rows() {
                     if row == self.row_mid() && !self.is_small {
                         llv_framebit.insert(row, frame_len);
                         frame_len += 1;
@@ -343,7 +343,7 @@ impl Chip {
                     frame_len += self.btile_height_main(row);
                 }
 
-                for col in grid.cols().rev() {
+                for col in die.cols().rev() {
                     let width = self.btile_width_main(col);
                     col_frame[col] = frame_info.len();
                     for _ in 0..width {
@@ -368,18 +368,18 @@ impl Chip {
             | ChipKind::Xc4000Xla
             | ChipKind::Xc4000Xv
             | ChipKind::SpartanXl => {
-                let col_l = grid.cols().next().unwrap();
-                let col_r = grid.cols().next_back().unwrap();
-                let row_b = grid.rows().next().unwrap();
-                let row_t = grid.rows().next_back().unwrap();
+                let col_l = die.cols().next().unwrap();
+                let col_r = die.cols().next_back().unwrap();
+                let row_b = die.rows().next().unwrap();
+                let row_t = die.rows().next_back().unwrap();
 
-                for col in grid.cols() {
+                for col in die.cols() {
                     if col == self.col_lio() {
-                        for row in grid.rows() {
+                        for row in die.rows() {
                             if row == self.row_bio() {
-                                grid.add_xnode((col, row), "CNR.BL", &[(col, row), (col + 1, row)]);
+                                die.add_xnode((col, row), "CNR.BL", &[(col, row), (col + 1, row)]);
                             } else if row == self.row_tio() {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     "CNR.TL",
                                     &[
@@ -390,7 +390,7 @@ impl Chip {
                                     ],
                                 );
                             } else {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     self.get_lio_node(row),
                                     &[(col, row), (col, row - 1), (col + 1, row), (col, row + 1)],
@@ -398,13 +398,13 @@ impl Chip {
                             }
                         }
                     } else if col == self.col_rio() {
-                        for row in grid.rows() {
+                        for row in die.rows() {
                             if row == self.row_bio() {
-                                grid.fill_tile((col, row), "CNR.BR");
+                                die.fill_tile((col, row), "CNR.BR");
                             } else if row == self.row_tio() {
-                                grid.add_xnode((col, row), "CNR.TR", &[(col, row), (col, row - 1)]);
+                                die.add_xnode((col, row), "CNR.TR", &[(col, row), (col, row - 1)]);
                             } else {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     self.get_rio_node(row),
                                     &[(col, row), (col, row - 1), (col, row + 1)],
@@ -412,15 +412,15 @@ impl Chip {
                             }
                         }
                     } else {
-                        for row in grid.rows() {
+                        for row in die.rows() {
                             if row == self.row_bio() {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     self.get_bio_node(col),
                                     &[(col, row), (col, row + 1), (col + 1, row), (col - 1, row)],
                                 );
                             } else if row == self.row_tio() {
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     self.get_tio_node(col),
                                     &[(col, row), (col + 1, row), (col - 1, row)],
@@ -451,7 +451,7 @@ impl Chip {
                                         "CLB"
                                     }
                                 };
-                                grid.add_xnode(
+                                die.add_xnode(
                                     (col, row),
                                     kind,
                                     &[(col, row), (col, row + 1), (col + 1, row)],
@@ -462,17 +462,17 @@ impl Chip {
                 }
 
                 if self.kind.is_xl() {
-                    for row in grid.rows() {
+                    for row in die.rows() {
                         for col in [self.col_ql(), self.col_qr()] {
                             if row == self.row_bio() || row == self.row_tio() {
-                                grid.fill_term_pair(
+                                die.fill_term_pair(
                                     (col - 1, row),
                                     (col, row),
                                     "LLHQ.IO.E",
                                     "LLHQ.IO.W",
                                 );
                             } else {
-                                grid.fill_term_pair((col - 1, row), (col, row), "LLHQ.E", "LLHQ.W");
+                                die.fill_term_pair((col - 1, row), (col, row), "LLHQ.E", "LLHQ.W");
                             }
                             let kind = if row == self.row_bio() {
                                 "LLHQ.IO.B"
@@ -487,10 +487,10 @@ impl Chip {
                                     "LLHQ.CLB"
                                 }
                             };
-                            grid.add_xnode((col, row), kind, &[(col - 1, row), (col, row)]);
+                            die.add_xnode((col, row), kind, &[(col - 1, row), (col, row)]);
                         }
                         let col = self.col_mid();
-                        grid.fill_term_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
+                        die.fill_term_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
                         let kind = if row == self.row_bio() {
                             "LLHC.IO.B"
                         } else if row == self.row_tio() {
@@ -500,12 +500,12 @@ impl Chip {
                         } else {
                             "LLHC.CLB"
                         };
-                        grid.add_xnode((col, row), kind, &[(col - 1, row), (col, row)]);
+                        die.add_xnode((col, row), kind, &[(col - 1, row), (col, row)]);
                     }
 
-                    for col in grid.cols() {
+                    for col in die.cols() {
                         for (bt, row) in [('B', self.row_qb()), ('T', self.row_qt())] {
-                            grid.fill_term_pair((col, row - 1), (col, row), "LLVQ.N", "LLVQ.S");
+                            die.fill_term_pair((col, row - 1), (col, row), "LLVQ.N", "LLVQ.S");
                             let kind = if col == self.col_lio() {
                                 if bt == 'B' {
                                     "LLVQ.IO.L.B"
@@ -521,10 +521,10 @@ impl Chip {
                             } else {
                                 "LLVQ.CLB"
                             };
-                            grid.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
+                            die.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
                         }
                         let row = self.row_mid();
-                        grid.fill_term_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
+                        die.fill_term_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
                         let kind = if col == self.col_lio() {
                             "LLVC.IO.L"
                         } else if col == self.col_rio() {
@@ -532,32 +532,32 @@ impl Chip {
                         } else {
                             "LLVC.CLB"
                         };
-                        grid.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
+                        die.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
                     }
 
                     if self.kind == ChipKind::Xc4000Xv {
                         for row in [self.row_qb(), self.row_qt()] {
                             for col in [self.col_ql(), self.col_qr()] {
-                                grid.add_xnode((col, row), "CLKQ", &[(col - 1, row), (col, row)]);
+                                die.add_xnode((col, row), "CLKQ", &[(col - 1, row), (col, row)]);
                             }
                         }
                     } else {
-                        grid.add_xnode((self.col_mid(), self.row_mid()), "CLKC", &[]);
-                        grid.add_xnode(
+                        die.add_xnode((self.col_mid(), self.row_mid()), "CLKC", &[]);
+                        die.add_xnode(
                             (self.col_mid(), self.row_qb()),
                             "CLKQC",
                             &[(self.col_mid(), self.row_qb())],
                         );
-                        grid.add_xnode(
+                        die.add_xnode(
                             (self.col_mid(), self.row_qt()),
                             "CLKQC",
                             &[(self.col_mid(), self.row_qt())],
                         );
                     }
                 } else {
-                    for row in grid.rows() {
+                    for row in die.rows() {
                         let col = self.col_mid();
-                        grid.fill_term_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
+                        die.fill_term_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
                         let kind = if row == self.row_bio() {
                             "LLH.IO.B"
                         } else if row == self.row_tio() {
@@ -567,12 +567,12 @@ impl Chip {
                         } else {
                             "LLH.CLB"
                         };
-                        grid.add_xnode((col, row), kind, &[(col - 1, row), (col, row)]);
+                        die.add_xnode((col, row), kind, &[(col - 1, row), (col, row)]);
                     }
 
-                    for col in grid.cols() {
+                    for col in die.cols() {
                         let row = self.row_mid();
-                        grid.fill_term_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
+                        die.fill_term_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
                         let kind = if col == self.col_lio() {
                             "LLV.IO.L"
                         } else if col == self.col_rio() {
@@ -580,13 +580,13 @@ impl Chip {
                         } else {
                             "LLV.CLB"
                         };
-                        grid.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
+                        die.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
                     }
                 }
 
-                for col in grid.cols() {
+                for col in die.cols() {
                     if col != self.col_lio() && col != self.col_rio() {
-                        grid.fill_term_pair(
+                        die.fill_term_pair(
                             (col, self.row_tio() - 1),
                             (col, self.row_tio()),
                             "TCLB.N",
@@ -595,9 +595,9 @@ impl Chip {
                     }
                 }
 
-                for row in grid.rows() {
+                for row in die.rows() {
                     if row != self.row_bio() && row != self.row_tio() {
-                        grid.fill_term_pair(
+                        die.fill_term_pair(
                             (self.col_lio(), row),
                             (self.col_lio() + 1, row),
                             "MAIN.E",
@@ -606,13 +606,13 @@ impl Chip {
                     }
                 }
 
-                grid.fill_main_passes();
-                grid.fill_term((col_l, row_b), "CNR.LL.W");
-                grid.fill_term((col_r, row_b), "CNR.LR.S");
-                grid.fill_term((col_l, row_t), "CNR.UL.N");
-                grid.fill_term((col_r, row_t), "CNR.UR.E");
+                die.fill_main_passes();
+                die.fill_term((col_l, row_b), "CNR.LL.W");
+                die.fill_term((col_r, row_b), "CNR.LR.S");
+                die.fill_term((col_l, row_t), "CNR.UL.N");
+                die.fill_term((col_r, row_t), "CNR.UR.E");
 
-                for row in grid.rows() {
+                for row in die.rows() {
                     if self.kind.is_xl() && (row == self.row_qb() || row == self.row_qt()) {
                         llv_framebit.insert(row, frame_len);
                         frame_len += self.btile_height_brk();
@@ -630,7 +630,7 @@ impl Chip {
                     frame_len += height;
                 }
 
-                for col in grid.cols().rev() {
+                for col in die.cols().rev() {
                     let width = self.btile_width_main(col);
                     col_frame[col] = frame_info.len();
                     for _ in 0..width {
@@ -677,45 +677,45 @@ impl Chip {
                 }
             }
             ChipKind::Xc5200 => {
-                let col_l = grid.cols().next().unwrap();
-                let col_r = grid.cols().next_back().unwrap();
-                let row_b = grid.rows().next().unwrap();
-                let row_t = grid.rows().next_back().unwrap();
-                for col in grid.cols() {
+                let col_l = die.cols().next().unwrap();
+                let col_r = die.cols().next_back().unwrap();
+                let row_b = die.rows().next().unwrap();
+                let row_t = die.rows().next_back().unwrap();
+                for col in die.cols() {
                     if col == col_l {
-                        for row in grid.rows() {
+                        for row in die.rows() {
                             if row == row_b {
-                                grid.fill_tile((col, row), "CNR.BL");
+                                die.fill_tile((col, row), "CNR.BL");
                             } else if row == row_t {
-                                grid.fill_tile((col, row), "CNR.TL");
+                                die.fill_tile((col, row), "CNR.TL");
                             } else {
-                                grid.fill_tile((col, row), "IO.L");
+                                die.fill_tile((col, row), "IO.L");
                             }
                         }
                     } else if col == col_r {
-                        for row in grid.rows() {
+                        for row in die.rows() {
                             if row == row_b {
-                                grid.fill_tile((col, row), "CNR.BR");
+                                die.fill_tile((col, row), "CNR.BR");
                             } else if row == row_t {
-                                grid.fill_tile((col, row), "CNR.TR");
+                                die.fill_tile((col, row), "CNR.TR");
                             } else {
-                                grid.fill_tile((col, row), "IO.R");
+                                die.fill_tile((col, row), "IO.R");
                             }
                         }
                     } else {
-                        for row in grid.rows() {
+                        for row in die.rows() {
                             if row == row_b {
-                                grid.fill_tile((col, row), "IO.B");
+                                die.fill_tile((col, row), "IO.B");
                             } else if row == row_t {
-                                grid.fill_tile((col, row), "IO.T");
+                                die.fill_tile((col, row), "IO.T");
                             } else {
-                                grid.fill_tile((col, row), "CLB");
+                                die.fill_tile((col, row), "CLB");
                             }
                         }
                     }
                 }
 
-                for col in grid.cols() {
+                for col in die.cols() {
                     let kind = if col == col_l {
                         "CLKL"
                     } else if col == col_r {
@@ -725,11 +725,11 @@ impl Chip {
                     };
                     let row_s = self.row_mid() - 1;
                     let row_n = self.row_mid();
-                    grid.fill_term_pair((col, row_s), (col, row_n), "LLV.N", "LLV.S");
-                    grid.add_xnode((col, row_n), kind, &[(col, row_s), (col, row_n)]);
+                    die.fill_term_pair((col, row_s), (col, row_n), "LLV.N", "LLV.S");
+                    die.add_xnode((col, row_n), kind, &[(col, row_s), (col, row_n)]);
                 }
 
-                for row in grid.rows() {
+                for row in die.rows() {
                     let kind = if row == row_b {
                         "CLKB"
                     } else if row == row_t {
@@ -739,17 +739,17 @@ impl Chip {
                     };
                     let col_l = self.col_mid() - 1;
                     let col_r = self.col_mid();
-                    grid.fill_term_pair((col_l, row), (col_r, row), "LLH.E", "LLH.W");
-                    grid.add_xnode((col_r, row), kind, &[(col_l, row), (col_r, row)]);
+                    die.fill_term_pair((col_l, row), (col_r, row), "LLH.E", "LLH.W");
+                    die.add_xnode((col_r, row), kind, &[(col_l, row), (col_r, row)]);
                 }
 
-                grid.fill_main_passes();
-                grid.fill_term((col_l, row_b), "CNR.LL");
-                grid.fill_term((col_r, row_b), "CNR.LR");
-                grid.fill_term((col_l, row_t), "CNR.UL");
-                grid.fill_term((col_r, row_t), "CNR.UR");
+                die.fill_main_passes();
+                die.fill_term((col_l, row_b), "CNR.LL");
+                die.fill_term((col_r, row_b), "CNR.LR");
+                die.fill_term((col_l, row_t), "CNR.UL");
+                die.fill_term((col_r, row_t), "CNR.UR");
 
-                for row in grid.rows() {
+                for row in die.rows() {
                     if row == self.row_mid() {
                         llv_framebit.insert(row, frame_len);
                         frame_len += 4;
@@ -759,7 +759,7 @@ impl Chip {
                     frame_len += height;
                 }
 
-                for col in grid.cols().rev() {
+                for col in die.cols().rev() {
                     let width = self.btile_width_main(col);
                     col_frame[col] = frame_info.len();
                     for _ in 0..width {

@@ -23,7 +23,7 @@ entity_id! {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Grid {
     Xc2000(prjcombine_xc2000::chip::Chip),
-    Virtex(prjcombine_virtex::grid::Grid),
+    Virtex(prjcombine_virtex::chip::Chip),
     Virtex2(prjcombine_virtex2::grid::Grid),
     Spartan6(prjcombine_spartan6::grid::Grid),
     Virtex4(prjcombine_virtex4::grid::Grid),
@@ -53,7 +53,7 @@ pub struct DeviceBond {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DisabledPart {
-    Virtex(prjcombine_virtex::grid::DisabledPart),
+    Virtex(prjcombine_virtex::chip::DisabledPart),
     Spartan6(prjcombine_spartan6::grid::DisabledPart),
     Virtex4(prjcombine_virtex4::grid::DisabledPart),
     Ultrascale(prjcombine_ultrascale::grid::DisabledPart),

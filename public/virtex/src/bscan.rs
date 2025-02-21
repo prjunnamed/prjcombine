@@ -4,7 +4,7 @@ use prjcombine_interconnect::grid::{EdgeIoCoord, TileIobId};
 use prjcombine_types::bscan::{BScanBuilder, BScanPin};
 use unnamed_entity::EntityId;
 
-use crate::{bond::CfgPin, grid::Grid};
+use crate::{bond::CfgPin, chip::Chip};
 
 #[derive(Debug)]
 pub struct BScan {
@@ -14,7 +14,7 @@ pub struct BScan {
     pub cfg: BTreeMap<CfgPin, BScanPin>,
 }
 
-impl Grid {
+impl Chip {
     pub fn get_bscan(&self) -> BScan {
         let mut builder = BScanBuilder::new();
         let mut io = BTreeMap::new();

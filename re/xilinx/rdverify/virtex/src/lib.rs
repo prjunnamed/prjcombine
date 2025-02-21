@@ -1,7 +1,7 @@
 use prjcombine_re_xilinx_naming_virtex::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
-use prjcombine_virtex::grid::GridKind;
+use prjcombine_virtex::chip::ChipKind;
 use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -48,7 +48,7 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         kind = "PCIIOB";
         pins.push(("PCI", SitePinDir::Out));
     }
-    if endev.grid.kind != GridKind::Virtex
+    if endev.grid.kind != ChipKind::Virtex
         && (bel.row == endev.grid.row_bio() || bel.row == endev.grid.row_tio())
         && ((bel.col == endev.grid.col_clk() && bel.key == "IOB2")
             || (bel.col == endev.grid.col_clk() - 1 && bel.key == "IOB1"))

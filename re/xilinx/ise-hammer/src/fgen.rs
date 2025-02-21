@@ -1793,22 +1793,22 @@ impl<'a> TileKV<'a> {
                 ExpandedDevice::Virtex(edev) => {
                     match dir {
                         Dir::W => {
-                            if loc.1 >= edev.grid.col_clk() {
+                            if loc.1 >= edev.chip.col_clk() {
                                 return None;
                             }
                         }
                         Dir::E => {
-                            if loc.1 < edev.grid.col_clk() {
+                            if loc.1 < edev.chip.col_clk() {
                                 return None;
                             }
                         }
                         Dir::S => {
-                            if loc.2 >= edev.grid.row_mid() {
+                            if loc.2 >= edev.chip.row_mid() {
                                 return None;
                             }
                         }
                         Dir::N => {
-                            if loc.2 < edev.grid.row_mid() {
+                            if loc.2 < edev.chip.row_mid() {
                                 return None;
                             }
                         }
@@ -3910,20 +3910,20 @@ impl<'a> BelKV {
                         };
                         let bel_key = backend.egrid.db.nodes[node.kind].bels.key(bel);
                         let (crd, orig_bank) = if bel_key.starts_with("IOB") {
-                            let crd = edev.grid.get_io_crd(loc.1, loc.2, bel);
-                            (Some(crd), edev.grid.get_io_bank(crd))
+                            let crd = edev.chip.get_io_crd(loc.1, loc.2, bel);
+                            (Some(crd), edev.chip.get_io_bank(crd))
                         } else {
                             (
                                 None,
-                                if loc.2 == edev.grid.row_bio() {
+                                if loc.2 == edev.chip.row_bio() {
                                     if bel_key == "GCLKIOB0" { 4 } else { 5 }
                                 } else {
                                     if bel_key == "GCLKIOB0" { 1 } else { 0 }
                                 },
                             )
                         };
-                        for io in edev.grid.get_bonded_ios() {
-                            let bank = edev.grid.get_io_bank(io);
+                        for io in edev.chip.get_bonded_ios() {
+                            let bank = edev.chip.get_io_bank(io);
                             if Some(io) != crd && bank == orig_bank && ebond.ios.contains_key(&io) {
                                 let site = endev.get_io_name(io);
 
@@ -4130,9 +4130,9 @@ impl<'a> BelKV {
                 let ExpandedDevice::Virtex(edev) = backend.edev else {
                     unreachable!()
                 };
-                let is_dll = edev.grid.kind != prjcombine_virtex::grid::GridKind::Virtex
-                    && ((loc.1 == edev.grid.col_clk() - 1 && bel.to_idx() == 1)
-                        || (loc.1 == edev.grid.col_clk() && bel.to_idx() == 2));
+                let is_dll = edev.chip.kind != prjcombine_virtex::chip::ChipKind::Virtex
+                    && ((loc.1 == edev.chip.col_clk() - 1 && bel.to_idx() == 1)
+                        || (loc.1 == edev.chip.col_clk() && bel.to_idx() == 2));
                 if *val != is_dll {
                     return None;
                 }
@@ -4262,7 +4262,7 @@ impl BelGlobalKind {
                 };
                 if opt == "TESTZD2OSC*"
                     && site.len() == 4
-                    && edev.grid.kind != prjcombine_virtex::grid::GridKind::Virtex
+                    && edev.chip.kind != prjcombine_virtex::chip::ChipKind::Virtex
                 {
                     opt.replace('*', &format!("{}S", &site[3..]))
                 } else {
@@ -5541,11 +5541,11 @@ impl ExtraFeatureKind {
                     unreachable!()
                 };
                 let col = match dir {
-                    Dir::W => edev.grid.col_lio(),
-                    Dir::E => edev.grid.col_rio(),
+                    Dir::W => edev.chip.col_lio(),
+                    Dir::E => edev.chip.col_rio(),
                     _ => unreachable!(),
                 };
-                vec![vec![edev.btile_main(col, edev.grid.row_clk())]]
+                vec![vec![edev.btile_main(col, edev.chip.row_clk())]]
             }
             ExtraFeatureKind::VirtexClkBt => {
                 let ExpandedDevice::Virtex(edev) = backend.edev else {

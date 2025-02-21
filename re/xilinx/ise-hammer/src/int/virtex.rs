@@ -867,8 +867,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             drive_bits.retain(|bit| matches!(bit.frame % 6, 0 | 5));
                         } else {
                             let btile = match &tile[..] {
-                                "IO.L" => edev.btile_main(edev.grid.col_lio(), RowId::from_idx(1)),
-                                "IO.R" => edev.btile_main(edev.grid.col_rio(), RowId::from_idx(1)),
+                                "IO.L" => edev.btile_main(edev.chip.col_lio(), RowId::from_idx(1)),
+                                "IO.R" => edev.btile_main(edev.chip.col_rio(), RowId::from_idx(1)),
                                 _ => panic!(
                                     "CAN'T FIGURE OUT DRIVE {tile} {mux_name} {drive_bits:?} {inps:?}"
                                 ),
