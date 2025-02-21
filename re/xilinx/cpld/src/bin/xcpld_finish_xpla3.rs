@@ -23,7 +23,6 @@ use prjcombine_types::{
     tiledb::{Tile, TileItem, TileItemKind},
 };
 use prjcombine_xpla3 as xpla3;
-use serde_json::json;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 use xpla3::{BitCoord, FbColumn};
 
@@ -729,10 +728,6 @@ fn verify_jed(
     assert_eq!(pos, fpart.map.main.len());
 }
 
-fn bit_to_json(crd: xpla3::BitCoord) -> serde_json::Value {
-    json!([crd.row, crd.plane, crd.column])
-}
-
 pub fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let db = Database::from_file(args.db)?;
@@ -875,13 +870,13 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let mc_bits = mc_bits.unwrap();
     let fb_bits = fb_bits.unwrap();
 
-    let devices: EntityVec<_, _> = db
+    let chips: EntityVec<_, _> = db
         .devices
         .ids()
         .map(|did| {
             let dd = &dev_data[did];
             let imux_bits = prep_imux_bits(&imux_bits[did], dd);
-            xpla3::Device {
+            xpla3::Chip {
                 idcode_part: match db.devices[did].device.fbs {
                     2 => 0x4808,
                     4 => 0x4848,
@@ -909,7 +904,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let mut parts: Vec<xpla3::Part> = vec![];
     'parts: for spart in &db.parts {
         let package = &db.packages[spart.package];
-        let device = xpla3::DeviceId::from_idx(spart.device.to_idx());
+        let chip = xpla3::ChipId::from_idx(spart.device.to_idx());
         let bond = xpla3::Bond {
             idcode_part: bond_idcode[spart.package],
             pins: package
@@ -944,14 +939,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
 
         for dpart in &mut parts {
             if dpart.name == spart.dev_name {
-                assert_eq!(dpart.device, device);
+                assert_eq!(dpart.chip, chip);
                 dpart.packages.insert(spart.pkg_name.clone(), bond);
                 continue 'parts;
             }
         }
         parts.push(xpla3::Part {
             name: spart.dev_name.clone(),
-            device,
+            chip,
             packages: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
             speeds: spart
                 .speeds
@@ -981,7 +976,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let database = xpla3::Database {
-        devices,
+        chips,
         bonds,
         speeds,
         parts,
@@ -1002,44 +997,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     };
     database.to_file(args.out)?;
 
-    let json = json! ({
-        "devices": Vec::from_iter(database.devices.values().map(|device| json! ({
-            "idcode_part": device.idcode_part,
-            "bs_cols": device.bs_cols,
-            "imux_width": device.imux_width,
-            "fb_rows": device.fb_rows,
-            "fb_cols": device.fb_cols,
-            "io_mcs": device.io_mcs,
-            "io_special": device.io_special,
-            "global_bits": device.global_bits.to_json(bit_to_json),
-            "jed_global_bits": device.jed_global_bits,
-            "imux_bits": device.imux_bits.to_json(bit_to_json),
-        }))),
-        "bonds": Vec::from_iter(
-            database.bonds.values().map(|bond| json!({
-                "idcode_part": bond.idcode_part,
-                "pins": serde_json::Map::from_iter(
-                    bond.pins.iter().map(|(k, v)| {
-                        (k.clone(), match v {
-                            xpla3::Pad::Nc => "NC".to_string(),
-                            xpla3::Pad::Gnd => "GND".to_string(),
-                            xpla3::Pad::Vcc => "VCC".to_string(),
-                            xpla3::Pad::Iob(fb, mc) => format!("IOB_{fb}_{mc}"),
-                            xpla3::Pad::Gclk(gclk) => format!("GCLK{gclk}"),
-                            xpla3::Pad::PortEn => "PORT_EN".to_string(),
-                        }.into())
-                    })
-                ),
-            }))
-        ),
-        "speeds": &database.speeds,
-        "parts": &database.parts,
-        "mc_bits": database.mc_bits.to_json(bit_to_json),
-        "fb_bits": database.fb_bits.to_json(bit_to_json),
-        "jed_mc_bits_iob": &database.jed_mc_bits_iob,
-        "jed_mc_bits_buried": &database.jed_mc_bits_buried,
-        "jed_fb_bits": &database.jed_fb_bits,
-    });
+    let json = database.to_json();
     std::fs::write(args.json, json.to_string())?;
 
     Ok(())

@@ -11,10 +11,10 @@ with open("xpla3/gen-devices.inc", "w") as f:
     f.write("     - IDCODE\n")
     f.write("     - Function Blocks\n")
     for part in db["parts"]:
-        device = db["devices"][part["device"]]
+        chip = db["chips"][part["chip"]]
         f.write(f"   - - {part['name']}\n")
-        f.write(f"     - ``0xX{device['idcode_part']:04x}XXX``\n")
-        f.write(f"     - {device['fb_rows'] * len(device['fb_cols']) * 2}\n")
+        f.write(f"     - ``0xX{chip['idcode_part']:04x}XXX``\n")
+        f.write(f"     - {chip['fb_rows'] * len(chip['fb_cols']) * 2}\n")
 
 packages = []
 for part in db["parts"]:
@@ -129,24 +129,24 @@ with open("xpla3/gen-tile-fb.html", "w") as f:
 with open("xpla3/gen-jed-fb.html", "w") as f:
     gen_jed(f, "fb", db["fb_bits"], db["jed_fb_bits"])
 
-with open("xpla3/db-devices.rst", "w") as f:
-    f.write("Database — devices\n")
-    f.write("##################\n")
+with open("xpla3/db-chips.rst", "w") as f:
+    f.write("Database — chips\n")
+    f.write("################\n")
     f.write("\n")
     f.write(".. toctree::\n")
     f.write("   :caption: Contents:\n")
     f.write("\n")
     devs_done = set()
     for part in db["parts"]:
-        if part["device"] not in devs_done:
-            devs_done.add(part["device"])
-            f.write(f"   db-device-{part['name']}\n")
+        if part["chip"] not in devs_done:
+            devs_done.add(part["chip"])
+            f.write(f"   db-chip-{part['name']}\n")
 
-for i, device in enumerate(db["devices"]):
+for i, chip in enumerate(db["chips"]):
     parts = []
     bonds = {}
     for part in db["parts"]:
-        if part["device"] == i:
+        if part["chip"] == i:
             parts.append(part)
             for pkg, bond in part["packages"].items():
                 if bond not in bonds:
@@ -162,25 +162,25 @@ for i, device in enumerate(db["devices"]):
         for k in sorted(bonds)
     }
     dev_packages = [pkg for pkg in packages if any(pkg in part["packages"] for part in parts)]
-    with open(f"xpla3/db-device-{parts[0]['name']}.rst", "w") as f:
+    with open(f"xpla3/db-chip-{parts[0]['name']}.rst", "w") as f:
         names = ", ".join(part["name"].upper() for part in parts)
-        fbs = device['fb_rows'] * len(device['fb_cols']) * 2
-        io_special_rev = {f"IOB_{v[0]}_{v[1]}": k for k, v in device["io_special"].items()}
+        fbs = chip['fb_rows'] * len(chip['fb_cols']) * 2
+        io_special_rev = {f"IOB_{v[0]}_{v[1]}": k for k, v in chip["io_special"].items()}
         f.write(f"{names}\n")
         l = "#" * len(names)
         f.write(f"{l}\n")
         f.write(f"\n")
-        f.write(f"IDCODE part: {device['idcode_part']:#06x}\n")
+        f.write(f"IDCODE part: {chip['idcode_part']:#06x}\n")
         f.write(f"\n")
-        f.write(f"FB count: {device['fb_rows'] * len(device['fb_cols']) * 2}\n")
+        f.write(f"FB count: {chip['fb_rows'] * len(chip['fb_cols']) * 2}\n")
         f.write(f"\n")
-        f.write(f"BS cols: {device['bs_cols']}\n")
+        f.write(f"BS cols: {chip['bs_cols']}\n")
         f.write(f"\n")
-        f.write(f"IMUX width: {device['imux_width']}\n")
+        f.write(f"IMUX width: {chip['imux_width']}\n")
         f.write(f"\n")
-        f.write(f"FB rows: {device['fb_rows']}\n")
+        f.write(f"FB rows: {chip['fb_rows']}\n")
         f.write(f"\n")
-        f.write(f"FB cols: {len(device['fb_cols'])}\n")
+        f.write(f"FB cols: {len(chip['fb_cols'])}\n")
         f.write(f"\n")
         f.write(f".. list-table::\n")
         f.write(f"   :header-rows: 1\n")
@@ -188,8 +188,8 @@ for i, device in enumerate(db["devices"]):
         f.write(f"   - - Column range\n")
         f.write(f"     - Bits\n")
         items = []
-        for i, fbc in enumerate(device["fb_cols"]):
-            items.append((fbc["imux_col"], device["imux_width"], f"FB column {i} IMUX"))
+        for i, fbc in enumerate(chip["fb_cols"]):
+            items.append((fbc["imux_col"], chip["imux_width"], f"FB column {i} IMUX"))
             items.append((fbc["pt_col"], 48, f"FB column {i} even PTs"))
             items.append((fbc["pt_col"] + 48, 48, f"FB column {i} odd PTs"))
             items.append((fbc["mc_col"], 5, f"FB column {i} even MCs"))
@@ -213,7 +213,7 @@ for i, device in enumerate(db["devices"]):
             bond = db["bonds"][bond]
             f.write(f"     - {bond['idcode_part']:#06x}\n")
         for fb in range(fbs):
-            for mc in device['io_mcs']:
+            for mc in chip['io_mcs']:
                 io = f"IOB_{fb}_{mc}"
                 if io in io_special_rev:
                     spec = io_special_rev[io]
@@ -268,7 +268,7 @@ for i, device in enumerate(db["devices"]):
         f.write(f".. raw:: html\n")
         f.write(f"   :file: gen-tile-{parts[0]['name']}-imux.html\n")
         with open(f"xpla3/gen-tile-{parts[0]['name']}-imux.html", "w") as tf:
-            gen_tile(tf, "imux", device["imux_bits"])
+            gen_tile(tf, "imux", chip["imux_bits"])
         f.write(f"\n")
         f.write(f"Global bits\n")
         f.write(f"===========\n")
@@ -276,7 +276,7 @@ for i, device in enumerate(db["devices"]):
         f.write(f".. raw:: html\n")
         f.write(f"   :file: gen-tile-{parts[0]['name']}-global.html\n")
         with open(f"xpla3/gen-tile-{parts[0]['name']}-global.html", "w") as tf:
-            gen_tile(tf, "global", device["global_bits"])
+            gen_tile(tf, "global", chip["global_bits"])
         f.write(f"\n")
         f.write(f"JED mapping\n")
         f.write(f"-----------\n")
@@ -284,4 +284,4 @@ for i, device in enumerate(db["devices"]):
         f.write(f".. raw:: html\n")
         f.write(f"   :file: gen-jed-{parts[0]['name']}-global.html\n")
         with open(f"xpla3/gen-jed-{parts[0]['name']}-global.html", "w") as tf:
-            gen_jed(tf, "global", device["global_bits"], device["jed_global_bits"])
+            gen_jed(tf, "global", chip["global_bits"], chip["jed_global_bits"])

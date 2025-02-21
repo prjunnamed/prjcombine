@@ -7,7 +7,7 @@ use std::{
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_xc9500::{Database, Device, DeviceKind, FbBitCoord, GlobalBitCoord};
+use prjcombine_xc9500::{Chip, ChipKind, Database, FbBitCoord, GlobalBitCoord};
 
 use prjcombine_types::tiledb::{Tile, TileItemKind};
 
@@ -17,16 +17,16 @@ struct Bitstream {
 }
 
 impl Bitstream {
-    fn new(dev: &Device) -> Self {
-        let rows = if dev.kind == DeviceKind::Xc9500 {
+    fn new(chip: &Chip) -> Self {
+        let rows = if chip.kind == ChipKind::Xc9500 {
             72
         } else {
             108
         };
-        let fbs = (0..dev.fbs)
+        let fbs = (0..chip.fbs)
             .map(|_| {
                 vec![
-                    if dev.kind == DeviceKind::Xc9500 {
+                    if chip.kind == ChipKind::Xc9500 {
                         [
                             0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0, 0, 0, 0, 0, 0,
                         ]
@@ -37,9 +37,9 @@ impl Bitstream {
                 ]
             })
             .collect();
-        let uim = if dev.kind == DeviceKind::Xc9500 {
-            (0..dev.fbs)
-                .map(|_| (0..dev.fbs).map(|_| vec![[0; 5]; 18]).collect())
+        let uim = if chip.kind == ChipKind::Xc9500 {
+            (0..chip.fbs)
+                .map(|_| (0..chip.fbs).map(|_| vec![[0; 5]; 18]).collect())
                 .collect()
         } else {
             vec![]
@@ -154,11 +154,11 @@ fn write_jed(fname: impl AsRef<Path>, dev: &str, bits: &BitVec) -> Result<(), Bo
 
 fn set_tile_item<T: Copy>(
     tile: &Tile<T>,
-    device: &Device,
+    chip: &Chip,
     item: &str,
     mut put_bit: impl FnMut(T, bool),
 ) {
-    let is_large = device.io_special.contains_key("GOE2");
+    let is_large = chip.io_special.contains_key("GOE2");
     if let Some((name, val)) = item.split_once('=') {
         let item = tile.items.get(name).unwrap_or_else(|| {
             &tile.items[&format!("{}.{}", name, if is_large { "LARGE" } else { "SMALL" })]
@@ -247,8 +247,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         eprintln!("Unknown device {dev}");
         return Ok(());
     };
-    let device = &db.devices[part.device];
-    let mut bs = Bitstream::new(device);
+    let chip = &db.chips[part.chip];
+    let mut bs = Bitstream::new(chip);
     for mut line in lines {
         if let Some(pos) = line.find('#') {
             line = &line[..pos];
@@ -261,13 +261,13 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         let pref: Vec<_> = pref.split_ascii_whitespace().collect();
         let suf: Vec<_> = suf.trim().split_ascii_whitespace().collect();
         let mut fb_bits = db.fb_bits.clone();
-        for (k, v) in device.imux_bits.clone().items {
+        for (k, v) in chip.imux_bits.clone().items {
             fb_bits.items.insert(k, v);
         }
         match pref[..] {
             ["GLOBAL"] => {
                 for item in suf {
-                    set_tile_item(&db.global_bits, device, item, |crd, val| {
+                    set_tile_item(&db.global_bits, chip, item, |crd, val| {
                         bs.put_global(crd, val)
                     });
                 }
@@ -275,14 +275,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             ["FB", fb] => {
                 let fb: usize = fb.parse()?;
                 for item in suf {
-                    set_tile_item(&fb_bits, device, item, |crd, val| bs.put_fb(fb, crd, val));
+                    set_tile_item(&fb_bits, chip, item, |crd, val| bs.put_fb(fb, crd, val));
                 }
             }
             ["MC", fb, mc] => {
                 let fb: usize = fb.parse()?;
                 let mc: usize = mc.parse()?;
                 for item in suf {
-                    set_tile_item(&db.mc_bits, device, item, |crd, val| {
+                    set_tile_item(&db.mc_bits, chip, item, |crd, val| {
                         bs.put_mc(fb, mc, crd as usize, val)
                     });
                 }

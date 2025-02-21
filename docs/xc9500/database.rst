@@ -15,7 +15,7 @@ Top level
 
 The top level of the database is an object, with the following fields:
 
-- ``devices`` (list of object): list of :ref:`device <xc9500-db-device>`
+- ``chips`` (list of object): list of :ref:`chip <xc9500-db-chip>`
 - ``bonds`` (list of object): list of :ref:`bond <xc9500-db-bond>`
 - ``speeds`` (list of object): list of :ref:`speed <xc9500-db-speed>`
 - ``parts`` (list of object): list of :ref:`part <xc9500-db-part>`
@@ -24,30 +24,30 @@ The top level of the database is an object, with the following fields:
 - ``global_bits`` (object): a :ref:`tile <xc9500-db-tile>` describing global bits
 
 
-.. _xc9500-db-device:
+.. _xc9500-db-chip:
 
-Device
-======
+Chip
+====
 
-A device is a structure describing a particular device die.  A device is referenced
-from a :ref:`part <xc9500-db-part>`.  A device is an object with the following fields:
+A chip is a structure describing a particular XC9500 die.  A chip is referenced
+from a :ref:`part <xc9500-db-part>`.  A chip is an object with the following fields:
 
-- ``kind`` (string): the kind of the device, one of:
+- ``kind`` (string): the kind of the chip, one of:
 
   - ``"xc9500"``
   - ``"xc9500xl"``
   - ``"xc9500xv"``
 
-  All devices within a single file will have the same kind.
+  All chips within a single file will have the same kind.
 
-- ``idcode`` (number): the JTAG IDCODE of the device
-- ``fbs`` (number): the number of FBs in the device
-- ``ios`` (map from string to number): describes the I/O pads available on the device.
+- ``idcode`` (number): the JTAG IDCODE of the chip
+- ``fbs`` (number): the number of FBs in the chip
+- ``ios`` (map from string to number): describes the I/O pads available on the chip.
   The keys are of the form ``"IOB_{fb_idx}_{mc_idx}"`` and identify the MC that owns the IOB.
   The value corresponding to the key is the bank index that the IOB belongs to.
-- ``banks`` (number): the number of I/O banks in the device
+- ``banks`` (number): the number of I/O banks in the chip
 - ``tdo_bank`` (number): the I/O bank index that is used to drive the TDO special pin
-- ``io_special`` (map from string to pair of numbers): describes the I/O pads with special functions on the device.
+- ``io_special`` (map from string to pair of numbers): describes the I/O pads with special functions on the chip.
   The keys can be:
 
   - ``"GCLK[0-2]"``
@@ -58,7 +58,7 @@ from a :ref:`part <xc9500-db-part>`.  A device is an object with the following f
   is MC index.  Note that sometimes items in this map are overriden by the bond.
 
 - ``imux_bits`` (object) : a :ref:`tile <xc9500-db-tile>` describing per-FB bits corresponding to IMUX
-- ``uim_ibuf_bits`` (object or null): for XC95288 device, a :ref:`tile <xc9500-db-tile>` describing the UIM IBUF bits; for every other device, ``null``
+- ``uim_ibuf_bits`` (object or null): for XC95288 chip, a :ref:`tile <xc9500-db-tile>` describing the UIM IBUF bits; for every other chip, ``null``
 - ``program_time`` (number): maximum time required by a program operation, in µs
 - ``erase_time`` (number): maximum time required by an erase operation, in µs
 
@@ -68,11 +68,11 @@ from a :ref:`part <xc9500-db-part>`.  A device is an object with the following f
 Bond
 ====
 
-A bond is a structure describing the mapping of device pads to package pins.
+A bond is a structure describing the mapping of chip pads to package pins.
 Bonds are referenced from :ref:`part <xc9500-db-part>` packages.  A bond is an object
 with the following fields:
 
-- ``io_special_override`` (map from string to pair of numbers): a map like the device's ``io_special`` map, containing per-bond overrides
+- ``io_special_override`` (map from string to pair of numbers): a map like the chip's ``io_special`` map, containing per-bond overrides
   to the defaults (usually empty)
 - ``pins`` (map from string to string): the pins of the package; they keys are package pin names, and the values are:
 
@@ -100,10 +100,10 @@ Part
 ====
 
 A part is a structure describing a particular commercially available part number.
-Several parts may correspond to the same device.  A part is an object with the following fields:
+Several parts may correspond to the same chip.  A part is an object with the following fields:
 
 - ``name`` (string): the base name of the part, in lowercase
-- ``device`` (number): the index of the corresponding device in the ``devices`` field
+- ``chip`` (number): the index of the corresponding chip in the ``chips`` field
   of the database
 - ``packages`` (map from string to int): the packages in which this part is available;
   the key is package name, and the value is the index of the corresponding bond in the ``bonds`` database field
@@ -116,7 +116,7 @@ Several parts may correspond to the same device.  A part is an object with the f
 Tile
 ====
 
-A tile is a structure describing a set of device fuses.  There are multiple kinds
+A tile is a structure describing a set of chip fuses.  There are multiple kinds
 of tiles used to describe the bitstream.  The base structure of a tile is the same
 for all of these kinds.
 
@@ -138,17 +138,17 @@ The type and interpretation of coordinate depends on the tile kind.
 
 The following tile kinds exist:
 
-- per-MC bits tile: identical for all devices in the database, the coordinate
+- per-MC bits tile: identical for all chips in the database, the coordinate
   is a single number and corresponds to the row coordinate of the fuse
-- per-FB bits tile: identical for all devices in the database, the coordinate
+- per-FB bits tile: identical for all chips in the database, the coordinate
   is a list of 3 numbers, in order:
 
   - row
   - bit
   - column
 
-- IMUX bits tile: device-specific, the coordinate is the same as for per-FB bits tile
-- global bits tile: identical for all devices in the database, the coordinate
+- IMUX bits tile: chip-specific, the coordinate is the same as for per-FB bits tile
+- global bits tile: identical for all chips in the database, the coordinate
   is a list of 4 numbers, in order:
 
   - fb
@@ -156,4 +156,4 @@ The following tile kinds exist:
   - bit
   - column
 
-- UIM IBUF bits tile: device-specific, only for XC995288, the coordinate is the same as for global bits tile
+- UIM IBUF bits tile: chip-specific, only for XC995288, the coordinate is the same as for global bits tile

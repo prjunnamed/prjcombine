@@ -24,7 +24,6 @@ use prjcombine_types::{
     tiledb::{Tile, TileItem, TileItemKind},
 };
 use prjcombine_xc9500::{self as xc9500, FbBitCoord};
-use serde_json::json;
 use unnamed_entity::{EntityId, EntityVec};
 use xc9500::GlobalBitCoord;
 
@@ -754,14 +753,6 @@ fn validate_pterm(device: &Device, fpart: &FuzzDbPart) {
     }
 }
 
-fn fb_bit_to_json(crd: FbBitCoord) -> serde_json::Value {
-    json!([crd.row, crd.bit, crd.column])
-}
-
-fn global_bit_to_json(crd: GlobalBitCoord) -> serde_json::Value {
-    json!([crd.fb, crd.row, crd.bit, crd.column])
-}
-
 fn convert_io(io: IoId) -> (FbId, FbMcId) {
     let IoId::Mc((fb, mc)) = io else {
         unreachable!();
@@ -844,7 +835,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let fb_bits = fb_bits.unwrap();
     let global_bits = global_bits.unwrap();
 
-    let devices: EntityVec<_, _> = db
+    let chips: EntityVec<_, _> = db
         .devices
         .values()
         .map(|dev| {
@@ -871,11 +862,11 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             for (i, &io) in &device.oe_pads {
                 io_special.insert(format!("GOE{i}"), convert_io(io));
             }
-            xc9500::Device {
+            xc9500::Chip {
                 kind: match device.kind {
-                    DeviceKind::Xc9500 => xc9500::DeviceKind::Xc9500,
-                    DeviceKind::Xc9500Xl => xc9500::DeviceKind::Xc9500Xl,
-                    DeviceKind::Xc9500Xv => xc9500::DeviceKind::Xc9500Xv,
+                    DeviceKind::Xc9500 => xc9500::ChipKind::Xc9500,
+                    DeviceKind::Xc9500Xl => xc9500::ChipKind::Xc9500Xl,
+                    DeviceKind::Xc9500Xv => xc9500::ChipKind::Xc9500Xv,
                     _ => unreachable!(),
                 },
                 idcode,
@@ -914,9 +905,9 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let mut parts: Vec<xc9500::Part> = vec![];
     'parts: for spart in &db.parts {
         let package = &db.packages[spart.package];
-        let device = xc9500::DeviceId::from_idx(spart.device.to_idx());
+        let chip = xc9500::ChipId::from_idx(spart.device.to_idx());
         let mut io_special_override = BTreeMap::new();
-        for (func, &pad) in &devices[device].io_special {
+        for (func, &pad) in &chips[chip].io_special {
             for (&from, &to) in &package.spec_remap {
                 if convert_io(from) == pad {
                     io_special_override.insert(func.clone(), convert_io(to));
@@ -960,14 +951,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
 
         for dpart in &mut parts {
             if dpart.name == spart.dev_name {
-                assert_eq!(dpart.device, device);
+                assert_eq!(dpart.chip, chip);
                 dpart.packages.insert(spart.pkg_name.clone(), bond);
                 continue 'parts;
             }
         }
         parts.push(xc9500::Part {
             name: spart.dev_name.clone(),
-            device,
+            chip,
             packages: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
             speeds: spart
                 .speeds
@@ -997,7 +988,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let database = xc9500::Database {
-        devices,
+        chips,
         bonds,
         speeds,
         parts,
@@ -1007,56 +998,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     };
     database.to_file(args.out)?;
 
-    let json = json! ({
-        "devices": Vec::from_iter(database.devices.values().map(|device| json! ({
-            "kind": match device.kind {
-                xc9500::DeviceKind::Xc9500 => "xc9500",
-                xc9500::DeviceKind::Xc9500Xl => "xc9500xl",
-                xc9500::DeviceKind::Xc9500Xv => "xc9500xv",
-            },
-            "idcode": device.idcode,
-            "fbs": device.fbs,
-            "ios": serde_json::Map::from_iter(
-                device.io.iter().map(|(&(fb, mc), bank)| (format!("IOB_{fb}_{mc}"), json!(bank)))
-            ),
-            "banks": device.banks,
-            "tdo_bank": device.tdo_bank,
-            "io_special": device.io_special,
-            "imux_bits": device.imux_bits.to_json(fb_bit_to_json),
-            "uim_ibuf_bits": if let Some(ref bits) = device.uim_ibuf_bits {
-                bits.to_json(global_bit_to_json)
-            } else {
-                serde_json::Value::Null
-            },
-            "program_time": device.program_time,
-            "erase_time": device.erase_time,
-        }))),
-        "bonds": Vec::from_iter(
-            database.bonds.values().map(|bond| json!({
-                "io_special_override": &bond.io_special_override,
-                "pins": serde_json::Map::from_iter(
-                    bond.pins.iter().map(|(k, v)| {
-                        (k.clone(), match v {
-                            xc9500::Pad::Nc => "NC".to_string(),
-                            xc9500::Pad::Gnd => "GND".to_string(),
-                            xc9500::Pad::VccInt => "VCCINT".to_string(),
-                            xc9500::Pad::VccIo(bank) => format!("VCCIO{bank}"),
-                            xc9500::Pad::Iob(fb, mc) => format!("IOB_{fb}_{mc}"),
-                            xc9500::Pad::Tms => "TMS".to_string(),
-                            xc9500::Pad::Tck => "TCK".to_string(),
-                            xc9500::Pad::Tdi => "TDI".to_string(),
-                            xc9500::Pad::Tdo => "TDO".to_string(),
-                        }.into())
-                    })
-                ),
-            }))
-        ),
-        "speeds": &database.speeds,
-        "parts": &database.parts,
-        "mc_bits": database.mc_bits.to_json(|bit| bit.into()),
-        "fb_bits": database.fb_bits.to_json(fb_bit_to_json),
-        "global_bits": database.global_bits.to_json(global_bit_to_json),
-    });
+    let json = database.to_json();
     std::fs::write(args.json, json.to_string())?;
 
     Ok(())

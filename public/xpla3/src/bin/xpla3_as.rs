@@ -12,7 +12,7 @@ use prjcombine_types::{
     FbMcId,
     tiledb::{Tile, TileItemKind},
 };
-use prjcombine_xpla3::{BitCoord, Database, Device};
+use prjcombine_xpla3::{BitCoord, Chip, Database};
 use unnamed_entity::EntityId;
 
 struct Bitstream {
@@ -41,14 +41,14 @@ fn init_tile(tile: &Tile<BitCoord>) -> BTreeMap<String, BitVec> {
 }
 
 impl Bitstream {
-    fn new(device: &Device, db: &Database) -> Self {
-        let fbs = (0..(device.fb_rows as usize * device.fb_cols.len() * 2))
+    fn new(chip: &Chip, db: &Database) -> Self {
+        let fbs = (0..(chip.fb_rows as usize * chip.fb_cols.len() * 2))
             .map(|_| {
                 let mut misc = init_tile(&db.fb_bits);
                 for i in 0..40 {
                     misc.insert(
                         format!("IM[{i}].MUX"),
-                        BitVec::repeat(true, device.imux_width as usize),
+                        BitVec::repeat(true, chip.imux_width as usize),
                     );
                 }
                 FbData {
@@ -65,11 +65,11 @@ impl Bitstream {
             .collect();
         Bitstream {
             fbs,
-            globals: init_tile(&device.global_bits),
+            globals: init_tile(&chip.global_bits),
         }
     }
 
-    fn to_jed(&self, device: &Device, db: &Database) -> BitVec {
+    fn to_jed(&self, chip: &Chip, db: &Database) -> BitVec {
         let mut res = BitVec::new();
         for fbd in &self.fbs {
             for i in 0..40 {
@@ -97,7 +97,7 @@ impl Bitstream {
             }
             for iobful in [true, false] {
                 for mc in 0..16 {
-                    if device.io_mcs.contains(&FbMcId::from_idx(mc)) != iobful {
+                    if chip.io_mcs.contains(&FbMcId::from_idx(mc)) != iobful {
                         continue;
                     }
                     let mcd = &fbd.mcs[mc];
@@ -112,7 +112,7 @@ impl Bitstream {
                 }
             }
         }
-        for (bn, bi) in &device.jed_global_bits {
+        for (bn, bi) in &chip.jed_global_bits {
             res.push(self.globals[bn][*bi]);
         }
         res
@@ -210,10 +210,10 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         eprintln!("Unknown device {dev}");
         return Ok(());
     };
-    let device = &db.devices[part.device];
-    let mut bs = Bitstream::new(device, &db);
+    let chip = &db.chips[part.chip];
+    let mut bs = Bitstream::new(chip, &db);
     let mut fb_bits = db.fb_bits.clone();
-    for (k, v) in device.imux_bits.clone().items {
+    for (k, v) in chip.imux_bits.clone().items {
         fb_bits.items.insert(k, v);
     }
     for mut line in lines {
@@ -230,7 +230,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         match pref[..] {
             ["GLOBAL"] => {
                 for item in suf {
-                    set_tile_item(&mut bs.globals, &device.global_bits, item);
+                    set_tile_item(&mut bs.globals, &chip.global_bits, item);
                 }
             }
             ["FB", fb] => {
@@ -275,7 +275,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             _ => panic!("weird line {line}"),
         }
     }
-    let fuses = bs.to_jed(device, &db);
+    let fuses = bs.to_jed(chip, &db);
     write_jed(args.jed, dev, &fuses)?;
 
     Ok(())

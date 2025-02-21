@@ -3,7 +3,7 @@ use std::{error::Error, path::PathBuf};
 use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_types::tiledb::{Tile, TileItemKind};
-use prjcombine_xc9500::{Database, Device, DeviceKind, FbBitCoord, GlobalBitCoord};
+use prjcombine_xc9500::{Chip, ChipKind, Database, FbBitCoord, GlobalBitCoord};
 
 struct Bitstream {
     fbs: Vec<Vec<[u8; 15]>>,
@@ -11,12 +11,12 @@ struct Bitstream {
 }
 
 impl Bitstream {
-    fn from_jed(fuses: &BitVec, device: &Device) -> Self {
+    fn from_jed(fuses: &BitVec, chip: &Chip) -> Self {
         let mut fbs = vec![];
         let mut uim = vec![];
         let mut pos = 0;
-        if device.kind == DeviceKind::Xc9500 {
-            for _ in 0..device.fbs {
+        if chip.kind == ChipKind::Xc9500 {
+            for _ in 0..chip.fbs {
                 let mut rows = vec![];
                 for _ in 0..72 {
                     let mut row = [0; 15];
@@ -34,7 +34,7 @@ impl Bitstream {
                 }
                 fbs.push(rows);
                 let mut uim_fb = vec![];
-                for _ in 0..device.fbs {
+                for _ in 0..chip.fbs {
                     let mut rows = vec![];
                     for _ in 0..18 {
                         let mut row = [0; 5];
@@ -55,12 +55,12 @@ impl Bitstream {
                 uim.push(uim_fb);
             }
         } else {
-            for _ in 0..device.fbs {
+            for _ in 0..chip.fbs {
                 fbs.push(vec![[0; 15]; 108]);
             }
             for row in 0..108 {
                 for col in 0..15 {
-                    for fb in 0..device.fbs {
+                    for fb in 0..chip.fbs {
                         let sz = if col < 9 { 8 } else { 6 };
                         let f = &fuses[pos..pos + sz];
                         pos += sz;
@@ -159,8 +159,8 @@ fn parse_jed(jed: &str) -> (String, BitVec) {
     (device.unwrap(), res.unwrap())
 }
 
-fn print_tile<T: Copy>(tile: &Tile<T>, device: &Device, get_bit: impl Fn(T) -> bool) {
-    let is_large = device.io_special.contains_key("GOE2");
+fn print_tile<T: Copy>(tile: &Tile<T>, chip: &Chip, get_bit: impl Fn(T) -> bool) {
+    let is_large = chip.io_special.contains_key("GOE2");
     for (name, item) in &tile.items {
         let mut name = &name[..];
         if let Some(n) = name.strip_suffix(".SMALL") {
@@ -217,30 +217,30 @@ fn print_tile<T: Copy>(tile: &Tile<T>, device: &Device, get_bit: impl Fn(T) -> b
     }
 }
 
-fn print_globals(bs: &Bitstream, db: &Database, device: &Device) {
+fn print_globals(bs: &Bitstream, db: &Database, chip: &Chip) {
     print!("GLOBAL:");
-    print_tile(&db.global_bits, device, |crd| bs.get_global(crd));
+    print_tile(&db.global_bits, chip, |crd| bs.get_global(crd));
     println!();
 }
 
-fn print_fb(bs: &Bitstream, db: &Database, device: &Device) {
-    for fb in 0..device.fbs {
+fn print_fb(bs: &Bitstream, db: &Database, chip: &Chip) {
+    for fb in 0..chip.fbs {
         print!("FB {fb}:");
-        print_tile(&db.fb_bits, device, |crd| bs.get_fb(fb, crd));
-        print_tile(&device.imux_bits, device, |crd| bs.get_fb(fb, crd));
+        print_tile(&db.fb_bits, chip, |crd| bs.get_fb(fb, crd));
+        print_tile(&chip.imux_bits, chip, |crd| bs.get_fb(fb, crd));
         println!();
     }
 }
 
-fn print_uim(bs: &Bitstream, _db: &Database, device: &Device) {
-    for fb in 0..device.fbs {
+fn print_uim(bs: &Bitstream, _db: &Database, chip: &Chip) {
+    for fb in 0..chip.fbs {
         for imux in 0..36 {
-            let found = (0..device.fbs).any(|sfb| (0..18).any(|mc| bs.get_uim(fb, sfb, imux, mc)));
+            let found = (0..chip.fbs).any(|sfb| (0..18).any(|mc| bs.get_uim(fb, sfb, imux, mc)));
             if !found {
                 continue;
             }
             print!("UIM {fb} {imux}:");
-            for sfb in 0..device.fbs {
+            for sfb in 0..chip.fbs {
                 for mc in 0..18 {
                     if bs.get_uim(fb, sfb, imux, mc) {
                         print!(" {sfb}.{mc}");
@@ -252,13 +252,13 @@ fn print_uim(bs: &Bitstream, _db: &Database, device: &Device) {
     }
 }
 
-fn print_pt(bs: &Bitstream, _db: &Database, device: &Device) {
-    let num_imux = if device.kind == DeviceKind::Xc9500 {
+fn print_pt(bs: &Bitstream, _db: &Database, chip: &Chip) {
+    let num_imux = if chip.kind == ChipKind::Xc9500 {
         36
     } else {
         54
     };
-    for fb in 0..device.fbs {
+    for fb in 0..chip.fbs {
         for mc in 0..18 {
             for pt in 0..5 {
                 let found = (0..num_imux)
@@ -281,11 +281,11 @@ fn print_pt(bs: &Bitstream, _db: &Database, device: &Device) {
     }
 }
 
-fn print_mc(bs: &Bitstream, db: &Database, device: &Device) {
-    for fb in 0..device.fbs {
+fn print_mc(bs: &Bitstream, db: &Database, chip: &Chip) {
+    for fb in 0..chip.fbs {
         for mc in 0..18 {
             print!("MC {fb} {mc}:");
-            print_tile(&db.mc_bits, device, |crd| bs.get_mc(fb, mc, crd as usize));
+            print_tile(&db.mc_bits, chip, |crd| bs.get_mc(fb, mc, crd as usize));
             println!();
         }
     }
@@ -320,16 +320,16 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         eprintln!("Unknown device {dev}");
         return Ok(());
     };
-    let device = &db.devices[part.device];
-    let bs = Bitstream::from_jed(&fuses, device);
+    let chip = &db.chips[part.chip];
+    let bs = Bitstream::from_jed(&fuses, chip);
     println!("DEVICE: {dev}");
-    print_globals(&bs, &db, device);
+    print_globals(&bs, &db, chip);
     // TODO: print UIM IBUF
-    print_fb(&bs, &db, device);
-    if device.kind == DeviceKind::Xc9500 {
-        print_uim(&bs, &db, device);
+    print_fb(&bs, &db, chip);
+    if chip.kind == ChipKind::Xc9500 {
+        print_uim(&bs, &db, chip);
     }
-    print_pt(&bs, &db, device);
-    print_mc(&bs, &db, device);
+    print_pt(&bs, &db, chip);
+    print_mc(&bs, &db, chip);
     Ok(())
 }

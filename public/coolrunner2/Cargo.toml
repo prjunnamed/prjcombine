@@ -10,6 +10,7 @@ bincode.workspace = true
 zstd.workspace = true
 clap.workspace = true
 unnamed_entity.workspace = true
+serde_json.workspace = true
 prjcombine-types.workspace = true
 
 [lints]

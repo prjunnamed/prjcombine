@@ -9,5 +9,5 @@ Xilinx XPLA3 CPLDs
    structure
    bitstream
    database
-   db-devices
+   db-chips
    jtag

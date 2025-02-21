@@ -6,7 +6,7 @@ use prjcombine_types::{
     FbMcId,
     tiledb::{Tile, TileItemKind},
 };
-use prjcombine_xpla3::{BitCoord, Database, Device};
+use prjcombine_xpla3::{BitCoord, Chip, Database};
 use unnamed_entity::EntityId;
 
 struct Bitstream {
@@ -28,10 +28,10 @@ struct PTermData {
 }
 
 impl Bitstream {
-    fn from_jed(fuses: &BitVec, device: &Device, db: &Database) -> Self {
+    fn from_jed(fuses: &BitVec, chip: &Chip, db: &Database) -> Self {
         let mut fbs = vec![];
         let mut pos = 0;
-        for _ in 0..(device.fb_cols.len() * device.fb_rows as usize * 2) {
+        for _ in 0..(chip.fb_cols.len() * chip.fb_rows as usize * 2) {
             let mut fbd = FbData {
                 misc: BTreeMap::new(),
                 mcs: core::array::from_fn(|_| BTreeMap::new()),
@@ -44,8 +44,8 @@ impl Bitstream {
             };
             for i in 0..40 {
                 let n = format!("IM[{i}].MUX");
-                let data = fuses[pos..(pos + device.imux_width as usize)].to_bitvec();
-                pos += device.imux_width as usize;
+                let data = fuses[pos..(pos + chip.imux_width as usize)].to_bitvec();
+                pos += chip.imux_width as usize;
                 fbd.misc.insert(n, data);
             }
             for i in 0..48 {
@@ -77,7 +77,7 @@ impl Bitstream {
             }
             for iobful in [true, false] {
                 for mc in 0..16 {
-                    if device.io_mcs.contains(&FbMcId::from_idx(mc)) != iobful {
+                    if chip.io_mcs.contains(&FbMcId::from_idx(mc)) != iobful {
                         continue;
                     }
                     let mcd = &mut fbd.mcs[mc];
@@ -98,10 +98,10 @@ impl Bitstream {
             fbs.push(fbd);
         }
         let mut globals = BTreeMap::new();
-        for (bn, bi) in &device.jed_global_bits {
+        for (bn, bi) in &chip.jed_global_bits {
             let bits = globals
                 .entry(bn.clone())
-                .or_insert_with(|| BitVec::repeat(false, device.global_bits.items[bn].bits.len()));
+                .or_insert_with(|| BitVec::repeat(false, chip.global_bits.items[bn].bits.len()));
             bits.set(*bi, fuses[pos]);
             pos += 1;
         }
@@ -213,15 +213,15 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         eprintln!("Unknown device {dev}");
         return Ok(());
     };
-    let device = &db.devices[part.device];
-    let bs = Bitstream::from_jed(&fuses, device, &db);
+    let chip = &db.chips[part.chip];
+    let bs = Bitstream::from_jed(&fuses, chip, &db);
     println!("DEVICE: {dev}");
     print!("GLOBAL:");
-    print_tile(&bs.globals, &device.global_bits);
+    print_tile(&bs.globals, &chip.global_bits);
     for (i, fbd) in bs.fbs.iter().enumerate() {
         print!("FB {i}:");
         let mut bits = db.fb_bits.clone();
-        for (k, v) in &device.imux_bits.items {
+        for (k, v) in &chip.imux_bits.items {
             bits.items.insert(k.clone(), v.clone());
         }
         print_tile(&fbd.misc, &bits);

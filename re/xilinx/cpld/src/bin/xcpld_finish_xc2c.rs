@@ -21,7 +21,6 @@ use prjcombine_types::{
     FbId, FbMcId, IoId,
     tiledb::{Tile, TileItem, TileItemKind},
 };
-use serde_json::json;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 const JED_MC_BITS_SMALL: &[(&str, usize)] = &[
@@ -890,10 +889,6 @@ fn convert_io(io: IoId) -> (FbId, FbMcId) {
     (fb, mc)
 }
 
-fn bit_to_json(crd: BitCoord) -> serde_json::Value {
-    json!([crd.row, crd.column])
-}
-
 #[derive(Parser)]
 struct Args {
     db: PathBuf,
@@ -1044,7 +1039,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         bond_idcode.insert(part.package, idcode);
     }
 
-    let devices: EntityVec<_, _> = db
+    let chips: EntityVec<_, _> = db
         .devices
         .iter()
         .map(|(did, dev)| {
@@ -1065,7 +1060,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             if let Some(io) = device.cdr_pad {
                 io_special.insert("CDR".to_string(), convert_io(io));
             }
-            coolrunner2::Device {
+            coolrunner2::Chip {
                 idcode_part: match (db.devices[did].device.fbs, db.devices[did].device.banks) {
                     (2, 1) => 0x6c18,
                     (2, 2) => 0x6e18,
@@ -1122,7 +1117,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let mut parts: Vec<coolrunner2::Part> = vec![];
     'parts: for spart in &db.parts {
         let package = &db.packages[spart.package];
-        let device = coolrunner2::DeviceId::from_idx(spart.device.to_idx());
+        let chip = coolrunner2::ChipId::from_idx(spart.device.to_idx());
         let bond = coolrunner2::Bond {
             idcode_part: bond_idcode[spart.package],
             pins: package
@@ -1162,14 +1157,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
 
         for dpart in &mut parts {
             if dpart.name == spart.dev_name {
-                assert_eq!(dpart.device, device);
+                assert_eq!(dpart.chip, chip);
                 dpart.packages.insert(spart.pkg_name.clone(), bond);
                 continue 'parts;
             }
         }
         parts.push(coolrunner2::Part {
             name: spart.dev_name.clone(),
-            device,
+            chip,
             packages: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
             speeds: spart
                 .speeds
@@ -1199,7 +1194,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let database = coolrunner2::Database {
-        devices,
+        chips,
         bonds,
         speeds,
         parts,
@@ -1218,62 +1213,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     };
     database.to_file(args.out)?;
 
-    let json = json! ({
-        "devices": Vec::from_iter(database.devices.values().map(|device| json! ({
-            "idcode_part": device.idcode_part,
-            "ipads": device.ipads,
-            "banks": device.banks,
-            "has_vref": device.has_vref,
-            "bs_cols": device.bs_cols,
-            "xfer_cols": device.xfer_cols,
-            "imux_width": device.imux_width,
-            "mc_width": device.mc_width,
-            "bs_layout": match device.bs_layout {
-                coolrunner2::BsLayout::Narrow => "NARROW",
-                coolrunner2::BsLayout::Wide => "WIDE",
-            },
-            "fb_rows": device.fb_rows,
-            "fb_cols": device.fb_cols,
-            "ios": serde_json::Map::from_iter(
-                device.io.iter().map(|(&io, bank)| (match io {
-                    IoId::Mc((fb, mc)) => format!("IOB_{fb}_{mc}"),
-                    IoId::Ipad(ip) => format!("IPAD{ip}"),
-                }, json!(bank)))
-            ),
-            "io_special": device.io_special,
-            "mc_bits": device.mc_bits.to_json(bit_to_json),
-            "global_bits": device.global_bits.to_json(bit_to_json),
-            "jed_global_bits": device.jed_global_bits,
-            "imux_bits": device.imux_bits.to_json(bit_to_json),
-        }))),
-        "bonds": Vec::from_iter(
-            database.bonds.values().map(|bond| json!({
-                "idcode_part": bond.idcode_part,
-                "pins": serde_json::Map::from_iter(
-                    bond.pins.iter().map(|(k, v)| {
-                        (k.clone(), match v {
-                            coolrunner2::Pad::Nc => "NC".to_string(),
-                            coolrunner2::Pad::Gnd => "GND".to_string(),
-                            coolrunner2::Pad::VccInt => "VCCINT".to_string(),
-                            coolrunner2::Pad::VccIo(bank) => format!("VCCIO{bank}"),
-                            coolrunner2::Pad::VccAux => "VCCAUX".to_string(),
-                            coolrunner2::Pad::Iob(fb, mc) => format!("IOB_{fb}_{mc}"),
-                            coolrunner2::Pad::Ipad(ipad) => format!("IPAD{ipad}"),
-                            coolrunner2::Pad::Tck => "TCK".to_string(),
-                            coolrunner2::Pad::Tms => "TMS".to_string(),
-                            coolrunner2::Pad::Tdi => "TDI".to_string(),
-                            coolrunner2::Pad::Tdo => "TDO".to_string(),
-                        }.into())
-                    })
-                ),
-            }))
-        ),
-        "speeds": &database.speeds,
-        "parts": &database.parts,
-        "jed_mc_bits_small": &database.jed_mc_bits_small,
-        "jed_mc_bits_large_iob": &database.jed_mc_bits_large_iob,
-        "jed_mc_bits_large_buried": &database.jed_mc_bits_large_buried,
-    });
+    let json = database.to_json();
     std::fs::write(args.json, json.to_string())?;
 
     Ok(())

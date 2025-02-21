@@ -11,7 +11,7 @@ Top level
 
 The top level of the database is an object, with the following fields:
 
-- ``devices`` (list of object): list of :ref:`device <xpla3-db-device>`
+- ``chips`` (list of object): list of :ref:`chip <xpla3-db-chip>`
 - ``bonds`` (list of object): list of :ref:`bond <xpla3-db-bond>`
 - ``speeds`` (list of object): list of :ref:`speed <xpla3-db-speed>`
 - ``parts`` (list of object): list of :ref:`part <xpla3-db-part>`
@@ -22,15 +22,15 @@ The top level of the database is an object, with the following fields:
 - ``jed_mc_bits_buried`` (array) a :ref:`jed bits list <xpla3-db-jed-bits>` describing per-MC bits for MCs without IOBs
 
 
-.. _xpla3-db-device:
+.. _xpla3-db-chip:
 
-Device
-======
+Chip
+====
 
-A device is a structure describing a particular device die.  A device is referenced
-from a :ref:`part <xpla3-db-part>`.  A device is an object with the following fields:
+A chip is a structure describing a particular XPLA3 die.  A chip is referenced
+from a :ref:`part <xpla3-db-part>`.  A chip is an object with the following fields:
 
-- ``idcode_part`` (number): bit 12-27 of the JTAG IDCODE of the device, with low 3 bits (package type) masked to 0
+- ``idcode_part`` (number): bit 12-27 of the JTAG IDCODE of the chip, with low 3 bits (package type) masked to 0
 - ``bs_cols`` (number): bitstream width in columns
 - ``imux_width`` (number): width of the IMUX bitstream area in columns (and also the size of a single IMUX selector in bits)
 - ``fb_rows`` (number): the number of FB rows
@@ -41,7 +41,7 @@ from a :ref:`part <xpla3-db-part>`.  A device is an object with the following fi
   - ``mc_col`` (number): first column of the MC/FB area in bitstream
 
 - ``io_mcs`` (array of number): list of MC ids that have IOBs; the list is the same across all FBs, and the list stores only MC indices
-- ``io_special`` (map from string to pair of numbers): describes the I/O pads with special functions on the device.
+- ``io_special`` (map from string to pair of numbers): describes the I/O pads with special functions on the chip.
   The keys can be:
 
   - ``"TCK"``
@@ -62,11 +62,11 @@ from a :ref:`part <xpla3-db-part>`.  A device is an object with the following fi
 Bond
 ====
 
-A bond is a structure describing the mapping of device pads to package pins.
+A bond is a structure describing the mapping of chip pads to package pins.
 Bonds are referenced from :ref:`part <xpla3-db-part>` packages.  A bond is an object
 with the following fields:
 
-- ``idcode_part`` (number): bit 12-27 of the JTAG IDCODE of the device
+- ``idcode_part`` (number): bit 12-27 of the JTAG IDCODE of the chip
 - ``pins`` (map from string to string): the pins of the package; they keys are package pin names, and the values are:
 
   - ``NC``: unconnected pin
@@ -94,10 +94,10 @@ Part
 ====
 
 A part is a structure describing a particular commercially available part number.
-Several parts may correspond to the same device.  A part is an object with the following fields:
+Several parts may correspond to the same chip.  A part is an object with the following fields:
 
 - ``name`` (string): the base name of the part, in lowercase
-- ``device`` (number): the index of the corresponding device in the ``devices`` field
+- ``chip`` (number): the index of the corresponding chip in the ``chips`` field
   of the database
 - ``packages`` (map from string to int): the packages in which this part is available;
   the key is package name, and the value is the index of the corresponding bond in the ``bonds`` database field
@@ -111,7 +111,7 @@ Several parts may correspond to the same device.  A part is an object with the f
 Tile
 ====
 
-A tile is a structure describing a set of device fuses.
+A tile is a structure describing a set of chip fuses.
 
 A tile is an object where the keys are fuse set names, and the values are objects
 with the following keys:

@@ -1,9 +1,9 @@
 import json
 
-with open("../databases/xc2c.json") as f:
+with open("../databases/coolrunner2.json") as f:
     db = json.load(f)
 
-with open("xc2c/gen-devices.inc", "w") as f:
+with open("coolrunner2/gen-devices.inc", "w") as f:
     f.write(".. list-table::\n")
     f.write("   :header-rows: 1\n")
     f.write("\n")
@@ -16,21 +16,21 @@ with open("xc2c/gen-devices.inc", "w") as f:
     f.write("     - data gate\n")
     f.write("     - clock divider\n")
     for part in db["parts"]:
-        device = db["devices"][part["device"]]
+        chip = db["chips"][part["chip"]]
         f.write(f"   - - {part['name']}\n")
-        f.write(f"     - ``0xX{device['idcode_part']:04x}093``\n")
-        f.write(f"     - {device['fb_rows'] * len(device['fb_cols']) * 2}\n")
-        f.write(f"     - {device['banks']}\n")
-        f.write(f"     - {device['ipads']}\n")
-        if device["has_vref"]:
+        f.write(f"     - ``0xX{chip['idcode_part']:04x}093``\n")
+        f.write(f"     - {chip['fb_rows'] * len(chip['fb_cols']) * 2}\n")
+        f.write(f"     - {chip['banks']}\n")
+        f.write(f"     - {chip['ipads']}\n")
+        if chip["has_vref"]:
             f.write(f"     - X\n")
         else:
             f.write(f"     - \\-\n")
-        if "DGE" in device["io_special"]:
+        if "DGE" in chip["io_special"]:
             f.write(f"     - X\n")
         else:
             f.write(f"     - \\-\n")
-        if "CDR" in device["io_special"]:
+        if "CDR" in chip["io_special"]:
             f.write(f"     - X\n")
         else:
             f.write(f"     - \\-\n")
@@ -41,7 +41,7 @@ for part in db["parts"]:
         if pkg not in packages:
             packages.append(pkg)
 
-with open("xc2c/gen-devices-pkg.inc", "w") as f:
+with open("coolrunner2/gen-devices-pkg.inc", "w") as f:
     f.write(".. list-table::\n")
     f.write("   :header-rows: 1\n")
     f.write("\n")
@@ -145,24 +145,24 @@ def gen_jed(f, tname, tile, bits):
         f.write(f"<tr><td>{i}</td><td><a href=\"#bits-{tname}-{name}\">{bname}</a></td></tr>\n")
     f.write("</table>\n")
 
-with open("xc2c/db-devices.rst", "w") as f:
-    f.write("Database — devices\n")
-    f.write("##################\n")
+with open("coolrunner2/db-chips.rst", "w") as f:
+    f.write("Database — chips\n")
+    f.write("################\n")
     f.write("\n")
     f.write(".. toctree::\n")
     f.write("   :caption: Contents:\n")
     f.write("\n")
-    devs_done = set()
+    chips_done = set()
     for part in db["parts"]:
-        if part["device"] not in devs_done:
-            devs_done.add(part["device"])
-            f.write(f"   db-device-{part['name']}\n")
+        if part["chip"] not in chips_done:
+            chips_done.add(part["chip"])
+            f.write(f"   db-chip-{part['name']}\n")
 
-for i, device in enumerate(db["devices"]):
+for i, chip in enumerate(db["chips"]):
     parts = []
     bonds = {}
     for part in db["parts"]:
-        if part["device"] == i:
+        if part["chip"] == i:
             parts.append(part)
             for pkg, bond in part["packages"].items():
                 if bond not in bonds:
@@ -178,35 +178,35 @@ for i, device in enumerate(db["devices"]):
         for k in sorted(bonds)
     }
     dev_packages = [pkg for pkg in packages if any(pkg in part["packages"] for part in parts)]
-    with open(f"xc2c/db-device-{parts[0]['name']}.rst", "w") as f:
+    with open(f"coolrunner2/db-chip-{parts[0]['name']}.rst", "w") as f:
         names = ", ".join(part["name"].upper() for part in parts)
-        fbs = device['fb_rows'] * len(device['fb_cols']) * 2
-        io_special_rev = {f"IOB_{v[0]}_{v[1]}": k for k, v in device["io_special"].items()}
+        fbs = chip['fb_rows'] * len(chip['fb_cols']) * 2
+        io_special_rev = {f"IOB_{v[0]}_{v[1]}": k for k, v in chip["io_special"].items()}
         f.write(f"{names}\n")
         l = "#" * len(names)
         f.write(f"{l}\n")
         f.write(f"\n")
-        f.write(f"IDCODE part: {device['idcode_part']:#06x}\n")
+        f.write(f"IDCODE part: {chip['idcode_part']:#06x}\n")
         f.write(f"\n")
         f.write(f"FB count: {fbs}\n")
         f.write(f"\n")
-        f.write(f"I/O banks: {device['banks']}\n")
+        f.write(f"I/O banks: {chip['banks']}\n")
         f.write(f"\n")
-        f.write(f"Input-only pads: {device['ipads']}\n")
+        f.write(f"Input-only pads: {chip['ipads']}\n")
         f.write(f"\n")
-        f.write(f"Has VREF: {device['has_vref']}\n")
+        f.write(f"Has VREF: {chip['has_vref']}\n")
         f.write(f"\n")
-        f.write(f"BS cols: {device['bs_cols']}\n")
+        f.write(f"BS cols: {chip['bs_cols']}\n")
         f.write(f"\n")
-        f.write(f"IMUX width: {device['imux_width']}\n")
+        f.write(f"IMUX width: {chip['imux_width']}\n")
         f.write(f"\n")
-        f.write(f"BS layout: {device['bs_layout']}\n")
+        f.write(f"BS layout: {chip['bs_layout']}\n")
         f.write(f"\n")
-        f.write(f"FB rows: {device['fb_rows']}\n")
+        f.write(f"FB rows: {chip['fb_rows']}\n")
         f.write(f"\n")
-        f.write(f"MC width: {device['mc_width']}\n")
+        f.write(f"MC width: {chip['mc_width']}\n")
         f.write(f"\n")
-        f.write(f"FB rows: {device['fb_rows']}\n")
+        f.write(f"FB rows: {chip['fb_rows']}\n")
         f.write(f"\n")
         f.write(f".. list-table::\n")
         f.write(f"   :header-rows: 1\n")
@@ -214,12 +214,12 @@ for i, device in enumerate(db["devices"]):
         f.write(f"   - - Column range\n")
         f.write(f"     - Bits\n")
         items = []
-        for bit in device["xfer_cols"]:
+        for bit in chip["xfer_cols"]:
             items.append((bit, 1, "transfer"))
-        for i, fbc in enumerate(device["fb_cols"]):
-            items.append((fbc, device["mc_width"], f"FB column {i} even MCs"))
-            fbc += device["mc_width"]
-            if device["bs_layout"] == "NARROW":
+        for i, fbc in enumerate(chip["fb_cols"]):
+            items.append((fbc, chip["mc_width"], f"FB column {i} even MCs"))
+            fbc += chip["mc_width"]
+            if chip["bs_layout"] == "NARROW":
                 items.append((fbc, 32, f"FB column {i} even PTs OR"))
                 fbc += 32
                 items.append((fbc, 112, f"FB column {i} even PTs AND"))
@@ -227,9 +227,9 @@ for i, device in enumerate(db["devices"]):
             else:
                 items.append((fbc, 112, f"FB column {i} even PTs"))
                 fbc += 112
-            items.append((fbc, device["imux_width"] * 2, f"FB column {i} IMUX"))
-            fbc += device["imux_width"] * 2
-            if device["bs_layout"] == "NARROW":
+            items.append((fbc, chip["imux_width"] * 2, f"FB column {i} IMUX"))
+            fbc += chip["imux_width"] * 2
+            if chip["bs_layout"] == "NARROW":
                 items.append((fbc, 112, f"FB column {i} odd PTs AND"))
                 fbc += 112
                 items.append((fbc, 32, f"FB column {i} odd PTs OR"))
@@ -237,8 +237,8 @@ for i, device in enumerate(db["devices"]):
             else:
                 items.append((fbc, 112, f"FB column {i} odd PTs"))
                 fbc += 112
-            items.append((fbc, device["mc_width"], f"FB column {i} odd MCs"))
-            fbc += device["mc_width"]
+            items.append((fbc, chip["mc_width"], f"FB column {i} odd MCs"))
+            fbc += chip["mc_width"]
         items.sort()
         for bit, width, item in items:
             f.write(f"   - - {bit}..{bit+width}\n")
@@ -261,7 +261,7 @@ for i, device in enumerate(db["devices"]):
         for bond in bonds:
             bond = db["bonds"][bond]
             f.write(f"     - {bond['idcode_part']:#06x}\n")
-        for io, pdata in sorted(device["ios"].items(), key=lambda io: (int(io[0].split("_")[1]), int(io[0].split("_")[2])) if "_" in io[0] else (-1, 0)):
+        for io, pdata in sorted(chip["ios"].items(), key=lambda io: (int(io[0].split("_")[1]), int(io[0].split("_")[2])) if "_" in io[0] else (-1, 0)):
             if io in io_special_rev:
                 spec = io_special_rev[io]
                 f.write(f"   - - {io} ({spec})\n")
@@ -281,7 +281,7 @@ for i, device in enumerate(db["devices"]):
             for _, pins in bonds.values():
                 f.write(f"     - {pins[pad][0]}\n")
         specs = ["GND", "VCCINT"]
-        for bank in range(device["banks"]):
+        for bank in range(chip["banks"]):
             specs.append(f"VCCIO{bank}")
         specs += ["VCCAUX", "NC"]
         for spec in specs:
@@ -325,34 +325,34 @@ for i, device in enumerate(db["devices"]):
         f.write(f"\n")
         f.write(f".. raw:: html\n")
         f.write(f"   :file: gen-tile-{parts[0]['name']}-imux.html\n")
-        with open(f"xc2c/gen-tile-{parts[0]['name']}-imux.html", "w") as tf:
-            gen_tile(tf, "imux", device["imux_bits"])
+        with open(f"coolrunner2/gen-tile-{parts[0]['name']}-imux.html", "w") as tf:
+            gen_tile(tf, "imux", chip["imux_bits"])
         f.write(f"\n")
         f.write(f"MC bits\n")
         f.write(f"=======\n")
         f.write(f"\n")
         f.write(f".. raw:: html\n")
         f.write(f"   :file: gen-tile-{parts[0]['name']}-mc.html\n")
-        with open(f"xc2c/gen-tile-{parts[0]['name']}-mc.html", "w") as tf:
-            gen_tile(tf, "mc", device["mc_bits"])
-        
-        if device["has_vref"]:
+        with open(f"coolrunner2/gen-tile-{parts[0]['name']}-mc.html", "w") as tf:
+            gen_tile(tf, "mc", chip["mc_bits"])
+
+        if chip["has_vref"]:
             f.write(f"\n")
             f.write(f"JED mapping — MCs with IOBs\n")
             f.write(f"---------------------------\n")
             f.write(f"\n")
             f.write(f".. raw:: html\n")
             f.write(f"   :file: gen-jed-{parts[0]['name']}-mc-iob.html\n")
-            with open(f"xc2c/gen-jed-{parts[0]['name']}-mc-iob.html", "w") as tf:
-                gen_jed(tf, "mc", device["mc_bits"], db["jed_mc_bits_large_iob"])
+            with open(f"coolrunner2/gen-jed-{parts[0]['name']}-mc-iob.html", "w") as tf:
+                gen_jed(tf, "mc", chip["mc_bits"], db["jed_mc_bits_large_iob"])
             f.write(f"\n")
             f.write(f"JED mapping — MCs without IOBs\n")
             f.write(f"------------------------------\n")
             f.write(f"\n")
             f.write(f".. raw:: html\n")
             f.write(f"   :file: gen-jed-{parts[0]['name']}-mc-buried.html\n")
-            with open(f"xc2c/gen-jed-{parts[0]['name']}-mc-buried.html", "w") as tf:
-                gen_jed(tf, "mc", device["mc_bits"], db["jed_mc_bits_large_buried"])
+            with open(f"coolrunner2/gen-jed-{parts[0]['name']}-mc-buried.html", "w") as tf:
+                gen_jed(tf, "mc", chip["mc_bits"], db["jed_mc_bits_large_buried"])
         else:
             f.write(f"\n")
             f.write(f"JED mapping\n")
@@ -360,8 +360,8 @@ for i, device in enumerate(db["devices"]):
             f.write(f"\n")
             f.write(f".. raw:: html\n")
             f.write(f"   :file: gen-jed-{parts[0]['name']}-mc.html\n")
-            with open(f"xc2c/gen-jed-{parts[0]['name']}-mc.html", "w") as tf:
-                gen_jed(tf, "mc", device["mc_bits"], db["jed_mc_bits_small"])
+            with open(f"coolrunner2/gen-jed-{parts[0]['name']}-mc.html", "w") as tf:
+                gen_jed(tf, "mc", chip["mc_bits"], db["jed_mc_bits_small"])
 
 
         f.write(f"\n")
@@ -370,13 +370,13 @@ for i, device in enumerate(db["devices"]):
         f.write(f"\n")
         f.write(f".. raw:: html\n")
         f.write(f"   :file: gen-tile-{parts[0]['name']}-global.html\n")
-        with open(f"xc2c/gen-tile-{parts[0]['name']}-global.html", "w") as tf:
-            gen_tile(tf, "global", device["global_bits"])
+        with open(f"coolrunner2/gen-tile-{parts[0]['name']}-global.html", "w") as tf:
+            gen_tile(tf, "global", chip["global_bits"])
         f.write(f"\n")
         f.write(f"JED mapping\n")
         f.write(f"-----------\n")
         f.write(f"\n")
         f.write(f".. raw:: html\n")
         f.write(f"   :file: gen-jed-{parts[0]['name']}-global.html\n")
-        with open(f"xc2c/gen-jed-{parts[0]['name']}-global.html", "w") as tf:
-            gen_jed(tf, "global", device["global_bits"], device["jed_global_bits"])
+        with open(f"coolrunner2/gen-jed-{parts[0]['name']}-global.html", "w") as tf:
+            gen_jed(tf, "global", chip["global_bits"], chip["jed_global_bits"])

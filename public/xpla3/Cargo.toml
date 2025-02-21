@@ -10,6 +10,7 @@ serde.workspace = true
 zstd.workspace = true
 bincode.workspace = true
 clap.workspace = true
+serde_json.workspace = true
 prjcombine-types.workspace = true
 
 [lints]

@@ -10,5 +10,5 @@ Xilinx XC9500, XC9500XL, XC9500XV CPLDs
    bitstream-xc9500
    bitstream-xc9500xl
    database
-   db-devices
+   db-chips
    jtag
