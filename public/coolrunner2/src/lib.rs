@@ -1,7 +1,10 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use jzon::JsonValue;
-use prjcombine_types::{FbId, FbMcId, IoId, IpadId, tiledb::Tile};
+use prjcombine_types::{
+    FbId, FbMcId, IoId, IpadId,
+    tiledb::{Tile, TileBit},
+};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 
@@ -20,17 +23,17 @@ pub struct Chip {
     pub banks: usize,
     pub has_vref: bool,
     pub bs_layout: BsLayout,
-    pub bs_cols: u32,
-    pub imux_width: u32,
-    pub xfer_cols: Vec<u32>,
-    pub mc_width: u32,
-    pub fb_rows: u32,
-    pub fb_cols: Vec<u32>,
+    pub bs_cols: usize,
+    pub imux_width: usize,
+    pub xfer_cols: Vec<usize>,
+    pub mc_width: usize,
+    pub fb_rows: usize,
+    pub fb_cols: Vec<usize>,
     pub io_special: BTreeMap<String, (FbId, FbMcId)>,
-    pub mc_bits: Tile<BitCoord>,
-    pub global_bits: Tile<BitCoord>,
+    pub mc_bits: Tile<TileBit>,
+    pub global_bits: Tile<TileBit>,
     pub jed_global_bits: Vec<(String, usize)>,
-    pub imux_bits: Tile<BitCoord>,
+    pub imux_bits: Tile<TileBit>,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -43,12 +46,6 @@ pub enum BsLayout {
 pub struct Io {
     pub bank: BankId,
     pub pad_distance: u32,
-}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
-pub struct BitCoord {
-    pub row: u32,
-    pub column: u32,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -141,8 +138,8 @@ fn jed_bits_to_json(jed_bits: &[(String, usize)]) -> JsonValue {
 
 impl Chip {
     pub fn to_json(&self) -> JsonValue {
-        fn bit_to_json(crd: BitCoord) -> JsonValue {
-            jzon::array![crd.row, crd.column]
+        fn bit_to_json(crd: TileBit) -> JsonValue {
+            jzon::array![crd.tile, crd.frame, crd.bit]
         }
 
         jzon::object! {
