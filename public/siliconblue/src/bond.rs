@@ -16,6 +16,20 @@ pub enum CfgPin {
     TrstB,
 }
 
+impl std::fmt::Display for CfgPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CfgPin::Tck => write!(f, "TCK"),
+            CfgPin::Tms => write!(f, "TMS"),
+            CfgPin::Tdi => write!(f, "TDI"),
+            CfgPin::Tdo => write!(f, "TDO"),
+            CfgPin::TrstB => write!(f, "TRST_B"),
+            CfgPin::CDone => write!(f, "CDONE"),
+            CfgPin::CResetB => write!(f, "CRESET_B"),
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     Io(EdgeIoCoord),
@@ -33,6 +47,28 @@ pub enum BondPin {
     GndLed,
     Cfg(CfgPin),
     PorTest,
+}
+
+impl std::fmt::Display for BondPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BondPin::Io(io) => write!(f, "{io}"),
+            BondPin::IoCDone(io) => write!(f, "{io}_CDONE"),
+            BondPin::Nc => write!(f, "NC"),
+            BondPin::Gnd => write!(f, "GND"),
+            BondPin::GndLed => write!(f, "GNDLED"),
+            BondPin::VccInt => write!(f, "VCCINT"),
+            BondPin::VccIo(bank) => write!(f, "VCCIO{bank}"),
+            BondPin::VccIoSpi => write!(f, "VCCIO_SPI"),
+            BondPin::VppPump => write!(f, "VPP_PUMP"),
+            BondPin::VppDirect => write!(f, "VPP_DIRECT"),
+            BondPin::GndPll(edge) => write!(f, "GNDPLL_{edge}"),
+            BondPin::VccPll(edge) => write!(f, "VCCPLL_{edge}"),
+            BondPin::Vref => write!(f, "VREF"),
+            BondPin::PorTest => write!(f, "POR_TEST"),
+            BondPin::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -63,29 +99,7 @@ impl Bond {
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "pins": serde_json::Map::from_iter(
-                self.pins.iter().map(|(pin, pad)| (pin.clone(), match pad {
-                    BondPin::Io(io) => io.to_string(),
-                    BondPin::IoCDone(io) => format!("{io} + CDONE"),
-                    BondPin::Nc => "NC".to_string(),
-                    BondPin::Gnd => "GND".to_string(),
-                    BondPin::GndLed => "GNDLED".to_string(),
-                    BondPin::VccInt => "VCCINT".to_string(),
-                    BondPin::VccIo(bank) => format!("VCCIO{bank}"),
-                    BondPin::VccIoSpi => "VCCIO_SPI".to_string(),
-                    BondPin::VppPump => "VPP_PUMP".to_string(),
-                    BondPin::VppDirect => "VPP_DIRECT".to_string(),
-                    BondPin::GndPll(edge) => format!("GNDPLL_{edge}"),
-                    BondPin::VccPll(edge) => format!("VCCPLL_{edge}"),
-                    BondPin::Vref => "VREF".to_string(),
-                    BondPin::PorTest => "POR_TEST".to_string(),
-                    BondPin::Cfg(CfgPin::Tck) => "TCK".to_string(),
-                    BondPin::Cfg(CfgPin::Tms) => "TMS".to_string(),
-                    BondPin::Cfg(CfgPin::Tdi) => "TDI".to_string(),
-                    BondPin::Cfg(CfgPin::Tdo) => "TDO".to_string(),
-                    BondPin::Cfg(CfgPin::TrstB) => "TRST_B".to_string(),
-                    BondPin::Cfg(CfgPin::CDone) => "CDONE".to_string(),
-                    BondPin::Cfg(CfgPin::CResetB) => "CRESET_B".to_string(),
-                }.into()))
+                self.pins.iter().map(|(pin, pad)| (pin.clone(),  pad.to_string().into()))
             ),
         })
     }
@@ -100,31 +114,7 @@ impl std::fmt::Display for Bond {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\tPINS:")?;
         for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
-            write!(f, "\t\t{pin:4}: ")?;
-            match pad {
-                BondPin::Io(io) => write!(f, "{io}")?,
-                BondPin::IoCDone(io) => write!(f, "{io} + CDONE")?,
-                BondPin::Nc => write!(f, "NC")?,
-                BondPin::Gnd => write!(f, "GND")?,
-                BondPin::GndLed => write!(f, "GNDLED")?,
-                BondPin::VccInt => write!(f, "VCCINT")?,
-                BondPin::VccIo(bank) => write!(f, "VCCIO{bank}")?,
-                BondPin::VccIoSpi => write!(f, "VCCIO_SPI")?,
-                BondPin::VppPump => write!(f, "VPP_PUMP")?,
-                BondPin::VppDirect => write!(f, "VPP_DIRECT")?,
-                BondPin::GndPll(edge) => write!(f, "GNDPLL_{edge}")?,
-                BondPin::VccPll(edge) => write!(f, "VCCPLL_{edge}")?,
-                BondPin::Vref => write!(f, "VREF")?,
-                BondPin::PorTest => write!(f, "POR_TEST")?,
-                BondPin::Cfg(CfgPin::Tck) => write!(f, "TCK")?,
-                BondPin::Cfg(CfgPin::Tms) => write!(f, "TMS")?,
-                BondPin::Cfg(CfgPin::Tdi) => write!(f, "TDI")?,
-                BondPin::Cfg(CfgPin::Tdo) => write!(f, "TDO")?,
-                BondPin::Cfg(CfgPin::TrstB) => write!(f, "TRST_B")?,
-                BondPin::Cfg(CfgPin::CDone) => write!(f, "CDONE")?,
-                BondPin::Cfg(CfgPin::CResetB) => write!(f, "CRESET_B")?,
-            }
-            writeln!(f)?;
+            writeln!(f, "\t\t{pin:4}: {pad}")?;
         }
         Ok(())
     }
