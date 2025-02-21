@@ -1,5 +1,5 @@
+use prjcombine_spartan6::chip::{ColumnIoKind, ColumnKind, Gts};
 use prjcombine_spartan6::expanded::ExpandedDevice;
-use prjcombine_spartan6::grid::{ColumnIoKind, ColumnKind, Gts};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::drawer::Drawer;
@@ -19,7 +19,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     let mut x = 0.;
     x += W_TERM;
     let mut col_x = EntityVec::new();
-    for (_, cd) in &edev.grid.columns {
+    for (_, cd) in &edev.chip.columns {
         let w = match cd.kind {
             ColumnKind::Bram => W_BRAM,
             ColumnKind::Dsp | ColumnKind::DspPlus => W_DSP,
@@ -37,14 +37,14 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     let mut y = 0.;
     y += H_TERM;
     let mut row_y = EntityVec::new();
-    for row in edev.grid.rows.ids() {
+    for row in edev.chip.rows.ids() {
         if row.to_idx() % 16 == 0 && row.to_idx() != 0 {
             y += H_BRKH;
         }
         if row.to_idx() % 16 == 8 {
             y += H_HCLK;
         }
-        if row == edev.grid.row_clk() {
+        if row == edev.chip.row_clk() {
             y += H_CLK;
         }
 
@@ -69,7 +69,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     drawer.bel_class("gt", "#8000ff");
     drawer.bel_class("bufg", "#aa5500");
 
-    for (col, cd) in &edev.grid.columns {
+    for (col, cd) in &edev.chip.columns {
         match cd.kind {
             ColumnKind::CleXL | ColumnKind::CleXM | ColumnKind::CleClk => {
                 let kind = if cd.kind == ColumnKind::CleXM {
@@ -77,14 +77,14 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 } else {
                     "clexl"
                 };
-                for row in edev.grid.rows.ids() {
+                for row in edev.chip.rows.ids() {
                     if edev.in_site_hole(col, row) {
                         continue;
                     }
                     drawer.bel_rect(col_x[col].0, col_x[col].1, row_y[row].0, row_y[row].1, kind);
                 }
                 if cd.bio != ColumnIoKind::None {
-                    for row in [edev.grid.row_bio_outer(), edev.grid.row_bio_inner()] {
+                    for row in [edev.chip.row_bio_outer(), edev.chip.row_bio_inner()] {
                         drawer.bel_rect(
                             col_x[col].0,
                             col_x[col].1,
@@ -93,7 +93,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             "ioi",
                         )
                     }
-                    let row = edev.grid.row_bio_outer();
+                    let row = edev.chip.row_bio_outer();
                     if cd.bio != ColumnIoKind::Inner {
                         drawer.bel_rect(
                             col_x[col].0 + W_CLB / 2.,
@@ -114,7 +114,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     }
                 }
                 if cd.tio != ColumnIoKind::None {
-                    for row in [edev.grid.row_tio_outer(), edev.grid.row_tio_inner()] {
+                    for row in [edev.chip.row_tio_outer(), edev.chip.row_tio_inner()] {
                         drawer.bel_rect(
                             col_x[col].0,
                             col_x[col].1,
@@ -123,7 +123,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             "ioi",
                         )
                     }
-                    let row = edev.grid.row_tio_outer();
+                    let row = edev.chip.row_tio_outer();
                     if cd.bio != ColumnIoKind::Inner {
                         drawer.bel_rect(
                             col_x[col].0,
@@ -150,7 +150,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 } else {
                     "dsp"
                 };
-                for row in edev.grid.rows.ids().step_by(4) {
+                for row in edev.chip.rows.ids().step_by(4) {
                     if edev.in_site_hole(col, row) {
                         continue;
                     }
@@ -164,9 +164,9 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 }
             }
             ColumnKind::Io => {
-                for (row, rd) in &edev.grid.rows {
-                    if (col == edev.grid.col_lio() && rd.lio)
-                        || (col == edev.grid.col_rio() && rd.rio)
+                for (row, rd) in &edev.chip.rows {
+                    if (col == edev.chip.col_lio() && rd.lio)
+                        || (col == edev.chip.col_rio() && rd.rio)
                     {
                         drawer.bel_rect(
                             col_x[col].0,
@@ -175,7 +175,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             row_y[row].1,
                             "ioi",
                         );
-                        if col == edev.grid.col_lio() {
+                        if col == edev.chip.col_lio() {
                             drawer.bel_rect(
                                 col_x[col].0 - W_TERM,
                                 col_x[col].0,
@@ -194,7 +194,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         }
                     }
                 }
-                for mcb in &edev.grid.mcbs {
+                for mcb in &edev.chip.mcbs {
                     drawer.bel_rect(
                         col_x[col].0,
                         col_x[col].1,
@@ -215,16 +215,16 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             }
         }
     }
-    let col = edev.grid.col_clk;
+    let col = edev.chip.col_clk;
     drawer.bel_rect(
         col_x[col].0,
         col_x[col].1,
-        row_y[edev.grid.row_clk()].0,
-        row_y[edev.grid.row_clk()].1,
+        row_y[edev.chip.row_clk()].0,
+        row_y[edev.chip.row_clk()].1,
         "bufg",
     );
 
-    for (row, _) in edev.grid.get_dcms() {
+    for (row, _) in edev.chip.get_dcms() {
         drawer.bel_poly(
             vec![
                 (col_x[col].1, row_y[row - 8].0),
@@ -240,7 +240,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         );
     }
 
-    for (row, _) in edev.grid.get_plls() {
+    for (row, _) in edev.chip.get_plls() {
         drawer.bel_poly(
             vec![
                 (col_x[col].1, row_y[row - 8].0),
@@ -257,38 +257,38 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     }
 
     drawer.bel_rect(
-        col_x[edev.grid.col_lio()].0,
-        col_x[edev.grid.col_lio()].1,
-        row_y[edev.grid.row_bio_outer()].0,
-        row_y[edev.grid.row_bio_outer()].1,
+        col_x[edev.chip.col_lio()].0,
+        col_x[edev.chip.col_lio()].1,
+        row_y[edev.chip.row_bio_outer()].0,
+        row_y[edev.chip.row_bio_outer()].1,
         "cfg",
     );
     drawer.bel_rect(
-        col_x[edev.grid.col_lio()].0,
-        col_x[edev.grid.col_lio()].1,
-        row_y[edev.grid.row_tio_outer()].0,
-        row_y[edev.grid.row_tio_outer()].1,
+        col_x[edev.chip.col_lio()].0,
+        col_x[edev.chip.col_lio()].1,
+        row_y[edev.chip.row_tio_outer()].0,
+        row_y[edev.chip.row_tio_outer()].1,
         "cfg",
     );
     drawer.bel_rect(
-        col_x[edev.grid.col_rio()].0,
-        col_x[edev.grid.col_rio()].1,
-        row_y[edev.grid.row_bio_outer()].0,
-        row_y[edev.grid.row_bio_inner()].1,
+        col_x[edev.chip.col_rio()].0,
+        col_x[edev.chip.col_rio()].1,
+        row_y[edev.chip.row_bio_outer()].0,
+        row_y[edev.chip.row_bio_inner()].1,
         "cfg",
     );
     drawer.bel_rect(
-        col_x[edev.grid.col_rio()].0,
-        col_x[edev.grid.col_rio()].1,
-        row_y[edev.grid.row_tio_inner()].0,
-        row_y[edev.grid.row_tio_outer()].1,
+        col_x[edev.chip.col_rio()].0,
+        col_x[edev.chip.col_rio()].1,
+        row_y[edev.chip.row_tio_inner()].0,
+        row_y[edev.chip.row_tio_outer()].1,
         "cfg",
     );
 
-    if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = edev.grid.gts {
-        let row_b = edev.grid.row_top() - 16;
-        let row_m = edev.grid.row_top() - 8;
-        let row_t = edev.grid.row_top();
+    if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = edev.chip.gts {
+        let row_b = edev.chip.row_top() - 16;
+        let row_m = edev.chip.row_top() - 8;
+        let row_t = edev.chip.row_top();
         drawer.bel_poly(
             vec![
                 (col_x[cl - 5].0, row_y[row_b].0),
@@ -305,15 +305,15 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         drawer.bel_rect(
             col_x[cl - 2].0,
             col_x[cl + 2].1,
-            row_y[edev.grid.row_top() - 32].0,
-            row_y[edev.grid.row_top() - 17].1,
+            row_y[edev.chip.row_top() - 32].0,
+            row_y[edev.chip.row_top() - 17].1,
             "pcie",
         );
     }
-    if let Gts::Double(_, cr) | Gts::Quad(_, cr) = edev.grid.gts {
-        let row_b = edev.grid.row_top() - 16;
-        let row_m = edev.grid.row_top() - 8;
-        let row_t = edev.grid.row_top();
+    if let Gts::Double(_, cr) | Gts::Quad(_, cr) = edev.chip.gts {
+        let row_b = edev.chip.row_top() - 16;
+        let row_m = edev.chip.row_top() - 8;
+        let row_t = edev.chip.row_top();
         drawer.bel_poly(
             vec![
                 (col_x[cr - 3].0, row_y[row_b].0),
@@ -326,10 +326,10 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             "gt",
         );
     }
-    if let Gts::Quad(cl, cr) = edev.grid.gts {
-        let row_b = edev.grid.row_bot();
-        let row_m = edev.grid.row_bot() + 8;
-        let row_t = edev.grid.row_bot() + 16;
+    if let Gts::Quad(cl, cr) = edev.chip.gts {
+        let row_b = edev.chip.row_bot();
+        let row_m = edev.chip.row_bot() + 8;
+        let row_t = edev.chip.row_bot() + 16;
         drawer.bel_poly(
             vec![
                 (col_x[cl - 6].0, row_y[row_b].0 - H_TERM),

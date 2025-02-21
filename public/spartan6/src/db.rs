@@ -8,11 +8,11 @@ use unnamed_entity::{EntityId, EntityMap, EntityVec, entity_id};
 
 use crate::{
     bond::Bond,
-    grid::{DisabledPart, Grid},
+    chip::{Chip, DisabledPart},
 };
 
 entity_id! {
-    pub id GridId usize;
+    pub id ChipId usize;
     pub id BondId usize;
     pub id DevBondId usize;
     pub id DevSpeedId usize;
@@ -27,7 +27,7 @@ pub struct DeviceCombo {
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Part {
     pub name: String,
-    pub grid: GridId,
+    pub chip: ChipId,
     pub bonds: EntityMap<DevBondId, String, BondId>,
     pub speeds: EntityVec<DevSpeedId, String>,
     pub combos: Vec<DeviceCombo>,
@@ -36,7 +36,7 @@ pub struct Part {
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Database {
-    pub grids: EntityVec<GridId, Grid>,
+    pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
     pub parts: Vec<Part>,
     pub int: IntDb,
@@ -60,12 +60,12 @@ impl Database {
 
     pub fn to_json(&self) -> serde_json::Value {
         json!({
-            "grids": Vec::from_iter(self.grids.values().map(|grid| grid.to_json())),
+            "chips": Vec::from_iter(self.chips.values().map(|chip| chip.to_json())),
             "bonds": Vec::from_iter(self.bonds.values().map(|bond| bond.to_json())),
             "parts": Vec::from_iter(self.parts.iter().map(|part| {
                 json!({
                     "name": part.name,
-                    "grid": part.grid,
+                    "chip": part.chip,
                     "bonds": serde_json::Map::from_iter(part.bonds.iter().map(|(_, name, bond)| (name.clone(), bond.to_idx().into()))),
                     "speeds": part.speeds,
                     "combos": part.combos,

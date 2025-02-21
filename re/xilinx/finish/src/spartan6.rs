@@ -7,15 +7,15 @@ use itertools::Itertools;
 use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_spartan6::{
     bond::Bond,
+    chip::{Chip, DisabledPart},
     db::{Database, DeviceCombo, Part},
-    grid::{DisabledPart, Grid},
 };
 use prjcombine_types::tiledb::TileDb;
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
-    grid: &'a Grid,
+    grid: &'a Chip,
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
@@ -52,7 +52,7 @@ static RE_SPARTAN6T: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc6slx[0-9]
 static RE_ASPARTAN6T: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xa6slx[0-9]+t$").unwrap());
 static RE_QSPARTAN6T: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xq6slx[0-9]+t$").unwrap());
 
-fn sort_key<'a>(name: &'a str, tpart: &TmpPart, grid: &Grid) -> SortKey<'a> {
+fn sort_key<'a>(name: &'a str, tpart: &TmpPart, grid: &Chip) -> SortKey<'a> {
     let part_kind = if RE_SPARTAN6.is_match(name) {
         PartKind::Spartan6
     } else if RE_ASPARTAN6.is_match(name) {
@@ -162,7 +162,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         let speeds = EntityVec::from_iter(speeds.into_values());
         let part = Part {
             name: name.into(),
-            grid,
+            chip: grid,
             bonds: dev_bonds,
             speeds,
             combos,
@@ -179,7 +179,7 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     // TODO: resort int
 
     Database {
-        grids,
+        chips: grids,
         bonds,
         parts,
         int,

@@ -7,11 +7,11 @@ use prjcombine_xilinx_bitstream::{
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
+use crate::chip::{Chip, ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Gts, PllKind, RegId};
 use crate::expanded::ExpandedDevice;
-use crate::grid::{ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, PllKind, RegId};
 
 struct Expander<'a, 'b> {
-    grid: &'b Grid,
+    chip: &'b Chip,
     db: &'a IntDb,
     disabled: &'b BTreeSet<DisabledPart>,
     die: ExpandedDieRefMut<'a, 'b>,
@@ -48,8 +48,8 @@ impl Expander<'_, '_> {
     }
 
     fn fill_holes(&mut self) {
-        if let Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) = self.grid.gts {
-            let row_gt_mid = self.grid.row_top() - 8;
+        if let Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) = self.chip.gts {
+            let row_gt_mid = self.chip.row_top() - 8;
             let row_gt_bot = row_gt_mid - 8;
             let row_pcie_bot = row_gt_bot - 16;
             self.int_holes.push(Rect {
@@ -91,8 +91,8 @@ impl Expander<'_, '_> {
                 row_t: row_gt_bot,
             });
         }
-        if let Gts::Double(_, bc) | Gts::Quad(_, bc) = self.grid.gts {
-            let row_gt_mid = self.grid.row_top() - 8;
+        if let Gts::Double(_, bc) | Gts::Quad(_, bc) = self.chip.gts {
+            let row_gt_mid = self.chip.row_top() - 8;
             let row_gt_bot = row_gt_mid - 8;
             self.int_holes.push(Rect {
                 col_l: bc - 4,
@@ -119,7 +119,7 @@ impl Expander<'_, '_> {
                 row_t: row_gt_mid,
             });
         }
-        if let Gts::Quad(bcl, bcr) = self.grid.gts {
+        if let Gts::Quad(bcl, bcr) = self.chip.gts {
             let row_gt_bot = RowId::from_idx(0);
             let row_gt_mid = RowId::from_idx(8);
             self.int_holes.push(Rect {
@@ -176,7 +176,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_int(&mut self) {
-        for (col, &cd) in &self.grid.columns {
+        for (col, &cd) in &self.chip.columns {
             for row in self.die.rows() {
                 if self.is_int_hole(col, row) {
                     continue;
@@ -196,24 +196,24 @@ impl Expander<'_, '_> {
     }
 
     fn fill_lio(&mut self) {
-        let col = self.grid.col_lio();
-        for (row, &rd) in &self.grid.rows {
+        let col = self.chip.col_lio();
+        for (row, &rd) in &self.chip.rows {
             if rd.lio {
                 self.fill_ioi((col, row));
                 self.die.add_xnode((col, row), "IOB", &[]);
             } else {
                 self.die.add_xnode((col, row), "INTF", &[(col, row)]);
-                if row == self.grid.row_bio_outer() {
+                if row == self.chip.row_bio_outer() {
                     self.die.add_xnode((col, row), "LL", &[(col, row)]);
-                } else if row == self.grid.row_tio_outer() {
+                } else if row == self.chip.row_tio_outer() {
                     self.die.add_xnode((col, row), "UL", &[(col, row)]);
                 }
             }
 
-            if row == self.grid.row_clk() - 2
-                || row == self.grid.row_clk() - 1
-                || row == self.grid.row_clk() + 2
-                || row == self.grid.row_clk() + 3
+            if row == self.chip.row_clk() - 2
+                || row == self.chip.row_clk() - 1
+                || row == self.chip.row_clk() + 2
+                || row == self.chip.row_clk() + 3
             {
                 self.die.add_xnode((col, row), "CLKPIN_BUF", &[]);
             }
@@ -221,43 +221,43 @@ impl Expander<'_, '_> {
 
             if row.to_idx() % 16 == 8 {
                 self.die.add_xnode((col, row), "LRIOI_CLK", &[]);
-                if row == self.grid.rows_pci_ce_split.0 || row == self.grid.rows_pci_ce_split.1 {
+                if row == self.chip.rows_pci_ce_split.0 || row == self.chip.rows_pci_ce_split.1 {
                     self.die.add_xnode((col, row), "PCI_CE_SPLIT", &[]);
                 } else {
                     self.die.add_xnode((col, row), "PCI_CE_TRUNK_BUF", &[]);
-                    if row != self.grid.row_clk() {
+                    if row != self.chip.row_clk() {
                         self.die.add_xnode((col, row), "PCI_CE_V_BUF", &[]);
                     }
                 }
             }
 
-            if row == self.grid.row_bio_outer() || row == self.grid.row_tio_outer() {
+            if row == self.chip.row_bio_outer() || row == self.chip.row_tio_outer() {
                 self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
             }
         }
     }
 
     fn fill_rio(&mut self) {
-        let col = self.grid.col_rio();
-        for (row, &rd) in self.grid.rows.iter().rev() {
+        let col = self.chip.col_rio();
+        for (row, &rd) in self.chip.rows.iter().rev() {
             if rd.rio {
                 self.fill_ioi((col, row));
                 self.die.add_xnode((col, row), "IOB", &[]);
             } else {
                 self.die.add_xnode((col, row), "INTF", &[(col, row)]);
-                if row == self.grid.row_bio_outer() {
+                if row == self.chip.row_bio_outer() {
                     self.die
                         .add_xnode((col, row), "LR", &[(col, row), (col, row + 1)]);
-                } else if row == self.grid.row_tio_inner() {
+                } else if row == self.chip.row_tio_inner() {
                     self.die
                         .add_xnode((col, row), "UR", &[(col, row), (col, row + 1)]);
                 }
             }
 
-            if row == self.grid.row_clk() - 2
-                || row == self.grid.row_clk() - 1
-                || row == self.grid.row_clk() + 2
-                || row == self.grid.row_clk() + 3
+            if row == self.chip.row_clk() - 2
+                || row == self.chip.row_clk() - 1
+                || row == self.chip.row_clk() + 2
+                || row == self.chip.row_clk() + 3
             {
                 self.die.add_xnode((col, row), "CLKPIN_BUF", &[]);
             }
@@ -265,44 +265,44 @@ impl Expander<'_, '_> {
 
             if row.to_idx() % 16 == 8 {
                 self.die.add_xnode((col, row), "LRIOI_CLK", &[]);
-                if row == self.grid.rows_pci_ce_split.0 || row == self.grid.rows_pci_ce_split.1 {
+                if row == self.chip.rows_pci_ce_split.0 || row == self.chip.rows_pci_ce_split.1 {
                     self.die.add_xnode((col, row), "PCI_CE_SPLIT", &[]);
                 } else {
                     self.die.add_xnode((col, row), "PCI_CE_TRUNK_BUF", &[]);
-                    if row != self.grid.row_clk() && !(self.grid.has_encrypt && row.to_idx() == 8) {
+                    if row != self.chip.row_clk() && !(self.chip.has_encrypt && row.to_idx() == 8) {
                         self.die.add_xnode((col, row), "PCI_CE_V_BUF", &[]);
                     }
                 }
             }
 
-            if row == self.grid.row_bio_outer() || row == self.grid.row_tio_outer() {
+            if row == self.chip.row_bio_outer() || row == self.chip.row_tio_outer() {
                 self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
             }
         }
     }
 
     fn fill_tio(&mut self) {
-        for (col, &cd) in &self.grid.columns {
+        for (col, &cd) in &self.chip.columns {
             if cd.tio == ColumnIoKind::None {
                 continue;
             }
             self.site_holes.push(Rect {
                 col_l: col,
                 col_r: col + 1,
-                row_b: self.grid.row_tio_inner(),
-                row_t: self.grid.row_tio_inner() + 2,
+                row_b: self.chip.row_tio_inner(),
+                row_t: self.chip.row_tio_inner() + 2,
             });
             for (row, unused) in [
-                (self.grid.row_tio_outer(), cd.tio == ColumnIoKind::Inner),
-                (self.grid.row_tio_inner(), cd.tio == ColumnIoKind::Outer),
+                (self.chip.row_tio_outer(), cd.tio == ColumnIoKind::Inner),
+                (self.chip.row_tio_inner(), cd.tio == ColumnIoKind::Outer),
             ] {
                 self.fill_ioi((col, row));
                 if !unused {
                     self.die.add_xnode((col, row), "IOB", &[]);
                 }
             }
-            let row = self.grid.row_tio_outer();
-            let is_clk = col == self.grid.col_clk || col == self.grid.col_clk + 1;
+            let row = self.chip.row_tio_outer();
+            let is_clk = col == self.chip.col_clk || col == self.chip.col_clk + 1;
             self.die.add_xnode((col, row), "BTIOI_CLK", &[]);
             if is_clk {
                 self.die.add_xnode((col, row - 1), "CLKPIN_BUF", &[]);
@@ -312,27 +312,27 @@ impl Expander<'_, '_> {
     }
 
     fn fill_bio(&mut self) {
-        for (col, &cd) in self.grid.columns.iter().rev() {
+        for (col, &cd) in self.chip.columns.iter().rev() {
             if cd.bio == ColumnIoKind::None {
                 continue;
             }
             self.site_holes.push(Rect {
                 col_l: col,
                 col_r: col + 1,
-                row_b: self.grid.row_bio_outer(),
-                row_t: self.grid.row_bio_outer() + 2,
+                row_b: self.chip.row_bio_outer(),
+                row_t: self.chip.row_bio_outer() + 2,
             });
             for (row, unused) in [
-                (self.grid.row_bio_outer(), cd.bio == ColumnIoKind::Inner),
-                (self.grid.row_bio_inner(), cd.bio == ColumnIoKind::Outer),
+                (self.chip.row_bio_outer(), cd.bio == ColumnIoKind::Inner),
+                (self.chip.row_bio_inner(), cd.bio == ColumnIoKind::Outer),
             ] {
                 self.fill_ioi((col, row));
                 if !unused {
                     self.die.add_xnode((col, row), "IOB", &[]);
                 }
             }
-            let row = self.grid.row_bio_outer();
-            let is_clk = col == self.grid.col_clk || col == self.grid.col_clk + 1;
+            let row = self.chip.row_bio_outer();
+            let is_clk = col == self.chip.col_clk || col == self.chip.col_clk + 1;
             self.die.add_xnode((col, row), "BTIOI_CLK", &[]);
             if is_clk {
                 self.die.add_xnode((col, row), "CLKPIN_BUF", &[]);
@@ -345,11 +345,11 @@ impl Expander<'_, '_> {
         if self.disabled.contains(&DisabledPart::Mcb) {
             return;
         }
-        for (col, &cd) in &self.grid.columns {
+        for (col, &cd) in &self.chip.columns {
             if cd.kind != ColumnKind::Io {
                 continue;
             }
-            for mcb in &self.grid.mcbs {
+            for mcb in &self.chip.mcbs {
                 let row = mcb.row_mcb;
                 let mut crds = vec![];
                 for dy in 0..12 {
@@ -366,19 +366,19 @@ impl Expander<'_, '_> {
     }
 
     fn fill_pcilogic(&mut self) {
-        let row = self.grid.row_clk();
+        let row = self.chip.row_clk();
 
-        let col = self.grid.col_lio();
+        let col = self.chip.col_lio();
         self.die.add_xnode((col, row), "PCILOGICSE", &[(col, row)]);
 
-        let col = self.grid.col_rio();
+        let col = self.chip.col_rio();
         self.die.add_xnode((col, row), "PCILOGICSE", &[(col, row)]);
     }
 
     fn fill_spine(&mut self) {
-        let col = self.grid.col_clk;
+        let col = self.chip.col_clk;
 
-        let row = self.grid.row_clk();
+        let row = self.chip.row_clk();
         self.site_holes.push(Rect {
             col_l: col,
             col_r: col + 1,
@@ -388,22 +388,22 @@ impl Expander<'_, '_> {
         self.die.add_xnode((col, row), "INTF", &[(col, row)]);
         self.die.add_xnode((col, row), "CLKC", &[(col, row)]);
 
-        for row in [self.grid.rows_hclkbuf.0, self.grid.rows_hclkbuf.1] {
+        for row in [self.chip.rows_hclkbuf.0, self.chip.rows_hclkbuf.1] {
             self.die.add_xnode((col, row), "HCLK_V_MIDBUF", &[]);
         }
 
-        for row in [self.grid.rows_midbuf.0, self.grid.rows_midbuf.1] {
+        for row in [self.chip.rows_midbuf.0, self.chip.rows_midbuf.1] {
             self.die.add_xnode((col, row), "CKPIN_V_MIDBUF", &[]);
         }
 
         {
-            let row = self.grid.row_bio_outer();
+            let row = self.chip.row_bio_outer();
             self.die
                 .add_xnode((col, row), "REG_B", &[(col + 1, row + 1)]);
         }
 
         {
-            let row = self.grid.row_tio_outer();
+            let row = self.chip.row_tio_outer();
             self.die.add_xnode((col, row), "REG_T", &[(col + 1, row)]);
         }
 
@@ -413,28 +413,28 @@ impl Expander<'_, '_> {
             }
         }
 
-        for col in [self.grid.cols_reg_buf.0, self.grid.cols_reg_buf.1] {
-            let row = self.grid.row_clk();
+        for col in [self.chip.cols_reg_buf.0, self.chip.cols_reg_buf.1] {
+            let row = self.chip.row_clk();
             self.die.add_xnode((col, row), "CKPIN_H_MIDBUF", &[]);
         }
 
         {
-            let col = self.grid.col_lio();
+            let col = self.chip.col_lio();
             self.die
                 .add_xnode((col, row), "REG_L", &[(col, row), (col, row + 1)]);
         }
 
         {
-            let col = self.grid.col_rio();
+            let col = self.chip.col_rio();
             self.die
                 .add_xnode((col, row), "REG_R", &[(col, row), (col, row + 1)]);
         }
     }
 
     fn fill_cmts(&mut self) {
-        let col = self.grid.col_clk;
+        let col = self.chip.col_clk;
 
-        for (br, kind) in self.grid.get_dcms() {
+        for (br, kind) in self.chip.get_dcms() {
             let buf_kind = match kind {
                 DcmKind::Bot => "DCM_BUFPLL_BUF_BOT",
                 DcmKind::BotMid => "DCM_BUFPLL_BUF_BOT_MID",
@@ -459,7 +459,7 @@ impl Expander<'_, '_> {
             self.die.add_xnode((col, br), buf_kind, &[]);
         }
 
-        for (br, kind) in self.grid.get_plls() {
+        for (br, kind) in self.chip.get_plls() {
             let out = match kind {
                 PllKind::BotOut0 => "PLL_BUFPLL_OUT0",
                 PllKind::BotOut1 => "PLL_BUFPLL_OUT1",
@@ -490,8 +490,8 @@ impl Expander<'_, '_> {
     }
 
     fn fill_gts_holes(&mut self) {
-        if let Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) = self.grid.gts {
-            let row_gt_mid = self.grid.row_top() - 8;
+        if let Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) = self.chip.gts {
+            let row_gt_mid = self.chip.row_top() - 8;
             let row_gt_bot = row_gt_mid - 8;
             let row_pcie_bot = row_gt_bot - 16;
             let col_l = bc - 7;
@@ -517,8 +517,8 @@ impl Expander<'_, '_> {
                 self.fill_intf_lterm((col_r, row));
             }
         }
-        if let Gts::Double(_, bc) | Gts::Quad(_, bc) = self.grid.gts {
-            let row_gt_mid = self.grid.row_top() - 8;
+        if let Gts::Double(_, bc) | Gts::Quad(_, bc) = self.chip.gts {
+            let row_gt_mid = self.chip.row_top() - 8;
             let row_gt_bot = row_gt_mid - 8;
             let col_l = bc - 5;
             let col_r = bc + 7;
@@ -535,7 +535,7 @@ impl Expander<'_, '_> {
                 self.fill_intf_lterm((col_r, row));
             }
         }
-        if let Gts::Quad(bcl, bcr) = self.grid.gts {
+        if let Gts::Quad(bcl, bcr) = self.chip.gts {
             let row_gt_bot = RowId::from_idx(0);
             let row_gt_mid = RowId::from_idx(8);
             let col_l = bcl - 7;
@@ -574,9 +574,9 @@ impl Expander<'_, '_> {
         if self.disabled.contains(&DisabledPart::Gtp) {
             return;
         }
-        match self.grid.gts {
+        match self.chip.gts {
             Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) => {
-                let row_gt_mid: RowId = self.grid.row_top() - 8;
+                let row_gt_mid: RowId = self.chip.row_top() - 8;
                 let row_gt_bot: RowId = row_gt_mid - 8;
                 let row_pcie_bot: RowId = row_gt_bot - 16;
 
@@ -590,7 +590,7 @@ impl Expander<'_, '_> {
                     crd.push((col_r, row_gt_bot + dy));
                 }
                 self.die
-                    .add_xnode((bc, self.grid.row_tio_outer()), "GTP", &crd);
+                    .add_xnode((bc, self.chip.row_tio_outer()), "GTP", &crd);
 
                 let col_l = bc - 2;
                 let col_r = bc + 2;
@@ -605,9 +605,9 @@ impl Expander<'_, '_> {
             }
             _ => (),
         }
-        match self.grid.gts {
+        match self.chip.gts {
             Gts::Double(_, bc) | Gts::Quad(_, bc) => {
-                let row_gt_mid: RowId = self.grid.row_top() - 8;
+                let row_gt_mid: RowId = self.chip.row_top() - 8;
                 let row_gt_bot: RowId = row_gt_mid - 8;
 
                 let col_l = bc - 3;
@@ -620,11 +620,11 @@ impl Expander<'_, '_> {
                     crd.push((col_r, row_gt_bot + dy));
                 }
                 self.die
-                    .add_xnode((bc, self.grid.row_tio_outer()), "GTP", &crd);
+                    .add_xnode((bc, self.chip.row_tio_outer()), "GTP", &crd);
             }
             _ => (),
         }
-        if let Gts::Quad(bcl, bcr) = self.grid.gts {
+        if let Gts::Quad(bcl, bcr) = self.chip.gts {
             let row_gt_mid = RowId::from_idx(8);
 
             let col_l = bcl - 5;
@@ -637,7 +637,7 @@ impl Expander<'_, '_> {
                 crd.push((col_r, row_gt_mid + dy));
             }
             self.die
-                .add_xnode((bcl, self.grid.row_bio_outer()), "GTP", &crd);
+                .add_xnode((bcl, self.chip.row_bio_outer()), "GTP", &crd);
 
             let col_l = bcr - 3;
             let col_r = bcr + 6;
@@ -649,13 +649,13 @@ impl Expander<'_, '_> {
                 crd.push((col_r, row_gt_mid + dy));
             }
             self.die
-                .add_xnode((bcr, self.grid.row_bio_outer()), "GTP", &crd);
+                .add_xnode((bcr, self.chip.row_bio_outer()), "GTP", &crd);
         }
     }
 
     fn fill_btterm(&mut self) {
-        for (col, &cd) in &self.grid.columns {
-            let mut row_b = self.grid.row_bio_outer();
+        for (col, &cd) in &self.chip.columns {
+            let mut row_b = self.chip.row_bio_outer();
             while self.is_int_hole(col, row_b) {
                 row_b += 1;
             }
@@ -663,7 +663,7 @@ impl Expander<'_, '_> {
                 self.die.fill_term((col, row_b), "TERM.S");
             }
 
-            let mut row_t = self.grid.row_tio_outer();
+            let mut row_t = self.chip.row_tio_outer();
             while self.is_int_hole(col, row_t) {
                 row_t -= 1;
             }
@@ -672,7 +672,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_cle(&mut self) {
-        for (col, &cd) in &self.grid.columns {
+        for (col, &cd) in &self.chip.columns {
             if !matches!(
                 cd.kind,
                 ColumnKind::CleXL | ColumnKind::CleXM | ColumnKind::CleClk
@@ -697,7 +697,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_bram(&mut self) {
-        for (col, &cd) in &self.grid.columns {
+        for (col, &cd) in &self.chip.columns {
             if cd.kind != ColumnKind::Bram {
                 continue;
             }
@@ -705,7 +705,7 @@ impl Expander<'_, '_> {
                 if row.to_idx() % 4 != 0 {
                     continue;
                 }
-                let reg = self.grid.row_to_reg(row);
+                let reg = self.chip.row_to_reg(row);
                 if self.disabled.contains(&DisabledPart::BramRegion(col, reg)) {
                     continue;
                 }
@@ -719,16 +719,16 @@ impl Expander<'_, '_> {
                 );
             }
 
-            let row = self.grid.row_bio_outer();
+            let row = self.chip.row_bio_outer();
             self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
 
-            let row = self.grid.row_tio_outer();
+            let row = self.chip.row_tio_outer();
             self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
         }
     }
 
     fn fill_dsp(&mut self) {
-        for (col, &cd) in &self.grid.columns {
+        for (col, &cd) in &self.chip.columns {
             if !matches!(cd.kind, ColumnKind::Dsp | ColumnKind::DspPlus) {
                 continue;
             }
@@ -736,15 +736,15 @@ impl Expander<'_, '_> {
                 if row.to_idx() % 4 != 0 {
                     continue;
                 }
-                let reg = self.grid.row_to_reg(row);
+                let reg = self.chip.row_to_reg(row);
                 if self.disabled.contains(&DisabledPart::DspRegion(col, reg)) {
                     continue;
                 }
                 if cd.kind == ColumnKind::DspPlus {
-                    if row.to_idx() >= self.grid.rows.len() - 16 {
+                    if row.to_idx() >= self.chip.rows.len() - 16 {
                         continue;
                     }
-                    if matches!(self.grid.gts, Gts::Quad(_, _)) && row.to_idx() < 16 {
+                    if matches!(self.chip.gts, Gts::Quad(_, _)) && row.to_idx() < 16 {
                         continue;
                     }
                 }
@@ -758,16 +758,16 @@ impl Expander<'_, '_> {
                 );
             }
 
-            let row = self.grid.row_bio_outer();
+            let row = self.chip.row_bio_outer();
             self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
 
-            let row = self.grid.row_tio_outer();
+            let row = self.chip.row_tio_outer();
             self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
         }
     }
 
     fn fill_hclk_fold(&mut self) {
-        if let Some((col_l, col_r)) = self.grid.cols_clk_fold {
+        if let Some((col_l, col_r)) = self.chip.cols_clk_fold {
             for col in [col_l, col_r] {
                 for row in self.die.rows() {
                     if row.to_idx() % 16 != 8 {
@@ -783,9 +783,9 @@ impl Expander<'_, '_> {
         for col in self.die.cols() {
             for row in self.die.rows() {
                 let crow = if row.to_idx() % 16 < 8 {
-                    self.grid.row_hclk(row) - 1
+                    self.chip.row_hclk(row) - 1
                 } else {
-                    self.grid.row_hclk(row)
+                    self.chip.row_hclk(row)
                 };
                 self.die[(col, row)].clkroot = (col, crow);
 
@@ -805,7 +805,7 @@ impl Expander<'_, '_> {
         let node = tile.nodes.first_mut().unwrap();
         node.kind = self.db.get_node("INT.IOI");
         self.die.add_xnode(crd, "INTF.IOI", &[crd]);
-        let kind = if crd.0 == self.grid.col_lio() || crd.0 == self.grid.col_rio() {
+        let kind = if crd.0 == self.chip.col_lio() || crd.0 == self.chip.col_rio() {
             "IOI.LR"
         } else {
             "IOI.BT"
@@ -824,7 +824,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_frame_info(&mut self) {
-        for (_, cd) in &self.grid.columns {
+        for (_, cd) in &self.chip.columns {
             let width = match cd.kind {
                 ColumnKind::CleXL => 30,
                 ColumnKind::CleXM => 31,
@@ -836,7 +836,7 @@ impl Expander<'_, '_> {
             };
             self.col_width.push(width);
         }
-        for reg in self.grid.regs() {
+        for reg in self.chip.regs() {
             self.col_frame.push(EntityVec::new());
             self.bram_frame.push(EntityPartVec::new());
             let mut major = 0;
@@ -854,7 +854,7 @@ impl Expander<'_, '_> {
                 });
             }
             major += 1;
-            for (col, cd) in &self.grid.columns {
+            for (col, cd) in &self.chip.columns {
                 self.col_frame[reg].push(self.frame_info.len());
                 for minor in 0..self.col_width[col] {
                     self.frame_info.push(FrameInfo {
@@ -890,67 +890,67 @@ impl Expander<'_, '_> {
 
     fn fill_iob_frame_info(&mut self) {
         for row in self.die.rows() {
-            if row == self.grid.row_clk() {
+            if row == self.chip.row_clk() {
                 self.reg_frame[Dir::E] = self.iob_frame_len;
                 self.iob_frame_len += 384;
             }
-            if self.grid.rows[row].rio {
+            if self.chip.rows[row].rio {
                 self.iob_frame
-                    .insert((self.grid.col_rio(), row), self.iob_frame_len);
+                    .insert((self.chip.col_rio(), row), self.iob_frame_len);
                 self.iob_frame_len += 128;
             }
         }
         for col in self.die.cols().rev() {
-            if self.grid.columns[col].kind == ColumnKind::CleClk {
+            if self.chip.columns[col].kind == ColumnKind::CleClk {
                 self.reg_frame[Dir::N] = self.iob_frame_len;
                 self.iob_frame_len += 384;
             }
             if matches!(
-                self.grid.columns[col].tio,
+                self.chip.columns[col].tio,
                 ColumnIoKind::Inner | ColumnIoKind::Both
             ) {
                 self.iob_frame
-                    .insert((col, self.grid.row_tio_inner()), self.iob_frame_len);
+                    .insert((col, self.chip.row_tio_inner()), self.iob_frame_len);
                 self.iob_frame_len += 128;
             }
             if matches!(
-                self.grid.columns[col].tio,
+                self.chip.columns[col].tio,
                 ColumnIoKind::Outer | ColumnIoKind::Both
             ) {
                 self.iob_frame
-                    .insert((col, self.grid.row_tio_outer()), self.iob_frame_len);
+                    .insert((col, self.chip.row_tio_outer()), self.iob_frame_len);
                 self.iob_frame_len += 128;
             }
         }
         for row in self.die.rows().rev() {
-            if self.grid.rows[row].lio {
+            if self.chip.rows[row].lio {
                 self.iob_frame
-                    .insert((self.grid.col_lio(), row), self.iob_frame_len);
+                    .insert((self.chip.col_lio(), row), self.iob_frame_len);
                 self.iob_frame_len += 128;
             }
-            if row == self.grid.row_clk() {
+            if row == self.chip.row_clk() {
                 self.reg_frame[Dir::W] = self.iob_frame_len;
                 self.iob_frame_len += 384;
             }
         }
         for col in self.die.cols() {
             if matches!(
-                self.grid.columns[col].bio,
+                self.chip.columns[col].bio,
                 ColumnIoKind::Inner | ColumnIoKind::Both
             ) {
                 self.iob_frame
-                    .insert((col, self.grid.row_bio_inner()), self.iob_frame_len);
+                    .insert((col, self.chip.row_bio_inner()), self.iob_frame_len);
                 self.iob_frame_len += 128;
             }
             if matches!(
-                self.grid.columns[col].bio,
+                self.chip.columns[col].bio,
                 ColumnIoKind::Outer | ColumnIoKind::Both
             ) {
                 self.iob_frame
-                    .insert((col, self.grid.row_bio_outer()), self.iob_frame_len);
+                    .insert((col, self.chip.row_bio_outer()), self.iob_frame_len);
                 self.iob_frame_len += 128;
             }
-            if self.grid.columns[col].kind == ColumnKind::CleClk {
+            if self.chip.columns[col].kind == ColumnKind::CleClk {
                 self.reg_frame[Dir::S] = self.iob_frame_len;
                 self.iob_frame_len += 384;
             }
@@ -958,7 +958,7 @@ impl Expander<'_, '_> {
     }
 }
 
-impl Grid {
+impl Chip {
     pub fn expand_grid<'a>(
         &'a self,
         db: &'a IntDb,
@@ -969,7 +969,7 @@ impl Grid {
         let disabled = disabled.clone();
 
         let mut expander = Expander {
-            grid: self,
+            chip: self,
             db,
             disabled: &disabled,
             die,
@@ -1032,7 +1032,7 @@ impl Grid {
 
         egrid.finish();
         ExpandedDevice {
-            grid: self,
+            chip: self,
             disabled,
             egrid,
             site_holes,

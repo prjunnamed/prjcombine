@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_interconnect::grid::{ColId, EdgeIoCoord, RowId, TileIobId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
-use prjcombine_spartan6::grid::{
-    Column, ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, Mcb, McbIo, RegId, Row, SharedCfgPin,
+use prjcombine_spartan6::chip::{
+    Chip, Column, ColumnIoKind, ColumnKind, DisabledPart, Gts, Mcb, McbIo, RegId, Row, SharedCfgPin,
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -303,12 +303,12 @@ fn has_encrypt(rd: &Part) -> bool {
     false
 }
 
-fn set_cfg(grid: &mut Grid, cfg: SharedCfgPin, coord: EdgeIoCoord) {
+fn set_cfg(grid: &mut Chip, cfg: SharedCfgPin, coord: EdgeIoCoord) {
     let old = grid.cfg_io.insert(cfg, coord);
     assert!(old.is_none() || old == Some(coord));
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
+fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
     let mut io_lookup = HashMap::new();
     for (&crd, tile) in &rd.tiles {
         let tkn = rd.tile_kinds.key(tile.kind);
@@ -512,7 +512,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
     }
 }
 
-pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
+pub fn make_grid(rd: &Part) -> (Chip, BTreeSet<DisabledPart>) {
     let int = extract_int(
         rd,
         &[
@@ -558,7 +558,7 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
             }
         })
         .unwrap();
-    let mut grid = Grid {
+    let mut grid = Chip {
         columns,
         col_clk,
         cols_clk_fold: get_cols_clk_fold(rd, &int),

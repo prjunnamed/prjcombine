@@ -7,10 +7,10 @@ use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::grid::{DisabledPart, Grid, RegId};
+use crate::chip::{Chip, DisabledPart, RegId};
 
 pub struct ExpandedDevice<'a> {
-    pub grid: &'a Grid,
+    pub chip: &'a Chip,
     pub disabled: BTreeSet<DisabledPart>,
     pub egrid: ExpandedGrid<'a>,
     pub site_holes: Vec<Rect>,
@@ -34,8 +34,8 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
-        let reg = self.grid.row_to_reg(row);
-        let rd = row - self.grid.row_reg_bot(reg);
+        let reg = self.chip.row_to_reg(row);
+        let rd = row - self.chip.row_reg_bot(reg);
         let bit = 64 * (rd as usize) + if rd < 8 { 0 } else { 16 };
         BitTile::Main(
             DieId::from_idx(0),
@@ -48,14 +48,14 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn btile_spine(&self, row: RowId) -> BitTile {
-        let reg = self.grid.row_to_reg(row);
-        let rd = row - self.grid.row_reg_bot(reg);
+        let reg = self.chip.row_to_reg(row);
+        let rd = row - self.chip.row_reg_bot(reg);
         let bit = 64 * (rd as usize) + if rd < 8 { 0 } else { 16 };
         BitTile::Main(DieId::from_idx(0), self.spine_frame[reg], 4, bit, 64, false)
     }
 
     pub fn btile_hclk(&self, col: ColId, row: RowId) -> BitTile {
-        let reg = self.grid.row_to_reg(row);
+        let reg = self.chip.row_to_reg(row);
         BitTile::Main(
             DieId::from_idx(0),
             self.col_frame[reg][col],
@@ -67,8 +67,8 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn btile_bram(&self, col: ColId, row: RowId) -> BitTile {
-        let reg = self.grid.row_to_reg(row);
-        let rd: usize = (row - self.grid.row_reg_bot(reg)).try_into().unwrap();
+        let reg = self.chip.row_to_reg(row);
+        let rd: usize = (row - self.chip.row_reg_bot(reg)).try_into().unwrap();
         BitTile::Bram(DieId::from_idx(0), self.bram_frame[reg][col] + rd / 4)
     }
 

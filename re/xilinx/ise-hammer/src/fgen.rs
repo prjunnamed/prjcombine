@@ -1300,7 +1300,7 @@ impl<'a> TileKV<'a> {
                 let ExpandedDevice::Spartan6(edev) = backend.edev else {
                     unreachable!()
                 };
-                if loc.2 == edev.grid.row_clk() {
+                if loc.2 == edev.chip.row_clk() {
                     return None;
                 }
                 fuzzer
@@ -1843,22 +1843,22 @@ impl<'a> TileKV<'a> {
                 ExpandedDevice::Spartan6(edev) => {
                     match dir {
                         Dir::W => {
-                            if loc.1 >= edev.grid.col_clk {
+                            if loc.1 >= edev.chip.col_clk {
                                 return None;
                             }
                         }
                         Dir::E => {
-                            if loc.1 < edev.grid.col_clk {
+                            if loc.1 < edev.chip.col_clk {
                                 return None;
                             }
                         }
                         Dir::S => {
-                            if loc.2 >= edev.grid.row_clk() {
+                            if loc.2 >= edev.chip.row_clk() {
                                 return None;
                             }
                         }
                         Dir::N => {
-                            if loc.2 < edev.grid.row_clk() {
+                            if loc.2 < edev.chip.row_clk() {
                                 return None;
                             }
                         }
@@ -3279,8 +3279,8 @@ impl<'a> BelKV {
             }
             BelKV::IsBank(bank) => match backend.edev {
                 ExpandedDevice::Spartan6(edev) => {
-                    let crd = edev.grid.get_io_crd(loc.1, loc.2, bel);
-                    if edev.grid.get_io_bank(crd) != *bank {
+                    let crd = edev.chip.get_io_crd(loc.1, loc.2, bel);
+                    if edev.chip.get_io_bank(crd) != *bank {
                         return None;
                     }
                     fuzzer
@@ -4700,13 +4700,13 @@ impl TileBits {
                     vec![edev.btile_spine(row), edev.btile_btspine(row)]
                 }
                 ExpandedDevice::Spartan6(edev) => {
-                    let dir = if row == edev.grid.row_bio_outer() {
+                    let dir = if row == edev.chip.row_bio_outer() {
                         Dir::S
-                    } else if row == edev.grid.row_tio_outer() {
+                    } else if row == edev.chip.row_tio_outer() {
                         Dir::N
-                    } else if col == edev.grid.col_lio() {
+                    } else if col == edev.chip.col_lio() {
                         Dir::W
-                    } else if col == edev.grid.col_rio() {
+                    } else if col == edev.chip.col_rio() {
                         Dir::E
                     } else {
                         unreachable!()
@@ -5760,7 +5760,7 @@ impl ExtraFeatureKind {
                         }
                         Dir::N => {
                             row += 1;
-                            if row == edev.grid.rows.next_id() {
+                            if row == edev.chip.rows.next_id() {
                                 return vec![];
                             }
                         }
@@ -6445,7 +6445,7 @@ impl ExtraFeatureKind {
                 };
                 let mut res = vec![];
                 for row in backend.egrid.die(loc.0).rows() {
-                    if let Some(split) = edev.grid.row_mcb_split {
+                    if let Some(split) = edev.chip.row_mcb_split {
                         if loc.2 < split && row >= split {
                             continue;
                         }

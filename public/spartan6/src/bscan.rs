@@ -6,7 +6,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     bond::CfgPin,
-    grid::{ColumnIoKind, Grid},
+    chip::{Chip, ColumnIoKind},
 };
 
 #[derive(Debug)]
@@ -16,7 +16,7 @@ pub struct BScan {
     pub cfg: BTreeMap<CfgPin, BScanPin>,
 }
 
-impl Grid {
+impl Chip {
     pub fn get_bscan(&self) -> BScan {
         let mut io = BTreeMap::new();
         let mut cfg = BTreeMap::new();

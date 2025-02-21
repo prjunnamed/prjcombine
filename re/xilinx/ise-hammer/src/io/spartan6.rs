@@ -1001,7 +1001,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ]);
 
         let extras = vec![ExtraFeature::new(
-            ExtraFeatureKind::MainFixedPair(edev.grid.col_rio(), edev.grid.row_bio_outer()),
+            ExtraFeatureKind::MainFixedPair(edev.chip.col_rio(), edev.chip.row_bio_outer()),
             "LR",
             "MISC",
             "GLUTMASK_IOB",
@@ -1015,7 +1015,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ], extras);
 
         let extras = vec![ExtraFeature::new(
-            ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_tio_outer()),
+            ExtraFeatureKind::MainFixed(edev.chip.col_lio(), edev.chip.row_tio_outer()),
             "UL",
             "MISC",
             "VREF_LV",
@@ -1038,31 +1038,31 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         let banks = [
             (
                 "UL",
-                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_tio_outer()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_lio(), edev.chip.row_tio_outer()),
             ),
             (
                 "LR",
-                ExtraFeatureKind::MainFixedPair(edev.grid.col_rio(), edev.grid.row_bio_outer()),
+                ExtraFeatureKind::MainFixedPair(edev.chip.col_rio(), edev.chip.row_bio_outer()),
             ),
             (
                 "LL",
-                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_bio_outer()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_lio(), edev.chip.row_bio_outer()),
             ),
             (
                 "LL",
-                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_bio_outer()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_lio(), edev.chip.row_bio_outer()),
             ),
             (
                 "UL",
-                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_tio_outer()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_lio(), edev.chip.row_tio_outer()),
             ),
             (
                 "UR",
-                ExtraFeatureKind::MainFixedPair(edev.grid.col_rio(), edev.grid.row_tio_inner()),
+                ExtraFeatureKind::MainFixedPair(edev.chip.col_rio(), edev.chip.row_tio_inner()),
             ),
         ];
         for bank in 0..6 {
-            if bank >= 4 && edev.grid.row_mcb_split.is_none() {
+            if bank >= 4 && edev.chip.row_mcb_split.is_none() {
                 continue;
             }
             let extras = vec![ExtraFeature::new(
@@ -1303,11 +1303,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     };
                     if std.diff == DiffKind::True {
                         for (dir, row, corner, dx) in [
-                            (Dir::S, edev.grid.row_bio_outer(), "LL", 1),
-                            (Dir::N, edev.grid.row_tio_outer(), "UL", -1),
+                            (Dir::S, edev.chip.row_bio_outer(), "LL", 1),
+                            (Dir::N, edev.chip.row_tio_outer(), "UL", -1),
                         ] {
                             let extras = vec![ExtraFeature::new(
-                                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), row),
+                                ExtraFeatureKind::MainFixed(edev.chip.col_lio(), row),
                                 corner,
                                 "BANK",
                                 "LVDSBIAS_0",
@@ -1345,7 +1345,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                                 _ => unreachable!(),
                             };
                             let extras = vec![ExtraFeature::new(
-                                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), row),
+                                ExtraFeatureKind::MainFixed(edev.chip.col_lio(), row),
                                 corner,
                                 "BANK",
                                 "LVDSBIAS_1",
@@ -3076,7 +3076,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .collect(),
             },
         };
-        if bank < 4 || edev.grid.row_mcb_split.is_some() {
+        if bank < 4 || edev.chip.row_mcb_split.is_some() {
             let mut diff = ctx.state.get_diff(tile, bel, "INTERNAL_VREF", "1");
             diff.apply_enum_diff(&item, "0.5", "NONE");
             diff.assert_empty();

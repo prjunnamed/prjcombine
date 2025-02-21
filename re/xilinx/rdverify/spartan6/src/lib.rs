@@ -2,7 +2,7 @@ use prjcombine_interconnect::db::BelId;
 use prjcombine_re_xilinx_naming_spartan6::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
-use prjcombine_spartan6::grid::{ColumnKind, DisabledPart, Gts};
+use prjcombine_spartan6::chip::{ColumnKind, DisabledPart, Gts};
 use std::collections::HashSet;
 use unnamed_entity::EntityId;
 

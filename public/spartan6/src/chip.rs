@@ -12,7 +12,7 @@ entity_id! {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Grid {
+pub struct Chip {
     pub columns: EntityVec<ColId, Column>,
     pub col_clk: ColId,
     pub cols_clk_fold: Option<(ColId, ColId)>,
@@ -149,7 +149,7 @@ pub enum PllKind {
     TopNoOut,
 }
 
-impl Grid {
+impl Chip {
     pub fn col_lio(&self) -> ColId {
         ColId::from_idx(0)
     }
@@ -472,7 +472,7 @@ impl Grid {
     }
 }
 
-impl std::fmt::Display for Grid {
+impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\tKIND: Spartan6")?;
         writeln!(f, "\tCOLS:")?;

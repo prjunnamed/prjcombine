@@ -223,7 +223,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     for val in ["NO", "YES"] {
         fuzz_one!(ctx, "GTS_USR_B", val, [], [(global_opt "GTS_USR_B", val)]);
         fuzz_one!(ctx, "MULTIBOOT_ENABLE", val, [], [(global_opt "MULTIBOOTMODE", val)]);
-        if edev.grid.has_encrypt {
+        if edev.chip.has_encrypt {
             fuzz_one!(ctx, "ENCRYPT", val, [(global_mutex "BRAM", "NOPE")], [(global_opt "ENCRYPT", val)]);
         }
     }
@@ -582,7 +582,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "ENCRYPT_KEY_SELECT", &["BBRAM", "EFUSE"]);
         ctx.collect_enum_bool(tile, bel, "POST_CRC_INIT_FLAG", "DISABLE", "ENABLE");
         ctx.collect_enum_bool(tile, bel, "MULTIBOOT_ENABLE", "NO", "YES");
-        if edev.grid.has_encrypt {
+        if edev.chip.has_encrypt {
             ctx.collect_enum_bool(tile, bel, "ENCRYPT", "NO", "YES");
         }
         ctx.collect_enum(

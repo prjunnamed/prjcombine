@@ -4,7 +4,7 @@ use prjcombine_interconnect::db::{BelId, Dir};
 use prjcombine_re_collector::{OcdMode, xlat_bit, xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_spartan6::grid::Gts;
+use prjcombine_spartan6::chip::Gts;
 use prjcombine_types::tiledb::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 
@@ -285,7 +285,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ], [
             (pip (pin pin), (pin "CLKOUT_EW"))
         ]);
-        if matches!(edev.grid.gts, Gts::Double(..) | Gts::Quad(..)) {
+        if matches!(edev.chip.gts, Gts::Double(..) | Gts::Quad(..)) {
             fuzz_one!(ctx, "MUX.CLKOUT_WEST", pin, [
                 (mutex "MUX.CLKOUT_EW", pin),
                 (special TileKV::DeviceSide(Dir::E))
@@ -378,7 +378,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_bitvec(tile, bel, "PMA_COM_CFG_WEST", "");
 
     ctx.collect_enum(tile, bel, "MUX.CLKOUT_EAST", &["REFCLKPLL0", "REFCLKPLL1"]);
-    if matches!(edev.grid.gts, Gts::Double(..) | Gts::Quad(..)) {
+    if matches!(edev.chip.gts, Gts::Double(..) | Gts::Quad(..)) {
         ctx.collect_enum(tile, bel, "MUX.CLKOUT_WEST", &["REFCLKPLL0", "REFCLKPLL1"]);
     }
 

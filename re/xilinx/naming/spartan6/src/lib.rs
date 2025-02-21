@@ -9,15 +9,15 @@ use prjcombine_re_xilinx_naming::{
     grid::{BelGrid, ExpandedGridNaming},
 };
 use prjcombine_spartan6::{
+    chip::{Chip, ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Gts, PllKind},
     expanded::ExpandedDevice,
-    grid::{ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, PllKind},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,
     pub ngrid: ExpandedGridNaming<'a>,
-    pub grid: &'a Grid,
+    pub grid: &'a Chip,
 }
 
 pub struct Gt<'a> {
@@ -120,7 +120,7 @@ impl<'a> ExpandedNamedDevice<'a> {
 }
 
 struct Namer<'a> {
-    grid: &'a Grid,
+    grid: &'a Chip,
     ngrid: ExpandedGridNaming<'a>,
     tiexlut: EntityVec<ColId, usize>,
     rxlut: EntityVec<ColId, usize>,
@@ -374,7 +374,7 @@ impl Namer<'_> {
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let egrid = &edev.egrid;
-    let grid = edev.grid;
+    let grid = edev.chip;
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
     ngrid.tie_kind = Some("TIEOFF".to_string());
     ngrid.tie_pin_pullup = Some("KEEP1".to_string());
@@ -1646,7 +1646,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     }
 
     let mut pad_cnt = 1;
-    for io in edev.grid.get_bonded_ios() {
+    for io in edev.chip.get_bonded_ios() {
         let (col, row, bel) = grid.get_io_loc(io);
         let layer = edev
             .egrid

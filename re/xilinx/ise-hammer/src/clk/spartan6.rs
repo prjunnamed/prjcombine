@@ -5,7 +5,7 @@ use prjcombine_interconnect::db::{BelId, Dir};
 use prjcombine_re_collector::{OcdMode, xlat_bit, xlat_bit_wide, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_spartan6::grid::Gts;
+use prjcombine_spartan6::chip::Gts;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
@@ -216,7 +216,7 @@ pub fn add_fuzzers<'a>(
                 }
                 let mut extras = vec![];
                 if out.starts_with("OUTD") {
-                    let tt = if edev.grid.rows.len() < 128 {
+                    let tt = if edev.chip.rows.len() < 128 {
                         "PLL_BUFPLL_OUT1"
                     } else {
                         "PLL_BUFPLL_OUT0"
@@ -298,7 +298,7 @@ pub fn add_fuzzers<'a>(
             ctx.bel_name = "DCM_BUFPLL".into();
             ctx.tile_name = "DCM_BUFPLL".into();
             for src in ["PLL0", "PLL1", "CLKC"] {
-                let (bufs_d, bufs_u) = match (tile, edev.grid.rows.len() / 64) {
+                let (bufs_d, bufs_u) = match (tile, edev.chip.rows.len() / 64) {
                     ("DCM_BUFPLL_BUF_BOT", _) => (vec![], vec!["PLL_BUFPLL_OUT1"]),
                     ("DCM_BUFPLL_BUF_BOT_MID", 2) => {
                         (vec!["PLL_BUFPLL_OUT1"], vec!["PLL_BUFPLL_OUT0"])
@@ -1131,8 +1131,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         if !is_lr {
             let bel = "MISC";
             let has_gt = match tile {
-                "REG_B" => matches!(edev.grid.gts, Gts::Quad(_, _)),
-                "REG_T" => edev.grid.gts != Gts::None,
+                "REG_B" => matches!(edev.chip.gts, Gts::Quad(_, _)),
+                "REG_T" => edev.chip.gts != Gts::None,
                 _ => unreachable!(),
             };
             if has_gt && !ctx.device.name.starts_with("xa") {
