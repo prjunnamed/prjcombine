@@ -457,6 +457,32 @@ pub enum SharedCfgPin {
     OspiEccFail,
 }
 
+impl std::fmt::Display for SharedCfgPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SharedCfgPin::Data(idx) => write!(f, "D{idx}"),
+            SharedCfgPin::Addr(idx) => write!(f, "A{idx}"),
+            SharedCfgPin::Rs(idx) => write!(f, "RS{idx}"),
+            SharedCfgPin::Dout => write!(f, "DOUT"),
+            SharedCfgPin::FweB => write!(f, "FWE_B"),
+            SharedCfgPin::FoeB => write!(f, "FOE_B"),
+            SharedCfgPin::CsiB => write!(f, "CSI_B"),
+            SharedCfgPin::EmCclk => write!(f, "EM_CCLK"),
+            SharedCfgPin::PudcB => write!(f, "PUDC_B"),
+            SharedCfgPin::I2cSclk => write!(f, "I2C_SCLK"),
+            SharedCfgPin::I2cSda => write!(f, "I2C_SDA"),
+            SharedCfgPin::SmbAlert => write!(f, "SMB_ALERT"),
+            SharedCfgPin::PerstN0 => write!(f, "PERST_N0"),
+            SharedCfgPin::PerstN1 => write!(f, "PERST_N1"),
+            SharedCfgPin::Busy => write!(f, "BUSY"),
+            SharedCfgPin::Fcs1B => write!(f, "FCSI_B"),
+            SharedCfgPin::OspiDs => write!(f, "OSPI_DS"),
+            SharedCfgPin::OspiRstB => write!(f, "OSPI_RST_B"),
+            SharedCfgPin::OspiEccFail => write!(f, "OSPI_ECC_FAIL"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExpandedBond<'a> {
     pub bond: &'a Bond,

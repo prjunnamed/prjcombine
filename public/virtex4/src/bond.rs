@@ -386,6 +386,25 @@ pub enum SharedCfgPin {
     AdvB,
 }
 
+impl std::fmt::Display for SharedCfgPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SharedCfgPin::Data(idx) => write!(f, "D{idx}"),
+            SharedCfgPin::Addr(idx) => write!(f, "A{idx}"),
+            SharedCfgPin::Rs(idx) => write!(f, "RS{idx}"),
+            SharedCfgPin::CsoB => write!(f, "CSO_B"),
+            SharedCfgPin::FweB => write!(f, "FWE_B"),
+            SharedCfgPin::FoeB => write!(f, "FOE_B"),
+            SharedCfgPin::FcsB => write!(f, "FCS_B"),
+            SharedCfgPin::CsiB => write!(f, "CSI_B"),
+            SharedCfgPin::RdWrB => write!(f, "RD_WR_B"),
+            SharedCfgPin::EmCclk => write!(f, "EM_CCLK"),
+            SharedCfgPin::PudcB => write!(f, "PUDC_B"),
+            SharedCfgPin::AdvB => write!(f, "ADV_B"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExpandedBond<'a> {
     pub bond: &'a Bond,

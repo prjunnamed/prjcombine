@@ -113,6 +113,19 @@ pub enum SharedCfgPin {
     CbSel1,
 }
 
+impl std::fmt::Display for SharedCfgPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SharedCfgPin::SpiSo => write!(f, "SPI_SO"),
+            SharedCfgPin::SpiSi => write!(f, "SPI_SI"),
+            SharedCfgPin::SpiSck => write!(f, "SPI_SCK"),
+            SharedCfgPin::SpiSsB => write!(f, "SPI_SS_B"),
+            SharedCfgPin::CbSel0 => write!(f, "CBSEL0"),
+            SharedCfgPin::CbSel1 => write!(f, "CBSEL1"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ExtraNode {
     pub io: Vec<EdgeIoCoord>,
@@ -345,14 +358,7 @@ impl Chip {
             "row_mid": self.row_mid,
             "rows_colbuf": self.rows_colbuf,
             "cfg_io": serde_json::Map::from_iter(self.cfg_io.iter().map(|(k, io)| {
-                (match k {
-                    SharedCfgPin::SpiSo => "SPI_SO",
-                    SharedCfgPin::SpiSi => "SPI_SI",
-                    SharedCfgPin::SpiSck => "SPI_SCK",
-                    SharedCfgPin::SpiSsB => "SPI_SS_B",
-                    SharedCfgPin::CbSel0 => "CBSEL0",
-                    SharedCfgPin::CbSel1 => "CBSEL1",
-                }.to_string(), io.to_string().into())
+                (k.to_string(), io.to_string().into())
             })),
             "io_iob": serde_json::Map::from_iter(self.io_iob.iter().map(|(&k, &v)| (k.to_string(), json!(v.to_string())))),
             "io_od": Vec::from_iter(self.io_od.iter().map(|crd| crd.to_string())),
@@ -391,7 +397,7 @@ impl std::fmt::Display for Chip {
         }
         writeln!(f, "\tCFG PINS:")?;
         for (k, v) in &self.cfg_io {
-            writeln!(f, "\t\t{k:?}: {v}",)?;
+            writeln!(f, "\t\t{k}: {v}",)?;
         }
         Ok(())
     }
