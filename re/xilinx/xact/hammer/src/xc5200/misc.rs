@@ -116,8 +116,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
     let mut bctx = ctx.bel("OSC");
     let cnr_br = (
         DieId::from_idx(0),
-        backend.edev.grid.col_rio(),
-        backend.edev.grid.row_bio(),
+        backend.edev.chip.col_rio(),
+        backend.edev.chip.row_bio(),
         LayerId::from_idx(0),
     );
     for val in ["D2", "D4", "D6", "D8"] {

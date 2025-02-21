@@ -1,7 +1,7 @@
 use prjcombine_re_collector::{xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 
 use crate::{
     backend::IseBackend,
@@ -24,7 +24,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     for val in ["ON", "OFF"] {
         fuzz_one!(ctx, "TM_BOT", val, [], [(global_opt "TMBOT", val)]);
     }
-    if matches!(edev.grid.kind, GridKind::Xc4000Xla | GridKind::Xc4000Xv) {
+    if matches!(edev.chip.kind, ChipKind::Xc4000Xla | ChipKind::Xc4000Xv) {
         for val in ["ON", "OFF"] {
             fuzz_one!(ctx, "5V_TOLERANT_IO", val, [], [(global_opt "5V_TOLERANT_IO", val)]);
         }
@@ -39,7 +39,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
     let ctx = FuzzCtx::new_fake_bel(session, backend, "CNR.BL", "MD2", TileBits::Main(0, 1));
     for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
-        let opt = if edev.grid.kind == GridKind::SpartanXl {
+        let opt = if edev.chip.kind == ChipKind::SpartanXl {
             "POWERDOWN"
         } else {
             "M2PIN"
@@ -58,14 +58,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_one!(ctx, "INPUT", val, [], [(global_opt "INPUT", val)]);
         fuzz_one!(ctx, "OUTPUT", val, [], [(global_opt "OUTPUT", val)]);
     }
-    if edev.grid.kind != GridKind::Xc4000E {
+    if edev.chip.kind != ChipKind::Xc4000E {
         for val in ["ON", "OFF"] {
             fuzz_one!(ctx, "3V", val, [], [(global_opt "3V", val)]);
         }
     }
     let ctx = FuzzCtx::new(session, backend, "CNR.TL", "BSCAN", TileBits::Main(0, 1));
     let extras = vec![ExtraFeature::new(
-        ExtraFeatureKind::MainFixed(edev.grid.col_rio(), edev.grid.row_tio()),
+        ExtraFeatureKind::MainFixed(edev.chip.col_rio(), edev.chip.row_tio()),
         "CNR.TR",
         "BSCAN",
         "ENABLE",
@@ -73,8 +73,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     )];
     fuzz_one_extras!(ctx, "ENABLE", "1", [], [(mode "BSCAN"), (attr "BSCAN", "USED")], extras);
     if matches!(
-        edev.grid.kind,
-        GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+        edev.chip.kind,
+        ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
     ) {
         for val in ["ENABLE", "DISABLE"] {
             fuzz_one!(ctx, "CONFIG", val, [], [(global_opt "BSCAN_CONFIG", val)]);
@@ -86,16 +86,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_one!(ctx, "TCTEST", val, [], [(global_opt "TCTEST", val)]);
     }
     if matches!(
-        edev.grid.kind,
-        GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv
+        edev.chip.kind,
+        ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv
     ) {
         for val in ["ON", "OFF"] {
             fuzz_one!(ctx, "FIX_DISCHARGE", val, [], [(global_opt "FIXDISCHARGE", val)]);
         }
     }
     if matches!(
-        edev.grid.kind,
-        GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+        edev.chip.kind,
+        ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
     ) {
         let ctx = FuzzCtx::new_fake_bel(session, backend, "CNR.BR", "OSC", TileBits::Main(0, 1));
         for val in ["ON", "OFF"] {
@@ -115,8 +115,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_one!(ctx, "CONFIG_RATE", val, [], [(global_opt "CONFIGRATE", val)]);
     }
     if matches!(
-        edev.grid.kind,
-        GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+        edev.chip.kind,
+        ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
     ) {
         for val in ["ENABLE", "DISABLE"] {
             fuzz_one!(ctx, "EXPRESS_MODE", val, [
@@ -194,7 +194,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     for (pin, opin) in [("OUT0", "OUT1"), ("OUT1", "OUT0")] {
         for spin in ["F15", "F490", "F16K", "F500K"] {
             let extras = vec![ExtraFeature::new(
-                ExtraFeatureKind::MainFixed(edev.grid.col_rio(), edev.grid.row_bio()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_rio(), edev.chip.row_bio()),
                 "CNR.BR",
                 "OSC",
                 format!("MUX.{pin}"),
@@ -211,7 +211,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
     }
     let extras = vec![ExtraFeature::new(
-        ExtraFeatureKind::MainFixed(edev.grid.col_rio(), edev.grid.row_bio()),
+        ExtraFeatureKind::MainFixed(edev.chip.col_rio(), edev.chip.row_bio()),
         "CNR.BR",
         "OSC",
         "ENABLE",
@@ -227,7 +227,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     for val in ["ON", "OFF"] {
         fuzz_one!(ctx, "TM_RIGHT", val, [], [(global_opt "TMRIGHT", val)]);
     }
-    if edev.grid.kind != GridKind::Xc4000E {
+    if edev.chip.kind != ChipKind::Xc4000E {
         for val in ["ON", "OFF"] {
             fuzz_one!(ctx, "TAC", val, [], [(global_opt "TAC", val)]);
         }
@@ -238,7 +238,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     let ctx = FuzzCtx::new(session, backend, "CNR.BR", "READCLK", TileBits::Null);
     for val in ["CCLK", "RDBK"] {
         let extras = vec![ExtraFeature::new(
-            ExtraFeatureKind::MainFixed(edev.grid.col_rio(), edev.grid.row_tio()),
+            ExtraFeatureKind::MainFixed(edev.chip.col_rio(), edev.chip.row_tio()),
             "CNR.TR",
             "READCLK",
             "READ_CLK",
@@ -249,8 +249,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
     let ctx = FuzzCtx::new_fake_bel(session, backend, "CNR.TR", "BSCAN", TileBits::Main(0, 1));
     if matches!(
-        edev.grid.kind,
-        GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+        edev.chip.kind,
+        ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
     ) {
         for val in ["ENABLE", "DISABLE"] {
             fuzz_one!(ctx, "STATUS", val, [], [(global_opt "BSCAN_STATUS", val)]);
@@ -262,7 +262,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_one!(ctx, "PULL", val, [], [(global_opt "TDOPIN", val)]);
     }
 
-    let tile = if edev.grid.kind.is_xl() {
+    let tile = if edev.chip.kind.is_xl() {
         "LLVC.IO.R"
     } else {
         "LLV.IO.R"
@@ -272,25 +272,25 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_one!(ctx, "TLC", val, [], [(global_opt "TLC", val)]);
     }
 
-    if edev.grid.kind == GridKind::SpartanXl {
+    if edev.chip.kind == ChipKind::SpartanXl {
         let ctx = FuzzCtx::new_fake_tile(session, backend, "NULL", "NULL", TileBits::Null);
         let mut extras = vec![
             ExtraFeature::new(
-                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_bio()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_lio(), edev.chip.row_bio()),
                 "CNR.BL",
                 "MISC",
                 "5V_TOLERANT_IO",
                 "OFF",
             ),
             ExtraFeature::new(
-                ExtraFeatureKind::MainFixed(edev.grid.col_rio(), edev.grid.row_bio()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_rio(), edev.chip.row_bio()),
                 "CNR.BR",
                 "MISC",
                 "5V_TOLERANT_IO",
                 "OFF",
             ),
             ExtraFeature::new(
-                ExtraFeatureKind::MainFixed(edev.grid.col_rio(), edev.grid.row_tio()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_rio(), edev.chip.row_tio()),
                 "CNR.TR",
                 "MISC",
                 "5V_TOLERANT_IO",
@@ -316,7 +316,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (global_opt "5V_TOLERANT_IO", "OFF")
         ], extras);
     }
-    if edev.grid.kind == GridKind::Xc4000Ex {
+    if edev.chip.kind == ChipKind::Xc4000Ex {
         let ctx = FuzzCtx::new_fake_tile(session, backend, "NULL", "NULL", TileBits::Null);
         for val in ["EXTERNAL", "INTERNAL"] {
             let mut extras = vec![];
@@ -353,13 +353,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "READ_ABORT", "DISABLE", "ENABLE");
         ctx.collect_enum_bool(tile, bel, "READ_CAPTURE", "DISABLE", "ENABLE");
         ctx.collect_enum_bool(tile, bel, "TM_BOT", "OFF", "ON");
-        if matches!(edev.grid.kind, GridKind::Xc4000Xla | GridKind::Xc4000Xv) {
+        if matches!(edev.chip.kind, ChipKind::Xc4000Xla | ChipKind::Xc4000Xv) {
             ctx.collect_enum_bool(tile, bel, "5V_TOLERANT_IO", "OFF", "ON");
         }
         ctx.collect_enum(tile, "MD0", "PULL", &["PULLUP", "PULLDOWN", "PULLNONE"]);
         ctx.collect_enum(tile, "MD1", "PULL", &["PULLUP", "PULLDOWN", "PULLNONE"]);
         ctx.collect_enum(tile, "MD2", "PULL", &["PULLUP", "PULLDOWN", "PULLNONE"]);
-        if edev.grid.kind == GridKind::SpartanXl {
+        if edev.chip.kind == ChipKind::SpartanXl {
             let mut diff = ctx.state.get_diff(tile, bel, "5V_TOLERANT_IO", "OFF");
             let diff_m0 = diff.split_bits_by(|bit| bit.frame == 21);
             let diff_m1 = diff.split_bits_by(|bit| bit.frame == 22);
@@ -379,7 +379,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "MISC";
         ctx.collect_enum_bool(tile, bel, "TM_LEFT", "OFF", "ON");
         ctx.collect_enum_bool(tile, bel, "TM_TOP", "OFF", "ON");
-        if edev.grid.kind != GridKind::Xc4000E {
+        if edev.chip.kind != ChipKind::Xc4000E {
             ctx.collect_enum_bool(tile, bel, "3V", "OFF", "ON");
         }
         ctx.collect_enum(tile, bel, "INPUT", &["CMOS", "TTL"]);
@@ -387,8 +387,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "BSCAN";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
         if matches!(
-            edev.grid.kind,
-            GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+            edev.chip.kind,
+            ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
         ) {
             ctx.collect_enum_bool(tile, bel, "CONFIG", "DISABLE", "ENABLE");
         }
@@ -399,12 +399,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "MISC";
         ctx.collect_enum_bool(tile, bel, "TCTEST", "OFF", "ON");
         if matches!(
-            edev.grid.kind,
-            GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv
+            edev.chip.kind,
+            ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv
         ) {
             ctx.collect_enum_bool(tile, bel, "FIX_DISCHARGE", "OFF", "ON");
         }
-        if edev.grid.kind == GridKind::SpartanXl {
+        if edev.chip.kind == ChipKind::SpartanXl {
             let mut diff = ctx.state.get_diff(tile, bel, "5V_TOLERANT_IO", "OFF");
             let diff_prog = diff.split_bits_by(|bit| bit.frame == 8);
             let diff_done = diff.split_bits_by(|bit| bit.frame == 3);
@@ -447,8 +447,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "STARTUP_CLK", &["CCLK", "USERCLK"]);
         ctx.collect_enum_bool(tile, bel, "SYNC_TO_DONE", "NO", "YES");
         if matches!(
-            edev.grid.kind,
-            GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+            edev.chip.kind,
+            ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
         ) {
             ctx.collect_enum_bool(tile, bel, "EXPRESS_MODE", "DISABLE", "ENABLE");
         }
@@ -457,8 +457,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "MUX.OUT0", &["F500K", "F16K", "F490", "F15"]);
         ctx.collect_enum(tile, bel, "MUX.OUT1", &["F500K", "F16K", "F490", "F15"]);
         if matches!(
-            edev.grid.kind,
-            GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+            edev.chip.kind,
+            ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
         ) {
             ctx.collect_enum_bool(tile, bel, "TM_OSC", "OFF", "ON");
             ctx.collect_enum(tile, bel, "OSC_CLK", &["CCLK", "EXTCLK"]);
@@ -470,11 +470,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "MISC";
         ctx.collect_enum_bool(tile, bel, "TM_RIGHT", "OFF", "ON");
         ctx.collect_enum(tile, "TDO", "PULL", &["PULLUP", "PULLDOWN", "PULLNONE"]);
-        if edev.grid.kind != GridKind::Xc4000E {
+        if edev.chip.kind != ChipKind::Xc4000E {
             ctx.collect_enum_bool(tile, bel, "TAC", "OFF", "ON");
             ctx.collect_enum(tile, bel, "ADDRESS_LINES", &["18", "22"]);
         }
-        if edev.grid.kind == GridKind::SpartanXl {
+        if edev.chip.kind == ChipKind::SpartanXl {
             let mut diff = ctx.state.get_diff(tile, bel, "5V_TOLERANT_IO", "OFF");
             let diff_tdo = diff.split_bits_by(|bit| bit.frame == 12);
             let diff_cclk = diff.split_bits_by(|bit| bit.frame == 13);
@@ -487,8 +487,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "BSCAN";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
         if matches!(
-            edev.grid.kind,
-            GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+            edev.chip.kind,
+            ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
         ) {
             ctx.collect_enum_bool(tile, bel, "STATUS", "DISABLE", "ENABLE");
         }
@@ -496,7 +496,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "READ_CLK", &["CCLK", "RDBK"]);
     }
     {
-        let tile = if edev.grid.kind.is_xl() {
+        let tile = if edev.chip.kind.is_xl() {
             "LLVC.IO.R"
         } else {
             "LLV.IO.R"
@@ -504,7 +504,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "MISC";
         ctx.collect_enum_bool(tile, bel, "TLC", "OFF", "ON");
     }
-    if edev.grid.kind == GridKind::SpartanXl {
+    if edev.chip.kind == ChipKind::SpartanXl {
         for tile in edev.egrid.db.nodes.keys() {
             if !tile.starts_with("IO") {
                 continue;
@@ -531,7 +531,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .insert(tile, "IOB1", "5V_TOLERANT_IO", xlat_bit(!diff_iob1));
         }
     }
-    if edev.grid.kind == GridKind::Xc4000Ex {
+    if edev.chip.kind == ChipKind::Xc4000Ex {
         for tile in edev.egrid.db.nodes.keys() {
             if !tile.starts_with("IO.L") {
                 continue;

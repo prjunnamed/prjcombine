@@ -1,7 +1,7 @@
 use prjcombine_re_xilinx_naming_xc2000::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 
 fn verify_clb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(
@@ -66,7 +66,7 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_tbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "TBUF", &[], &[]);
-    if endev.grid.kind == GridKind::Xc4000E {
+    if endev.grid.kind == ChipKind::Xc4000E {
         let node = &vrf.db.nodes[bel.node.kind];
         let naming = &vrf.ndb.node_namings[bel.nnode.naming];
         let i = &bel.bel.pins["I"];
@@ -185,7 +185,7 @@ fn verify_tbuf_splitter(vrf: &mut Verifier, bel: &BelContext) {
 }
 
 fn verify_clkh(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
-    if endev.grid.kind == GridKind::SpartanXl {
+    if endev.grid.kind == ChipKind::SpartanXl {
         for opin in ["O0", "O1", "O2", "O3"] {
             for ipin in [
                 "I.LL.H", "I.LL.V", "I.UL.H", "I.UL.V", "I.LR.H", "I.LR.V", "I.UR.H", "I.UR.V",

@@ -15,7 +15,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let grid = backend.edev.grid;
+    let grid = backend.edev.chip;
     for (_, tile, node) in &backend.egrid.db.nodes {
         if !tile.starts_with("CLB") {
             continue;

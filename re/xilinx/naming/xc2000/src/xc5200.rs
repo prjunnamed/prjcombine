@@ -17,7 +17,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     let nloc = (die.die, col, row, layer);
                     let kind = egrid.db.nodes.key(node.kind);
                     let c = col.to_idx();
-                    let r = edev.grid.row_tio() - row;
+                    let r = edev.chip.row_tio() - row;
                     match &kind[..] {
                         "CNR.BL" => {
                             let nnode = ngrid.name_node(nloc, "CNR.BL", ["BL".into()]);
@@ -46,13 +46,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.tie_name = Some(format!("GND_R{r}C{c}"));
                         }
                         "IO.L" => {
-                            let nnode = if row == edev.grid.row_tio() - 1 {
+                            let nnode = if row == edev.chip.row_tio() - 1 {
                                 ngrid.name_node(nloc, "IO.L.CLK", ["LCLK".into()])
                             } else {
                                 ngrid.name_node(nloc, "IO.L", [format!("LR{r}")])
                             };
-                            let p = (edev.grid.columns - 2) * 8
-                                + (edev.grid.rows - 2) * 4
+                            let p = (edev.chip.columns - 2) * 8
+                                + (edev.chip.rows - 2) * 4
                                 + (row.to_idx() - 1) * 4
                                 + 1;
                             nnode.add_bel(0, format!("PAD{p}"));
@@ -66,13 +66,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.tie_name = Some(format!("GND_R{r}C{c}"));
                         }
                         "IO.R" => {
-                            let nnode = if row == edev.grid.row_bio() + 1 {
+                            let nnode = if row == edev.chip.row_bio() + 1 {
                                 ngrid.name_node(nloc, "IO.R.CLK", ["RCLK".into()])
                             } else {
                                 ngrid.name_node(nloc, "IO.R", [format!("RR{r}")])
                             };
-                            let p = (edev.grid.columns - 2) * 4
-                                + (edev.grid.row_tio().to_idx() - row.to_idx() - 1) * 4
+                            let p = (edev.chip.columns - 2) * 4
+                                + (edev.chip.row_tio().to_idx() - row.to_idx() - 1) * 4
                                 + 1;
                             nnode.add_bel(0, format!("PAD{}", p + 3));
                             nnode.add_bel(1, format!("PAD{}", p + 2));
@@ -85,14 +85,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.tie_name = Some(format!("GND_R{r}C{c}"));
                         }
                         "IO.B" => {
-                            let nnode = if col == edev.grid.col_lio() + 1 {
+                            let nnode = if col == edev.chip.col_lio() + 1 {
                                 ngrid.name_node(nloc, "IO.B.CLK", ["BCLK".into()])
                             } else {
                                 ngrid.name_node(nloc, "IO.B", [format!("BC{c}")])
                             };
-                            let p = (edev.grid.columns - 2) * 4
-                                + (edev.grid.rows - 2) * 4
-                                + (edev.grid.col_rio().to_idx() - col.to_idx() - 1) * 4
+                            let p = (edev.chip.columns - 2) * 4
+                                + (edev.chip.rows - 2) * 4
+                                + (edev.chip.col_rio().to_idx() - col.to_idx() - 1) * 4
                                 + 1;
                             nnode.add_bel(0, format!("PAD{p}"));
                             nnode.add_bel(1, format!("PAD{}", p + 1));
@@ -105,7 +105,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.tie_name = Some(format!("GND_R{r}C{c}"));
                         }
                         "IO.T" => {
-                            let nnode = if col == edev.grid.col_rio() - 2 {
+                            let nnode = if col == edev.chip.col_rio() - 2 {
                                 ngrid.name_node(nloc, "IO.T.CLK", ["TCLK".into()])
                             } else {
                                 ngrid.name_node(nloc, "IO.T", [format!("TC{c}")])
@@ -161,6 +161,6 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     ExpandedNamedDevice {
         edev,
         ngrid,
-        grid: edev.grid,
+        grid: edev.chip,
     }
 }

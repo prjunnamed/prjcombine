@@ -8,14 +8,14 @@ use prjcombine_interconnect::db::{BelInfo, NodeTileId};
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_xc2000::{
     bond::Bond,
+    chip::Chip,
     db::{Database, DeviceCombo, Part},
-    grid::Grid,
 };
 use regex::Regex;
 use unnamed_entity::{EntityId, EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
-    grid: &'a Grid,
+    grid: &'a Chip,
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
@@ -81,7 +81,7 @@ static RE_SPARTANXL: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xcs[0-9]{2}
 static RE_5200: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc52[0-9]{2}$").unwrap());
 static RE_5200L: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc52[0-9]{2}l$").unwrap());
 
-fn sort_key<'a>(name: &'a str, grid: &'a Grid) -> SortKey<'a> {
+fn sort_key<'a>(name: &'a str, grid: &'a Chip) -> SortKey<'a> {
     let part_kind = if RE_2000.is_match(name) {
         PartKind::Xc2000
     } else if RE_2000L.is_match(name) {
@@ -203,14 +203,14 @@ pub fn finish(
             }
         }
     }
-    let mut grids = EntitySet::new();
+    let mut chips = EntitySet::new();
     let mut bonds = EntitySet::new();
     let mut parts = vec![];
     for (name, tpart) in tmp_parts
         .into_iter()
         .sorted_by_key(|(name, tpart)| sort_key(name, tpart.grid))
     {
-        let grid = grids.insert(tpart.grid.clone()).0;
+        let grid = chips.insert(tpart.grid.clone()).0;
         let mut dev_bonds = EntityMap::new();
         for (bname, bond) in tpart.bonds {
             let bond = bonds.insert(bond.clone()).0;
@@ -230,14 +230,14 @@ pub fn finish(
         let speeds = EntityVec::from_iter(speeds.into_values());
         let part = Part {
             name: name.into(),
-            grid,
+            chip: grid,
             bonds: dev_bonds,
             speeds,
             combos,
         };
         parts.push(part);
     }
-    let grids = grids.into_vec();
+    let chips = chips.into_vec();
     let bonds = bonds.into_vec();
 
     let int = match (xact, geom) {
@@ -277,7 +277,7 @@ pub fn finish(
     // TODO: resort int
 
     Database {
-        grids,
+        chips,
         bonds,
         parts,
         int,

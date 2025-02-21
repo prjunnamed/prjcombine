@@ -15,7 +15,7 @@ pub mod xc5200;
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     match backend.edev {
         ExpandedDevice::Xc2000(edev) => {
-            if edev.grid.kind.is_xc4000() {
+            if edev.chip.kind.is_xc4000() {
                 xc4000::add_fuzzers(session, backend);
             } else {
                 xc5200::add_fuzzers(session, backend);
@@ -130,7 +130,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     match ctx.edev {
         ExpandedDevice::Xc2000(edev) => {
-            if edev.grid.kind.is_xc4000() {
+            if edev.chip.kind.is_xc4000() {
                 xc4000::collect_fuzzers(ctx);
             } else {
                 xc5200::collect_fuzzers(ctx);

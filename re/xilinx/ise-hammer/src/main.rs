@@ -164,7 +164,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
     match gedev {
         ExpandedDevice::Xc2000(ref edev) => {
             if !opts.skip_core {
-                if edev.grid.kind.is_xc4000() {
+                if edev.chip.kind.is_xc4000() {
                     clb::xc4000::add_fuzzers(&mut hammer, &backend);
                     io::xc4000::add_fuzzers(&mut hammer, &backend);
                     misc::xc4000::add_fuzzers(&mut hammer, &backend);
@@ -435,7 +435,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
     match gedev {
         ExpandedDevice::Xc2000(ref edev) => {
             if !opts.skip_core {
-                if edev.grid.kind.is_xc4000() {
+                if edev.chip.kind.is_xc4000() {
                     clb::xc4000::collect_fuzzers(&mut ctx);
                     io::xc4000::collect_fuzzers(&mut ctx);
                     misc::xc4000::collect_fuzzers(&mut ctx);

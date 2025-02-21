@@ -22,7 +22,7 @@ entity_id! {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Grid {
-    Xc2000(prjcombine_xc2000::grid::Grid),
+    Xc2000(prjcombine_xc2000::chip::Chip),
     Virtex(prjcombine_virtex::grid::Grid),
     Virtex2(prjcombine_virtex2::grid::Grid),
     Spartan6(prjcombine_spartan6::grid::Grid),
@@ -247,18 +247,18 @@ impl GeomDb {
         match fgrid {
             Grid::Xc2000(grid) => {
                 let intdb = &self.ints[match grid.kind {
-                    prjcombine_xc2000::grid::GridKind::Xc2000 => "xc2000",
-                    prjcombine_xc2000::grid::GridKind::Xc3000 => "xc3000",
-                    prjcombine_xc2000::grid::GridKind::Xc3000A => "xc3000a",
-                    prjcombine_xc2000::grid::GridKind::Xc4000 => "xc4000",
-                    prjcombine_xc2000::grid::GridKind::Xc4000A => "xc4000a",
-                    prjcombine_xc2000::grid::GridKind::Xc4000H => "xc4000h",
-                    prjcombine_xc2000::grid::GridKind::Xc4000E => "xc4000e",
-                    prjcombine_xc2000::grid::GridKind::Xc4000Ex => "xc4000ex",
-                    prjcombine_xc2000::grid::GridKind::Xc4000Xla => "xc4000xla",
-                    prjcombine_xc2000::grid::GridKind::Xc4000Xv => "xc4000xv",
-                    prjcombine_xc2000::grid::GridKind::SpartanXl => "spartanxl",
-                    prjcombine_xc2000::grid::GridKind::Xc5200 => "xc5200",
+                    prjcombine_xc2000::chip::ChipKind::Xc2000 => "xc2000",
+                    prjcombine_xc2000::chip::ChipKind::Xc3000 => "xc3000",
+                    prjcombine_xc2000::chip::ChipKind::Xc3000A => "xc3000a",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000 => "xc4000",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000A => "xc4000a",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000H => "xc4000h",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000E => "xc4000e",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000Ex => "xc4000ex",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000Xla => "xc4000xla",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000Xv => "xc4000xv",
+                    prjcombine_xc2000::chip::ChipKind::SpartanXl => "spartanxl",
+                    prjcombine_xc2000::chip::ChipKind::Xc5200 => "xc5200",
                 }];
                 ExpandedDevice::Xc2000(grid.expand_grid(intdb))
             }
@@ -377,19 +377,19 @@ impl GeomDb {
     pub fn name<'a>(&'a self, dev: &Device, edev: &'a ExpandedDevice) -> ExpandedNamedDevice<'a> {
         match edev {
             ExpandedDevice::Xc2000(edev) => {
-                let ndb = &self.namings[match edev.grid.kind {
-                    prjcombine_xc2000::grid::GridKind::Xc2000 => "xc2000",
-                    prjcombine_xc2000::grid::GridKind::Xc3000 => "xc3000",
-                    prjcombine_xc2000::grid::GridKind::Xc3000A => "xc3000a",
-                    prjcombine_xc2000::grid::GridKind::Xc4000 => "xc4000",
-                    prjcombine_xc2000::grid::GridKind::Xc4000A => "xc4000a",
-                    prjcombine_xc2000::grid::GridKind::Xc4000H => "xc4000h",
-                    prjcombine_xc2000::grid::GridKind::Xc4000E => "xc4000e",
-                    prjcombine_xc2000::grid::GridKind::Xc4000Ex => "xc4000ex",
-                    prjcombine_xc2000::grid::GridKind::Xc4000Xla => "xc4000xla",
-                    prjcombine_xc2000::grid::GridKind::Xc4000Xv => "xc4000xv",
-                    prjcombine_xc2000::grid::GridKind::SpartanXl => "spartanxl",
-                    prjcombine_xc2000::grid::GridKind::Xc5200 => "xc5200",
+                let ndb = &self.namings[match edev.chip.kind {
+                    prjcombine_xc2000::chip::ChipKind::Xc2000 => "xc2000",
+                    prjcombine_xc2000::chip::ChipKind::Xc3000 => "xc3000",
+                    prjcombine_xc2000::chip::ChipKind::Xc3000A => "xc3000a",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000 => "xc4000",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000A => "xc4000a",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000H => "xc4000h",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000E => "xc4000e",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000Ex => "xc4000ex",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000Xla => "xc4000xla",
+                    prjcombine_xc2000::chip::ChipKind::Xc4000Xv => "xc4000xv",
+                    prjcombine_xc2000::chip::ChipKind::SpartanXl => "spartanxl",
+                    prjcombine_xc2000::chip::ChipKind::Xc5200 => "xc5200",
                 }];
                 ExpandedNamedDevice::Xc2000(prjcombine_re_xilinx_naming_xc2000::name_device(
                     edev, ndb,

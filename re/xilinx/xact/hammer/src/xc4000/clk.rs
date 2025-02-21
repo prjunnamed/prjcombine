@@ -1,10 +1,10 @@
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let grid = backend.edev.grid;
+    let grid = backend.edev.chip;
     for tile in ["LLV.CLB", "LLV.IO.L", "LLV.IO.R"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         let mut bctx = ctx.bel("CLKH");
@@ -36,7 +36,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 .pip_bufg(format!("{out}.{val}"), buf)
                 .commit();
         }
-        if grid.kind == GridKind::Xc4000H {
+        if grid.kind == ChipKind::Xc4000H {
             for out in ["O0", "O1", "O2", "O3"] {
                 bctx.build()
                     .mutex(out, "GND")
@@ -49,10 +49,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let grid = ctx.edev.grid;
+    let grid = ctx.edev.chip;
     for tile in ["LLV.CLB", "LLV.IO.L", "LLV.IO.R"] {
         let bel = "CLKH";
-        if grid.kind != GridKind::Xc4000H {
+        if grid.kind != ChipKind::Xc4000H {
             ctx.collect_enum_default(
                 tile,
                 bel,

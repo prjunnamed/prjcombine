@@ -6,7 +6,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     bond::CfgPin,
-    grid::{Grid, GridKind},
+    chip::{Chip, ChipKind},
 };
 
 #[derive(Debug)]
@@ -17,14 +17,14 @@ pub struct BScan {
     pub upd: usize,
 }
 
-impl Grid {
+impl Chip {
     pub fn get_bscan(&self) -> BScan {
-        if self.kind.is_xc3000() || self.kind == GridKind::Xc2000 {
+        if self.kind.is_xc3000() || self.kind == ChipKind::Xc2000 {
             panic!("no boundary scan on XC2000/XC3000");
         }
-        let iobs: &[_] = if self.kind == GridKind::Xc5200 {
+        let iobs: &[_] = if self.kind == ChipKind::Xc5200 {
             &[3, 2, 1, 0]
-        } else if self.kind == GridKind::Xc4000H {
+        } else if self.kind == ChipKind::Xc4000H {
             &[0, 1, 2, 3]
         } else {
             &[0, 1]
@@ -64,7 +64,7 @@ impl Grid {
         if self.kind.is_xc4000() {
             cfg.insert(CfgPin::M1, builder.get_toi());
             cfg.insert(CfgPin::M0, builder.get_i());
-            if self.kind != GridKind::SpartanXl {
+            if self.kind != ChipKind::SpartanXl {
                 cfg.insert(CfgPin::M2, builder.get_i());
             }
         }

@@ -1,23 +1,23 @@
 use prjcombine_interconnect::db::BelId;
 use prjcombine_re_xilinx_rawdump::{Part, TkSiteSlot};
-use prjcombine_xc2000::grid::{Grid, GridKind, SharedCfgPin};
+use prjcombine_xc2000::chip::{Chip, ChipKind, SharedCfgPin};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int};
 
-fn get_kind(rd: &Part) -> GridKind {
+fn get_kind(rd: &Part) -> ChipKind {
     match &rd.family[..] {
-        "xc4000e" => GridKind::Xc4000E,
-        "xc4000ex" => GridKind::Xc4000Ex,
-        "xc4000xla" => GridKind::Xc4000Xla,
-        "xc4000xv" => GridKind::Xc4000Xv,
-        "spartanxl" => GridKind::SpartanXl,
+        "xc4000e" => ChipKind::Xc4000E,
+        "xc4000ex" => ChipKind::Xc4000Ex,
+        "xc4000xla" => ChipKind::Xc4000Xla,
+        "xc4000xv" => ChipKind::Xc4000Xv,
+        "spartanxl" => ChipKind::SpartanXl,
         _ => panic!("unknown family {}", rd.family),
     }
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
+fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
     let mut io_lookup = HashMap::new();
     for (&crd, tile) in &rd.tiles {
         let tk = &rd.tile_kinds[tile.kind];
@@ -59,11 +59,11 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
     }
 }
 
-pub fn make_grid(rd: &Part) -> Grid {
+pub fn make_grid(rd: &Part) -> Chip {
     // This list of int tiles is incomplete, but suffices for the purpose of grid determination
     let int = extract_int(rd, &["CENTER", "LL", "LR", "UL", "UR"], &[]);
     let kind = get_kind(rd);
-    let mut grid = Grid {
+    let mut grid = Chip {
         kind,
         columns: int.cols.len(),
         rows: int.rows.len(),

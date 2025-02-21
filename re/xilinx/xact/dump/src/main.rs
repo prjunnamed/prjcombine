@@ -10,7 +10,7 @@ use prjcombine_re_xilinx_xact_data::{
     pkg::get_pkg,
 };
 use prjcombine_re_xilinx_xact_geom::{Device, DeviceBond, GeomDb};
-use prjcombine_xc2000::{bond::BondPin, grid::GridKind};
+use prjcombine_xc2000::{bond::BondPin, chip::ChipKind};
 
 mod extractor;
 mod xc2000;
@@ -64,9 +64,9 @@ fn main() {
                     PartKind::Xc3000 => xc3000::dump_grid(
                         &die,
                         if args.family == "xc3000a" {
-                            GridKind::Xc3000A
+                            ChipKind::Xc3000A
                         } else {
-                            GridKind::Xc3000
+                            ChipKind::Xc3000
                         },
                     ),
                     PartKind::Xc4000 => xc4000::dump_grid(

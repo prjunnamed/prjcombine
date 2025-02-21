@@ -3,7 +3,7 @@ use prjcombine_re_xilinx_naming_xc2000::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::PkgPin;
 use prjcombine_xc2000::{
     bond::{Bond, BondPin, CfgPin},
-    grid::SharedCfgPin,
+    chip::SharedCfgPin,
 };
 use std::collections::{BTreeMap, HashMap, btree_map};
 

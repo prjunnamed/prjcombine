@@ -12,7 +12,7 @@ use prjcombine_re_collector::Collector;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_xact_geom::{Device, GeomDb};
 use prjcombine_types::tiledb::TileDb;
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 
 mod backend;
 mod collector;
@@ -65,18 +65,18 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: 
     if opts.no_dup {
         hammer.dup_factor = 1;
     }
-    match edev.grid.kind {
-        GridKind::Xc2000 => xc2000::add_fuzzers(&mut hammer, &backend),
-        GridKind::Xc3000 | GridKind::Xc3000A => xc3000::add_fuzzers(&mut hammer, &backend),
-        GridKind::Xc4000
-        | GridKind::Xc4000A
-        | GridKind::Xc4000H
-        | GridKind::Xc4000E
-        | GridKind::Xc4000Ex
-        | GridKind::Xc4000Xla
-        | GridKind::Xc4000Xv
-        | GridKind::SpartanXl => xc4000::add_fuzzers(&mut hammer, &backend),
-        GridKind::Xc5200 => xc5200::add_fuzzers(&mut hammer, &backend),
+    match edev.chip.kind {
+        ChipKind::Xc2000 => xc2000::add_fuzzers(&mut hammer, &backend),
+        ChipKind::Xc3000 | ChipKind::Xc3000A => xc3000::add_fuzzers(&mut hammer, &backend),
+        ChipKind::Xc4000
+        | ChipKind::Xc4000A
+        | ChipKind::Xc4000H
+        | ChipKind::Xc4000E
+        | ChipKind::Xc4000Ex
+        | ChipKind::Xc4000Xla
+        | ChipKind::Xc4000Xv
+        | ChipKind::SpartanXl => xc4000::add_fuzzers(&mut hammer, &backend),
+        ChipKind::Xc5200 => xc5200::add_fuzzers(&mut hammer, &backend),
     }
     let mut state = hammer.run().unwrap();
     let mut ctx = CollectorCtx {
@@ -87,18 +87,18 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: 
             tiledb,
         },
     };
-    match edev.grid.kind {
-        GridKind::Xc2000 => xc2000::collect_fuzzers(&mut ctx),
-        GridKind::Xc3000 | GridKind::Xc3000A => xc3000::collect_fuzzers(&mut ctx),
-        GridKind::Xc4000
-        | GridKind::Xc4000A
-        | GridKind::Xc4000H
-        | GridKind::Xc4000E
-        | GridKind::Xc4000Ex
-        | GridKind::Xc4000Xla
-        | GridKind::Xc4000Xv
-        | GridKind::SpartanXl => xc4000::collect_fuzzers(&mut ctx),
-        GridKind::Xc5200 => xc5200::collect_fuzzers(&mut ctx),
+    match edev.chip.kind {
+        ChipKind::Xc2000 => xc2000::collect_fuzzers(&mut ctx),
+        ChipKind::Xc3000 | ChipKind::Xc3000A => xc3000::collect_fuzzers(&mut ctx),
+        ChipKind::Xc4000
+        | ChipKind::Xc4000A
+        | ChipKind::Xc4000H
+        | ChipKind::Xc4000E
+        | ChipKind::Xc4000Ex
+        | ChipKind::Xc4000Xla
+        | ChipKind::Xc4000Xv
+        | ChipKind::SpartanXl => xc4000::collect_fuzzers(&mut ctx),
+        ChipKind::Xc5200 => xc5200::collect_fuzzers(&mut ctx),
     }
     for (feat, data) in state.features.iter().sorted_by_key(|&(k, _)| k) {
         println!(

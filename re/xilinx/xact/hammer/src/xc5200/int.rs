@@ -42,7 +42,7 @@ fn drive_wire<'a>(
     wire_target: IntWire,
     wire_avoid: IntWire,
 ) -> (Fuzzer<XactBackend<'a>>, &'a str, &'static str) {
-    let grid = backend.edev.grid;
+    let grid = backend.edev.chip;
     let (die, (mut col, mut row), wt) = wire_target;
     let wtn = &backend.egrid.db.wires.key(wt)[..];
     let (ploc, pwt, pwf) = if wtn.starts_with("OUT") {
@@ -385,7 +385,7 @@ impl Prop for AllColumnIo {
         let id = fuzzer.info.features.pop().unwrap().id;
         let (die, col, _, _) = nloc;
         for row in backend.egrid.die(die).rows() {
-            if row == backend.edev.grid.row_bio() || row == backend.edev.grid.row_tio() {
+            if row == backend.edev.chip.row_bio() || row == backend.edev.chip.row_tio() {
                 continue;
             }
             fuzzer.info.features.push(FuzzerFeature {

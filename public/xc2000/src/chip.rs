@@ -35,7 +35,7 @@ pub enum SharedCfgPin {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub enum GridKind {
+pub enum ChipKind {
     Xc2000,
     Xc3000,
     Xc3000A,
@@ -53,7 +53,7 @@ pub enum GridKind {
     Xc5200,
 }
 
-impl GridKind {
+impl ChipKind {
     pub fn is_xc3000(self) -> bool {
         matches!(self, Self::Xc3000 | Self::Xc3000A)
     }
@@ -82,8 +82,8 @@ impl GridKind {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Grid {
-    pub kind: GridKind,
+pub struct Chip {
+    pub kind: ChipKind,
     pub columns: usize,
     pub rows: usize,
     // XC3000 only
@@ -97,7 +97,7 @@ pub struct Grid {
     pub unbonded_io: BTreeSet<EdgeIoCoord>,
 }
 
-impl Grid {
+impl Chip {
     pub fn col_lio(&self) -> ColId {
         ColId::from_idx(0)
     }
@@ -148,7 +148,7 @@ impl Grid {
 
     pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
         match self.kind {
-            GridKind::Xc2000 | GridKind::Xc3000 | GridKind::Xc3000A => {
+            ChipKind::Xc2000 | ChipKind::Xc3000 | ChipKind::Xc3000A => {
                 let iob = if bel.to_idx() < 3 {
                     TileIobId::from_idx(bel.to_idx() - 1)
                 } else {
@@ -166,15 +166,15 @@ impl Grid {
                     unreachable!()
                 }
             }
-            GridKind::Xc4000
-            | GridKind::Xc4000A
-            | GridKind::Xc4000H
-            | GridKind::Xc4000E
-            | GridKind::Xc4000Ex
-            | GridKind::Xc4000Xla
-            | GridKind::Xc4000Xv
-            | GridKind::SpartanXl
-            | GridKind::Xc5200 => {
+            ChipKind::Xc4000
+            | ChipKind::Xc4000A
+            | ChipKind::Xc4000H
+            | ChipKind::Xc4000E
+            | ChipKind::Xc4000Ex
+            | ChipKind::Xc4000Xla
+            | ChipKind::Xc4000Xv
+            | ChipKind::SpartanXl
+            | ChipKind::Xc5200 => {
                 let iob = TileIobId::from_idx(bel.to_idx());
                 if col == self.col_lio() {
                     EdgeIoCoord::L(row, iob)
@@ -193,7 +193,7 @@ impl Grid {
 
     pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
         match self.kind {
-            GridKind::Xc2000 | GridKind::Xc3000 | GridKind::Xc3000A => match io {
+            ChipKind::Xc2000 | ChipKind::Xc3000 | ChipKind::Xc3000A => match io {
                 EdgeIoCoord::T(col, iob) => {
                     (col, self.row_tio(), BelId::from_idx(1 + iob.to_idx()))
                 }
@@ -217,15 +217,15 @@ impl Grid {
                     (self.col_lio(), row, bel)
                 }
             },
-            GridKind::Xc4000
-            | GridKind::Xc4000A
-            | GridKind::Xc4000H
-            | GridKind::Xc4000E
-            | GridKind::Xc4000Ex
-            | GridKind::Xc4000Xla
-            | GridKind::Xc4000Xv
-            | GridKind::SpartanXl
-            | GridKind::Xc5200 => {
+            ChipKind::Xc4000
+            | ChipKind::Xc4000A
+            | ChipKind::Xc4000H
+            | ChipKind::Xc4000E
+            | ChipKind::Xc4000Ex
+            | ChipKind::Xc4000Xla
+            | ChipKind::Xc4000Xv
+            | ChipKind::SpartanXl
+            | ChipKind::Xc5200 => {
                 let (col, row, iob) = match io {
                     EdgeIoCoord::T(col, iob) => (col, self.row_tio(), iob),
                     EdgeIoCoord::R(row, iob) => (self.col_rio(), row, iob),
@@ -240,7 +240,7 @@ impl Grid {
     pub fn get_bonded_ios(&self) -> Vec<EdgeIoCoord> {
         let mut res = vec![];
         match self.kind {
-            GridKind::Xc2000 => {
+            ChipKind::Xc2000 => {
                 for col in self.columns() {
                     for iob in [0, 1] {
                         res.push(EdgeIoCoord::T(col, TileIobId::from_idx(iob)));
@@ -270,7 +270,7 @@ impl Grid {
                     }
                 }
             }
-            GridKind::Xc3000 | GridKind::Xc3000A => {
+            ChipKind::Xc3000 | ChipKind::Xc3000A => {
                 for col in self.columns() {
                     for iob in [0, 1] {
                         res.push(EdgeIoCoord::T(col, TileIobId::from_idx(iob)));
@@ -292,15 +292,15 @@ impl Grid {
                     }
                 }
             }
-            GridKind::Xc4000
-            | GridKind::Xc4000A
-            | GridKind::Xc4000H
-            | GridKind::Xc4000E
-            | GridKind::Xc4000Ex
-            | GridKind::Xc4000Xla
-            | GridKind::Xc4000Xv
-            | GridKind::SpartanXl => {
-                let iobs = if self.kind == GridKind::Xc4000H {
+            ChipKind::Xc4000
+            | ChipKind::Xc4000A
+            | ChipKind::Xc4000H
+            | ChipKind::Xc4000E
+            | ChipKind::Xc4000Ex
+            | ChipKind::Xc4000Xla
+            | ChipKind::Xc4000Xv
+            | ChipKind::SpartanXl => {
+                let iobs = if self.kind == ChipKind::Xc4000H {
                     0..4
                 } else {
                     0..2
@@ -338,7 +338,7 @@ impl Grid {
                     }
                 }
             }
-            GridKind::Xc5200 => {
+            ChipKind::Xc5200 => {
                 for col in self.columns() {
                     if col == self.col_lio() || col == self.col_rio() {
                         continue;
@@ -392,125 +392,125 @@ impl Grid {
     pub fn btile_height_main(&self, row: RowId) -> usize {
         if row == self.row_bio() {
             match self.kind {
-                GridKind::Xc2000 => 12,
-                GridKind::Xc3000 | GridKind::Xc3000A => 13,
-                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
+                ChipKind::Xc2000 => 12,
+                ChipKind::Xc3000 | ChipKind::Xc3000A => 13,
+                ChipKind::Xc4000 | ChipKind::Xc4000H | ChipKind::Xc4000E | ChipKind::SpartanXl => {
                     13
                 }
-                GridKind::Xc4000A => 10,
-                GridKind::Xc4000Ex | GridKind::Xc4000Xla => 16,
-                GridKind::Xc4000Xv => 17,
-                GridKind::Xc5200 => 28,
+                ChipKind::Xc4000A => 10,
+                ChipKind::Xc4000Ex | ChipKind::Xc4000Xla => 16,
+                ChipKind::Xc4000Xv => 17,
+                ChipKind::Xc5200 => 28,
             }
         } else if row == self.row_tio() {
             match self.kind {
-                GridKind::Xc2000 => 9,
-                GridKind::Xc3000 | GridKind::Xc3000A => 10,
-                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => 7,
-                GridKind::Xc4000A => 6,
-                GridKind::Xc4000Ex | GridKind::Xc4000Xla => 8,
-                GridKind::Xc4000Xv => 9,
-                GridKind::Xc5200 => 28,
+                ChipKind::Xc2000 => 9,
+                ChipKind::Xc3000 | ChipKind::Xc3000A => 10,
+                ChipKind::Xc4000 | ChipKind::Xc4000H | ChipKind::Xc4000E | ChipKind::SpartanXl => 7,
+                ChipKind::Xc4000A => 6,
+                ChipKind::Xc4000Ex | ChipKind::Xc4000Xla => 8,
+                ChipKind::Xc4000Xv => 9,
+                ChipKind::Xc5200 => 28,
             }
         } else {
             match self.kind {
-                GridKind::Xc2000 => 8,
-                GridKind::Xc3000 | GridKind::Xc3000A => 8,
-                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
+                ChipKind::Xc2000 => 8,
+                ChipKind::Xc3000 | ChipKind::Xc3000A => 8,
+                ChipKind::Xc4000 | ChipKind::Xc4000H | ChipKind::Xc4000E | ChipKind::SpartanXl => {
                     10
                 }
-                GridKind::Xc4000A => 10,
-                GridKind::Xc4000Ex | GridKind::Xc4000Xla => 12,
-                GridKind::Xc4000Xv => 13,
-                GridKind::Xc5200 => 34,
+                ChipKind::Xc4000A => 10,
+                ChipKind::Xc4000Ex | ChipKind::Xc4000Xla => 12,
+                ChipKind::Xc4000Xv => 13,
+                ChipKind::Xc5200 => 34,
             }
         }
     }
 
     pub fn btile_height_clk(&self) -> usize {
         match self.kind {
-            GridKind::Xc2000 => unreachable!(),
-            GridKind::Xc3000 | GridKind::Xc3000A => 1,
-            GridKind::Xc4000 | GridKind::Xc4000A | GridKind::Xc4000H | GridKind::Xc4000E => 1,
-            GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl => {
+            ChipKind::Xc2000 => unreachable!(),
+            ChipKind::Xc3000 | ChipKind::Xc3000A => 1,
+            ChipKind::Xc4000 | ChipKind::Xc4000A | ChipKind::Xc4000H | ChipKind::Xc4000E => 1,
+            ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl => {
                 2
             }
-            GridKind::Xc5200 => 4,
+            ChipKind::Xc5200 => 4,
         }
     }
 
     pub fn btile_height_brk(&self) -> usize {
-        if self.kind == GridKind::Xc2000 { 1 } else { 2 }
+        if self.kind == ChipKind::Xc2000 { 1 } else { 2 }
     }
 
     pub fn btile_width_main(&self, col: ColId) -> usize {
         if col == self.col_lio() {
             match self.kind {
-                GridKind::Xc2000 => 21,
-                GridKind::Xc3000 | GridKind::Xc3000A => 29,
-                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
+                ChipKind::Xc2000 => 21,
+                ChipKind::Xc3000 | ChipKind::Xc3000A => 29,
+                ChipKind::Xc4000 | ChipKind::Xc4000H | ChipKind::Xc4000E | ChipKind::SpartanXl => {
                     26
                 }
-                GridKind::Xc4000A => 21,
-                GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv => 27,
-                GridKind::Xc5200 => 7,
+                ChipKind::Xc4000A => 21,
+                ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv => 27,
+                ChipKind::Xc5200 => 7,
             }
         } else if col == self.col_rio() {
             match self.kind {
-                GridKind::Xc2000 => 27,
-                GridKind::Xc3000 | GridKind::Xc3000A => 36,
-                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
+                ChipKind::Xc2000 => 27,
+                ChipKind::Xc3000 | ChipKind::Xc3000A => 36,
+                ChipKind::Xc4000 | ChipKind::Xc4000H | ChipKind::Xc4000E | ChipKind::SpartanXl => {
                     41
                 }
-                GridKind::Xc4000A => 32,
-                GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv => 52,
-                GridKind::Xc5200 => 8,
+                ChipKind::Xc4000A => 32,
+                ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv => 52,
+                ChipKind::Xc5200 => 8,
             }
         } else {
             match self.kind {
-                GridKind::Xc2000 => 18,
-                GridKind::Xc3000 | GridKind::Xc3000A => 22,
-                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
+                ChipKind::Xc2000 => 18,
+                ChipKind::Xc3000 | ChipKind::Xc3000A => 22,
+                ChipKind::Xc4000 | ChipKind::Xc4000H | ChipKind::Xc4000E | ChipKind::SpartanXl => {
                     36
                 }
-                GridKind::Xc4000A => 32,
-                GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv => 47,
-                GridKind::Xc5200 => 12,
+                ChipKind::Xc4000A => 32,
+                ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv => 47,
+                ChipKind::Xc5200 => 12,
             }
         }
     }
 
     pub fn btile_width_clk(&self) -> usize {
         match self.kind {
-            GridKind::Xc2000 => unreachable!(),
-            GridKind::Xc3000 | GridKind::Xc3000A => unreachable!(),
-            GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000A | GridKind::Xc4000E => 1,
-            GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl => {
+            ChipKind::Xc2000 => unreachable!(),
+            ChipKind::Xc3000 | ChipKind::Xc3000A => unreachable!(),
+            ChipKind::Xc4000 | ChipKind::Xc4000H | ChipKind::Xc4000A | ChipKind::Xc4000E => 1,
+            ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl => {
                 2
             }
-            GridKind::Xc5200 => 1,
+            ChipKind::Xc5200 => 1,
         }
     }
 
     pub fn btile_width_brk(&self) -> usize {
-        if self.kind == GridKind::Xc2000 { 2 } else { 1 }
+        if self.kind == ChipKind::Xc2000 { 2 } else { 1 }
     }
 
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "kind": match self.kind {
-                GridKind::Xc2000 => "xc2000",
-                GridKind::Xc3000 => "xc3000",
-                GridKind::Xc3000A => "xc3000a",
-                GridKind::Xc4000 => "xc4000",
-                GridKind::Xc4000A => "xc4000a",
-                GridKind::Xc4000H => "xc4000h",
-                GridKind::Xc4000E => "xc4000e",
-                GridKind::Xc4000Ex => "xc4000ex",
-                GridKind::Xc4000Xla => "xc4000xla",
-                GridKind::Xc4000Xv => "xc4000xv",
-                GridKind::SpartanXl => "spartanxl",
-                GridKind::Xc5200 => "xc5200",
+                ChipKind::Xc2000 => "xc2000",
+                ChipKind::Xc3000 => "xc3000",
+                ChipKind::Xc3000A => "xc3000a",
+                ChipKind::Xc4000 => "xc4000",
+                ChipKind::Xc4000A => "xc4000a",
+                ChipKind::Xc4000H => "xc4000h",
+                ChipKind::Xc4000E => "xc4000e",
+                ChipKind::Xc4000Ex => "xc4000ex",
+                ChipKind::Xc4000Xla => "xc4000xla",
+                ChipKind::Xc4000Xv => "xc4000xv",
+                ChipKind::SpartanXl => "spartanxl",
+                ChipKind::Xc5200 => "xc5200",
             },
             "columns": self.columns,
             "rows": self.rows,
@@ -543,7 +543,7 @@ impl Grid {
     }
 }
 
-impl Display for Grid {
+impl Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\tKIND: {:?}", self.kind)?;
         writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;

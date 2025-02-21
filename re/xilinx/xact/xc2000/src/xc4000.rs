@@ -4,14 +4,14 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{
+    chip::{Chip, ChipKind},
     expanded::ExpandedDevice,
-    grid::{Grid, GridKind},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::ExpandedNamedDevice;
 
-fn name_a(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
+fn name_a(grid: &Chip, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
     let cidx = if col < grid.col_mid() {
         col.to_idx()
     } else {
@@ -33,9 +33,9 @@ fn name_a(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> St
     }
 }
 
-fn name_b(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
+fn name_b(grid: &Chip, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
     let cidx = col.to_idx();
-    let ridx = if row < grid.row_mid() && prefix == "TIE_" && grid.kind == GridKind::Xc4000H {
+    let ridx = if row < grid.row_mid() && prefix == "TIE_" && grid.kind == ChipKind::Xc4000H {
         grid.rows - row.to_idx()
     } else {
         grid.rows - row.to_idx() - 1
@@ -45,7 +45,7 @@ fn name_b(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> St
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let egrid = &edev.egrid;
-    let grid = edev.grid;
+    let grid = edev.chip;
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
     ngrid.tie_pin_gnd = Some("O".to_string());
 
@@ -163,7 +163,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 name_a(grid, "TIE.", ".1", col, row),
                                 name_b(grid, "TIE_", ".1", col, row),
                             ];
-                            let bidx = if grid.kind == GridKind::Xc4000H {
+                            let bidx = if grid.kind == ChipKind::Xc4000H {
                                 let p = (grid.columns - 2) * 4
                                     + (grid.rows - 2) * 4
                                     + (grid.col_rio().to_idx() - col.to_idx() - 1) * 4
@@ -219,7 +219,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     (col_x[col + 1].clone(), row_y[row].clone()),
                                 ],
                             );
-                            let bidx = if grid.kind == GridKind::Xc4000H {
+                            let bidx = if grid.kind == ChipKind::Xc4000H {
                                 let p = (col.to_idx() - 1) * 4 + 1;
                                 nnode.add_bel(0, vec![format!("PAD{p}")]);
                                 nnode.add_bel(1, vec![format!("PAD{}", p + 1)]);
@@ -269,7 +269,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     (col_x[col].clone(), row_y[row - 1].clone()),
                                 ],
                             );
-                            let bidx = if grid.kind == GridKind::Xc4000H {
+                            let bidx = if grid.kind == ChipKind::Xc4000H {
                                 let p = (grid.columns - 2) * 8
                                     + (grid.rows - 2) * 4
                                     + (row.to_idx() - 1) * 4
@@ -353,14 +353,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     (col_x[col].clone(), row_y[row - 1].clone()),
                                 ],
                             );
-                            if grid.kind != GridKind::Xc4000A {
+                            if grid.kind != ChipKind::Xc4000A {
                                 nnode.tie_names = vec![
                                     name_a(grid, "TIE.", ".1", col, row),
                                     name_b(grid, "TIE_", ".1", col, row),
                                 ];
                             }
 
-                            let bidx = if grid.kind == GridKind::Xc4000H {
+                            let bidx = if grid.kind == ChipKind::Xc4000H {
                                 let p = (grid.columns - 2) * 4
                                     + (grid.row_tio().to_idx() - row.to_idx() - 1) * 4
                                     + 1;
@@ -444,7 +444,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 ],
                             );
 
-                            let bidx = if grid.kind == GridKind::Xc4000A {
+                            let bidx = if grid.kind == ChipKind::Xc4000A {
                                 nnode.add_bel(
                                     0,
                                     vec![
@@ -552,7 +552,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 ],
                             );
 
-                            let bidx = if grid.kind == GridKind::Xc4000A {
+                            let bidx = if grid.kind == ChipKind::Xc4000A {
                                 nnode.add_bel(
                                     0,
                                     vec![
@@ -656,14 +656,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 ],
                             );
 
-                            if grid.kind != GridKind::Xc4000A {
+                            if grid.kind != ChipKind::Xc4000A {
                                 nnode.tie_names = vec![
                                     name_a(grid, "TIE.", ".1", col, row),
                                     name_b(grid, "TIE_", ".1", col, row),
                                 ];
                             }
 
-                            let bidx = if grid.kind == GridKind::Xc4000A {
+                            let bidx = if grid.kind == ChipKind::Xc4000A {
                                 nnode.add_bel(
                                     0,
                                     vec![
@@ -769,7 +769,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 ],
                             );
 
-                            let bidx = if grid.kind == GridKind::Xc4000A {
+                            let bidx = if grid.kind == ChipKind::Xc4000A {
                                 nnode.add_bel(
                                     0,
                                     vec![
@@ -869,7 +869,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         "LLV.IO.L" | "LLV.IO.R" | "LLV.CLB" => {
                             let nnode =
                                 ngrid.name_node(nloc, kind, [(col_x[col].clone(), clk_y.clone())]);
-                            if grid.kind == GridKind::Xc4000H {
+                            if grid.kind == ChipKind::Xc4000H {
                                 let cidx = if col < grid.col_mid() {
                                     col.to_idx()
                                 } else {

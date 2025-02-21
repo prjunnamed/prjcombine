@@ -336,7 +336,7 @@ impl<'a> Backend for IseBackend<'a> {
 
         let (dummy_inst_kind, dummy_inst_port) = match self.edev {
             ExpandedDevice::Xc2000(edev) => {
-                if edev.grid.kind.is_xc4000() {
+                if edev.chip.kind.is_xc4000() {
                     ("CLB", "K")
                 } else {
                     ("LC5A", "CK")
@@ -584,7 +584,7 @@ impl<'a> Backend for IseBackend<'a> {
         }
         let part = match self.edev {
             ExpandedDevice::Xc2000(edev) => {
-                if edev.grid.kind.is_xc4000() {
+                if edev.chip.kind.is_xc4000() {
                     format!(
                         "{d}{p}{s}",
                         d = &self.device.name[2..],
@@ -616,7 +616,7 @@ impl<'a> Backend for IseBackend<'a> {
             nets: nets.into_values().collect(),
         };
         if let ExpandedDevice::Xc2000(edev) = self.edev {
-            if !edev.grid.kind.is_xc4000() {
+            if !edev.chip.kind.is_xc4000() {
                 xdl.version = "".to_string();
             }
         }

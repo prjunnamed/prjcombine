@@ -41,7 +41,7 @@ fn drive_wire<'a>(
     wire_target: IntWire,
     wire_avoid: IntWire,
 ) -> (Fuzzer<XactBackend<'a>>, &'a str, &'static str) {
-    let grid = backend.edev.grid;
+    let grid = backend.edev.chip;
     let (die, (mut col, mut row), wt) = wire_target;
     let wtn = &backend.egrid.db.wires.key(wt)[..];
     let (ploc, pwt, pwf) = if wtn.starts_with("OUT") || wtn == "GCLK" || wtn == "ACLK" {
@@ -291,18 +291,18 @@ impl Prop for SingleBidi {
         let wn = backend.egrid.db.wires.key(self.wire);
         let bidi_tile = match self.dir {
             Dir::W | Dir::E => {
-                if nloc.2 == backend.edev.grid.row_bio() {
+                if nloc.2 == backend.edev.chip.row_bio() {
                     "BIDIH.B"
-                } else if nloc.2 == backend.edev.grid.row_tio() {
+                } else if nloc.2 == backend.edev.chip.row_tio() {
                     "BIDIH.T"
                 } else {
                     "BIDIH"
                 }
             }
             Dir::S | Dir::N => {
-                if nloc.1 == backend.edev.grid.col_lio() {
+                if nloc.1 == backend.edev.chip.col_lio() {
                     "BIDIV.L"
-                } else if nloc.1 == backend.edev.grid.col_rio() {
+                } else if nloc.1 == backend.edev.chip.col_rio() {
                     "BIDIV.R"
                 } else {
                     "BIDIV"
@@ -311,7 +311,7 @@ impl Prop for SingleBidi {
         };
         match self.dir {
             Dir::W => {
-                if !backend.edev.grid.cols_bidi.contains(&nloc.1) {
+                if !backend.edev.chip.cols_bidi.contains(&nloc.1) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -326,7 +326,7 @@ impl Prop for SingleBidi {
                 Some((fuzzer, false))
             }
             Dir::E => {
-                if !backend.edev.grid.cols_bidi.contains(&(nloc.1 + 1)) {
+                if !backend.edev.chip.cols_bidi.contains(&(nloc.1 + 1)) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -341,7 +341,7 @@ impl Prop for SingleBidi {
                 Some((fuzzer, false))
             }
             Dir::S => {
-                if !backend.edev.grid.rows_bidi.contains(&nloc.2) {
+                if !backend.edev.chip.rows_bidi.contains(&nloc.2) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -356,7 +356,7 @@ impl Prop for SingleBidi {
                 Some((fuzzer, false))
             }
             Dir::N => {
-                if !backend.edev.grid.rows_bidi.contains(&(nloc.2 + 1)) {
+                if !backend.edev.chip.rows_bidi.contains(&(nloc.2 + 1)) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -392,10 +392,10 @@ impl Prop for HasBidi {
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let val = match self.dir {
-            Dir::W => backend.edev.grid.cols_bidi.contains(&nloc.1),
-            Dir::E => backend.edev.grid.cols_bidi.contains(&(nloc.1 + 1)),
-            Dir::S => backend.edev.grid.rows_bidi.contains(&nloc.2),
-            Dir::N => backend.edev.grid.rows_bidi.contains(&(nloc.2 + 1)),
+            Dir::W => backend.edev.chip.cols_bidi.contains(&nloc.1),
+            Dir::E => backend.edev.chip.cols_bidi.contains(&(nloc.1 + 1)),
+            Dir::S => backend.edev.chip.rows_bidi.contains(&nloc.2),
+            Dir::N => backend.edev.chip.rows_bidi.contains(&(nloc.2 + 1)),
         };
         if val != self.val {
             return None;

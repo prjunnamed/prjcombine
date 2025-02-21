@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_collector::{FeatureId, State};
 use prjcombine_re_hammer::{BatchValue, Fuzzer, FuzzerGen};
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 use prjcombine_xilinx_bitstream::BitTile;
 use rand::prelude::*;
 
@@ -572,8 +572,8 @@ impl Prop for BondedIo {
         nloc: NodeLoc,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let io = backend.edev.grid.get_io_crd(nloc.1, nloc.2, self.bel);
-        if backend.edev.grid.unbonded_io.contains(&io) {
+        let io = backend.edev.chip.get_io_crd(nloc.1, nloc.2, self.bel);
+        if backend.edev.chip.unbonded_io.contains(&io) {
             None
         } else {
             Some((fuzzer, false))
@@ -585,21 +585,21 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
     let edev = backend.edev;
     let node = backend.egrid.node(nloc);
     let kind = backend.egrid.db.nodes.key(node.kind);
-    match backend.edev.grid.kind {
-        GridKind::Xc2000 => {
+    match backend.edev.chip.kind {
+        ChipKind::Xc2000 => {
             if kind.starts_with("BIDI") {
                 todo!()
             } else {
                 let mut res = vec![edev.btile_main(nloc.1, nloc.2)];
-                if nloc.1 != edev.grid.col_rio()
-                    && (nloc.2 == edev.grid.row_bio() || nloc.2 == edev.grid.row_tio())
+                if nloc.1 != edev.chip.col_rio()
+                    && (nloc.2 == edev.chip.row_bio() || nloc.2 == edev.chip.row_tio())
                 {
                     res.push(edev.btile_main(nloc.1 + 1, nloc.2));
                 }
                 res
             }
         }
-        GridKind::Xc3000 | GridKind::Xc3000A => {
+        ChipKind::Xc3000 | ChipKind::Xc3000A => {
             if kind.starts_with("LLH") || (kind.starts_with("LLV") && kind.ends_with('S')) {
                 vec![edev.btile_main(nloc.1, nloc.2)]
             } else if kind.starts_with("LLV") {
@@ -609,33 +609,33 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                 ]
             } else {
                 let mut res = vec![edev.btile_main(nloc.1, nloc.2)];
-                if nloc.2 != edev.grid.row_tio() {
+                if nloc.2 != edev.chip.row_tio() {
                     res.push(edev.btile_main(nloc.1, nloc.2 + 1));
                 }
                 res
             }
         }
-        GridKind::Xc4000
-        | GridKind::Xc4000A
-        | GridKind::Xc4000H
-        | GridKind::Xc4000E
-        | GridKind::Xc4000Ex
-        | GridKind::Xc4000Xla
-        | GridKind::Xc4000Xv
-        | GridKind::SpartanXl => {
+        ChipKind::Xc4000
+        | ChipKind::Xc4000A
+        | ChipKind::Xc4000H
+        | ChipKind::Xc4000E
+        | ChipKind::Xc4000Ex
+        | ChipKind::Xc4000Xla
+        | ChipKind::Xc4000Xv
+        | ChipKind::SpartanXl => {
             if kind.starts_with("LLH") {
-                if nloc.2 == edev.grid.row_bio() {
+                if nloc.2 == edev.chip.row_bio() {
                     vec![
                         edev.btile_llh(nloc.1, nloc.2),
                         edev.btile_main(nloc.1 - 1, nloc.2),
                     ]
-                } else if nloc.2 == edev.grid.row_tio() {
+                } else if nloc.2 == edev.chip.row_tio() {
                     vec![
                         edev.btile_llh(nloc.1, nloc.2),
                         edev.btile_llh(nloc.1, nloc.2 - 1),
                         edev.btile_main(nloc.1 - 1, nloc.2),
                     ]
-                } else if nloc.2 == edev.grid.row_bio() + 1 {
+                } else if nloc.2 == edev.chip.row_bio() + 1 {
                     vec![
                         edev.btile_llh(nloc.1, nloc.2),
                         edev.btile_llh(nloc.1, nloc.2 - 1),
@@ -648,7 +648,7 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                     ]
                 }
             } else if kind.starts_with("LLV") {
-                if nloc.1 == edev.grid.col_lio() {
+                if nloc.1 == edev.chip.col_lio() {
                     vec![
                         edev.btile_llv(nloc.1, nloc.2),
                         edev.btile_llv(nloc.1 + 1, nloc.2),
@@ -657,11 +657,11 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                     vec![edev.btile_llv(nloc.1, nloc.2)]
                 }
             } else {
-                if nloc.1 == edev.grid.col_lio() {
-                    if nloc.2 == edev.grid.row_bio() {
+                if nloc.1 == edev.chip.col_lio() {
+                    if nloc.2 == edev.chip.row_bio() {
                         // LL
                         vec![edev.btile_main(nloc.1, nloc.2)]
-                    } else if nloc.2 == edev.grid.row_tio() {
+                    } else if nloc.2 == edev.chip.row_tio() {
                         // UL
                         vec![edev.btile_main(nloc.1, nloc.2)]
                     } else {
@@ -671,11 +671,11 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                             edev.btile_main(nloc.1, nloc.2 - 1),
                         ]
                     }
-                } else if nloc.1 == edev.grid.col_rio() {
-                    if nloc.2 == edev.grid.row_bio() {
+                } else if nloc.1 == edev.chip.col_rio() {
+                    if nloc.2 == edev.chip.row_bio() {
                         // LR
                         vec![edev.btile_main(nloc.1, nloc.2)]
-                    } else if nloc.2 == edev.grid.row_tio() {
+                    } else if nloc.2 == edev.chip.row_tio() {
                         // UR
                         vec![
                             edev.btile_main(nloc.1, nloc.2),
@@ -691,13 +691,13 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                         ]
                     }
                 } else {
-                    if nloc.2 == edev.grid.row_bio() {
+                    if nloc.2 == edev.chip.row_bio() {
                         // BOT
                         vec![
                             edev.btile_main(nloc.1, nloc.2),
                             edev.btile_main(nloc.1 + 1, nloc.2),
                         ]
-                    } else if nloc.2 == edev.grid.row_tio() {
+                    } else if nloc.2 == edev.chip.row_tio() {
                         // TOP
                         vec![
                             edev.btile_main(nloc.1, nloc.2),
@@ -718,7 +718,7 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                 }
             }
         }
-        GridKind::Xc5200 => {
+        ChipKind::Xc5200 => {
             if matches!(&kind[..], "CLKL" | "CLKR" | "CLKH") {
                 vec![edev.btile_llv(nloc.1, nloc.2)]
             } else if matches!(&kind[..], "CLKB" | "CLKT" | "CLKV") {

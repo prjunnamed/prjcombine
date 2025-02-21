@@ -44,7 +44,7 @@ fn drive_wire<'a>(
     wire_avoid: &mut Vec<IntWire>,
     root: bool,
 ) -> (Fuzzer<XactBackend<'a>>, &'a str, &'static str) {
-    let grid = backend.edev.grid;
+    let grid = backend.edev.chip;
     let (die, (mut col, mut row), wt) = wire_target;
     let wtn = &backend.egrid.db.wires.key(wt)[..];
     let (ploc, pwt, pwf) = if wtn.starts_with("OUT") || wtn == "GCLK" || wtn == "ACLK" {
@@ -251,7 +251,7 @@ fn apply_imux_finish<'a>(
     spin: &'static str,
     inv: bool,
 ) -> Fuzzer<XactBackend<'a>> {
-    let grid = backend.edev.grid;
+    let grid = backend.edev.chip;
     let (die, (col, row), w) = wire;
     let wn = &backend.egrid.db.wires.key(w)[..];
     if wn.starts_with("IOCLK") {
@@ -578,7 +578,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let intdb = ctx.edev.egrid.db;
-    let grid = ctx.edev.grid;
+    let grid = ctx.edev.chip;
     for (_, tile, node) in &intdb.nodes {
         if !ctx.has_tile(tile) {
             continue;

@@ -8,11 +8,11 @@ use prjcombine_xilinx_bitstream::{
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::{
+    chip::{Chip, ChipKind},
     expanded::ExpandedDevice,
-    grid::{Grid, GridKind},
 };
 
-impl Grid {
+impl Chip {
     fn get_bio_node(&self, col: ColId) -> &'static str {
         assert!(self.kind.is_xc4000());
         if col == self.col_lio() + 1 {
@@ -111,7 +111,7 @@ impl Grid {
         let mut llh_frame = EntityPartVec::new();
 
         match self.kind {
-            GridKind::Xc2000 => {
+            ChipKind::Xc2000 => {
                 for col in grid.cols() {
                     if col == self.col_lio() {
                         for row in grid.rows() {
@@ -222,7 +222,7 @@ impl Grid {
                     }
                 }
             }
-            GridKind::Xc3000 | GridKind::Xc3000A => {
+            ChipKind::Xc3000 | ChipKind::Xc3000A => {
                 let s = if self.is_small { "S" } else { "" };
 
                 for col in grid.cols() {
@@ -360,14 +360,14 @@ impl Grid {
                     }
                 }
             }
-            GridKind::Xc4000
-            | GridKind::Xc4000A
-            | GridKind::Xc4000H
-            | GridKind::Xc4000E
-            | GridKind::Xc4000Ex
-            | GridKind::Xc4000Xla
-            | GridKind::Xc4000Xv
-            | GridKind::SpartanXl => {
+            ChipKind::Xc4000
+            | ChipKind::Xc4000A
+            | ChipKind::Xc4000H
+            | ChipKind::Xc4000E
+            | ChipKind::Xc4000Ex
+            | ChipKind::Xc4000Xla
+            | ChipKind::Xc4000Xv
+            | ChipKind::SpartanXl => {
                 let col_l = grid.cols().next().unwrap();
                 let col_r = grid.cols().next_back().unwrap();
                 let row_b = grid.rows().next().unwrap();
@@ -535,7 +535,7 @@ impl Grid {
                         grid.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
                     }
 
-                    if self.kind == GridKind::Xc4000Xv {
+                    if self.kind == ChipKind::Xc4000Xv {
                         for row in [self.row_qb(), self.row_qt()] {
                             for col in [self.col_ql(), self.col_qr()] {
                                 grid.add_xnode((col, row), "CLKQ", &[(col - 1, row), (col, row)]);
@@ -618,7 +618,7 @@ impl Grid {
                         frame_len += self.btile_height_brk();
                     }
                     if row == self.row_mid() {
-                        if matches!(self.kind, GridKind::Xc4000Ex | GridKind::Xc4000Xla) {
+                        if matches!(self.kind, ChipKind::Xc4000Ex | ChipKind::Xc4000Xla) {
                             // padding
                             frame_len += 2;
                         }
@@ -676,7 +676,7 @@ impl Grid {
                     }
                 }
             }
-            GridKind::Xc5200 => {
+            ChipKind::Xc5200 => {
                 let col_l = grid.cols().next().unwrap();
                 let col_r = grid.cols().next_back().unwrap();
                 let row_b = grid.rows().next().unwrap();
@@ -802,22 +802,22 @@ impl Grid {
         };
         let bs_geom = BitstreamGeom {
             kind: match self.kind {
-                GridKind::Xc2000 | GridKind::Xc3000 | GridKind::Xc3000A => DeviceKind::Xc2000,
-                GridKind::Xc4000
-                | GridKind::Xc4000A
-                | GridKind::Xc4000H
-                | GridKind::Xc4000E
-                | GridKind::Xc4000Ex
-                | GridKind::Xc4000Xla
-                | GridKind::Xc4000Xv => DeviceKind::Xc4000,
-                GridKind::SpartanXl => {
+                ChipKind::Xc2000 | ChipKind::Xc3000 | ChipKind::Xc3000A => DeviceKind::Xc2000,
+                ChipKind::Xc4000
+                | ChipKind::Xc4000A
+                | ChipKind::Xc4000H
+                | ChipKind::Xc4000E
+                | ChipKind::Xc4000Ex
+                | ChipKind::Xc4000Xla
+                | ChipKind::Xc4000Xv => DeviceKind::Xc4000,
+                ChipKind::SpartanXl => {
                     if self.columns == 30 {
                         DeviceKind::S40Xl
                     } else {
                         DeviceKind::Xc4000
                     }
                 }
-                GridKind::Xc5200 => DeviceKind::Xc5200,
+                ChipKind::Xc5200 => DeviceKind::Xc5200,
             },
             die: [die_bs_geom].into_iter().collect(),
             die_order: vec![DieId::from_idx(0)],
@@ -826,7 +826,7 @@ impl Grid {
         };
 
         ExpandedDevice {
-            grid: self,
+            chip: self,
             egrid,
             bs_geom,
             col_frame,

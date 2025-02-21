@@ -1,12 +1,12 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
-use prjcombine_xc2000::{expanded::ExpandedDevice, grid::Grid};
+use prjcombine_xc2000::{chip::Chip, expanded::ExpandedDevice};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::ExpandedNamedDevice;
 
 fn name_a(
-    grid: &Grid,
+    grid: &Chip,
     prefix: &str,
     suffix: &str,
     col: ColId,
@@ -25,7 +25,7 @@ fn name_a(
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let egrid = &edev.egrid;
-    let grid = edev.grid;
+    let grid = edev.chip;
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
 
     let mut col_x = EntityVec::new();

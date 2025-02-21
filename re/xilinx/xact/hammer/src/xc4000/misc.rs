@@ -1,14 +1,14 @@
 use prjcombine_interconnect::grid::{DieId, LayerId};
 use prjcombine_re_collector::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 use unnamed_entity::EntityId;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let grid = backend.edev.grid;
-    let num_dec = if grid.kind == GridKind::Xc4000A { 2 } else { 4 };
+    let grid = backend.edev.chip;
+    let num_dec = if grid.kind == ChipKind::Xc4000A { 2 } else { 4 };
     for tile in ["CNR.BL", "CNR.TL", "CNR.BR", "CNR.TR"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         for hv in ['H', 'V'] {
@@ -169,8 +169,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let grid = ctx.edev.grid;
-    let num_dec = if grid.kind == GridKind::Xc4000A { 2 } else { 4 };
+    let grid = ctx.edev.chip;
+    let num_dec = if grid.kind == ChipKind::Xc4000A { 2 } else { 4 };
     for tile in ["CNR.BL", "CNR.TL", "CNR.BR", "CNR.TR"] {
         for hv in ['H', 'V'] {
             for i in 0..num_dec {

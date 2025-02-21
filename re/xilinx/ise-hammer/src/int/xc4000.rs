@@ -5,7 +5,7 @@ use prjcombine_re_collector::{Diff, FeatureId, OcdMode, xlat_bit, xlat_enum, xla
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::TileBit;
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -20,7 +20,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
     };
-    let kind = edev.grid.kind;
+    let kind = edev.chip.kind;
     let intdb = backend.egrid.db;
     for (node_kind, tile, node) in &intdb.nodes {
         if node.muxes.is_empty() {
@@ -54,7 +54,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 assert_eq!(wire_to.0.to_idx(), 0);
                 format!("MUX.{out_name}")
             };
-            if kind == GridKind::SpartanXl {
+            if kind == ChipKind::SpartanXl {
                 if out_name == "IMUX.CLB.C2" && matches!(&tile[..], "CLB.T" | "CLB.LT" | "CLB.RT") {
                     continue;
                 }
@@ -214,7 +214,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                             TileKV::Bel(bel, BelKV::Attr("TRI".into(), "T".into())),
                             TileKV::Bel(bel, BelKV::Pin("T".into(), true)),
                         ]);
-                        if edev.grid.kind != GridKind::Xc4000E {
+                        if edev.chip.kind != ChipKind::Xc4000E {
                             base.push(TileKV::Bel(bel, BelKV::Attr("OUTMUX".into(), "O".into())));
                         }
                     }
@@ -474,7 +474,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
         if tile.starts_with("LLV.") {
             let ctx = FuzzCtx::new(session, backend, tile, "CLKH", bits.clone());
-            if edev.grid.kind == GridKind::SpartanXl {
+            if edev.chip.kind == ChipKind::SpartanXl {
                 for opin in ["O0", "O1", "O2", "O3"] {
                     for ipin in [
                         "I.LL.H", "I.LL.V", "I.UL.H", "I.UL.V", "I.LR.H", "I.LR.V", "I.UR.H",
@@ -508,8 +508,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
         if tile.starts_with("CNR") {
             if matches!(
-                edev.grid.kind,
-                GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+                edev.chip.kind,
+                ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
             ) {
                 for (rtile, opt, bel, out, inp) in [
                     (
@@ -592,7 +592,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     ]);
                 }
             }
-            if edev.grid.kind != GridKind::SpartanXl {
+            if edev.chip.kind != ChipKind::SpartanXl {
                 for hv in ['H', 'V'] {
                     for i in 0..4 {
                         let ctx = FuzzCtx::new(
@@ -642,7 +642,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 }
             }
         }
-        if edev.grid.kind != GridKind::Xc4000E
+        if edev.chip.kind != ChipKind::Xc4000E
             && matches!(
                 &tile[..],
                 "LLHC.CLB" | "LLHC.CLB.B" | "LLH.CLB" | "LLH.CLB.B"
@@ -662,7 +662,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 }
             }
         }
-        if edev.grid.kind != GridKind::SpartanXl {
+        if edev.chip.kind != ChipKind::SpartanXl {
             if matches!(&tile[..], "LLVC.IO.L" | "LLVC.IO.R") {
                 for bt in ['B', 'T'] {
                     for i in 0..4 {
@@ -720,7 +720,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Xc2000(edev) = ctx.edev else {
         unreachable!()
     };
-    let kind = edev.grid.kind;
+    let kind = edev.chip.kind;
     let egrid = ctx.edev.egrid();
     let intdb = egrid.db;
     for (node_kind, tile, node) in &intdb.nodes {
@@ -827,7 +827,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     if out_name.contains("OCTAL")
                         && wfname.contains("OCTAL")
                         && tile.starts_with("IO")
-                        && edev.grid.kind == GridKind::Xc4000Xv
+                        && edev.chip.kind == ChipKind::Xc4000Xv
                     {
                         obuf_diffs
                             .entry(wire_to)
@@ -851,7 +851,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 continue;
             }
-            if kind == GridKind::SpartanXl {
+            if kind == ChipKind::SpartanXl {
                 if out_name == "IMUX.CLB.C2" && matches!(&tile[..], "CLB.T" | "CLB.LT" | "CLB.RT") {
                     continue;
                 }
@@ -864,7 +864,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for &wire_from in &mux.ins {
                 let in_name = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                 let mut diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
-                if edev.grid.kind == GridKind::Xc4000E
+                if edev.chip.kind == ChipKind::Xc4000E
                     && tile.starts_with("IO.L")
                     && out_name == "IMUX.TBUF1.I"
                     && in_name == "0.DEC.V1"
@@ -971,7 +971,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
             }
 
-            if edev.grid.kind == GridKind::Xc4000E {
+            if edev.chip.kind == ChipKind::Xc4000E {
                 let iob_mux_off_d = if tile.starts_with("IO.R") && out_name == "IMUX.CLB.G1" {
                     Some(("IO.R", "IOB0"))
                 } else if tile.starts_with("IO.R") && out_name == "IMUX.CLB.F1" {
@@ -1041,7 +1041,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 inps.push(("NONE".to_string(), Diff::default()));
             }
             let item = xlat_enum_ocd(inps, OcdMode::Mux);
-            if kind == GridKind::SpartanXl && out_name == "IMUX.BOT.COUT" {
+            if kind == ChipKind::SpartanXl && out_name == "IMUX.BOT.COUT" {
                 assert_eq!(mux.ins.len(), 1);
                 assert!(item.bits.is_empty());
                 continue;
@@ -1178,7 +1178,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_bit(tile, bel, "ENABLE", "1");
             }
         }
-        if edev.grid.kind != GridKind::Xc4000E
+        if edev.chip.kind != ChipKind::Xc4000E
             && matches!(
                 &tile[..],
                 "LLHC.CLB" | "LLHC.CLB.B" | "LLH.CLB" | "LLH.CLB.B"
@@ -1208,7 +1208,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         if tile.starts_with("LLV.") {
             let bel = "CLKH";
-            if edev.grid.kind == GridKind::SpartanXl {
+            if edev.chip.kind == ChipKind::SpartanXl {
                 for ipin in [
                     "I.LL.H", "I.LL.V", "I.UL.H", "I.UL.V", "I.LR.H", "I.LR.V", "I.UR.H", "I.UR.V",
                 ] {
@@ -1255,13 +1255,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         if tile.starts_with("CNR") {
             if matches!(
-                edev.grid.kind,
-                GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+                edev.chip.kind,
+                ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
             ) {
                 for hv in ['H', 'V'] {
                     for attr in ["CLK_EN", "ALT_PAD"] {
                         let item = ctx.extract_bit(tile, &format!("BUFGLS.{hv}"), attr, "1");
-                        let bel = if edev.grid.kind == GridKind::SpartanXl {
+                        let bel = if edev.chip.kind == ChipKind::SpartanXl {
                             format!("BUFGLS.{hv}")
                         } else {
                             format!("BUFG.{hv}")
@@ -1270,7 +1270,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                 }
             }
-            if edev.grid.kind != GridKind::SpartanXl {
+            if edev.chip.kind != ChipKind::SpartanXl {
                 for hv in ['H', 'V'] {
                     for i in 0..4 {
                         let bel = &format!("PULLUP.DEC.{hv}{i}");
@@ -1279,7 +1279,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
             }
         }
-        if edev.grid.kind != GridKind::SpartanXl {
+        if edev.chip.kind != ChipKind::SpartanXl {
             if matches!(&tile[..], "LLVC.IO.L" | "LLVC.IO.R") {
                 for bt in ['B', 'T'] {
                     for i in 0..4 {

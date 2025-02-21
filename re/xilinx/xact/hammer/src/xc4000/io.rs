@@ -1,17 +1,17 @@
 use prjcombine_re_collector::xlat_enum;
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let grid = backend.edev.grid;
+    let grid = backend.edev.chip;
     for tile in backend.egrid.db.nodes.keys() {
         if !tile.starts_with("IO") {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        if grid.kind != GridKind::Xc4000H {
+        if grid.kind != ChipKind::Xc4000H {
             for bel in ["IOB0", "IOB1"] {
                 let mut bctx = ctx.bel(bel);
                 bctx.mode("IO")
@@ -40,7 +40,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                     .mutex("CLK", "I")
                     .cfg("INFF", "IK")
                     .test_enum("PAD", &["PULLDOWN", "PULLUP"]);
-                if grid.kind != GridKind::Xc4000A {
+                if grid.kind != ChipKind::Xc4000A {
                     bctx.mode("IO")
                         .mutex("CLK", "I")
                         .cfg("INFF", "IK")
@@ -124,7 +124,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         }
         for bel in ["DEC0", "DEC1", "DEC2"] {
             let mut bctx = ctx.bel(bel);
-            if grid.kind != GridKind::Xc4000A {
+            if grid.kind != ChipKind::Xc4000A {
                 for pin in ["O1", "O2", "O3", "O4"] {
                     bctx.mode("DECODER")
                         .pin_mutex_exclusive(pin)
@@ -168,17 +168,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let grid = ctx.edev.grid;
+    let grid = ctx.edev.chip;
     for tile in ctx.edev.egrid.db.nodes.keys() {
         if !tile.starts_with("IO") {
             continue;
         }
-        if grid.kind != GridKind::Xc4000H {
+        if grid.kind != ChipKind::Xc4000H {
             for bel in ["IOB0", "IOB1"] {
                 let item =
                     ctx.extract_enum_default(tile, bel, "PAD", &["PULLUP", "PULLDOWN"], "NONE");
                 ctx.tiledb.insert(tile, bel, "PULL", item);
-                if grid.kind != GridKind::Xc4000A {
+                if grid.kind != ChipKind::Xc4000A {
                     let item = ctx.extract_enum_default(tile, bel, "PAD", &["FAST"], "SLOW");
                     ctx.tiledb.insert(tile, bel, "SLEW", item);
                 } else {
@@ -264,7 +264,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
         for bel in ["DEC0", "DEC1", "DEC2"] {
-            if grid.kind != GridKind::Xc4000A {
+            if grid.kind != ChipKind::Xc4000A {
                 for pin in ["O1", "O2", "O3", "O4"] {
                     ctx.collect_bit(tile, bel, &format!("{pin}_P"), "1");
                     ctx.collect_bit(tile, bel, &format!("{pin}_N"), "1");

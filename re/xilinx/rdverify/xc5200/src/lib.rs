@@ -50,14 +50,14 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     let mut pins = vec![];
     let kind = if bel.naming.pins.contains_key("CLKIN") {
         pins.push(("CLKIN", SitePinDir::Out));
-        let st = if bel.row == endev.edev.grid.row_bio() {
-            (endev.edev.grid.col_lio(), endev.edev.grid.row_bio())
-        } else if bel.row == endev.edev.grid.row_tio() {
-            (endev.edev.grid.col_rio(), endev.edev.grid.row_tio())
-        } else if bel.col == endev.edev.grid.col_lio() {
-            (endev.edev.grid.col_lio(), endev.edev.grid.row_tio())
-        } else if bel.col == endev.edev.grid.col_rio() {
-            (endev.edev.grid.col_rio(), endev.edev.grid.row_bio())
+        let st = if bel.row == endev.edev.chip.row_bio() {
+            (endev.edev.chip.col_lio(), endev.edev.chip.row_bio())
+        } else if bel.row == endev.edev.chip.row_tio() {
+            (endev.edev.chip.col_rio(), endev.edev.chip.row_tio())
+        } else if bel.col == endev.edev.chip.col_lio() {
+            (endev.edev.chip.col_lio(), endev.edev.chip.row_tio())
+        } else if bel.col == endev.edev.chip.col_rio() {
+            (endev.edev.chip.col_rio(), endev.edev.chip.row_bio())
         } else {
             unreachable!()
         };

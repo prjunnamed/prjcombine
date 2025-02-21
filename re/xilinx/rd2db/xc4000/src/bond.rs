@@ -3,7 +3,7 @@ use prjcombine_re_xilinx_naming_xc2000::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::PkgPin;
 use prjcombine_xc2000::{
     bond::{Bond, BondPin, CfgPin},
-    grid::{GridKind, SharedCfgPin},
+    chip::{ChipKind, SharedCfgPin},
 };
 use std::collections::{BTreeMap, HashMap, btree_map};
 
@@ -276,7 +276,7 @@ pub fn make_bond(
         if matches!(io, SharedCfgPin::Addr(18..=21))
             && !matches!(
                 endev.grid.kind,
-                GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv
+                ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv
             )
         {
             continue;
@@ -287,7 +287,7 @@ pub fn make_bond(
                 | SharedCfgPin::Cs1B
                 | SharedCfgPin::RclkB
                 | SharedCfgPin::Cs0B
-        ) && endev.grid.kind == GridKind::SpartanXl
+        ) && endev.grid.kind == ChipKind::SpartanXl
         {
             continue;
         }

@@ -10,7 +10,7 @@ use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
 use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
 use prjcombine_xc2000::{
     bond::{Bond, BondPin, CfgPin},
-    grid::{Grid, GridKind, SharedCfgPin},
+    chip::{Chip, ChipKind, SharedCfgPin},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -278,7 +278,7 @@ pub fn make_intdb() -> IntDb {
     db
 }
 
-pub fn make_grid(die: &Die) -> Grid {
+pub fn make_grid(die: &Die) -> Chip {
     let pd_clb = die
         .primdefs
         .iter()
@@ -318,8 +318,8 @@ pub fn make_grid(die: &Die) -> Grid {
         .into_iter()
         .map(|y| RowId::from_idx(clb_y.binary_search(&y).unwrap_err()))
         .collect();
-    Grid {
-        kind: GridKind::Xc2000,
+    Chip {
+        kind: ChipKind::Xc2000,
         columns: clb_x.len(),
         rows: clb_y.len(),
         cols_bidi,
@@ -331,7 +331,7 @@ pub fn make_grid(die: &Die) -> Grid {
     }
 }
 
-pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
+pub fn dump_grid(die: &Die) -> (Chip, IntDb, NamingDb) {
     let grid = make_grid(die);
     let mut intdb = make_intdb();
     let mut ndb = NamingDb::default();

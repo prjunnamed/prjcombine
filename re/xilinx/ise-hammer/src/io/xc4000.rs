@@ -2,7 +2,7 @@ use prjcombine_re_collector::{xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::{TileBit, TileItem};
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 
 use crate::{
     backend::IseBackend,
@@ -42,7 +42,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ], [
                 (attr_diff "TRI", "T", "TNOT")
             ]);
-            if edev.grid.kind == GridKind::Xc4000E {
+            if edev.chip.kind == ChipKind::Xc4000E {
                 fuzz_enum!(ctx, "IMUX", ["DELAY", "I"], [(mode "IOB")]);
                 for outmux in ["OQ", "O"] {
                     for omux in ["O", "ONOT"] {
@@ -86,8 +86,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 fuzz_enum!(ctx, "OCEMUX", ["O", "CE"], [(mode "IOB"), (attr "OUTMUX", "OQ"), (attr "OKMUX", "OK")]);
             }
             if matches!(
-                edev.grid.kind,
-                GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+                edev.chip.kind,
+                ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
             ) {
                 fuzz_enum!(ctx, "DRIVE", ["12", "24"], [(mode "IOB")]);
                 fuzz_enum!(ctx, "TRIFFMUX", ["TRI", "TRIQ"], [(mode "IOB"), (attr "TRI", "T"), (attr "OKMUX", "OK")]);
@@ -125,7 +125,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let item = ctx.extract_bit(tile, bel, "ICE", "CE");
             ctx.tiledb.insert(tile, bel, "IFF_CE_ENABLE", item);
             ctx.collect_bit(tile, bel, "INV.T", "1");
-            if edev.grid.kind == GridKind::Xc4000E {
+            if edev.chip.kind == ChipKind::Xc4000E {
                 let item = ctx.extract_enum(tile, bel, "IMUX", &["I", "DELAY"]);
                 ctx.tiledb.insert(tile, bel, "IFF_D", item);
                 let item = ctx.extract_bit(tile, bel, "ICE.IQL", "CE");
@@ -217,8 +217,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .insert(tile, bel, "OFF_USED", xlat_bit(diff_off_used));
             }
             if matches!(
-                edev.grid.kind,
-                GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl
+                edev.chip.kind,
+                ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
             ) {
                 ctx.collect_enum(tile, bel, "DRIVE", &["12", "24"]);
                 let item = xlat_enum(vec![
@@ -227,25 +227,25 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ]);
                 ctx.tiledb.insert(tile, bel, "TMUX", item);
             }
-            let rb_bits = match (&tile[..4], edev.grid.kind, bel) {
-                ("IO.L", GridKind::Xc4000E | GridKind::SpartanXl, "IOB0") => [
+            let rb_bits = match (&tile[..4], edev.chip.kind, bel) {
+                ("IO.L", ChipKind::Xc4000E | ChipKind::SpartanXl, "IOB0") => [
                     ("READBACK_I1", TileBit::new(0, 25, 8)),
                     ("READBACK_I2", TileBit::new(0, 23, 8)),
                     ("READBACK_OFF", TileBit::new(0, 22, 8)),
                 ],
-                ("IO.L", GridKind::Xc4000E | GridKind::SpartanXl, "IOB1") => [
+                ("IO.L", ChipKind::Xc4000E | ChipKind::SpartanXl, "IOB1") => [
                     ("READBACK_I1", TileBit::new(0, 21, 3)),
                     ("READBACK_I2", TileBit::new(0, 22, 3)),
                     ("READBACK_OFF", TileBit::new(0, 23, 2)),
                 ],
-                ("IO.L", GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv, "IOB0") => {
+                ("IO.L", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, "IOB0") => {
                     [
                         ("READBACK_I1", TileBit::new(0, 26, 8)),
                         ("READBACK_I2", TileBit::new(0, 24, 8)),
                         ("READBACK_OFF", TileBit::new(0, 23, 8)),
                     ]
                 }
-                ("IO.L", GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv, "IOB1") => {
+                ("IO.L", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, "IOB1") => {
                     [
                         ("READBACK_I1", TileBit::new(0, 22, 3)),
                         ("READBACK_I2", TileBit::new(0, 23, 3)),
@@ -264,34 +264,34 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("READBACK_OFF", TileBit::new(0, 2, 2)),
                 ],
 
-                ("IO.B", GridKind::Xc4000E, "IOB0") => [
+                ("IO.B", ChipKind::Xc4000E, "IOB0") => [
                     ("READBACK_I1", TileBit::new(0, 18, 3)),
                     ("READBACK_I2", TileBit::new(0, 18, 2)),
                     ("READBACK_OFF", TileBit::new(0, 14, 2)),
                 ],
-                ("IO.B", GridKind::Xc4000E, "IOB1") => [
+                ("IO.B", ChipKind::Xc4000E, "IOB1") => [
                     ("READBACK_I1", TileBit::new(0, 16, 2)),
                     ("READBACK_I2", TileBit::new(0, 17, 3)),
                     ("READBACK_OFF", TileBit::new(0, 15, 2)),
                 ],
-                ("IO.B", GridKind::SpartanXl, "IOB0") => [
+                ("IO.B", ChipKind::SpartanXl, "IOB0") => [
                     ("READBACK_I1", TileBit::new(0, 18, 3)),
                     ("READBACK_I2", TileBit::new(0, 18, 2)),
                     ("READBACK_OFF", TileBit::new(0, 16, 3)),
                 ],
-                ("IO.B", GridKind::SpartanXl, "IOB1") => [
+                ("IO.B", ChipKind::SpartanXl, "IOB1") => [
                     ("READBACK_I1", TileBit::new(0, 17, 2)),
                     ("READBACK_I2", TileBit::new(0, 17, 3)),
                     ("READBACK_OFF", TileBit::new(0, 16, 2)),
                 ],
-                ("IO.B", GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv, "IOB0") => {
+                ("IO.B", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, "IOB0") => {
                     [
                         ("READBACK_I1", TileBit::new(0, 19, 3)),
                         ("READBACK_I2", TileBit::new(0, 19, 2)),
                         ("READBACK_OFF", TileBit::new(0, 17, 3)),
                     ]
                 }
-                ("IO.B", GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv, "IOB1") => {
+                ("IO.B", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, "IOB1") => {
                     [
                         ("READBACK_I1", TileBit::new(0, 18, 2)),
                         ("READBACK_I2", TileBit::new(0, 18, 3)),
@@ -299,42 +299,42 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ]
                 }
 
-                ("IO.T", GridKind::Xc4000E, "IOB0") => [
+                ("IO.T", ChipKind::Xc4000E, "IOB0") => [
                     ("READBACK_I1", TileBit::new(0, 18, 3)),
                     ("READBACK_I2", TileBit::new(0, 18, 4)),
                     ("READBACK_OFF", TileBit::new(0, 14, 4)),
                 ],
-                ("IO.T", GridKind::Xc4000E, "IOB1") => [
+                ("IO.T", ChipKind::Xc4000E, "IOB1") => [
                     ("READBACK_I1", TileBit::new(0, 16, 4)),
                     ("READBACK_I2", TileBit::new(0, 17, 3)),
                     ("READBACK_OFF", TileBit::new(0, 15, 4)),
                 ],
-                ("IO.T", GridKind::SpartanXl, "IOB0") => [
+                ("IO.T", ChipKind::SpartanXl, "IOB0") => [
                     ("READBACK_I1", TileBit::new(0, 18, 3)),
                     ("READBACK_I2", TileBit::new(0, 18, 4)),
                     ("READBACK_OFF", TileBit::new(0, 16, 3)),
                 ],
-                ("IO.T", GridKind::SpartanXl, "IOB1") => [
+                ("IO.T", ChipKind::SpartanXl, "IOB1") => [
                     ("READBACK_I1", TileBit::new(0, 17, 4)),
                     ("READBACK_I2", TileBit::new(0, 17, 3)),
                     ("READBACK_OFF", TileBit::new(0, 16, 4)),
                 ],
-                ("IO.T", GridKind::Xc4000Ex | GridKind::Xc4000Xla, "IOB0") => [
+                ("IO.T", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla, "IOB0") => [
                     ("READBACK_I1", TileBit::new(0, 19, 4)),
                     ("READBACK_I2", TileBit::new(0, 19, 5)),
                     ("READBACK_OFF", TileBit::new(0, 17, 4)),
                 ],
-                ("IO.T", GridKind::Xc4000Ex | GridKind::Xc4000Xla, "IOB1") => [
+                ("IO.T", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla, "IOB1") => [
                     ("READBACK_I1", TileBit::new(0, 18, 5)),
                     ("READBACK_I2", TileBit::new(0, 18, 4)),
                     ("READBACK_OFF", TileBit::new(0, 17, 5)),
                 ],
-                ("IO.T", GridKind::Xc4000Xv, "IOB0") => [
+                ("IO.T", ChipKind::Xc4000Xv, "IOB0") => [
                     ("READBACK_I1", TileBit::new(0, 19, 5)),
                     ("READBACK_I2", TileBit::new(0, 19, 6)),
                     ("READBACK_OFF", TileBit::new(0, 17, 5)),
                 ],
-                ("IO.T", GridKind::Xc4000Xv, "IOB1") => [
+                ("IO.T", ChipKind::Xc4000Xv, "IOB1") => [
                     ("READBACK_I1", TileBit::new(0, 18, 6)),
                     ("READBACK_I2", TileBit::new(0, 18, 5)),
                     ("READBACK_OFF", TileBit::new(0, 17, 6)),

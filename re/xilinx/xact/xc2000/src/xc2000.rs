@@ -7,7 +7,7 @@ use crate::ExpandedNamedDevice;
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let egrid = &edev.egrid;
-    let grid = edev.grid;
+    let grid = edev.chip;
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
 
     let mut col_x = EntityVec::new();

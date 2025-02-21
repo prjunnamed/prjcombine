@@ -2,7 +2,7 @@ use prjcombine_re_collector::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::{TileBit, TileItem};
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 
 use crate::{
     backend::IseBackend,
@@ -16,7 +16,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
     };
-    let kind = edev.grid.kind;
+    let kind = edev.chip.kind;
     let ff_maybe = if kind.is_clb_xl() { "#FF" } else { "" };
     for tile in [
         "CLB", "CLB.B", "CLB.T", "CLB.L", "CLB.LB", "CLB.LT", "CLB.R", "CLB.RB", "CLB.RT",
@@ -400,7 +400,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Xc2000(edev) = ctx.edev else {
         unreachable!()
     };
-    let kind = edev.grid.kind;
+    let kind = edev.chip.kind;
     for tile in [
         "CLB", "CLB.B", "CLB.T", "CLB.L", "CLB.LB", "CLB.LT", "CLB.R", "CLB.RB", "CLB.RT",
     ] {
@@ -534,7 +534,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("READBACK_XQ", 0, 7),
                 ("READBACK_YQ", 0, 4),
             ]
-        } else if kind == GridKind::SpartanXl {
+        } else if kind == ChipKind::SpartanXl {
             // ?!?! X/XQ swapped from XC4000?
             [
                 ("READBACK_X", 12, 5),

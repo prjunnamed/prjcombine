@@ -144,7 +144,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "OSC")]);
     ctx.tile_name = "CNR.BR".to_string();
     ctx.bits = TileBits::Raw(vec![
-        edev.btile_main(edev.grid.col_rio(), edev.grid.row_bio()),
+        edev.btile_main(edev.chip.col_rio(), edev.chip.row_bio()),
     ]);
     fuzz_enum!(ctx, "OSC1_ATTR", ["4", "16", "64", "256"], [(mode "OSC")]);
     fuzz_enum!(ctx, "OSC2_ATTR", ["2", "8", "32", "128", "1024", "4096", "16384", "65536"], [(mode "OSC")]);

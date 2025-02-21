@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_collector::{Diff, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_types::tiledb::TileBit;
-use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000::chip::ChipKind;
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -45,10 +45,10 @@ fn drive_wire<'a>(
     wire_target: IntWire,
     wire_avoid: IntWire,
 ) -> (Fuzzer<XactBackend<'a>>, &'a str, &'static str) {
-    let grid = backend.edev.grid;
+    let grid = backend.edev.chip;
     let (die, (mut col, mut row), wt) = wire_target;
     let wtn = &backend.egrid.db.wires.key(wt)[..];
-    let (long_tbuf0, long_tbuf1) = if grid.kind == GridKind::Xc4000A {
+    let (long_tbuf0, long_tbuf1) = if grid.kind == ChipKind::Xc4000A {
         ("LONG.H1", "LONG.H2")
     } else {
         ("LONG.H2", "LONG.H3")
@@ -88,7 +88,7 @@ fn drive_wire<'a>(
             "OUT.UPDATE.O" => ("UPDATE", "O"),
             "OUT.OSC.MUX1" => ("OSC", "OUT1"),
             "OUT.IOB.CLKIN" => (
-                if grid.kind == GridKind::Xc4000H {
+                if grid.kind == ChipKind::Xc4000H {
                     if col == grid.col_lio() {
                         if row < grid.row_mid() {
                             "HIOB3"
@@ -133,7 +133,7 @@ fn drive_wire<'a>(
             ),
             _ => panic!("umm {wtn}"),
         };
-        if bel.starts_with("IOB") && grid.kind == GridKind::Xc4000H {
+        if bel.starts_with("IOB") && grid.kind == ChipKind::Xc4000H {
             (
                 (die, col, row, LayerId::from_idx(0)),
                 (NodeTileId::from_idx(0), wire_target.2),
@@ -325,7 +325,7 @@ fn apply_imux_finish<'a>(
     oq: bool,
     inv: bool,
 ) -> Fuzzer<XactBackend<'a>> {
-    let grid = backend.edev.grid;
+    let grid = backend.edev.chip;
     let (die, (mut col, mut row), w) = wire;
     let wn = &backend.egrid.db.wires.key(w)[..];
     if !wn.starts_with("IMUX") {
@@ -429,12 +429,12 @@ fn apply_imux_finish<'a>(
         "IMUX.TBUF1.TS" => ("TBUF1", "T"),
         "IMUX.IOB1.O1" if col == grid.col_lio() && row == grid.row_bio() => ("MD1", "O"),
         "IMUX.IOB1.IK" if col == grid.col_lio() && row == grid.row_bio() => ("MD1", "T"),
-        "IMUX.IOB0.OK" if grid.kind == GridKind::Xc4000H => ("HIOB0", "TS"),
-        "IMUX.IOB0.IK" if grid.kind == GridKind::Xc4000H => ("HIOB1", "TS"),
-        "IMUX.IOB1.IK" if grid.kind == GridKind::Xc4000H => ("HIOB2", "TS"),
-        "IMUX.IOB1.OK" if grid.kind == GridKind::Xc4000H => ("HIOB3", "TS"),
-        "IMUX.IOB0.TS" if grid.kind == GridKind::Xc4000H => ("HIOB0", "TP"),
-        "IMUX.IOB1.TS" if grid.kind == GridKind::Xc4000H => ("HIOB2", "TP"),
+        "IMUX.IOB0.OK" if grid.kind == ChipKind::Xc4000H => ("HIOB0", "TS"),
+        "IMUX.IOB0.IK" if grid.kind == ChipKind::Xc4000H => ("HIOB1", "TS"),
+        "IMUX.IOB1.IK" if grid.kind == ChipKind::Xc4000H => ("HIOB2", "TS"),
+        "IMUX.IOB1.OK" if grid.kind == ChipKind::Xc4000H => ("HIOB3", "TS"),
+        "IMUX.IOB0.TS" if grid.kind == ChipKind::Xc4000H => ("HIOB0", "TP"),
+        "IMUX.IOB1.TS" if grid.kind == ChipKind::Xc4000H => ("HIOB2", "TP"),
         "IMUX.IOB0.IK" => ("IOB0", "IK"),
         "IMUX.IOB1.IK" => ("IOB1", "IK"),
         "IMUX.IOB0.OK" => ("IOB0", "OK"),
@@ -456,7 +456,7 @@ fn apply_imux_finish<'a>(
         "IMUX.BUFG.V" => ("BUFGLS.V", "I"),
         _ => panic!("umm {wn}?"),
     };
-    if grid.kind == GridKind::Xc4000H {
+    if grid.kind == ChipKind::Xc4000H {
         if bel == "IOB0" {
             bel = ["HIOB0", "HIOB1"][hiob];
         }
@@ -695,7 +695,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 let wire_from_name = intdb.wires.key(wire_from.1);
                 let in_name = format!("{}.{}", wire_from.0, wire_from_name);
                 if is_iob_o {
-                    if backend.edev.grid.kind == GridKind::Xc4000H {
+                    if backend.edev.chip.kind == ChipKind::Xc4000H {
                         for i in 0..2 {
                             ctx.build()
                                 .test_manual("INT", &mux_name, format!("{in_name}.HIOB{i}"))
@@ -846,7 +846,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 };
             }
             if let Some((prefix, bel, pin, bt)) = iob_o {
-                if ctx.edev.grid.kind == GridKind::Xc4000H {
+                if ctx.edev.chip.kind == ChipKind::Xc4000H {
                     let mut inps = vec![];
                     let mut got_empty = false;
                     for &wire_from in &mux.ins {

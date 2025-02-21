@@ -1024,15 +1024,15 @@ impl<'a> TileKV<'a> {
             }
             TileKV::DriveLLH(wire) => match backend.edev {
                 ExpandedDevice::Xc2000(edev) => {
-                    assert_eq!(edev.grid.kind, prjcombine_xc2000::grid::GridKind::Xc5200);
+                    assert_eq!(edev.chip.kind, prjcombine_xc2000::chip::ChipKind::Xc5200);
                     let node = backend.egrid.node(loc);
                     let wnode = backend
                         .egrid
                         .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
-                    let mut src_col = if node.tiles[wire.0].0 < edev.grid.col_mid() {
-                        edev.grid.col_mid() - 1
+                    let mut src_col = if node.tiles[wire.0].0 < edev.chip.col_mid() {
+                        edev.chip.col_mid() - 1
                     } else {
-                        edev.grid.col_mid()
+                        edev.chip.col_mid()
                     };
                     loop {
                         if let Some((src_layer, src_node)) =
@@ -1064,10 +1064,10 @@ impl<'a> TileKV<'a> {
                                 return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
                             }
                         }
-                        if src_col == edev.grid.col_lio() || src_col == edev.grid.col_rio() {
+                        if src_col == edev.chip.col_lio() || src_col == edev.chip.col_rio() {
                             return None;
                         }
-                        if src_col < edev.grid.col_mid() {
+                        if src_col < edev.chip.col_mid() {
                             src_col -= 1;
                         } else {
                             src_col += 1;
@@ -1127,15 +1127,15 @@ impl<'a> TileKV<'a> {
             },
             TileKV::DriveLLV(wire) => match backend.edev {
                 ExpandedDevice::Xc2000(edev) => {
-                    assert_eq!(edev.grid.kind, prjcombine_xc2000::grid::GridKind::Xc5200);
+                    assert_eq!(edev.chip.kind, prjcombine_xc2000::chip::ChipKind::Xc5200);
                     let node = backend.egrid.node(loc);
                     let wnode = backend
                         .egrid
                         .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
-                    let mut src_row = if node.tiles[wire.0].1 < edev.grid.row_mid() {
-                        edev.grid.row_mid() - 1
+                    let mut src_row = if node.tiles[wire.0].1 < edev.chip.row_mid() {
+                        edev.chip.row_mid() - 1
                     } else {
-                        edev.grid.row_mid()
+                        edev.chip.row_mid()
                     };
                     loop {
                         if let Some((src_layer, src_node)) =
@@ -1167,10 +1167,10 @@ impl<'a> TileKV<'a> {
                                 return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
                             }
                         }
-                        if src_row == edev.grid.row_bio() || src_row == edev.grid.row_tio() {
+                        if src_row == edev.chip.row_bio() || src_row == edev.chip.row_tio() {
                             return None;
                         }
-                        if src_row < edev.grid.row_mid() {
+                        if src_row < edev.chip.row_mid() {
                             src_row -= 1;
                         } else {
                             src_row += 1;
@@ -2362,8 +2362,8 @@ fn drive_xc4000_wire<'a>(
     let (_, (acol, arow), _) = wire_avoid;
     let fuzzer = fuzzer.fuzz(Key::NodeMutex(wire_target), None, "EXCLUSIVE");
     // println!("DRIVING {wire_target:?} {wname}");
-    if wire_target.1.1 != edev.grid.row_bio()
-        && wire_target.1.1 != edev.grid.row_tio()
+    if wire_target.1.1 != edev.chip.row_bio()
+        && wire_target.1.1 != edev.chip.row_tio()
         && (wname == "LONG.H2" || wname == "LONG.H3")
     {
         let bel = if wname == "LONG.H3" { "TBUF1" } else { "TBUF0" };
@@ -2435,7 +2435,7 @@ fn drive_xc4000_wire<'a>(
             ),
             "OUT.CLB.FXQ" => (
                 "XQ",
-                if edev.grid.kind.is_clb_xl() {
+                if edev.chip.kind.is_clb_xl() {
                     fuzzer
                         .base(Key::SiteAttr(site_name, "CLKX".into()), "CLK")
                         .base(Key::SiteAttr(site_name, "XQMUX".into()), "QX")
@@ -2450,7 +2450,7 @@ fn drive_xc4000_wire<'a>(
             ),
             "OUT.CLB.GYQ" => (
                 "YQ",
-                if edev.grid.kind.is_clb_xl() {
+                if edev.chip.kind.is_clb_xl() {
                     fuzzer
                         .base(Key::SiteAttr(site_name, "CLKY".into()), "CLK")
                         .base(Key::SiteAttr(site_name, "YQMUX".into()), "QY")
@@ -2471,10 +2471,10 @@ fn drive_xc4000_wire<'a>(
         (fuzzer, site_name, pin)
     } else if let Some(idx) = wname.strip_prefix("SINGLE.H") {
         let idx: u8 = idx.parse().unwrap();
-        assert_ne!(row, edev.grid.row_tio());
-        if col == edev.grid.col_lio()
-            || (col == edev.grid.col_lio() + 1
-                && (row == edev.grid.row_bio() || row == edev.grid.row_tio() - 1))
+        assert_ne!(row, edev.chip.row_tio());
+        if col == edev.chip.col_lio()
+            || (col == edev.chip.col_lio() + 1
+                && (row == edev.chip.row_bio() || row == edev.chip.row_tio() - 1))
         {
             let nwt = (die, (col + 1, row), wt);
             let (fuzzer, site_name, pin_name) =
@@ -2494,7 +2494,7 @@ fn drive_xc4000_wire<'a>(
                 Value::FromPin(site_name, pin_name.into()),
             );
             (fuzzer, site_name, pin_name)
-        } else if col == edev.grid.col_rio() {
+        } else if col == edev.chip.col_rio() {
             let nwt = (die, (col - 1, row), wt);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
@@ -2513,7 +2513,7 @@ fn drive_xc4000_wire<'a>(
                 Value::FromPin(site_name, pin_name.into()),
             );
             (fuzzer, site_name, pin_name)
-        } else if row == edev.grid.row_bio() {
+        } else if row == edev.chip.row_bio() {
             let nwt = (
                 die,
                 (col, row + 1),
@@ -2536,7 +2536,7 @@ fn drive_xc4000_wire<'a>(
                 Value::FromPin(site_name, pin_name.into()),
             );
             (fuzzer, site_name, pin_name)
-        } else if row == edev.grid.row_tio() - 1 {
+        } else if row == edev.chip.row_tio() - 1 {
             let nwt = (
                 die,
                 (col, row),
@@ -2559,7 +2559,7 @@ fn drive_xc4000_wire<'a>(
         } else {
             let (out, sout, srow) = match (
                 idx,
-                edev.grid.kind == prjcombine_xc2000::grid::GridKind::Xc4000E,
+                edev.chip.kind == prjcombine_xc2000::chip::ChipKind::Xc4000E,
             ) {
                 (0 | 4, true) => ("OUT.CLB.GY", "OUT.CLB.GY", row),
                 (1 | 5, true) => ("OUT.CLB.GYQ", "OUT.CLB.GYQ", row),
@@ -2589,8 +2589,8 @@ fn drive_xc4000_wire<'a>(
         }
     } else if let Some(idx) = wname.strip_prefix("SINGLE.V") {
         let idx: u8 = idx.parse().unwrap();
-        assert_ne!(col, edev.grid.col_lio());
-        if row == edev.grid.row_bio() {
+        assert_ne!(col, edev.chip.col_lio());
+        if row == edev.chip.row_bio() {
             let nwt = (die, (col, row + 1), wt);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
@@ -2609,9 +2609,9 @@ fn drive_xc4000_wire<'a>(
                 Value::FromPin(site_name, pin_name.into()),
             );
             (fuzzer, site_name, pin_name)
-        } else if row == edev.grid.row_tio()
-            || (row == edev.grid.row_tio() - 1
-                && (col == edev.grid.col_lio() + 1 || col == edev.grid.col_rio()))
+        } else if row == edev.chip.row_tio()
+            || (row == edev.chip.row_tio() - 1
+                && (col == edev.chip.col_lio() + 1 || col == edev.chip.col_rio()))
         {
             let nwt = (die, (col, row - 1), wt);
             let (fuzzer, site_name, pin_name) =
@@ -2631,7 +2631,7 @@ fn drive_xc4000_wire<'a>(
                 Value::FromPin(site_name, pin_name.into()),
             );
             (fuzzer, site_name, pin_name)
-        } else if col == edev.grid.col_lio() + 1 {
+        } else if col == edev.chip.col_lio() + 1 {
             let nwt = (
                 die,
                 (col, row),
@@ -2651,7 +2651,7 @@ fn drive_xc4000_wire<'a>(
                 Value::FromPin(site_name, pin_name.into()),
             );
             (fuzzer, site_name, pin_name)
-        } else if col == edev.grid.col_rio() {
+        } else if col == edev.chip.col_rio() {
             let nwt = (
                 die,
                 (col - 1, row),
@@ -2677,7 +2677,7 @@ fn drive_xc4000_wire<'a>(
         } else {
             let (out, sout, scol) = match (
                 idx,
-                edev.grid.kind == prjcombine_xc2000::grid::GridKind::Xc4000E,
+                edev.chip.kind == prjcombine_xc2000::chip::ChipKind::Xc4000E,
             ) {
                 (0 | 4, true) => ("OUT.CLB.FXQ", "OUT.CLB.FXQ", col),
                 (1 | 5, true) => ("OUT.CLB.FX", "OUT.CLB.FX", col),
@@ -2717,7 +2717,7 @@ fn drive_xc4000_wire<'a>(
         let mut layer = LayerId::from_idx(0);
         if wname.starts_with("LONG") {
             if wname.contains(".H") {
-                if col == edev.grid.col_lio() {
+                if col == edev.chip.col_lio() {
                     col += 1;
                 }
                 if col == acol {
@@ -2734,20 +2734,20 @@ fn drive_xc4000_wire<'a>(
             match &wname[..] {
                 "IO.OCTAL.W.0" => (),
                 "IO.OCTAL.E.0" => {
-                    assert_ne!(row, edev.grid.row_tio());
+                    assert_ne!(row, edev.chip.row_tio());
                     row += 1;
                     wt = backend.egrid.db.get_wire("IO.OCTAL.E.1");
-                    if row == edev.grid.row_tio() {
+                    if row == edev.chip.row_tio() {
                         wt = backend.egrid.db.get_wire("IO.OCTAL.N.1");
                         col -= 1;
                     }
                 }
                 "IO.OCTAL.S.0" => (),
                 "IO.OCTAL.N.0" => {
-                    assert_ne!(col, edev.grid.col_lio());
+                    assert_ne!(col, edev.chip.col_lio());
                     col -= 1;
                     wt = backend.egrid.db.get_wire("IO.OCTAL.N.1");
-                    if col == edev.grid.col_lio() {
+                    if col == edev.chip.col_lio() {
                         wt = backend.egrid.db.get_wire("IO.OCTAL.W.1");
                         row -= 1;
                     }
@@ -2755,7 +2755,7 @@ fn drive_xc4000_wire<'a>(
                 _ => unreachable!(),
             }
         } else if wname.starts_with("QUAD.H") {
-            if col == edev.grid.col_lio() {
+            if col == edev.chip.col_lio() {
                 if wname.ends_with(".3") {
                     if aname.starts_with("LONG.IO") {
                         col += 1;
@@ -2782,7 +2782,7 @@ fn drive_xc4000_wire<'a>(
                     wt = backend.egrid.db.get_wire("QUAD.H1.1");
                 }
             } else if wname == "QUAD.H2.0" {
-                if col == edev.grid.col_rio() {
+                if col == edev.chip.col_rio() {
                     if aname.starts_with("LONG.IO") {
                         filter = Some("QUAD.H2.4");
                     } else {
@@ -2794,7 +2794,7 @@ fn drive_xc4000_wire<'a>(
                 }
             }
         } else if wname.starts_with("QUAD.V") {
-            if row == edev.grid.row_tio() {
+            if row == edev.chip.row_tio() {
                 if wname.ends_with(".3") {
                     if aname.starts_with("LONG.IO") {
                         row -= 1;
@@ -2821,7 +2821,7 @@ fn drive_xc4000_wire<'a>(
                     wt = backend.egrid.db.get_wire("QUAD.V2.3");
                 }
             } else if wname == "QUAD.V0.0" {
-                if row == edev.grid.row_bio() {
+                if row == edev.chip.row_bio() {
                     if aname.starts_with("LONG.IO") {
                         filter = Some("QUAD.V0.4");
                     } else {
@@ -2833,22 +2833,22 @@ fn drive_xc4000_wire<'a>(
                 }
             }
         } else if let Some(idx) = wname.strip_prefix("OCTAL.H.") {
-            if col == edev.grid.col_lio() {
+            if col == edev.chip.col_lio() {
                 let idx: usize = idx.parse().unwrap();
                 col += 7 - idx;
                 wt = backend.egrid.db.get_wire("OCTAL.H.7");
             }
         } else if let Some(idx) = wname.strip_prefix("OCTAL.V.") {
-            if row == edev.grid.row_tio() {
+            if row == edev.chip.row_tio() {
                 let idx: usize = idx.parse().unwrap();
                 row -= 7 - idx;
                 wt = backend.egrid.db.get_wire("OCTAL.V.7");
             }
         } else if wname.starts_with("GCLK") {
-            if row == edev.grid.row_bio() {
-                row = edev.grid.row_qb();
+            if row == edev.chip.row_bio() {
+                row = edev.chip.row_qb();
             } else {
-                row = edev.grid.row_qt();
+                row = edev.chip.row_qt();
             }
             layer = backend
                 .egrid
@@ -2858,10 +2858,10 @@ fn drive_xc4000_wire<'a>(
                 .unwrap()
                 .0;
         } else if wname == "VCLK" {
-            if row == edev.grid.row_bio() {
+            if row == edev.chip.row_bio() {
                 // OK
-            } else if row == edev.grid.row_qb() {
-                row = edev.grid.row_mid();
+            } else if row == edev.chip.row_qb() {
+                row = edev.chip.row_mid();
                 layer = backend
                     .egrid
                     .find_node_loc(die, (col, row), |node| {
@@ -2869,7 +2869,7 @@ fn drive_xc4000_wire<'a>(
                     })
                     .unwrap()
                     .0;
-            } else if row == edev.grid.row_mid() {
+            } else if row == edev.chip.row_mid() {
                 twt = NodeTileId::from_idx(1);
                 layer = backend
                     .egrid
@@ -2878,8 +2878,8 @@ fn drive_xc4000_wire<'a>(
                     })
                     .unwrap()
                     .0;
-            } else if row == edev.grid.row_qt() {
-                row = edev.grid.row_tio();
+            } else if row == edev.chip.row_qt() {
+                row = edev.chip.row_tio();
             } else {
                 unreachable!()
             }
@@ -4717,7 +4717,7 @@ impl TileBits {
             },
             TileBits::Llv => match backend.edev {
                 ExpandedDevice::Xc2000(edev) => {
-                    if col == edev.grid.col_lio() {
+                    if col == edev.chip.col_lio() {
                         vec![edev.btile_llv(col, row), edev.btile_llv(col + 1, row)]
                     } else {
                         vec![edev.btile_llv(col, row)]
@@ -4734,15 +4734,15 @@ impl TileBits {
             },
             TileBits::Llh => match backend.edev {
                 ExpandedDevice::Xc2000(edev) => {
-                    if row == edev.grid.row_bio() {
+                    if row == edev.chip.row_bio() {
                         vec![edev.btile_llh(col, row), edev.btile_main(col - 1, row)]
-                    } else if row == edev.grid.row_tio() {
+                    } else if row == edev.chip.row_tio() {
                         vec![
                             edev.btile_llh(col, row),
                             edev.btile_llh(col, row - 1),
                             edev.btile_main(col - 1, row),
                         ]
-                    } else if row == edev.grid.row_bio() + 1 {
+                    } else if row == edev.chip.row_bio() + 1 {
                         vec![
                             edev.btile_llh(col, row),
                             edev.btile_llh(col, row - 1),
@@ -5211,11 +5211,11 @@ impl TileBits {
                 let ExpandedDevice::Xc2000(edev) = backend.edev else {
                     unreachable!()
                 };
-                if loc.1 == edev.grid.col_lio() {
-                    if loc.2 == edev.grid.row_bio() {
+                if loc.1 == edev.chip.col_lio() {
+                    if loc.2 == edev.chip.row_bio() {
                         // LL
                         vec![edev.btile_main(loc.1, loc.2)]
-                    } else if loc.2 == edev.grid.row_tio() {
+                    } else if loc.2 == edev.chip.row_tio() {
                         // UL
                         vec![edev.btile_main(loc.1, loc.2)]
                     } else {
@@ -5225,11 +5225,11 @@ impl TileBits {
                             edev.btile_main(loc.1, loc.2 - 1),
                         ]
                     }
-                } else if loc.1 == edev.grid.col_rio() {
-                    if loc.2 == edev.grid.row_bio() {
+                } else if loc.1 == edev.chip.col_rio() {
+                    if loc.2 == edev.chip.row_bio() {
                         // LR
                         vec![edev.btile_main(loc.1, loc.2)]
-                    } else if loc.2 == edev.grid.row_tio() {
+                    } else if loc.2 == edev.chip.row_tio() {
                         // UR
                         vec![
                             edev.btile_main(loc.1, loc.2),
@@ -5245,13 +5245,13 @@ impl TileBits {
                         ]
                     }
                 } else {
-                    if loc.2 == edev.grid.row_bio() {
+                    if loc.2 == edev.chip.row_bio() {
                         // BOT
                         vec![
                             edev.btile_main(loc.1, loc.2),
                             edev.btile_main(loc.1 + 1, loc.2),
                         ]
-                    } else if loc.2 == edev.grid.row_tio() {
+                    } else if loc.2 == edev.chip.row_tio() {
                         // TOP
                         vec![
                             edev.btile_main(loc.1, loc.2),

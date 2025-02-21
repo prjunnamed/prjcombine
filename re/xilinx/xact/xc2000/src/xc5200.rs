@@ -1,11 +1,11 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
-use prjcombine_xc2000::{expanded::ExpandedDevice, grid::Grid};
+use prjcombine_xc2000::{chip::Chip, expanded::ExpandedDevice};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::ExpandedNamedDevice;
 
-fn name_a(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
+fn name_a(grid: &Chip, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
     let cidx = if col < grid.col_mid() {
         col.to_idx()
     } else {
@@ -23,7 +23,7 @@ fn name_a(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> St
     format!("{prefix}{r}{c}{suffix}")
 }
 
-fn name_b(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
+fn name_b(grid: &Chip, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
     let cidx = col.to_idx();
     let ridx = grid.rows - row.to_idx() - 1;
     format!("{prefix}R{ridx}C{cidx}{suffix}")
@@ -31,7 +31,7 @@ fn name_b(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> St
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let egrid = &edev.egrid;
-    let grid = edev.grid;
+    let grid = edev.chip;
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
     ngrid.tie_pin_gnd = Some("O".to_string());
 
@@ -188,8 +188,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 name_a(grid, "src0.", ".1", col, row),
                                 name_a(grid, "dummy.", ".1", col, row),
                             ];
-                            let p = (edev.grid.columns - 2) * 8
-                                + (edev.grid.rows - 2) * 4
+                            let p = (edev.chip.columns - 2) * 8
+                                + (edev.chip.rows - 2) * 4
                                 + (row.to_idx() - 1) * 4
                                 + 1;
                             nnode.add_bel(0, vec![format!("PAD{p}")]);
@@ -235,8 +235,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 name_a(grid, "src0.", ".1", col, row),
                                 name_a(grid, "dummy.", ".1", col, row),
                             ];
-                            let p = (edev.grid.columns - 2) * 4
-                                + (edev.grid.row_tio().to_idx() - row.to_idx() - 1) * 4
+                            let p = (edev.chip.columns - 2) * 4
+                                + (edev.chip.row_tio().to_idx() - row.to_idx() - 1) * 4
                                 + 1;
                             nnode.add_bel(0, vec![format!("PAD{}", p + 3)]);
                             nnode.add_bel(1, vec![format!("PAD{}", p + 2)]);
@@ -281,9 +281,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 name_a(grid, "src0.", ".1", col, row),
                                 name_a(grid, "dummy.", ".1", col, row),
                             ];
-                            let p = (edev.grid.columns - 2) * 4
-                                + (edev.grid.rows - 2) * 4
-                                + (edev.grid.col_rio().to_idx() - col.to_idx() - 1) * 4
+                            let p = (edev.chip.columns - 2) * 4
+                                + (edev.chip.rows - 2) * 4
+                                + (edev.chip.col_rio().to_idx() - col.to_idx() - 1) * 4
                                 + 1;
                             nnode.add_bel(0, vec![format!("PAD{p}")]);
                             nnode.add_bel(1, vec![format!("PAD{}", p + 1)]);
