@@ -11,7 +11,7 @@ struct Args {
     #[arg(short, long)]
     devices: bool,
     #[arg(short, long)]
-    grids: bool,
+    chips: bool,
     #[arg(short, long)]
     pkgs: bool,
 }
@@ -23,17 +23,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("INTDB");
         db.int.print(&mut std::io::stdout())?;
     }
-    if args.grids || args.devices {
-        for (gid, grid) in &db.grids {
+    if args.chips || args.devices {
+        for (gid, chip) in &db.chips {
             print!("GRID {gid}:");
             for dev in &db.parts {
-                if dev.grid == gid {
+                if dev.chip == gid {
                     print!(" {dev}", dev = dev.name);
                 }
             }
             println!();
-            if args.grids {
-                print!("{grid}");
+            if args.chips {
+                print!("{chip}");
             }
         }
     }
@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if args.devices {
         for dev in &db.parts {
-            println!("DEVICE {n} GRID {g}", n = dev.name, g = dev.grid);
+            println!("DEVICE {n} GRID {g}", n = dev.name, g = dev.chip);
             for (pkg, bond) in &dev.bonds {
                 println!("\tBOND {pkg}: {bond}");
             }

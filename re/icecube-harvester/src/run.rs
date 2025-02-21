@@ -10,7 +10,7 @@ use std::{fs::File, path::Path};
 use bitvec::prelude::*;
 use prjcombine_interconnect::db::PinDir;
 use prjcombine_siliconblue::bitstream::Bitstream;
-use prjcombine_siliconblue::grid::GridKind;
+use prjcombine_siliconblue::chip::ChipKind;
 use tempfile::TempDir;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 
@@ -104,7 +104,7 @@ pub enum InstPin {
 
 #[derive(Debug, Clone)]
 pub struct Design {
-    pub kind: GridKind,
+    pub kind: ChipKind,
     pub device: &'static str,
     pub package: &'static str,
     pub speed: &'static str,

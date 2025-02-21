@@ -8,8 +8,8 @@ use prjcombine_interconnect::{
 use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
     bitstream::Bitstream,
+    chip::{ChipKind, ExtraNodeLoc},
     expanded::{BitOwner, ExpandedDevice},
-    grid::{ExtraNodeLoc, GridKind},
 };
 use unnamed_entity::EntityId;
 
@@ -94,7 +94,7 @@ pub fn make_sample(
                         } else {
                             sample.add_tiled_pattern(&[BitOwner::Main(col, row)], key);
                         }
-                        if wan.starts_with("GLOBAL") && edev.grid.kind.has_colbuf() {
+                        if wan.starts_with("GLOBAL") && edev.chip.kind.has_colbuf() {
                             let idx: usize = wan.strip_prefix("GLOBAL.").unwrap().parse().unwrap();
                             if !rows_colbuf.is_empty() {
                                 let (row_colbuf, _, _) = rows_colbuf
@@ -103,8 +103,8 @@ pub fn make_sample(
                                     .find(|&(_, row_b, row_t)| row >= row_b && row < row_t)
                                     .unwrap();
                                 let trow = if row < row_colbuf {
-                                    if edev.grid.cols_bram.contains(&col)
-                                        && !edev.grid.kind.has_ice40_bramv2()
+                                    if edev.chip.cols_bram.contains(&col)
+                                        && !edev.chip.kind.has_ice40_bramv2()
                                     {
                                         row_colbuf - 2
                                     } else {
@@ -113,13 +113,13 @@ pub fn make_sample(
                                 } else {
                                     row_colbuf
                                 };
-                                let cb_tile_name = if edev.grid.kind.has_lrio()
-                                    && col == edev.grid.col_lio()
+                                let cb_tile_name = if edev.chip.kind.has_lrio()
+                                    && col == edev.chip.col_lio()
                                 {
                                     "IO.L"
-                                } else if edev.grid.kind.has_lrio() && col == edev.grid.col_rio() {
+                                } else if edev.chip.kind.has_lrio() && col == edev.chip.col_rio() {
                                     "IO.R"
-                                } else if edev.grid.cols_bram.contains(&col) {
+                                } else if edev.chip.cols_bram.contains(&col) {
                                     "INT.BRAM"
                                 } else {
                                     "PLB"
@@ -172,7 +172,7 @@ pub fn make_sample(
                     }
                     (GenericNet::Int(iwa), GenericNet::CascAddr(col, row, idx)) => {
                         assert_eq!(iwa.1, (col, row));
-                        let xi = if edev.grid.kind.has_ice40_bramv2() {
+                        let xi = if edev.chip.kind.has_ice40_bramv2() {
                             idx ^ 7
                         } else {
                             idx
@@ -186,7 +186,7 @@ pub fn make_sample(
                         let (row, which) = if row.to_idx() % 2 == 1 {
                             (
                                 row,
-                                if edev.grid.kind.has_ice40_bramv2() {
+                                if edev.chip.kind.has_ice40_bramv2() {
                                     "RADDR"
                                 } else {
                                     "WADDR"
@@ -195,7 +195,7 @@ pub fn make_sample(
                         } else {
                             (
                                 row - 1,
-                                if edev.grid.kind.has_ice40_bramv2() {
+                                if edev.chip.kind.has_ice40_bramv2() {
                                     "WADDR"
                                 } else {
                                     "RADDR"
@@ -210,7 +210,7 @@ pub fn make_sample(
                     }
                     (GenericNet::CascAddr(col, row, idx), GenericNet::Int(iwb)) => {
                         assert_eq!(iwb.1, (col, row - 2));
-                        let xi = if edev.grid.kind.has_ice40_bramv2() {
+                        let xi = if edev.chip.kind.has_ice40_bramv2() {
                             idx ^ 7
                         } else {
                             idx
@@ -224,7 +224,7 @@ pub fn make_sample(
                         let (row, which) = if row.to_idx() % 2 == 1 {
                             (
                                 row - 2,
-                                if edev.grid.kind.has_ice40_bramv2() {
+                                if edev.chip.kind.has_ice40_bramv2() {
                                     "RADDR"
                                 } else {
                                     "WADDR"
@@ -233,7 +233,7 @@ pub fn make_sample(
                         } else {
                             (
                                 row - 3,
-                                if edev.grid.kind.has_ice40_bramv2() {
+                                if edev.chip.kind.has_ice40_bramv2() {
                                     "WADDR"
                                 } else {
                                     "RADDR"
@@ -384,7 +384,7 @@ pub fn make_sample(
                 }
                 "SB_IO" | "SB_IO_DS" | "SB_GB_IO" | "SB_IO_OD" | "SB_IO_I3C" => {
                     let io = xlat_io[&(loc.loc.x, loc.loc.y, loc.loc.bel)];
-                    let (col, row, bel) = edev.grid.get_io_loc(io);
+                    let (col, row, bel) = edev.chip.get_io_loc(io);
                     let tile_kind = match io {
                         EdgeIoCoord::T(..) => "IO.T",
                         EdgeIoCoord::R(..) => "IO.R",
@@ -392,7 +392,7 @@ pub fn make_sample(
                         EdgeIoCoord::L(..) => "IO.L",
                     };
                     let mut global_idx = None;
-                    for (&loc, node) in &edev.grid.extra_nodes {
+                    for (&loc, node) in &edev.chip.extra_nodes {
                         if let ExtraNodeLoc::GbIo(idx) = loc {
                             if node.io[0] == io {
                                 global_idx = Some(idx);
@@ -429,7 +429,7 @@ pub fn make_sample(
                         if (value[4] || value[5])
                             && matches!(
                                 design.kind,
-                                GridKind::Ice40T01 | GridKind::Ice40T04 | GridKind::Ice40T05
+                                ChipKind::Ice40T01 | ChipKind::Ice40T04 | ChipKind::Ice40T05
                             )
                         {
                             sample.add_tiled_pattern(
@@ -471,14 +471,14 @@ pub fn make_sample(
                         sample.add_global_pattern(format!("IO:{col}.{row}.{bel}:PULLUP:DISABLE"));
                     }
                     if let Some(iostd) = iostd {
-                        if col == edev.grid.col_lio() && edev.grid.kind.has_vref() {
+                        if col == edev.chip.col_lio() && edev.chip.kind.has_vref() {
                             sample
                                 .add_global_pattern(format!("IO:{col}.{row}.{bel}:IOSTD:{iostd}"));
                         }
                     }
 
                     if ibuf_used.contains(&iid) && !is_lvds {
-                        if col == edev.grid.col_lio() && edev.grid.kind.has_vref() {
+                        if col == edev.chip.col_lio() && edev.chip.kind.has_vref() {
                             let iostd = inst.props["IO_STANDARD"].as_str();
                             let mode = match iostd {
                                 "SB_SSTL2_CLASS_2" | "SB_SSTL2_CLASS_1" | "SB_SSTL18_FULL"
@@ -596,7 +596,7 @@ pub fn make_sample(
                             assert_eq!(inst.pins[&pin], InstPinSource::FromInst(src.0, src.1));
                         }
                     }
-                    let abits = if edev.grid.kind.is_ice40() { 11 } else { 8 };
+                    let abits = if edev.chip.kind.is_ice40() { 11 } else { 8 };
                     for pin in ["WADDR", "RADDR"] {
                         for idx in 0..abits {
                             let (tile, wire) = get_pin_idx(pin, idx);
@@ -688,7 +688,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     let mut result = vec![];
     // PLB
     for lc in 0..8 {
-        if lc != 0 && edev.grid.kind.is_ice40() {
+        if lc != 0 && edev.chip.kind.is_ice40() {
             result.push(format!("PLB:LC{lc}:MUX.I2:LTIN"));
         }
         result.push(format!("PLB:INT:MUX.IMUX.LC{lc}.I3:CI"));
@@ -704,20 +704,20 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     result.push("PLB:LC0:MUX.CI:1".into());
     result.push("PLB:LC0:MUX.CI:CHAIN".into());
     result.push("PLB:INT:INV.IMUX.CLK:BIT0".into());
-    if edev.grid.kind.has_colbuf() {
+    if edev.chip.kind.has_colbuf() {
         for i in 0..8 {
             result.push(format!("PLB:COLBUF:GLOBAL.{i}:BIT0"));
             result.push(format!("INT.BRAM:COLBUF:GLOBAL.{i}:BIT0"));
             // TODO: adjust [?]
-            if edev.grid.kind.has_actual_lrio() {
+            if edev.chip.kind.has_actual_lrio() {
                 result.push(format!("IO.L:COLBUF:GLOBAL.{i}:BIT0"));
                 result.push(format!("IO.R:COLBUF:GLOBAL.{i}:BIT0"));
             }
         }
     }
     // BRAM
-    if !edev.grid.cols_bram.is_empty() {
-        if edev.grid.kind.is_ice40() {
+    if !edev.chip.cols_bram.is_empty() {
+        if edev.chip.kind.is_ice40() {
             result.push("BRAM:BRAM:CASCADE_OUT_WADDR:BIT0".into());
             result.push("BRAM:BRAM:CASCADE_OUT_RADDR:BIT0".into());
             result.push("BRAM:BRAM:CASCADE_IN_WADDR:BIT0".into());
@@ -739,23 +739,23 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     }
     // IO
     for tile in ["IO.B", "IO.T", "IO.L", "IO.R"] {
-        if matches!(tile, "IO.L" | "IO.R") && !edev.grid.kind.has_actual_lrio() {
+        if matches!(tile, "IO.L" | "IO.R") && !edev.chip.kind.has_actual_lrio() {
             continue;
         }
         for io in 0..2 {
             for i in 0..6 {
                 result.push(format!("{tile}:IO{io}:PIN_TYPE:BIT{i}"));
             }
-            if edev.grid.kind.is_ultra() {
+            if edev.chip.kind.is_ultra() {
                 result.push(format!("{tile}:IO{io}:OUTPUT_ENABLE:BIT0"));
             }
         }
         result.push(format!("{tile}:IO:NEG_TRIGGER:BIT0"));
-        let has_lvds = if edev.grid.kind == GridKind::Ice65L01 {
+        let has_lvds = if edev.chip.kind == ChipKind::Ice65L01 {
             false
-        } else if edev.grid.kind.has_actual_lrio() {
+        } else if edev.chip.kind.has_actual_lrio() {
             tile == "IO.L"
-        } else if edev.grid.kind == GridKind::Ice40R04 {
+        } else if edev.chip.kind == ChipKind::Ice40R04 {
             tile == "IO.T"
         } else {
             true
@@ -766,13 +766,13 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     }
     // misc
     for i in 0..8 {
-        if matches!(i, 4 | 5) && !edev.grid.kind.has_lrio() {
+        if matches!(i, 4 | 5) && !edev.chip.kind.has_lrio() {
             // TODO: remove
             continue;
         }
         result.push(format!("GBOUT:GBOUT:MUX.GLOBAL.{i}:IO"));
     }
-    if edev.grid.kind != GridKind::Ice40T04 {
+    if edev.chip.kind != ChipKind::Ice40T04 {
         result.push("SPEED:SPEED:SPEED:LOW".into());
         result.push("SPEED:SPEED:SPEED:MEDIUM".into());
         result.push("SPEED:SPEED:SPEED:HIGH".into());
@@ -782,7 +782,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
 
 pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
     let mut result = vec![];
-    for &loc in edev.grid.extra_nodes.keys() {
+    for &loc in edev.chip.extra_nodes.keys() {
         match loc {
             ExtraNodeLoc::GbFabric(_) => (),
             ExtraNodeLoc::GbIo(_) => {
@@ -813,12 +813,12 @@ pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
             ExtraNodeLoc::SpramPair(_) => (),
         }
     }
-    for &crd in edev.grid.io_iob.keys() {
-        let (col, row, bel) = edev.grid.get_io_loc(crd);
-        let is_od = edev.grid.io_od.contains(&crd);
+    for &crd in edev.chip.io_iob.keys() {
+        let (col, row, bel) = edev.chip.get_io_loc(crd);
+        let is_od = edev.chip.io_od.contains(&crd);
         result.push(format!("IO:{col}.{row}.{bel}:IBUF_ENABLE:BIT0"));
         result.push(format!("IO:{col}.{row}.{bel}:PULLUP:DISABLE"));
-        if matches!(edev.grid.kind, GridKind::Ice40T01 | GridKind::Ice40T05) && !is_od {
+        if matches!(edev.chip.kind, ChipKind::Ice40T01 | ChipKind::Ice40T05) && !is_od {
             result.push(format!("IO:{col}.{row}.{bel}:PULLUP:3P3K"));
             result.push(format!("IO:{col}.{row}.{bel}:PULLUP:6P8K"));
             result.push(format!("IO:{col}.{row}.{bel}:PULLUP:10K"));
@@ -828,7 +828,7 @@ pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
     result
 }
 
-pub fn get_golden_mux_stats(kind: GridKind, nkn: &str) -> BTreeMap<String, usize> {
+pub fn get_golden_mux_stats(kind: ChipKind, nkn: &str) -> BTreeMap<String, usize> {
     let mut golden_stats = BTreeMap::new();
     if !nkn.starts_with("IO") {
         golden_stats.insert("IMUX.CLK".to_string(), 12);

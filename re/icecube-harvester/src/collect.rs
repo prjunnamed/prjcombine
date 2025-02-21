@@ -6,8 +6,8 @@ use prjcombine_re_collector::{
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
+    chip::ChipKind,
     expanded::{BitOwner, ExpandedDevice},
-    grid::GridKind,
 };
 use prjcombine_types::tiledb::TileDb;
 
@@ -145,12 +145,12 @@ pub fn collect(
                 .insert(tile, bel, &mux_name, xlat_enum_ocd(diffs, OcdMode::Mux));
         }
     }
-    if edev.grid.kind.has_colbuf() {
+    if edev.chip.kind.has_colbuf() {
         for i in 0..8 {
             collector.collect_bit("PLB", "COLBUF", &format!("GLOBAL.{i}"), "");
             collector.collect_bit("INT.BRAM", "COLBUF", &format!("GLOBAL.{i}"), "");
             // TODO: adjust [?]
-            if edev.grid.kind.has_actual_lrio() {
+            if edev.chip.kind.has_actual_lrio() {
                 collector.collect_bit("IO.L", "COLBUF", &format!("GLOBAL.{i}"), "");
                 collector.collect_bit("IO.R", "COLBUF", &format!("GLOBAL.{i}"), "");
             }
@@ -159,7 +159,7 @@ pub fn collect(
     for lc in 0..8 {
         let tile = "PLB";
         let bel = &format!("LC{lc}");
-        if lc != 0 && edev.grid.kind.is_ice40() {
+        if lc != 0 && edev.chip.kind.is_ice40() {
             collector.collect_enum_default(tile, bel, "MUX.I2", &["LTIN"], "INT");
         }
         collector.collect_bitvec(tile, bel, "LUT_INIT", "");
@@ -171,7 +171,7 @@ pub fn collect(
             collector.collect_enum(tile, bel, "MUX.CI", &["0", "1", "CHAIN"]);
         }
     }
-    if !edev.grid.cols_bram.is_empty() {
+    if !edev.chip.cols_bram.is_empty() {
         let tile = "BRAM";
         let bel = "BRAM";
         let mut item = collector.extract_bitvec("BRAM_DATA", "BRAM", "INIT", "");
@@ -180,7 +180,7 @@ pub fn collect(
             bit.tile = 2;
         }
         collector.tiledb.insert(tile, bel, "INIT", item);
-        if edev.grid.kind.is_ice40() {
+        if edev.chip.kind.is_ice40() {
             collector.collect_bit(tile, bel, "ENABLE", "");
             collector.collect_bit(tile, bel, "CASCADE_IN_WADDR", "");
             collector.collect_bit(tile, bel, "CASCADE_IN_RADDR", "");
@@ -191,23 +191,23 @@ pub fn collect(
         }
     }
     for tile in ["IO.B", "IO.T", "IO.L", "IO.R"] {
-        if matches!(tile, "IO.L" | "IO.R") && !edev.grid.kind.has_actual_lrio() {
+        if matches!(tile, "IO.L" | "IO.R") && !edev.chip.kind.has_actual_lrio() {
             continue;
         }
         for io in 0..2 {
             let bel = &format!("IO{io}");
             collector.collect_bitvec(tile, bel, "PIN_TYPE", "");
-            if edev.grid.kind.is_ultra() {
+            if edev.chip.kind.is_ultra() {
                 collector.collect_bit(tile, bel, "OUTPUT_ENABLE", "");
             }
         }
         // TODO: split.
         collector.collect_bit_wide(tile, "IO", "NEG_TRIGGER", "");
-        let has_lvds = if edev.grid.kind == GridKind::Ice65L01 {
+        let has_lvds = if edev.chip.kind == ChipKind::Ice65L01 {
             false
-        } else if edev.grid.kind.has_actual_lrio() {
+        } else if edev.chip.kind.has_actual_lrio() {
             tile == "IO.L"
-        } else if edev.grid.kind == GridKind::Ice40R04 {
+        } else if edev.chip.kind == ChipKind::Ice40R04 {
             tile == "IO.T"
         } else {
             true
@@ -221,7 +221,7 @@ pub fn collect(
         let tile = "GBOUT";
         let bel = "GBOUT";
         for i in 0..8 {
-            if matches!(i, 4 | 5) && !edev.grid.kind.has_lrio() {
+            if matches!(i, 4 | 5) && !edev.chip.kind.has_lrio() {
                 // TODO: remove
                 continue;
             }
@@ -235,7 +235,7 @@ pub fn collect(
         }
     }
 
-    if edev.grid.kind != GridKind::Ice40T04 {
+    if edev.chip.kind != ChipKind::Ice40T04 {
         let tile = "SPEED";
         let bel = "SPEED";
         collector.collect_enum(tile, bel, "SPEED", &["LOW", "MEDIUM", "HIGH"]);

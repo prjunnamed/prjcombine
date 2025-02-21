@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::db::PinDir;
-use prjcombine_siliconblue::grid::GridKind;
+use prjcombine_siliconblue::chip::ChipKind;
 
 pub struct Primitive {
     pub pins: BTreeMap<&'static str, PrimPin>,
@@ -107,7 +107,7 @@ fn add_prim(
     );
 }
 
-pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
+pub fn get_prims(kind: ChipKind) -> BTreeMap<&'static str, Primitive> {
     let mut res = BTreeMap::new();
 
     add_prim(&mut res, "GND", &[], &["Y"], &[], &[]);
@@ -285,7 +285,7 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
             );
         }
     }
-    if kind == GridKind::Ice40MX {
+    if kind == ChipKind::Ice40MX {
         for name in [
             "SB_RAM40_16K",
             "SB_RAM40_16KNR",
@@ -441,7 +441,7 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
             ),
         ],
     );
-    if kind == GridKind::Ice40MX {
+    if kind == ChipKind::Ice40MX {
         add_prim(
             &mut res,
             "SB_IO_DLY",
@@ -484,7 +484,7 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
     }
     if matches!(
         kind,
-        GridKind::Ice40T04 | GridKind::Ice40T01 | GridKind::Ice40T05
+        ChipKind::Ice40T04 | ChipKind::Ice40T01 | ChipKind::Ice40T05
     ) {
         add_prim(
             &mut res,
@@ -506,7 +506,7 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
             ],
         );
     }
-    if kind == GridKind::Ice40T05 {
+    if kind == ChipKind::Ice40T05 {
         add_prim(
             &mut res,
             "SB_IO_I3C",
@@ -1056,7 +1056,7 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
         );
     }
 
-    if kind == GridKind::Ice40MX {
+    if kind == ChipKind::Ice40MX {
         add_prim(
             &mut res,
             "SB_MIPI_RX_2LANE",
@@ -1298,7 +1298,7 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
 
     if matches!(
         kind,
-        GridKind::Ice40MX | GridKind::Ice40T04 | GridKind::Ice40T05
+        ChipKind::Ice40MX | ChipKind::Ice40T04 | ChipKind::Ice40T05
     ) {
         add_prim(
             &mut res,
@@ -1354,7 +1354,7 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
             ],
         );
     }
-    if kind == GridKind::Ice40T05 {
+    if kind == ChipKind::Ice40T05 {
         add_prim(
             &mut res,
             "SB_SPRAM256KA",
@@ -1389,7 +1389,7 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
 
     if matches!(
         kind,
-        GridKind::Ice40R04 | GridKind::Ice40T04 | GridKind::Ice40T01 | GridKind::Ice40T05
+        ChipKind::Ice40R04 | ChipKind::Ice40T04 | ChipKind::Ice40T01 | ChipKind::Ice40T05
     ) {
         add_prim(
             &mut res,
@@ -1439,11 +1439,11 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
     }
 
     match kind {
-        GridKind::Ice40R04 => {
+        ChipKind::Ice40R04 => {
             add_prim(&mut res, "SB_HSOSC", &["ENACLKM"], &["CLKM"], &[], &[]);
             add_prim(&mut res, "SB_LSOSC", &["ENACLKK"], &["CLKK"], &[], &[]);
         }
-        GridKind::Ice40T04 | GridKind::Ice40T01 | GridKind::Ice40T05 => {
+        ChipKind::Ice40T04 | ChipKind::Ice40T01 | ChipKind::Ice40T05 => {
             add_prim(
                 &mut res,
                 "SB_HFOSC",
@@ -1478,7 +1478,7 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
         _ => (),
     }
 
-    if kind == GridKind::Ice40T04 {
+    if kind == ChipKind::Ice40T04 {
         add_prim(
             &mut res,
             "SB_IR_DRV",
@@ -1541,7 +1541,7 @@ pub fn get_prims(kind: GridKind) -> BTreeMap<&'static str, Primitive> {
             &[],
         );
     }
-    if matches!(kind, GridKind::Ice40T01 | GridKind::Ice40T05) {
+    if matches!(kind, ChipKind::Ice40T01 | ChipKind::Ice40T05) {
         add_prim(
             &mut res,
             "SB_BARCODE_DRV",

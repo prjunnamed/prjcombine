@@ -7,8 +7,8 @@ use prjcombine_interconnect::{
 };
 use prjcombine_siliconblue::{
     bond::{Bond, BondPin},
+    chip::{ChipKind, ExtraNodeLoc},
     expanded::ExpandedDevice,
-    grid::{ExtraNodeLoc, GridKind},
 };
 use rand::prelude::*;
 use unnamed_entity::EntityId;
@@ -107,9 +107,9 @@ impl Generator<'_> {
 
     fn emit_io(&mut self) -> usize {
         let crd = self.unused_io.pop().unwrap();
-        let is_od = self.cfg.edev.grid.io_od.contains(&crd);
+        let is_od = self.cfg.edev.chip.io_od.contains(&crd);
         let mut global_idx = None;
-        for (&loc, node) in &self.cfg.edev.grid.extra_nodes {
+        for (&loc, node) in &self.cfg.edev.chip.extra_nodes {
             if let ExtraNodeLoc::GbIo(idx) = loc {
                 if node.io[0] == crd {
                     global_idx = Some(idx);
@@ -127,16 +127,16 @@ impl Generator<'_> {
         if self.rng.random() {
             global_idx = None;
         }
-        let (col, row, bel) = self.cfg.edev.grid.get_io_loc(crd);
+        let (col, row, bel) = self.cfg.edev.chip.get_io_loc(crd);
         let mut lvds = self.cfg.allow_global
             && self.rng.random()
             && !is_od
-            && self.cfg.edev.grid.io_has_lvds(crd);
+            && self.cfg.edev.chip.io_has_lvds(crd);
         if lvds {
             let other = self
                 .cfg
                 .edev
-                .grid
+                .chip
                 .get_io_crd(col, row, BelId::from_idx(bel.to_idx() ^ 1));
             let other_idx = self.unused_io.iter().position(|x| *x == other);
             if let Some(other_idx) = other_idx {
@@ -162,7 +162,7 @@ impl Generator<'_> {
             if lvds {
                 io.prop("PULLUP", "1'b0");
             } else if self.cfg.allow_global {
-                if matches!(self.cfg.part.kind, GridKind::Ice40T01 | GridKind::Ice40T05)
+                if matches!(self.cfg.part.kind, ChipKind::Ice40T01 | ChipKind::Ice40T05)
                     && self.rng.random()
                     && global_idx.is_none()
                 {
@@ -233,7 +233,7 @@ impl Generator<'_> {
                 pin_type.set(5, true);
             }
         }
-        let (col, row, _) = self.cfg.edev.grid.get_io_loc(crd);
+        let (col, row, _) = self.cfg.edev.chip.get_io_loc(crd);
         if self.rng.random_bool(0.5) && !self.io_cs_used.contains(&(col, row)) {
             self.io_cs_used.insert((col, row));
             let shared_in_pins = if is_od {
@@ -252,7 +252,7 @@ impl Generator<'_> {
                 for pin in shared_in_pins {
                     let mask = if pin.ends_with("CLK") {
                         0xff
-                    } else if matches!(self.cfg.part.kind, GridKind::Ice65L04 | GridKind::Ice65P04)
+                    } else if matches!(self.cfg.part.kind, ChipKind::Ice65L04 | ChipKind::Ice65P04)
                     {
                         0x55
                     } else {
@@ -572,7 +572,7 @@ impl Generator<'_> {
         let mut inst_a = Instance::new(&kind);
         let mut inst_b = Instance::new(&kind);
         if !self.have_fixed_bram {
-            let col = *self.cfg.edev.grid.cols_bram.iter().next().unwrap();
+            let col = *self.cfg.edev.chip.cols_bram.iter().next().unwrap();
             let x = col.to_idx() as u32;
             inst_a.loc = Some(RawLoc { x, y: 1, bel: 0 });
             inst_b.loc = Some(RawLoc { x, y: 3, bel: 0 });
@@ -643,7 +643,7 @@ impl Generator<'_> {
     fn final_output(&mut self) {
         while !self.unused_signals.is_empty() {
             let crd = self.unused_io.pop().unwrap();
-            let is_od = self.cfg.edev.grid.io_od.contains(&crd);
+            let is_od = self.cfg.edev.chip.io_od.contains(&crd);
             let pad = self.io_map[&crd];
             let package_pin = if is_od { "PACKAGEPIN" } else { "PACKAGE_PIN" };
             let mut io = Instance::new(if is_od { "SB_IO_OD" } else { "SB_IO" });
@@ -690,7 +690,7 @@ impl Generator<'_> {
             .random_range(1..=self.cfg.pkg_bel_info[&(self.design.package, "SB_IO")].len() - 4);
         let mut actual_lcs = self.rng.random_range(4..=self.cfg.plb_info.len());
         let mut actual_brams = 0;
-        if self.cfg.part.kind != GridKind::Ice40P03 {
+        if self.cfg.part.kind != ChipKind::Ice40P03 {
             let kind = if self.cfg.part.kind.is_ice65() {
                 "SB_RAM4K"
             } else {
@@ -750,7 +750,7 @@ impl Generator<'_> {
         if self
             .cfg
             .edev
-            .grid
+            .chip
             .extra_nodes
             .contains_key(&ExtraNodeLoc::Warmboot)
             && self.rng.random()
@@ -775,7 +775,7 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
         keep_tmp: false,
         opts: vec![],
     };
-    if cfg.part.kind != GridKind::Ice40T04 {
+    if cfg.part.kind != ChipKind::Ice40T04 {
         design.opts.push(
             ["--frequency low", "--frequency medium", "--frequency high"]
                 .choose(&mut rng)

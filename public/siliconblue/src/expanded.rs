@@ -3,11 +3,11 @@ use unnamed_entity::{EntityId, EntityVec};
 
 use crate::{
     bitstream::{BitPos, BitTile},
-    grid::Grid,
+    chip::Chip,
 };
 
 pub struct ExpandedDevice<'a> {
-    pub grid: &'a Grid,
+    pub chip: &'a Chip,
     pub egrid: ExpandedGrid<'a>,
     pub col_bit: EntityVec<ColId, usize>,
     pub frame_width: usize,
@@ -25,14 +25,14 @@ pub enum BitOwner {
 impl ExpandedDevice<'_> {
     pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
         let mut bank = 0;
-        if col >= self.grid.col_mid() {
+        if col >= self.chip.col_mid() {
             bank |= 2;
         }
         let frame;
-        if row < self.grid.row_mid {
+        if row < self.chip.row_mid {
             frame = row.to_idx() * 16;
         } else {
-            frame = (self.grid.rows - 1 - row.to_idx()) * 16;
+            frame = (self.chip.rows - 1 - row.to_idx()) * 16;
             bank |= 1;
         }
         BitTile::Main(
@@ -40,20 +40,20 @@ impl ExpandedDevice<'_> {
             frame,
             16,
             self.col_bit[col],
-            self.grid.btile_width(col),
+            self.chip.btile_width(col),
         )
     }
 
     pub fn btile_bram(&self, col: ColId, row: RowId) -> BitTile {
         let mut bank = 0;
-        if col >= self.grid.col_mid() {
+        if col >= self.chip.col_mid() {
             bank |= 2;
         }
         let bit;
-        if row < self.grid.row_mid {
+        if row < self.chip.row_mid {
             bit = (row.to_idx() - 1) / 2 * 16;
         } else {
-            bit = (row.to_idx() - self.grid.row_mid.to_idx()) / 2 * 16;
+            bit = (row.to_idx() - self.chip.row_mid.to_idx()) / 2 * 16;
             bank |= 1;
         }
         BitTile::Bram(bank, bit)
@@ -63,14 +63,14 @@ impl ExpandedDevice<'_> {
         [
             BitTile::Main(
                 0,
-                self.grid.row_mid.to_idx() * 16 - 16,
+                self.chip.row_mid.to_idx() * 16 - 16,
                 16,
                 self.frame_width - 2,
                 2,
             ),
             BitTile::Main(
                 1,
-                (self.grid.rows - self.grid.row_mid.to_idx()) * 16 - 16,
+                (self.chip.rows - self.chip.row_mid.to_idx()) * 16 - 16,
                 16,
                 self.frame_width - 2,
                 2,
@@ -83,17 +83,17 @@ impl ExpandedDevice<'_> {
             BitPos::Main(bank, frame, bit) => {
                 let row = frame / 0x10;
                 let row = if (bank & 1) == 0 {
-                    self.grid.row_bio() + row
+                    self.chip.row_bio() + row
                 } else {
-                    self.grid.row_tio() - row
+                    self.chip.row_tio() - row
                 };
-                if let Some(col) = self.grid.columns().find(|&col| {
+                if let Some(col) = self.chip.columns().find(|&col| {
                     bit >= self.col_bit[col]
-                        && bit < self.col_bit[col] + self.grid.btile_width(col)
+                        && bit < self.col_bit[col] + self.chip.btile_width(col)
                         && if (bank & 2) == 0 {
-                            col < self.grid.col_mid()
+                            col < self.chip.col_mid()
                         } else {
-                            col >= self.grid.col_mid()
+                            col >= self.chip.col_mid()
                         }
                 }) {
                     Some((self.btile_main(col, row), BitOwner::Main(col, row)))
@@ -108,21 +108,21 @@ impl ExpandedDevice<'_> {
                 let row = if (bank & 1) == 0 {
                     RowId::from_idx(1 + 2 * row)
                 } else {
-                    self.grid.row_mid + 2 * row
+                    self.chip.row_mid + 2 * row
                 };
                 let col = if (bank & 2) == 0 {
-                    self.grid
+                    self.chip
                         .cols_bram
                         .iter()
                         .copied()
-                        .find(|&col| col < self.grid.col_mid())
+                        .find(|&col| col < self.chip.col_mid())
                         .unwrap()
                 } else {
-                    self.grid
+                    self.chip
                         .cols_bram
                         .iter()
                         .copied()
-                        .find(|&col| col >= self.grid.col_mid())
+                        .find(|&col| col >= self.chip.col_mid())
                         .unwrap()
                 };
                 Some((self.btile_bram(col, row), BitOwner::Bram(col, row)))

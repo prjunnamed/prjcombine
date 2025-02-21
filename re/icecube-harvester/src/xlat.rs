@@ -5,8 +5,8 @@ use prjcombine_interconnect::{
     grid::{ColId, DieId, IntWire, RowId},
 };
 use prjcombine_siliconblue::{
+    chip::{ChipKind, ExtraNodeLoc},
     expanded::ExpandedDevice,
-    grid::{ExtraNodeLoc, GridKind},
 };
 use unnamed_entity::EntityId;
 
@@ -139,28 +139,28 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
         "wire_pll/outglobalb" => return GenericNet::GlobalPadIn(col + 1, row),
         "hold" | "wire_io_cluster/io_0/hold" | "wire_io_cluster/io_1/hold" => {
             let wire = edev.egrid.db.get_wire("IMUX.IO.EXTRA");
-            let edge = if col == edev.grid.col_lio() {
+            let edge = if col == edev.chip.col_lio() {
                 Dir::W
-            } else if col == edev.grid.col_rio() {
+            } else if col == edev.chip.col_rio() {
                 Dir::E
-            } else if row == edev.grid.row_bio() {
+            } else if row == edev.chip.row_bio() {
                 Dir::S
-            } else if row == edev.grid.row_tio() {
+            } else if row == edev.chip.row_tio() {
                 Dir::N
             } else {
                 unreachable!()
             };
-            if let Some(node) = edev.grid.extra_nodes.get(&ExtraNodeLoc::LatchIo(edge)) {
+            if let Some(node) = edev.chip.extra_nodes.get(&ExtraNodeLoc::LatchIo(edge)) {
                 return GenericNet::Int((DieId::from_idx(0), *node.tiles.first().unwrap(), wire));
             } else {
                 return GenericNet::DummyHold(col, row);
             }
         }
         "ltoutIn" | "wire_bram/ram/NC_5" => {
-            if col == edev.grid.col_lio()
-                || col == edev.grid.col_rio()
-                || (edev.grid.cols_bram.contains(&col)
-                    && !matches!(edev.grid.kind, GridKind::Ice40P08 | GridKind::Ice40P01))
+            if col == edev.chip.col_lio()
+                || col == edev.chip.col_rio()
+                || (edev.chip.cols_bram.contains(&col)
+                    && !matches!(edev.chip.kind, ChipKind::Ice40P08 | ChipKind::Ice40P01))
             {
                 return GenericNet::Ltin(col, row);
             } else {
@@ -234,10 +234,10 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 let (a, b) = suf.split_once('_').unwrap();
                 let a: usize = a.parse().unwrap();
                 let b: usize = b.parse().unwrap();
-                if (edev.grid.kind.has_lrio()
-                    && (col == edev.grid.col_lio() || col == edev.grid.col_rio()))
-                    || row == edev.grid.row_bio()
-                    || row == edev.grid.row_tio()
+                if (edev.chip.kind.has_lrio()
+                    && (col == edev.chip.col_lio() || col == edev.chip.col_rio()))
+                    || row == edev.chip.row_bio()
+                    || row == edev.chip.row_tio()
                 {
                     wname = match (a, b) {
                         (0, 1) => "IMUX.IO0.DOUT0",
@@ -265,12 +265,12 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(idx) = name.strip_prefix("fabout_") {
                 let idx: usize = idx.parse().unwrap();
                 let wire = edev.egrid.db.get_wire("IMUX.IO.EXTRA");
-                let node = &edev.grid.extra_nodes[&ExtraNodeLoc::GbFabric(idx)];
+                let node = &edev.chip.extra_nodes[&ExtraNodeLoc::GbFabric(idx)];
                 return GenericNet::Int((DieId::from_idx(0), *node.tiles.first().unwrap(), wire));
             } else if let Some(idx) = name.strip_prefix("padin_") {
                 let idx: usize = idx.parse().unwrap();
-                if let Some(node) = edev.grid.extra_nodes.get(&ExtraNodeLoc::GbIo(idx)) {
-                    let crd = edev.grid.get_io_loc(node.io[0]);
+                if let Some(node) = edev.chip.extra_nodes.get(&ExtraNodeLoc::GbIo(idx)) {
+                    let crd = edev.chip.get_io_loc(node.io[0]);
                     return GenericNet::GlobalPadIn(crd.0, crd.1);
                 } else {
                     return GenericNet::Unknown;
@@ -292,14 +292,14 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(idx) = name.strip_prefix("wire_bram/ram/RDATA_") {
                 let mut idx: usize = idx.parse().unwrap();
                 idx %= 8;
-                if edev.grid.kind.has_ice40_bramv2() {
+                if edev.chip.kind.has_ice40_bramv2() {
                     idx ^= 7;
                 }
                 wname = format!("OUT.LC{idx}");
             } else if let Some(idx) = name.strip_prefix("wire_bram/ram/WDATA_") {
                 let idx: usize = idx.parse().unwrap();
                 let idx = idx % 8;
-                let xi = if edev.grid.kind.has_ice40_bramv2() {
+                let xi = if edev.chip.kind.has_ice40_bramv2() {
                     idx ^ 7
                 } else {
                     idx
@@ -308,7 +308,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(idx) = name.strip_prefix("wire_logic_cluster/ram/WDATA_") {
                 let idx: usize = idx.parse().unwrap();
                 let idx = idx % 8;
-                let xi = if edev.grid.kind.has_ice40_bramv2() {
+                let xi = if edev.chip.kind.has_ice40_bramv2() {
                     idx ^ 7
                 } else {
                     idx
@@ -317,7 +317,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(idx) = name.strip_prefix("wire_bram/ram/MASK_") {
                 let idx: usize = idx.parse().unwrap();
                 let idx = idx % 8;
-                let xi = if edev.grid.kind.has_ice40_bramv2() {
+                let xi = if edev.chip.kind.has_ice40_bramv2() {
                     idx ^ 7
                 } else {
                     idx
@@ -326,7 +326,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(idx) = name.strip_prefix("wire_logic_cluster/ram/MASK_") {
                 let idx: usize = idx.parse().unwrap();
                 let idx = idx % 8;
-                let xi = if edev.grid.kind.has_ice40_bramv2() {
+                let xi = if edev.chip.kind.has_ice40_bramv2() {
                     idx ^ 7
                 } else {
                     idx
@@ -334,7 +334,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 wname = format!("IMUX.LC{xi}.I3");
             } else if let Some(idx) = name.strip_prefix("wire_bram/ram/RADDR_") {
                 let idx: usize = idx.parse().unwrap();
-                let xi = if edev.grid.kind.has_ice40_bramv2() {
+                let xi = if edev.chip.kind.has_ice40_bramv2() {
                     idx ^ 7
                 } else {
                     idx
@@ -344,7 +344,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 wname = format!("IMUX.LC{lc}.I{ii}");
             } else if let Some(idx) = name.strip_prefix("wire_logic_cluster/ram/RADDR_") {
                 let idx: usize = idx.parse().unwrap();
-                let xi = if edev.grid.kind.has_ice40_bramv2() {
+                let xi = if edev.chip.kind.has_ice40_bramv2() {
                     idx ^ 7
                 } else {
                     idx
@@ -354,7 +354,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 wname = format!("IMUX.LC{lc}.I{ii}");
             } else if let Some(idx) = name.strip_prefix("wire_bram/ram/WADDR_") {
                 let idx: usize = idx.parse().unwrap();
-                let xi = if edev.grid.kind.has_ice40_bramv2() {
+                let xi = if edev.chip.kind.has_ice40_bramv2() {
                     idx ^ 7
                 } else {
                     idx
@@ -364,7 +364,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 wname = format!("IMUX.LC{lc}.I{ii}");
             } else if let Some(idx) = name.strip_prefix("wire_logic_cluster/ram/WADDR_") {
                 let idx: usize = idx.parse().unwrap();
-                let xi = if edev.grid.kind.has_ice40_bramv2() {
+                let xi = if edev.chip.kind.has_ice40_bramv2() {
                     idx ^ 7
                 } else {
                     idx
@@ -374,7 +374,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 wname = format!("IMUX.LC{lc}.I{ii}");
             } else if let Some(idx) = name.strip_prefix("RADDR_") {
                 let idx: usize = idx.parse().unwrap();
-                let xi = if edev.grid.kind.has_ice40_bramv2() {
+                let xi = if edev.chip.kind.has_ice40_bramv2() {
                     idx ^ 7
                 } else {
                     idx
@@ -384,7 +384,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 wname = format!("IMUX.LC{lc}.I{ii}");
             } else if let Some(idx) = name.strip_prefix("WADDR_") {
                 let idx: usize = idx.parse().unwrap();
-                let xi = if edev.grid.kind.has_ice40_bramv2() {
+                let xi = if edev.chip.kind.has_ice40_bramv2() {
                     idx ^ 7
                 } else {
                     idx
@@ -456,9 +456,9 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(lc) = name.strip_prefix("cascade_") {
                 let lc: usize = lc.parse().unwrap();
                 if lc == 0 {
-                    if col == edev.grid.col_lio()
-                        || col == edev.grid.col_rio()
-                        || edev.grid.cols_bram.contains(&col)
+                    if col == edev.chip.col_lio()
+                        || col == edev.chip.col_rio()
+                        || edev.chip.cols_bram.contains(&col)
                     {
                         return GenericNet::Ltin(col, row);
                     } else {
@@ -476,9 +476,9 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(n) = name.strip_prefix("span4_horz_l_") {
                 wname = wire_sp4_io_h(n, true);
             } else if let Some(n) = name.strip_prefix("span4_horz_") {
-                if col == edev.grid.col_lio() {
+                if col == edev.chip.col_lio() {
                     wname = wire_sp4_h(n, false);
-                } else if col == edev.grid.col_rio() {
+                } else if col == edev.chip.col_rio() {
                     wname = wire_sp4_h(n, true);
                 } else {
                     return GenericNet::Unknown;
@@ -494,9 +494,9 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(n) = name.strip_prefix("span4_vert_t_") {
                 wname = wire_sp4_io_v(n, false);
             } else if let Some(n) = name.strip_prefix("span4_vert_") {
-                if row == edev.grid.row_bio() {
+                if row == edev.chip.row_bio() {
                     wname = wire_sp4_v(n, false, false);
-                } else if row == edev.grid.row_tio() {
+                } else if row == edev.chip.row_tio() {
                     wname = wire_sp4_v(n, true, false);
                 } else {
                     return GenericNet::Unknown;
@@ -506,9 +506,9 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(n) = name.strip_prefix("sp12_h_l_") {
                 wname = wire_sp12_h(n, true);
             } else if let Some(n) = name.strip_prefix("span12_horz_") {
-                if col == edev.grid.col_lio() {
+                if col == edev.chip.col_lio() {
                     wname = wire_sp12_h(n, false);
-                } else if col == edev.grid.col_rio() {
+                } else if col == edev.chip.col_rio() {
                     wname = wire_sp12_h(n, true);
                 } else {
                     return GenericNet::Unknown;
@@ -518,9 +518,9 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(n) = name.strip_prefix("sp12_v_t_") {
                 wname = wire_sp12_v(n, false);
             } else if let Some(n) = name.strip_prefix("span12_vert_") {
-                if row == edev.grid.row_bio() {
+                if row == edev.chip.row_bio() {
                     wname = wire_sp12_v(n, false);
-                } else if row == edev.grid.row_tio() {
+                } else if row == edev.chip.row_tio() {
                     wname = wire_sp12_v(n, true);
                 } else {
                     return GenericNet::Unknown;
@@ -539,14 +539,14 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
     if let Some(suf) = wname.strip_prefix("OUT.LC") {
         if !suf.contains('.') {
             let mut idx: u32 = suf.parse().unwrap();
-            if (wire.1.0 == edev.grid.col_lio() || wire.1.0 == edev.grid.col_rio())
-                && (wire.1.1 == edev.grid.row_bio() || wire.1.1 == edev.grid.row_tio())
+            if (wire.1.0 == edev.chip.col_lio() || wire.1.0 == edev.chip.col_rio())
+                && (wire.1.1 == edev.chip.row_bio() || wire.1.1 == edev.chip.row_tio())
             {
                 wire.2 = edev.egrid.db.get_wire("OUT.LC0");
-            } else if wire.1.1 == edev.grid.row_bio()
-                || wire.1.1 == edev.grid.row_tio()
-                || (wire.1.0 == edev.grid.col_lio() && edev.grid.kind.has_lrio())
-                || (wire.1.0 == edev.grid.col_rio() && edev.grid.kind.has_lrio())
+            } else if wire.1.1 == edev.chip.row_bio()
+                || wire.1.1 == edev.chip.row_tio()
+                || (wire.1.0 == edev.chip.col_lio() && edev.chip.kind.has_lrio())
+                || (wire.1.0 == edev.chip.col_rio() && edev.chip.kind.has_lrio())
             {
                 idx %= 4;
                 wire.2 = edev.egrid.db.get_wire(&format!("OUT.LC{idx}"));
@@ -571,11 +571,11 @@ pub fn xlat_mux_in(
     if wna.starts_with("OUT.LC") && wnb.starts_with("LOCAL") {
         let out_idx: usize = wna[6..].parse().unwrap();
         let local_idx: usize = wnb[8..].parse().unwrap();
-        let is_lr = wa.1.0 == edev.grid.col_lio() || wa.1.0 == edev.grid.col_rio();
-        let is_bt = wa.1.1 == edev.grid.row_bio() || wa.1.1 == edev.grid.row_tio();
+        let is_lr = wa.1.0 == edev.chip.col_lio() || wa.1.0 == edev.chip.col_rio();
+        let is_bt = wa.1.1 == edev.chip.row_bio() || wa.1.1 == edev.chip.row_tio();
         if is_lr && is_bt {
             // could be anything
-        } else if (is_lr && edev.grid.kind.has_lrio()) || is_bt {
+        } else if (is_lr && edev.chip.kind.has_lrio()) || is_bt {
             assert_eq!(out_idx & 3, local_idx & 3);
         } else {
             assert_eq!(out_idx, local_idx);
@@ -594,8 +594,8 @@ pub fn xlat_mux_in(
     for locs in [&mut locs_a, &mut locs_b] {
         // kill corners
         locs.retain(|&(col, row), _| {
-            !((col == edev.grid.col_lio() || col == edev.grid.col_rio())
-                && (row == edev.grid.row_bio() || row == edev.grid.row_tio()))
+            !((col == edev.chip.col_lio() || col == edev.chip.col_rio())
+                && (row == edev.chip.row_bio() || row == edev.chip.row_tio()))
         });
         for wires in locs.values_mut() {
             if wires.len() > 1 {
@@ -629,7 +629,7 @@ pub fn xlat_mux_in(
             locs_b.retain(|_, &mut wire| edev.egrid.db.wires.key(wire).ends_with(".3"));
             locs.retain(|&loc| locs_b.contains_key(&loc));
         } else if wna.starts_with("QUAD.H") && wnb.starts_with("QUAD.H") {
-            locs.retain(|&(col, _)| col == edev.grid.col_lio() || col == edev.grid.col_rio());
+            locs.retain(|&(col, _)| col == edev.chip.col_lio() || col == edev.chip.col_rio());
         } else if wna.starts_with("QUAD.V") && wnb.starts_with("QUAD.V") {
             locs_a.retain(|_, &mut wire| {
                 let wn = edev.egrid.db.wires.key(wire);
@@ -641,7 +641,7 @@ pub fn xlat_mux_in(
             });
             locs.retain(|&loc| locs_a.contains_key(&loc));
             locs.retain(|&loc| locs_b.contains_key(&loc));
-            locs.retain(|&(_, row)| row == edev.grid.row_bio() || row == edev.grid.row_tio());
+            locs.retain(|&(_, row)| row == edev.chip.row_bio() || row == edev.chip.row_tio());
         } else {
             locs_a.retain(|_, &mut wire| {
                 let wn = edev.egrid.db.wires.key(wire);

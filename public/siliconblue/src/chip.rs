@@ -9,7 +9,7 @@ use serde_json::json;
 use unnamed_entity::{EntityId, EntityIds, EntityVec};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum GridKind {
+pub enum ChipKind {
     Ice65L01,
     Ice65L04,
     Ice65L08,
@@ -24,7 +24,7 @@ pub enum GridKind {
     Ice40T05,
 }
 
-impl GridKind {
+impl ChipKind {
     pub fn is_ice65(self) -> bool {
         matches!(
             self,
@@ -193,8 +193,8 @@ impl std::fmt::Display for ExtraNodeLoc {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Grid {
-    pub kind: GridKind,
+pub struct Chip {
+    pub kind: ChipKind,
     pub columns: usize,
     pub col_bio_split: ColId,
     pub cols_bram: BTreeSet<ColId>,
@@ -208,7 +208,7 @@ pub struct Grid {
     pub extra_nodes: BTreeMap<ExtraNodeLoc, ExtraNode>,
 }
 
-impl Grid {
+impl Chip {
     pub fn col_lio(&self) -> ColId {
         ColId::from_idx(0)
     }
@@ -290,11 +290,11 @@ impl Grid {
         if iob.to_idx() != 0 {
             return false;
         }
-        if self.kind == GridKind::Ice65L01 {
+        if self.kind == ChipKind::Ice65L01 {
             false
         } else if self.kind.has_actual_lrio() {
             crd.edge() == Dir::W
-        } else if self.kind == GridKind::Ice40R04 {
+        } else if self.kind == ChipKind::Ice40R04 {
             crd.edge() == Dir::N
         } else {
             !self.io_od.contains(&crd)
@@ -305,7 +305,7 @@ impl Grid {
         if col != self.col_lio() && col != self.col_rio() {
             return false;
         }
-        if self.kind == GridKind::Ice40T01 {
+        if self.kind == ChipKind::Ice40T01 {
             row - self.row_bio() <= 3 || self.row_tio() - row <= 3
         } else {
             true
@@ -325,18 +325,18 @@ impl Grid {
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "kind": match self.kind {
-                GridKind::Ice65L01 => "ice65l01",
-                GridKind::Ice65L04 => "ice65l04",
-                GridKind::Ice65L08 => "ice65l08",
-                GridKind::Ice65P04 => "ice65p04",
-                GridKind::Ice40P01 => "ice40p01",
-                GridKind::Ice40P08 => "ice40p08",
-                GridKind::Ice40P03 => "ice40p03",
-                GridKind::Ice40MX => "ice40mx",
-                GridKind::Ice40R04 => "ice40r04",
-                GridKind::Ice40T04 => "ice40t04",
-                GridKind::Ice40T01 => "ice40t01",
-                GridKind::Ice40T05 => "ice40t05",
+                ChipKind::Ice65L01 => "ice65l01",
+                ChipKind::Ice65L04 => "ice65l04",
+                ChipKind::Ice65L08 => "ice65l08",
+                ChipKind::Ice65P04 => "ice65p04",
+                ChipKind::Ice40P01 => "ice40p01",
+                ChipKind::Ice40P08 => "ice40p08",
+                ChipKind::Ice40P03 => "ice40p03",
+                ChipKind::Ice40MX => "ice40mx",
+                ChipKind::Ice40R04 => "ice40r04",
+                ChipKind::Ice40T04 => "ice40t04",
+                ChipKind::Ice40T01 => "ice40t01",
+                ChipKind::Ice40T05 => "ice40t05",
             },
             "columns": self.columns,
             "col_bio_split": self.col_bio_split,
@@ -361,7 +361,7 @@ impl Grid {
     }
 }
 
-impl std::fmt::Display for Grid {
+impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\tKIND: {k:?}", k = self.kind)?;
         writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;

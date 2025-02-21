@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, WireKind},
     grid::{ColId, EdgeIoCoord, RowId},
 };
-use prjcombine_siliconblue::grid::{ExtraNode, GridKind};
+use prjcombine_siliconblue::chip::{ChipKind, ExtraNode};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::sites::BelPins;
@@ -36,7 +36,7 @@ fn add_output(db: &IntDb, bel: &mut BelInfo, name: &str, tile: usize, wires: &[&
     );
 }
 
-pub fn make_intdb(kind: GridKind) -> IntDb {
+pub fn make_intdb(kind: ChipKind) -> IntDb {
     let mut db = IntDb::default();
     let mut main_terms = EnumMap::from_fn(|dir| TermKind {
         dir,

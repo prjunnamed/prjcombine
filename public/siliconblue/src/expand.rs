@@ -4,9 +4,9 @@ use prjcombine_interconnect::{
 };
 use unnamed_entity::{EntityId, EntityVec};
 
-use crate::{expanded::ExpandedDevice, grid::Grid};
+use crate::{chip::Chip, expanded::ExpandedDevice};
 
-impl Grid {
+impl Chip {
     pub fn expand_grid<'a>(&'a self, db: &'a IntDb) -> ExpandedDevice<'a> {
         let mut egrid = ExpandedGrid::new(db);
         let (_, mut die) = egrid.add_die(self.columns, self.rows);
@@ -254,7 +254,7 @@ impl Grid {
 
         egrid.finish();
         ExpandedDevice {
-            grid: self,
+            chip: self,
             egrid,
             col_bit,
             frame_width,
