@@ -2,8 +2,8 @@ use std::{error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_types::tiledb::{Tile, TileItemKind};
-use prjcombine_xc9500::{Chip, ChipKind, Database, FbBitCoord, GlobalBitCoord};
+use prjcombine_types::tiledb::{Tile, TileBit, TileItemKind};
+use prjcombine_xc9500::{Chip, ChipKind, Database};
 
 struct Bitstream {
     fbs: Vec<Vec<[u8; 15]>>,
@@ -81,21 +81,16 @@ impl Bitstream {
         (self.fbs[fb][row][col] >> bit & 1) != 0
     }
 
-    fn get_global(&self, crd: GlobalBitCoord) -> bool {
-        self.get_bit(
-            crd.fb as usize,
-            crd.row as usize,
-            crd.column as usize,
-            crd.bit as usize,
-        )
+    fn get_global(&self, crd: TileBit) -> bool {
+        self.get_bit(crd.tile, crd.frame, crd.bit % 9, 6 + crd.bit / 9)
     }
 
-    fn get_fb(&self, fb: usize, crd: FbBitCoord) -> bool {
-        self.get_bit(fb, crd.row as usize, crd.column as usize, crd.bit as usize)
+    fn get_fb(&self, fb: usize, crd: TileBit) -> bool {
+        self.get_bit(fb, crd.frame, crd.bit % 9, 6 + crd.bit / 9)
     }
 
-    fn get_mc(&self, fb: usize, mc: usize, row: usize) -> bool {
-        self.get_bit(fb, row, mc % 9, 6 + mc / 9)
+    fn get_mc(&self, fb: usize, mc: usize, crd: TileBit) -> bool {
+        self.get_bit(fb, crd.frame, mc % 9, 6 + mc / 9)
     }
 
     fn get_pt(&self, fb: usize, mc: usize, pt: usize, imux: usize, pol: bool) -> bool {
@@ -285,7 +280,7 @@ fn print_mc(bs: &Bitstream, db: &Database, chip: &Chip) {
     for fb in 0..chip.fbs {
         for mc in 0..18 {
             print!("MC {fb} {mc}:");
-            print_tile(&db.mc_bits, chip, |crd| bs.get_mc(fb, mc, crd as usize));
+            print_tile(&db.mc_bits, chip, |crd| bs.get_mc(fb, mc, crd));
             println!();
         }
     }

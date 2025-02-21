@@ -137,14 +137,21 @@ The type and interpretation of coordinate depends on the tile kind.
 
 The following tile kinds exist:
 
-- per-MC bits tile: identical for all chips in the database, the coordinate
-  is a single number and corresponds to the row coordinate of the fuse
+- per-MC bits tile: identical for all chips in the database, the coordinate is a list of three numbers, in order:
+
+  - always 0
+  - row coordinate of the fuse
+  - always 0
+
 - per-FB bits tile: identical for all chips in the database, the coordinate
   is a list of 3 numbers, in order:
 
+  - always 0
   - row
-  - bit
-  - column
+  - bit within row; this should be decoded into column and bit as follows:
+
+    - column: ``crd.bit % 9``
+    - bit: ``6 + crd.bit // 9``
 
 - IMUX bits tile: chip-specific, the coordinate is the same as for per-FB bits tile
 - global bits tile: identical for all chips in the database, the coordinate
@@ -152,7 +159,9 @@ The following tile kinds exist:
 
   - fb
   - row
-  - bit
-  - column
+  - bit within row; this should be decoded into column and bit as follows:
+
+    - column: ``crd.bit % 9``
+    - bit: ``6 + crd.bit // 9``
 
 - UIM IBUF bits tile: chip-specific, only for XC995288, the coordinate is the same as for global bits tile

@@ -21,11 +21,10 @@ use prjcombine_re_xilinx_cpld::{
 };
 use prjcombine_types::{
     FbId, FbMcId, IoId,
-    tiledb::{Tile, TileItem, TileItemKind},
+    tiledb::{Tile, TileBit, TileItem, TileItemKind},
 };
-use prjcombine_xc9500::{self as xc9500, FbBitCoord};
+use prjcombine_xc9500 as xc9500;
 use unnamed_entity::{EntityId, EntityVec};
-use xc9500::GlobalBitCoord;
 
 #[derive(Parser)]
 struct Args {
@@ -36,7 +35,7 @@ struct Args {
     json: PathBuf,
 }
 
-fn map_bit_raw(device: &Device, bit: BitPos) -> GlobalBitCoord {
+fn map_bit_raw(device: &Device, bit: BitPos) -> TileBit {
     let (addr, bit) = bit;
     if device.kind == DeviceKind::Xc9500 {
         let fb = addr >> 13 & 0xf;
@@ -45,11 +44,11 @@ fn map_bit_raw(device: &Device, bit: BitPos) -> GlobalBitCoord {
         let col_a = addr >> 3 & 3;
         let col_b = addr & 7;
         let column = col_a * 5 + col_b;
-        GlobalBitCoord {
-            fb,
-            row,
-            column,
-            bit: bit as u32,
+        assert!(bit >= 6);
+        TileBit {
+            tile: fb as usize,
+            frame: row as usize,
+            bit: (bit - 6) * 9 + column as usize,
         }
     } else {
         let fb = bit >> 3;
@@ -59,41 +58,44 @@ fn map_bit_raw(device: &Device, bit: BitPos) -> GlobalBitCoord {
         let col_a = addr >> 3 & 3;
         let col_b = addr & 7;
         let column = col_a * 5 + col_b;
-        GlobalBitCoord {
-            fb,
-            row,
-            column,
-            bit: bit as u32,
+        assert!(bit >= 6);
+        TileBit {
+            tile: fb as usize,
+            frame: row as usize,
+            bit: (bit - 6) * 9 + column as usize,
         }
     }
 }
 
-fn map_fb_bit_raw(device: &Device, fb: FbId, bit: BitPos) -> FbBitCoord {
-    let crd = map_bit_raw(device, bit);
-    assert_eq!(crd.fb as usize, fb.to_idx());
-    FbBitCoord {
-        row: crd.row,
-        column: crd.column,
-        bit: crd.bit,
+fn map_fb_bit_raw(device: &Device, fb: FbId, bit: BitPos) -> TileBit {
+    let glob_bit = map_bit_raw(device, bit);
+    assert_eq!(glob_bit.tile, fb.to_idx());
+    TileBit {
+        tile: 0,
+        frame: glob_bit.frame,
+        bit: glob_bit.bit,
     }
 }
 
-fn map_bit(device: &Device, fpart: &FuzzDbPart, bit: usize) -> GlobalBitCoord {
+fn map_bit(device: &Device, fpart: &FuzzDbPart, bit: usize) -> TileBit {
     map_bit_raw(device, fpart.map.main[bit])
 }
 
-fn map_fb_bit(device: &Device, fpart: &FuzzDbPart, fb: FbId, bit: usize) -> FbBitCoord {
+fn map_fb_bit(device: &Device, fpart: &FuzzDbPart, fb: FbId, bit: usize) -> TileBit {
     map_fb_bit_raw(device, fb, fpart.map.main[bit])
 }
 
-fn map_mc_bit(device: &Device, fpart: &FuzzDbPart, fb: FbId, mc: FbMcId, bit: usize) -> u32 {
-    let crd = map_fb_bit(device, fpart, fb, bit);
-    assert_eq!(crd.column as usize, mc.to_idx() % 9);
-    assert_eq!(crd.bit as usize, 6 + mc.to_idx() / 9);
-    crd.row
+fn map_mc_bit(device: &Device, fpart: &FuzzDbPart, fb: FbId, mc: FbMcId, bit: usize) -> TileBit {
+    let fb_bit = map_fb_bit(device, fpart, fb, bit);
+    assert_eq!(fb_bit.bit, mc.to_idx());
+    TileBit {
+        tile: 0,
+        frame: fb_bit.frame,
+        bit: 0,
+    }
 }
 
-fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<u32> {
+fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
@@ -354,7 +356,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<u32> {
     tile
 }
 
-fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem<FbBitCoord> {
+fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem<TileBit> {
     let mut blank_expected: BitVec =
         BitVec::repeat(device.kind == DeviceKind::Xc9500, fpart.blank.len());
     for (bit, pol) in fpart.bits.usercode.unwrap() {
@@ -406,7 +408,7 @@ fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem<Fb
     }
 }
 
-fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem<FbBitCoord> {
+fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem<TileBit> {
     assert_eq!(device.fbs, bits.len());
     let mut res = None;
     for (fb, &bit) in device.fbs().zip(bits.iter()) {
@@ -425,7 +427,7 @@ fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem<FbBitCoord> {
     }
 }
 
-fn extract_fb_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<FbBitCoord> {
+fn extract_fb_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
@@ -478,7 +480,7 @@ fn extract_fb_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<FbBitCoord> {
     tile
 }
 
-fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitCoord> {
+fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
@@ -564,7 +566,7 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitCoo
     tile
 }
 
-fn extract_imux_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<FbBitCoord> {
+fn extract_imux_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
@@ -594,7 +596,7 @@ fn extract_imux_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<FbBitCoord> {
     tile
 }
 
-fn extract_ibuf_uim_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitCoord> {
+fn extract_ibuf_uim_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;

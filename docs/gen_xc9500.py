@@ -94,16 +94,17 @@ def gen_tile_items(f, tname, tile, sortflip):
 def gen_tile_mc(f, tname, tile, sortflip):
     f.write("<table class=\"docutils align-default prjcombine-tile\">\n")
     f.write("<tr><th>Row</th><th>Bit</th></tr>\n")
-    minrow = min(bit for item in tile.values() for bit in item["bits"])
-    maxrow = max(bit for item in tile.values() for bit in item["bits"])
+    minrow = min(bit[1] for item in tile.values() for bit in item["bits"])
+    maxrow = max(bit[1] for item in tile.values() for bit in item["bits"])
     rev = {
-        bit: (name, item, None if len(item["bits"]) == 1 else j)
+        tuple(bit): (name, item, None if len(item["bits"]) == 1 else j)
         for name, item in tile.items() for j, bit in enumerate(item["bits"])
     }
     for i in range(minrow, maxrow + 1):
         f.write(f"<tr><td>{i}</td><td>")
-        if i in rev:
-            name, item, bit = rev[i]
+        bit = (0, i, 0)
+        if bit in rev:
+            name, item, bit = rev[bit]
             f.write(f"<a href=\"#bits-{tname}-{name}\">")
             if item.get("invert", False):
                 f.write("~")
@@ -120,10 +121,7 @@ def gen_tile_mc(f, tname, tile, sortflip):
 
 def gen_tile_fb(f, tname, tile, sortflip, multi=False):
     f.write("<table class=\"docutils align-default prjcombine-tile\">\n")
-    if multi:
-        rows = {tuple(bit[0:2]) for item in tile.values() for bit in item["bits"]}
-    else:
-        rows = {bit[0] for item in tile.values() for bit in item["bits"]}
+    rows = {tuple(bit[0:2]) for item in tile.values() for bit in item["bits"]}
     rev = {}
     for name, item in tile.items():
         for j, bit in enumerate(item["bits"]):
@@ -141,30 +139,26 @@ def gen_tile_fb(f, tname, tile, sortflip, multi=False):
         for col in range(9):
             f.write(f"<th>{col}</th>")
     f.write("</tr>\n")
-    for row in sorted(rows):
+    for fb, row in sorted(rows):
         if multi:
-            fb, row = row
             f.write(f"<tr><td>{fb}</td><td>{row}</td>\n")
         else:
+            assert fb == 0
             f.write(f"<tr><td>{row}</td>\n")
-        for bit in [6, 7]:
-            for col in range(9):
-                f.write("<td>")
-                if multi:
-                    crd = (fb, row, bit, col)
-                else:
-                    crd = (row, bit, col)
-                if crd in rev:
-                    for name, item, bidx in rev[crd]:
-                        title = name
-                        if bidx is not None:
-                            title = f"{name}[{bidx}]"
-                        if item.get("invert", False):
-                            title = f"~{title}"
-                        f.write(f"<a href=\"#bits-{tname}-{name}\" title=\"{title}\">X</a>")
-                else:
-                    f.write("-")
-                f.write("</td>")
+        for bit in range(18):
+            f.write("<td>")
+            crd = (fb, row, bit)
+            if crd in rev:
+                for name, item, bidx in rev[crd]:
+                    title = name
+                    if bidx is not None:
+                        title = f"{name}[{bidx}]"
+                    if item.get("invert", False):
+                        title = f"~{title}"
+                    f.write(f"<a href=\"#bits-{tname}-{name}\" title=\"{title}\">X</a>")
+            else:
+                f.write("-")
+            f.write("</td>")
         f.write("</tr>\n")
     f.write("</table>\n")
 

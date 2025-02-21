@@ -117,8 +117,8 @@ with the following keys:
 
 - ``bits`` (list of coordinate): the list of fuse coordinates in this fuse set; a single coordinate is an array of three numbers, in order:
 
-  - fuse row
   - fuse plane
+  - fuse row
   - fuse column
 
   Depending on the tile, the coordinates may be either absolute or relative to some base.

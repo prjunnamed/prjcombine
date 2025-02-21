@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use jzon::JsonValue;
-use prjcombine_types::{FbId, FbMcId, tiledb::Tile};
+use prjcombine_types::{tiledb::{Tile, TileBit}, FbId, FbMcId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 
@@ -28,8 +28,8 @@ pub struct Chip {
     pub banks: usize,
     pub tdo_bank: BankId,
     pub io_special: BTreeMap<String, (FbId, FbMcId)>,
-    pub imux_bits: Tile<FbBitCoord>,
-    pub uim_ibuf_bits: Option<Tile<GlobalBitCoord>>,
+    pub imux_bits: Tile<TileBit>,
+    pub uim_ibuf_bits: Option<Tile<TileBit>>,
     pub program_time: u32,
     pub erase_time: u32,
 }
@@ -82,30 +82,15 @@ pub struct Part {
     pub speeds: BTreeMap<String, SpeedId>,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
-pub struct FbBitCoord {
-    pub row: u32,
-    pub bit: u32,
-    pub column: u32,
-}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
-pub struct GlobalBitCoord {
-    pub fb: u32,
-    pub row: u32,
-    pub bit: u32,
-    pub column: u32,
-}
-
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Database {
     pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
     pub speeds: EntityVec<SpeedId, Speed>,
     pub parts: Vec<Part>,
-    pub mc_bits: Tile<u32>,
-    pub fb_bits: Tile<FbBitCoord>,
-    pub global_bits: Tile<GlobalBitCoord>,
+    pub mc_bits: Tile<TileBit>,
+    pub fb_bits: Tile<TileBit>,
+    pub global_bits: Tile<TileBit>,
 }
 
 impl Database {
@@ -126,12 +111,8 @@ impl Database {
 
 impl Chip {
     pub fn to_json(&self) -> JsonValue {
-        fn fb_bit_to_json(crd: FbBitCoord) -> JsonValue {
-            jzon::array![crd.row, crd.bit, crd.column]
-        }
-
-        fn global_bit_to_json(crd: GlobalBitCoord) -> JsonValue {
-            jzon::array![crd.fb, crd.row, crd.bit, crd.column]
+        fn bit_to_json(crd: TileBit) -> JsonValue {
+            jzon::array![crd.tile, crd.frame, crd.bit]
         }
 
         jzon::object! {
@@ -152,9 +133,9 @@ impl Chip {
                     (key, format!("IOB_{fb}_{mc}"))
                 })
             ),
-            imux_bits: self.imux_bits.to_json(fb_bit_to_json),
+            imux_bits: self.imux_bits.to_json(bit_to_json),
             uim_ibuf_bits: if let Some(ref bits) = self.uim_ibuf_bits {
-                bits.to_json(global_bit_to_json)
+                bits.to_json(bit_to_json)
             } else {
                 JsonValue::Null
             },
@@ -206,12 +187,8 @@ impl Part {
 
 impl Database {
     pub fn to_json(&self) -> JsonValue {
-        fn fb_bit_to_json(crd: FbBitCoord) -> JsonValue {
-            jzon::array![crd.row, crd.bit, crd.column]
-        }
-
-        fn global_bit_to_json(crd: GlobalBitCoord) -> JsonValue {
-            jzon::array![crd.fb, crd.row, crd.bit, crd.column]
+        fn bit_to_json(crd: TileBit) -> JsonValue {
+            jzon::array![crd.tile, crd.frame, crd.bit]
         }
 
         jzon::object! {
@@ -219,9 +196,9 @@ impl Database {
             bonds: Vec::from_iter(self.bonds.values().map(Bond::to_json)),
             speeds: Vec::from_iter(self.speeds.values().map(Speed::to_json)),
             parts: Vec::from_iter(self.parts.iter().map(Part::to_json)),
-            mc_bits: self.mc_bits.to_json(|bit| bit.into()),
-            fb_bits: self.fb_bits.to_json(fb_bit_to_json),
-            global_bits: self.global_bits.to_json(global_bit_to_json),
+            mc_bits: self.mc_bits.to_json(bit_to_json),
+            fb_bits: self.fb_bits.to_json(bit_to_json),
+            global_bits: self.global_bits.to_json(bit_to_json),
         }
     }
 }

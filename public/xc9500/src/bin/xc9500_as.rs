@@ -7,9 +7,9 @@ use std::{
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_xc9500::{Chip, ChipKind, Database, FbBitCoord, GlobalBitCoord};
+use prjcombine_xc9500::{Chip, ChipKind, Database};
 
-use prjcombine_types::tiledb::{Tile, TileItemKind};
+use prjcombine_types::tiledb::{Tile, TileBit, TileItemKind};
 
 struct Bitstream {
     fbs: Vec<Vec<[u8; 15]>>,
@@ -93,28 +93,16 @@ impl Bitstream {
         }
     }
 
-    fn put_global(&mut self, crd: GlobalBitCoord, val: bool) {
-        self.put_bit(
-            crd.fb as usize,
-            crd.row as usize,
-            crd.column as usize,
-            crd.bit as usize,
-            val,
-        );
+    fn put_global(&mut self, crd: TileBit, val: bool) {
+        self.put_bit(crd.tile, crd.frame, crd.bit % 9, 6 + crd.bit / 9, val);
     }
 
-    fn put_fb(&mut self, fb: usize, crd: FbBitCoord, val: bool) {
-        self.put_bit(
-            fb,
-            crd.row as usize,
-            crd.column as usize,
-            crd.bit as usize,
-            val,
-        );
+    fn put_fb(&mut self, fb: usize, crd: TileBit, val: bool) {
+        self.put_bit(fb, crd.frame, crd.bit % 9, 6 + crd.bit / 9, val);
     }
 
-    fn put_mc(&mut self, fb: usize, mc: usize, row: usize, val: bool) {
-        self.put_bit(fb, row, mc % 9, 6 + mc / 9, val);
+    fn put_mc(&mut self, fb: usize, mc: usize, crd: TileBit, val: bool) {
+        self.put_bit(fb, crd.frame, mc % 9, 6 + mc / 9, val);
     }
 
     fn put_pt(&mut self, fb: usize, mc: usize, pt: usize, imux: usize, pol: bool, val: bool) {
@@ -283,7 +271,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 let mc: usize = mc.parse()?;
                 for item in suf {
                     set_tile_item(&db.mc_bits, chip, item, |crd, val| {
-                        bs.put_mc(fb, mc, crd as usize, val)
+                        bs.put_mc(fb, mc, crd, val)
                     });
                 }
             }
