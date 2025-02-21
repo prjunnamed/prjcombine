@@ -1,11 +1,11 @@
 use super::parts::VivadoPart;
 use indicatif::ProgressBar;
+use prjcombine_re_toolchain::{Toolchain, ToolchainReader};
 use prjcombine_re_xilinx_rawdump::{
     Coord, Part, PkgPin, Source, TileKindId, TkPipDirection, TkPipInversion, TkSite, TkSitePin,
     TkSitePinDir, TkSiteSlot,
 };
 use prjcombine_re_xilinx_rdbuild::{PartBuilder, PbPip, PbSitePin};
-use prjcombine_re_toolchain::{Toolchain, ToolchainReader};
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::convert::TryInto;
@@ -13,7 +13,7 @@ use std::error::Error;
 use std::fmt::Write as FmtWrite;
 use std::io::{BufRead, Write};
 use std::sync::Mutex;
-use unnamed_entity::{entity_id, EntitySet};
+use unnamed_entity::{EntitySet, entity_id};
 
 const TILE_BATCH_SIZE: usize = 4000;
 

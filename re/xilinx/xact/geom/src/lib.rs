@@ -2,14 +2,14 @@ use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_xact_naming::db::NamingDb;
+use prjcombine_re_xilinx_xact_xc2000::ExpandedNamedDevice;
 use prjcombine_xc2000::{
     bond::Bond,
     expanded::ExpandedDevice,
     grid::{Grid, GridKind},
 };
-use prjcombine_re_xilinx_xact_xc2000::ExpandedNamedDevice;
 use serde::{Deserialize, Serialize};
-use unnamed_entity::{entity_id, EntityVec};
+use unnamed_entity::{EntityVec, entity_id};
 
 entity_id! {
     pub id GridId usize;

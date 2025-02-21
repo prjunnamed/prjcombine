@@ -1,10 +1,10 @@
 use prjcombine_interconnect::db::Dir;
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
+use prjcombine_re_xilinx_naming::db::NodeRawTileId;
+use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Coord;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::grid::{GridKind, IoDiffKind};
-use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
-use prjcombine_re_xilinx_naming::db::NodeRawTileId;
 use unnamed_entity::EntityId;
 
 use crate::get_bel_iob;

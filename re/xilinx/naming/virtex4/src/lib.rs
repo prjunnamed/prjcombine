@@ -3,13 +3,13 @@ use prjcombine_interconnect::{
     db::Dir,
     grid::{ColId, DieId, RowId},
 };
+use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{
     bond::PsPin,
     expanded::{ExpandedDevice, IoCoord},
     grid::{CfgRowKind, GridKind, GtKind, RegId},
     gtz::GtzIntColId,
 };
-use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use unnamed_entity::{EntityId, EntityVec};
 
 mod virtex4;

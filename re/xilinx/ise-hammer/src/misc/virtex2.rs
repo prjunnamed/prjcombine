@@ -1,17 +1,17 @@
 use std::collections::HashSet;
 
 use bitvec::prelude::*;
+use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_collector::{
-    concat_bitvec, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide,
-    xlat_bitvec, xlat_bool, xlat_bool_default, xlat_enum, xlat_enum_ocd, xlat_item_tile, Diff,
-    FeatureId, OcdMode,
+    Diff, FeatureId, OcdMode, concat_bitvec, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
+    xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_bool_default, xlat_enum, xlat_enum_ocd,
+    xlat_item_tile,
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_interconnect::grid::DieId;
+use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::{grid::GridKind, grid::IoDiffKind, iob::IobKind};
 use prjcombine_xilinx_bitstream::{BitTile, Reg};
-use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use unnamed_entity::EntityId;
 
 use crate::{

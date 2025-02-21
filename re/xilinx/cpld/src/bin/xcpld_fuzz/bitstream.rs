@@ -3,7 +3,7 @@ use prjcombine_re_hammer::{Backend, Fuzzer, Session};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_cpld::{
     bits::{BitPos, BitstreamMap},
-    bitstream::{parse_svf, Bitstream},
+    bitstream::{Bitstream, parse_svf},
     device::DeviceKind,
     impact::run_impact,
 };
@@ -110,11 +110,7 @@ impl Backend for BitstreamBackend<'_> {
             while ues.last() == Some(&0xff) {
                 ues.pop();
             }
-            if !ues.is_empty() {
-                Some(&*ues)
-            } else {
-                None
-            }
+            if !ues.is_empty() { Some(&*ues) } else { None }
         } else {
             None
         };

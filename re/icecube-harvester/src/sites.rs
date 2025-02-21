@@ -15,8 +15,8 @@ use unnamed_entity::{EntityId, EntityPartVec};
 use crate::{
     parts::Part,
     prims::{Primitive, PropKind},
-    run::{run, Design, InstPin, Instance, RawLoc},
-    xlat::{xlat_wire, GenericNet},
+    run::{Design, InstPin, Instance, RawLoc, run},
+    xlat::{GenericNet, xlat_wire},
 };
 
 #[derive(Debug, Clone)]
@@ -957,9 +957,9 @@ pub fn find_bel_pins(
                             let wf = (DieId::from_idx(0), (col, row), edev.egrid.db.get_wire(wfn));
                             let wf = edev.egrid.resolve_wire(wf).unwrap();
                             let is_lr =
-                                wf.1 .0 == edev.grid.col_lio() || wf.1 .0 == edev.grid.col_rio();
+                                wf.1.0 == edev.grid.col_lio() || wf.1.0 == edev.grid.col_rio();
                             let is_bt =
-                                wf.1 .1 == edev.grid.row_bio() || wf.1 .1 == edev.grid.row_tio();
+                                wf.1.1 == edev.grid.row_bio() || wf.1.1 == edev.grid.row_tio();
                             let wfs = if is_lr && is_bt {
                                 Vec::from_iter((0..8).map(|idx| {
                                     (wf.0, wf.1, edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))

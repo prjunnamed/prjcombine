@@ -1,9 +1,9 @@
 use prjcombine_re_toolchain::Toolchain;
-use prjcombine_re_xilinx_ise_dump::partgen::PartgenPkg;
-use prjcombine_types::{FbId, FbMcId, IoId};
 use prjcombine_re_xilinx_cpld::device::{Device, DeviceKind, Io, JtagPin, Package, PkgPin};
 use prjcombine_re_xilinx_cpld::types::{BankId, FbGroupId, OePadId};
-use prjcombine_re_xilinx_cpld::v2vm6::{v2vm6, FitOpts};
+use prjcombine_re_xilinx_cpld::v2vm6::{FitOpts, v2vm6};
+use prjcombine_re_xilinx_ise_dump::partgen::PartgenPkg;
+use prjcombine_types::{FbId, FbMcId, IoId};
 use unnamed_entity::{EntityId, EntitySet, EntityVec};
 
 use std::collections::HashMap;

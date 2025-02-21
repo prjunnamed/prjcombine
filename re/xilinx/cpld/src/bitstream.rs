@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
-use bitvec::{field::BitField, vec::BitVec};
 use crate::device::DeviceKind;
+use bitvec::{field::BitField, vec::BitVec};
 
 #[derive(Clone, Debug)]
 pub struct Bitstream {

@@ -9,7 +9,7 @@ use std::{
     collections::{HashMap, HashSet},
     ops::{Deref, DerefMut},
 };
-use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
+use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
 
 entity_id! {
     pub id DieId u8, reserve 1, delta;
@@ -261,12 +261,12 @@ impl<'a> ExpandedGrid<'a> {
                                 panic!(
                                     "tree {rd}.{rc}.{rr}.{rw} does not contain {od}.{oc}.{or}.{ow}",
                                     rd = rw.0.to_idx(),
-                                    rc = rw.1 .0.to_idx(),
-                                    rr = rw.1 .1.to_idx(),
+                                    rc = rw.1.0.to_idx(),
+                                    rr = rw.1.1.to_idx(),
                                     rw = self.db.wires.key(rw.2),
                                     od = wire.0.to_idx(),
-                                    oc = wire.1 .0.to_idx(),
-                                    or = wire.1 .1.to_idx(),
+                                    oc = wire.1.0.to_idx(),
+                                    or = wire.1.1.to_idx(),
                                     ow = self.db.wires.key(wire.2),
                                 );
                             }

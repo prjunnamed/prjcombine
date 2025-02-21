@@ -1,19 +1,21 @@
 use bitvec::vec::BitVec;
-use prjcombine_re_collector::{Diff, FeatureData, FeatureId, State};
-use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_interconnect::db::{BelId, WireId};
 use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, LayerId, NodeLoc, RowId};
+use prjcombine_re_collector::{Diff, FeatureData, FeatureId, State};
+use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_toolchain::Toolchain;
-use prjcombine_types::tiledb::TileBit;
-use prjcombine_xilinx_bitstream::{parse, KeyData, KeyDataAes, KeyDataDes, KeySeq};
-use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
-use prjcombine_re_xilinx_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
 use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,
 };
 use prjcombine_re_xilinx_naming::grid::ExpandedGridNaming;
+use prjcombine_re_xilinx_xdl::{
+    Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement, run_bitgen,
+};
+use prjcombine_types::tiledb::TileBit;
+use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
+use prjcombine_xilinx_bitstream::{KeyData, KeyDataAes, KeyDataDes, KeySeq, parse};
 use rand::prelude::*;
-use std::collections::{btree_map, hash_map, HashMap};
+use std::collections::{HashMap, btree_map, hash_map};
 use std::fmt::{Debug, Write};
 
 pub struct IseBackend<'a> {

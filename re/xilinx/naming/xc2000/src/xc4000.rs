@@ -1,13 +1,13 @@
 use std::fmt::Write;
 
 use prjcombine_interconnect::grid::{ColId, RowId};
-use prjcombine_xc2000::{
-    expanded::ExpandedDevice,
-    grid::{Grid, GridKind},
-};
 use prjcombine_re_xilinx_naming::{
     db::{NamingDb, NodeRawTileId},
     grid::ExpandedGridNaming,
+};
+use prjcombine_xc2000::{
+    expanded::ExpandedDevice,
+    grid::{Grid, GridKind},
 };
 use unnamed_entity::EntityId;
 
@@ -60,11 +60,7 @@ fn get_tile_kind(grid: &Grid, col: ColId, row: RowId) -> &'static str {
         } else if row == grid.row_tio() - 1 {
             "RTT"
         } else if grid.kind.is_xl() && row == row_f {
-            if row.to_idx() % 2 == 0 {
-                "RTF"
-            } else {
-                "RTSF"
-            }
+            if row.to_idx() % 2 == 0 { "RTF" } else { "RTSF" }
         } else if grid.kind.is_xl() && row == row_f1 {
             if row.to_idx() % 2 == 0 {
                 "RTF1"

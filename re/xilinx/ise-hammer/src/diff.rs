@@ -1,9 +1,9 @@
 use std::ops::{Deref, DerefMut};
 
 use prjcombine_re_collector::Collector;
+use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use prjcombine_types::tiledb::{DbValue, TileBit, TileItem};
 use prjcombine_xilinx_bitstream::Bitstream;
-use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use unnamed_entity::EntityId;
 
 pub struct CollectorCtx<'a, 'b>

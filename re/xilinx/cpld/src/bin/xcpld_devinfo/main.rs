@@ -9,8 +9,8 @@ use prjcombine_re_xilinx_cpld::{
     partgen::get_parts,
 };
 use rayon::prelude::*;
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::{error::Error, path::PathBuf};
 use unnamed_entity::EntityVec;
 

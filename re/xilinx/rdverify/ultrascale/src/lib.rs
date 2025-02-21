@@ -1,12 +1,12 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId, TileIobId};
+use prjcombine_re_xilinx_naming_ultrascale::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{verify, BelContext, SitePinDir, Verifier};
+use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
 use prjcombine_ultrascale::bond::SharedCfgPin;
 use prjcombine_ultrascale::expanded::{ClkSrc, HdioCoord, HpioCoord, IoCoord};
 use prjcombine_ultrascale::grid::{
     CleMKind, ColSide, ColumnKindLeft, DisabledPart, GridKind, IoRowKind,
 };
-use prjcombine_re_xilinx_naming_ultrascale::ExpandedNamedDevice;
 use unnamed_entity::EntityId;
 
 fn is_cut_d(endev: &ExpandedNamedDevice, die: DieId, row: RowId) -> bool {

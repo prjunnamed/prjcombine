@@ -1,10 +1,10 @@
 use bitvec::vec::BitVec;
+use prjcombine_interconnect::db::{BelId, PinDir};
 use prjcombine_re_collector::{xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_re_hammer::Session;
-use prjcombine_interconnect::db::{BelId, PinDir};
+use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::TileItemKind;
 use prjcombine_virtex2::grid::GridKind;
-use prjcombine_re_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{

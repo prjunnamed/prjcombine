@@ -1,10 +1,10 @@
 use std::{collections::BTreeMap, path::Path};
 
 use bytes::{Buf, Bytes};
-use enum_map::{enum_map, EnumMap};
+use enum_map::{EnumMap, enum_map};
 use ndarray::Array2;
 use prjcombine_interconnect::db::Dir;
-use unnamed_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 
 entity_id! {
     pub id PrimDefId u16;

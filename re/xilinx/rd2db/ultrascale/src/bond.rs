@@ -1,3 +1,4 @@
+use prjcombine_re_xilinx_naming_ultrascale::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::{Part, PkgPin};
 use prjcombine_ultrascale::bond::{
     Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, HbmPin, PsPin, RfAdcPin, RfDacPin,
@@ -5,7 +6,6 @@ use prjcombine_ultrascale::bond::{
 };
 use prjcombine_ultrascale::expanded::{IoCoord, IoDiffKind, IoKind};
 use prjcombine_ultrascale::grid::{DisabledPart, Grid, GridKind, IoRowKind};
-use prjcombine_re_xilinx_naming_ultrascale::ExpandedNamedDevice;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 use unnamed_entity::EntityId;

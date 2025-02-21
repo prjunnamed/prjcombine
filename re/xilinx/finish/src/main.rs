@@ -1,8 +1,8 @@
 use std::{collections::btree_map, path::PathBuf};
 
 use clap::Parser;
-use prjcombine_types::tiledb::TileDb;
 use prjcombine_re_xilinx_geom::Grid;
+use prjcombine_types::tiledb::TileDb;
 
 mod spartan6;
 mod ultrascale;

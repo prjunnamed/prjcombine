@@ -1,14 +1,16 @@
 use prjcombine_interconnect::grid::{ColId, DieId};
+use prjcombine_re_xilinx_naming_versal::{DeviceNaming, DieNaming, HdioNaming, VNoc2Naming};
 use prjcombine_re_xilinx_rawdump::{Coord, NodeOrWire, Part, Tile, TkSiteSlot};
 use prjcombine_versal::grid::{
     BotKind, BramKind, CleKind, Column, ColumnKind, CpmKind, DisabledPart, Grid, GtRowKind,
     HardColumn, HardRowKind, Interposer, InterposerKind, PsKind, RegId, RightKind, TopKind,
 };
-use prjcombine_re_xilinx_naming_versal::{DeviceNaming, DieNaming, HdioNaming, VNoc2Naming};
 use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityVec};
 
-use prjcombine_re_xilinx_rd2db_grid::{extract_int_slr, extract_int_slr_column, find_rows, IntGrid};
+use prjcombine_re_xilinx_rd2db_grid::{
+    IntGrid, extract_int_slr, extract_int_slr_column, find_rows,
+};
 
 fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
     let (l, r) = s.rsplit_once("_X")?;

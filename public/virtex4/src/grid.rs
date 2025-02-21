@@ -2,7 +2,7 @@ use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::BTreeSet;
-use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
+use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
 
 entity_id! {
     pub id RegId u32, delta;

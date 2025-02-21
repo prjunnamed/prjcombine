@@ -1,10 +1,10 @@
 use bitvec::vec::BitVec;
-use prjcombine_re_collector::FeatureId;
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::{
     db::{BelId, NodeKindId},
     grid::NodeLoc,
 };
+use prjcombine_re_collector::FeatureId;
+use prjcombine_re_hammer::Session;
 
 use crate::{
     backend::{Key, Value, XactBackend},

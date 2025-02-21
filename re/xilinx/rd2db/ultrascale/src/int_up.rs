@@ -3,9 +3,9 @@ use prjcombine_re_xilinx_rawdump::Part;
 
 use enum_map::enum_map;
 
-use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
-use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_naming::db::NamingDb;
+use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
+use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
 
 const XLAT24: [usize; 24] = [
     0, 11, 16, 17, 18, 19, 20, 21, 22, 23, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15,

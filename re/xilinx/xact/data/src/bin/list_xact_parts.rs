@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use prjcombine_re_xilinx_xact_data::{
-    parts::{get_parts, PartKind},
+    parts::{PartKind, get_parts},
     pkg::get_pkg,
 };
 

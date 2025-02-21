@@ -4,7 +4,7 @@ use prjcombine_xc2000::grid::{Grid, GridKind, SharedCfgPin};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use unnamed_entity::EntityId;
 
-use prjcombine_re_xilinx_rd2db_grid::{extract_int, IntGrid};
+use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int};
 
 fn get_kind(rd: &Part) -> GridKind {
     match &rd.family[..] {

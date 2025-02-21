@@ -276,7 +276,12 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
                 stack.pop();
                 stack.push(StackEntry::Val(!v));
             }
-            while let &[.., StackEntry::Val(v1), StackEntry::And, StackEntry::Val(v2)] = &stack[..]
+            while let &[
+                ..,
+                StackEntry::Val(v1),
+                StackEntry::And,
+                StackEntry::Val(v2),
+            ] = &stack[..]
             {
                 stack.pop();
                 stack.pop();
@@ -287,7 +292,12 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
                 stack.push(StackEntry::And);
                 continue;
             }
-            while let &[.., StackEntry::Val(v1), StackEntry::Xor, StackEntry::Val(v2)] = &stack[..]
+            while let &[
+                ..,
+                StackEntry::Val(v1),
+                StackEntry::Xor,
+                StackEntry::Val(v2),
+            ] = &stack[..]
             {
                 stack.pop();
                 stack.pop();
@@ -440,7 +450,9 @@ pub fn run_bitgen(
     let mut bitdata = std::fs::read(dir.path().join("meow.bit"))?;
     assert_eq!(
         bitdata[..13],
-        [0x00, 0x09, 0x0f, 0xf0, 0x0f, 0xf0, 0x0f, 0xf0, 0x0f, 0xf0, 0x00, 0x00, 0x01]
+        [
+            0x00, 0x09, 0x0f, 0xf0, 0x0f, 0xf0, 0x0f, 0xf0, 0x0f, 0xf0, 0x00, 0x00, 0x01
+        ]
     );
     let mut pos = 13;
     for l in [b'a', b'b', b'c', b'd'] {

@@ -1,9 +1,9 @@
 use std::{collections::HashMap, error::Error};
 
-use prjcombine_re_xilinx_ise_dump::partgen::{get_pkgs, PartgenPkg};
-use prjcombine_re_xilinx_rawdump::PkgPin;
-use prjcombine_re_toolchain::Toolchain;
 use crate::device::DeviceKind;
+use prjcombine_re_toolchain::Toolchain;
+use prjcombine_re_xilinx_ise_dump::partgen::{PartgenPkg, get_pkgs};
+use prjcombine_re_xilinx_rawdump::PkgPin;
 use simple_error::bail;
 
 pub fn get_parts(tc: &Toolchain, kind: DeviceKind) -> Result<Vec<PartgenPkg>, Box<dyn Error>> {

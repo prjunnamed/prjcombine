@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use prjcombine_interconnect::db::{Dir, PinDir};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use unnamed_entity::{entity_id, EntityMap};
+use unnamed_entity::{EntityMap, entity_id};
 
 entity_id! {
     pub id GtzBelId u16;

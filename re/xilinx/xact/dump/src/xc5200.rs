@@ -10,11 +10,11 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
+use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
 use prjcombine_xc2000::{
     bond::{Bond, BondPin, CfgPin},
     grid::{Grid, GridKind, SharedCfgPin},
 };
-use prjcombine_re_xilinx_xact_xc2000::{name_device, ExpandedNamedDevice};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::extractor::{Extractor, NetBinding};

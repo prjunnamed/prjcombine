@@ -7,12 +7,12 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
+use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
 use prjcombine_xc2000::grid::{Grid, GridKind};
 use prjcombine_xc2000::{
     bond::{Bond, BondPin, CfgPin},
     grid::SharedCfgPin,
 };
-use prjcombine_re_xilinx_xact_xc2000::{name_device, ExpandedNamedDevice};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::extractor::{Extractor, NetBinding};
@@ -655,10 +655,10 @@ pub fn dump_grid(die: &Die, kind: GridKind) -> (Grid, IntDb, NamingDb) {
             if rwt.2 != rwf.2 {
                 continue;
             }
-            if rwt.1 .0 == rwf.1 .0 {
-                assert_ne!(rwt.1 .1, rwf.1 .1);
+            if rwt.1.0 == rwf.1.0 {
+                assert_ne!(rwt.1.1, rwf.1.1);
                 // LLV
-                let col = rwt.1 .0;
+                let col = rwt.1.0;
                 let row = grid.row_mid();
                 let layer = edev
                     .egrid
@@ -666,10 +666,10 @@ pub fn dump_grid(die: &Die, kind: GridKind) -> (Grid, IntDb, NamingDb) {
                     .unwrap();
                 queue.push((net_t, net_f, (die.die, col, row, layer)))
             } else {
-                assert_eq!(rwt.1 .1, rwf.1 .1);
+                assert_eq!(rwt.1.1, rwf.1.1);
                 // LLH
                 let col = grid.col_mid();
-                let row = rwt.1 .1;
+                let row = rwt.1.1;
                 let layer = edev
                     .egrid
                     .find_node_layer(die.die, (col, row), |node| node.starts_with("LLH"))
@@ -804,7 +804,7 @@ pub fn dump_grid(die: &Die, kind: GridKind) -> (Grid, IntDb, NamingDb) {
                 let net_u = extractor.matrix_nets[(x, y + 1)].net_b.unwrap();
                 let net_d = extractor.matrix_nets[(x, y)].net_b.unwrap();
                 if let NetBinding::Int(rw) = extractor.nets[net_u].binding {
-                    if rw.1 .1 == grid.row_bio() {
+                    if rw.1.1 == grid.row_bio() {
                         if extractor.nets[net_d].binding == NetBinding::None {
                             let sw =
                                 intdb.get_wire(&format!("{wn}.STUB", wn = intdb.wires.key(rw.2)));
@@ -814,7 +814,7 @@ pub fn dump_grid(die: &Die, kind: GridKind) -> (Grid, IntDb, NamingDb) {
                         if extractor.nets[net_d].binding == NetBinding::None {
                             let sw =
                                 intdb.get_wire(&format!("{wn}.S.STUB", wn = intdb.wires.key(rw.2)));
-                            extractor.net_int(net_d, (rw.0, (rw.1 .0, rw.1 .1 - 1), sw));
+                            extractor.net_int(net_d, (rw.0, (rw.1.0, rw.1.1 - 1), sw));
                         }
                     }
                 }

@@ -8,7 +8,7 @@ use prjcombine_spartan6::grid::{
 use unnamed_entity::{EntityId, EntityVec};
 
 use prjcombine_re_xilinx_rd2db_grid::{
-    extract_int, find_column, find_columns, find_row, find_rows, find_tiles, IntGrid,
+    IntGrid, extract_int, find_column, find_columns, find_row, find_rows, find_tiles,
 };
 
 fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, Column> {

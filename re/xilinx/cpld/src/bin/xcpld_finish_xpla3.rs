@@ -8,7 +8,7 @@ use std::{
 use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_re_xilinx_cpld::{
-    bits::{extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum, IBufOut, McOut},
+    bits::{IBufOut, McOut, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
     db::Database,
     device::{Device, JtagPin, PkgPin},
     fuzzdb::{FuzzDb, FuzzDbPart},
@@ -19,8 +19,8 @@ use prjcombine_re_xilinx_cpld::{
     },
 };
 use prjcombine_types::{
-    tiledb::{Tile, TileItem, TileItemKind},
     FbId, FbMcId, IoId,
+    tiledb::{Tile, TileItem, TileItemKind},
 };
 use prjcombine_xpla3 as xpla3;
 use serde_json::json;
@@ -758,7 +758,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         let imux_width = (fpart.bits.fbs[FbId::from_idx(0)].pla_and[PTermId::from_idx(0)].imux
             [ImuxId::from_idx(0)]
         .0
-         .0 / 40) as u32;
+        .0 / 40) as u32;
         let bs_cols = fpart.map.dims.unwrap().0 as u32;
         let bs_rows = fpart.map.dims.unwrap().1 as u32;
         let fb_rows = (device.fbs / device.fb_groups / 2) as u32;
@@ -769,7 +769,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 let pt_bit = fpart.bits.fbs[fb].pla_and[PTermId::from_idx(0)].imux
                     [ImuxId::from_idx(0)]
                 .0
-                 .0;
+                .0;
                 let pt_col = bs_cols - 1 - (fpart.map.main[pt_bit].1 as u32);
                 let imux_bit = fpart.bits.fbs[fb].imux[ImuxId::from_idx(0)].bits[0];
                 let imux_col = bs_cols - imux_width - fpart.map.main[imux_bit].1 as u32;

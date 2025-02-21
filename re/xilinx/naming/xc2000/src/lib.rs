@@ -1,9 +1,9 @@
 use prjcombine_interconnect::grid::{DieId, EdgeIoCoord, LayerId};
+use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{
     expanded::ExpandedDevice,
     grid::{Grid, GridKind},
 };
-use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use unnamed_entity::EntityId;
 
 pub struct ExpandedNamedDevice<'a> {

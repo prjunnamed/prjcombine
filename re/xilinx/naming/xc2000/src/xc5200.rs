@@ -1,5 +1,5 @@
-use prjcombine_xc2000::expanded::ExpandedDevice;
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
+use prjcombine_xc2000::expanded::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::ExpandedNamedDevice;

@@ -5,7 +5,7 @@ use clap::Parser;
 use coolrunner2::{BitCoord, BsLayout};
 use prjcombine_coolrunner2 as coolrunner2;
 use prjcombine_re_xilinx_cpld::{
-    bits::{extract_bool, extract_bool_to_enum, extract_enum, IBufOut, McOut},
+    bits::{IBufOut, McOut, extract_bool, extract_bool_to_enum, extract_enum},
     device::{Device, JtagPin, PkgPin},
     types::{
         BankId, ClkMuxVal, FoeMuxVal, IBufMode, ImuxId, ImuxInput, OeMuxVal, PTermId, RegMode,
@@ -18,8 +18,8 @@ use prjcombine_re_xilinx_cpld::{
     speeddb::SpeedDb,
 };
 use prjcombine_types::{
-    tiledb::{Tile, TileItem, TileItemKind},
     FbId, FbMcId, IoId,
+    tiledb::{Tile, TileItem, TileItemKind},
 };
 use serde_json::json;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -925,7 +925,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         let imux_width = (fpart.bits.fbs[FbId::from_idx(0)].pla_and[PTermId::from_idx(0)].imux
             [ImuxId::from_idx(0)]
         .0
-         .0 / 40) as u32;
+        .0 / 40) as u32;
         let bs_cols = fpart.map.dims.unwrap().0 as u32;
         let bs_rows = fpart.map.dims.unwrap().1 as u32;
         let xfer_cols = fpart.map.transfer.iter().map(|&x| x as u32).collect();

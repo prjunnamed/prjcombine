@@ -1,8 +1,8 @@
+use prjcombine_interconnect::db::Dir;
 use prjcombine_re_collector::OcdMode;
 use prjcombine_re_hammer::Session;
-use prjcombine_interconnect::db::Dir;
-use prjcombine_xilinx_bitstream::BitTile;
 use prjcombine_re_xilinx_geom::{ExpandedDevice, ExpandedNamedDevice};
+use prjcombine_xilinx_bitstream::BitTile;
 
 use crate::{
     backend::{IseBackend, Key, MultiValue},

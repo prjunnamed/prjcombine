@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::BTreeMap;
-use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
+use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
 
 entity_id! {
     pub id RegId u32, delta;
@@ -315,11 +315,7 @@ impl Grid {
             EdgeIoCoord::T(_, _) => 0,
             EdgeIoCoord::R(row, _) => {
                 if let Some((_, rs)) = self.rows_bank_split {
-                    if row < rs {
-                        1
-                    } else {
-                        5
-                    }
+                    if row < rs { 1 } else { 5 }
                 } else {
                     1
                 }
@@ -327,11 +323,7 @@ impl Grid {
             EdgeIoCoord::B(_, _) => 2,
             EdgeIoCoord::L(row, _) => {
                 if let Some((rs, _)) = self.rows_bank_split {
-                    if row < rs {
-                        3
-                    } else {
-                        4
-                    }
+                    if row < rs { 3 } else { 4 }
                 } else {
                     3
                 }

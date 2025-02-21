@@ -1,5 +1,5 @@
 use std::{
-    collections::{btree_map, BTreeMap},
+    collections::{BTreeMap, btree_map},
     error::Error,
     path::PathBuf,
 };
@@ -7,7 +7,7 @@ use std::{
 use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_re_xilinx_cpld::{
-    bits::{extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum, BitPos},
+    bits::{BitPos, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
     device::{Device, DeviceKind, JtagPin, PkgPin},
     types::{
         CeMuxVal, ClkMuxVal, ExportDir, ImuxInput, OeMode, OeMuxVal, RegMode, Slew, SrMuxVal,
@@ -20,8 +20,8 @@ use prjcombine_re_xilinx_cpld::{
     speeddb::SpeedDb,
 };
 use prjcombine_types::{
-    tiledb::{Tile, TileItem, TileItemKind},
     FbId, FbMcId, IoId,
+    tiledb::{Tile, TileItem, TileItemKind},
 };
 use prjcombine_xc9500::{self as xc9500, FbBitCoord};
 use serde_json::json;

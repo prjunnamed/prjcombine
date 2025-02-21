@@ -940,11 +940,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 inst.param_str(
                     "LEGACY_MODE",
                     if use_mult {
-                        if mreg == 1 {
-                            "MULT18X18S"
-                        } else {
-                            "MULT18X18"
-                        }
+                        if mreg == 1 { "MULT18X18S" } else { "MULT18X18" }
                     } else {
                         "NONE"
                     },
@@ -953,11 +949,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 inst.param_str(
                     "USE_MULT",
                     if use_mult {
-                        if mreg == 1 {
-                            "MULT_S"
-                        } else {
-                            "MULT"
-                        }
+                        if mreg == 1 { "MULT_S" } else { "MULT" }
                     } else {
                         "NONE"
                     },
@@ -967,11 +959,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 ti.cfg(
                     "LEGACY_MODE",
                     if use_mult {
-                        if mreg == 1 {
-                            "MULT18X18S"
-                        } else {
-                            "MULT18X18"
-                        }
+                        if mreg == 1 { "MULT18X18S" } else { "MULT18X18" }
                     } else {
                         "NONE"
                     },
@@ -980,11 +968,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 ti.cfg(
                     "USE_MULT",
                     if use_mult {
-                        if mreg == 1 {
-                            "MULT_S"
-                        } else {
-                            "MULT"
-                        }
+                        if mreg == 1 { "MULT_S" } else { "MULT" }
                     } else {
                         "NONE"
                     },

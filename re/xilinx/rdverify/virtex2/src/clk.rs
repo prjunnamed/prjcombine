@@ -1,7 +1,7 @@
 use prjcombine_interconnect::db::{BelId, Dir};
+use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::grid::{Dcms, GridKind};
-use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use unnamed_entity::EntityId;
 
 use crate::get_bel_iob;

@@ -1,8 +1,8 @@
 use bitvec::prelude::*;
 use prjcombine_re_collector::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::grid::GridKind;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_virtex4::grid::GridKind;
 
 use crate::{
     backend::IseBackend,

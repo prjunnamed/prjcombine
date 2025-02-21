@@ -7,7 +7,7 @@ use simple_error::bail;
 use prjcombine_re_xilinx_cpld::device::DeviceKind;
 use prjcombine_re_xilinx_cpld::{
     partgen::get_parts,
-    v2vm6::{v2vm6, FitOpts, FitTerminate, FitUnused},
+    v2vm6::{FitOpts, FitTerminate, FitUnused, v2vm6},
 };
 
 #[derive(Debug, Parser)]

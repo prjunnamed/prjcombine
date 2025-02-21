@@ -1,8 +1,8 @@
 use prjcombine_interconnect::grid::{DieId, EdgeIoCoord};
-use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::grid::GridKind;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
+use prjcombine_re_xilinx_rawdump::Part;
+use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
+use prjcombine_virtex2::grid::GridKind;
 use unnamed_entity::EntityId;
 
 mod clb;

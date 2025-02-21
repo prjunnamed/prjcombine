@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, HashSet};
 
-use prjcombine_re_collector::{xlat_bit, xlat_enum_ocd, Diff, FeatureId, OcdMode};
-use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_interconnect::{
     db::{NodeTileId, NodeWireId},
     grid::{IntWire, LayerId, NodeLoc},
 };
+use prjcombine_re_collector::{Diff, FeatureId, OcdMode, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_hammer::{Fuzzer, Session};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -137,7 +137,7 @@ fn drive_wire<'a>(
     } else if wtn == "ACLK.V" || wtn == "GCLK.V" || wtn.starts_with("IOCLK") {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1 .0, w.1 .1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
                 let node = backend.egrid.node(nloc);
                 let node_kind = &backend.egrid.db.nodes[node.kind];
                 if let Some(mux) = node_kind.muxes.get(&(NodeTileId::from_idx(0), w.2)) {
@@ -159,7 +159,7 @@ fn drive_wire<'a>(
     {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1 .0, w.1 .1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
                 let node = backend.egrid.node(nloc);
                 let node_kind = &backend.egrid.db.nodes[node.kind];
                 if let Some(mux) = node_kind.muxes.get(&(NodeTileId::from_idx(0), w.2)) {
@@ -178,7 +178,7 @@ fn drive_wire<'a>(
     } else if wtn.starts_with("SINGLE.V") && !wtn.ends_with(".STUB") {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1 .0, w.1 .1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
                 let node = backend.egrid.node(nloc);
                 let node_kind = &backend.egrid.db.nodes[node.kind];
                 if let Some(mux) = node_kind.muxes.get(&(NodeTileId::from_idx(0), w.2)) {
@@ -199,7 +199,7 @@ fn drive_wire<'a>(
     } else if wtn.starts_with("SINGLE.H") && !wtn.ends_with(".STUB") {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1 .0, w.1 .1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
                 let node = backend.egrid.node(nloc);
                 let node_kind = &backend.egrid.db.nodes[node.kind];
                 if let Some(mux) = node_kind.muxes.get(&(NodeTileId::from_idx(0), w.2)) {
@@ -217,7 +217,7 @@ fn drive_wire<'a>(
                 }
             }
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1 .0, w.1 .1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
                 let node = backend.egrid.node(nloc);
                 let node_kind = &backend.egrid.db.nodes[node.kind];
                 if let Some(mux) = node_kind.muxes.get(&(NodeTileId::from_idx(0), w.2)) {

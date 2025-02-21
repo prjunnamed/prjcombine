@@ -311,11 +311,7 @@ impl Generator<'_> {
         if let Some(idx) = global_idx {
             self.gb_net[idx] = Some((iid, InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())));
         }
-        if lvds {
-            2
-        } else {
-            1
-        }
+        if lvds { 2 } else { 1 }
     }
 
     fn emit_lut(&mut self) {

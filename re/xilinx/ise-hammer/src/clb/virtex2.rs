@@ -1,4 +1,4 @@
-use prjcombine_re_collector::{xlat_bit, xlat_enum, Diff};
+use prjcombine_re_collector::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 

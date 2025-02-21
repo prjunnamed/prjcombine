@@ -4,6 +4,7 @@ use prjcombine_interconnect::{
     db::{NodeKind, NodeKindId},
     grid::{ColId, DieId, ExpandedGrid, RowId},
 };
+use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_ultrascale::{
     expanded::{ExpandedDevice, GtCoord, IoCoord},
     grid::{
@@ -11,7 +12,6 @@ use prjcombine_ultrascale::{
         GridKind, HardKind, HardRowKind, IoRowKind, PsIntfKind, RegId,
     },
 };
-use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -635,10 +635,11 @@ impl ExpandedNamedDevice<'_> {
                     self.ngrid
                         .get_bel_name(crd.die, crd.col, row, "GTM_REFCLK")
                         .unwrap(),
-                    vec![self
-                        .ngrid
-                        .get_bel_name(crd.die, crd.col, row, "GTM_DUAL")
-                        .unwrap()],
+                    vec![
+                        self.ngrid
+                            .get_bel_name(crd.die, crd.col, row, "GTM_DUAL")
+                            .unwrap(),
+                    ],
                 ),
                 IoRowKind::Gtf => (
                     self.ngrid

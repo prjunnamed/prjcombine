@@ -1,5 +1,5 @@
 use bitvec::prelude::*;
-use prjcombine_re_collector::{xlat_bitvec, xlat_enum, Diff};
+use prjcombine_re_collector::{Diff, xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem};
 

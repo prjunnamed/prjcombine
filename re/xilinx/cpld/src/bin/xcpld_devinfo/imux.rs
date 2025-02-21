@@ -1,18 +1,18 @@
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::{HashMap, hash_map::Entry};
 use std::error::Error;
 use std::fmt::Write;
 use std::thread::available_parallelism;
 
 use itertools::Itertools;
 use prjcombine_re_toolchain::Toolchain;
-use prjcombine_types::IoId;
-use prjcombine_re_xilinx_cpld::vm6::{FbImux, NodeKind};
 use prjcombine_re_xilinx_cpld::device::{Device, DeviceKind, Package, PkgPin};
 use prjcombine_re_xilinx_cpld::types::ImuxInput;
+use prjcombine_re_xilinx_cpld::vm6::{FbImux, NodeKind};
 use prjcombine_re_xilinx_cpld::{
     db::ImuxData,
-    v2vm6::{v2vm6, FitOpts},
+    v2vm6::{FitOpts, v2vm6},
 };
+use prjcombine_types::IoId;
 use rand::prelude::*;
 use rayon::prelude::*;
 use unnamed_entity::{EntityId, EntityVec};

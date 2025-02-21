@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
-use prjcombine_re_collector::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_ocd, Diff, OcdMode};
+use prjcombine_re_collector::{Diff, OcdMode, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 

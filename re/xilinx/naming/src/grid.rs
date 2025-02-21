@@ -1,4 +1,4 @@
-use std::collections::{hash_map, BTreeSet, HashMap};
+use std::collections::{BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
     db::{BelId, Dir, NodeIriId, NodeKind, NodeKindId, NodeTileId, TermInfo, WireKind},
@@ -88,7 +88,7 @@ impl<'a> ExpandedGridNaming<'a> {
                             Some(&TermInfo::BlackHole) => return None,
                             Some(&TermInfo::PassNear(wf)) => {
                                 if let Some(naming) =
-                                    self.terms.get(&(wire.0, wire.1 .0, wire.1 .1, dir))
+                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, dir))
                                 {
                                     let n = &self.db.term_namings[naming.naming];
                                     if n.wires_out.contains_id(wire.2) {
@@ -99,7 +99,7 @@ impl<'a> ExpandedGridNaming<'a> {
                             }
                             Some(&TermInfo::PassFar(wf)) => {
                                 if let Some(naming) =
-                                    self.terms.get(&(wire.0, wire.1 .0, wire.1 .1, dir))
+                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, dir))
                                 {
                                     let n = &self.db.term_namings[naming.naming];
                                     if n.wires_out.contains_id(wire.2) {
@@ -146,7 +146,7 @@ impl<'a> ExpandedGridNaming<'a> {
                             Some(&TermInfo::BlackHole) => return None,
                             Some(&TermInfo::PassNear(wf)) => {
                                 if let Some(naming) =
-                                    self.terms.get(&(wire.0, wire.1 .0, wire.1 .1, dir))
+                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, dir))
                                 {
                                     let n = &self.db.term_namings[naming.naming];
                                     match n.wires_out.get(wire.2) {
@@ -171,7 +171,7 @@ impl<'a> ExpandedGridNaming<'a> {
                             }
                             Some(&TermInfo::PassFar(wf)) => {
                                 if let Some(naming) =
-                                    self.terms.get(&(wire.0, wire.1 .0, wire.1 .1, dir))
+                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, dir))
                                 {
                                     let n = &self.db.term_namings[naming.naming];
                                     match n.wires_out.get(wire.2) {
@@ -237,7 +237,7 @@ impl<'a> ExpandedGridNaming<'a> {
                     }
                 }
                 WireKind::Buf(wf) => {
-                    let naming = &self.nodes[&(wire.0, wire.1 .0, wire.1 .1, LayerId::from_idx(0))];
+                    let naming = &self.nodes[&(wire.0, wire.1.0, wire.1.1, LayerId::from_idx(0))];
                     let nn = &self.db.node_namings[naming.naming];
                     trace.push(TracePip {
                         tile: &naming.names[NodeRawTileId::from_idx(0)],

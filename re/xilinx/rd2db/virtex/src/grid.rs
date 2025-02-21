@@ -8,7 +8,7 @@ use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex::grid::{DisabledPart, Grid, GridKind, SharedCfgPin};
 use unnamed_entity::EntityId;
 
-use prjcombine_re_xilinx_rd2db_grid::{extract_int, find_columns, IntGrid};
+use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int, find_columns};
 
 fn get_kind(rd: &Part) -> GridKind {
     match &rd.family[..] {

@@ -1,9 +1,11 @@
 #![allow(clippy::type_complexity)]
 
 use bimap::BiHashMap;
-use enum_map::{enum_map, EnumMap};
+use enum_map::{EnumMap, enum_map};
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId, TileIobId};
+use prjcombine_interconnect::grid::{
+    ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId, TileIobId,
+};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 

@@ -1,14 +1,14 @@
 use std::collections::{BTreeSet, HashMap};
 
 use bitvec::vec::BitVec;
-use prjcombine_re_collector::{FeatureId, State};
-use prjcombine_re_hammer::{BatchValue, Fuzzer, FuzzerGen};
 use prjcombine_interconnect::{
     db::{BelId, NodeKindId},
     grid::NodeLoc,
 };
-use prjcombine_xilinx_bitstream::BitTile;
+use prjcombine_re_collector::{FeatureId, State};
+use prjcombine_re_hammer::{BatchValue, Fuzzer, FuzzerGen};
 use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xilinx_bitstream::BitTile;
 use rand::prelude::*;
 
 use crate::backend::{FuzzerFeature, FuzzerInfo, Key, MultiValue, Value, XactBackend};

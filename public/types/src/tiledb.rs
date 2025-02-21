@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 use std::{
-    collections::{btree_map, BTreeMap},
+    collections::{BTreeMap, btree_map},
     error::Error,
     fs::File,
     path::Path,

@@ -1,12 +1,12 @@
 use bitvec::vec::BitVec;
 use clap::Parser;
+use prjcombine_interconnect::db::Dir;
 use prjcombine_re_collector::Collector;
 use prjcombine_re_hammer::{Backend, Session};
-use prjcombine_interconnect::db::Dir;
 use prjcombine_re_toolchain::Toolchain;
+use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_xilinx_bitstream::Reg;
-use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::PathBuf;

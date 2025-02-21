@@ -1,15 +1,15 @@
 use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
+use prjcombine_interconnect::db::Dir;
 use prjcombine_re_collector::{
-    extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool,
-    xlat_enum, Diff,
+    Diff, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
+    xlat_bool, xlat_enum,
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_interconnect::db::Dir;
+use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::grid::{ColumnKind, GridKind};
-use prjcombine_re_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::{IseBackend, PinFromKind},

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
-use unnamed_entity::{entity_id, EntityMap, EntityPartVec, EntitySet, EntityVec};
+use unnamed_entity::{EntityMap, EntityPartVec, EntitySet, EntityVec, entity_id};
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct Coord {

@@ -3,8 +3,8 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use prjcombine_re_xilinx_rawdump::PkgPin;
 use prjcombine_spartan6::bond::{Bond, BondPin, CfgPin, GtPin};
 
-use prjcombine_re_xilinx_rd2db_grid::split_num;
 use prjcombine_re_xilinx_naming_spartan6::ExpandedNamedDevice;
+use prjcombine_re_xilinx_rd2db_grid::split_num;
 
 pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();

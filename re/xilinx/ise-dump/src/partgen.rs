@@ -1,5 +1,5 @@
-use prjcombine_re_xilinx_rawdump::PkgPin;
 use prjcombine_re_toolchain::Toolchain;
+use prjcombine_re_xilinx_rawdump::PkgPin;
 use simple_error::bail;
 use std::collections::HashMap;
 use std::error::Error;
@@ -104,7 +104,18 @@ pub fn parse_pkgfile(f: &mut impl BufRead) -> Result<Vec<PkgPin>, Box<dyn Error>
                     delay_max_fs: None,
                 });
             }
-            [typ, pad, pin, vref_bank, vcco_bank, func, _, _, delay_min, delay_max] => {
+            [
+                typ,
+                pad,
+                pin,
+                vref_bank,
+                vcco_bank,
+                func,
+                _,
+                _,
+                delay_min,
+                delay_max,
+            ] => {
                 if typ != "pin" && typ != "pkgpin" {
                     continue;
                 }

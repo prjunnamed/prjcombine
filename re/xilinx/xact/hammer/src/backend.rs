@@ -1,23 +1,23 @@
 use std::{
-    collections::{btree_map, BTreeMap, HashMap},
-    fs::{read_to_string, File},
+    collections::{BTreeMap, HashMap, btree_map},
+    fs::{File, read_to_string},
     io::Write,
     path::Path,
     process::Command,
 };
 
 use bitvec::prelude::*;
-use prjcombine_re_collector::{Diff, FeatureData, FeatureId, State};
-use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_interconnect::{
     db::BelId,
     grid::{ExpandedGrid, IntWire, NodeLoc},
 };
-use prjcombine_types::tiledb::TileBit;
-use prjcombine_xilinx_bitstream::{parse, BitPos, BitTile, Bitstream, BitstreamGeom, KeyData};
+use prjcombine_re_collector::{Diff, FeatureData, FeatureId, State};
+use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_xilinx_xact_geom::Device;
 use prjcombine_re_xilinx_xact_naming::grid::{ExpandedGridNaming, PipCoords};
+use prjcombine_types::tiledb::TileBit;
 use prjcombine_xc2000::expanded::ExpandedDevice;
+use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom, KeyData, parse};
 
 use crate::lca::{Block, Design, Net};
 

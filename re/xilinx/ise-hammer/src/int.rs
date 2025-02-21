@@ -1,4 +1,4 @@
-use prjcombine_re_collector::{xlat_enum_ocd, Diff, FeatureId, OcdMode};
+use prjcombine_re_collector::{Diff, FeatureId, OcdMode, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 

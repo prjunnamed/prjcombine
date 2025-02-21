@@ -12,9 +12,9 @@ use prjcombine_interconnect::db::PinDir;
 use prjcombine_siliconblue::bitstream::Bitstream;
 use prjcombine_siliconblue::grid::GridKind;
 use tempfile::TempDir;
-use unnamed_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 
-use crate::prims::{get_prims, Primitive, PropKind};
+use crate::prims::{Primitive, PropKind, get_prims};
 
 entity_id! {
     pub id InstId u32;
@@ -211,7 +211,11 @@ fn emit_edif(mut f: impl Write, design: &Design) -> std::io::Result<()> {
                     writeln!(f, "(port {pname} (direction {dir}))")?;
                 }
                 Some(len) => {
-                    writeln!(f, "(port (array (rename {pname} \"{pname}[{lm1}:0]\") {len}) (direction {dir}))", lm1 = len - 1)?;
+                    writeln!(
+                        f,
+                        "(port (array (rename {pname} \"{pname}[{lm1}:0]\") {len}) (direction {dir}))",
+                        lm1 = len - 1
+                    )?;
                 }
             }
         }

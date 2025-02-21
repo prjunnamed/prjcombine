@@ -7,8 +7,8 @@ use prjcombine_re_xilinx_cpld::{
     device::{Device, Package},
     tsim::run_tsim,
     types::PTermId,
-    vm6_util::prep_vm6,
     vm6::{InputNodeKind, NodeKind},
+    vm6_util::prep_vm6,
 };
 use prjcombine_types::FbId;
 use unnamed_entity::EntityId;

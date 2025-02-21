@@ -1,15 +1,15 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId, TileIobId};
+use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::grid::{
     BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart,
     DspKind, Grid, GridKind, HardColumn, HardKind, HardRowKind, Interposer, IoColumn, IoRowKind,
     Ps, PsIntfKind, RegId,
 };
-use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityVec};
 
-use prjcombine_re_xilinx_rd2db_grid::{extract_int_slr_column, find_rows, IntGrid};
+use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int_slr_column, find_rows};
 
 fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
     let mut res: EntityVec<ColId, (Option<ColumnKindLeft>, Option<ColumnKindRight>)> =

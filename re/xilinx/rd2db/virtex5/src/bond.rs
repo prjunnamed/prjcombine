@@ -1,9 +1,9 @@
+use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::PkgPin;
 use prjcombine_virtex4::bond::{
     Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, SharedCfgPin, SysMonPin,
 };
 use prjcombine_virtex4::expanded::{IoCoord, IoDiffKind, IoVrKind};
-use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 

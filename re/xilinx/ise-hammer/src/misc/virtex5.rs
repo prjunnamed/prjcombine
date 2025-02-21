@@ -1,10 +1,10 @@
 use bitvec::prelude::*;
-use prjcombine_re_collector::{xlat_bit, xlat_bitvec, OcdMode};
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::BelId;
+use prjcombine_re_collector::{OcdMode, xlat_bit, xlat_bitvec};
+use prjcombine_re_hammer::Session;
+use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_xilinx_bitstream::Reg;
-use prjcombine_re_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{

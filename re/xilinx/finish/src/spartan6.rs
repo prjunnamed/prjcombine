@@ -1,16 +1,16 @@
 use std::{
-    collections::{btree_map, BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, btree_map},
     sync::LazyLock,
 };
 
 use itertools::Itertools;
+use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_spartan6::{
     bond::Bond,
     db::{Database, DeviceCombo, Part},
     grid::{DisabledPart, Grid},
 };
 use prjcombine_types::tiledb::TileDb;
-use prjcombine_re_xilinx_geom::GeomDb;
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
@@ -112,7 +112,8 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         assert_eq!(tpart.grid, grid);
         assert_eq!(tpart.disabled, disabled);
         for devbond in dev.bonds.values() {
-            let prjcombine_re_xilinx_geom::Bond::Spartan6(ref bond) = geom.bonds[devbond.bond] else {
+            let prjcombine_re_xilinx_geom::Bond::Spartan6(ref bond) = geom.bonds[devbond.bond]
+            else {
                 unreachable!()
             };
             match tpart.bonds.entry(&devbond.name) {

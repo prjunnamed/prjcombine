@@ -1,7 +1,7 @@
 use std::{
     collections::BTreeMap,
     error::Error,
-    fs::{read_to_string, File},
+    fs::{File, read_to_string},
     io::Write,
     path::{Path, PathBuf},
 };
@@ -9,8 +9,8 @@ use std::{
 use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_types::{
-    tiledb::{Tile, TileItemKind},
     FbMcId,
+    tiledb::{Tile, TileItemKind},
 };
 use prjcombine_xpla3::{BitCoord, Database, Device};
 use unnamed_entity::EntityId;

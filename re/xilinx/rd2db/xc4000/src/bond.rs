@@ -1,11 +1,11 @@
 use prjcombine_interconnect::grid::EdgeIoCoord;
+use prjcombine_re_xilinx_naming_xc2000::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::PkgPin;
 use prjcombine_xc2000::{
     bond::{Bond, BondPin, CfgPin},
     grid::{GridKind, SharedCfgPin},
 };
-use prjcombine_re_xilinx_naming_xc2000::ExpandedNamedDevice;
-use std::collections::{btree_map, BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, btree_map};
 
 pub fn make_bond(
     endev: &ExpandedNamedDevice,

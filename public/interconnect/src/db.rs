@@ -2,7 +2,7 @@ use enum_map::Enum;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
-use unnamed_entity::{entity_id, EntityMap, EntityPartVec, EntityVec};
+use unnamed_entity::{EntityMap, EntityPartVec, EntityVec, entity_id};
 
 #[derive(
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Enum, Serialize, Deserialize,

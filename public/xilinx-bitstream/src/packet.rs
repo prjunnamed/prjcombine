@@ -1,5 +1,5 @@
 use crate::{DeviceKind, KeyData, KeySeq};
-use aes::cipher::{inout::InOutBuf, KeyIvInit};
+use aes::cipher::{KeyIvInit, inout::InOutBuf};
 use arrayref::{array_mut_ref, array_ref};
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, KeyInit};
 use sha2::Digest;

@@ -1,15 +1,15 @@
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::{DieId, ExpandedGrid};
-use prjcombine_virtex4::gtz::GtzDb;
-use prjcombine_xilinx_bitstream::BitstreamGeom;
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming::grid::ExpandedGridNaming;
+use prjcombine_virtex4::gtz::GtzDb;
+use prjcombine_xilinx_bitstream::BitstreamGeom;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
-use unnamed_entity::{entity_id, EntityVec};
+use unnamed_entity::{EntityVec, entity_id};
 
 entity_id! {
     pub id GridId usize;
@@ -391,11 +391,15 @@ impl GeomDb {
                     prjcombine_xc2000::grid::GridKind::SpartanXl => "spartanxl",
                     prjcombine_xc2000::grid::GridKind::Xc5200 => "xc5200",
                 }];
-                ExpandedNamedDevice::Xc2000(prjcombine_re_xilinx_naming_xc2000::name_device(edev, ndb))
+                ExpandedNamedDevice::Xc2000(prjcombine_re_xilinx_naming_xc2000::name_device(
+                    edev, ndb,
+                ))
             }
             ExpandedDevice::Virtex(edev) => {
                 let ndb = &self.namings["virtex"];
-                ExpandedNamedDevice::Virtex(prjcombine_re_xilinx_naming_virtex::name_device(edev, ndb))
+                ExpandedNamedDevice::Virtex(prjcombine_re_xilinx_naming_virtex::name_device(
+                    edev, ndb,
+                ))
             }
             ExpandedDevice::Virtex2(edev) => {
                 let ndb = if edev.grid.kind.is_virtex2() {
@@ -405,11 +409,15 @@ impl GeomDb {
                 } else {
                     &self.namings["spartan3"]
                 };
-                ExpandedNamedDevice::Virtex2(prjcombine_re_xilinx_naming_virtex2::name_device(edev, ndb))
+                ExpandedNamedDevice::Virtex2(prjcombine_re_xilinx_naming_virtex2::name_device(
+                    edev, ndb,
+                ))
             }
             ExpandedDevice::Spartan6(edev) => {
                 let ndb = &self.namings["spartan6"];
-                ExpandedNamedDevice::Spartan6(prjcombine_re_xilinx_naming_spartan6::name_device(edev, ndb))
+                ExpandedNamedDevice::Spartan6(prjcombine_re_xilinx_naming_spartan6::name_device(
+                    edev, ndb,
+                ))
             }
             ExpandedDevice::Virtex4(edev) => {
                 let ndb = &self.namings[match edev.kind {
@@ -418,7 +426,9 @@ impl GeomDb {
                     prjcombine_virtex4::grid::GridKind::Virtex6 => "virtex6",
                     prjcombine_virtex4::grid::GridKind::Virtex7 => "virtex7",
                 }];
-                ExpandedNamedDevice::Virtex4(prjcombine_re_xilinx_naming_virtex4::name_device(edev, ndb))
+                ExpandedNamedDevice::Virtex4(prjcombine_re_xilinx_naming_virtex4::name_device(
+                    edev, ndb,
+                ))
             }
             ExpandedDevice::Ultrascale(edev) => {
                 let ndb = &self.namings[match edev.kind {
@@ -429,9 +439,9 @@ impl GeomDb {
                     DeviceNaming::Ultrascale(ref x) => x,
                     _ => unreachable!(),
                 };
-                ExpandedNamedDevice::Ultrascale(prjcombine_re_xilinx_naming_ultrascale::name_device(
-                    edev, ndb, naming,
-                ))
+                ExpandedNamedDevice::Ultrascale(
+                    prjcombine_re_xilinx_naming_ultrascale::name_device(edev, ndb, naming),
+                )
             }
             ExpandedDevice::Versal(edev) => {
                 let ndb = &self.namings["versal"];

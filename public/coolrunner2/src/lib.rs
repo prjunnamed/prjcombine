@@ -1,8 +1,8 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
-use prjcombine_types::{tiledb::Tile, FbId, FbMcId, IoId, IpadId};
+use prjcombine_types::{FbId, FbMcId, IoId, IpadId, tiledb::Tile};
 use serde::{Deserialize, Serialize};
-use unnamed_entity::{entity_id, EntityVec};
+use unnamed_entity::{EntityVec, entity_id};
 
 entity_id! {
     pub id DeviceId u32;

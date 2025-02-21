@@ -1,10 +1,10 @@
 use bitvec::prelude::*;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_re_collector::{
-    extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool,
-    xlat_enum, xlat_enum_ocd, Diff, OcdMode,
+    Diff, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide,
+    xlat_bitvec, xlat_bool, xlat_enum, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_interconnect::db::BelId;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
@@ -3080,11 +3080,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     _ => unreachable!(),
                 }
                 let mode = if std.vref.is_some() {
-                    if lp == "LP" {
-                        "VREF_LP"
-                    } else {
-                        "VREF_HP"
-                    }
+                    if lp == "LP" { "VREF_LP" } else { "VREF_HP" }
                 } else {
                     "CMOS"
                 };
@@ -3629,11 +3625,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.state
                         .get_diff(tile, bel, "ISTD", format!("{sn}.{lp}", sn = std.name));
                 let mode = if std.vref.is_some() {
-                    if lp == "LP" {
-                        "VREF_LP"
-                    } else {
-                        "VREF_HP"
-                    }
+                    if lp == "LP" { "VREF_LP" } else { "VREF_HP" }
                 } else if std.name == "PCI33_3" {
                     "PCI"
                 } else if std.vcco.unwrap() < 2500 {
@@ -3830,17 +3822,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         diff.apply_enum_diff(
                             ctx.tiledb.item(tile, cbel, "IBUF_MODE"),
                             if std.name == "TMDS_33" {
-                                if lp == "LP" {
-                                    "TMDS_LP"
-                                } else {
-                                    "TMDS_HP"
-                                }
+                                if lp == "LP" { "TMDS_LP" } else { "TMDS_HP" }
                             } else {
-                                if lp == "LP" {
-                                    "DIFF_LP"
-                                } else {
-                                    "DIFF_HP"
-                                }
+                                if lp == "LP" { "DIFF_LP" } else { "DIFF_HP" }
                             },
                             "OFF",
                         );

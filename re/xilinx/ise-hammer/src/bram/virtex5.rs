@@ -1,5 +1,5 @@
 use bitvec::prelude::*;
-use prjcombine_re_collector::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int, Diff};
+use prjcombine_re_collector::{Diff, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 
 use crate::{

@@ -1,6 +1,8 @@
 use clap::Parser;
 use itertools::Itertools;
-use prjcombine_re_xilinx_rawdump::{Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire};
+use prjcombine_re_xilinx_rawdump::{
+    Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire,
+};
 use std::{
     error::Error,
     fs::File,

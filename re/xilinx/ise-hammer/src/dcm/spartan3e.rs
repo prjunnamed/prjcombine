@@ -2,11 +2,11 @@ use std::collections::{BTreeMap, HashSet};
 
 use bitvec::prelude::*;
 
-use prjcombine_re_collector::{extract_bitvec_val, xlat_bit, xlat_bitvec, Diff};
+use prjcombine_re_collector::{Diff, extract_bitvec_val, xlat_bit, xlat_bitvec};
 use prjcombine_re_hammer::Session;
+use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::{TileItem, TileItemKind};
 use prjcombine_virtex2::grid::Dcms;
-use prjcombine_re_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::{IseBackend, PinFromKind},

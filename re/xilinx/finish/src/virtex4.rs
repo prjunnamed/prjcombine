@@ -1,17 +1,17 @@
 use std::{
-    collections::{btree_map, BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, btree_map},
     sync::LazyLock,
 };
 
 use itertools::Itertools;
 use prjcombine_interconnect::grid::DieId;
+use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_virtex4::{
     bond::Bond,
     db::{Database, DeviceCombo, Part},
     grid::{DisabledPart, Grid, GtKind, Interposer},
 };
-use prjcombine_re_xilinx_geom::GeomDb;
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
@@ -224,7 +224,8 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         assert_eq!(tpart.interposer, interposer);
         assert_eq!(tpart.disabled, disabled);
         for devbond in dev.bonds.values() {
-            let prjcombine_re_xilinx_geom::Bond::Virtex4(ref bond) = geom.bonds[devbond.bond] else {
+            let prjcombine_re_xilinx_geom::Bond::Virtex4(ref bond) = geom.bonds[devbond.bond]
+            else {
                 unreachable!()
             };
             match tpart.bonds.entry(&devbond.name) {

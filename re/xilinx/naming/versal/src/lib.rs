@@ -5,14 +5,14 @@ use prjcombine_interconnect::{
     db::{NodeKind, NodeKindId},
     grid::{ColId, DieId, NodeLoc, RowId},
 };
+use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_versal::{
     expanded::ExpandedDevice,
     grid::{BramKind, CleKind, ColSide, ColumnKind, HardRowKind, InterposerKind, RegId, RightKind},
 };
-use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use serde::{Deserialize, Serialize};
 use std::{cmp::max, collections::BTreeMap};
-use unnamed_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeviceNaming {
@@ -1225,11 +1225,7 @@ pub fn name_device<'a>(
                                 ),
                                 ColumnKind::Bram(BramKind::MaybeClkBufNoPd) => (
                                     if row.to_idx() < grid.get_ps_height() {
-                                        if grid.is_vr {
-                                            "BRAM.VR"
-                                        } else {
-                                            "BRAM"
-                                        }
+                                        if grid.is_vr { "BRAM.VR" } else { "BRAM" }
                                     } else {
                                         if grid.is_vr {
                                             "BRAM.CLKBUF.NOPD.VR"

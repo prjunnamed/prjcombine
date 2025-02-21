@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 use core::hash::Hash;
-use std::collections::{btree_map, hash_map::Entry, BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, btree_map, hash_map::Entry};
 
 use crate::types::{
     BankId, CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FbnId, FclkId, FoeId, FoeMuxVal,
@@ -11,8 +11,8 @@ use bitvec::vec::BitVec;
 use enum_map::EnumMap;
 use itertools::Itertools;
 use prjcombine_types::{
-    tiledb::{TileItem, TileItemKind},
     FbId, FbMcId, IoId, IpadId,
+    tiledb::{TileItem, TileItemKind},
 };
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};

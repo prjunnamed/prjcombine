@@ -1,8 +1,8 @@
-use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_naming_spartan6::name_device;
 use prjcombine_re_xilinx_geom::{Bond, DisabledPart, Grid};
+use prjcombine_re_xilinx_naming_spartan6::name_device;
+use prjcombine_re_xilinx_rawdump::Part;
 
-use crate::db::{make_device, PreDevice};
+use crate::db::{PreDevice, make_device};
 use prjcombine_re_xilinx_rd2db_spartan6::{bond, grid, int};
 use prjcombine_re_xilinx_rdverify_spartan6::verify_device;
 

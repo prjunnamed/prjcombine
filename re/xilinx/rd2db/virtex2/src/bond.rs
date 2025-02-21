@@ -3,9 +3,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use prjcombine_re_xilinx_rawdump::PkgPin;
 use prjcombine_virtex2::bond::{Bond, BondPin, CfgPin, GtPin};
 
+use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rd2db_grid::split_num;
 use prjcombine_virtex2::grid::GridKind;
-use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 
 pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();

@@ -8,12 +8,12 @@ use prjcombine_interconnect::grid::{
     ColId, DieId, ExpandedGrid, ExpandedTileNode, ExpandedTileTerm, IntWire, LayerId, NodeLoc,
     RowId,
 };
-use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, IntfWireInNaming, IntfWireOutNaming, NamingDb, NodeRawTileId, TermWireInFarNaming,
     TermWireOutNaming,
 };
 use prjcombine_re_xilinx_naming::grid::{ExpandedGridNaming, GridNodeNaming};
+use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use std::collections::{HashMap, HashSet};
 use unnamed_entity::{EntityBitVec, EntityId, EntityPartVec, EntityVec};
 

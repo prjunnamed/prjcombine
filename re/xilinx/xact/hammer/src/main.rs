@@ -10,8 +10,8 @@ use collector::CollectorCtx;
 use itertools::Itertools;
 use prjcombine_re_collector::Collector;
 use prjcombine_re_hammer::Session;
-use prjcombine_types::tiledb::TileDb;
 use prjcombine_re_xilinx_xact_geom::{Device, GeomDb};
+use prjcombine_types::tiledb::TileDb;
 use prjcombine_xc2000::grid::GridKind;
 
 mod backend;

@@ -1,7 +1,7 @@
 use bitvec::vec::BitVec;
-use prjcombine_re_collector::{extract_bitvec_val, OcdMode};
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::{BelId, PinDir};
+use prjcombine_re_collector::{OcdMode, extract_bitvec_val};
+use prjcombine_re_hammer::Session;
 use unnamed_entity::EntityId;
 
 use crate::{

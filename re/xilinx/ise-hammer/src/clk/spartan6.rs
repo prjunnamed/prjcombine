@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 
 use bitvec::vec::BitVec;
-use prjcombine_re_collector::{xlat_bit, xlat_bit_wide, xlat_enum, xlat_enum_ocd, OcdMode};
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::{BelId, Dir};
+use prjcombine_re_collector::{OcdMode, xlat_bit, xlat_bit_wide, xlat_enum, xlat_enum_ocd};
+use prjcombine_re_hammer::Session;
+use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::grid::Gts;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
-use prjcombine_re_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{

@@ -1,4 +1,4 @@
-use std::collections::{hash_map, BTreeSet, HashMap};
+use std::collections::{BTreeSet, HashMap, hash_map};
 
 use enum_map::EnumMap;
 use prjcombine_interconnect::{

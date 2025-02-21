@@ -1,6 +1,6 @@
 use clap::Parser;
 use prjcombine_re_toolchain::Toolchain;
-use prjcombine_re_xilinx_vivado_dump::parts::{get_parts, VivadoPart};
+use prjcombine_re_xilinx_vivado_dump::parts::{VivadoPart, get_parts};
 use prjcombine_re_xilinx_vivado_dump::rawdump::get_rawdump;
 use rayon::ThreadPoolBuilder;
 use std::collections::{HashMap, HashSet};

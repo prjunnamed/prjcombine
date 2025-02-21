@@ -1,16 +1,16 @@
 use std::{
-    collections::{btree_map, BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, btree_map},
     sync::LazyLock,
 };
 
 use itertools::Itertools;
+use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_virtex::{
     bond::Bond,
     db::{Database, DeviceCombo, Part},
     grid::{DisabledPart, Grid, GridKind},
 };
-use prjcombine_re_xilinx_geom::GeomDb;
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 

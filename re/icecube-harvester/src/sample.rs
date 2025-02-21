@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
-use prjcombine_re_harvester::Sample;
 use prjcombine_interconnect::{
     db::{BelId, NodeKindId, NodeWireId, WireId},
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId},
 };
+use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
     bitstream::Bitstream,
     expanded::{BitOwner, ExpandedDevice},
@@ -15,7 +15,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     run::{Design, InstId, InstPin, InstPinSource, RunResult},
-    xlat::{xlat_mux_in, xlat_wire, GenericNet},
+    xlat::{GenericNet, xlat_mux_in, xlat_wire},
 };
 
 #[allow(clippy::too_many_arguments)]
@@ -151,7 +151,7 @@ pub fn make_sample(
                             lc + 1
                         };
                         sample.add_tiled_pattern(
-                            &[BitOwner::Main(iwb.1 .0, iwb.1 .1)],
+                            &[BitOwner::Main(iwb.1.0, iwb.1.1)],
                             format!("PLB:LC{dst_lc}:MUX.I2:LTIN"),
                         );
                         int_source.insert(iwb, (src_inst, InstPin::Simple("O".to_string())));
@@ -165,7 +165,7 @@ pub fn make_sample(
                             edev.egrid.db.get_wire(&format!("IMUX.LC{dst_lc}.I3"))
                         );
                         sample.add_tiled_pattern(
-                            &[BitOwner::Main(iwb.1 .0, iwb.1 .1)],
+                            &[BitOwner::Main(iwb.1.0, iwb.1.1)],
                             format!("PLB:INT:MUX.IMUX.LC{dst_lc}.I3:CI"),
                         );
                         int_source.insert(iwb, (src_inst, src_pin.clone()));

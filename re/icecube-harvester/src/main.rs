@@ -1,5 +1,5 @@
 use std::{
-    collections::{btree_map, BTreeMap, BTreeSet, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map},
     mem::ManuallyDrop,
     path::{Path, PathBuf},
     sync::Mutex,
@@ -7,16 +7,16 @@ use std::{
 
 use clap::Parser;
 use collect::collect;
-use generate::{generate, GeneratorConfig};
-use intdb::{make_intdb, MiscNodeBuilder};
+use generate::{GeneratorConfig, generate};
+use intdb::{MiscNodeBuilder, make_intdb};
 use parts::Part;
 use pkg::get_pkg_pins;
-use prims::{get_prims, Primitive};
-use prjcombine_re_harvester::Harvester;
+use prims::{Primitive, get_prims};
 use prjcombine_interconnect::{
     db::{BelId, Dir, IntDb, MuxInfo, MuxKind, NodeKindId, NodeTileId, NodeWireId},
     grid::{ColId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };
+use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
     bond::{Bond, BondPin, CfgPin},
     db::Database,
@@ -25,10 +25,10 @@ use prjcombine_siliconblue::{
 };
 use prjcombine_types::tiledb::TileBit;
 use rayon::prelude::*;
-use run::{run, Design, InstPin, RawLoc, RunResult};
+use run::{Design, InstPin, RawLoc, RunResult, run};
 use sample::{get_golden_mux_stats, make_sample, wanted_keys_global, wanted_keys_tiled};
 use sites::{
-    find_bel_pins, find_io_latch_locs, find_sites_misc, find_sites_plb, BelPins, SiteInfo,
+    BelPins, SiteInfo, find_bel_pins, find_io_latch_locs, find_sites_misc, find_sites_plb,
 };
 use unnamed_entity::{EntityId, EntityVec};
 

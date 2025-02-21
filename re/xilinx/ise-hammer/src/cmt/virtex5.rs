@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
-use prjcombine_re_collector::{extract_bitvec_val_part, xlat_bit, xlat_enum, Diff, OcdMode};
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::BelId;
+use prjcombine_re_collector::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
+use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 

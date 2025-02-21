@@ -1,9 +1,9 @@
 use prjcombine_interconnect::db::BelId;
 use prjcombine_interconnect::grid::{DieId, LayerId, RowId};
-use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use prjcombine_re_xilinx_naming::db::NodeRawTileId;
+use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
+use prjcombine_re_xilinx_rawdump::Part;
+use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
 use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {

@@ -11,7 +11,7 @@ use prjcombine_virtex2::grid::{
 use unnamed_entity::{EntityId, EntityVec};
 
 use prjcombine_re_xilinx_rd2db_grid::{
-    extract_int, find_column, find_columns, find_row, find_rows, split_num, IntGrid,
+    IntGrid, extract_int, find_column, find_columns, find_row, find_rows, split_num,
 };
 
 fn get_kind(rd: &Part) -> GridKind {

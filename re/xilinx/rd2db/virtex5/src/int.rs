@@ -1,6 +1,6 @@
 use prjcombine_interconnect::db::{Dir, IntDb, NodeTileId, TermInfo, WireKind};
-use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, NamingDb};
+use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;

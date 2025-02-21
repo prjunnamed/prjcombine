@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_re_collector::{
-    xlat_bit, xlat_bitvec, xlat_enum_default, xlat_enum_ocd, Diff, OcdMode,
+    Diff, OcdMode, xlat_bit, xlat_bitvec, xlat_enum_default, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_interconnect::db::BelId;
 use prjcombine_types::tiledb::{TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 

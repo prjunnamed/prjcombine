@@ -1,8 +1,8 @@
 use prjcombine_re_collector::{xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
+use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::{TileBit, TileItem};
 use prjcombine_xc2000::grid::GridKind;
-use prjcombine_re_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,

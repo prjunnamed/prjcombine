@@ -1,11 +1,11 @@
-use std::collections::{btree_map, BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashSet, btree_map};
 
-use prjcombine_re_collector::{xlat_bit, xlat_enum, xlat_enum_ocd, Diff, FeatureId, OcdMode};
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::{BelId, Dir, NodeTileId, NodeWireId};
+use prjcombine_re_collector::{Diff, FeatureId, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
+use prjcombine_re_hammer::Session;
+use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::TileBit;
 use prjcombine_xc2000::grid::GridKind;
-use prjcombine_re_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{

@@ -1,8 +1,8 @@
 use bitvec::prelude::*;
 use prjcombine_re_collector::xlat_enum;
 use prjcombine_re_hammer::Session;
-use prjcombine_types::tiledb::TileItemKind;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_types::tiledb::TileItemKind;
 
 use crate::{
     backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_one,
@@ -144,7 +144,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "OSC")]);
     ctx.tile_name = "CNR.BR".to_string();
     ctx.bits = TileBits::Raw(vec![
-        edev.btile_main(edev.grid.col_rio(), edev.grid.row_bio())
+        edev.btile_main(edev.grid.col_rio(), edev.grid.row_bio()),
     ]);
     fuzz_enum!(ctx, "OSC1_ATTR", ["4", "16", "64", "256"], [(mode "OSC")]);
     fuzz_enum!(ctx, "OSC2_ATTR", ["2", "8", "32", "128", "1024", "4096", "16384", "65536"], [(mode "OSC")]);

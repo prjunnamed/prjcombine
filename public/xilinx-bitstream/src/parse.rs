@@ -2236,7 +2236,13 @@ fn check_virtex4_ecc(bs: &Bitstream) {
                 }
             }
             if ecc != recc {
-                eprintln!("ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}", ft = finfo.addr.typ, fr=finfo.addr.region, fmaj = finfo.addr.major, fmin = finfo.addr.minor);
+                eprintln!(
+                    "ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}",
+                    ft = finfo.addr.typ,
+                    fr = finfo.addr.region,
+                    fmaj = finfo.addr.major,
+                    fmin = finfo.addr.minor
+                );
             }
         }
     }
@@ -2291,7 +2297,13 @@ fn check_virtex5_ecc(bs: &Bitstream) {
                 }
             }
             if ecc != recc {
-                eprintln!("ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}", ft = finfo.addr.typ, fr=finfo.addr.region, fmaj = finfo.addr.major, fmin = finfo.addr.minor);
+                eprintln!(
+                    "ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}",
+                    ft = finfo.addr.typ,
+                    fr = finfo.addr.region,
+                    fmaj = finfo.addr.major,
+                    fmin = finfo.addr.minor
+                );
             }
         }
     }
@@ -2354,7 +2366,13 @@ fn check_virtex6_ecc(bs: &Bitstream) {
                 }
             }
             if ecc != recc {
-                eprintln!("ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}", ft = finfo.addr.typ, fr=finfo.addr.region, fmaj = finfo.addr.major, fmin = finfo.addr.minor);
+                eprintln!(
+                    "ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}",
+                    ft = finfo.addr.typ,
+                    fr = finfo.addr.region,
+                    fmaj = finfo.addr.major,
+                    fmin = finfo.addr.minor
+                );
             }
         }
     }
@@ -2424,7 +2442,13 @@ fn check_virtex7_ecc(bs: &Bitstream) {
                 }
             }
             if ecc != recc {
-                eprintln!("ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}", ft = finfo.addr.typ, fr=finfo.addr.region, fmaj = finfo.addr.major, fmin = finfo.addr.minor);
+                eprintln!(
+                    "ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}",
+                    ft = finfo.addr.typ,
+                    fr = finfo.addr.region,
+                    fmaj = finfo.addr.major,
+                    fmin = finfo.addr.minor
+                );
             }
         }
     }

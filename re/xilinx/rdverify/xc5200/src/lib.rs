@@ -1,6 +1,6 @@
-use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_re_xilinx_naming_xc2000::ExpandedNamedDevice;
+use prjcombine_re_xilinx_rawdump::Part;
+use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
 
 fn verify_lc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = match bel.key {

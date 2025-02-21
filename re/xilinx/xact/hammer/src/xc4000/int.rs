@@ -1,11 +1,11 @@
-use std::collections::{btree_map, BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashSet, btree_map};
 
-use prjcombine_re_collector::{xlat_bit, xlat_enum, xlat_enum_ocd, Diff, OcdMode};
-use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_interconnect::{
     db::{BelId, NodeTileId, NodeWireId},
     grid::{IntWire, LayerId, NodeLoc},
 };
+use prjcombine_re_collector::{Diff, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
+use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_types::tiledb::TileBit;
 use prjcombine_xc2000::grid::GridKind;
 use unnamed_entity::EntityId;
@@ -118,19 +118,11 @@ fn drive_wire<'a>(
                     }
                 } else {
                     if col == grid.col_lio() {
-                        if row < grid.row_mid() {
-                            "IOB1"
-                        } else {
-                            "IOB0"
-                        }
+                        if row < grid.row_mid() { "IOB1" } else { "IOB0" }
                     } else if col == grid.col_rio() {
                         "IOB0"
                     } else if row == grid.row_bio() {
-                        if col < grid.col_mid() {
-                            "IOB0"
-                        } else {
-                            "IOB1"
-                        }
+                        if col < grid.col_mid() { "IOB0" } else { "IOB1" }
                     } else if row == grid.row_tio() {
                         "IOB0"
                     } else {
@@ -259,7 +251,7 @@ fn drive_wire<'a>(
     } else if wtn.starts_with("SINGLE") || wtn.starts_with("DOUBLE") {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1 .0, w.1 .1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
                 let node = backend.egrid.node(nloc);
                 let node_kind = &backend.egrid.db.nodes[node.kind];
                 if let Some(mux) = node_kind.muxes.get(&(NodeTileId::from_idx(0), w.2)) {
@@ -278,7 +270,7 @@ fn drive_wire<'a>(
     } else if wtn.starts_with("LONG") || wtn.starts_with("IO.DOUBLE") {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1 .0, w.1 .1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
                 let node = backend.egrid.node(nloc);
                 let node_kind = &backend.egrid.db.nodes[node.kind];
                 if let Some(mux) = node_kind.muxes.get(&(NodeTileId::from_idx(0), w.2)) {
@@ -297,7 +289,7 @@ fn drive_wire<'a>(
     } else if wtn.starts_with("IO.DBUF") {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1 .0, w.1 .1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
                 let node = backend.egrid.node(nloc);
                 let node_kind = &backend.egrid.db.nodes[node.kind];
                 if let Some(mux) = node_kind.muxes.get(&(NodeTileId::from_idx(0), w.2)) {

@@ -4,11 +4,11 @@ use std::{
     fmt::{self, Write},
 };
 
+use crate::types::{ClkPadId, FbnId, FclkId, FoeId, ImuxId, PTermId, Ut};
 use enum_map::EnumMap;
 pub use parser::{ParseError, ParseErrorKind};
 use prjcombine_types::{FbId, FbMcId, IoId, IpadId};
-use crate::types::{ClkPadId, FbnId, FclkId, FoeId, ImuxId, PTermId, Ut};
-use unnamed_entity::{entity_id, EntityId, EntityMap, EntityPartVec, EntityVec};
+use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
 
 entity_id! {
     pub id NodeId u32, reserve 1;

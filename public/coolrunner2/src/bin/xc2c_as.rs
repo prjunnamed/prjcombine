@@ -1,18 +1,18 @@
 use std::{
     collections::BTreeMap,
     error::Error,
-    fs::{read_to_string, File},
+    fs::{File, read_to_string},
     io::Write,
     path::{Path, PathBuf},
 };
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_types::{
-    tiledb::{Tile, TileItemKind},
-    FbId, FbMcId, IoId,
-};
 use prjcombine_coolrunner2::{BitCoord, Database, Device};
+use prjcombine_types::{
+    FbId, FbMcId, IoId,
+    tiledb::{Tile, TileItemKind},
+};
 use unnamed_entity::EntityId;
 
 struct Bitstream {

@@ -1,12 +1,12 @@
 use enum_map::EnumMap;
 use prjcombine_interconnect::{db::Dir, grid::RowId};
-use prjcombine_virtex4::{
-    expanded::ExpandedDevice,
-    grid::{ColumnKind, GtKind, Pcie2Kind, XadcIoLoc},
-};
 use prjcombine_re_xilinx_naming::{
     db::NamingDb,
     grid::{BelMultiGrid, ExpandedGridNaming},
+};
+use prjcombine_virtex4::{
+    expanded::ExpandedDevice,
+    grid::{ColumnKind, GtKind, Pcie2Kind, XadcIoLoc},
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -750,17 +750,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let is_l = col < edev.col_clk;
                             let is_hp = kind == "HCLK_IOI_HP";
                             let tk = if is_hp {
-                                if is_l {
-                                    "LIOI"
-                                } else {
-                                    "RIOI"
-                                }
+                                if is_l { "LIOI" } else { "RIOI" }
                             } else {
-                                if is_l {
-                                    "LIOI3"
-                                } else {
-                                    "RIOI3"
-                                }
+                                if is_l { "LIOI3" } else { "RIOI3" }
                             };
                             let htk = if is_hp { "HCLK_IOI" } else { "HCLK_IOI3" };
                             let rx = raw_grid.xlut[col]

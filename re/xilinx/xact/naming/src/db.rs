@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use prjcombine_interconnect::db::{BelId, IntDb, NodeWireId};
 use serde::{Deserialize, Serialize};
-use unnamed_entity::{entity_id, EntityMap};
+use unnamed_entity::{EntityMap, entity_id};
 
 entity_id! {
     pub id NodeNamingId u16, reserve 1;

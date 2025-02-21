@@ -1,7 +1,9 @@
 #![allow(clippy::comparison_chain)]
 
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId};
+use prjcombine_interconnect::grid::{
+    ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
+};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };

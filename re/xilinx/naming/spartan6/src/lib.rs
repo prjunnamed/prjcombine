@@ -4,13 +4,13 @@ use prjcombine_interconnect::{
     db::BelId,
     grid::{ColId, DieId, EdgeIoCoord, RowId},
 };
-use prjcombine_spartan6::{
-    expanded::ExpandedDevice,
-    grid::{ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, PllKind},
-};
 use prjcombine_re_xilinx_naming::{
     db::NamingDb,
     grid::{BelGrid, ExpandedGridNaming},
+};
+use prjcombine_spartan6::{
+    expanded::ExpandedDevice,
+    grid::{ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, PllKind},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -60,17 +60,9 @@ impl<'a> ExpandedNamedDevice<'a> {
             col,
             row,
             bank: if row < self.grid.row_clk() {
-                if col < self.grid.col_clk {
-                    245
-                } else {
-                    267
-                }
+                if col < self.grid.col_clk { 245 } else { 267 }
             } else {
-                if col < self.grid.col_clk {
-                    101
-                } else {
-                    123
-                }
+                if col < self.grid.col_clk { 101 } else { 123 }
             },
             pads_clk: vec![
                 (
@@ -218,17 +210,9 @@ impl Namer<'_> {
         let is_brk = row.to_idx() % 16 == 0 && row != self.grid.row_clk();
         let cd = self.grid.columns[col];
         let naming = if col == self.grid.col_lio() {
-            if is_brk {
-                "LIOI_BRK"
-            } else {
-                "LIOI"
-            }
+            if is_brk { "LIOI_BRK" } else { "LIOI" }
         } else if col == self.grid.col_rio() {
-            if is_brk {
-                "RIOI_BRK"
-            } else {
-                "RIOI"
-            }
+            if is_brk { "RIOI_BRK" } else { "RIOI" }
         } else if row == self.grid.row_bio_outer() {
             if cd.bio == ColumnIoKind::Inner {
                 "BIOI_OUTER_UNUSED"
@@ -444,11 +428,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 is_brk = false;
                             }
                             let bram = if cd.kind == ColumnKind::Bram {
-                                if is_brk {
-                                    "_BRAM_BRK"
-                                } else {
-                                    "_BRAM"
-                                }
+                                if is_brk { "_BRAM_BRK" } else { "_BRAM" }
                             } else {
                                 ""
                             };

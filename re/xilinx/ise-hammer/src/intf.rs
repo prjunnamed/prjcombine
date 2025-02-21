@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use prjcombine_re_collector::{xlat_bit, xlat_enum, xlat_enum_default, Diff, FeatureId};
+use prjcombine_re_collector::{Diff, FeatureId, xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 

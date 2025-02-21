@@ -3,7 +3,7 @@ use std::{collections::HashMap, error::Error, fs::File, path::Path};
 use crate::device::{Device, Package};
 use crate::types::{ImuxId, ImuxInput};
 use serde::{Deserialize, Serialize};
-use unnamed_entity::{entity_id, EntityVec};
+use unnamed_entity::{EntityVec, entity_id};
 
 pub type ImuxData = EntityVec<ImuxId, HashMap<ImuxInput, u32>>;
 

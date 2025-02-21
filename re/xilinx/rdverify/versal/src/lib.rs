@@ -1,7 +1,7 @@
-use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_versal::{expanded::UbumpId, grid::DisabledPart};
 use prjcombine_re_xilinx_naming_versal::ExpandedNamedDevice;
+use prjcombine_re_xilinx_rawdump::Part;
+use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
+use prjcombine_versal::{expanded::UbumpId, grid::DisabledPart};
 use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {

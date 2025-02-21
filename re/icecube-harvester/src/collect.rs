@@ -1,10 +1,10 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
+use prjcombine_interconnect::db::{MuxInfo, NodeKindId, NodeWireId};
 use prjcombine_re_collector::{
-    xlat_enum_ocd, Collector, Diff, FeatureData, FeatureId, OcdMode, State,
+    Collector, Diff, FeatureData, FeatureId, OcdMode, State, xlat_enum_ocd,
 };
 use prjcombine_re_harvester::Harvester;
-use prjcombine_interconnect::db::{MuxInfo, NodeKindId, NodeWireId};
 use prjcombine_siliconblue::{
     expanded::{BitOwner, ExpandedDevice},
     grid::GridKind,

@@ -1,6 +1,6 @@
 use clap::Parser;
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkWire};
-use std::collections::{hash_map, HashMap};
+use std::collections::{HashMap, hash_map};
 use std::error::Error;
 use std::path::PathBuf;
 

@@ -1,5 +1,5 @@
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::{BelId, NodeKindId};
+use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 

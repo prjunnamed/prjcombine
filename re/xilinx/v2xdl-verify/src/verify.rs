@@ -1,5 +1,5 @@
 use crate::types::{Test, TgtConfigVal, TgtPinDir};
-use prjcombine_re_xilinx_xdl::{parse_lut, Design, NetType};
+use prjcombine_re_xilinx_xdl::{Design, NetType, parse_lut};
 use std::collections::{HashMap, HashSet};
 
 fn recog_lut(

@@ -1,9 +1,9 @@
+use prjcombine_re_xilinx_geom::{Bond, DeviceNaming, DisabledPart, Grid, Interposer};
+use prjcombine_re_xilinx_naming_virtex4::name_device;
 use prjcombine_re_xilinx_rawdump::{Part, Source};
 use prjcombine_virtex4::expand_grid;
-use prjcombine_re_xilinx_naming_virtex4::name_device;
-use prjcombine_re_xilinx_geom::{Bond, DeviceNaming, DisabledPart, Grid, Interposer};
 
-use crate::db::{make_device_multi, PreDevice};
+use crate::db::{PreDevice, make_device_multi};
 use prjcombine_re_xilinx_rd2db_virtex7::{bond, grid, gtz, int};
 use prjcombine_re_xilinx_rdverify_virtex7::verify_device;
 

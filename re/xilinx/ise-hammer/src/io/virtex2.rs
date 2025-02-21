@@ -1,15 +1,15 @@
-use std::collections::{hash_map, HashMap, HashSet};
+use std::collections::{HashMap, HashSet, hash_map};
 
 use bitvec::prelude::*;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_re_collector::{
-    enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
-    xlat_item_tile_fwd, Diff, OcdMode,
+    Diff, OcdMode, enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum,
+    xlat_enum_ocd, xlat_item_tile_fwd,
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_interconnect::db::BelId;
+use prjcombine_re_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::grid::GridKind;
-use prjcombine_re_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -2119,11 +2119,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                                     }
                                 };
                                 let mode = if std.diff == DiffKind::None {
-                                    if is_s3a_lr {
-                                        "IOBLR"
-                                    } else {
-                                        "IOB"
-                                    }
+                                    if is_s3a_lr { "IOBLR" } else { "IOB" }
                                 } else {
                                     match iob.diff {
                                         IobDiff::None => continue,
@@ -3726,11 +3722,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                     } else if edev.grid.kind == GridKind::Spartan3E {
                         let vcco = std.vcco.unwrap();
-                        if vcco < 2500 {
-                            "CMOS_LV"
-                        } else {
-                            "CMOS_HV"
-                        }
+                        if vcco < 2500 { "CMOS_LV" } else { "CMOS_HV" }
                     } else {
                         "CMOS"
                     };

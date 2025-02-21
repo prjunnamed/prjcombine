@@ -138,11 +138,7 @@ impl DeviceKind {
     }
 
     pub fn mcs_per_fb(self) -> usize {
-        if self.is_xc9500() {
-            18
-        } else {
-            16
-        }
+        if self.is_xc9500() { 18 } else { 16 }
     }
 
     pub fn imux_per_fb(self) -> usize {

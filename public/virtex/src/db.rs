@@ -4,7 +4,7 @@ use prjcombine_interconnect::db::IntDb;
 use prjcombine_types::tiledb::TileDb;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use unnamed_entity::{entity_id, EntityId, EntityMap, EntityVec};
+use unnamed_entity::{EntityId, EntityMap, EntityVec, entity_id};
 
 use crate::{
     bond::Bond,

@@ -4,7 +4,7 @@ use std::{
 };
 
 use prjcombine_types::tiledb::TileBit;
-use unnamed_entity::{entity_id, EntityVec};
+use unnamed_entity::{EntityVec, entity_id};
 
 #[derive(Debug, Clone)]
 pub struct Sample<BitTile: Copy + Eq + Ord + Debug> {
@@ -504,9 +504,10 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                         if cands.len() > 1 {
                             cands.sort();
                             match cands[..] {
-                                [CandidateOwner::Tiled(pattern_id_a, tile_idx_a), CandidateOwner::Tiled(pattern_id_b, tile_idx_b)]
-                                    if tile_idx_a == tile_idx_b =>
-                                {
+                                [
+                                    CandidateOwner::Tiled(pattern_id_a, tile_idx_a),
+                                    CandidateOwner::Tiled(pattern_id_b, tile_idx_b),
+                                ] if tile_idx_a == tile_idx_b => {
                                     let tbit = TileBit {
                                         tile: tile_idx_a,
                                         frame: bit.1,
@@ -519,9 +520,11 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                                         value,
                                     ));
                                 }
-                                [CandidateOwner::Tiled(pattern_id_a, tile_idx_a), CandidateOwner::Tiled(pattern_id_b, tile_idx_b), CandidateOwner::Tiled(pattern_id_c, tile_idx_c)]
-                                    if tile_idx_a == tile_idx_b && tile_idx_a == tile_idx_c =>
-                                {
+                                [
+                                    CandidateOwner::Tiled(pattern_id_a, tile_idx_a),
+                                    CandidateOwner::Tiled(pattern_id_b, tile_idx_b),
+                                    CandidateOwner::Tiled(pattern_id_c, tile_idx_c),
+                                ] if tile_idx_a == tile_idx_b && tile_idx_a == tile_idx_c => {
                                     let tbit = TileBit {
                                         tile: tile_idx_a,
                                         frame: bit.1,

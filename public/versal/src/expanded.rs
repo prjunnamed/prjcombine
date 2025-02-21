@@ -1,6 +1,6 @@
 use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId};
 use std::collections::{BTreeSet, HashMap};
-use unnamed_entity::{entity_id, EntityBitVec, EntityVec};
+use unnamed_entity::{EntityBitVec, EntityVec, entity_id};
 
 entity_id! {
     pub id UbumpId u8;

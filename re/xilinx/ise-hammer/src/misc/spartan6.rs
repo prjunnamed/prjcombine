@@ -1,9 +1,9 @@
 use bitvec::prelude::*;
-use prjcombine_re_collector::{concat_bitvec, xlat_bit, OcdMode};
+use prjcombine_re_collector::{OcdMode, concat_bitvec, xlat_bit};
 use prjcombine_re_hammer::Session;
+use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_xilinx_bitstream::Reg;
-use prjcombine_re_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,

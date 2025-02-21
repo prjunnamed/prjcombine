@@ -1,11 +1,11 @@
 use core::ops::Range;
 
-use prjcombine_re_collector::{xlat_bit, xlat_bitvec, xlat_enum, OcdMode};
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::{BelId, Dir};
+use prjcombine_re_collector::{OcdMode, xlat_bit, xlat_bitvec, xlat_enum};
+use prjcombine_re_hammer::Session;
+use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::grid::Gts;
 use prjcombine_types::tiledb::{TileBit, TileItem};
-use prjcombine_re_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{

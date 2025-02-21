@@ -1,7 +1,7 @@
-use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_xc2000::grid::GridKind;
 use prjcombine_re_xilinx_naming_xc2000::ExpandedNamedDevice;
+use prjcombine_re_xilinx_rawdump::Part;
+use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
+use prjcombine_xc2000::grid::GridKind;
 
 fn verify_clb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(

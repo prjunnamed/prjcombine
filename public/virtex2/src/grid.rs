@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::iob::{
-    get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t, IobKind, IobTileData,
+    IobKind, IobTileData, get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]

@@ -1,10 +1,10 @@
 use bitvec::prelude::*;
+use prjcombine_interconnect::db::BelId;
 use prjcombine_re_collector::{
-    extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool,
-    xlat_enum, xlat_enum_ocd, Diff, OcdMode,
+    Diff, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide,
+    xlat_bitvec, xlat_bool, xlat_enum, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_interconnect::db::BelId;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
@@ -2202,11 +2202,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                         }
                     }
                     let mode = if std.vref.is_some() {
-                        if lp == "LP" {
-                            "VREF_LP"
-                        } else {
-                            "VREF_HP"
-                        }
+                        if lp == "LP" { "VREF_LP" } else { "VREF_HP" }
                     } else if std.vcco == Some(1200) {
                         "CMOS12"
                     } else {

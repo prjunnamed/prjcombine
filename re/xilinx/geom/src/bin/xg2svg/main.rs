@@ -1,6 +1,6 @@
 use clap::Parser;
 use rayon::prelude::*;
-use std::fs::{create_dir_all, File};
+use std::fs::{File, create_dir_all};
 use std::{error::Error, path::PathBuf};
 
 use prjcombine_re_xilinx_geom::{ExpandedDevice, GeomDb};

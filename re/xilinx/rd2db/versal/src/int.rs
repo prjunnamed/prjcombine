@@ -1,11 +1,11 @@
 use enum_map::EnumMap;
 use prjcombine_interconnect::db::{Dir, IntDb, NodeTileId, TermInfo, TermKind, WireKind};
-use prjcombine_re_xilinx_rawdump::{Part, TkWire};
+use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming_versal::DeviceNaming;
 use prjcombine_re_xilinx_naming_versal::{
     BUFDIV_LEAF_SWZ_A, BUFDIV_LEAF_SWZ_AH, BUFDIV_LEAF_SWZ_B, BUFDIV_LEAF_SWZ_BH,
 };
-use prjcombine_re_xilinx_naming::db::NamingDb;
+use prjcombine_re_xilinx_rawdump::{Part, TkWire};
 use std::collections::HashMap;
 use unnamed_entity::{EntityId, EntityPartVec};
 

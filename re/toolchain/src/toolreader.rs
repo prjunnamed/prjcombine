@@ -1,8 +1,8 @@
 use crate::toolchain::Toolchain;
-use nix::fcntl::{fcntl, FcntlArg};
+use nix::fcntl::{FcntlArg, fcntl};
 use nix::sys::stat::Mode;
 use nix::unistd::mkfifo;
-use std::fs::{write, File};
+use std::fs::{File, write};
 use std::io::{self, BufReader, Read};
 use std::os::unix::io::AsRawFd;
 use std::process::{Child, Stdio};

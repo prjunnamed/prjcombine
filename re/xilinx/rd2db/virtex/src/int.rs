@@ -1,8 +1,8 @@
 use prjcombine_interconnect::db::{BelInfo, BelPin, Dir, IntDb, NodeTileId, PinDir, WireKind};
-use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, BelPinNaming, NamingDb, NodeExtPipNaming, NodeRawTileId,
 };
+use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
 

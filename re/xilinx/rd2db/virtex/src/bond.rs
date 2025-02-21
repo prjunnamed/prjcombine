@@ -1,6 +1,6 @@
+use prjcombine_re_xilinx_naming_virtex::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::PkgPin;
 use prjcombine_virtex::bond::{Bond, BondPin, CfgPin};
-use prjcombine_re_xilinx_naming_virtex::ExpandedNamedDevice;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {

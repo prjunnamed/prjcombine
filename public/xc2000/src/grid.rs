@@ -440,11 +440,7 @@ impl Grid {
     }
 
     pub fn btile_height_brk(&self) -> usize {
-        if self.kind == GridKind::Xc2000 {
-            1
-        } else {
-            2
-        }
+        if self.kind == GridKind::Xc2000 { 1 } else { 2 }
     }
 
     pub fn btile_width_main(&self, col: ColId) -> usize {
@@ -497,11 +493,7 @@ impl Grid {
     }
 
     pub fn btile_width_brk(&self) -> usize {
-        if self.kind == GridKind::Xc2000 {
-            2
-        } else {
-            1
-        }
+        if self.kind == GridKind::Xc2000 { 2 } else { 1 }
     }
 
     pub fn to_json(&self) -> serde_json::Value {

@@ -1,13 +1,13 @@
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::DieId;
-use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_virtex4::gtz::GtzDb;
 use prjcombine_re_xilinx_geom::{
     Bond, BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DeviceNaming,
     DeviceNamingId, DisabledPart, GeomDb, Grid, GridId, Interposer, InterposerId,
 };
 use prjcombine_re_xilinx_naming::db::{IntfWireOutNaming, NamingDb};
-use std::collections::{btree_map, BTreeMap, BTreeSet};
+use prjcombine_re_xilinx_rawdump::Part;
+use prjcombine_virtex4::gtz::GtzDb;
+use std::collections::{BTreeMap, BTreeSet, btree_map};
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 pub struct PreDevice {

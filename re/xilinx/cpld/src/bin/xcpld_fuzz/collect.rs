@@ -2,7 +2,7 @@
 
 use core::fmt::Debug;
 use core::hash::Hash;
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::{HashMap, hash_map::Entry};
 
 use enum_map::EnumMap;
 use itertools::Itertools;

@@ -6,7 +6,7 @@ use prjcombine_re_xilinx_rdbuild::{PartBuilder, PbPip, PbSitePin};
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::error::Error;
-use unnamed_entity::{entity_id, EntitySet};
+use unnamed_entity::{EntitySet, entity_id};
 
 entity_id! {
     id StringId u32;

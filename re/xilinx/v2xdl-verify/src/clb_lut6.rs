@@ -228,11 +228,7 @@ fn make_ffs(
             &bel,
             &inst.name,
             if n == 6 {
-                if latch {
-                    "#LATCH"
-                } else {
-                    "#FF"
-                }
+                if latch { "#LATCH" } else { "#FF" }
             } else {
                 ""
             },

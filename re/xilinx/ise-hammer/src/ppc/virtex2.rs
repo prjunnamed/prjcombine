@@ -1,5 +1,5 @@
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::{BelId, PinDir};
+use prjcombine_re_hammer::Session;
 use unnamed_entity::EntityId;
 
 use crate::{

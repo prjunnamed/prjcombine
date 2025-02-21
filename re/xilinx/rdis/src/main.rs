@@ -2,8 +2,8 @@ use std::{error::Error, path::PathBuf};
 
 use arrayref::array_ref;
 use clap::Parser;
-use prjcombine_xilinx_bitstream::{KeyData, Reg};
 use prjcombine_re_xilinx_geom::GeomDb;
+use prjcombine_xilinx_bitstream::{KeyData, Reg};
 
 #[derive(Debug, Parser)]
 #[command(name = "xrdis", about = "Disasm xilinx bitstream.")]
@@ -18,7 +18,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut bitdata = std::fs::read(args.bitfile)?;
     assert_eq!(
         bitdata[..13],
-        [0x00, 0x09, 0x0f, 0xf0, 0x0f, 0xf0, 0x0f, 0xf0, 0x0f, 0xf0, 0x00, 0x00, 0x01]
+        [
+            0x00, 0x09, 0x0f, 0xf0, 0x0f, 0xf0, 0x0f, 0xf0, 0x0f, 0xf0, 0x00, 0x00, 0x01
+        ]
     );
     let mut pos = 13;
     let mut meta = vec![];

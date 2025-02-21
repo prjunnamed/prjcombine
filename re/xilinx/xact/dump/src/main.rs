@@ -1,12 +1,12 @@
 use std::{
-    collections::{btree_map, BTreeMap},
+    collections::{BTreeMap, btree_map},
     path::PathBuf,
 };
 
 use clap::Parser;
 use prjcombine_re_xilinx_xact_data::{
     die::Die,
-    parts::{get_parts, PartKind},
+    parts::{PartKind, get_parts},
     pkg::get_pkg,
 };
 use prjcombine_re_xilinx_xact_geom::{Device, DeviceBond, GeomDb};

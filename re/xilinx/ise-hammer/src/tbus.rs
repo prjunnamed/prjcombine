@@ -1,6 +1,6 @@
+use prjcombine_interconnect::db::BelId;
 use prjcombine_re_collector::xlat_bool;
 use prjcombine_re_hammer::Session;
-use prjcombine_interconnect::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{

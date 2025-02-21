@@ -539,14 +539,14 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
     if let Some(suf) = wname.strip_prefix("OUT.LC") {
         if !suf.contains('.') {
             let mut idx: u32 = suf.parse().unwrap();
-            if (wire.1 .0 == edev.grid.col_lio() || wire.1 .0 == edev.grid.col_rio())
-                && (wire.1 .1 == edev.grid.row_bio() || wire.1 .1 == edev.grid.row_tio())
+            if (wire.1.0 == edev.grid.col_lio() || wire.1.0 == edev.grid.col_rio())
+                && (wire.1.1 == edev.grid.row_bio() || wire.1.1 == edev.grid.row_tio())
             {
                 wire.2 = edev.egrid.db.get_wire("OUT.LC0");
-            } else if wire.1 .1 == edev.grid.row_bio()
-                || wire.1 .1 == edev.grid.row_tio()
-                || (wire.1 .0 == edev.grid.col_lio() && edev.grid.kind.has_lrio())
-                || (wire.1 .0 == edev.grid.col_rio() && edev.grid.kind.has_lrio())
+            } else if wire.1.1 == edev.grid.row_bio()
+                || wire.1.1 == edev.grid.row_tio()
+                || (wire.1.0 == edev.grid.col_lio() && edev.grid.kind.has_lrio())
+                || (wire.1.0 == edev.grid.col_rio() && edev.grid.kind.has_lrio())
             {
                 idx %= 4;
                 wire.2 = edev.egrid.db.get_wire(&format!("OUT.LC{idx}"));
@@ -566,13 +566,13 @@ pub fn xlat_mux_in(
     let wna = edev.egrid.db.wires.key(wa.2);
     let wnb = edev.egrid.db.wires.key(wb.2);
     if wna.starts_with("GLOBAL") {
-        return (wb.1 .0, wb.1 .1, wa.2, wb.2);
+        return (wb.1.0, wb.1.1, wa.2, wb.2);
     }
     if wna.starts_with("OUT.LC") && wnb.starts_with("LOCAL") {
         let out_idx: usize = wna[6..].parse().unwrap();
         let local_idx: usize = wnb[8..].parse().unwrap();
-        let is_lr = wa.1 .0 == edev.grid.col_lio() || wa.1 .0 == edev.grid.col_rio();
-        let is_bt = wa.1 .1 == edev.grid.row_bio() || wa.1 .1 == edev.grid.row_tio();
+        let is_lr = wa.1.0 == edev.grid.col_lio() || wa.1.0 == edev.grid.col_rio();
+        let is_bt = wa.1.1 == edev.grid.row_bio() || wa.1.1 == edev.grid.row_tio();
         if is_lr && is_bt {
             // could be anything
         } else if (is_lr && edev.grid.kind.has_lrio()) || is_bt {

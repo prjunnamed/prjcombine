@@ -1,7 +1,7 @@
 use bitvec::vec::BitVec;
-use prjcombine_re_collector::{extract_bitvec_val_part, xlat_bit, xlat_enum_ocd, OcdMode};
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::BelId;
+use prjcombine_re_collector::{OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 

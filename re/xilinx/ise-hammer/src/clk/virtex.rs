@@ -1,4 +1,4 @@
-use prjcombine_re_collector::{xlat_bitvec, xlat_bool, xlat_enum, Diff};
+use prjcombine_re_collector::{Diff, xlat_bitvec, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
 
 use crate::{

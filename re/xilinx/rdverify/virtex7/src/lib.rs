@@ -2,14 +2,14 @@ use prjcombine_interconnect::{
     db::{Dir, PinDir},
     grid::{ColId, DieId, RowId},
 };
+use prjcombine_re_xilinx_naming_virtex4::{ExpandedNamedDevice, ExpandedNamedGtz};
 use prjcombine_re_xilinx_rawdump::{Part, Source};
-use prjcombine_re_xilinx_rdverify::{verify, BelContext, SitePin, SitePinDir, Verifier};
+use prjcombine_re_xilinx_rdverify::{BelContext, SitePin, SitePinDir, Verifier, verify};
 use prjcombine_virtex4::{
     expanded::ExpandedGtz,
     grid::DisabledPart,
     gtz::{GtzIntColId, GtzIntRowId},
 };
-use prjcombine_re_xilinx_naming_virtex4::{ExpandedNamedDevice, ExpandedNamedGtz};
 use std::collections::{HashMap, HashSet};
 use unnamed_entity::EntityId;
 

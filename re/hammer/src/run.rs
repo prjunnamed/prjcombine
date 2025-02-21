@@ -5,9 +5,9 @@ use indicatif::ProgressBar;
 use itertools::Itertools;
 use rand::seq::{IteratorRandom, SliceRandom};
 use std::collections::hash_map::Entry;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Condvar;
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use unnamed_entity::EntityId;
 
 struct BatchState<B: Backend> {
@@ -112,11 +112,7 @@ fn run_batch_item<B: Backend>(
                 } else if let Some(idx) = idx {
                     let cw = bdata.code.get_by_left(&(*fid, 0)).unwrap();
                     let state = cw >> idx & 1;
-                    if state != 0 {
-                        b
-                    } else {
-                        a
-                    }
+                    if state != 0 { b } else { a }
                 } else {
                     a
                 };
@@ -476,7 +472,9 @@ impl<'a, B: Backend> Session<'a, B> {
         if self.debug >= 1 {
             let num_fuzzers: usize = self.batches.values().map(|x| x.fuzzers.len()).sum();
             let nb = self.batches.len();
-            eprintln!("Starting hammer run with {num_fuzzers} fuzzers and {num_runs} runs in {nb} batches");
+            eprintln!(
+                "Starting hammer run with {num_fuzzers} fuzzers and {num_runs} runs in {nb} batches"
+            );
         }
         if self.debug >= 3 {
             for (bid, batch) in &self.batches {

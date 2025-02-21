@@ -1,6 +1,6 @@
-use prjcombine_re_xilinx_rawdump::TkSitePinDir;
 use prjcombine_re_toolchain::{Toolchain, ToolchainReader};
-use simple_error::{bail, SimpleError};
+use prjcombine_re_xilinx_rawdump::TkSitePinDir;
+use simple_error::{SimpleError, bail};
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines, Write};

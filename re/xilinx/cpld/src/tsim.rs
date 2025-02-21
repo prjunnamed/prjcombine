@@ -5,8 +5,8 @@ use std::{
     process::Stdio,
 };
 
-use prjcombine_re_toolchain::Toolchain;
 use crate::vm6::Vm6;
+use prjcombine_re_toolchain::Toolchain;
 use simple_error::bail;
 
 pub fn run_tsim(tc: &Toolchain, vm6: &Vm6) -> Result<(String, String), Box<dyn Error>> {

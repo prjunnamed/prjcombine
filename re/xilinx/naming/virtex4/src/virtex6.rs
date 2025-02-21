@@ -1,9 +1,9 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
+use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{
     expanded::ExpandedDevice,
     grid::{ColumnKind, DisabledPart, Grid},
 };
-use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::ExpandedNamedDevice;

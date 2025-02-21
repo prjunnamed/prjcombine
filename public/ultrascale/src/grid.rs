@@ -3,7 +3,7 @@ use prjcombine_interconnect::grid::{ColId, DieId, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::BTreeSet;
-use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
+use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
 
 entity_id! {
     pub id RegId u32, delta;
@@ -181,11 +181,7 @@ pub enum PsIntfKind {
 
 impl Ps {
     pub fn height(self) -> usize {
-        if self.has_vcu {
-            240
-        } else {
-            180
-        }
+        if self.has_vcu { 240 } else { 180 }
     }
 }
 

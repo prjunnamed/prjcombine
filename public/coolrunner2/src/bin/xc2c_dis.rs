@@ -2,11 +2,11 @@ use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_types::{
-    tiledb::{Tile, TileItemKind},
-    FbId, FbMcId, IoId,
-};
 use prjcombine_coolrunner2::{BitCoord, Database, Device};
+use prjcombine_types::{
+    FbId, FbMcId, IoId,
+    tiledb::{Tile, TileItemKind},
+};
 use unnamed_entity::EntityId;
 
 struct Bitstream {

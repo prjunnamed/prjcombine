@@ -1,14 +1,14 @@
 use std::{cmp::Ordering, collections::HashSet};
 
 use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedDieRef, LayerId, RowId};
-use prjcombine_virtex2::{
-    expanded::ExpandedDevice,
-    grid::{ColumnIoKind, ColumnKind, DcmPairKind, Grid, GridKind, RowIoKind},
-    iob::{get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t, IobKind},
-};
 use prjcombine_re_xilinx_naming::{
     db::NamingDb,
     grid::{BelGrid, ExpandedGridNaming},
+};
+use prjcombine_virtex2::{
+    expanded::ExpandedDevice,
+    grid::{ColumnIoKind, ColumnKind, DcmPairKind, Grid, GridKind, RowIoKind},
+    iob::{IobKind, get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t},
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 

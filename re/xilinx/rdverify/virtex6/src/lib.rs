@@ -1,7 +1,7 @@
+use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex4::grid::{DisabledPart, GtKind};
-use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {

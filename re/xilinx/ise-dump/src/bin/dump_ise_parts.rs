@@ -1,10 +1,10 @@
 use clap::Parser;
-use prjcombine_re_xilinx_ise_dump::partgen::{get_pkgs, PartgenPkg};
-use prjcombine_re_xilinx_ise_dump::rawdump::get_rawdump;
 use prjcombine_re_toolchain::Toolchain;
-use rayon::prelude::*;
+use prjcombine_re_xilinx_ise_dump::partgen::{PartgenPkg, get_pkgs};
+use prjcombine_re_xilinx_ise_dump::rawdump::get_rawdump;
 use rayon::ThreadPoolBuilder;
-use simple_error::{bail, SimpleError};
+use rayon::prelude::*;
+use simple_error::{SimpleError, bail};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::create_dir_all;

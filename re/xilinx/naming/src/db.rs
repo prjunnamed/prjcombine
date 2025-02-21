@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use prjcombine_interconnect::db::{BelId, IntDb, NodeIriId, NodeWireId, WireId};
 use serde::{Deserialize, Serialize};
-use unnamed_entity::{entity_id, EntityId, EntityMap, EntityPartVec, EntityVec};
+use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
 
 entity_id! {
     pub id NodeNamingId u16, reserve 1;
@@ -168,10 +168,10 @@ impl NamingDb {
                 writeln!(
                     o,
                     "\t\tEXT PIP {wtt:3}.{wtn:20} <- {wft:3}.{wfn:20}: RT.{vrt} {vt} <- {vf}",
-                    wtt = k.0 .0.to_idx(),
-                    wtn = intdb.wires.key(k.0 .1),
-                    wft = k.1 .0.to_idx(),
-                    wfn = intdb.wires.key(k.1 .1),
+                    wtt = k.0.0.to_idx(),
+                    wtn = intdb.wires.key(k.0.1),
+                    wft = k.1.0.to_idx(),
+                    wfn = intdb.wires.key(k.1.1),
                     vrt = v.tile.to_idx(),
                     vt = v.wire_to,
                     vf = v.wire_from,
@@ -248,18 +248,38 @@ impl NamingDb {
                     wn = intdb.wires.key(w.1)
                 )?;
                 match wn {
-                    IntfWireInNaming::Simple {name} => writeln!(o, "SIMPLE {name}")?,
-                    IntfWireInNaming::Buf{name_out, name_in} => writeln!(o, "BUF {name_out} <- {name_in}")?,
-                    IntfWireInNaming::TestBuf{name_out, name_in} => writeln!(o, "TESTBUF {name_out} <- {name_in}")?,
-                    IntfWireInNaming::Delay{name_out, name_delay, name_in} => {
-                        writeln!(o, "DELAY {name_out} <- {name_delay} <- {name_in}")?
+                    IntfWireInNaming::Simple { name } => writeln!(o, "SIMPLE {name}")?,
+                    IntfWireInNaming::Buf { name_out, name_in } => {
+                        writeln!(o, "BUF {name_out} <- {name_in}")?
                     }
-                    IntfWireInNaming::Iri{name_out, name_pin_out, name_pin_in, name_in} => {
-                        writeln!(o, "IRI {name_out} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}")?
+                    IntfWireInNaming::TestBuf { name_out, name_in } => {
+                        writeln!(o, "TESTBUF {name_out} <- {name_in}")?
                     }
-                    IntfWireInNaming::IriDelay{name_out, name_delay, name_pre_delay, name_pin_out, name_pin_in, name_in} => {
-                        writeln!(o, "IRI.DELAY {name_out} <- {name_delay} <- {name_pre_delay} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}")?
-                    }
+                    IntfWireInNaming::Delay {
+                        name_out,
+                        name_delay,
+                        name_in,
+                    } => writeln!(o, "DELAY {name_out} <- {name_delay} <- {name_in}")?,
+                    IntfWireInNaming::Iri {
+                        name_out,
+                        name_pin_out,
+                        name_pin_in,
+                        name_in,
+                    } => writeln!(
+                        o,
+                        "IRI {name_out} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}"
+                    )?,
+                    IntfWireInNaming::IriDelay {
+                        name_out,
+                        name_delay,
+                        name_pre_delay,
+                        name_pin_out,
+                        name_pin_in,
+                        name_in,
+                    } => writeln!(
+                        o,
+                        "IRI.DELAY {name_out} <- {name_delay} <- {name_pre_delay} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}"
+                    )?,
                 }
             }
         }

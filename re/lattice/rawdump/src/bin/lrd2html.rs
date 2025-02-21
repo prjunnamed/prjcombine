@@ -3,7 +3,7 @@ use ndarray::Array2;
 use prjcombine_re_lattice_rawdump::{Db, Tile};
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs::{create_dir_all, File};
+use std::fs::{File, create_dir_all};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -2224,9 +2224,30 @@ pub fn dump_html(
         }
         match cs.len() {
             0 => (),
-            1 => writeln!(f, "td.{} {{ background: rgb({}, {}, {}); }}\n", tname, cs[0].0, cs[0].1, cs[0].2)?,
-            2 => writeln!(f, "td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 40%, rgb({}, {}, {}) 60%); }}\n", tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2)?,
-            3 => writeln!(f, "td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 25%, rgb({}, {}, {}) 50%, rgb({}, {}, {}) 75%); }}\n", tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2, cs[2].0, cs[2].1, cs[2].2)?,
+            1 => writeln!(
+                f,
+                "td.{} {{ background: rgb({}, {}, {}); }}\n",
+                tname, cs[0].0, cs[0].1, cs[0].2
+            )?,
+            2 => writeln!(
+                f,
+                "td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 40%, rgb({}, {}, {}) 60%); }}\n",
+                tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2
+            )?,
+            3 => writeln!(
+                f,
+                "td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 25%, rgb({}, {}, {}) 50%, rgb({}, {}, {}) 75%); }}\n",
+                tname,
+                cs[0].0,
+                cs[0].1,
+                cs[0].2,
+                cs[1].0,
+                cs[1].1,
+                cs[1].2,
+                cs[2].0,
+                cs[2].1,
+                cs[2].2
+            )?,
             _ => panic!("too colorful {tname}"),
         }
     }

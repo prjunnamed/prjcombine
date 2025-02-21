@@ -1,6 +1,6 @@
-use prjcombine_re_collector::{xlat_bit, xlat_enum_ocd, Diff, FeatureId, OcdMode};
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::WireKind;
+use prjcombine_re_collector::{Diff, FeatureId, OcdMode, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::TileBit;
 
 use crate::{

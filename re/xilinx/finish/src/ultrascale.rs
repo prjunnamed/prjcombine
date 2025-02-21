@@ -1,17 +1,17 @@
 use std::{
-    collections::{btree_map, BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, btree_map},
     sync::LazyLock,
 };
 
 use itertools::Itertools;
 use prjcombine_interconnect::grid::DieId;
+use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_ultrascale::{
     bond::Bond,
     db::{Database, DeviceCombo, Part},
     grid::{CleMKind, ColumnKindLeft, DisabledPart, Grid, HardRowKind, Interposer, IoRowKind},
 };
-use prjcombine_re_xilinx_geom::GeomDb;
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 

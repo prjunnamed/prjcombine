@@ -1,9 +1,9 @@
+use prjcombine_re_xilinx_geom::{Bond, DeviceNaming, DisabledPart, Grid, Interposer};
+use prjcombine_re_xilinx_naming_versal::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_versal::expand::expand_grid;
-use prjcombine_re_xilinx_naming_versal::name_device;
-use prjcombine_re_xilinx_geom::{Bond, DeviceNaming, DisabledPart, Grid, Interposer};
 
-use crate::db::{make_device_multi, PreDevice};
+use crate::db::{PreDevice, make_device_multi};
 use prjcombine_re_xilinx_rd2db_versal::{grid, int};
 use prjcombine_re_xilinx_rdverify_versal::verify_device;
 

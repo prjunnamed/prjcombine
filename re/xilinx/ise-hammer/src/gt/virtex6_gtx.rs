@@ -1,8 +1,8 @@
 use core::ops::Range;
 
-use prjcombine_re_collector::{xlat_bit, xlat_enum, Diff};
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::db::BelId;
+use prjcombine_re_collector::{Diff, xlat_bit, xlat_enum};
+use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 

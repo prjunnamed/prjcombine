@@ -1,8 +1,8 @@
 use prjcombine_interconnect::db::{Dir, IntDb, WireKind};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 
-use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
 use prjcombine_re_xilinx_naming::db::NamingDb;
+use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);

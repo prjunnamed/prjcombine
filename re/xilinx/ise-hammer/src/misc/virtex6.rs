@@ -1,5 +1,5 @@
 use bitvec::prelude::*;
-use prjcombine_re_collector::{xlat_bit, xlat_bitvec, xlat_enum_ocd, OcdMode};
+use prjcombine_re_collector::{OcdMode, xlat_bit, xlat_bitvec, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_xilinx_bitstream::Reg;

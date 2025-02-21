@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 
-use prjcombine_re_collector::{xlat_bit, xlat_enum_ocd, Diff, FeatureId, OcdMode};
-use prjcombine_re_hammer::Session;
 use prjcombine_interconnect::{
     db::{BelId, NodeTileId, WireKind},
     grid::RowId,
 };
+use prjcombine_re_collector::{Diff, FeatureId, OcdMode, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
@@ -870,8 +870,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 "IO.L" => edev.btile_main(edev.grid.col_lio(), RowId::from_idx(1)),
                                 "IO.R" => edev.btile_main(edev.grid.col_rio(), RowId::from_idx(1)),
                                 _ => panic!(
-                                "CAN'T FIGURE OUT DRIVE {tile} {mux_name} {drive_bits:?} {inps:?}"
-                            ),
+                                    "CAN'T FIGURE OUT DRIVE {tile} {mux_name} {drive_bits:?} {inps:?}"
+                                ),
                             };
                             drive_bits.retain(|bit| {
                                 !ctx.empty_bs

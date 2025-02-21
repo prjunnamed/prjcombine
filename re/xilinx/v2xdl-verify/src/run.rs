@@ -1,7 +1,7 @@
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_xdl::Design;
 use simple_error::bail;
-use std::fs::{read_to_string, File};
+use std::fs::{File, read_to_string};
 use std::io::Write;
 use std::process::Stdio;
 

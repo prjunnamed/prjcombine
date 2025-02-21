@@ -3,13 +3,13 @@ use std::fmt::Write;
 use prjcombine_interconnect::db::{
     Dir, IntDb, NodeTileId, NodeWireId, TermInfo, TermKind, WireId, WireKind,
 };
-use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_re_xilinx_naming::db::{NamingDb, NodeNamingId};
+use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
 
-use enum_map::{enum_map, EnumMap};
+use enum_map::{EnumMap, enum_map};
 
 const BOT_KINDS: [&str; 4] = ["BOT", "BOTS", "BOTSL", "BOTRR"];
 const TOP_KINDS: [&str; 4] = ["TOP", "TOPS", "TOPSL", "TOPRR"];

@@ -6,7 +6,9 @@ use prjcombine_virtex4::grid::{
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityVec};
 
-use prjcombine_re_xilinx_rd2db_grid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};
+use prjcombine_re_xilinx_rd2db_grid::{
+    IntGrid, extract_int, find_column, find_columns, find_row, find_rows,
+};
 
 fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
