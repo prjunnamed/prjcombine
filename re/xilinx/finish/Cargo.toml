@@ -18,7 +18,6 @@ prjcombine-virtex4.workspace = true
 prjcombine-ultrascale.workspace = true
 prjcombine-re-xilinx-xact-geom.workspace = true
 prjcombine-re-xilinx-geom.workspace = true
-serde_json.workspace = true
 itertools.workspace = true
 regex.workspace = true
 clap.workspace = true

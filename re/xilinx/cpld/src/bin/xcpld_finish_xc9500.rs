@@ -923,17 +923,17 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                     (
                         k.clone(),
                         match *v {
-                            PkgPin::Nc => xc9500::Pad::Nc,
-                            PkgPin::Gnd => xc9500::Pad::Gnd,
-                            PkgPin::VccInt => xc9500::Pad::VccInt,
+                            PkgPin::Nc => xc9500::BondPad::Nc,
+                            PkgPin::Gnd => xc9500::BondPad::Gnd,
+                            PkgPin::VccInt => xc9500::BondPad::VccInt,
                             PkgPin::VccIo(bank) => {
-                                xc9500::Pad::VccIo(xc9500::BankId::from_idx(bank.to_idx()))
+                                xc9500::BondPad::VccIo(xc9500::BankId::from_idx(bank.to_idx()))
                             }
-                            PkgPin::Jtag(JtagPin::Tck) => xc9500::Pad::Tck,
-                            PkgPin::Jtag(JtagPin::Tms) => xc9500::Pad::Tms,
-                            PkgPin::Jtag(JtagPin::Tdi) => xc9500::Pad::Tdi,
-                            PkgPin::Jtag(JtagPin::Tdo) => xc9500::Pad::Tdo,
-                            PkgPin::Io(IoId::Mc((fb, mc))) => xc9500::Pad::Iob(fb, mc),
+                            PkgPin::Jtag(JtagPin::Tck) => xc9500::BondPad::Tck,
+                            PkgPin::Jtag(JtagPin::Tms) => xc9500::BondPad::Tms,
+                            PkgPin::Jtag(JtagPin::Tdi) => xc9500::BondPad::Tdi,
+                            PkgPin::Jtag(JtagPin::Tdo) => xc9500::BondPad::Tdo,
+                            PkgPin::Io(IoId::Mc((fb, mc))) => xc9500::BondPad::Iob(fb, mc),
                             _ => unreachable!(),
                         },
                     )

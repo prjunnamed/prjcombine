@@ -214,7 +214,7 @@ for db in dbs:
                     if bond not in bonds:
                         pins = {}
                         io_special = {**chip["io_special"], **db["bonds"][bond]["io_special_override"]}
-                        io_special_rev = {f"IOB_{v[0]}_{v[1]}": k for k, v in io_special.items()}
+                        io_special_rev = {v: k for k, v in io_special.items()}
                         for k, v in db["bonds"][bond]["pins"].items():
                             if v not in pins:
                                 pins[v] = ([], io_special_rev.get(v))

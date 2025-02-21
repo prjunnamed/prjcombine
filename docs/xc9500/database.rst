@@ -54,8 +54,7 @@ from a :ref:`part <xc9500-db-part>`.  A chip is an object with the following fie
   - ``"GSR"``
   - ``"GOE[0-3]"``
 
-  The values are two-element lists of numbers.  The first number is FB index, and the second
-  is MC index.  Note that sometimes items in this map are overriden by the bond.
+  The values are of the form ``"IOB_{fb_idx}_{mc_idx}"``.  Note that sometimes items in this map are overriden by the bond.
 
 - ``imux_bits`` (object) : a :ref:`tile <xc9500-db-tile>` describing per-FB bits corresponding to IMUX
 - ``uim_ibuf_bits`` (object or null): for XC95288 chip, a :ref:`tile <xc9500-db-tile>` describing the UIM IBUF bits; for every other chip, ``null``

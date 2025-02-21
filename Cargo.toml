@@ -92,7 +92,6 @@ prjcombine-xpla3 = { path = "public/xpla3" }
 prjcombine-coolrunner2 = { path = "public/coolrunner2" }
 # dependencies shared with public crates (keep in sync)
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
 zstd = "0.13"
 bincode = "1.3"
 unnamed_entity = { version = "0.1.5", features = ["bitvec", "map", "serde"] }

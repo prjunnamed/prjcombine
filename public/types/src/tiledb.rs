@@ -8,6 +8,7 @@ use std::{
 
 use bitvec::vec::BitVec;
 use itertools::*;
+use jzon::JsonValue;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -103,6 +104,35 @@ impl<T: Debug + Copy + Eq + Ord> Tile<T> {
                             json!(Vec::from_iter(invert.iter().map(|x| *x)))
                         },
                     }),
+                },
+            )
+        }))
+        .into()
+    }
+
+    pub fn to_jzon(&self, bit_to_json: impl Fn(T) -> JsonValue) -> JsonValue {
+        jzon::object::Object::from_iter(self.items.iter().map(|(name, item)| {
+            (
+                name.clone(),
+                match &item.kind {
+                    TileItemKind::Enum { values } => jzon::object! {
+                        "bits": Vec::from_iter(item.bits.iter().copied().map(&bit_to_json)),
+                        "values": jzon::object::Object::from_iter(
+                            values.iter().map(|(value_name, value_bits)| {
+                                (value_name.clone(), Vec::from_iter(value_bits.iter().map(|x| *x)))
+                            })
+                        ),
+                    },
+                    TileItemKind::BitVec { invert } => jzon::object! {
+                        "bits": Vec::from_iter(item.bits.iter().copied().map(&bit_to_json)),
+                        "invert": if invert.iter().all(|x| !*x) {
+                            JsonValue::from(false)
+                        } else if invert.iter().all(|x| *x) {
+                            JsonValue::from(true)
+                        } else {
+                            JsonValue::from(Vec::from_iter(invert.iter().map(|x| *x)))
+                        },
+                    },
                 },
             )
         }))
