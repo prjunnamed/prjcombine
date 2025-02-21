@@ -793,7 +793,7 @@ impl Clone for XactFuzzerGen {
 }
 
 impl XactFuzzerGen {
-    fn try_gen<'b>(
+    fn try_generate<'b>(
         &self,
         backend: &XactBackend<'b>,
         kv: &HashMap<Key<'b>, BatchValue<XactBackend<'b>>>,
@@ -822,7 +822,7 @@ impl XactFuzzerGen {
 }
 
 impl<'b> FuzzerGen<XactBackend<'b>> for XactFuzzerGen {
-    fn gen<'a>(
+    fn generate<'a>(
         &self,
         backend: &'a XactBackend<'b>,
         _state: &mut State,
@@ -836,13 +836,13 @@ impl<'b> FuzzerGen<XactBackend<'b>> for XactFuzzerGen {
         let (res, sad_props) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {
-                    if let Some(x) = self.try_gen(backend, kv, loc) {
+                    if let Some(x) = self.try_generate(backend, kv, loc) {
                         break 'find x;
                     }
                 }
             }
             for &loc in locs.choose_multiple(&mut rng, locs.len()) {
-                if let Some(x) = self.try_gen(backend, kv, loc) {
+                if let Some(x) = self.try_generate(backend, kv, loc) {
                     break 'find x;
                 }
             }
@@ -868,7 +868,7 @@ struct XactFuzzerChainGen {
 }
 
 impl<'b> FuzzerGen<XactBackend<'b>> for XactFuzzerChainGen {
-    fn gen<'a>(
+    fn generate<'a>(
         &self,
         backend: &'a XactBackend<'b>,
         _state: &mut State,
@@ -882,7 +882,7 @@ impl<'b> FuzzerGen<XactBackend<'b>> for XactFuzzerChainGen {
         let (res, mut sad_props) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {
-                    if let Some(x) = self.orig.try_gen(backend, kv, loc) {
+                    if let Some(x) = self.orig.try_generate(backend, kv, loc) {
                         for &prop in &self.sad_props {
                             if !x.1.contains(&prop) {
                                 break 'find x;
@@ -892,7 +892,7 @@ impl<'b> FuzzerGen<XactBackend<'b>> for XactFuzzerChainGen {
                 }
             }
             for &loc in locs.choose_multiple(&mut rng, locs.len()) {
-                if let Some(x) = self.orig.try_gen(backend, kv, loc) {
+                if let Some(x) = self.orig.try_generate(backend, kv, loc) {
                     for &prop in &self.sad_props {
                         if !x.1.contains(&prop) {
                             break 'find x;

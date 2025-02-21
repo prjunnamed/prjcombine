@@ -185,7 +185,7 @@ impl<B: Backend> Fuzzer<B> {
 
 #[allow(clippy::type_complexity)]
 pub trait FuzzerGen<B: Backend>: Debug {
-    fn gen<'a>(
+    fn generate<'a>(
         &self,
         backend: &'a B,
         state: &mut B::State,
@@ -197,7 +197,7 @@ pub trait FuzzerGen<B: Backend>: Debug {
 struct SimpleFuzzerGen<B: Backend>(Fuzzer<B>);
 
 impl<B: Backend> FuzzerGen<B> for SimpleFuzzerGen<B> {
-    fn gen<'a>(
+    fn generate<'a>(
         &self,
         _backend: &'a B,
         _state: &mut B::State,

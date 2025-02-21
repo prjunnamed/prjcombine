@@ -396,7 +396,7 @@ impl<'a, B: Backend> Session<'a, B> {
         fgen: &(dyn FuzzerGen<B> + 'a),
     ) -> (FuzzerId, Option<Box<dyn FuzzerGen<B> + 'a>>) {
         for (bid, batch) in &mut self.batches {
-            if let Some((fuzzer, chain)) = fgen.gen(self.backend, state, &batch.kv) {
+            if let Some((fuzzer, chain)) = fgen.generate(self.backend, state, &batch.kv) {
                 if let Some(fid) = batch.install_fuzzer(fuzzer) {
                     return (
                         FuzzerId {
@@ -412,7 +412,7 @@ impl<'a, B: Backend> Session<'a, B> {
             kv: HashMap::new(),
             fuzzers: EntityVec::new(),
         };
-        let Some((fuzzer, chain)) = fgen.gen(self.backend, state, &batch.kv) else {
+        let Some((fuzzer, chain)) = fgen.generate(self.backend, state, &batch.kv) else {
             panic!("failed to generate fuzzer {fgen:?} on empty batch");
         };
         if let Some(fid) = batch.install_fuzzer(fuzzer) {

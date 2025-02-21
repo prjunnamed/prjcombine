@@ -6515,7 +6515,7 @@ pub struct TileFuzzerGen<'a> {
 }
 
 impl<'b> TileFuzzerGen<'b> {
-    fn try_gen(
+    fn try_generate(
         &self,
         backend: &IseBackend<'b>,
         kv: &HashMap<Key<'b>, BatchValue<IseBackend<'b>>>,
@@ -6555,7 +6555,7 @@ impl<'b> TileFuzzerGen<'b> {
 }
 
 impl<'b> FuzzerGen<IseBackend<'b>> for TileFuzzerGen<'b> {
-    fn gen<'a>(
+    fn generate<'a>(
         &self,
         backend: &'a IseBackend<'b>,
         _state: &mut State,
@@ -6569,13 +6569,13 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileFuzzerGen<'b> {
         let (res, extras) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {
-                    if let Some(x) = self.try_gen(backend, kv, loc) {
+                    if let Some(x) = self.try_generate(backend, kv, loc) {
                         break 'find x;
                     }
                 }
             }
             for &loc in locs.choose_multiple(&mut rng, locs.len()) {
-                if let Some(x) = self.try_gen(backend, kv, loc) {
+                if let Some(x) = self.try_generate(backend, kv, loc) {
                     break 'find x;
                 }
             }
@@ -6605,7 +6605,7 @@ struct TileFuzzerChainGen<'a> {
 }
 
 impl<'b> FuzzerGen<IseBackend<'b>> for TileFuzzerChainGen<'b> {
-    fn gen<'a>(
+    fn generate<'a>(
         &self,
         backend: &'a IseBackend<'b>,
         _state: &mut State,
@@ -6619,7 +6619,7 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileFuzzerChainGen<'b> {
         let (res, extras) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {
-                    if let Some((res, extras)) = self.orig.try_gen(backend, kv, loc) {
+                    if let Some((res, extras)) = self.orig.try_generate(backend, kv, loc) {
                         for &extra in &extras {
                             if self.needed_extras.contains(&extra) {
                                 break 'find (res, extras);
@@ -6629,7 +6629,7 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileFuzzerChainGen<'b> {
                 }
             }
             for &loc in locs.choose_multiple(&mut rng, locs.len()) {
-                if let Some((res, extras)) = self.orig.try_gen(backend, kv, loc) {
+                if let Some((res, extras)) = self.orig.try_generate(backend, kv, loc) {
                     for &extra in &extras {
                         if self.needed_extras.contains(&extra) {
                             break 'find (res, extras);
@@ -6668,7 +6668,7 @@ pub struct TileMultiFuzzerGen<'a> {
 }
 
 impl<'b> TileMultiFuzzerGen<'b> {
-    fn try_gen(
+    fn try_generate(
         &self,
         backend: &IseBackend<'b>,
         kv: &HashMap<Key<'b>, BatchValue<IseBackend<'b>>>,
@@ -6707,7 +6707,7 @@ impl<'b> TileMultiFuzzerGen<'b> {
 }
 
 impl<'b> FuzzerGen<IseBackend<'b>> for TileMultiFuzzerGen<'b> {
-    fn gen<'a>(
+    fn generate<'a>(
         &self,
         backend: &'a IseBackend<'b>,
         _state: &mut State,
@@ -6721,13 +6721,13 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileMultiFuzzerGen<'b> {
         let (res, extras) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {
-                    if let Some(x) = self.try_gen(backend, kv, loc) {
+                    if let Some(x) = self.try_generate(backend, kv, loc) {
                         break 'find x;
                     }
                 }
             }
             for &loc in locs.choose_multiple(&mut rng, locs.len()) {
-                if let Some(x) = self.try_gen(backend, kv, loc) {
+                if let Some(x) = self.try_generate(backend, kv, loc) {
                     break 'find x;
                 }
             }
@@ -6757,7 +6757,7 @@ struct TileMultiFuzzerChainGen<'a> {
 }
 
 impl<'b> FuzzerGen<IseBackend<'b>> for TileMultiFuzzerChainGen<'b> {
-    fn gen<'a>(
+    fn generate<'a>(
         &self,
         backend: &'a IseBackend<'b>,
         _state: &mut State,
@@ -6771,7 +6771,7 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileMultiFuzzerChainGen<'b> {
         let (res, extras) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {
-                    if let Some((res, extras)) = self.orig.try_gen(backend, kv, loc) {
+                    if let Some((res, extras)) = self.orig.try_generate(backend, kv, loc) {
                         for &extra in &extras {
                             if self.needed_extras.contains(&extra) {
                                 break 'find (res, extras);
@@ -6781,7 +6781,7 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileMultiFuzzerChainGen<'b> {
                 }
             }
             for &loc in locs.choose_multiple(&mut rng, locs.len()) {
-                if let Some((res, extras)) = self.orig.try_gen(backend, kv, loc) {
+                if let Some((res, extras)) = self.orig.try_generate(backend, kv, loc) {
                     for &extra in &extras {
                         if self.needed_extras.contains(&extra) {
                             break 'find (res, extras);
