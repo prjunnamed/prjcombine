@@ -1,9 +1,9 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
+use jzon::JsonValue;
 use prjcombine_types::{FbId, FbMcId, IoId, IpadId, tiledb::Tile};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
-use unnamed_entity::{EntityVec, entity_id};
+use unnamed_entity::{EntityId, EntityVec, entity_id};
 
 entity_id! {
     pub id ChipId u32;
@@ -52,7 +52,7 @@ pub struct BitCoord {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Pad {
+pub enum BondPad {
     Nc,
     Gnd,
     VccInt,
@@ -66,10 +66,28 @@ pub enum Pad {
     Tdo,
 }
 
+impl std::fmt::Display for BondPad {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BondPad::Nc => write!(f, "NC"),
+            BondPad::Gnd => write!(f, "GND"),
+            BondPad::VccInt => write!(f, "VCCINT"),
+            BondPad::VccIo(bank) => write!(f, "VCCIO{bank}"),
+            BondPad::VccAux => write!(f, "VCCAUX"),
+            BondPad::Iob(fb, mc) => write!(f, "IOB_{fb}_{mc}"),
+            BondPad::Ipad(ipad) => write!(f, "IPAD{ipad}"),
+            BondPad::Tck => write!(f, "TCK"),
+            BondPad::Tms => write!(f, "TMS"),
+            BondPad::Tdi => write!(f, "TDI"),
+            BondPad::Tdo => write!(f, "TDO"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Bond {
     pub idcode_part: u32,
-    pub pins: BTreeMap<String, Pad>,
+    pub pins: BTreeMap<String, BondPad>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -110,67 +128,106 @@ impl Database {
         let cf = zstd::stream::Decoder::new(f)?;
         Ok(bincode::deserialize_from(cf)?)
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        fn bit_to_json(crd: BitCoord) -> serde_json::Value {
-            json!([crd.row, crd.column])
+fn jed_bits_to_json(jed_bits: &[(String, usize)]) -> JsonValue {
+    Vec::from_iter(
+        jed_bits
+            .iter()
+            .map(|(name, index)| jzon::array![name.as_str(), *index]),
+    )
+    .into()
+}
+
+impl Chip {
+    pub fn to_json(&self) -> JsonValue {
+        fn bit_to_json(crd: BitCoord) -> JsonValue {
+            jzon::array![crd.row, crd.column]
         }
 
-        json! ({
-            "chips": Vec::from_iter(self.chips.values().map(|chip| json! ({
-                "idcode_part": chip.idcode_part,
-                "ipads": chip.ipads,
-                "banks": chip.banks,
-                "has_vref": chip.has_vref,
-                "bs_cols": chip.bs_cols,
-                "xfer_cols": chip.xfer_cols,
-                "imux_width": chip.imux_width,
-                "mc_width": chip.mc_width,
-                "bs_layout": match chip.bs_layout {
-                    BsLayout::Narrow => "NARROW",
-                    BsLayout::Wide => "WIDE",
-                },
-                "fb_rows": chip.fb_rows,
-                "fb_cols": chip.fb_cols,
-                "ios": serde_json::Map::from_iter(
-                    chip.io.iter().map(|(&io, bank)| (match io {
-                        IoId::Mc((fb, mc)) => format!("IOB_{fb}_{mc}"),
-                        IoId::Ipad(ip) => format!("IPAD{ip}"),
-                    }, json!(bank)))
-                ),
-                "io_special": chip.io_special,
-                "mc_bits": chip.mc_bits.to_json(bit_to_json),
-                "global_bits": chip.global_bits.to_json(bit_to_json),
-                "jed_global_bits": chip.jed_global_bits,
-                "imux_bits": chip.imux_bits.to_json(bit_to_json),
-            }))),
-            "bonds": Vec::from_iter(
-                self.bonds.values().map(|bond| json!({
-                    "idcode_part": bond.idcode_part,
-                    "pins": serde_json::Map::from_iter(
-                        bond.pins.iter().map(|(k, v)| {
-                            (k.clone(), match v {
-                                Pad::Nc => "NC".to_string(),
-                                Pad::Gnd => "GND".to_string(),
-                                Pad::VccInt => "VCCINT".to_string(),
-                                Pad::VccIo(bank) => format!("VCCIO{bank}"),
-                                Pad::VccAux => "VCCAUX".to_string(),
-                                Pad::Iob(fb, mc) => format!("IOB_{fb}_{mc}"),
-                                Pad::Ipad(ipad) => format!("IPAD{ipad}"),
-                                Pad::Tck => "TCK".to_string(),
-                                Pad::Tms => "TMS".to_string(),
-                                Pad::Tdi => "TDI".to_string(),
-                                Pad::Tdo => "TDO".to_string(),
-                            }.into())
-                        })
-                    ),
+        jzon::object! {
+            idcode_part: self.idcode_part,
+            ipads: self.ipads,
+            banks: self.banks,
+            has_vref: self.has_vref,
+            bs_cols: self.bs_cols,
+            xfer_cols: self.xfer_cols.clone(),
+            imux_width: self.imux_width,
+            mc_width: self.mc_width,
+            bs_layout: match self.bs_layout {
+                BsLayout::Narrow => "NARROW",
+                BsLayout::Wide => "WIDE",
+            },
+            fb_rows: self.fb_rows,
+            fb_cols: self.fb_cols.clone(),
+            ios: jzon::object::Object::from_iter(
+                self.io.iter().map(|(&crd, io_data)| (match crd {
+                    IoId::Mc((fb, mc)) => format!("IOB_{fb}_{mc}"),
+                    IoId::Ipad(ip) => format!("IPAD{ip}"),
+                }, jzon::object! {
+                    bank: io_data.bank.to_idx(),
+                    pad_distance: io_data.pad_distance,
                 }))
             ),
-            "speeds": &self.speeds,
-            "parts": &self.parts,
-            "jed_mc_bits_small": &self.jed_mc_bits_small,
-            "jed_mc_bits_large_iob": &self.jed_mc_bits_large_iob,
-            "jed_mc_bits_large_buried": &self.jed_mc_bits_large_buried,
-        })
+            io_special: jzon::object::Object::from_iter(
+                self.io_special.iter().map(|(key, (fb, mc))| {
+                    (key, format!("IOB_{fb}_{mc}"))
+                })
+            ),
+            mc_bits: self.mc_bits.to_jzon(bit_to_json),
+            global_bits: self.global_bits.to_jzon(bit_to_json),
+            jed_global_bits: jed_bits_to_json(&self.jed_global_bits),
+            imux_bits: self.imux_bits.to_jzon(bit_to_json),
+        }
+    }
+}
+
+impl Bond {
+    pub fn to_json(&self) -> JsonValue {
+        jzon::object! {
+            idcode_part: self.idcode_part,
+            pins: jzon::object::Object::from_iter(
+                self.pins.iter().map(|(k, v)| (k, v.to_string()))
+            ),
+        }
+    }
+}
+
+impl Speed {
+    pub fn to_json(&self) -> JsonValue {
+        jzon::object! {
+            timing: jzon::object::Object::from_iter(
+                self.timing.iter().map(|(k, v)| (k, *v))
+            ),
+        }
+    }
+}
+
+impl Part {
+    pub fn to_json(&self) -> JsonValue {
+        jzon::object! {
+            name: self.name.as_str(),
+            chip: self.chip.to_idx(),
+            packages: jzon::object::Object::from_iter(
+                self.packages.iter().map(|(name, bond)| (name, bond.to_idx()))
+            ),
+            speeds: jzon::object::Object::from_iter(
+                self.speeds.iter().map(|(name, speed)| (name, speed.to_idx()))
+            ),
+        }
+    }
+}
+
+impl Database {
+    pub fn to_json(&self) -> JsonValue {
+        jzon::object! {
+            chips: Vec::from_iter(self.chips.values().map(Chip::to_json)),
+            bonds: Vec::from_iter(self.bonds.values().map(Bond::to_json)),
+            speeds: Vec::from_iter(self.speeds.values().map(Speed::to_json)),
+            parts: Vec::from_iter(self.parts.iter().map(Part::to_json)),
+            jed_mc_bits_small: jed_bits_to_json(&self.jed_mc_bits_small),
+            jed_mc_bits_large_iob: jed_bits_to_json(&self.jed_mc_bits_large_iob),
+            jed_mc_bits_large_buried: jed_bits_to_json(&self.jed_mc_bits_large_buried),
+        }
     }
 }

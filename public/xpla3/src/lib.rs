@@ -5,10 +5,10 @@ use std::{
     path::Path,
 };
 
+use jzon::JsonValue;
 use prjcombine_types::{FbId, FbMcId, tiledb::Tile};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
-use unnamed_entity::{EntityVec, entity_id};
+use unnamed_entity::{EntityId, EntityVec, entity_id};
 
 entity_id! {
     pub id ChipId u32;
@@ -39,7 +39,7 @@ pub struct FbColumn {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Pad {
+pub enum BondPad {
     Nc,
     Gnd,
     Vcc,
@@ -48,10 +48,23 @@ pub enum Pad {
     PortEn,
 }
 
+impl std::fmt::Display for BondPad {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BondPad::Nc => write!(f, "NC"),
+            BondPad::Gnd => write!(f, "GND"),
+            BondPad::Vcc => write!(f, "VCC"),
+            BondPad::Iob(fb, mc) => write!(f, "IOB_{fb}_{mc}"),
+            BondPad::Gclk(gclk) => write!(f, "GCLK{gclk}"),
+            BondPad::PortEn => write!(f, "PORT_EN"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Bond {
     pub idcode_part: u32,
-    pub pins: BTreeMap<String, Pad>,
+    pub pins: BTreeMap<String, BondPad>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -101,49 +114,104 @@ impl Database {
         let cf = zstd::stream::Decoder::new(f)?;
         Ok(bincode::deserialize_from(cf)?)
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        fn bit_to_json(crd: BitCoord) -> serde_json::Value {
-            json!([crd.row, crd.plane, crd.column])
+fn jed_bits_to_json(jed_bits: &[(String, usize)]) -> JsonValue {
+    Vec::from_iter(
+        jed_bits
+            .iter()
+            .map(|(name, index)| jzon::array![name.as_str(), *index]),
+    )
+    .into()
+}
+
+impl FbColumn {
+    pub fn to_json(&self) -> JsonValue {
+        jzon::object! {
+            pt_col: self.pt_col,
+            imux_col: self.imux_col,
+            mc_col: self.mc_col,
+        }
+    }
+}
+
+impl Chip {
+    pub fn to_json(&self) -> JsonValue {
+        fn bit_to_json(crd: BitCoord) -> JsonValue {
+            jzon::array![crd.row, crd.plane, crd.column]
         }
 
-        json! ({
-            "chips": Vec::from_iter(self.chips.values().map(|chip| json! ({
-                "idcode_part": chip.idcode_part,
-                "bs_cols": chip.bs_cols,
-                "imux_width": chip.imux_width,
-                "fb_rows": chip.fb_rows,
-                "fb_cols": chip.fb_cols,
-                "io_mcs": chip.io_mcs,
-                "io_special": chip.io_special,
-                "global_bits": chip.global_bits.to_json(bit_to_json),
-                "jed_global_bits": chip.jed_global_bits,
-                "imux_bits": chip.imux_bits.to_json(bit_to_json),
-            }))),
-            "bonds": Vec::from_iter(
-                self.bonds.values().map(|bond| json!({
-                    "idcode_part": bond.idcode_part,
-                    "pins": serde_json::Map::from_iter(
-                        bond.pins.iter().map(|(k, v)| {
-                            (k.clone(), match v {
-                                Pad::Nc => "NC".to_string(),
-                                Pad::Gnd => "GND".to_string(),
-                                Pad::Vcc => "VCC".to_string(),
-                                Pad::Iob(fb, mc) => format!("IOB_{fb}_{mc}"),
-                                Pad::Gclk(gclk) => format!("GCLK{gclk}"),
-                                Pad::PortEn => "PORT_EN".to_string(),
-                            }.into())
-                        })
-                    ),
-                }))
+        jzon::object! {
+            idcode_part: self.idcode_part,
+            bs_cols: self.bs_cols,
+            imux_width: self.imux_width,
+            fb_rows: self.fb_rows,
+            fb_cols: Vec::from_iter(self.fb_cols.iter().map(|fbcol| fbcol.to_json())),
+            io_mcs: Vec::from_iter(self.io_mcs.iter().map(|mc| mc.to_idx())),
+            io_special: jzon::object::Object::from_iter(
+                self.io_special.iter().map(|(key, (fb, mc))| {
+                    (key, format!("IOB_{fb}_{mc}"))
+                })
             ),
-            "speeds": &self.speeds,
-            "parts": &self.parts,
-            "mc_bits": self.mc_bits.to_json(bit_to_json),
-            "fb_bits": self.fb_bits.to_json(bit_to_json),
-            "jed_mc_bits_iob": &self.jed_mc_bits_iob,
-            "jed_mc_bits_buried": &self.jed_mc_bits_buried,
-            "jed_fb_bits": &self.jed_fb_bits,
-        })
+            global_bits: self.global_bits.to_jzon(bit_to_json),
+            jed_global_bits: jed_bits_to_json(&self.jed_global_bits),
+            imux_bits: self.imux_bits.to_jzon(bit_to_json),
+        }
+    }
+}
+
+impl Bond {
+    pub fn to_json(&self) -> JsonValue {
+        jzon::object! {
+            idcode_part: self.idcode_part,
+            pins: jzon::object::Object::from_iter(
+                self.pins.iter().map(|(k, v)| (k, v.to_string()))
+            ),
+        }
+    }
+}
+
+impl Speed {
+    pub fn to_json(&self) -> JsonValue {
+        jzon::object! {
+            timing: jzon::object::Object::from_iter(
+                self.timing.iter().map(|(k, v)| (k, *v))
+            ),
+        }
+    }
+}
+
+impl Part {
+    pub fn to_json(&self) -> JsonValue {
+        jzon::object! {
+            name: self.name.as_str(),
+            chip: self.chip.to_idx(),
+            packages: jzon::object::Object::from_iter(
+                self.packages.iter().map(|(name, bond)| (name, bond.to_idx()))
+            ),
+            speeds: jzon::object::Object::from_iter(
+                self.speeds.iter().map(|(name, speed)| (name, speed.to_idx()))
+            ),
+        }
+    }
+}
+
+impl Database {
+    pub fn to_json(&self) -> JsonValue {
+        fn bit_to_json(crd: BitCoord) -> JsonValue {
+            jzon::array![crd.row, crd.plane, crd.column]
+        }
+
+        jzon::object! {
+            chips: Vec::from_iter(self.chips.values().map(Chip::to_json)),
+            bonds: Vec::from_iter(self.bonds.values().map(Bond::to_json)),
+            speeds: Vec::from_iter(self.speeds.values().map(Speed::to_json)),
+            parts: Vec::from_iter(self.parts.iter().map(Part::to_json)),
+            mc_bits: self.mc_bits.to_jzon(bit_to_json),
+            fb_bits: self.fb_bits.to_jzon(bit_to_json),
+            jed_mc_bits_iob: jed_bits_to_json(&self.jed_mc_bits_iob),
+            jed_mc_bits_buried: jed_bits_to_json(&self.jed_mc_bits_buried),
+            jed_fb_bits: jed_bits_to_json(&self.jed_fb_bits),
+        }
     }
 }

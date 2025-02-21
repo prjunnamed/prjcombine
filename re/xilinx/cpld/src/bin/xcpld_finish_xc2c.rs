@@ -1127,19 +1127,19 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                     (
                         k.clone(),
                         match *v {
-                            PkgPin::Nc => coolrunner2::Pad::Nc,
-                            PkgPin::Gnd => coolrunner2::Pad::Gnd,
-                            PkgPin::VccInt => coolrunner2::Pad::VccInt,
-                            PkgPin::VccIo(bank) => coolrunner2::Pad::VccIo(
+                            PkgPin::Nc => coolrunner2::BondPad::Nc,
+                            PkgPin::Gnd => coolrunner2::BondPad::Gnd,
+                            PkgPin::VccInt => coolrunner2::BondPad::VccInt,
+                            PkgPin::VccIo(bank) => coolrunner2::BondPad::VccIo(
                                 coolrunner2::BankId::from_idx(bank.to_idx()),
                             ),
-                            PkgPin::VccAux => coolrunner2::Pad::VccAux,
-                            PkgPin::Io(IoId::Mc((fb, mc))) => coolrunner2::Pad::Iob(fb, mc),
-                            PkgPin::Io(IoId::Ipad(pad)) => coolrunner2::Pad::Ipad(pad),
-                            PkgPin::Jtag(JtagPin::Tck) => coolrunner2::Pad::Tck,
-                            PkgPin::Jtag(JtagPin::Tms) => coolrunner2::Pad::Tms,
-                            PkgPin::Jtag(JtagPin::Tdi) => coolrunner2::Pad::Tdi,
-                            PkgPin::Jtag(JtagPin::Tdo) => coolrunner2::Pad::Tdo,
+                            PkgPin::VccAux => coolrunner2::BondPad::VccAux,
+                            PkgPin::Io(IoId::Mc((fb, mc))) => coolrunner2::BondPad::Iob(fb, mc),
+                            PkgPin::Io(IoId::Ipad(pad)) => coolrunner2::BondPad::Ipad(pad),
+                            PkgPin::Jtag(JtagPin::Tck) => coolrunner2::BondPad::Tck,
+                            PkgPin::Jtag(JtagPin::Tms) => coolrunner2::BondPad::Tms,
+                            PkgPin::Jtag(JtagPin::Tdi) => coolrunner2::BondPad::Tdi,
+                            PkgPin::Jtag(JtagPin::Tdo) => coolrunner2::BondPad::Tdo,
                             _ => unreachable!(),
                         },
                     )

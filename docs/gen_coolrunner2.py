@@ -181,7 +181,7 @@ for i, chip in enumerate(db["chips"]):
     with open(f"coolrunner2/db-chip-{parts[0]['name']}.rst", "w") as f:
         names = ", ".join(part["name"].upper() for part in parts)
         fbs = chip['fb_rows'] * len(chip['fb_cols']) * 2
-        io_special_rev = {f"IOB_{v[0]}_{v[1]}": k for k, v in chip["io_special"].items()}
+        io_special_rev = {v: k for k, v in chip["io_special"].items()}
         f.write(f"{names}\n")
         l = "#" * len(names)
         f.write(f"{l}\n")

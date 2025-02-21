@@ -49,8 +49,7 @@ from a :ref:`part <xpla3-db-part>`.  A chip is an object with the following fiel
   - ``"TDI"``
   - ``"TDO"``
 
-  The values are two-element lists of numbers.  The first number is FB index, and the second
-  is MC index.
+  The values are of the form ``"IOB_{fb_idx}_{mc_idx}"``.
 
 - ``imux_bits`` (object) : a :ref:`tile <xpla3-db-tile>` describing per-FB bits corresponding to IMUX
 - ``global_bits`` (object) : a :ref:`tile <xpla3-db-tile>` describing global bits
