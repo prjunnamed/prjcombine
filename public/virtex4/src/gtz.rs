@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
+use jzon::JsonValue;
 use prjcombine_interconnect::db::{Dir, PinDir};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
-use unnamed_entity::{EntityMap, entity_id};
+use unnamed_entity::{EntityId, EntityMap, entity_id};
 
 entity_id! {
     pub id GtzBelId u16;
@@ -36,38 +36,51 @@ pub struct GtzDb {
     pub gtz: EntityMap<GtzBelId, String, GtzBel>,
 }
 
-impl GtzDb {
-    pub fn to_json(&self) -> serde_json::Value {
-        serde_json::Map::from_iter(self.gtz.iter().map(|(_, name, gtz)| {
-            (
-                name.clone(),
-                json!({
-                    "side": gtz.side.to_string(),
-                    "pins": serde_json::Map::from_iter(gtz.pins.iter().map(|(pname, pin)|
-                        (pname.clone(), json!({
-                            "dir": match pin.dir {
-                                PinDir::Input => "INPUT",
-                                PinDir::Output => "OUTPUT",
-                                PinDir::Inout => unreachable!(),
-                            },
-                            "col": pin.col,
-                            "row": pin.row,
-                        }))
-                    )),
-                    "clk_pins": serde_json::Map::from_iter(gtz.clk_pins.iter().map(|(pname, pin)|
-                        (pname.clone(), json!({
-                            "dir": match pin.dir {
-                                PinDir::Input => "INPUT",
-                                PinDir::Output => "OUTPUT",
-                                PinDir::Inout => unreachable!(),
-                            },
-                            "idx": pin.idx,
-                        }))
-                    )),
-                }),
-            )
-        }))
-        .into()
+impl From<&GtzIntPin> for JsonValue {
+    fn from(pin: &GtzIntPin) -> Self {
+        jzon::object! {
+            dir: match pin.dir {
+                PinDir::Input => "INPUT",
+                PinDir::Output => "OUTPUT",
+                PinDir::Inout => unreachable!(),
+            },
+            col: pin.col.to_idx(),
+            row: pin.row.to_idx(),
+        }
+    }
+}
+
+impl From<&GtzClkPin> for JsonValue {
+    fn from(pin: &GtzClkPin) -> Self {
+        jzon::object! {
+            dir: match pin.dir {
+                PinDir::Input => "INPUT",
+                PinDir::Output => "OUTPUT",
+                PinDir::Inout => unreachable!(),
+            },
+            idx: pin.idx,
+        }
+    }
+}
+
+impl From<&GtzBel> for JsonValue {
+    fn from(gtz: &GtzBel) -> Self {
+        jzon::object! {
+            side: gtz.side.to_string(),
+            pins: jzon::object::Object::from_iter(gtz.pins.iter().map(|(pname, pin)|
+                (pname.as_str(), pin)
+            )),
+            clk_pins: jzon::object::Object::from_iter(gtz.clk_pins.iter().map(|(pname, pin)|
+                (pname.as_str(), pin)
+            )),
+        }
+    }
+}
+
+impl From<&GtzDb> for JsonValue {
+    fn from(db: &GtzDb) -> Self {
+        jzon::object::Object::from_iter(db.gtz.iter().map(|(_, name, gtz)| (name.as_str(), gtz)))
+            .into()
     }
 }
 

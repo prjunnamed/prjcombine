@@ -1,6 +1,6 @@
+use jzon::JsonValue;
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
 
@@ -223,16 +223,56 @@ impl Chip {
         }
         res
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "kind": match self.kind {
+impl From<&HardColumn> for JsonValue {
+    fn from(hc: &HardColumn) -> Self {
+        jzon::object! {
+            col: hc.col.to_idx(),
+            rows_emac: Vec::from_iter(hc.rows_emac.iter().map(|row| row.to_idx())),
+            rows_pcie: Vec::from_iter(hc.rows_pcie.iter().map(|row| row.to_idx())),
+        }
+    }
+}
+
+impl From<&IoColumn> for JsonValue {
+    fn from(ioc: &IoColumn) -> Self {
+        jzon::object! {
+            col: ioc.col.to_idx(),
+            regs: Vec::from_iter(ioc.regs.values().map(|kind| match kind {
+                None => JsonValue::Null,
+                Some(IoKind::Hpio) => "HPIO".into(),
+                Some(IoKind::Hrio) => "HRIO".into(),
+            }))
+        }
+    }
+}
+
+impl From<&GtColumn> for JsonValue {
+    fn from(gtc: &GtColumn) -> Self {
+        jzon::object! {
+            col: gtc.col.to_idx(),
+            is_middle: gtc.is_middle,
+            regs: Vec::from_iter(gtc.regs.values().map(|kind| match kind {
+                None => JsonValue::Null,
+                Some(GtKind::Gtp) => "GTP".into(),
+                Some(GtKind::Gtx) => "GTX".into(),
+                Some(GtKind::Gth) => "GTH".into(),
+            }))
+        }
+    }
+}
+
+impl From<&Chip> for JsonValue {
+    fn from(chip: &Chip) -> Self {
+        jzon::object! {
+            kind: match chip.kind {
                 ChipKind::Virtex4 => "virtex4",
                 ChipKind::Virtex5 => "virtex5",
                 ChipKind::Virtex6 => "virtex6",
                 ChipKind::Virtex7 => "virtex7",
             },
-            "columns": Vec::from_iter(self.columns.values().map(|kind| match kind {
+            columns: Vec::from_iter(chip.columns.values().map(|kind| match kind {
                 ColumnKind::ClbLL => "CLBLL".to_string(),
                 ColumnKind::ClbLM => "CLBLM".to_string(),
                 ColumnKind::Bram => "BRAM".to_string(),
@@ -243,52 +283,46 @@ impl Chip {
                 ColumnKind::Cmt => "CMT".to_string(),
                 ColumnKind::Clk => "CLK".to_string(),
             })),
-            "cols_vbrk": self.cols_vbrk,
-            "cols_mgt_buf": self.cols_mgt_buf,
-            "cols_qbuf": self.cols_qbuf,
-            "col_hard": self.col_hard,
-            "cols_io": Vec::from_iter(self.cols_io.iter().map(|iocol| json!({
-                "col": iocol.col,
-                "regs": Vec::from_iter(iocol.regs.values().map(|kind| match kind {
-                    None => serde_json::Value::Null,
-                    Some(IoKind::Hpio) => "HPIO".into(),
-                    Some(IoKind::Hrio) => "HRIO".into(),
-                })),
-            }))),
-            "cols_gt": Vec::from_iter(self.cols_gt.iter().map(|gtcol| json!({
-                "col": gtcol.col,
-                "is_middle": gtcol.is_middle,
-                "regs": Vec::from_iter(gtcol.regs.values().map(|kind| match kind {
-                    None => serde_json::Value::Null,
-                    Some(GtKind::Gtp) => "GTP".into(),
-                    Some(GtKind::Gtx) => "GTX".into(),
-                    Some(GtKind::Gth) => "GTH".into(),
-                })),
-            }))),
-            "regs": self.regs,
-            "reg_cfg": self.reg_cfg,
-            "reg_clk": self.reg_clk,
-            "rows_cfg": serde_json::Map::from_iter(self.rows_cfg.iter().map(|(row, kind)|
+            cols_vbrk: Vec::from_iter(chip.cols_vbrk.iter().map(|col| col.to_idx())),
+            cols_mgt_buf: Vec::from_iter(chip.cols_mgt_buf.iter().map(|col| col.to_idx())),
+            cols_qbuf: chip.cols_qbuf.map(|(col_l, col_r)| jzon::array![col_l.to_idx(), col_r.to_idx()]),
+            col_hard: chip.col_hard.as_ref(),
+            cols_io: Vec::from_iter(chip.cols_io.iter()),
+            cols_gt: Vec::from_iter(chip.cols_gt.iter()),
+            regs: chip.regs,
+            reg_cfg: chip.reg_cfg.to_idx(),
+            reg_clk: chip.reg_clk.to_idx(),
+            rows_cfg: jzon::object::Object::from_iter(chip.rows_cfg.iter().map(|(row, kind)|
                 (row.to_string(), match kind {
                     CfgRowKind::Dcm => "DCM",
                     CfgRowKind::Ccm => "CCM",
                     CfgRowKind::Sysmon => "SYSMON",
-                }.into())
+                })
             )),
-            "holes_ppc": self.holes_ppc,
-            "holes_pcie2": Vec::from_iter(self.holes_pcie2.iter().map(|hole| json!({
-                "kind": match hole.kind {
+            holes_ppc: Vec::from_iter(chip.holes_ppc.iter().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
+            holes_pcie2: Vec::from_iter(chip.holes_pcie2.iter().map(|hole| jzon::object! {
+                kind: match hole.kind {
                     Pcie2Kind::Left => "LEFT",
                     Pcie2Kind::Right => "RIGHT",
                 },
-                "col": hole.col,
-                "row": hole.row,
-            }))),
-            "holes_pcie3": self.holes_pcie3,
-            "has_ps": self.has_ps,
-            "has_slr": self.has_slr,
-            "has_no_tbuturn": self.has_no_tbuturn,
-        })
+                col: hole.col.to_idx(),
+                row: hole.row.to_idx(),
+            })),
+            holes_pcie3: Vec::from_iter(chip.holes_pcie3.iter().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
+            has_ps: chip.has_ps,
+            has_slr: chip.has_slr,
+            has_no_tbuturn: chip.has_no_tbuturn,
+        }
+    }
+}
+
+impl From<&Interposer> for JsonValue {
+    fn from(interp: &Interposer) -> Self {
+        jzon::object! {
+            primary: interp.primary.to_idx(),
+            gtz_bot: interp.gtz_bot,
+            gtz_top: interp.gtz_top,
+        }
     }
 }
 

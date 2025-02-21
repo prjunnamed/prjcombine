@@ -1,9 +1,9 @@
 use std::{collections::BTreeSet, error::Error, fs::File, path::Path};
 
+use jzon::JsonValue;
 use prjcombine_interconnect::{db::IntDb, grid::DieId};
 use prjcombine_types::tiledb::TileDb;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use unnamed_entity::{EntityId, EntityMap, EntityVec, entity_id};
 
 use crate::{
@@ -62,26 +62,41 @@ impl Database {
         cf.finish()?;
         Ok(())
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "chips": Vec::from_iter(self.chips.values().map(|chip| chip.to_json())),
-            "interposers": self.interposers,
-            "bonds": Vec::from_iter(self.bonds.values().map(|bond| bond.to_json())),
-            "parts": Vec::from_iter(self.parts.iter().map(|part| {
-                json!({
-                    "name": part.name,
-                    "interposer": part.interposer,
-                    "chips": part.chips,
-                    "bonds": serde_json::Map::from_iter(part.bonds.iter().map(|(_, name, bond)| (name.clone(), bond.to_idx().into()))),
-                    "speeds": part.speeds,
-                    "combos": part.combos,
-                    "disabled": Vec::from_iter(part.disabled.iter().map(|dis| dis.to_string())),
-                })
-            })),
-            "int": self.int.to_json(),
-            "tiles": self.tiles.to_json(),
-            "gtz": self.gtz.to_json(),
-        })
+impl From<&DeviceCombo> for JsonValue {
+    fn from(combo: &DeviceCombo) -> Self {
+        jzon::object! {
+            devbond: combo.devbond.to_idx(),
+            speed: combo.speed.to_idx(),
+        }
+    }
+}
+
+impl From<&Part> for JsonValue {
+    fn from(part: &Part) -> Self {
+        jzon::object! {
+            name: part.name.as_str(),
+            chips: Vec::from_iter(part.chips.values().map(|x| x.to_idx())),
+            interposer: part.interposer.map(|interp| interp.to_idx()),
+            bonds: jzon::object::Object::from_iter(part.bonds.iter().map(|(_, name, bond)| (name.as_str(), bond.to_idx()))),
+            speeds: Vec::from_iter(part.speeds.values().map(|x| x.as_str())),
+            combos: Vec::from_iter(part.combos.iter()),
+            disabled: Vec::from_iter(part.disabled.iter().map(|dis| dis.to_string())),
+        }
+    }
+}
+
+impl From<&Database> for JsonValue {
+    fn from(db: &Database) -> Self {
+        jzon::object! {
+            chips: Vec::from_iter(db.chips.values()),
+            interposers: Vec::from_iter(db.interposers.values()),
+            bonds: Vec::from_iter(db.bonds.values()),
+            parts: Vec::from_iter(db.parts.iter()),
+            int: &db.int,
+            tiles: &db.tiles,
+            gtz: &db.gtz,
+        }
     }
 }
