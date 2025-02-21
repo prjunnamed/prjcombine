@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use prjcombine_re_xilinx_geom::{Bond, Grid};
 use prjcombine_re_xilinx_naming_virtex2::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_virtex2::grid::GridKind;
+use prjcombine_virtex2::chip::ChipKind;
 
 use crate::db::{PreDevice, make_device};
 use prjcombine_re_xilinx_rd2db_virtex2::{bond, grid, int_s3, int_v2};
@@ -28,7 +28,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     }
     let intdb_name = if grid.kind.is_virtex2() {
         "virtex2"
-    } else if grid.kind == GridKind::FpgaCore {
+    } else if grid.kind == ChipKind::FpgaCore {
         "fpgacore"
     } else {
         "spartan3"

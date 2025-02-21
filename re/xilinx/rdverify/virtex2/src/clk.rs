@@ -1,7 +1,7 @@
 use prjcombine_interconnect::db::{BelId, Dir};
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::grid::{Dcms, GridKind};
+use prjcombine_virtex2::chip::{ChipKind, Dcms};
 use unnamed_entity::EntityId;
 
 use crate::get_bel_iob;
@@ -30,7 +30,7 @@ pub fn verify_bufgmux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
     } else {
         unreachable!()
     };
-    if endev.grid.kind.is_virtex2() || endev.grid.kind == GridKind::Spartan3 {
+    if endev.grid.kind.is_virtex2() || endev.grid.kind == ChipKind::Spartan3 {
         if let Some(crd) = endev.grid.get_clk_io(edge, bel.bid.to_idx()) {
             let obel = get_bel_iob(endev, vrf, crd);
             vrf.claim_node(&[bel.fwire("CKI"), obel.fwire("IBUF")]);
@@ -66,7 +66,7 @@ pub fn verify_bufgmux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
 
         let mut has_dcm_l = true;
         let mut has_dcm_r = true;
-        if endev.grid.kind == GridKind::Spartan3E {
+        if endev.grid.kind == ChipKind::Spartan3E {
             if endev.grid.dcms == Some(Dcms::Two) {
                 has_dcm_l = false;
             }
@@ -148,14 +148,14 @@ pub fn verify_bufgmux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
         vrf.claim_pip(bel.crd(), bel.wire("CLK"), bel.wire("DCM_OUT"));
         if endev.grid.dcms == Some(Dcms::Eight) {
             let pad_pin;
-            if endev.grid.kind != GridKind::Spartan3A {
+            if endev.grid.kind != ChipKind::Spartan3A {
                 pad_pin = "CKI";
             } else {
                 pad_pin = "DCM_PAD";
                 vrf.claim_node(&[bel.fwire("CKI")]);
                 vrf.claim_pip(bel.crd(), bel.wire("DCM_PAD"), bel.wire("CKI"));
             }
-            let scol = if endev.grid.kind == GridKind::Spartan3E {
+            let scol = if endev.grid.kind == ChipKind::Spartan3E {
                 match edge {
                     Dir::W => endev.grid.col_left() + 9,
                     Dir::E => endev.grid.col_right() - 9,
@@ -344,7 +344,7 @@ pub fn verify_clkc_s3(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
         } else {
             endev.grid.row_top()
         };
-        let bufg = if endev.grid.kind == GridKind::FpgaCore {
+        let bufg = if endev.grid.kind == ChipKind::FpgaCore {
             "BUFG"
         } else {
             "BUFGMUX"

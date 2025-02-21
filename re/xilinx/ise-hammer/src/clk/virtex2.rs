@@ -4,7 +4,7 @@ use prjcombine_re_collector::{xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::TileItemKind;
-use prjcombine_virtex2::grid::GridKind;
+use prjcombine_virtex2::chip::ChipKind;
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -21,7 +21,7 @@ pub fn add_fuzzers<'a>(
     devdata_only: bool,
 ) {
     let (edev, grid_kind) = match backend.edev {
-        ExpandedDevice::Virtex2(edev) => (edev, edev.grid.kind),
+        ExpandedDevice::Virtex2(edev) => (edev, edev.chip.kind),
         _ => unreachable!(),
     };
 
@@ -29,9 +29,9 @@ pub fn add_fuzzers<'a>(
         if grid_kind.is_spartan3a() {
             // CLK[LR]
             let (clkl, clkr) = match grid_kind {
-                GridKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
-                GridKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
-                GridKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
+                ChipKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
+                ChipKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
+                ChipKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
                 _ => unreachable!(),
             };
             for tile in [clkl, clkr] {
@@ -46,19 +46,19 @@ pub fn add_fuzzers<'a>(
 
     // CLK[BT]
     let (clkb, clkt) = match grid_kind {
-        GridKind::Virtex2 => ("CLKB.V2", "CLKT.V2"),
-        GridKind::Virtex2P => ("CLKB.V2P", "CLKT.V2P"),
-        GridKind::Virtex2PX => ("CLKB.V2PX", "CLKT.V2PX"),
-        GridKind::Spartan3 => ("CLKB.S3", "CLKT.S3"),
-        GridKind::FpgaCore => ("CLKB.FC", "CLKT.FC"),
-        GridKind::Spartan3E => ("CLKB.S3E", "CLKT.S3E"),
-        GridKind::Spartan3A => ("CLKB.S3A", "CLKT.S3A"),
-        GridKind::Spartan3ADsp => ("CLKB.S3A", "CLKT.S3A"),
+        ChipKind::Virtex2 => ("CLKB.V2", "CLKT.V2"),
+        ChipKind::Virtex2P => ("CLKB.V2P", "CLKT.V2P"),
+        ChipKind::Virtex2PX => ("CLKB.V2PX", "CLKT.V2PX"),
+        ChipKind::Spartan3 => ("CLKB.S3", "CLKT.S3"),
+        ChipKind::FpgaCore => ("CLKB.FC", "CLKT.FC"),
+        ChipKind::Spartan3E => ("CLKB.S3E", "CLKT.S3E"),
+        ChipKind::Spartan3A => ("CLKB.S3A", "CLKT.S3A"),
+        ChipKind::Spartan3ADsp => ("CLKB.S3A", "CLKT.S3A"),
     };
     let bufg_num = if grid_kind.is_virtex2() { 8 } else { 4 };
     for tile in [clkb, clkt] {
         for i in 0..bufg_num {
-            if edev.grid.kind != GridKind::FpgaCore {
+            if edev.chip.kind != ChipKind::FpgaCore {
                 let ctx = FuzzCtx::new(
                     session,
                     backend,
@@ -135,9 +135,9 @@ pub fn add_fuzzers<'a>(
     if grid_kind.is_spartan3ea() {
         // CLK[LR]
         let (clkl, clkr) = match grid_kind {
-            GridKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
-            GridKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
-            GridKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
+            ChipKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
+            ChipKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
+            ChipKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
             _ => unreachable!(),
         };
         for tile in [clkl, clkr] {
@@ -219,7 +219,7 @@ pub fn add_fuzzers<'a>(
                 }
             }
         }
-    } else if edev.grid.cols_clkv.is_none() {
+    } else if edev.chip.cols_clkv.is_none() {
         // CLKC_50A
         let ctx = FuzzCtx::new(session, backend, "CLKC_50A", "CLKC_50A", TileBits::Clkc);
         for (out_l, out_r, in_l, in_r, in_bt) in [
@@ -319,7 +319,7 @@ pub fn add_fuzzers<'a>(
         "GCLKH.0",
         "GCLKH.DSP",
     ] {
-        if tile != "GCLKH" && (grid_kind.is_virtex2() || grid_kind == GridKind::FpgaCore) {
+        if tile != "GCLKH" && (grid_kind.is_virtex2() || grid_kind == ChipKind::FpgaCore) {
             continue;
         }
         let node_kind = backend.egrid.db.get_node(tile);
@@ -370,7 +370,7 @@ pub fn add_fuzzers<'a>(
         }
     }
 
-    if !grid_kind.is_spartan3ea() && grid_kind != GridKind::FpgaCore {
+    if !grid_kind.is_spartan3ea() && grid_kind != ChipKind::FpgaCore {
         // DCMCONN
         for tile in ["DCMCONN.BOT", "DCMCONN.TOP"] {
             let mut ctx = FuzzCtx::new(
@@ -419,7 +419,7 @@ pub fn add_fuzzers<'a>(
         }
     }
 
-    if !grid_kind.is_virtex2() && grid_kind != GridKind::FpgaCore {
+    if !grid_kind.is_virtex2() && grid_kind != ChipKind::FpgaCore {
         // PTE2OMUX
         for tile in ["INT.DCM", "INT.DCM.S3E.DUMMY"] {
             let node_kind = backend.egrid.db.get_node(tile);
@@ -454,7 +454,7 @@ pub fn add_fuzzers<'a>(
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let (edev, grid_kind) = match ctx.edev {
-        ExpandedDevice::Virtex2(edev) => (edev, edev.grid.kind),
+        ExpandedDevice::Virtex2(edev) => (edev, edev.chip.kind),
         _ => unreachable!(),
     };
     let intdb = ctx.edev.egrid().db;
@@ -463,9 +463,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         if grid_kind.is_spartan3a() {
             // CLK[LR]
             let (clkl, clkr) = match grid_kind {
-                GridKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
-                GridKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
-                GridKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
+                ChipKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
+                ChipKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
+                ChipKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
                 _ => unreachable!(),
             };
             for tile in [clkl, clkr] {
@@ -493,19 +493,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
     // CLK[BT]
     let (clkb, clkt) = match grid_kind {
-        GridKind::Virtex2 => ("CLKB.V2", "CLKT.V2"),
-        GridKind::Virtex2P => ("CLKB.V2P", "CLKT.V2P"),
-        GridKind::Virtex2PX => ("CLKB.V2PX", "CLKT.V2PX"),
-        GridKind::Spartan3 => ("CLKB.S3", "CLKT.S3"),
-        GridKind::FpgaCore => ("CLKB.FC", "CLKT.FC"),
-        GridKind::Spartan3E => ("CLKB.S3E", "CLKT.S3E"),
-        GridKind::Spartan3A => ("CLKB.S3A", "CLKT.S3A"),
-        GridKind::Spartan3ADsp => ("CLKB.S3A", "CLKT.S3A"),
+        ChipKind::Virtex2 => ("CLKB.V2", "CLKT.V2"),
+        ChipKind::Virtex2P => ("CLKB.V2P", "CLKT.V2P"),
+        ChipKind::Virtex2PX => ("CLKB.V2PX", "CLKT.V2PX"),
+        ChipKind::Spartan3 => ("CLKB.S3", "CLKT.S3"),
+        ChipKind::FpgaCore => ("CLKB.FC", "CLKT.FC"),
+        ChipKind::Spartan3E => ("CLKB.S3E", "CLKT.S3E"),
+        ChipKind::Spartan3A => ("CLKB.S3A", "CLKT.S3A"),
+        ChipKind::Spartan3ADsp => ("CLKB.S3A", "CLKT.S3A"),
     };
     let bufg_num = if grid_kind.is_virtex2() { 8 } else { 4 };
     for tile in [clkb, clkt] {
         for i in 0..bufg_num {
-            if edev.grid.kind != GridKind::FpgaCore {
+            if edev.chip.kind != ChipKind::FpgaCore {
                 let node_kind = intdb.get_node(tile);
                 let bel = &intdb.nodes[node_kind].bels[BelId::from_idx(i)];
                 let pin = &bel.pins["S"];
@@ -540,9 +540,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     if grid_kind.is_spartan3ea() {
         // CLK[LR]
         let (clkl, clkr) = match grid_kind {
-            GridKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
-            GridKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
-            GridKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
+            ChipKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
+            ChipKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
+            ChipKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
             _ => unreachable!(),
         };
         for tile in [clkl, clkr] {
@@ -596,7 +596,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 }
             }
         }
-    } else if edev.grid.cols_clkv.is_none() {
+    } else if edev.chip.cols_clkv.is_none() {
         // CLKC_50A
         let tile = "CLKC_50A";
         let bel = "CLKC_50A";
@@ -654,7 +654,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         "GCLKH.UNI.S",
         "GCLKH.UNI.N",
     ] {
-        if tile != "GCLKH" && (grid_kind.is_virtex2() || grid_kind == GridKind::FpgaCore) {
+        if tile != "GCLKH" && (grid_kind.is_virtex2() || grid_kind == ChipKind::FpgaCore) {
             continue;
         }
         if !ctx.has_tile(tile) {
@@ -693,7 +693,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
     }
 
-    if !grid_kind.is_virtex2() && grid_kind != GridKind::FpgaCore {
+    if !grid_kind.is_virtex2() && grid_kind != ChipKind::FpgaCore {
         // PTE2OMUX
         for tile in ["INT.DCM", "INT.DCM.S3E.DUMMY"] {
             if !ctx.has_tile(tile) {

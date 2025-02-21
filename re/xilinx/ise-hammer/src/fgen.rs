@@ -65,7 +65,7 @@ fn resolve_tile_relation(
             }) {
                 loc.3 = layer;
                 if let ExpandedDevice::Virtex2(edev) = backend.edev {
-                    if loc.1 == edev.grid.col_right() - 1 {
+                    if loc.1 == edev.chip.col_right() - 1 {
                         return None;
                     }
                 }
@@ -102,10 +102,10 @@ fn resolve_tile_relation(
             let ExpandedDevice::Virtex2(edev) = backend.edev else {
                 unreachable!()
             };
-            if loc.1 != edev.grid.col_clk && loc.1 != edev.grid.col_clk - 2 {
+            if loc.1 != edev.chip.col_clk && loc.1 != edev.chip.col_clk - 2 {
                 return None;
             }
-            loc.1 = edev.grid.col_clk;
+            loc.1 = edev.chip.col_clk;
             let Some((layer, _)) = backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
                 backend.egrid.db.nodes.key(node.kind).starts_with("CLK")
             }) else {
@@ -508,7 +508,7 @@ fn find_ioi(backend: &IseBackend, loc: NodeLoc, tile: usize) -> NodeLoc {
     let ExpandedDevice::Virtex2(edev) = backend.edev else {
         unreachable!()
     };
-    let (col, row) = if loc.1 == edev.grid.col_left() || loc.1 == edev.grid.col_right() {
+    let (col, row) = if loc.1 == edev.chip.col_left() || loc.1 == edev.chip.col_right() {
         (loc.1, loc.2 + tile)
     } else {
         (loc.1 + tile, loc.2)
@@ -843,8 +843,8 @@ impl<'a> TileKV<'a> {
                             let (bram_node, idx) = tgt.unwrap();
                             let node_tile = NodeTileId::from_idx(idx);
                             let bram_node_kind = &intdb.nodes[bram_node.kind];
-                            if (edev.grid.kind.is_virtex2()
-                                || edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3)
+                            if (edev.chip.kind.is_virtex2()
+                                || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3)
                                 && (wire_name.starts_with("IMUX.CLK")
                                     || wire_name.starts_with("IMUX.SR")
                                     || wire_name.starts_with("IMUX.CE")
@@ -877,15 +877,15 @@ impl<'a> TileKV<'a> {
                                     | "IMUX.DATA23"
                                     | "IMUX.DATA27"
                                     | "IMUX.DATA31"
-                            ) && loc.2 != edev.grid.row_mid() - 1
-                                && loc.2 != edev.grid.row_mid()
+                            ) && loc.2 != edev.chip.row_mid() - 1
+                                && loc.2 != edev.chip.row_mid()
                             {
                                 return None;
                             }
                             if wire_name == "IMUX.DATA13"
-                                && edev.grid.kind
-                                    == prjcombine_virtex2::grid::GridKind::Spartan3ADsp
-                                && loc.1 == edev.grid.col_left()
+                                && edev.chip.kind
+                                    == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
+                                && loc.1 == edev.chip.col_left()
                             {
                                 // ISE bug. sigh.
                                 return None;
@@ -893,26 +893,26 @@ impl<'a> TileKV<'a> {
                             if matches!(
                                 &wire_name[..],
                                 "IMUX.DATA12" | "IMUX.DATA13" | "IMUX.DATA14"
-                            ) && loc.2 != edev.grid.row_mid()
+                            ) && loc.2 != edev.chip.row_mid()
                             {
                                 return None;
                             }
                         }
                         if backend.egrid.db.nodes.key(node.kind) == "INT.IOI.S3A.TB"
                             && wire_name == "IMUX.DATA15"
-                            && loc.2 == edev.grid.row_top()
+                            && loc.2 == edev.chip.row_top()
                         {
                             // also ISE bug.
                             return None;
                         }
-                        if edev.grid.kind.is_spartan3a()
+                        if edev.chip.kind.is_spartan3a()
                             && backend.egrid.db.nodes.key(node.kind) == "INT.CLB"
                         {
                             // avoid SR in corners — it causes the inverter bit to be auto-set
                             let is_lr =
-                                loc.1 == edev.grid.col_left() || loc.1 == edev.grid.col_right();
+                                loc.1 == edev.chip.col_left() || loc.1 == edev.chip.col_right();
                             let is_bt =
-                                loc.2 == edev.grid.row_bot() || loc.2 == edev.grid.row_top();
+                                loc.2 == edev.chip.row_bot() || loc.2 == edev.chip.row_top();
                             if intdb.wires.key(wire.1).starts_with("IMUX.SR") && is_lr && is_bt {
                                 return None;
                             }
@@ -947,8 +947,8 @@ impl<'a> TileKV<'a> {
                 #[allow(clippy::single_match)]
                 match backend.edev {
                     ExpandedDevice::Virtex2(edev) => {
-                        if (edev.grid.kind.is_virtex2()
-                            || edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3)
+                        if (edev.chip.kind.is_virtex2()
+                            || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3)
                             && wire_name.starts_with("OUT")
                             && intdb.nodes.key(node.kind).starts_with("INT.DCM")
                         {
@@ -975,16 +975,16 @@ impl<'a> TileKV<'a> {
                             }
                         }
                         if wire_name == "OUT.PCI0"
-                            && loc.2 != edev.grid.row_pci.unwrap() - 2
-                            && loc.2 != edev.grid.row_pci.unwrap() - 1
-                            && loc.2 != edev.grid.row_pci.unwrap()
-                            && loc.2 != edev.grid.row_pci.unwrap() + 1
+                            && loc.2 != edev.chip.row_pci.unwrap() - 2
+                            && loc.2 != edev.chip.row_pci.unwrap() - 1
+                            && loc.2 != edev.chip.row_pci.unwrap()
+                            && loc.2 != edev.chip.row_pci.unwrap() + 1
                         {
                             return None;
                         }
                         if wire_name == "OUT.PCI1"
-                            && loc.2 != edev.grid.row_pci.unwrap() - 1
-                            && loc.2 != edev.grid.row_pci.unwrap()
+                            && loc.2 != edev.chip.row_pci.unwrap() - 1
+                            && loc.2 != edev.chip.row_pci.unwrap()
                         {
                             return None;
                         }
@@ -994,8 +994,8 @@ impl<'a> TileKV<'a> {
                                 &wire_name[..],
                                 "OUT.FAN3" | "OUT.FAN7" | "OUT.SEC11" | "OUT.SEC15"
                             )
-                            && loc.2 != edev.grid.row_mid() - 1
-                            && loc.2 != edev.grid.row_mid()
+                            && loc.2 != edev.chip.row_mid() - 1
+                            && loc.2 != edev.chip.row_mid()
                         {
                             return None;
                         }
@@ -1113,7 +1113,7 @@ impl<'a> TileKV<'a> {
                                 return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
                             }
                         }
-                        if src_col == edev.grid.col_left() || src_col == edev.grid.col_right() {
+                        if src_col == edev.chip.col_left() || src_col == edev.chip.col_right() {
                             return None;
                         }
                         if wire.0.to_idx() == 0 {
@@ -1216,7 +1216,7 @@ impl<'a> TileKV<'a> {
                                 return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
                             }
                         }
-                        if src_row == edev.grid.row_bot() || src_row == edev.grid.row_top() {
+                        if src_row == edev.chip.row_bot() || src_row == edev.chip.row_top() {
                             return None;
                         }
                         if wire.0.to_idx() == 0 {
@@ -1818,22 +1818,22 @@ impl<'a> TileKV<'a> {
                 ExpandedDevice::Virtex2(edev) => {
                     match dir {
                         Dir::W => {
-                            if loc.1 >= edev.grid.col_clk {
+                            if loc.1 >= edev.chip.col_clk {
                                 return None;
                             }
                         }
                         Dir::E => {
-                            if loc.1 < edev.grid.col_clk {
+                            if loc.1 < edev.chip.col_clk {
                                 return None;
                             }
                         }
                         Dir::S => {
-                            if loc.2 >= edev.grid.row_mid() {
+                            if loc.2 >= edev.chip.row_mid() {
                                 return None;
                             }
                         }
                         Dir::N => {
-                            if loc.2 < edev.grid.row_mid() {
+                            if loc.2 < edev.chip.row_mid() {
                                 return None;
                             }
                         }
@@ -3373,11 +3373,11 @@ impl<'a> BelKV {
                     let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[pkg] else {
                         unreachable!()
                     };
-                    let crd = edev.grid.get_io_crd(loc.1, loc.2, bel);
+                    let crd = edev.chip.get_io_crd(loc.1, loc.2, bel);
                     let mut is_vr = false;
-                    for (bank, vr) in &edev.grid.dci_io {
+                    for (bank, vr) in &edev.chip.dci_io {
                         if vr.0 == crd || vr.1 == crd {
-                            if edev.grid.dci_io_alt.contains_key(bank) {
+                            if edev.chip.dci_io_alt.contains_key(bank) {
                                 let &FuzzerValue::Base(Value::Bool(alt)) = &fuzzer.kv[&Key::AltVr]
                                 else {
                                     unreachable!()
@@ -3388,9 +3388,9 @@ impl<'a> BelKV {
                             }
                         }
                     }
-                    for (bank, vr) in &edev.grid.dci_io_alt {
+                    for (bank, vr) in &edev.chip.dci_io_alt {
                         if vr.0 == crd || vr.1 == crd {
-                            if edev.grid.dci_io.contains_key(bank) {
+                            if edev.chip.dci_io.contains_key(bank) {
                                 let &FuzzerValue::Base(Value::Bool(alt)) = &fuzzer.kv[&Key::AltVr]
                                 else {
                                     unreachable!()
@@ -3951,14 +3951,14 @@ impl<'a> BelKV {
                             unreachable!()
                         };
                         let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
-                        let orig_io_info = edev.grid.get_io_info(crd);
-                        for io in edev.grid.get_bonded_ios() {
-                            let io_info = edev.grid.get_io_info(io);
+                        let orig_io_info = edev.chip.get_io_info(crd);
+                        for io in edev.chip.get_bonded_ios() {
+                            let io_info = edev.chip.get_io_info(io);
                             if io != crd
                                 && orig_io_info.bank == io_info.bank
                                 && io_info.pad_kind != Some(IobKind::Clk)
                                 && (!is_diff
-                                    || io_info.diff != prjcombine_virtex2::grid::IoDiffKind::None)
+                                    || io_info.diff != prjcombine_virtex2::chip::IoDiffKind::None)
                                 && ebond.ios.contains_key(&io)
                             {
                                 let site = endev.get_io_name(io);
@@ -3967,30 +3967,30 @@ impl<'a> BelKV {
                                     Key::SiteMode(site),
                                     if is_diff {
                                         match io_info.diff {
-                                            prjcombine_virtex2::grid::IoDiffKind::P(_) => {
-                                                if edev.grid.kind.is_spartan3a() {
+                                            prjcombine_virtex2::chip::IoDiffKind::P(_) => {
+                                                if edev.chip.kind.is_spartan3a() {
                                                     "DIFFMI_NDT"
-                                                } else if edev.grid.kind.is_spartan3ea() {
+                                                } else if edev.chip.kind.is_spartan3ea() {
                                                     "DIFFMI"
                                                 } else {
                                                     "DIFFM"
                                                 }
                                             }
-                                            prjcombine_virtex2::grid::IoDiffKind::N(_) => {
-                                                if edev.grid.kind.is_spartan3a() {
+                                            prjcombine_virtex2::chip::IoDiffKind::N(_) => {
+                                                if edev.chip.kind.is_spartan3a() {
                                                     "DIFFSI_NDT"
-                                                } else if edev.grid.kind.is_spartan3ea() {
+                                                } else if edev.chip.kind.is_spartan3ea() {
                                                     "DIFFSI"
                                                 } else {
                                                     "DIFFS"
                                                 }
                                             }
-                                            prjcombine_virtex2::grid::IoDiffKind::None => {
+                                            prjcombine_virtex2::chip::IoDiffKind::None => {
                                                 unreachable!()
                                             }
                                         }
                                     } else {
-                                        if edev.grid.kind.is_spartan3ea() {
+                                        if edev.chip.kind.is_spartan3ea() {
                                             "IBUF"
                                         } else {
                                             "IOB"
@@ -4002,7 +4002,7 @@ impl<'a> BelKV {
                                 if !is_out {
                                     fuzzer = fuzzer.base(Key::SiteAttr(site, "IMUX".into()), "1");
                                     fuzzer = fuzzer.base(Key::SitePin(site, "I".into()), true);
-                                    if edev.grid.kind.is_spartan3a() {
+                                    if edev.chip.kind.is_spartan3a() {
                                         fuzzer = fuzzer.base(
                                             Key::SiteAttr(site, "IBUF_DELAY_VALUE".into()),
                                             "DLY0",
@@ -4040,35 +4040,35 @@ impl<'a> BelKV {
                         let ExpandedNamedDevice::Virtex2(endev) = backend.endev else {
                             unreachable!()
                         };
-                        let crd = edev.grid.get_io_crd(loc.1, loc.2, bel);
+                        let crd = edev.chip.get_io_crd(loc.1, loc.2, bel);
                         let stds = if let Some(stdb) = stdb {
                             &[stda, stdb][..]
                         } else {
                             &[stda][..]
                         };
-                        let bank = edev.grid.get_io_info(crd).bank;
+                        let bank = edev.chip.get_io_info(crd).bank;
                         let mut done = 0;
-                        let mut ios = edev.grid.get_bonded_ios();
-                        if edev.grid.kind != prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
+                        let mut ios = edev.chip.get_bonded_ios();
+                        if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::Spartan3ADsp {
                             ios.reverse();
                         }
                         for &io in &ios {
                             if io == crd {
-                                if edev.grid.kind.is_spartan3ea() {
+                                if edev.chip.kind.is_spartan3ea() {
                                     // too much thinking. just pick a different loc.
                                     return None;
                                 } else {
                                     continue;
                                 }
                             }
-                            let io_info = edev.grid.get_io_info(io);
+                            let io_info = edev.chip.get_io_info(io);
                             if !ebond.ios.contains_key(&io)
                                 || io_info.bank != bank
                                 || io_info.pad_kind != Some(IobKind::Iob)
                             {
                                 continue;
                             }
-                            let prjcombine_virtex2::grid::IoDiffKind::P(other_iob) = io_info.diff
+                            let prjcombine_virtex2::chip::IoDiffKind::P(other_iob) = io_info.diff
                             else {
                                 continue;
                             };
@@ -4080,7 +4080,7 @@ impl<'a> BelKV {
                             fuzzer = fuzzer
                                 .base(
                                     Key::SiteMode(site_p),
-                                    if edev.grid.kind.is_spartan3a() {
+                                    if edev.chip.kind.is_spartan3a() {
                                         "DIFFMTB"
                                     } else {
                                         "DIFFM"
@@ -4088,7 +4088,7 @@ impl<'a> BelKV {
                                 )
                                 .base(
                                     Key::SiteMode(site_n),
-                                    if edev.grid.kind.is_spartan3a() {
+                                    if edev.chip.kind.is_spartan3a() {
                                         "DIFFSTB"
                                     } else {
                                         "DIFFS"
@@ -4102,7 +4102,7 @@ impl<'a> BelKV {
                                 .base(Key::SitePin(site_p, "DIFFO_OUT".into()), true)
                                 .base(Key::SitePin(site_n, "DIFFO_IN".into()), true)
                                 .base(Key::SiteAttr(site_n, "DIFFO_IN_USED".into()), "0");
-                            if edev.grid.kind.is_spartan3a() {
+                            if edev.chip.kind.is_spartan3a() {
                                 fuzzer = fuzzer
                                     .base(Key::SiteAttr(site_p, "SUSPEND".into()), "3STATE")
                                     .base(Key::SiteAttr(site_n, "SUSPEND".into()), "3STATE");
@@ -4724,7 +4724,7 @@ impl TileBits {
                     }
                 }
                 ExpandedDevice::Virtex2(edev) => {
-                    if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3E {
+                    if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3E {
                         vec![edev.btile_llv_b(col), edev.btile_llv_t(col)]
                     } else {
                         vec![edev.btile_llv(col)]
@@ -4758,14 +4758,14 @@ impl TileBits {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
                     unreachable!()
                 };
-                if row == edev.grid.row_bot() + 1 {
+                if row == edev.chip.row_bot() + 1 {
                     vec![
                         edev.btile_btspine(row - 1),
                         edev.btile_spine(row - 1),
                         edev.btile_spine(row),
                         edev.btile_spine(row + 1),
                     ]
-                } else if row == edev.grid.row_top() {
+                } else if row == edev.chip.row_top() {
                     vec![
                         edev.btile_spine(row - 2),
                         edev.btile_spine(row - 1),
@@ -4826,7 +4826,7 @@ impl TileBits {
                     unreachable!()
                 }
                 ExpandedDevice::Virtex2(edev) => {
-                    if edev.grid.kind.is_virtex2() {
+                    if edev.chip.kind.is_virtex2() {
                         vec![
                             edev.btile_lrterm(col, row),
                             edev.btile_btterm(col, row),
@@ -4881,10 +4881,10 @@ impl TileBits {
                     unreachable!()
                 };
                 vec![
-                    edev.btile_lrterm(edev.grid.col_left(), edev.grid.row_top()),
-                    edev.btile_btterm(edev.grid.col_left(), edev.grid.row_top()),
-                    edev.btile_lrterm(edev.grid.col_right(), edev.grid.row_top()),
-                    edev.btile_btterm(edev.grid.col_right(), edev.grid.row_top()),
+                    edev.btile_lrterm(edev.chip.col_left(), edev.chip.row_top()),
+                    edev.btile_btterm(edev.chip.col_left(), edev.chip.row_top()),
+                    edev.btile_lrterm(edev.chip.col_right(), edev.chip.row_top()),
+                    edev.btile_btterm(edev.chip.col_right(), edev.chip.row_top()),
                 ]
             }
             TileBits::RandorLeft => {
@@ -4897,7 +4897,7 @@ impl TileBits {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
                     unreachable!()
                 };
-                if col == edev.grid.col_left() || col == edev.grid.col_right() {
+                if col == edev.chip.col_left() || col == edev.chip.col_right() {
                     (0..n)
                         .map(|idx| edev.btile_lrterm(col, row + idx))
                         .chain((0..n).map(|idx| edev.btile_main(col, row + idx)))
@@ -5000,17 +5000,17 @@ impl TileBits {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
                     unreachable!()
                 };
-                match edev.grid.kind {
-                    prjcombine_virtex2::grid::GridKind::Virtex2
-                    | prjcombine_virtex2::grid::GridKind::Virtex2P
-                    | prjcombine_virtex2::grid::GridKind::Virtex2PX => {
+                match edev.chip.kind {
+                    prjcombine_virtex2::chip::ChipKind::Virtex2
+                    | prjcombine_virtex2::chip::ChipKind::Virtex2P
+                    | prjcombine_virtex2::chip::ChipKind::Virtex2PX => {
                         vec![edev.btile_main(col, row), edev.btile_btterm(col, row)]
                     }
-                    prjcombine_virtex2::grid::GridKind::Spartan3 => vec![edev.btile_main(col, row)],
-                    prjcombine_virtex2::grid::GridKind::FpgaCore => unreachable!(),
-                    prjcombine_virtex2::grid::GridKind::Spartan3E
-                    | prjcombine_virtex2::grid::GridKind::Spartan3A
-                    | prjcombine_virtex2::grid::GridKind::Spartan3ADsp => {
+                    prjcombine_virtex2::chip::ChipKind::Spartan3 => vec![edev.btile_main(col, row)],
+                    prjcombine_virtex2::chip::ChipKind::FpgaCore => unreachable!(),
+                    prjcombine_virtex2::chip::ChipKind::Spartan3E
+                    | prjcombine_virtex2::chip::ChipKind::Spartan3A
+                    | prjcombine_virtex2::chip::ChipKind::Spartan3ADsp => {
                         let node = backend
                             .egrid
                             .find_node(die, (col, row), |n| {
@@ -5381,15 +5381,15 @@ impl ExtraFeatureKind {
                     res
                 }
                 ExpandedDevice::Virtex2(edev) => {
-                    let node = match edev.grid.kind {
-                        prjcombine_virtex2::grid::GridKind::Virtex2 => "DCM.V2",
-                        prjcombine_virtex2::grid::GridKind::Virtex2P
-                        | prjcombine_virtex2::grid::GridKind::Virtex2PX => "DCM.V2P",
-                        prjcombine_virtex2::grid::GridKind::Spartan3 => "DCM.S3",
-                        prjcombine_virtex2::grid::GridKind::FpgaCore => unreachable!(),
-                        prjcombine_virtex2::grid::GridKind::Spartan3E => unreachable!(),
-                        prjcombine_virtex2::grid::GridKind::Spartan3A => unreachable!(),
-                        prjcombine_virtex2::grid::GridKind::Spartan3ADsp => unreachable!(),
+                    let node = match edev.chip.kind {
+                        prjcombine_virtex2::chip::ChipKind::Virtex2 => "DCM.V2",
+                        prjcombine_virtex2::chip::ChipKind::Virtex2P
+                        | prjcombine_virtex2::chip::ChipKind::Virtex2PX => "DCM.V2P",
+                        prjcombine_virtex2::chip::ChipKind::Spartan3 => "DCM.S3",
+                        prjcombine_virtex2::chip::ChipKind::FpgaCore => unreachable!(),
+                        prjcombine_virtex2::chip::ChipKind::Spartan3E => unreachable!(),
+                        prjcombine_virtex2::chip::ChipKind::Spartan3A => unreachable!(),
+                        prjcombine_virtex2::chip::ChipKind::Spartan3ADsp => unreachable!(),
                     };
                     let node = backend.egrid.db.get_node(node);
                     backend.egrid.node_index[node]
@@ -5627,28 +5627,28 @@ impl ExtraFeatureKind {
                 };
                 match dir {
                     Dir::W => {
-                        if loc.1 != edev.grid.col_left() {
+                        if loc.1 != edev.chip.col_left() {
                             vec![]
                         } else {
                             vec![vec![edev.btile_lrterm(loc.1, loc.2)]]
                         }
                     }
                     Dir::E => {
-                        if loc.1 != edev.grid.col_right() {
+                        if loc.1 != edev.chip.col_right() {
                             vec![]
                         } else {
                             vec![vec![edev.btile_lrterm(loc.1, loc.2)]]
                         }
                     }
                     Dir::S => {
-                        if loc.2 != edev.grid.row_bot() {
+                        if loc.2 != edev.chip.row_bot() {
                             vec![]
                         } else {
                             vec![vec![edev.btile_btterm(loc.1, loc.2)]]
                         }
                     }
                     Dir::N => {
-                        if loc.2 != edev.grid.row_top() {
+                        if loc.2 != edev.chip.row_top() {
                             vec![]
                         } else {
                             vec![vec![edev.btile_btterm(loc.1, loc.2)]]

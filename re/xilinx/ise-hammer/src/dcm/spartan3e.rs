@@ -6,7 +6,7 @@ use prjcombine_re_collector::{Diff, extract_bitvec_val, xlat_bit, xlat_bitvec};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::{TileItem, TileItemKind};
-use prjcombine_virtex2::grid::Dcms;
+use prjcombine_virtex2::chip::Dcms;
 
 use crate::{
     backend::{IseBackend, PinFromKind},
@@ -432,7 +432,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 .insert(tile, "DCM_VREG", "VREG", xlat_bitvec(cfg_vreg));
 
             let mut vreg_enable = present.split_bits(&vreg_bits);
-            if edev.grid.kind.is_spartan3a() || edev.grid.dcms != Some(Dcms::Two) {
+            if edev.chip.kind.is_spartan3a() || edev.chip.dcms != Some(Dcms::Two) {
                 let diff = ctx.state.get_diff(tile, "DCM_VREG", "ENABLE", "1");
                 assert_eq!(vreg_enable, diff);
             }

@@ -24,7 +24,7 @@ entity_id! {
 pub enum Grid {
     Xc2000(prjcombine_xc2000::chip::Chip),
     Virtex(prjcombine_virtex::chip::Chip),
-    Virtex2(prjcombine_virtex2::grid::Grid),
+    Virtex2(prjcombine_virtex2::chip::Chip),
     Spartan6(prjcombine_spartan6::grid::Grid),
     Virtex4(prjcombine_virtex4::grid::Grid),
     Ultrascale(prjcombine_ultrascale::grid::Grid),
@@ -277,7 +277,7 @@ impl GeomDb {
             Grid::Virtex2(grid) => {
                 let intdb = if grid.kind.is_virtex2() {
                     &self.ints["virtex2"]
-                } else if grid.kind == prjcombine_virtex2::grid::GridKind::FpgaCore {
+                } else if grid.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
                     &self.ints["fpgacore"]
                 } else {
                     &self.ints["spartan3"]
@@ -402,9 +402,9 @@ impl GeomDb {
                 ))
             }
             ExpandedDevice::Virtex2(edev) => {
-                let ndb = if edev.grid.kind.is_virtex2() {
+                let ndb = if edev.chip.kind.is_virtex2() {
                     &self.namings["virtex2"]
-                } else if edev.grid.kind == prjcombine_virtex2::grid::GridKind::FpgaCore {
+                } else if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
                     &self.namings["fpgacore"]
                 } else {
                     &self.namings["spartan3"]

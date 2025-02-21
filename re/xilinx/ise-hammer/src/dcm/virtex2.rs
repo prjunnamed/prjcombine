@@ -9,7 +9,7 @@ use prjcombine_re_collector::{
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
-use prjcombine_virtex2::grid::{ColumnKind, GridKind};
+use prjcombine_virtex2::chip::{ChipKind, ColumnKind};
 
 use crate::{
     backend::{IseBackend, PinFromKind},
@@ -27,17 +27,17 @@ pub fn add_fuzzers<'a>(
     let ExpandedDevice::Virtex2(edev) = backend.edev else {
         unreachable!()
     };
-    let tile = match edev.grid.kind {
-        GridKind::Virtex2 => "DCM.V2",
-        GridKind::Virtex2P | GridKind::Virtex2PX => "DCM.V2P",
-        GridKind::Spartan3 => "DCM.S3",
+    let tile = match edev.chip.kind {
+        ChipKind::Virtex2 => "DCM.V2",
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => "DCM.V2P",
+        ChipKind::Spartan3 => "DCM.S3",
         _ => unreachable!(),
     };
 
     if devdata_only {
         let ctx = FuzzCtx::new(session, backend, tile, "DCM", TileBits::Dcm);
         let mut extras = vec![];
-        if edev.grid.kind == GridKind::Spartan3 {
+        if edev.chip.kind == ChipKind::Spartan3 {
             extras.extend([ExtraFeature::new(
                 ExtraFeatureKind::DcmLL,
                 "LL.S3",
@@ -70,12 +70,12 @@ pub fn add_fuzzers<'a>(
 
     let ctx = FuzzCtx::new(session, backend, tile, "DCM", TileBits::Dcm);
     let mut extras = vec![];
-    if edev.grid.kind == GridKind::Spartan3 {
+    if edev.chip.kind == ChipKind::Spartan3 {
         extras.extend([
             ExtraFeature::new(ExtraFeatureKind::DcmLL, "LL.S3", "MISC", "DCM_ENABLE", "1"),
             ExtraFeature::new(ExtraFeatureKind::DcmUL, "UL.S3", "MISC", "DCM_ENABLE", "1"),
         ]);
-        if edev.grid.columns[edev.grid.columns.last_id().unwrap() - 3].kind == ColumnKind::Bram {
+        if edev.chip.columns[edev.chip.columns.last_id().unwrap() - 3].kind == ColumnKind::Bram {
             extras.extend([
                 ExtraFeature::new(ExtraFeatureKind::DcmLR, "LR.S3", "MISC", "DCM_ENABLE", "1"),
                 ExtraFeature::new(ExtraFeatureKind::DcmUR, "UR.S3", "MISC", "DCM_ENABLE", "1"),
@@ -134,7 +134,7 @@ pub fn add_fuzzers<'a>(
         "FREEZEDFS",
         "FREEZEDLL",
     ] {
-        if pin == "STSADRS4" && edev.grid.kind == GridKind::Virtex2 {
+        if pin == "STSADRS4" && edev.chip.kind == ChipKind::Virtex2 {
             continue;
         }
         fuzz_inv!(ctx, pin, [
@@ -403,7 +403,7 @@ pub fn add_fuzzers<'a>(
         ], [
             (global_xy "ZD2_BY1_*", val)
         ]);
-        if edev.grid.kind.is_virtex2() {
+        if edev.chip.kind.is_virtex2() {
             fuzz_one!(ctx, "PS_CENTERED", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
@@ -418,7 +418,7 @@ pub fn add_fuzzers<'a>(
                 (global_xy "ZD2_HF_BY1_*", val)
             ]);
         }
-        if edev.grid.kind != GridKind::Virtex2 {
+        if edev.chip.kind != ChipKind::Virtex2 {
             fuzz_one!(ctx, "ZD1_BY1", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
@@ -432,7 +432,7 @@ pub fn add_fuzzers<'a>(
                 (global_xy "RESETPS_SEL_*", val)
             ]);
         }
-        if edev.grid.kind == GridKind::Spartan3 {
+        if edev.chip.kind == ChipKind::Spartan3 {
             fuzz_one!(ctx, "SPLY_IDC0", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
@@ -553,10 +553,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let ExpandedDevice::Virtex2(edev) = ctx.edev else {
         unreachable!()
     };
-    let tile = match edev.grid.kind {
-        GridKind::Virtex2 => "DCM.V2",
-        GridKind::Virtex2P | GridKind::Virtex2PX => "DCM.V2P",
-        GridKind::Spartan3 => "DCM.S3",
+    let tile = match edev.chip.kind {
+        ChipKind::Virtex2 => "DCM.V2",
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => "DCM.V2P",
+        ChipKind::Spartan3 => "DCM.S3",
         _ => unreachable!(),
     };
     let bel = "DCM";
@@ -582,7 +582,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         );
         ctx.insert_device_data("DCM:VBG_SEL", vbg_sel);
         ctx.insert_device_data("DCM:VBG_PD", vbg_pd);
-        if edev.grid.kind == GridKind::Spartan3 {
+        if edev.chip.kind == ChipKind::Spartan3 {
             ctx.collect_bit("LL.S3", "MISC", "DCM_ENABLE", "1");
         }
         return;
@@ -605,7 +605,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     assert_eq!(com[10].bits.remove(&com11), Some(true));
     com[11].bits.insert(com11, true);
 
-    if edev.grid.kind == GridKind::Spartan3 {
+    if edev.chip.kind == ChipKind::Spartan3 {
         for diff in &misc[12..31] {
             assert!(diff.bits.is_empty());
         }
@@ -636,7 +636,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     ctx.collect_enum(tile, bel, "SEL_PL_DLY", &["0", "1", "2", "3"]);
     ctx.collect_enum_bool(tile, bel, "EN_OSC_COARSE", "0", "1");
     ctx.collect_enum_bool(tile, bel, "PL_CENTERED", "0", "1");
-    if edev.grid.kind.is_virtex2() {
+    if edev.chip.kind.is_virtex2() {
         ctx.state
             .get_diff(tile, bel, "NON_STOP", "0")
             .assert_empty();
@@ -656,16 +656,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ctx.collect_enum_bool(tile, bel, "NON_STOP", "0", "1");
     }
     ctx.collect_enum_bool(tile, bel, "ZD2_BY1", "0", "1");
-    if edev.grid.kind.is_virtex2() {
+    if edev.chip.kind.is_virtex2() {
         ctx.collect_enum_bool(tile, bel, "PS_CENTERED", "0", "1");
         let item = ctx.extract_enum_bool(tile, bel, "ZD2_HF_BY1", "0", "1");
         assert_eq!(item, *ctx.tiledb.item(tile, bel, "ZD2_BY1"));
     }
-    if edev.grid.kind != GridKind::Virtex2 {
+    if edev.chip.kind != ChipKind::Virtex2 {
         ctx.collect_enum_bool(tile, bel, "ZD1_BY1", "0", "1");
         ctx.collect_enum_bool(tile, bel, "RESET_PS_SEL", "0", "1");
     }
-    if edev.grid.kind == GridKind::Spartan3 {
+    if edev.chip.kind == ChipKind::Spartan3 {
         ctx.collect_enum_bool(tile, bel, "EXTENDED_FLUSH_TIME", "0", "1");
         ctx.collect_enum_bool(tile, bel, "EXTENDED_HALT_TIME", "0", "1");
         ctx.collect_enum_bool(tile, bel, "EXTENDED_RUN_TIME", "0", "1");
@@ -700,17 +700,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
     }
 
-    let int_tiles = &[match edev.grid.kind {
-        GridKind::Virtex2 => "INT.DCM.V2",
-        GridKind::Virtex2P | GridKind::Virtex2PX => "INT.DCM.V2P",
-        GridKind::Spartan3 => "INT.DCM",
+    let int_tiles = &[match edev.chip.kind {
+        ChipKind::Virtex2 => "INT.DCM.V2",
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => "INT.DCM.V2P",
+        ChipKind::Spartan3 => "INT.DCM",
         _ => unreachable!(),
     }];
     ctx.collect_int_inv(int_tiles, tile, bel, "PSCLK", false);
     for pin in ["RST", "PSEN", "PSINCDEC"] {
         ctx.collect_inv(tile, bel, pin);
     }
-    if edev.grid.kind == GridKind::Spartan3 {
+    if edev.chip.kind == ChipKind::Spartan3 {
         ctx.state
             .get_diff(tile, bel, "DSSENINV", "DSSEN")
             .assert_empty();
@@ -736,7 +736,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         "FREEZEDFS",
         "FREEZEDLL",
     ] {
-        if pin == "STSADRS4" && edev.grid.kind == GridKind::Virtex2 {
+        if pin == "STSADRS4" && edev.chip.kind == ChipKind::Virtex2 {
             continue;
         }
         let d0 = ctx.state.get_diff(tile, bel, format!("{pin}INV"), pin);
@@ -746,7 +746,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let (d0, d1, dc) = Diff::split(d0, d1);
         ctx.tiledb
             .insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
-        if edev.grid.kind.is_virtex2() {
+        if edev.chip.kind.is_virtex2() {
             ctx.tiledb.insert(tile, bel, "TEST_ENABLE", xlat_bit(dc));
         } else {
             dc.assert_empty();
@@ -849,7 +849,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         false,
     );
     assert_eq!(diff, fixed_n);
-    if edev.grid.kind != GridKind::Virtex2 {
+    if edev.chip.kind != ChipKind::Virtex2 {
         diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "RESET_PS_SEL"), true, false);
     }
     ctx.tiledb.insert(
@@ -866,7 +866,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     ctx.collect_enum(tile, bel, "DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
     let low = ctx.state.get_diff(tile, bel, "DLL_FREQUENCY_MODE", "LOW");
     let mut high = ctx.state.get_diff(tile, bel, "DLL_FREQUENCY_MODE", "HIGH");
-    if edev.grid.kind.is_virtex2p() {
+    if edev.chip.kind.is_virtex2p() {
         high.apply_bit_diff(ctx.tiledb.item(tile, bel, "ZD2_BY1"), true, false);
     }
     ctx.tiledb.insert(
@@ -991,7 +991,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         diff.assert_empty();
     }
 
-    if edev.grid.kind.is_virtex2() {
+    if edev.chip.kind.is_virtex2() {
         ctx.state
             .get_diff(tile, bel, "DSS_MODE", "NONE")
             .assert_empty();
@@ -1071,7 +1071,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         &bitvec![0; 4],
     );
 
-    if edev.grid.kind.is_virtex2() {
+    if edev.chip.kind.is_virtex2() {
         present.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.DSSEN"), false, true);
         present.apply_bit_diff(ctx.tiledb.item(tile, bel, "EN_OSC_COARSE"), true, false);
         present.apply_bitvec_diff(
@@ -1084,7 +1084,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             true,
             false,
         );
-        if !edev.grid.kind.is_virtex2p() {
+        if !edev.chip.kind.is_virtex2p() {
             present.apply_bit_diff(ctx.tiledb.item(tile, bel, "ZD2_BY1"), true, false);
         }
     } else {
@@ -1104,7 +1104,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         present.apply_bit_diff(ctx.tiledb.item(tile, bel, "EN_DUMMY_OSC"), true, false);
     }
     present.discard_bits(ctx.tiledb.item(tile, bel, "PS_MODE"));
-    if edev.grid.kind == GridKind::Spartan3 {
+    if edev.chip.kind == ChipKind::Spartan3 {
         present.apply_bit_diff(ctx.tiledb.item(tile, bel, "PS_CENTERED"), true, false);
     }
     present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "CLKDV_COUNT_MAX"), 1, 0);
@@ -1116,10 +1116,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
     present.assert_empty();
 
-    if edev.grid.kind == GridKind::Spartan3 {
+    if edev.chip.kind == ChipKind::Spartan3 {
         ctx.collect_bit("LL.S3", "MISC", "DCM_ENABLE", "1");
         ctx.collect_bit("UL.S3", "MISC", "DCM_ENABLE", "1");
-        if edev.grid.columns[edev.grid.columns.last_id().unwrap() - 3].kind == ColumnKind::Bram {
+        if edev.chip.columns[edev.chip.columns.last_id().unwrap() - 3].kind == ColumnKind::Bram {
             ctx.collect_bit("LR.S3", "MISC", "DCM_ENABLE", "1");
             ctx.collect_bit("UR.S3", "MISC", "DCM_ENABLE", "1");
         }

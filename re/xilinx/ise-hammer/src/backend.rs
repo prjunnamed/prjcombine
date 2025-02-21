@@ -344,7 +344,7 @@ impl<'a> Backend for IseBackend<'a> {
             }
             ExpandedDevice::Virtex(_) => ("SLICE", "CLK"),
             ExpandedDevice::Virtex2(edev) => (
-                if edev.grid.kind.is_virtex2() {
+                if edev.chip.kind.is_virtex2() {
                     "SLICE"
                 } else {
                     "SLICEL"
@@ -503,7 +503,7 @@ impl<'a> Backend for IseBackend<'a> {
                                         ExpandedDevice::Virtex(_) => todo!(),
                                         ExpandedDevice::Virtex2(edev) => {
                                             let mut cfg = vec![("IMUX", "1")];
-                                            if edev.grid.kind.is_spartan3a() {
+                                            if edev.chip.kind.is_spartan3a() {
                                                 cfg.extend([
                                                     ("IBUF_DELAY_VALUE", "DLY0"),
                                                     ("DELAY_ADJ_ATTRBOX", "FIXED"),

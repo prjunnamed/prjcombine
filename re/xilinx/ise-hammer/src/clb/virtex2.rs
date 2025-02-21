@@ -20,7 +20,7 @@ pub enum Mode {
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     let mode = match backend.edev {
         ExpandedDevice::Virtex2(edev) => {
-            if edev.grid.kind.is_virtex2() {
+            if edev.chip.kind.is_virtex2() {
                 Mode::Virtex2
             } else {
                 Mode::Spartan3
@@ -617,7 +617,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mode = match ctx.edev {
         ExpandedDevice::Virtex2(edev) => {
-            if edev.grid.kind.is_virtex2() {
+            if edev.chip.kind.is_virtex2() {
                 Mode::Virtex2
             } else {
                 Mode::Spartan3
@@ -926,7 +926,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let diff_left = ctx.state.get_diff(tile, bel, "ANDORMUX.LEFT", "1");
         let diff_left = diff_left.combine(&!&diff);
         let diff_left = diff_left.split_tiles(&[&[1]]).pop().unwrap();
-        if edev.grid.kind.is_spartan3a() {
+        if edev.chip.kind.is_spartan3a() {
             diff.assert_empty();
         } else {
             ctx.tiledb.insert(

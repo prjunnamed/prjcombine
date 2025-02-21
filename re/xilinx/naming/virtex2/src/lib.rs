@@ -6,8 +6,8 @@ use prjcombine_re_xilinx_naming::{
     grid::{BelGrid, ExpandedGridNaming},
 };
 use prjcombine_virtex2::{
+    chip::{Chip, ChipKind, ColumnIoKind, ColumnKind, DcmPairKind, RowIoKind},
     expanded::ExpandedDevice,
-    grid::{ColumnIoKind, ColumnKind, DcmPairKind, Grid, GridKind, RowIoKind},
     iob::{IobKind, get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t},
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -15,7 +15,7 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,
     pub ngrid: ExpandedGridNaming<'a>,
-    pub grid: &'a Grid,
+    pub grid: &'a Chip,
 }
 
 impl<'a> ExpandedNamedDevice<'a> {
@@ -29,7 +29,7 @@ impl<'a> ExpandedNamedDevice<'a> {
 
 struct Namer<'a> {
     edev: &'a ExpandedDevice<'a>,
-    grid: &'a Grid,
+    grid: &'a Chip,
     die: ExpandedDieRef<'a, 'a>,
     ngrid: ExpandedGridNaming<'a>,
     xlut: EntityVec<ColId, usize>,
@@ -60,7 +60,7 @@ impl Namer<'_> {
                 x += 1;
             }
             if cd.kind == ColumnKind::Clb
-                || (cd.kind != ColumnKind::Io && self.grid.kind == GridKind::Spartan3E)
+                || (cd.kind != ColumnKind::Io && self.grid.kind == ChipKind::Spartan3E)
             {
                 self.sxlut.insert(col, sx);
                 sx += 2;
@@ -106,7 +106,7 @@ impl Namer<'_> {
             self.rows_brk.insert(r - 1);
         }
         self.rows_brk.remove(&self.grid.row_top());
-        if self.grid.kind != GridKind::Spartan3ADsp {
+        if self.grid.kind != ChipKind::Spartan3ADsp {
             self.rows_brk.remove(&(self.grid.row_mid() - 1));
         }
     }
@@ -115,7 +115,7 @@ impl Namer<'_> {
         let mut xtmp = 0;
         if matches!(
             self.grid.kind,
-            GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp
+            ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp
         ) {
             xtmp += 1;
         }
@@ -130,7 +130,7 @@ impl Namer<'_> {
         xtmp = 0;
         if matches!(
             self.grid.kind,
-            GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp
+            ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp
         ) {
             xtmp += 1;
         }
@@ -139,7 +139,7 @@ impl Namer<'_> {
             if row == self.grid.row_mid() - 1
                 && matches!(
                     self.grid.kind,
-                    GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp
+                    ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp
                 )
             {
                 xtmp += 2;
@@ -276,15 +276,15 @@ impl Namer<'_> {
             let bt = if row == self.grid.row_bot() { 'B' } else { 'T' };
             let c = self.bramclut[col];
             let naming = match self.grid.kind {
-                GridKind::Virtex2 => "INT.BRAM_IOIS",
-                GridKind::Virtex2P | GridKind::Virtex2PX => {
+                ChipKind::Virtex2 => "INT.BRAM_IOIS",
+                ChipKind::Virtex2P | ChipKind::Virtex2PX => {
                     if self.grid.cols_gt.contains_key(&col) {
                         "INT.GT.CLKPAD"
                     } else {
                         "INT.ML_BRAM_IOIS"
                     }
                 }
-                GridKind::Spartan3 => {
+                ChipKind::Spartan3 => {
                     if col == self.grid.col_left() + 3 || col == self.grid.col_right() - 3 {
                         "INT.DCM.S3"
                     } else {
@@ -303,10 +303,10 @@ impl Namer<'_> {
                 let r = self.rlut[row];
 
                 let is_gt = self.grid.cols_gt.contains_key(&col)
-                    && self.grid.kind == GridKind::Virtex2P
+                    && self.grid.kind == ChipKind::Virtex2P
                     && (row < self.grid.row_bot() + 5 || row >= self.grid.row_top() - 4);
                 let is_gt10 = self.grid.cols_gt.contains_key(&col)
-                    && self.grid.kind == GridKind::Virtex2PX
+                    && self.grid.kind == ChipKind::Virtex2PX
                     && (row < self.grid.row_bot() + 9 || row >= self.grid.row_top() - 8);
                 (
                     if is_gt || is_gt10 {
@@ -318,7 +318,7 @@ impl Namer<'_> {
                 )
             } else {
                 let idx = self.grid.bram_row(row).unwrap();
-                let naming = if self.grid.kind == GridKind::Spartan3ADsp {
+                let naming = if self.grid.kind == ChipKind::Spartan3ADsp {
                     if self.rows_brk.contains(&row) {
                         "INT.BRAM.S3ADSP.BRK"
                     } else {
@@ -335,7 +335,7 @@ impl Namer<'_> {
                 if self.rows_brk.contains(&row) {
                     md = "_BRK";
                 }
-                if self.grid.kind != GridKind::Spartan3E {
+                if self.grid.kind != ChipKind::Spartan3E {
                     if row == self.grid.row_bot() + 1 {
                         md = "_BOT";
                     }
@@ -362,7 +362,7 @@ impl Namer<'_> {
             if self.rows_brk.contains(&row) {
                 md = "_BRK";
             }
-            if self.grid.kind != GridKind::Spartan3E {
+            if self.grid.kind != ChipKind::Spartan3E {
                 if row == self.grid.row_bot() + 1 {
                     md = "_BOT";
                 }
@@ -376,15 +376,15 @@ impl Namer<'_> {
             (naming, format!("MACC{idx}_SMALL{md}_X{x}Y{y}"))
         } else if row == self.grid.row_bot() || row == self.grid.row_top() {
             match self.grid.kind {
-                GridKind::Virtex2
-                | GridKind::Virtex2P
-                | GridKind::Virtex2PX
-                | GridKind::Spartan3
-                | GridKind::FpgaCore => {
+                ChipKind::Virtex2
+                | ChipKind::Virtex2P
+                | ChipKind::Virtex2PX
+                | ChipKind::Spartan3
+                | ChipKind::FpgaCore => {
                     let bt = if row == self.grid.row_bot() { 'B' } else { 'T' };
                     let c = self.clut[col];
                     let naming = if self.grid.kind.is_virtex2() {
-                        if self.grid.kind == GridKind::Virtex2PX && col == self.grid.col_clk - 1 {
+                        if self.grid.kind == ChipKind::Virtex2PX && col == self.grid.col_clk - 1 {
                             if row == self.grid.row_bot() {
                                 "INT.IOI.CLK_B"
                             } else {
@@ -393,14 +393,14 @@ impl Namer<'_> {
                         } else {
                             "INT.IOI.TB"
                         }
-                    } else if self.grid.kind == GridKind::FpgaCore {
+                    } else if self.grid.kind == ChipKind::FpgaCore {
                         "INT.IOI.FC"
                     } else {
                         "INT.IOI"
                     };
                     (naming, format!("{bt}IOIC{c}"))
                 }
-                GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
                     let naming = if self.grid.kind.is_spartan3a() {
                         "INT.IOI.S3A.TB"
                     } else {
@@ -444,11 +444,11 @@ impl Namer<'_> {
             }
         } else if col == self.grid.col_left() || col == self.grid.col_right() {
             match self.grid.kind {
-                GridKind::Virtex2
-                | GridKind::Virtex2P
-                | GridKind::Virtex2PX
-                | GridKind::Spartan3
-                | GridKind::FpgaCore => {
+                ChipKind::Virtex2
+                | ChipKind::Virtex2P
+                | ChipKind::Virtex2PX
+                | ChipKind::Spartan3
+                | ChipKind::FpgaCore => {
                     let lr = if col == self.grid.col_left() {
                         'L'
                     } else {
@@ -457,14 +457,14 @@ impl Namer<'_> {
                     let r = self.rlut[row];
                     let naming = if self.grid.kind.is_virtex2() {
                         "INT.IOI.LR"
-                    } else if self.grid.kind == GridKind::FpgaCore {
+                    } else if self.grid.kind == ChipKind::FpgaCore {
                         "INT.IOI.FC"
                     } else {
                         "INT.IOI"
                     };
                     (naming, format!("{lr}IOIR{r}"))
                 }
-                GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
                     let naming = if self.grid.kind.is_spartan3a() {
                         if self.rows_brk.contains(&row) {
                             "INT.IOI.S3A.LR.BRK"
@@ -582,7 +582,7 @@ impl Namer<'_> {
                     RowIoKind::Quad(0) => "LTERM4",
                     _ => "LTERM",
                 };
-                if self.grid.kind == GridKind::Spartan3E {
+                if self.grid.kind == ChipKind::Spartan3E {
                     if row == self.grid.row_mid() {
                         kind = "LTERM4CLK";
                     }
@@ -670,7 +670,7 @@ impl Namer<'_> {
                     RowIoKind::Quad(0) => "RTERM4",
                     _ => "RTERM",
                 };
-                if self.grid.kind == GridKind::Spartan3E {
+                if self.grid.kind == ChipKind::Spartan3E {
                     if row == self.grid.row_mid() {
                         kind = "RTERM4CLK";
                     }
@@ -745,7 +745,7 @@ impl Namer<'_> {
                     ColumnIoKind::Quad(0) => "BTERM4",
                     _ => "BTERM",
                 };
-                if self.grid.kind == GridKind::Spartan3E {
+                if self.grid.kind == ChipKind::Spartan3E {
                     if cd.io == ColumnIoKind::Quad(0) && cd.kind == ColumnKind::BramCont(2) {
                         kind = "BTERM4_BRAM2";
                     }
@@ -774,7 +774,7 @@ impl Namer<'_> {
                     if col == self.grid.col_clk + 1 {
                         kind = "BTERMCLK";
                     }
-                    if self.grid.kind == GridKind::Spartan3ADsp {
+                    if self.grid.kind == ChipKind::Spartan3ADsp {
                         match cd.kind {
                             ColumnKind::BramCont(2) => {
                                 kind = "BTERM1";
@@ -831,7 +831,7 @@ impl Namer<'_> {
                     ColumnIoKind::Quad(0) => "TTERM4",
                     _ => "TTERM",
                 };
-                if self.grid.kind == GridKind::Spartan3E {
+                if self.grid.kind == ChipKind::Spartan3E {
                     if cd.io == ColumnIoKind::Quad(0) && cd.kind == ColumnKind::BramCont(2) {
                         kind = "TTERM4_BRAM2";
                     }
@@ -860,7 +860,7 @@ impl Namer<'_> {
                     if col == self.grid.col_clk + 1 {
                         kind = "TTERMCLKA";
                     }
-                    if self.grid.kind == GridKind::Spartan3ADsp {
+                    if self.grid.kind == ChipKind::Spartan3ADsp {
                         match cd.kind {
                             ColumnKind::BramCont(2) => {
                                 kind = "TTERM1";
@@ -878,18 +878,18 @@ impl Namer<'_> {
     }
 
     fn get_bram_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
-        let is_bot = matches!(self.grid.kind, GridKind::Spartan3A | GridKind::Spartan3ADsp)
+        let is_bot = matches!(self.grid.kind, ChipKind::Spartan3A | ChipKind::Spartan3ADsp)
             && row == self.grid.row_bot() + 1;
-        let is_top = matches!(self.grid.kind, GridKind::Spartan3A | GridKind::Spartan3ADsp)
+        let is_top = matches!(self.grid.kind, ChipKind::Spartan3A | ChipKind::Spartan3ADsp)
             && (row == self.grid.row_top() - 4
                 || row == self.grid.row_top() - 8 && col == self.grid.col_clk);
         let is_brk = self.rows_brk.contains(&(row + 3));
         let naming = match self.grid.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BRAM",
-            GridKind::Spartan3 => "BRAM.S3",
-            GridKind::FpgaCore => unreachable!(),
-            GridKind::Spartan3E => "BRAM.S3E",
-            GridKind::Spartan3A => {
+            ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => "BRAM",
+            ChipKind::Spartan3 => "BRAM.S3",
+            ChipKind::FpgaCore => unreachable!(),
+            ChipKind::Spartan3E => "BRAM.S3E",
+            ChipKind::Spartan3A => {
                 if is_bot {
                     "BRAM.S3A.BOT"
                 } else if is_top {
@@ -898,12 +898,12 @@ impl Namer<'_> {
                     "BRAM.S3A"
                 }
             }
-            GridKind::Spartan3ADsp => "BRAM.S3ADSP",
+            ChipKind::Spartan3ADsp => "BRAM.S3ADSP",
         };
         let name = if self.grid.kind.is_spartan3ea() {
             let x = self.xlut[col] + 1;
             let y = row.to_idx();
-            let m = if self.grid.kind == GridKind::Spartan3ADsp {
+            let m = if self.grid.kind == ChipKind::Spartan3ADsp {
                 "_3M"
             } else {
                 ""
@@ -952,7 +952,7 @@ impl Namer<'_> {
                 ("GCLKH", format!("GCLKHR{r}BRAMC{c}"))
             } else {
                 // *sigh*.
-                if self.grid.kind == GridKind::Virtex2 && self.grid.columns.len() == 12 {
+                if self.grid.kind == ChipKind::Virtex2 && self.grid.columns.len() == 12 {
                     r -= 1;
                 }
                 let c = self.clut[col];
@@ -986,7 +986,7 @@ impl Namer<'_> {
                         ][x as usize - 1]
                     } else if self.hclklut[row] == 0 {
                         naming = "GCLKH.BRAM.S";
-                        if self.grid.kind == GridKind::Spartan3E {
+                        if self.grid.kind == ChipKind::Spartan3E {
                             [
                                 "BRAMSITE2_DN_GCLKH",
                                 "BRAM2_DN_GCLKH_FEEDTHRU",
@@ -1001,7 +1001,7 @@ impl Namer<'_> {
                         }
                     } else if self.hclklut[row] == self.grid.rows_hclk.len() - 1 {
                         naming = "GCLKH.BRAM.N";
-                        if self.grid.kind == GridKind::Spartan3E {
+                        if self.grid.kind == ChipKind::Spartan3E {
                             [
                                 "BRAMSITE2_UP_GCLKH",
                                 "BRAM2_UP_GCLKH_FEEDTHRU",
@@ -1016,7 +1016,7 @@ impl Namer<'_> {
                         }
                     } else {
                         naming = "GCLKH.0";
-                        if self.grid.kind == GridKind::Spartan3E {
+                        if self.grid.kind == ChipKind::Spartan3E {
                             [
                                 "BRAMSITE2_MID_GCLKH",
                                 "BRAM2_MID_GCLKH_FEEDTHRU",
@@ -1024,7 +1024,7 @@ impl Namer<'_> {
                             ][x as usize - 1]
                         } else {
                             [
-                                if self.grid.kind != GridKind::Spartan3ADsp {
+                                if self.grid.kind != ChipKind::Spartan3ADsp {
                                     "BRAMSITE2_GCLKH"
                                 } else if row < self.grid.row_mid() {
                                     "BRAMSITE2_DN_GCLKH"
@@ -1083,7 +1083,7 @@ impl Namer<'_> {
         } else {
             format!("CLKH_LL_X{x}Y{y}")
         };
-        if self.grid.kind == GridKind::Spartan3E {
+        if self.grid.kind == ChipKind::Spartan3E {
             if col == self.grid.col_left() + 9 {
                 name = format!("CLKLH_DCM_LL_X{x}Y{y}");
             }
@@ -1119,7 +1119,7 @@ impl Namer<'_> {
             format!("CLKB_LL_X{x}Y{y}")
         } else if row == self.grid.row_top() {
             format!("CLKT_LL_X{x}Y{y}")
-        } else if self.grid.kind != GridKind::Spartan3E
+        } else if self.grid.kind != ChipKind::Spartan3E
             && [
                 self.grid.row_bot() + 2,
                 self.grid.row_bot() + 3,
@@ -1158,7 +1158,7 @@ impl Namer<'_> {
                     if iob.tile == tidx {
                         if iob.kind == IobKind::Clk {
                             clks.push(iob.bel.to_idx());
-                        } else if iob.kind == IobKind::Ibuf && self.grid.kind != GridKind::FpgaCore
+                        } else if iob.kind == IobKind::Ibuf && self.grid.kind != ChipKind::FpgaCore
                         {
                             ipads.push(iob.bel.to_idx());
                         } else {
@@ -1168,11 +1168,11 @@ impl Namer<'_> {
                 }
             }
             let iobs: &[usize] = match self.grid.kind {
-                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => &[3, 2, 1, 0],
-                GridKind::Spartan3 => &[2, 1, 0],
-                GridKind::FpgaCore => &[3, 7, 2, 6, 1, 5, 0, 4],
-                GridKind::Spartan3E => &[2, 1, 0],
-                GridKind::Spartan3A | GridKind::Spartan3ADsp => &[0, 1, 2],
+                ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => &[3, 2, 1, 0],
+                ChipKind::Spartan3 => &[2, 1, 0],
+                ChipKind::FpgaCore => &[3, 7, 2, 6, 1, 5, 0, 4],
+                ChipKind::Spartan3E => &[2, 1, 0],
+                ChipKind::Spartan3A | ChipKind::Spartan3ADsp => &[0, 1, 2],
             };
             let nnode = self
                 .ngrid
@@ -1213,7 +1213,7 @@ impl Namer<'_> {
             let mut ipads = vec![];
             for &iob in &data.iobs {
                 if iob.tile == tidx {
-                    if iob.kind == IobKind::Ibuf && self.grid.kind != GridKind::FpgaCore {
+                    if iob.kind == IobKind::Ibuf && self.grid.kind != ChipKind::FpgaCore {
                         ipads.push(iob.bel.to_idx());
                     } else {
                         pads.push(iob.bel.to_idx());
@@ -1221,11 +1221,11 @@ impl Namer<'_> {
                 }
             }
             let iobs: &[usize] = match self.grid.kind {
-                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => &[3, 2, 1, 0],
-                GridKind::Spartan3 => &[2, 1, 0],
-                GridKind::FpgaCore => &[3, 7, 2, 6, 1, 5, 0, 4],
-                GridKind::Spartan3E => &[2, 1, 0],
-                GridKind::Spartan3A | GridKind::Spartan3ADsp => &[1, 0],
+                ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => &[3, 2, 1, 0],
+                ChipKind::Spartan3 => &[2, 1, 0],
+                ChipKind::FpgaCore => &[3, 7, 2, 6, 1, 5, 0, 4],
+                ChipKind::Spartan3E => &[2, 1, 0],
+                ChipKind::Spartan3A | ChipKind::Spartan3ADsp => &[1, 0],
             };
             let nnode = self
                 .ngrid
@@ -1268,7 +1268,7 @@ impl Namer<'_> {
                     if iob.tile == tidx {
                         if iob.kind == IobKind::Clk {
                             clks.push(iob.bel.to_idx());
-                        } else if iob.kind == IobKind::Ibuf && self.grid.kind != GridKind::FpgaCore
+                        } else if iob.kind == IobKind::Ibuf && self.grid.kind != ChipKind::FpgaCore
                         {
                             ipads.push(iob.bel.to_idx());
                         } else {
@@ -1278,11 +1278,11 @@ impl Namer<'_> {
                 }
             }
             let iobs: &[usize] = match self.grid.kind {
-                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => &[3, 2, 1, 0],
-                GridKind::Spartan3 => &[2, 1, 0],
-                GridKind::FpgaCore => &[3, 7, 2, 6, 1, 5, 0, 4],
-                GridKind::Spartan3E => &[2, 1, 0],
-                GridKind::Spartan3A | GridKind::Spartan3ADsp => &[2, 1, 0],
+                ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => &[3, 2, 1, 0],
+                ChipKind::Spartan3 => &[2, 1, 0],
+                ChipKind::FpgaCore => &[3, 7, 2, 6, 1, 5, 0, 4],
+                ChipKind::Spartan3E => &[2, 1, 0],
+                ChipKind::Spartan3A | ChipKind::Spartan3ADsp => &[2, 1, 0],
             };
             let nnode = self
                 .ngrid
@@ -1300,7 +1300,7 @@ impl Namer<'_> {
                     self.ctr_pad += 1;
                 } else if pads.contains(&i) {
                     let mut name = format!("PAD{idx}", idx = self.ctr_pad);
-                    if self.grid.kind == GridKind::Spartan3A && self.grid.cols_clkv.is_none() {
+                    if self.grid.kind == ChipKind::Spartan3A && self.grid.cols_clkv.is_none() {
                         // 3s50a special
                         match self.ctr_pad {
                             94 => name = "PAD96".to_string(),
@@ -1313,7 +1313,7 @@ impl Namer<'_> {
                     self.ctr_pad += 1;
                 } else if ipads.contains(&i) {
                     let mut name = format!("IPAD{idx}", idx = self.ctr_pad);
-                    if self.grid.kind == GridKind::Spartan3A
+                    if self.grid.kind == ChipKind::Spartan3A
                         && self.grid.cols_clkv.is_none()
                         && self.ctr_pad == 95
                     {
@@ -1340,7 +1340,7 @@ impl Namer<'_> {
             let mut ipads = vec![];
             for &iob in &data.iobs {
                 if iob.tile == tidx {
-                    if iob.kind == IobKind::Ibuf && self.grid.kind != GridKind::FpgaCore {
+                    if iob.kind == IobKind::Ibuf && self.grid.kind != ChipKind::FpgaCore {
                         ipads.push(iob.bel.to_idx());
                     } else {
                         pads.push(iob.bel.to_idx());
@@ -1348,11 +1348,11 @@ impl Namer<'_> {
                 }
             }
             let iobs: &[usize] = match self.grid.kind {
-                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => &[0, 1, 2, 3],
-                GridKind::Spartan3 => &[0, 1, 2],
-                GridKind::FpgaCore => &[0, 4, 1, 5, 2, 6, 3, 7],
-                GridKind::Spartan3E => &[2, 1, 0],
-                GridKind::Spartan3A | GridKind::Spartan3ADsp => &[0, 1],
+                ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => &[0, 1, 2, 3],
+                ChipKind::Spartan3 => &[0, 1, 2],
+                ChipKind::FpgaCore => &[0, 4, 1, 5, 2, 6, 3, 7],
+                ChipKind::Spartan3E => &[2, 1, 0],
+                ChipKind::Spartan3A | ChipKind::Spartan3ADsp => &[0, 1],
             };
             let nnode = self
                 .ngrid
@@ -1377,7 +1377,7 @@ impl Namer<'_> {
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let egrid = &edev.egrid;
-    let grid = edev.grid;
+    let grid = edev.chip;
     let ngrid = ExpandedGridNaming::new(ndb, egrid);
     let dcm_grid = ngrid.bel_grid(|_, name, _| name.starts_with("DCM."));
     let bram_grid = ngrid.bel_grid(|_, name, _| name.starts_with("BRAM"));
@@ -1429,7 +1429,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             if kind != "INT.DCM.S3E.DUMMY" {
                                 let mut x = namer.vcc_xlut[col];
                                 let mut y = namer.vcc_ylut[row];
-                                if grid.kind == GridKind::Virtex2 {
+                                if grid.kind == ChipKind::Virtex2 {
                                     // Look, just..... don't ask me.
                                     x = col.to_idx();
                                     if col == grid.col_left() {
@@ -1522,12 +1522,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 unreachable!()
                             };
                             let nnode = namer.ngrid.name_node(nloc, naming, [name]);
-                            let x = if grid.kind == GridKind::Spartan3 {
+                            let x = if grid.kind == ChipKind::Spartan3 {
                                 (namer.clut[col] - 1) * 2
                             } else {
                                 col.to_idx() - 1
                             };
-                            let y = if grid.kind != GridKind::FpgaCore && naming == "RANDOR.T" {
+                            let y = if grid.kind != ChipKind::FpgaCore && naming == "RANDOR.T" {
                                 1
                             } else {
                                 0
@@ -1540,7 +1540,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let x = namer.bram_grid.xlut[col];
                             let y = namer.bram_grid.ylut[row];
                             nnode.add_bel(0, format!("RAMB16_X{x}Y{y}"));
-                            if grid.kind != GridKind::Spartan3ADsp {
+                            if grid.kind != ChipKind::Spartan3ADsp {
                                 nnode.add_bel(1, format!("MULT18X18_X{x}Y{y}"));
                             }
                         }
@@ -1666,9 +1666,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CLKB.V2" | "CLKB.V2P" | "CLKB.V2PX" => {
                             let name = match grid.kind {
-                                GridKind::Virtex2 => "CLKB",
-                                GridKind::Virtex2P => "ML_CLKB",
-                                GridKind::Virtex2PX => "MK_CLKB",
+                                ChipKind::Virtex2 => "CLKB",
+                                ChipKind::Virtex2P => "ML_CLKB",
+                                ChipKind::Virtex2PX => "MK_CLKB",
                                 _ => unreachable!(),
                             };
                             let nnode = namer.ngrid.name_node(nloc, kind, [name.into()]);
@@ -1688,14 +1688,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CLKT.V2" | "CLKT.V2P" | "CLKT.V2PX" => {
                             let name = match grid.kind {
-                                GridKind::Virtex2 => "CLKT",
-                                GridKind::Virtex2P => "ML_CLKT",
-                                GridKind::Virtex2PX => "MK_CLKT",
+                                ChipKind::Virtex2 => "CLKT",
+                                ChipKind::Virtex2P => "ML_CLKT",
+                                ChipKind::Virtex2PX => "MK_CLKT",
                                 _ => unreachable!(),
                             };
                             let nnode = namer.ngrid.name_node(nloc, kind, [name.into()]);
                             let vx = namer.vcc_xlut[grid.col_clk] - 1;
-                            let vy = if grid.kind == GridKind::Virtex2 {
+                            let vy = if grid.kind == ChipKind::Virtex2 {
                                 1
                             } else {
                                 grid.rows.len() - 1
@@ -1713,7 +1713,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(9, format!("GSIG_X{x}Y1", x = grid.col_clk.to_idx() + 1));
                         }
                         "CLKB.S3" | "CLKB.FC" => {
-                            let bufg = if grid.kind == GridKind::FpgaCore {
+                            let bufg = if grid.kind == ChipKind::FpgaCore {
                                 "BUFG"
                             } else {
                                 "BUFGMUX"
@@ -1729,7 +1729,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(4, format!("GSIG_X{x}Y0", x = grid.col_clk.to_idx()));
                         }
                         "CLKT.S3" | "CLKT.FC" => {
-                            let bufg = if grid.kind == GridKind::FpgaCore {
+                            let bufg = if grid.kind == ChipKind::FpgaCore {
                                 "BUFG"
                             } else {
                                 "BUFGMUX"
@@ -1796,7 +1796,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let x = namer.xlut[col];
                             let y = row.to_idx() - 1;
                             let mut names = vec![format!("CLKL_X{x}Y{y}")];
-                            if grid.kind != GridKind::Spartan3E {
+                            if grid.kind != ChipKind::Spartan3E {
                                 names.push(if grid.has_ll {
                                     format!("CLKL_IOIS_LL_X{x}Y{y}")
                                 } else if grid.cols_clkv.is_none() {
@@ -1825,7 +1825,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let x = namer.xlut[col];
                             let y = row.to_idx() - 1;
                             let mut names = vec![format!("CLKR_X{x}Y{y}")];
-                            if grid.kind != GridKind::Spartan3E {
+                            if grid.kind != ChipKind::Spartan3E {
                                 names.push(if grid.has_ll {
                                     format!("CLKR_IOIS_LL_X{x}Y{y}")
                                 } else if grid.cols_clkv.is_none() {
@@ -1864,7 +1864,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 nloc,
                                 "REG_L",
                                 [
-                                    if grid.kind == GridKind::Virtex2 {
+                                    if grid.kind == ChipKind::Virtex2 {
                                         "HMLTERM"
                                     } else {
                                         "LTERMCLKH"
@@ -1883,7 +1883,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 nloc,
                                 "REG_R",
                                 [
-                                    if grid.kind == GridKind::Virtex2 {
+                                    if grid.kind == ChipKind::Virtex2 {
                                         "HMRTERM"
                                     } else {
                                         "RTERMCLKH"
@@ -1987,7 +1987,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let name = if grid.kind.is_spartan3ea() {
                                 let x = namer.xlut[col] - 1;
                                 let y = row.to_idx() - 1;
-                                if grid.kind == GridKind::Spartan3E && grid.has_ll {
+                                if grid.kind == ChipKind::Spartan3E && grid.has_ll {
                                     format!("CLKC_LL_X{x}Y{y}")
                                 } else {
                                     format!("CLKC_X{x}Y{y}")
@@ -2095,7 +2095,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IOI.S3A.B" => {
                             let (_, name) = namer.get_int_name(col, row);
-                            let naming = if grid.kind == GridKind::Spartan3ADsp {
+                            let naming = if grid.kind == ChipKind::Spartan3ADsp {
                                 "IOI.S3ADSP.B"
                             } else {
                                 "IOI.S3A.B"
@@ -2104,7 +2104,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IOI.S3A.T" => {
                             let (_, name) = namer.get_int_name(col, row);
-                            let naming = if grid.kind == GridKind::Spartan3ADsp {
+                            let naming = if grid.kind == ChipKind::Spartan3ADsp {
                                 "IOI.S3ADSP.T"
                             } else {
                                 "IOI.S3A.T"
@@ -2119,13 +2119,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     && row != grid.row_mid() - 4
                                     && row != grid.row_mid()
                                 {
-                                    if grid.kind == GridKind::Spartan3ADsp {
+                                    if grid.kind == ChipKind::Spartan3ADsp {
                                         "IOI.S3ADSP.L.PCI"
                                     } else {
                                         "IOI.S3A.L.PCI"
                                     }
                                 } else {
-                                    if grid.kind == GridKind::Spartan3ADsp {
+                                    if grid.kind == ChipKind::Spartan3ADsp {
                                         "IOI.S3ADSP.L"
                                     } else {
                                         "IOI.S3A.L"
@@ -2137,13 +2137,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     && row != grid.row_mid() - 1
                                     && row != grid.row_mid() + 3
                                 {
-                                    if grid.kind == GridKind::Spartan3ADsp {
+                                    if grid.kind == ChipKind::Spartan3ADsp {
                                         "IOI.S3ADSP.R.PCI"
                                     } else {
                                         "IOI.S3A.R.PCI"
                                     }
                                 } else {
-                                    if grid.kind == GridKind::Spartan3ADsp {
+                                    if grid.kind == ChipKind::Spartan3ADsp {
                                         "IOI.S3ADSP.R"
                                     } else {
                                         "IOI.S3A.R"

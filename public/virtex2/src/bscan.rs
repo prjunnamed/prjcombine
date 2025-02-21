@@ -6,7 +6,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     bond::CfgPin,
-    grid::{ColumnKind, Grid, GridKind},
+    chip::{Chip, ChipKind, ColumnKind},
     iob::IobKind,
 };
 
@@ -31,13 +31,13 @@ pub struct BScan {
     pub fc_cfg: BTreeMap<FcCfgPin, BScanPin>,
 }
 
-impl Grid {
+impl Chip {
     pub fn get_bscan(&self) -> BScan {
         let mut io = BTreeMap::new();
         let mut cfg = BTreeMap::new();
         let mut fc_cfg = BTreeMap::new();
         let mut builder = BScanBuilder::new();
-        if self.kind == GridKind::FpgaCore {
+        if self.kind == ChipKind::FpgaCore {
             for col in self.columns.ids().rev() {
                 if self.columns[col].kind == ColumnKind::Clb {
                     for i in 0..4 {

@@ -10,7 +10,7 @@ use crate::iob::{
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum GridKind {
+pub enum ChipKind {
     Virtex2,
     Virtex2P,
     Virtex2PX,
@@ -21,7 +21,7 @@ pub enum GridKind {
     Spartan3ADsp,
 }
 
-impl GridKind {
+impl ChipKind {
     pub fn is_virtex2(self) -> bool {
         matches!(self, Self::Virtex2 | Self::Virtex2P | Self::Virtex2PX)
     }
@@ -37,8 +37,8 @@ impl GridKind {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Grid {
-    pub kind: GridKind,
+pub struct Chip {
+    pub kind: ChipKind,
     pub columns: EntityVec<ColId, Column>,
     pub col_clk: ColId,
     // For Spartan 3* other than 3s50a
@@ -170,7 +170,7 @@ pub struct IoInfo {
     pub pad_kind: Option<IobKind>,
 }
 
-impl Grid {
+impl Chip {
     pub fn col_left(&self) -> ColId {
         self.columns.first_id().unwrap()
     }
@@ -211,7 +211,7 @@ impl Grid {
         let mut res = vec![];
         if let Some(dcms) = self.dcms {
             if dcms == Dcms::Two {
-                if self.kind == GridKind::Spartan3E {
+                if self.kind == ChipKind::Spartan3E {
                     res.extend([
                         DcmPair {
                             kind: DcmPairKind::BotSingle,
@@ -246,7 +246,7 @@ impl Grid {
                 ]);
             }
             if dcms == Dcms::Eight {
-                if self.kind == GridKind::Spartan3E {
+                if self.kind == ChipKind::Spartan3E {
                     res.extend([
                         DcmPair {
                             kind: DcmPairKind::Left,
@@ -280,7 +280,7 @@ impl Grid {
 
     pub fn get_io_info(&self, io: EdgeIoCoord) -> IoInfo {
         let bank = match self.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX | GridKind::Spartan3 => {
+            ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX | ChipKind::Spartan3 => {
                 match io {
                     EdgeIoCoord::T(col, _) => {
                         if col < self.col_clk {
@@ -312,8 +312,8 @@ impl Grid {
                     }
                 }
             }
-            GridKind::FpgaCore => 0,
-            GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => match io {
+            ChipKind::FpgaCore => 0,
+            ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match io {
                 EdgeIoCoord::T(_, _) => 0,
                 EdgeIoCoord::R(_, _) => 1,
                 EdgeIoCoord::B(_, _) => 2,
@@ -322,7 +322,7 @@ impl Grid {
         };
         let (col, row, bel) = self.get_io_loc(io);
         let diff = match self.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+            ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => {
                 if matches!(
                     self.columns[col].io,
                     ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt
@@ -344,7 +344,7 @@ impl Grid {
                     }
                 }
             }
-            GridKind::Spartan3 => {
+            ChipKind::Spartan3 => {
                 if col == self.col_left() {
                     match bel.to_idx() {
                         0 => IoDiffKind::N(TileIobId::from_idx(1)),
@@ -361,14 +361,14 @@ impl Grid {
                     }
                 }
             }
-            GridKind::FpgaCore => IoDiffKind::None,
-            GridKind::Spartan3E => match bel.to_idx() {
+            ChipKind::FpgaCore => IoDiffKind::None,
+            ChipKind::Spartan3E => match bel.to_idx() {
                 0 => IoDiffKind::P(TileIobId::from_idx(1)),
                 1 => IoDiffKind::N(TileIobId::from_idx(0)),
                 2 => IoDiffKind::None,
                 _ => unreachable!(),
             },
-            GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+            ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
                 if row == self.row_top() || col == self.col_left() {
                     match bel.to_idx() {
                         0 => IoDiffKind::N(TileIobId::from_idx(1)),
@@ -477,7 +477,7 @@ impl Grid {
         if self.kind.is_virtex2() {
             match edge {
                 Dir::S => {
-                    if self.kind == GridKind::Virtex2PX && matches!(idx, 6 | 7) {
+                    if self.kind == ChipKind::Virtex2PX && matches!(idx, 6 | 7) {
                         return None;
                     }
                     if idx < 4 {
@@ -492,7 +492,7 @@ impl Grid {
                     }
                 }
                 Dir::N => {
-                    if self.kind == GridKind::Virtex2PX && matches!(idx, 4 | 5) {
+                    if self.kind == ChipKind::Virtex2PX && matches!(idx, 4 | 5) {
                         return None;
                     }
                     if idx < 4 {
@@ -508,7 +508,7 @@ impl Grid {
                 }
                 _ => None,
             }
-        } else if matches!(self.kind, GridKind::Spartan3 | GridKind::FpgaCore) {
+        } else if matches!(self.kind, ChipKind::Spartan3 | ChipKind::FpgaCore) {
             match edge {
                 Dir::S => {
                     if idx < 2 {
@@ -536,7 +536,7 @@ impl Grid {
                 }
                 _ => None,
             }
-        } else if self.kind == GridKind::Spartan3E {
+        } else if self.kind == ChipKind::Spartan3E {
             match (edge, idx) {
                 (Dir::S, 0 | 1) => Some(EdgeIoCoord::B(self.col_clk, TileIobId::from_idx(idx % 2))),
                 (Dir::S, 2 | 3) => Some(EdgeIoCoord::B(
@@ -663,7 +663,7 @@ impl Grid {
 
     pub fn get_pci_io(&self, edge: Dir) -> [EdgeIoCoord; 2] {
         match self.kind {
-            GridKind::Spartan3E => match edge {
+            ChipKind::Spartan3E => match edge {
                 Dir::W => [
                     EdgeIoCoord::L(self.row_mid() + 1, TileIobId::from_idx(1)),
                     EdgeIoCoord::L(self.row_mid() - 1, TileIobId::from_idx(0)),
@@ -674,7 +674,7 @@ impl Grid {
                 ],
                 _ => unreachable!(),
             },
-            GridKind::Spartan3A | GridKind::Spartan3ADsp => match edge {
+            ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match edge {
                 Dir::W => [
                     EdgeIoCoord::L(self.row_mid() + 1, TileIobId::from_idx(0)),
                     EdgeIoCoord::L(self.row_mid() - 2, TileIobId::from_idx(1)),
@@ -726,14 +726,14 @@ impl Grid {
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "kind": match self.kind {
-                GridKind::Virtex2 => "virtex2",
-                GridKind::Virtex2P => "virtex2p",
-                GridKind::Virtex2PX => "virtex2px",
-                GridKind::Spartan3 => "spartan3",
-                GridKind::Spartan3E => "spartan3e",
-                GridKind::Spartan3A => "spartan3a",
-                GridKind::Spartan3ADsp => "spartan3adsp",
-                GridKind::FpgaCore => "fpgacore",
+                ChipKind::Virtex2 => "virtex2",
+                ChipKind::Virtex2P => "virtex2p",
+                ChipKind::Virtex2PX => "virtex2px",
+                ChipKind::Spartan3 => "spartan3",
+                ChipKind::Spartan3E => "spartan3e",
+                ChipKind::Spartan3A => "spartan3a",
+                ChipKind::Spartan3ADsp => "spartan3adsp",
+                ChipKind::FpgaCore => "fpgacore",
             },
             "columns": Vec::from_iter(self.columns.values().map(|column| {
                 json!({
@@ -825,7 +825,7 @@ impl Grid {
     }
 }
 
-impl std::fmt::Display for Grid {
+impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\tKIND: {k:?}", k = self.kind)?;
         writeln!(f, "\tCOLS:")?;

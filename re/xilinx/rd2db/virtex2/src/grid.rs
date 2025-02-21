@@ -5,8 +5,8 @@ use prjcombine_interconnect::{
     grid::{ColId, RowId},
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
-use prjcombine_virtex2::grid::{
-    Column, ColumnIoKind, ColumnKind, Dcms, Grid, GridKind, RowIoKind, SharedCfgPin,
+use prjcombine_virtex2::chip::{
+    Chip, ChipKind, Column, ColumnIoKind, ColumnKind, Dcms, RowIoKind, SharedCfgPin,
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -14,26 +14,26 @@ use prjcombine_re_xilinx_rd2db_grid::{
     IntGrid, extract_int, find_column, find_columns, find_row, find_rows, split_num,
 };
 
-fn get_kind(rd: &Part) -> GridKind {
+fn get_kind(rd: &Part) -> ChipKind {
     match &rd.family[..] {
-        "virtex2" => GridKind::Virtex2,
+        "virtex2" => ChipKind::Virtex2,
         "virtex2p" => {
             if find_columns(rd, &["MK_B_IOIS"]).is_empty() {
-                GridKind::Virtex2P
+                ChipKind::Virtex2P
             } else {
-                GridKind::Virtex2PX
+                ChipKind::Virtex2PX
             }
         }
-        "spartan3" => GridKind::Spartan3,
-        "fpgacore" => GridKind::FpgaCore,
-        "spartan3e" => GridKind::Spartan3E,
-        "spartan3a" => GridKind::Spartan3A,
-        "spartan3adsp" => GridKind::Spartan3ADsp,
+        "spartan3" => ChipKind::Spartan3,
+        "fpgacore" => ChipKind::FpgaCore,
+        "spartan3e" => ChipKind::Spartan3E,
+        "spartan3a" => ChipKind::Spartan3A,
+        "spartan3adsp" => ChipKind::Spartan3ADsp,
         _ => panic!("unknown family {}", rd.family),
     }
 }
 
-fn make_columns(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<ColId, Column> {
+fn make_columns(rd: &Part, int: &IntGrid, kind: ChipKind) -> EntityVec<ColId, Column> {
     let mut res = EntityVec::new();
     res.push(Column {
         kind: ColumnKind::Io,
@@ -50,8 +50,8 @@ fn make_columns(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<ColId, Co
         io: ColumnIoKind::None,
     });
     let bram_cont = match kind {
-        GridKind::Spartan3E | GridKind::Spartan3A => 4,
-        GridKind::Spartan3ADsp => 3,
+        ChipKind::Spartan3E | ChipKind::Spartan3A => 4,
+        ChipKind::Spartan3ADsp => 3,
         _ => 0,
     };
     for rc in find_columns(rd, &["BRAM0", "BRAM0_SMALL"]) {
@@ -70,12 +70,12 @@ fn make_columns(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<ColId, Co
     res
 }
 
-fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &mut EntityVec<ColId, Column>) {
+fn get_cols_io(rd: &Part, int: &IntGrid, kind: ChipKind, cols: &mut EntityVec<ColId, Column>) {
     let mut col = cols.first_id().unwrap() + 1;
     let col_r = cols.last_id().unwrap();
     while col != col_r {
         match kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+            ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => {
                 let c0 = Coord {
                     x: int.cols[col] as u16,
                     y: 0,
@@ -141,7 +141,7 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &mut EntityVec<Co
                     _ => panic!("unknown tk {tk0} {tk1}"),
                 }
             }
-            GridKind::Spartan3 => {
+            ChipKind::Spartan3 => {
                 if cols[col].kind == ColumnKind::Bram {
                     col += 1;
                 } else {
@@ -151,17 +151,17 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &mut EntityVec<Co
                     }
                 }
             }
-            GridKind::FpgaCore => {
+            ChipKind::FpgaCore => {
                 cols[col].io = ColumnIoKind::Single;
                 col += 1;
             }
-            GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+            ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
                 for i in 0..2 {
                     cols[col].io = ColumnIoKind::Double(i as u8);
                     col += 1;
                 }
             }
-            GridKind::Spartan3E => {
+            ChipKind::Spartan3E => {
                 let c = Coord {
                     x: int.cols[col] as u16,
                     y: 0,
@@ -263,12 +263,12 @@ fn get_cols_gt(rd: &Part, int: &IntGrid) -> BTreeMap<ColId, (u32, u32)> {
     res
 }
 
-fn get_rows(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<RowId, RowIoKind> {
+fn get_rows(rd: &Part, int: &IntGrid, kind: ChipKind) -> EntityVec<RowId, RowIoKind> {
     let mut res = EntityVec::new();
     res.push(RowIoKind::None);
     while res.len() < int.rows.len() - 1 {
         match kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+            ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => {
                 if res.len() < int.rows.len() / 2 {
                     for i in 0..2 {
                         res.push(RowIoKind::DoubleBot(i));
@@ -279,10 +279,10 @@ fn get_rows(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<RowId, RowIoK
                     }
                 }
             }
-            GridKind::Spartan3 | GridKind::FpgaCore => {
+            ChipKind::Spartan3 | ChipKind::FpgaCore => {
                 res.push(RowIoKind::Single);
             }
-            GridKind::Spartan3E => {
+            ChipKind::Spartan3E => {
                 let c = Coord {
                     x: 0,
                     y: int.rows[res.next_id()] as u16,
@@ -310,7 +310,7 @@ fn get_rows(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<RowId, RowIoK
                     _ => panic!("unknown tk {tk}"),
                 }
             }
-            GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+            ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
                 for i in 0..4 {
                     res.push(RowIoKind::Quad(i));
                 }
@@ -322,8 +322,8 @@ fn get_rows(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<RowId, RowIoK
     res
 }
 
-fn get_rows_ram(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<(RowId, RowId)> {
-    if kind == GridKind::Spartan3E {
+fn get_rows_ram(rd: &Part, int: &IntGrid, kind: ChipKind) -> Option<(RowId, RowId)> {
+    if kind == ChipKind::Spartan3E {
         let b = int.lookup_row(find_row(rd, &["COB_TERM_B"]).unwrap());
         let t = int.lookup_row(find_row(rd, &["COB_TERM_T"]).unwrap());
         Some((b, t))
@@ -357,9 +357,9 @@ fn get_rows_hclk(rd: &Part, int: &IntGrid) -> Vec<(RowId, RowId, RowId)> {
         .collect()
 }
 
-fn get_row_pci(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<RowId> {
+fn get_row_pci(rd: &Part, int: &IntGrid, kind: ChipKind) -> Option<RowId> {
     match kind {
-        GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+        ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => {
             Some(int.lookup_row(find_row(rd, &["REG_L"]).unwrap() + 1))
         }
         _ => None,
@@ -380,9 +380,9 @@ fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
     res
 }
 
-fn get_dcms(rd: &Part, kind: GridKind) -> Option<Dcms> {
+fn get_dcms(rd: &Part, kind: ChipKind) -> Option<Dcms> {
     match kind {
-        GridKind::Spartan3E => {
+        ChipKind::Spartan3E => {
             if !find_columns(rd, &["DCM_H_BL_CENTER"]).is_empty() {
                 Some(Dcms::Eight)
             } else if !find_columns(rd, &["DCM_BL_CENTER"]).is_empty() {
@@ -391,7 +391,7 @@ fn get_dcms(rd: &Part, kind: GridKind) -> Option<Dcms> {
                 Some(Dcms::Two)
             }
         }
-        GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
             if !find_columns(rd, &["DCM_BGAP"]).is_empty() {
                 Some(Dcms::Eight)
             } else if !find_columns(rd, &["DCM_BL_CENTER"]).is_empty() {
@@ -412,8 +412,8 @@ fn get_has_small_int(rd: &Part) -> bool {
     !find_columns(rd, &["CENTER_SMALL"]).is_empty()
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
-    if grid.kind == GridKind::FpgaCore {
+fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
+    if grid.kind == ChipKind::FpgaCore {
         return;
     }
     let mut io_lookup = HashMap::new();
@@ -523,7 +523,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
     }
 }
 
-pub fn make_grid(rd: &Part) -> Grid {
+pub fn make_grid(rd: &Part) -> Chip {
     // This list of int tiles is incomplete, but suffices for the purpose of grid determination
     let int = extract_int(
         rd,
@@ -546,7 +546,7 @@ pub fn make_grid(rd: &Part) -> Grid {
     let kind = get_kind(rd);
     let mut columns = make_columns(rd, &int, kind);
     get_cols_io(rd, &int, kind, &mut columns);
-    let mut grid = Grid {
+    let mut grid = Chip {
         kind,
         columns,
         col_clk: get_col_clk(rd, &int),

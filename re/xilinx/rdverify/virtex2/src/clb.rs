@@ -1,6 +1,6 @@
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::grid::ColumnKind;
+use prjcombine_virtex2::chip::ColumnKind;
 
 pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
     vrf.verify_bel(

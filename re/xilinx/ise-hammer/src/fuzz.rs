@@ -109,15 +109,15 @@ impl<'sm, 's, 'a, 'b> FuzzCtx<'sm, 's, 'a, 'b> {
         let node_kind = backend.egrid.db.get_node(match backend.edev {
             ExpandedDevice::Xc2000(_) => "CNR.BL",
             ExpandedDevice::Virtex(_) => "CNR.BL",
-            ExpandedDevice::Virtex2(edev) => match edev.grid.kind {
-                prjcombine_virtex2::grid::GridKind::Virtex2 => "LL.V2",
-                prjcombine_virtex2::grid::GridKind::Virtex2P
-                | prjcombine_virtex2::grid::GridKind::Virtex2PX => "LL.V2P",
-                prjcombine_virtex2::grid::GridKind::Spartan3 => "LL.S3",
-                prjcombine_virtex2::grid::GridKind::FpgaCore => "LL.FC",
-                prjcombine_virtex2::grid::GridKind::Spartan3E => "LL.S3E",
-                prjcombine_virtex2::grid::GridKind::Spartan3A
-                | prjcombine_virtex2::grid::GridKind::Spartan3ADsp => "LL.S3A",
+            ExpandedDevice::Virtex2(edev) => match edev.chip.kind {
+                prjcombine_virtex2::chip::ChipKind::Virtex2 => "LL.V2",
+                prjcombine_virtex2::chip::ChipKind::Virtex2P
+                | prjcombine_virtex2::chip::ChipKind::Virtex2PX => "LL.V2P",
+                prjcombine_virtex2::chip::ChipKind::Spartan3 => "LL.S3",
+                prjcombine_virtex2::chip::ChipKind::FpgaCore => "LL.FC",
+                prjcombine_virtex2::chip::ChipKind::Spartan3E => "LL.S3E",
+                prjcombine_virtex2::chip::ChipKind::Spartan3A
+                | prjcombine_virtex2::chip::ChipKind::Spartan3ADsp => "LL.S3A",
             },
             ExpandedDevice::Spartan6(_) => "LL",
             ExpandedDevice::Virtex4(_) => "CFG",

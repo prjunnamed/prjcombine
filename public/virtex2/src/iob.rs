@@ -1,7 +1,7 @@
 use prjcombine_interconnect::db::{BelId, Dir};
 use unnamed_entity::EntityId;
 
-use crate::grid::{ColumnIoKind, GridKind, RowIoKind};
+use crate::chip::{ChipKind, ColumnIoKind, RowIoKind};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum IobDiff {
@@ -107,14 +107,14 @@ fn clkc(tile: usize, bel: usize, other: usize) -> IobData {
     }
 }
 
-pub fn get_iob_data_b(kind: GridKind, col: ColumnIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_b(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, usize) {
     match kind {
-        GridKind::Virtex2 => match col {
+        ChipKind::Virtex2 => match col {
             ColumnIoKind::DoubleLeft(i) => (get_iob_data("IOBS.V2.B.L2"), i.into()),
             ColumnIoKind::DoubleRight(i) => (get_iob_data("IOBS.V2.B.R2"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::Virtex2P | GridKind::Virtex2PX => match col {
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => match col {
             ColumnIoKind::DoubleLeft(i) => (get_iob_data("IOBS.V2P.B.L2"), i.into()),
             ColumnIoKind::DoubleRight(i) => (get_iob_data("IOBS.V2P.B.R2"), i.into()),
             ColumnIoKind::DoubleRightClk(i) => (get_iob_data("IOBS.V2P.B.R2.CLK"), i.into()),
@@ -124,33 +124,33 @@ pub fn get_iob_data_b(kind: GridKind, col: ColumnIoKind) -> (IobTileData, usize)
             ColumnIoKind::SingleRightAlt => (get_iob_data("IOBS.V2P.B.R1.ALT"), 0),
             _ => unreachable!(),
         },
-        GridKind::Spartan3 => match col {
+        ChipKind::Spartan3 => match col {
             ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3.B2"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::FpgaCore => (get_iob_data("IOBS.FC.B"), 0),
-        GridKind::Spartan3E => match col {
+        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.B"), 0),
+        ChipKind::Spartan3E => match col {
             ColumnIoKind::Single => (get_iob_data("IOBS.S3E.B1"), 0),
             ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3E.B2"), i.into()),
             ColumnIoKind::Triple(i) => (get_iob_data("IOBS.S3E.B3"), i.into()),
             ColumnIoKind::Quad(i) => (get_iob_data("IOBS.S3E.B4"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::Spartan3A | GridKind::Spartan3ADsp => match col {
+        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match col {
             ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3A.B2"), i.into()),
             _ => unreachable!(),
         },
     }
 }
 
-pub fn get_iob_data_t(kind: GridKind, col: ColumnIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_t(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, usize) {
     match kind {
-        GridKind::Virtex2 => match col {
+        ChipKind::Virtex2 => match col {
             ColumnIoKind::DoubleLeft(i) => (get_iob_data("IOBS.V2.T.L2"), i.into()),
             ColumnIoKind::DoubleRight(i) => (get_iob_data("IOBS.V2.T.R2"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::Virtex2P | GridKind::Virtex2PX => match col {
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => match col {
             ColumnIoKind::DoubleLeft(i) => (get_iob_data("IOBS.V2P.T.L2"), i.into()),
             ColumnIoKind::DoubleRight(i) => (get_iob_data("IOBS.V2P.T.R2"), i.into()),
             ColumnIoKind::DoubleRightClk(i) => (get_iob_data("IOBS.V2P.T.R2.CLK"), i.into()),
@@ -160,90 +160,90 @@ pub fn get_iob_data_t(kind: GridKind, col: ColumnIoKind) -> (IobTileData, usize)
             ColumnIoKind::SingleRightAlt => (get_iob_data("IOBS.V2P.T.R1.ALT"), 0),
             _ => unreachable!(),
         },
-        GridKind::Spartan3 => match col {
+        ChipKind::Spartan3 => match col {
             ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3.T2"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::FpgaCore => (get_iob_data("IOBS.FC.T"), 0),
-        GridKind::Spartan3E => match col {
+        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.T"), 0),
+        ChipKind::Spartan3E => match col {
             ColumnIoKind::Single => (get_iob_data("IOBS.S3E.T1"), 0),
             ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3E.T2"), i.into()),
             ColumnIoKind::Triple(i) => (get_iob_data("IOBS.S3E.T3"), i.into()),
             ColumnIoKind::Quad(i) => (get_iob_data("IOBS.S3E.T4"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::Spartan3A | GridKind::Spartan3ADsp => match col {
+        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match col {
             ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3A.T2"), i.into()),
             _ => unreachable!(),
         },
     }
 }
 
-pub fn get_iob_data_l(kind: GridKind, row: RowIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_l(kind: ChipKind, row: RowIoKind) -> (IobTileData, usize) {
     match kind {
-        GridKind::Virtex2 => match row {
+        ChipKind::Virtex2 => match row {
             RowIoKind::DoubleBot(i) => (get_iob_data("IOBS.V2.L.B2"), i.into()),
             RowIoKind::DoubleTop(i) => (get_iob_data("IOBS.V2.L.T2"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::Virtex2P | GridKind::Virtex2PX => match row {
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => match row {
             RowIoKind::DoubleBot(i) => (get_iob_data("IOBS.V2P.L.B2"), i.into()),
             RowIoKind::DoubleTop(i) => (get_iob_data("IOBS.V2P.L.T2"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::Spartan3 => match row {
+        ChipKind::Spartan3 => match row {
             RowIoKind::Single => (get_iob_data("IOBS.S3.L1"), 0),
             _ => unreachable!(),
         },
-        GridKind::FpgaCore => (get_iob_data("IOBS.FC.L"), 0),
-        GridKind::Spartan3E => match row {
+        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.L"), 0),
+        ChipKind::Spartan3E => match row {
             RowIoKind::Single => (get_iob_data("IOBS.S3E.L1"), 0),
             RowIoKind::Double(i) => (get_iob_data("IOBS.S3E.L2"), i.into()),
             RowIoKind::Triple(i) => (get_iob_data("IOBS.S3E.L3"), i.into()),
             RowIoKind::Quad(i) => (get_iob_data("IOBS.S3E.L4"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::Spartan3A | GridKind::Spartan3ADsp => match row {
+        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match row {
             RowIoKind::Quad(i) => (get_iob_data("IOBS.S3A.L4"), i.into()),
             _ => unreachable!(),
         },
     }
 }
 
-pub fn get_iob_data_r(kind: GridKind, row: RowIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_r(kind: ChipKind, row: RowIoKind) -> (IobTileData, usize) {
     match kind {
-        GridKind::Virtex2 => match row {
+        ChipKind::Virtex2 => match row {
             RowIoKind::DoubleBot(i) => (get_iob_data("IOBS.V2.R.B2"), i.into()),
             RowIoKind::DoubleTop(i) => (get_iob_data("IOBS.V2.R.T2"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::Virtex2P | GridKind::Virtex2PX => match row {
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => match row {
             RowIoKind::DoubleBot(i) => (get_iob_data("IOBS.V2P.R.B2"), i.into()),
             RowIoKind::DoubleTop(i) => (get_iob_data("IOBS.V2P.R.T2"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::Spartan3 => match row {
+        ChipKind::Spartan3 => match row {
             RowIoKind::Single => (get_iob_data("IOBS.S3.R1"), 0),
             _ => unreachable!(),
         },
-        GridKind::FpgaCore => (get_iob_data("IOBS.FC.R"), 0),
-        GridKind::Spartan3E => match row {
+        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.R"), 0),
+        ChipKind::Spartan3E => match row {
             RowIoKind::Single => (get_iob_data("IOBS.S3E.R1"), 0),
             RowIoKind::Double(i) => (get_iob_data("IOBS.S3E.R2"), i.into()),
             RowIoKind::Triple(i) => (get_iob_data("IOBS.S3E.R3"), i.into()),
             RowIoKind::Quad(i) => (get_iob_data("IOBS.S3E.R4"), i.into()),
             _ => unreachable!(),
         },
-        GridKind::Spartan3A | GridKind::Spartan3ADsp => match row {
+        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match row {
             RowIoKind::Quad(i) => (get_iob_data("IOBS.S3A.R4"), i.into()),
             _ => unreachable!(),
         },
     }
 }
 
-pub fn get_iob_tiles(kind: GridKind) -> Vec<IobTileData> {
+pub fn get_iob_tiles(kind: ChipKind) -> Vec<IobTileData> {
     match kind {
-        GridKind::Virtex2 => vec![
+        ChipKind::Virtex2 => vec![
             get_iob_data("IOBS.V2.T.L2"),
             get_iob_data("IOBS.V2.T.R2"),
             get_iob_data("IOBS.V2.R.B2"),
@@ -253,7 +253,7 @@ pub fn get_iob_tiles(kind: GridKind) -> Vec<IobTileData> {
             get_iob_data("IOBS.V2.L.B2"),
             get_iob_data("IOBS.V2.L.T2"),
         ],
-        GridKind::Virtex2P | GridKind::Virtex2PX => vec![
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => vec![
             get_iob_data("IOBS.V2P.T.L1"),
             get_iob_data("IOBS.V2P.T.L1.ALT"),
             get_iob_data("IOBS.V2P.T.R1"),
@@ -273,19 +273,19 @@ pub fn get_iob_tiles(kind: GridKind) -> Vec<IobTileData> {
             get_iob_data("IOBS.V2P.L.B2"),
             get_iob_data("IOBS.V2P.L.T2"),
         ],
-        GridKind::Spartan3 => vec![
+        ChipKind::Spartan3 => vec![
             get_iob_data("IOBS.S3.T2"),
             get_iob_data("IOBS.S3.R1"),
             get_iob_data("IOBS.S3.B2"),
             get_iob_data("IOBS.S3.L1"),
         ],
-        GridKind::FpgaCore => vec![
+        ChipKind::FpgaCore => vec![
             get_iob_data("IOBS.FC.T"),
             get_iob_data("IOBS.FC.R"),
             get_iob_data("IOBS.FC.B"),
             get_iob_data("IOBS.FC.L"),
         ],
-        GridKind::Spartan3E => vec![
+        ChipKind::Spartan3E => vec![
             get_iob_data("IOBS.S3E.T1"),
             get_iob_data("IOBS.S3E.T2"),
             get_iob_data("IOBS.S3E.T3"),
@@ -303,7 +303,7 @@ pub fn get_iob_tiles(kind: GridKind) -> Vec<IobTileData> {
             get_iob_data("IOBS.S3E.L3"),
             get_iob_data("IOBS.S3E.L4"),
         ],
-        GridKind::Spartan3A | GridKind::Spartan3ADsp => vec![
+        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => vec![
             get_iob_data("IOBS.S3A.T2"),
             get_iob_data("IOBS.S3A.R4"),
             get_iob_data("IOBS.S3A.B2"),

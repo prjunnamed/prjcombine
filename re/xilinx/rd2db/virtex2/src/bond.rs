@@ -5,7 +5,7 @@ use prjcombine_virtex2::bond::{Bond, BondPin, CfgPin, GtPin};
 
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rd2db_grid::split_num;
-use prjcombine_virtex2::grid::GridKind;
+use prjcombine_virtex2::chip::ChipKind;
 
 pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
@@ -22,7 +22,7 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
             if pad.starts_with("PAD") || pad.starts_with("IPAD") || pad.starts_with("CLK") {
                 let io = io_lookup[&**pad];
                 let info = endev.grid.get_io_info(io);
-                if endev.grid.kind != GridKind::FpgaCore {
+                if endev.grid.kind != ChipKind::FpgaCore {
                     assert_eq!(pin.vref_bank, Some(info.bank));
                     let old = io_banks.insert(info.bank, pin.vcco_bank.unwrap());
                     assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));

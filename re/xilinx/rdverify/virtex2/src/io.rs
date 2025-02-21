@@ -4,7 +4,7 @@ use prjcombine_re_xilinx_naming::db::NodeRawTileId;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Coord;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::grid::{GridKind, IoDiffKind};
+use prjcombine_virtex2::chip::{ChipKind, IoDiffKind};
 use unnamed_entity::EntityId;
 
 use crate::get_bel_iob;
@@ -48,7 +48,7 @@ fn verify_pci_ce(
         let pip = &obel.naming.pins["PCI_CE"].pips[0];
         vrf.verify_node(&[(obel.crds[pip.tile], &pip.wire_to), (crd, wire)]);
     } else {
-        if endev.grid.kind == GridKind::Spartan3A {
+        if endev.grid.kind == ChipKind::Spartan3A {
             if let Some((col_l, col_r)) = endev.grid.cols_clkv {
                 if col >= col_l && col < col_r {
                     let (scol, kind) = if col < endev.grid.col_clk {
@@ -79,7 +79,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
     let is_ipad = tn.contains("IBUFS") || (tn.contains("IOIB") && bel.bid.to_idx() == 2);
     let kind = if matches!(
         endev.grid.kind,
-        GridKind::Spartan3A | GridKind::Spartan3ADsp
+        ChipKind::Spartan3A | ChipKind::Spartan3ADsp
     ) {
         let is_tb = matches!(io_info.bank, 0 | 2);
         match (io_info.diff, is_ipad) {
@@ -120,7 +120,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
     ];
     if matches!(
         endev.grid.kind,
-        GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp
+        ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp
     ) {
         pins.extend([
             ("PCI_RDY", SitePinDir::Out),
@@ -133,7 +133,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             ("IDDRIN2", SitePinDir::In),
         ]);
     }
-    if endev.grid.kind == GridKind::Spartan3ADsp {
+    if endev.grid.kind == ChipKind::Spartan3ADsp {
         pins.extend([("OAUX", SitePinDir::In), ("TAUX", SitePinDir::In)]);
     }
     vrf.verify_bel(bel, kind, &pins, &[]);
@@ -157,7 +157,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
     }
     if matches!(
         endev.grid.kind,
-        GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp
+        ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp
     ) {
         for pin in [
             "ODDRIN1", "ODDRIN2", "ODDROUT1", "ODDROUT2", "IDDRIN1", "IDDRIN2", "PCI_CE", "PCI_RDY",
@@ -183,7 +183,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             bel.wire_far("PCI_CE"),
         );
     }
-    if endev.grid.kind == GridKind::Spartan3ADsp {
+    if endev.grid.kind == ChipKind::Spartan3ADsp {
         for pin in ["OAUX", "TAUX"] {
             vrf.claim_node(&[bel.fwire(pin)]);
         }

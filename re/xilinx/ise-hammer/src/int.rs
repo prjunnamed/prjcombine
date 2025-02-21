@@ -169,7 +169,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 };
                 let diff = ctx.state.get_diff(name, "INT", &mux_name, &in_name);
                 if let ExpandedDevice::Virtex2(edev) = ctx.edev {
-                    if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp
+                    if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
                         && name == "INT.IOI.S3A.LR"
                         && mux_name == "MUX.IMUX.DATA3"
                         && in_name == "OMUX10.N"

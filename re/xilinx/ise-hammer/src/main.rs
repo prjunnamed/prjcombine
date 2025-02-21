@@ -188,18 +188,18 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
         }
         ExpandedDevice::Virtex2(ref edev) => {
             if !opts.skip_core {
-                if edev.grid.kind.is_virtex2() {
+                if edev.chip.kind.is_virtex2() {
                     tbus::add_fuzzers(&mut hammer, &backend);
                 }
                 clb::virtex2::add_fuzzers(&mut hammer, &backend);
-                if edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
+                if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
                     bram::virtex2::add_fuzzers(&mut hammer, &backend, false);
                 }
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
+                if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp {
                     dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
                 }
-            } else if !edev.grid.kind.is_virtex2()
-                && edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore
+            } else if !edev.chip.kind.is_virtex2()
+                && edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore
             {
                 bram::virtex2::add_fuzzers(&mut hammer, &backend, true);
             }
@@ -214,35 +214,35 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                 misc::virtex2::add_fuzzers(&mut hammer, &backend, true, true);
             }
             if !opts.skip_io {
-                if edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
+                if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
                     io::virtex2::add_fuzzers(&mut hammer, &backend);
                 } else {
                     io::fpgacore::add_fuzzers(&mut hammer, &backend);
                 }
             }
-            if edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
+            if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
                 if !opts.skip_dcm {
-                    if !edev.grid.kind.is_spartan3ea() {
+                    if !edev.chip.kind.is_spartan3ea() {
                         dcm::virtex2::add_fuzzers(&mut hammer, &backend, false);
                     } else {
                         dcm::spartan3e::add_fuzzers(&mut hammer, &backend, false);
                     }
                 } else if opts.devdata_only {
-                    if !edev.grid.kind.is_spartan3ea() {
+                    if !edev.chip.kind.is_spartan3ea() {
                         dcm::virtex2::add_fuzzers(&mut hammer, &backend, true);
                     } else {
                         dcm::spartan3e::add_fuzzers(&mut hammer, &backend, true);
                     }
                 }
             }
-            if !opts.skip_hard && edev.grid.kind.is_virtex2p() {
+            if !opts.skip_hard && edev.chip.kind.is_virtex2p() {
                 ppc::virtex2::add_fuzzers(&mut hammer, &backend);
             }
             if !opts.skip_gt {
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2P {
+                if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Virtex2P {
                     gt::virtex2p::add_fuzzers(&mut hammer, &backend);
                 }
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2PX {
+                if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Virtex2PX {
                     gt::virtex2px::add_fuzzers(&mut hammer, &backend);
                 }
             }
@@ -459,18 +459,18 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
         }
         ExpandedDevice::Virtex2(ref edev) => {
             if !opts.skip_core {
-                if edev.grid.kind.is_virtex2() {
+                if edev.chip.kind.is_virtex2() {
                     tbus::collect_fuzzers(&mut ctx);
                 }
                 clb::virtex2::collect_fuzzers(&mut ctx);
-                if edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
+                if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
                     bram::virtex2::collect_fuzzers(&mut ctx, false);
                 }
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
+                if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp {
                     dsp::spartan3adsp::collect_fuzzers(&mut ctx);
                 }
-            } else if !edev.grid.kind.is_virtex2()
-                && edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore
+            } else if !edev.chip.kind.is_virtex2()
+                && edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore
             {
                 bram::virtex2::collect_fuzzers(&mut ctx, true);
             }
@@ -485,35 +485,35 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                 misc::virtex2::collect_fuzzers(&mut ctx, true, true);
             }
             if !opts.skip_io {
-                if edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
+                if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
                     io::virtex2::collect_fuzzers(&mut ctx);
                 } else {
                     io::fpgacore::collect_fuzzers(&mut ctx);
                 }
             }
-            if edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
+            if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
                 if !opts.skip_dcm {
-                    if !edev.grid.kind.is_spartan3ea() {
+                    if !edev.chip.kind.is_spartan3ea() {
                         dcm::virtex2::collect_fuzzers(&mut ctx, false);
                     } else {
                         dcm::spartan3e::collect_fuzzers(&mut ctx, false);
                     }
                 } else if opts.devdata_only {
-                    if !edev.grid.kind.is_spartan3ea() {
+                    if !edev.chip.kind.is_spartan3ea() {
                         dcm::virtex2::collect_fuzzers(&mut ctx, true);
                     } else {
                         dcm::spartan3e::collect_fuzzers(&mut ctx, true);
                     }
                 }
             }
-            if !opts.skip_hard && edev.grid.kind.is_virtex2p() {
+            if !opts.skip_hard && edev.chip.kind.is_virtex2p() {
                 ppc::virtex2::collect_fuzzers(&mut ctx);
             }
             if !opts.skip_gt {
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2P {
+                if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Virtex2P {
                     gt::virtex2p::collect_fuzzers(&mut ctx);
                 }
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2PX {
+                if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Virtex2PX {
                     gt::virtex2px::collect_fuzzers(&mut ctx);
                 }
             }
@@ -754,9 +754,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             prjcombine_re_xilinx_geom::Grid::Virtex2(grid) => match grid.kind {
-                prjcombine_virtex2::grid::GridKind::Virtex2
-                | prjcombine_virtex2::grid::GridKind::Virtex2P
-                | prjcombine_virtex2::grid::GridKind::Virtex2PX => {
+                prjcombine_virtex2::chip::ChipKind::Virtex2
+                | prjcombine_virtex2::chip::ChipKind::Virtex2P
+                | prjcombine_virtex2::chip::ChipKind::Virtex2PX => {
                     run(&tc, &db, parts_dict[&"xc2v40"], &mut tiledb, &opts);
                     run(&tc, &db, parts_dict[&"xc2vp4"], &mut tiledb, &opts);
                     run(&tc, &db, parts_dict[&"xc2vpx20"], &mut tiledb, &opts);
@@ -775,10 +775,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                     }
                 }
-                prjcombine_virtex2::grid::GridKind::Spartan3
-                | prjcombine_virtex2::grid::GridKind::Spartan3E
-                | prjcombine_virtex2::grid::GridKind::Spartan3A
-                | prjcombine_virtex2::grid::GridKind::Spartan3ADsp => {
+                prjcombine_virtex2::chip::ChipKind::Spartan3
+                | prjcombine_virtex2::chip::ChipKind::Spartan3E
+                | prjcombine_virtex2::chip::ChipKind::Spartan3A
+                | prjcombine_virtex2::chip::ChipKind::Spartan3ADsp => {
                     run(&tc, &db, parts_dict[&"xc3s200"], &mut tiledb, &opts);
                     run(&tc, &db, parts_dict[&"xc3s100e"], &mut tiledb, &opts);
                     run(&tc, &db, parts_dict[&"xc3s250e"], &mut tiledb, &opts);
@@ -812,7 +812,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                     }
                 }
-                prjcombine_virtex2::grid::GridKind::FpgaCore => {
+                prjcombine_virtex2::chip::ChipKind::FpgaCore => {
                     run(&tc, &db, parts_dict[&"xcexf10"], &mut tiledb, &opts);
                     if !args.skip_devdata {
                         let mut xopts = opts;

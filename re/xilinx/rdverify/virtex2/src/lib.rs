@@ -2,7 +2,7 @@ use prjcombine_interconnect::grid::{DieId, EdgeIoCoord};
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
-use prjcombine_virtex2::grid::GridKind;
+use prjcombine_virtex2::chip::ChipKind;
 use unnamed_entity::EntityId;
 
 mod clb;
@@ -41,7 +41,7 @@ fn verify_rll(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if endev.grid.kind == GridKind::Virtex2PX {
+    if endev.grid.kind == ChipKind::Virtex2PX {
         vrf.verify_bel(
             bel,
             "GT10",
@@ -103,7 +103,7 @@ fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelConte
 }
 
 fn verify_mult(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if matches!(endev.grid.kind, GridKind::Spartan3E | GridKind::Spartan3A) {
+    if matches!(endev.grid.kind, ChipKind::Spartan3E | ChipKind::Spartan3A) {
         let carry: Vec<_> = (0..18)
             .map(|x| (format!("BCOUT{x}"), format!("BCIN{x}")))
             .collect();
@@ -123,7 +123,7 @@ fn verify_mult(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCon
                 vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
             }
         }
-        if endev.grid.kind == GridKind::Spartan3A {
+        if endev.grid.kind == ChipKind::Spartan3A {
             let obel = vrf.find_bel_sibling(bel, "BRAM");
             for ab in ['A', 'B'] {
                 for i in 0..16 {
@@ -193,8 +193,8 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
 
         "BRAM" => {
             let kind = match endev.grid.kind {
-                GridKind::Spartan3A => "RAMB16BWE",
-                GridKind::Spartan3ADsp => "RAMB16BWER",
+                ChipKind::Spartan3A => "RAMB16BWE",
+                ChipKind::Spartan3ADsp => "RAMB16BWER",
                 _ => "RAMB16",
             };
             vrf.verify_bel(bel, kind, &[], &[]);
@@ -264,7 +264,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
         }
         "ICAP" => {
             vrf.verify_bel(bel, bel.key, &[], &[]);
-            if endev.grid.kind == GridKind::Spartan3E {
+            if endev.grid.kind == ChipKind::Spartan3E {
                 // eh.
                 vrf.claim_node(&[bel.fwire("I2")]);
             }
