@@ -3,7 +3,8 @@ use std::{collections::BTreeMap, error::Error, path::PathBuf};
 use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_types::{
-    tiledb::{Tile, TileBit, TileItemKind}, FbMcId
+    FbMcId,
+    tiledb::{Tile, TileItemKind},
 };
 use prjcombine_xpla3::{Chip, Database};
 use unnamed_entity::EntityId;
@@ -161,7 +162,7 @@ fn parse_jed(jed: &str) -> (String, BitVec) {
     (device.unwrap(), res.unwrap())
 }
 
-fn print_tile(data: &BTreeMap<String, BitVec>, tile: &Tile<TileBit>) {
+fn print_tile(data: &BTreeMap<String, BitVec>, tile: &Tile) {
     for (k, v) in data {
         let item = &tile.items[k];
         print!(" {k}=");

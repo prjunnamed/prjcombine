@@ -95,7 +95,7 @@ fn map_mc_bit(device: &Device, fpart: &FuzzDbPart, fb: FbId, mc: FbMcId, bit: us
     }
 }
 
-fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
+fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
@@ -356,7 +356,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
     tile
 }
 
-fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem<TileBit> {
+fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem {
     let mut blank_expected: BitVec =
         BitVec::repeat(device.kind == DeviceKind::Xc9500, fpart.blank.len());
     for (bit, pol) in fpart.bits.usercode.unwrap() {
@@ -408,7 +408,7 @@ fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem<Ti
     }
 }
 
-fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem<TileBit> {
+fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem {
     assert_eq!(device.fbs, bits.len());
     let mut res = None;
     for (fb, &bit) in device.fbs().zip(bits.iter()) {
@@ -427,7 +427,7 @@ fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem<TileBit> {
     }
 }
 
-fn extract_fb_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
+fn extract_fb_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
@@ -480,7 +480,7 @@ fn extract_fb_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
     tile
 }
 
-fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
+fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
@@ -566,7 +566,7 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
     tile
 }
 
-fn extract_imux_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
+fn extract_imux_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
@@ -596,7 +596,7 @@ fn extract_imux_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
     tile
 }
 
-fn extract_ibuf_uim_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<TileBit> {
+fn extract_ibuf_uim_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
@@ -768,11 +768,11 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let fdb = FuzzDb::from_file(args.fdb)?;
     let sdb = SpeedDb::from_file(args.sdb)?;
 
-    let mut mc_bits: Option<Tile<_>> = None;
-    let mut fb_bits: Option<Tile<_>> = None;
-    let mut global_bits: Option<Tile<_>> = None;
+    let mut mc_bits: Option<Tile> = None;
+    let mut fb_bits: Option<Tile> = None;
+    let mut global_bits: Option<Tile> = None;
     let mut imux_bits = BTreeMap::new();
-    let mut ibuf_uim_bits: Option<Tile<_>> = None;
+    let mut ibuf_uim_bits: Option<Tile> = None;
 
     for fpart in &fdb.parts {
         let part = db

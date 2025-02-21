@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 
 use prjcombine_re_collector::Collector;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
-use prjcombine_types::tiledb::{DbValue, TileBit, TileItem};
+use prjcombine_types::tiledb::{DbValue, TileItem};
 use prjcombine_xilinx_bitstream::Bitstream;
 use unnamed_entity::EntityId;
 
@@ -38,7 +38,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
             .insert_device_data(&self.device.name, key, val);
     }
 
-    pub fn extract_inv(&mut self, tile: &str, bel: &str, pin: &str) -> TileItem<TileBit> {
+    pub fn extract_inv(&mut self, tile: &str, bel: &str, pin: &str) -> TileItem {
         let pininv = format!("{pin}INV");
         let pin_b = format!("{pin}_B");
         self.extract_enum_bool(tile, bel, &pininv, pin, &pin_b)
@@ -61,7 +61,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         pin: &str,
-        mut item: TileItem<TileBit>,
+        mut item: TileItem,
     ) {
         let intdb = self.edev.egrid().db;
         let node = intdb.nodes.get(tile).unwrap().1;
@@ -88,7 +88,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         pin: &str,
-    ) -> TileItem<TileBit> {
+    ) -> TileItem {
         let intdb = self.edev.egrid().db;
         let node = intdb.nodes.get(tile).unwrap().1;
         let bel = node.bels.get(bel).unwrap().1;

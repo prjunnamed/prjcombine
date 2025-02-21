@@ -30,25 +30,19 @@ impl core::fmt::Debug for TileBit {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Tile<T> {
-    pub items: BTreeMap<String, TileItem<T>>,
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Default)]
+pub struct Tile {
+    pub items: BTreeMap<String, TileItem>,
 }
 
-impl<T: Debug + Copy + Eq + Ord> Default for Tile<T> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<T: Debug + Copy + Eq + Ord> Tile<T> {
+impl Tile {
     pub fn new() -> Self {
         Self {
             items: BTreeMap::new(),
         }
     }
 
-    pub fn merge(&mut self, other: &Tile<T>, neutral: impl Fn(T) -> bool) {
+    pub fn merge(&mut self, other: &Tile, neutral: impl Fn(TileBit) -> bool) {
         if self == other {
             return;
         }
@@ -67,8 +61,8 @@ impl<T: Debug + Copy + Eq + Ord> Tile<T> {
     pub fn insert(
         &mut self,
         name: impl Into<String>,
-        item: TileItem<T>,
-        neutral: impl Fn(T) -> bool,
+        item: TileItem,
+        neutral: impl Fn(TileBit) -> bool,
     ) {
         match self.items.entry(name.into()) {
             btree_map::Entry::Vacant(e) => {
@@ -79,45 +73,16 @@ impl<T: Debug + Copy + Eq + Ord> Tile<T> {
             }
         }
     }
-
-    pub fn to_json(&self, bit_to_json: impl Fn(T) -> JsonValue) -> JsonValue {
-        jzon::object::Object::from_iter(self.items.iter().map(|(name, item)| {
-            (
-                name.clone(),
-                match &item.kind {
-                    TileItemKind::Enum { values } => jzon::object! {
-                        "bits": Vec::from_iter(item.bits.iter().copied().map(&bit_to_json)),
-                        "values": jzon::object::Object::from_iter(
-                            values.iter().map(|(value_name, value_bits)| {
-                                (value_name.clone(), Vec::from_iter(value_bits.iter().map(|x| *x)))
-                            })
-                        ),
-                    },
-                    TileItemKind::BitVec { invert } => jzon::object! {
-                        "bits": Vec::from_iter(item.bits.iter().copied().map(&bit_to_json)),
-                        "invert": if invert.iter().all(|x| !*x) {
-                            JsonValue::from(false)
-                        } else if invert.iter().all(|x| *x) {
-                            JsonValue::from(true)
-                        } else {
-                            JsonValue::from(Vec::from_iter(invert.iter().map(|x| *x)))
-                        },
-                    },
-                },
-            )
-        }))
-        .into()
-    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct TileItem<T> {
-    pub bits: Vec<T>,
+pub struct TileItem {
+    pub bits: Vec<TileBit>,
     pub kind: TileItemKind,
 }
 
-impl<T: Debug + Copy + Eq + Ord> TileItem<T> {
-    pub fn merge(&mut self, other: &TileItem<T>, neutral: impl Fn(T) -> bool) {
+impl TileItem {
+    pub fn merge(&mut self, other: &TileItem, neutral: impl Fn(TileBit) -> bool) {
         if self == other {
             return;
         }
@@ -176,7 +141,7 @@ impl<T: Debug + Copy + Eq + Ord> TileItem<T> {
         }
     }
 
-    pub fn from_bit(bit: T, invert: bool) -> Self {
+    pub fn from_bit(bit: TileBit, invert: bool) -> Self {
         Self {
             bits: vec![bit],
             kind: TileItemKind::BitVec {
@@ -185,7 +150,7 @@ impl<T: Debug + Copy + Eq + Ord> TileItem<T> {
         }
     }
 
-    pub fn from_bitvec(bits: Vec<T>, invert: bool) -> Self {
+    pub fn from_bitvec(bits: Vec<TileBit>, invert: bool) -> Self {
         let invert = BitVec::repeat(invert, bits.len());
         Self {
             bits,
@@ -243,7 +208,7 @@ impl DbValue {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TileDb {
-    pub tiles: BTreeMap<String, Tile<TileBit>>,
+    pub tiles: BTreeMap<String, Tile>,
     pub device_data: BTreeMap<String, BTreeMap<String, DbValue>>,
     pub misc_data: BTreeMap<String, DbValue>,
 }
@@ -276,7 +241,7 @@ impl TileDb {
         tile: impl Into<String>,
         bel: impl Into<String>,
         name: impl Into<String>,
-        item: TileItem<TileBit>,
+        item: TileItem,
     ) {
         let name = format!("{}:{}", bel.into(), name.into());
         let tile = self.tiles.entry(tile.into()).or_default();
@@ -284,7 +249,7 @@ impl TileDb {
     }
 
     #[track_caller]
-    pub fn item(&self, tile: &str, bel: &str, attr: &str) -> &TileItem<TileBit> {
+    pub fn item(&self, tile: &str, bel: &str, attr: &str) -> &TileItem {
         &self.tiles[tile].items[&format!("{bel}:{attr}")]
     }
 
@@ -321,14 +286,49 @@ impl TileDb {
     }
 }
 
+impl From<TileBit> for JsonValue {
+    fn from(crd: TileBit) -> Self {
+        jzon::array![crd.tile, crd.frame, crd.bit]
+    }
+}
+
+impl From<&TileItem> for JsonValue {
+    fn from(item: &TileItem) -> Self {
+        match &item.kind {
+            TileItemKind::Enum { values } => jzon::object! {
+                "bits": item.bits.clone(),
+                "values": jzon::object::Object::from_iter(
+                    values.iter().map(|(value_name, value_bits)| {
+                        (value_name.clone(), Vec::from_iter(value_bits.iter().map(|x| *x)))
+                    })
+                ),
+            },
+            TileItemKind::BitVec { invert } => jzon::object! {
+                "bits": item.bits.clone(),
+                "invert": if invert.iter().all(|x| !*x) {
+                    JsonValue::from(false)
+                } else if invert.iter().all(|x| *x) {
+                    JsonValue::from(true)
+                } else {
+                    JsonValue::from(Vec::from_iter(invert.iter().map(|x| *x)))
+                },
+            },
+        }
+    }
+}
+
+impl From<&Tile> for JsonValue {
+    fn from(tile: &Tile) -> Self {
+        jzon::object::Object::from_iter(tile.items.iter().map(|(name, item)| (name.as_str(), item)))
+            .into()
+    }
+}
+
 impl From<&TileDb> for JsonValue {
     fn from(tiledb: &TileDb) -> Self {
         jzon::object! {
             tiles: jzon::object::Object::from_iter(tiledb.tiles.iter().map(|(name, tile)| {
-                (
-                    name.clone(),
-                    tile.to_json(|crd| jzon::array![crd.tile, crd.frame, crd.bit]),
-                )
+                (name.as_str(), tile)
             })),
             misc_data: jzon::object::Object::from_iter(tiledb.misc_data.iter().map(|(k, v)| {
                 (k.as_str(), v.to_json())

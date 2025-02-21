@@ -6,7 +6,7 @@ use std::{
 };
 
 use jzon::JsonValue;
-use prjcombine_types::{tiledb::{Tile, TileBit}, FbId, FbMcId};
+use prjcombine_types::{tiledb::Tile, FbId, FbMcId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 
@@ -26,9 +26,9 @@ pub struct Chip {
     pub fb_cols: Vec<FbColumn>,
     pub io_mcs: BTreeSet<FbMcId>,
     pub io_special: BTreeMap<String, (FbId, FbMcId)>,
-    pub global_bits: Tile<TileBit>,
+    pub global_bits: Tile,
     pub jed_global_bits: Vec<(String, usize)>,
-    pub imux_bits: Tile<TileBit>,
+    pub imux_bits: Tile,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -86,8 +86,8 @@ pub struct Database {
     pub bonds: EntityVec<BondId, Bond>,
     pub speeds: EntityVec<SpeedId, Speed>,
     pub parts: Vec<Part>,
-    pub mc_bits: Tile<TileBit>,
-    pub fb_bits: Tile<TileBit>,
+    pub mc_bits: Tile,
+    pub fb_bits: Tile,
     pub jed_mc_bits_iob: Vec<(String, usize)>,
     pub jed_mc_bits_buried: Vec<(String, usize)>,
     pub jed_fb_bits: Vec<(String, usize)>,
@@ -130,10 +130,6 @@ impl FbColumn {
 
 impl Chip {
     pub fn to_json(&self) -> JsonValue {
-        fn bit_to_json(crd: TileBit) -> JsonValue {
-            jzon::array![crd.tile, crd.frame, crd.bit]
-        }
-
         jzon::object! {
             idcode_part: self.idcode_part,
             bs_cols: self.bs_cols,
@@ -146,9 +142,9 @@ impl Chip {
                     (key, format!("IOB_{fb}_{mc}"))
                 })
             ),
-            global_bits: self.global_bits.to_json(bit_to_json),
+            global_bits: &self.global_bits,
             jed_global_bits: jed_bits_to_json(&self.jed_global_bits),
-            imux_bits: self.imux_bits.to_json(bit_to_json),
+            imux_bits: &self.imux_bits,
         }
     }
 }
@@ -191,17 +187,13 @@ impl Part {
 
 impl Database {
     pub fn to_json(&self) -> JsonValue {
-        fn bit_to_json(crd: TileBit) -> JsonValue {
-            jzon::array![crd.tile, crd.frame, crd.bit]
-        }
-
         jzon::object! {
             chips: Vec::from_iter(self.chips.values().map(Chip::to_json)),
             bonds: Vec::from_iter(self.bonds.values().map(Bond::to_json)),
             speeds: Vec::from_iter(self.speeds.values().map(Speed::to_json)),
             parts: Vec::from_iter(self.parts.iter().map(Part::to_json)),
-            mc_bits: self.mc_bits.to_json(bit_to_json),
-            fb_bits: self.fb_bits.to_json(bit_to_json),
+            mc_bits: &self.mc_bits,
+            fb_bits: &self.fb_bits,
             jed_mc_bits_iob: jed_bits_to_json(&self.jed_mc_bits_iob),
             jed_mc_bits_buried: jed_bits_to_json(&self.jed_mc_bits_buried),
             jed_fb_bits: jed_bits_to_json(&self.jed_fb_bits),

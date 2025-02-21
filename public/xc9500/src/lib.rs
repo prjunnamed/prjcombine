@@ -1,7 +1,10 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use jzon::JsonValue;
-use prjcombine_types::{tiledb::{Tile, TileBit}, FbId, FbMcId};
+use prjcombine_types::{
+    FbId, FbMcId,
+    tiledb::Tile,
+};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 
@@ -28,8 +31,8 @@ pub struct Chip {
     pub banks: usize,
     pub tdo_bank: BankId,
     pub io_special: BTreeMap<String, (FbId, FbMcId)>,
-    pub imux_bits: Tile<TileBit>,
-    pub uim_ibuf_bits: Option<Tile<TileBit>>,
+    pub imux_bits: Tile,
+    pub uim_ibuf_bits: Option<Tile>,
     pub program_time: u32,
     pub erase_time: u32,
 }
@@ -88,9 +91,9 @@ pub struct Database {
     pub bonds: EntityVec<BondId, Bond>,
     pub speeds: EntityVec<SpeedId, Speed>,
     pub parts: Vec<Part>,
-    pub mc_bits: Tile<TileBit>,
-    pub fb_bits: Tile<TileBit>,
-    pub global_bits: Tile<TileBit>,
+    pub mc_bits: Tile,
+    pub fb_bits: Tile,
+    pub global_bits: Tile,
 }
 
 impl Database {
@@ -111,10 +114,6 @@ impl Database {
 
 impl Chip {
     pub fn to_json(&self) -> JsonValue {
-        fn bit_to_json(crd: TileBit) -> JsonValue {
-            jzon::array![crd.tile, crd.frame, crd.bit]
-        }
-
         jzon::object! {
             kind: match self.kind {
                 ChipKind::Xc9500 => "xc9500",
@@ -133,9 +132,9 @@ impl Chip {
                     (key, format!("IOB_{fb}_{mc}"))
                 })
             ),
-            imux_bits: self.imux_bits.to_json(bit_to_json),
+            imux_bits: &self.imux_bits,
             uim_ibuf_bits: if let Some(ref bits) = self.uim_ibuf_bits {
-                bits.to_json(bit_to_json)
+                bits.into()
             } else {
                 JsonValue::Null
             },
@@ -187,18 +186,14 @@ impl Part {
 
 impl Database {
     pub fn to_json(&self) -> JsonValue {
-        fn bit_to_json(crd: TileBit) -> JsonValue {
-            jzon::array![crd.tile, crd.frame, crd.bit]
-        }
-
         jzon::object! {
             chips: Vec::from_iter(self.chips.values().map(Chip::to_json)),
             bonds: Vec::from_iter(self.bonds.values().map(Bond::to_json)),
             speeds: Vec::from_iter(self.speeds.values().map(Speed::to_json)),
             parts: Vec::from_iter(self.parts.iter().map(Part::to_json)),
-            mc_bits: self.mc_bits.to_json(bit_to_json),
-            fb_bits: self.fb_bits.to_json(bit_to_json),
-            global_bits: self.global_bits.to_json(bit_to_json),
+            mc_bits: &self.mc_bits,
+            fb_bits: &self.fb_bits,
+            global_bits: &self.global_bits,
         }
     }
 }

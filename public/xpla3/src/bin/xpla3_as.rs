@@ -9,7 +9,7 @@ use std::{
 use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_types::{
-    tiledb::{Tile, TileBit, TileItemKind}, FbMcId
+    tiledb::{Tile, TileItemKind}, FbMcId
 };
 use prjcombine_xpla3::{Chip, Database};
 use unnamed_entity::EntityId;
@@ -32,7 +32,7 @@ struct PTermData {
     fbn: BitVec,
 }
 
-fn init_tile(tile: &Tile<TileBit>) -> BTreeMap<String, BitVec> {
+fn init_tile(tile: &Tile) -> BTreeMap<String, BitVec> {
     tile.items
         .iter()
         .map(|(k, v)| (k.clone(), BitVec::repeat(true, v.bits.len())))
@@ -118,7 +118,7 @@ impl Bitstream {
     }
 }
 
-fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile<TileBit>, item: &str) {
+fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile, item: &str) {
     if let Some((name, val)) = item.split_once('=') {
         let item = &tile.items[name];
         let val = match &item.kind {

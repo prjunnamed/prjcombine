@@ -710,7 +710,7 @@ fn extract_imux_bits(
     }
 }
 
-fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> Tile<TileBit> {
+fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> Tile {
     let mut tile = Tile::new();
     for i in 0..40 {
         let mut values = imux_bits[i].clone();
@@ -888,8 +888,8 @@ struct DevData {
     fb_cols: Vec<usize>,
     mc_width: usize,
     imux_width: usize,
-    mc_bits: Tile<TileBit>,
-    global_bits: Tile<TileBit>,
+    mc_bits: Tile<>,
+    global_bits: Tile<>,
     jed_global_bits: Vec<(String, usize)>,
 }
 

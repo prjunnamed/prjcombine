@@ -11,8 +11,7 @@ use bitvec::vec::BitVec;
 use enum_map::EnumMap;
 use itertools::Itertools;
 use prjcombine_types::{
-    FbId, FbMcId, IoId, IpadId,
-    tiledb::{TileItem, TileItemKind},
+    tiledb::{TileBit, TileItem, TileItemKind}, FbId, FbMcId, IoId, IpadId
 };
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -1122,7 +1121,7 @@ impl Bits {
     }
 }
 
-pub fn extract_bool<T>(bit: InvBit, xlat_bit: impl Fn(usize) -> T) -> TileItem<T> {
+pub fn extract_bool(bit: InvBit, xlat_bit: impl Fn(usize) -> TileBit) -> TileItem {
     let (bit, pol) = bit;
     let bits = vec![xlat_bit(bit)];
     TileItem {
@@ -1133,7 +1132,7 @@ pub fn extract_bool<T>(bit: InvBit, xlat_bit: impl Fn(usize) -> T) -> TileItem<T
     }
 }
 
-pub fn extract_bitvec<T>(bits: &[InvBit], xlat_bit: impl Fn(usize) -> T) -> TileItem<T> {
+pub fn extract_bitvec(bits: &[InvBit], xlat_bit: impl Fn(usize) -> TileBit) -> TileItem {
     let pol = bits[0].1;
     let new_bits = bits
         .iter()
@@ -1150,12 +1149,12 @@ pub fn extract_bitvec<T>(bits: &[InvBit], xlat_bit: impl Fn(usize) -> T) -> Tile
     }
 }
 
-pub fn extract_bool_to_enum<T>(
+pub fn extract_bool_to_enum(
     bit: InvBit,
-    xlat_bit: impl Fn(usize) -> T,
+    xlat_bit: impl Fn(usize) -> TileBit,
     val_true: impl Into<String>,
     val_false: impl Into<String>,
-) -> TileItem<T> {
+) -> TileItem {
     let val_true = val_true.into();
     let val_false = val_false.into();
     let (bit, pol) = bit;
@@ -1173,12 +1172,12 @@ pub fn extract_bool_to_enum<T>(
     }
 }
 
-pub fn extract_enum<T: Clone + Debug + Eq + core::hash::Hash, C>(
+pub fn extract_enum<T: Clone + Debug + Eq + core::hash::Hash>(
     enum_: &EnumData<T>,
     xlat_val: impl Fn(&T) -> String,
-    xlat_bit: impl Fn(usize) -> C,
+    xlat_bit: impl Fn(usize) -> TileBit,
     default: impl Into<String>,
-) -> TileItem<C> {
+) -> TileItem {
     let default = default.into();
     let bits = enum_.bits.iter().map(|&bit| xlat_bit(bit)).collect();
     let mut values: BTreeMap<_, _> = enum_

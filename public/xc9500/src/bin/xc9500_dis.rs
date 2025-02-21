@@ -154,7 +154,7 @@ fn parse_jed(jed: &str) -> (String, BitVec) {
     (device.unwrap(), res.unwrap())
 }
 
-fn print_tile<T: Copy>(tile: &Tile<T>, chip: &Chip, get_bit: impl Fn(T) -> bool) {
+fn print_tile(tile: &Tile, chip: &Chip, get_bit: impl Fn(TileBit) -> bool) {
     let is_large = chip.io_special.contains_key("GOE2");
     for (name, item) in &tile.items {
         let mut name = &name[..];

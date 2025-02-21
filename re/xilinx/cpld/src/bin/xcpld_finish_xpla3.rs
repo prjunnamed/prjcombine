@@ -114,7 +114,7 @@ struct DevData {
     io_special: BTreeMap<String, (FbId, FbMcId)>,
 }
 
-fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<TileBit> {
+fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
     let (plane_bit, row_mask) = match dd.fb_rows {
         1 => (6, 0x3f),
         2 => (7, 0x7f),
@@ -337,7 +337,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Ti
     tile
 }
 
-fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile<TileBit> {
+fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile {
     let (plane_bit, row_mask) = match dd.fb_rows {
         1 => (6, 0x3f),
         2 => (7, 0x7f),
@@ -393,7 +393,7 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile<TileBit> {
     tile
 }
 
-fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<TileBit> {
+fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
     let (plane_bit, row_mask) = match dd.fb_rows {
         1 => (6, 0x3f),
         2 => (7, 0x7f),
@@ -570,7 +570,7 @@ fn extract_imux_bits(
     }
 }
 
-fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> Tile<TileBit> {
+fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> Tile {
     let mut tile = Tile::new();
     for i in 0..40 {
         let mut values = imux_bits[i].clone();
@@ -594,9 +594,9 @@ fn verify_jed(
     device: &Device,
     fpart: &FuzzDbPart,
     dd: &DevData,
-    mc_bits: &Tile<TileBit>,
-    fb_bits: &Tile<TileBit>,
-    global_bits: &Tile<TileBit>,
+    mc_bits: &Tile,
+    fb_bits: &Tile,
+    global_bits: &Tile,
     jed_global_bits: &Vec<(String, usize)>,
 ) {
     let plane_bit = match dd.fb_rows {

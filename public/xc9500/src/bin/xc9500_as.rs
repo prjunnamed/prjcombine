@@ -140,12 +140,7 @@ fn write_jed(fname: impl AsRef<Path>, dev: &str, bits: &BitVec) -> Result<(), Bo
     Ok(())
 }
 
-fn set_tile_item<T: Copy>(
-    tile: &Tile<T>,
-    chip: &Chip,
-    item: &str,
-    mut put_bit: impl FnMut(T, bool),
-) {
+fn set_tile_item(tile: &Tile, chip: &Chip, item: &str, mut put_bit: impl FnMut(TileBit, bool)) {
     let is_large = chip.io_special.contains_key("GOE2");
     if let Some((name, val)) = item.split_once('=') {
         let item = tile.items.get(name).unwrap_or_else(|| {
