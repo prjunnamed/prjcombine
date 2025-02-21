@@ -3,12 +3,12 @@ use std::{
     fmt::Display,
 };
 
+use jzon::JsonValue;
 use prjcombine_interconnect::{
     db::BelId,
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use unnamed_entity::{EntityId, EntityIds};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -32,6 +32,29 @@ pub enum SharedCfgPin {
     Tdo,
     M0,
     M1,
+}
+
+impl std::fmt::Display for SharedCfgPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SharedCfgPin::Addr(i) => write!(f, "A{i}"),
+            SharedCfgPin::Data(i) => write!(f, "D{i}"),
+            SharedCfgPin::Ldc => write!(f, "LDC"),
+            SharedCfgPin::Hdc => write!(f, "HDC"),
+            SharedCfgPin::RclkB => write!(f, "RCLK_B"),
+            SharedCfgPin::Dout => write!(f, "DOUT"),
+            SharedCfgPin::M2 => write!(f, "M2"),
+            SharedCfgPin::InitB => write!(f, "INIT_B"),
+            SharedCfgPin::Cs0B => write!(f, "CS0_B"),
+            SharedCfgPin::Cs1B => write!(f, "CS1_B"),
+            SharedCfgPin::Tck => write!(f, "TCK"),
+            SharedCfgPin::Tdi => write!(f, "TDI"),
+            SharedCfgPin::Tms => write!(f, "TMS"),
+            SharedCfgPin::Tdo => write!(f, "TDO"),
+            SharedCfgPin::M0 => write!(f, "M0"),
+            SharedCfgPin::M1 => write!(f, "M1"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -495,10 +518,12 @@ impl Chip {
     pub fn btile_width_brk(&self) -> usize {
         if self.kind == ChipKind::Xc2000 { 2 } else { 1 }
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "kind": match self.kind {
+impl From<&Chip> for JsonValue {
+    fn from(chip: &Chip) -> Self {
+        jzon::object! {
+            kind: match chip.kind {
                 ChipKind::Xc2000 => "xc2000",
                 ChipKind::Xc3000 => "xc3000",
                 ChipKind::Xc3000A => "xc3000a",
@@ -512,34 +537,17 @@ impl Chip {
                 ChipKind::SpartanXl => "spartanxl",
                 ChipKind::Xc5200 => "xc5200",
             },
-            "columns": self.columns,
-            "rows": self.rows,
-            "is_small": self.is_small,
-            "is_buff_large": self.is_buff_large,
-            "cols_bidi": Vec::from_iter(self.cols_bidi.iter().map(|col| col.to_idx())),
-            "rows_bidi": Vec::from_iter(self.cols_bidi.iter().map(|row| row.to_idx())),
-            "cfg_io": serde_json::Map::from_iter(self.cfg_io.iter().map(|(k, io)| {
-                (match k {
-                    SharedCfgPin::Addr(i) => format!("A{i}"),
-                    SharedCfgPin::Data(i) => format!("D{i}"),
-                    SharedCfgPin::Ldc => "LDC".to_string(),
-                    SharedCfgPin::Hdc => "HDC".to_string(),
-                    SharedCfgPin::RclkB => "RCLK_B".to_string(),
-                    SharedCfgPin::Dout => "DOUT".to_string(),
-                    SharedCfgPin::M2 => "M2".to_string(),
-                    SharedCfgPin::InitB => "INIT_B".to_string(),
-                    SharedCfgPin::Cs0B => "CS0_B".to_string(),
-                    SharedCfgPin::Cs1B => "CS1_B".to_string(),
-                    SharedCfgPin::Tck => "TCK".to_string(),
-                    SharedCfgPin::Tdi => "TDI".to_string(),
-                    SharedCfgPin::Tms => "TMS".to_string(),
-                    SharedCfgPin::Tdo => "TDO".to_string(),
-                    SharedCfgPin::M0 => "M0".to_string(),
-                    SharedCfgPin::M1 => "M1".to_string(),
-                }, io.to_string().into())
+            columns: chip.columns,
+            rows: chip.rows,
+            is_small: chip.is_small,
+            is_buff_large: chip.is_buff_large,
+            cols_bidi: Vec::from_iter(chip.cols_bidi.iter().map(|col| col.to_idx())),
+            rows_bidi: Vec::from_iter(chip.cols_bidi.iter().map(|row| row.to_idx())),
+            cfg_io: jzon::object::Object::from_iter(chip.cfg_io.iter().map(|(k, io)| {
+                (k.to_string(), io.to_string())
             })),
-            "unbonded_io": Vec::from_iter(self.unbonded_io.iter().map(|&io| io.to_string())),
-        })
+            unbonded_io: Vec::from_iter(chip.unbonded_io.iter().map(|&io| io.to_string())),
+        }
     }
 }
 
@@ -561,7 +569,7 @@ impl Display for Chip {
         writeln!(f)?;
         writeln!(f, "\tCFG PINS:")?;
         for (k, v) in &self.cfg_io {
-            writeln!(f, "\t\t{k:?}: {v}")?;
+            writeln!(f, "\t\t{k}: {v}")?;
         }
         if !self.unbonded_io.is_empty() {
             writeln!(f, "\tUNBONDED IO:")?;

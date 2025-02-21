@@ -269,6 +269,14 @@ impl DbValue {
             DbValue::BitVec(bv) => Vec::from_iter(bv.iter().map(|x| *x)).into(),
         }
     }
+
+    pub fn to_jzon(&self) -> JsonValue { 
+        match self {
+            DbValue::String(s) => s.as_str().into(),
+            DbValue::BitVec(bv) => Vec::from_iter(bv.iter().map(|x| *x)).into(),
+            DbValue::Int(i) => (*i).into(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -367,6 +375,27 @@ impl TileDb {
                 })).into())
             })),
         })
+    }
+}
+
+impl From<&TileDb> for JsonValue {
+    fn from(tiledb: &TileDb) -> Self {
+        jzon::object! {
+            tiles: jzon::object::Object::from_iter(tiledb.tiles.iter().map(|(name, tile)| {
+                (
+                    name.clone(),
+                    tile.to_jzon(|crd| jzon::array![crd.tile, crd.frame, crd.bit]),
+                )
+            })),
+            misc_data: jzon::object::Object::from_iter(tiledb.misc_data.iter().map(|(k, v)| {
+                (k.as_str(), v.to_jzon())
+            })),
+            "device_data": jzon::object::Object::from_iter(tiledb.device_data.iter().map(|(k, v)| {
+                (k.as_str(), jzon::object::Object::from_iter(v.iter().map(|(kk, vv)| {
+                    (kk.as_str(), vv.to_jzon())
+                })))
+            })),
+        }
     }
 }
 

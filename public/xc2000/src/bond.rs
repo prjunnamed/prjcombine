@@ -1,9 +1,9 @@
 use std::{collections::BTreeMap, fmt::Display};
 
 use itertools::Itertools;
+use jzon::JsonValue;
 use prjcombine_interconnect::grid::EdgeIoCoord;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum CfgPin {
@@ -18,6 +18,21 @@ pub enum CfgPin {
     M2,
 }
 
+impl std::fmt::Display for CfgPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CfgPin::Cclk => write!(f, "CCLK"),
+            CfgPin::Done => write!(f, "DONE"),
+            CfgPin::ProgB => write!(f, "PROG_B"),
+            CfgPin::PwrdwnB => write!(f, "PWRDWN_B"),
+            CfgPin::M0 => write!(f, "M0"),
+            CfgPin::M1 => write!(f, "M1"),
+            CfgPin::Tdo => write!(f, "TDO"),
+            CfgPin::M2 => write!(f, "M2"),
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     Io(EdgeIoCoord),
@@ -27,6 +42,19 @@ pub enum BondPin {
     Cfg(CfgPin),
     // XC4000XV only
     VccInt,
+}
+
+impl std::fmt::Display for BondPin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BondPin::Io(io) => write!(f, "{io}"),
+            BondPin::Gnd => write!(f, "GND"),
+            BondPin::Vcc => write!(f, "VCC"),
+            BondPin::Nc => write!(f, "NC"),
+            BondPin::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
+            BondPin::VccInt => write!(f, "VCCINT"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -50,29 +78,15 @@ impl Bond {
         }
         ExpandedBond { bond: self, ios }
     }
+}
 
-    pub fn to_json(&self) -> serde_json::Value {
-        json!({
-            "pins": serde_json::Map::from_iter(
-                self.pins.iter().map(|(pin, pad)| (pin.clone(), match pad {
-                    BondPin::Io(io) => io.to_string(),
-                    BondPin::Gnd => "GND".to_string(),
-                    BondPin::Vcc => "VCC".to_string(),
-                    BondPin::Nc => "NC".to_string(),
-                    BondPin::Cfg(cfg_pin) => match cfg_pin {
-                        CfgPin::Cclk => "CCLK",
-                        CfgPin::Done => "DONE",
-                        CfgPin::ProgB => "PROG_B",
-                        CfgPin::PwrdwnB => "PWRDWN_B",
-                        CfgPin::M0 => "M0",
-                        CfgPin::M1 => "M1",
-                        CfgPin::Tdo => "TDO",
-                        CfgPin::M2 => "M2",
-                    }.to_string(),
-                    BondPin::VccInt => "VCCINT".to_string(),
-                }.into()))
+impl From<&Bond> for JsonValue {
+    fn from(bond: &Bond) -> Self {
+        jzon::object! {
+            pins: jzon::object::Object::from_iter(
+                bond.pins.iter().map(|(k, v)| (k, v.to_string()))
             ),
-        })
+        }
     }
 }
 
@@ -85,23 +99,7 @@ impl Display for Bond {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\tPINS:")?;
         for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
-            write!(f, "\t\t{pin:4}: ")?;
-            match pad {
-                BondPin::Io(io) => write!(f, "{io}")?,
-                BondPin::Gnd => write!(f, "GND")?,
-                BondPin::Vcc => write!(f, "VCC")?,
-                BondPin::VccInt => write!(f, "VCCINT")?,
-                BondPin::Nc => write!(f, "NC")?,
-                BondPin::Cfg(CfgPin::Cclk) => write!(f, "CCLK")?,
-                BondPin::Cfg(CfgPin::Done) => write!(f, "DONE")?,
-                BondPin::Cfg(CfgPin::ProgB) => write!(f, "PROG_B")?,
-                BondPin::Cfg(CfgPin::M0) => write!(f, "M0")?,
-                BondPin::Cfg(CfgPin::M1) => write!(f, "M1")?,
-                BondPin::Cfg(CfgPin::M2) => write!(f, "M2")?,
-                BondPin::Cfg(CfgPin::Tdo) => write!(f, "TDO")?,
-                BondPin::Cfg(CfgPin::PwrdwnB) => write!(f, "PWRDWN_B")?,
-            }
-            writeln!(f)?;
+            writeln!(f, "\t\t{pin:4}: {pad}")?;
         }
         Ok(())
     }

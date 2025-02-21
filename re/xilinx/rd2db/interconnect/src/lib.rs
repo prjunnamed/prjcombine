@@ -2464,7 +2464,7 @@ impl<'a> IntBuilder<'a> {
                     match (a, b) {
                         (_, None) => (),
                         (None, Some(b)) => {
-                            cterm.wires.insert(k, b.clone());
+                            cterm.wires.insert(k, *b);
                         }
                         (a, b) => assert_eq!(a.map(|x| &*x), b),
                     }
