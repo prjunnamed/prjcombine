@@ -11,7 +11,7 @@ struct Args {
     #[arg(short, long)]
     devices: bool,
     #[arg(short, long)]
-    grids: bool,
+    chips: bool,
     #[arg(short, long)]
     pkgs: bool,
     #[arg(short, long)]
@@ -32,9 +32,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         print!("{}", geom.gtz);
     }
-    if args.grids || args.devices {
-        for (gid, grid) in &geom.chips {
-            print!("GRID {gid}:");
+    if args.chips || args.devices {
+        for (gid, chip) in &geom.chips {
+            print!("CHIPS {gid}:");
             for dev in &geom.devices {
                 for (did, &die) in &dev.chips {
                     if die == gid {
@@ -47,8 +47,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             println!();
-            if args.grids {
-                print!("{grid}");
+            if args.chips {
+                print!("{chip}");
             }
         }
         for (ipid, ip) in &geom.interposers {
@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             println!();
-            if args.grids {
+            if args.chips {
                 print!("{ip}");
             }
         }
