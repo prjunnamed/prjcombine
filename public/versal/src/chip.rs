@@ -9,7 +9,7 @@ entity_id! {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Grid {
+pub struct Chip {
     pub columns: EntityVec<ColId, Column>,
     pub cols_vbrk: BTreeSet<ColId>,
     pub cols_cpipe: BTreeSet<ColId>,
@@ -191,7 +191,7 @@ pub enum DisabledPart {
     Region(DieId, RegId),
 }
 
-impl Grid {
+impl Chip {
     pub const ROWS_PER_REG: usize = 48;
 
     pub fn row_to_reg(&self, row: RowId) -> RegId {
@@ -235,7 +235,7 @@ impl Grid {
     }
 }
 
-impl std::fmt::Display for Grid {
+impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "\tKIND: Versal")?;
         writeln!(f, "\tPS: {v:?}", v = self.ps)?;

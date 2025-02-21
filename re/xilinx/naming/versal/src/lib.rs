@@ -7,8 +7,8 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_versal::{
+    chip::{BramKind, CleKind, ColSide, ColumnKind, HardRowKind, InterposerKind, RegId, RightKind},
     expanded::ExpandedDevice,
-    grid::{BramKind, CleKind, ColSide, ColumnKind, HardRowKind, InterposerKind, RegId, RightKind},
 };
 use serde::{Deserialize, Serialize};
 use std::{cmp::max, collections::BTreeMap};
@@ -140,7 +140,7 @@ fn make_grid_complex(
             xlut: EnumMap::from_fn(|_| EntityVec::new()),
             ylut: EntityVec::new(),
         };
-        for die in edev.grids.ids() {
+        for die in edev.chips.ids() {
             let mut cols = BTreeMap::new();
             let mut rows = BTreeMap::new();
             for (kind, name, node) in &edev.egrid.db.nodes {
@@ -185,7 +185,7 @@ fn make_grid_complex(
         }
         res
     } else {
-        let mut cols: EntityVec<_, _> = edev.grids.ids().map(|_| BTreeMap::new()).collect();
+        let mut cols: EntityVec<_, _> = edev.chips.ids().map(|_| BTreeMap::new()).collect();
         let mut rows = BTreeMap::new();
         for (kind, name, node) in &edev.egrid.db.nodes {
             for side in [ColSide::Left, ColSide::Right] {
@@ -208,9 +208,9 @@ fn make_grid_complex(
             }
         }
         let mut xlut: EnumMap<_, EntityVec<_, _>> =
-            EnumMap::from_fn(|_| edev.grids.ids().map(|_| EntityPartVec::new()).collect());
+            EnumMap::from_fn(|_| edev.chips.ids().map(|_| EntityPartVec::new()).collect());
         let mut x = 0;
-        for die in edev.grids.ids() {
+        for die in edev.chips.ids() {
             let mut lx = 0;
             for (&(col, side), &num) in &cols[die] {
                 if col >= edev.col_cfrm[die] {
@@ -221,7 +221,7 @@ fn make_grid_complex(
             }
             x = max(x, lx);
         }
-        for die in edev.grids.ids() {
+        for die in edev.chips.ids() {
             let mut lx = x;
             for (&(col, side), &num) in &cols[die] {
                 if col < edev.col_cfrm[die] {
@@ -232,7 +232,7 @@ fn make_grid_complex(
             }
         }
         let mut y = 0;
-        let mut ylut: EntityVec<_, _> = edev.grids.ids().map(|_| EntityPartVec::new()).collect();
+        let mut ylut: EntityVec<_, _> = edev.chips.ids().map(|_| EntityPartVec::new()).collect();
         for ((die, row), num) in rows {
             ylut[die].insert(row, y);
             y += num;
@@ -273,7 +273,7 @@ pub fn name_device<'a>(
         },
         |_, node, _| matches!(node, "RCLK_INTF.E" | "RCLK_INTF.E.HALF"),
         |_, _, _, nloc| {
-            let grid = edev.grids[nloc.0];
+            let grid = edev.chips[nloc.0];
             let cd = &grid.columns[nloc.1];
             match cd.l {
                 ColumnKind::Dsp => (0, 0),
@@ -293,7 +293,7 @@ pub fn name_device<'a>(
             }
         },
         |_, _, _, nloc| {
-            let grid = edev.grids[nloc.0];
+            let grid = edev.chips[nloc.0];
             let cd = &grid.columns[nloc.1];
             match cd.r {
                 ColumnKind::Dsp => (1, 64),
@@ -360,7 +360,7 @@ pub fn name_device<'a>(
         |_, node, _| node == "RCLK_DFX.E",
         |_, _, _, _| (1, 1),
         |_, _, _, nloc| {
-            let grid = edev.grids[nloc.0];
+            let grid = edev.chips[nloc.0];
             if grid.columns[nloc.1].r == ColumnKind::Bram(BramKind::MaybeClkBufNoPd) {
                 (2, 1)
             } else {
@@ -505,7 +505,7 @@ pub fn name_device<'a>(
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
 
     for die in egrid.dies() {
-        let grid = edev.grids[die.die];
+        let grid = edev.chips[die.die];
         for col in die.cols() {
             for row in die.rows() {
                 let reg = grid.row_to_reg(row);

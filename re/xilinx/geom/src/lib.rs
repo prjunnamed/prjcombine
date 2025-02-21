@@ -28,7 +28,7 @@ pub enum Grid {
     Spartan6(prjcombine_spartan6::chip::Chip),
     Virtex4(prjcombine_virtex4::chip::Chip),
     Ultrascale(prjcombine_ultrascale::chip::Chip),
-    Versal(prjcombine_versal::grid::Grid),
+    Versal(prjcombine_versal::chip::Chip),
 }
 
 impl std::fmt::Display for Grid {
@@ -57,7 +57,7 @@ pub enum DisabledPart {
     Spartan6(prjcombine_spartan6::chip::DisabledPart),
     Virtex4(prjcombine_virtex4::chip::DisabledPart),
     Ultrascale(prjcombine_ultrascale::chip::DisabledPart),
-    Versal(prjcombine_versal::grid::DisabledPart),
+    Versal(prjcombine_versal::chip::DisabledPart),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -72,7 +72,7 @@ pub enum Interposer {
     None,
     Virtex4(prjcombine_virtex4::chip::Interposer),
     Ultrascale(prjcombine_ultrascale::chip::Interposer),
-    Versal(prjcombine_versal::grid::Interposer),
+    Versal(prjcombine_versal::chip::Interposer),
 }
 
 impl std::fmt::Display for Interposer {

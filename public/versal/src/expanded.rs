@@ -8,7 +8,7 @@ entity_id! {
 
 pub type UbumpLoc = (DieId, ColId, RowId, UbumpId);
 
-use crate::grid::{DisabledPart, Grid, Interposer};
+use crate::chip::{Chip, DisabledPart, Interposer};
 
 #[derive(Debug)]
 pub struct SllConns {
@@ -18,7 +18,7 @@ pub struct SllConns {
 
 #[derive(Debug)]
 pub struct ExpandedDevice<'a> {
-    pub grids: EntityVec<DieId, &'a Grid>,
+    pub chips: EntityVec<DieId, &'a Chip>,
     pub egrid: ExpandedGrid<'a>,
     pub interposer: &'a Interposer,
     pub disabled: BTreeSet<DisabledPart>,

@@ -1,7 +1,7 @@
 use prjcombine_re_xilinx_naming_versal::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
-use prjcombine_versal::{expanded::UbumpId, grid::DisabledPart};
+use prjcombine_versal::{chip::DisabledPart, expanded::UbumpId};
 use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -373,7 +373,7 @@ fn verify_hardip(
     if endev.edev.disabled.contains(&DisabledPart::HardIpSite(
         bel.die,
         bel.col,
-        endev.edev.grids[bel.die].row_to_reg(bel.row),
+        endev.edev.chips[bel.die].row_to_reg(bel.row),
     )) {
         return;
     }
@@ -381,7 +381,7 @@ fn verify_hardip(
 }
 
 fn verify_bufdiv_leaf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = endev.edev.grids[bel.die];
+    let grid = endev.edev.chips[bel.die];
     let mut pins = vec![("I", SitePinDir::In), ("O_CASC", SitePinDir::Out)];
     if !bel.bel.pins.contains_key("O") {
         pins.push(("O", SitePinDir::Out));
@@ -535,7 +535,7 @@ fn verify_bufgce_hdio(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_dpll_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = endev.edev.grids[bel.die];
+    let grid = endev.edev.chips[bel.die];
     let reg = grid.row_to_reg(bel.row);
     if !endev
         .edev
@@ -695,7 +695,7 @@ fn verify_rclk_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
             );
         }
     }
-    let grid = endev.edev.grids[bel.die];
+    let grid = endev.edev.chips[bel.die];
     let reg = grid.row_to_reg(bel.row);
     for i in 0..4 {
         if let Some(obel) = vrf.find_bel_delta(bel, 0, 0, &format!("BUFGCE_HDIO{i}")) {

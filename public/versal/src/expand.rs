@@ -3,10 +3,10 @@ use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId};
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
 
-use crate::expanded::{ExpandedDevice, SllConns, UbumpId};
-use crate::grid::{
-    CleKind, ColumnKind, DisabledPart, Grid, GtRowKind, HardRowKind, Interposer, RightKind,
+use crate::chip::{
+    Chip, CleKind, ColumnKind, DisabledPart, GtRowKind, HardRowKind, Interposer, RightKind,
 };
+use crate::expanded::{ExpandedDevice, SllConns, UbumpId};
 
 struct DieInfo {
     col_cfrm: ColId,
@@ -14,7 +14,7 @@ struct DieInfo {
 }
 
 struct Expander<'a> {
-    grids: EntityVec<DieId, &'a Grid>,
+    chips: EntityVec<DieId, &'a Chip>,
     disabled: BTreeSet<DisabledPart>,
     egrid: ExpandedGrid<'a>,
     die: EntityVec<DieId, DieInfo>,
@@ -22,23 +22,23 @@ struct Expander<'a> {
 
 impl Expander<'_> {
     fn fill_die(&mut self) {
-        for (_, &grid) in &self.grids {
+        for (_, &chip) in &self.chips {
             self.egrid
-                .add_die(grid.columns.len(), grid.regs * Grid::ROWS_PER_REG);
+                .add_die(chip.columns.len(), chip.regs * Chip::ROWS_PER_REG);
             self.die.push(DieInfo {
-                col_cfrm: grid
+                col_cfrm: chip
                     .columns
                     .iter()
                     .find(|(_, cd)| cd.l == ColumnKind::Cfrm)
                     .unwrap()
                     .0,
-                ps_height: grid.get_ps_height(),
+                ps_height: chip.get_ps_height(),
             });
         }
     }
 
     fn fill_int(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let di = &self.die[dieid];
             let mut die = self.egrid.die_mut(dieid);
 
@@ -47,12 +47,12 @@ impl Expander<'_> {
             let row_b = die.rows().next().unwrap();
             let row_t = die.rows().next_back().unwrap();
             let ps_width = di.col_cfrm.to_idx();
-            for col in grid.columns.ids() {
+            for col in chip.columns.ids() {
                 if self.disabled.contains(&DisabledPart::Column(dieid, col)) {
                     continue;
                 }
                 for row in die.rows() {
-                    let reg = grid.row_to_reg(row);
+                    let reg = chip.row_to_reg(row);
                     if self.disabled.contains(&DisabledPart::Region(dieid, reg)) {
                         continue;
                     }
@@ -60,13 +60,13 @@ impl Expander<'_> {
                         continue;
                     }
                     die.fill_tile((col, row), "INT");
-                    if row.to_idx() % Grid::ROWS_PER_REG == 0 && grid.is_reg_top(reg) {
+                    if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_top(reg) {
                         die.add_xnode((col, row), "RCLK", &[(col, row)]);
                     }
                 }
             }
 
-            if di.ps_height != grid.regs * Grid::ROWS_PER_REG {
+            if di.ps_height != chip.regs * Chip::ROWS_PER_REG {
                 let row_t = RowId::from_idx(di.ps_height);
                 for dx in 0..ps_width {
                     let col = ColId::from_idx(dx);
@@ -98,12 +98,12 @@ impl Expander<'_> {
     }
 
     fn fill_cle_bc(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
 
             let row_b = die.rows().next().unwrap();
             let row_t = die.rows().next_back().unwrap();
-            for (col, &cd) in &grid.columns {
+            for (col, &cd) in &chip.columns {
                 if matches!(cd.r, ColumnKind::Cle(_)) {
                     for row in die.rows() {
                         if die[(col, row)].nodes.is_empty() {
@@ -145,8 +145,8 @@ impl Expander<'_> {
                         } else {
                             die.fill_term_pair((col, row), (col + 1, row), "CLE.E", "CLE.W");
                         }
-                        let reg = grid.row_to_reg(row);
-                        if row.to_idx() % Grid::ROWS_PER_REG == 0 && grid.is_reg_top(reg) {
+                        let reg = chip.row_to_reg(row);
+                        if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_top(reg) {
                             if reg.to_idx() % 2 == 1 {
                                 die.add_xnode(
                                     (col + 1, row),
@@ -164,13 +164,13 @@ impl Expander<'_> {
     }
 
     fn fill_intf(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let di = &self.die[dieid];
             let mut die = self.egrid.die_mut(dieid);
 
             let row_b = die.rows().next().unwrap();
             let row_t = die.rows().next_back().unwrap();
-            for (col, &cd) in &grid.columns {
+            for (col, &cd) in &chip.columns {
                 for row in die.rows() {
                     if die[(col, row)].nodes.is_empty() {
                         continue;
@@ -186,8 +186,8 @@ impl Expander<'_> {
                                 }
                             }
                             ColumnKind::Hard => {
-                                let ch = grid.get_col_hard(col).unwrap();
-                                match ch.regs[grid.row_to_reg(row)] {
+                                let ch = chip.get_col_hard(col).unwrap();
+                                match ch.regs[chip.row_to_reg(row)] {
                                     HardRowKind::Hdio => "INTF.W.HDIO",
                                     _ => "INTF.W.HB",
                                 }
@@ -220,8 +220,8 @@ impl Expander<'_> {
                         let kind = match cd.r {
                             ColumnKind::Gt => "INTF.E.TERM.GT",
                             ColumnKind::Hard => {
-                                let ch = grid.get_col_hard(col + 1).unwrap();
-                                match ch.regs[grid.row_to_reg(row)] {
+                                let ch = chip.get_col_hard(col + 1).unwrap();
+                                match ch.regs[chip.row_to_reg(row)] {
                                     HardRowKind::Hdio => "INTF.E.HDIO",
                                     _ => "INTF.E.HB",
                                 }
@@ -250,8 +250,8 @@ impl Expander<'_> {
                             &[(col, row)],
                         );
                     }
-                    let reg = grid.row_to_reg(row);
-                    if row.to_idx() % Grid::ROWS_PER_REG == 0 && grid.is_reg_top(reg) {
+                    let reg = chip.row_to_reg(row);
+                    if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_top(reg) {
                         if !matches!(cd.l, ColumnKind::Cle(_) | ColumnKind::None) {
                             if reg.to_idx() % 2 == 1 {
                                 die.add_xnode(
@@ -269,7 +269,7 @@ impl Expander<'_> {
                                 die.add_xnode((col, row), "RCLK_DFX.W", &[(col, row)]);
                             }
                             if cd.l == ColumnKind::Hard {
-                                let hc = grid.get_col_hard(col).unwrap();
+                                let hc = chip.get_col_hard(col).unwrap();
                                 if hc.regs[reg] == HardRowKind::Hdio {
                                     die.add_xnode((col, row), "RCLK_HDIO", &[]);
                                 } else if reg.to_idx() % 2 != 0
@@ -281,7 +281,7 @@ impl Expander<'_> {
                         }
                         if !matches!(cd.r, ColumnKind::Cle(_) | ColumnKind::None)
                             && !(matches!(cd.r, ColumnKind::Gt)
-                                && matches!(grid.right, RightKind::Cidb))
+                                && matches!(chip.right, RightKind::Cidb))
                         {
                             if reg.to_idx() % 2 == 1 {
                                 die.add_xnode(
@@ -303,9 +303,9 @@ impl Expander<'_> {
     }
 
     fn fill_cle(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
-            for (col, &cd) in &grid.columns {
+            for (col, &cd) in &chip.columns {
                 if !matches!(cd.r, ColumnKind::Cle(_)) {
                     continue;
                 }
@@ -322,12 +322,12 @@ impl Expander<'_> {
                     }
                     die.add_xnode(
                         (col, row),
-                        if grid.is_vr { "CLE_R.VR" } else { "CLE_R" },
+                        if chip.is_vr { "CLE_R.VR" } else { "CLE_R" },
                         &[(col, row), (col + 1, row)],
                     );
                     die.add_xnode(
                         (col + 1, row),
-                        if grid.is_vr { "CLE_L.VR" } else { "CLE_L" },
+                        if chip.is_vr { "CLE_L.VR" } else { "CLE_L" },
                         &[(col + 1, row)],
                     );
                 }
@@ -336,9 +336,9 @@ impl Expander<'_> {
     }
 
     fn fill_dsp(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
-            for (col, &cd) in &grid.columns {
+            for (col, &cd) in &chip.columns {
                 if cd.r != ColumnKind::Dsp {
                     continue;
                 }
@@ -372,9 +372,9 @@ impl Expander<'_> {
     }
 
     fn fill_bram(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
-            for (col, &cd) in &grid.columns {
+            for (col, &cd) in &chip.columns {
                 for (kind, ck, has_bli_bot, has_bli_top) in [
                     ("BRAM_L", cd.l, cd.has_bli_bot_l, cd.has_bli_top_l),
                     ("BRAM_R", cd.r, cd.has_bli_bot_r, cd.has_bli_top_r),
@@ -408,9 +408,9 @@ impl Expander<'_> {
     }
 
     fn fill_uram(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
-            for (col, &cd) in &grid.columns {
+            for (col, &cd) in &chip.columns {
                 if cd.l != ColumnKind::Uram {
                     continue;
                 }
@@ -427,10 +427,10 @@ impl Expander<'_> {
                     if die[(col, row)].nodes.is_empty() {
                         continue;
                     }
-                    let reg = grid.row_to_reg(row);
+                    let reg = chip.row_to_reg(row);
                     die.add_xnode(
                         (col, row),
-                        if grid.is_reg_top(reg) && row.to_idx() % Grid::ROWS_PER_REG == 44 {
+                        if chip.is_reg_top(reg) && row.to_idx() % Chip::ROWS_PER_REG == 44 {
                             "URAM_DELAY"
                         } else {
                             "URAM"
@@ -443,10 +443,10 @@ impl Expander<'_> {
     }
 
     fn fill_hard(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
-            for hc in &grid.cols_hard {
-                for reg in grid.regs() {
+            for hc in &chip.cols_hard {
+                for reg in chip.regs() {
                     if self
                         .disabled
                         .contains(&DisabledPart::HardIp(die.die, hc.col, reg))
@@ -475,12 +475,12 @@ impl Expander<'_> {
                         HardRowKind::DfeCfcB => ("DFE_CFC_BOT", false),
                         HardRowKind::DfeCfcT => ("DFE_CFC_TOP", false),
                     };
-                    let row = grid.row_reg_bot(reg);
+                    let row = chip.row_reg_bot(reg);
                     let mut crd = vec![];
                     let height = if is_high {
-                        Grid::ROWS_PER_REG * 2
+                        Chip::ROWS_PER_REG * 2
                     } else {
-                        Grid::ROWS_PER_REG
+                        Chip::ROWS_PER_REG
                     };
                     for i in 0..height {
                         crd.push((hc.col - 1, row + i));
@@ -495,9 +495,9 @@ impl Expander<'_> {
     }
 
     fn fill_vnoc(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
-            for (col, cd) in &grid.columns {
+            for (col, cd) in &chip.columns {
                 if !matches!(
                     cd.l,
                     ColumnKind::VNoc | ColumnKind::VNoc2 | ColumnKind::VNoc4
@@ -507,16 +507,16 @@ impl Expander<'_> {
                 if self.disabled.contains(&DisabledPart::Column(die.die, col)) {
                     continue;
                 }
-                for reg in grid.regs() {
+                for reg in chip.regs() {
                     if self.disabled.contains(&DisabledPart::Region(die.die, reg)) {
                         continue;
                     }
-                    let row = grid.row_reg_bot(reg);
+                    let row = chip.row_reg_bot(reg);
                     let mut crd = vec![];
-                    for i in 0..Grid::ROWS_PER_REG {
+                    for i in 0..Chip::ROWS_PER_REG {
                         crd.push((col - 1, row + i));
                     }
-                    for i in 0..Grid::ROWS_PER_REG {
+                    for i in 0..Chip::ROWS_PER_REG {
                         crd.push((col, row + i));
                     }
                     match cd.l {
@@ -531,7 +531,7 @@ impl Expander<'_> {
                         }
                         _ => unreachable!(),
                     }
-                    if grid.is_reg_top(reg) {
+                    if chip.is_reg_top(reg) {
                         die.add_xnode((col, row), "MISR", &crd);
                     } else {
                         die.add_xnode((col, row), "SYSMON_SAT.VNOC", &crd);
@@ -542,16 +542,16 @@ impl Expander<'_> {
     }
 
     fn fill_lgt(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
             let col = die.cols().next().unwrap();
-            let ps_height = grid.get_ps_height();
-            for reg in grid.regs() {
-                let row = grid.row_reg_bot(reg);
+            let ps_height = chip.get_ps_height();
+            for reg in chip.regs() {
+                let row = chip.row_reg_bot(reg);
                 if row.to_idx() < ps_height {
                     continue;
                 }
-                let crds: [_; Grid::ROWS_PER_REG] = core::array::from_fn(|dy| (col, row + dy));
+                let crds: [_; Chip::ROWS_PER_REG] = core::array::from_fn(|dy| (col, row + dy));
                 die.add_xnode(crds[0], "SYSMON_SAT.LGT", &crds);
                 die.add_xnode(crds[0], "DPLL.LGT", &crds);
                 // TODO: actual GT
@@ -560,14 +560,14 @@ impl Expander<'_> {
     }
 
     fn fill_rgt(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
             let col = die.cols().next_back().unwrap();
-            match grid.right {
+            match chip.right {
                 RightKind::Gt(ref regs) => {
                     for (reg, &kind) in regs {
-                        let row = grid.row_reg_bot(reg);
-                        let crds: [_; Grid::ROWS_PER_REG] =
+                        let row = chip.row_reg_bot(reg);
+                        let crds: [_; Chip::ROWS_PER_REG] =
                             core::array::from_fn(|dy| (col, row + dy));
                         match kind {
                             GtRowKind::None => (),
@@ -610,9 +610,9 @@ impl Expander<'_> {
                 }
                 _ => continue,
             }
-            for reg in grid.regs() {
-                let row = grid.row_reg_bot(reg);
-                let crds: [_; Grid::ROWS_PER_REG] = core::array::from_fn(|dy| (col, row + dy));
+            for reg in chip.regs() {
+                let row = chip.row_reg_bot(reg);
+                let crds: [_; Chip::ROWS_PER_REG] = core::array::from_fn(|dy| (col, row + dy));
                 die.add_xnode(crds[0], "SYSMON_SAT.RGT", &crds);
                 die.add_xnode(crds[0], "DPLL.RGT", &crds);
             }
@@ -620,16 +620,16 @@ impl Expander<'_> {
     }
 
     fn fill_clkroot(&mut self) {
-        for (dieid, grid) in &self.grids {
+        for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
 
             for col in die.cols() {
                 for row in die.rows() {
-                    let reg = grid.row_to_reg(row);
-                    let crow = if grid.is_reg_top(reg) {
-                        grid.row_reg_hclk(reg)
+                    let reg = chip.row_to_reg(row);
+                    let crow = if chip.is_reg_top(reg) {
+                        chip.row_reg_hclk(reg)
                     } else {
-                        grid.row_reg_hclk(reg) - 1
+                        chip.row_reg_hclk(reg) - 1
                     };
                     die[(col, row)].clkroot = (col, crow);
                 }
@@ -639,13 +639,13 @@ impl Expander<'_> {
 }
 
 pub fn expand_grid<'a>(
-    grids: &EntityVec<DieId, &'a Grid>,
+    chips: &EntityVec<DieId, &'a Chip>,
     interposer: &'a Interposer,
     disabled: &BTreeSet<DisabledPart>,
     db: &'a IntDb,
 ) -> ExpandedDevice<'a> {
     let mut expander = Expander {
-        grids: grids.clone(),
+        chips: chips.clone(),
         disabled: disabled.clone(),
         egrid: ExpandedGrid::new(db),
         die: EntityVec::new(),
@@ -654,7 +654,7 @@ pub fn expand_grid<'a>(
     expander.fill_int();
     expander.fill_cle_bc();
     expander.fill_intf();
-    for dieid in expander.grids.ids() {
+    for dieid in expander.chips.ids() {
         expander.egrid.die_mut(dieid).fill_main_passes();
     }
     expander.fill_cle();
@@ -672,17 +672,17 @@ pub fn expand_grid<'a>(
 
     let mut sll = HashMap::new();
     match interposer.kind {
-        crate::grid::InterposerKind::Single => (),
-        crate::grid::InterposerKind::Column => {
-            fill_sll_column(interposer, grids, &mut sll);
+        crate::chip::InterposerKind::Single => (),
+        crate::chip::InterposerKind::Column => {
+            fill_sll_column(interposer, chips, &mut sll);
         }
-        crate::grid::InterposerKind::MirrorSquare => {
-            fill_sll_mirror_square(interposer, grids, &mut sll);
+        crate::chip::InterposerKind::MirrorSquare => {
+            fill_sll_mirror_square(interposer, chips, &mut sll);
         }
     }
 
     ExpandedDevice {
-        grids: expander.grids,
+        chips: expander.chips,
         interposer,
         egrid: expander.egrid,
         disabled: expander.disabled,
@@ -693,23 +693,23 @@ pub fn expand_grid<'a>(
 
 fn fill_sll_column(
     interposer: &Interposer,
-    grids: &EntityVec<DieId, &Grid>,
+    chips: &EntityVec<DieId, &Chip>,
     sll: &mut HashMap<(DieId, ColId, RowId), SllConns>,
 ) {
     let mut curse_queue = vec![];
     for (die, cols) in &interposer.sll_columns {
-        let grid = grids[die];
-        let all_rows = grid.rows();
-        let has_link_bot = die != grids.first_id().unwrap();
-        let has_link_top = die != grids.last_id().unwrap();
+        let chip = chips[die];
+        let all_rows = chip.rows();
+        let has_link_bot = die != chips.first_id().unwrap();
+        let has_link_top = die != chips.last_id().unwrap();
         for (cidx, &col) in cols.iter().enumerate() {
-            let start = if grid.columns[col].has_bli_bot_l {
+            let start = if chip.columns[col].has_bli_bot_l {
                 assert!(!has_link_bot);
                 4
             } else {
                 0
             };
-            let end = if grid.columns[col].has_bli_top_l {
+            let end = if chip.columns[col].has_bli_top_l {
                 assert!(!has_link_top);
                 all_rows.len() - 4
             } else {
@@ -723,7 +723,7 @@ fn fill_sll_column(
                 };
                 if has_link_bot && row.to_idx() < start + 75 {
                     let odie = die - 1;
-                    let orow = RowId::from_idx(grids[odie].rows().len() - 75 + row.to_idx());
+                    let orow = RowId::from_idx(chips[odie].rows().len() - 75 + row.to_idx());
                     let ocol = interposer.sll_columns[odie][cidx];
                     for (bump, obump) in [(0, 0), (1, 1), (3, 2), (4, 4), (5, 5)] {
                         let bump = UbumpId::from_idx(bump);
@@ -830,25 +830,25 @@ fn fill_sll_column(
 
 fn fill_sll_mirror_square(
     interposer: &Interposer,
-    grids: &EntityVec<DieId, &Grid>,
+    chips: &EntityVec<DieId, &Chip>,
     sll: &mut HashMap<(DieId, ColId, RowId), SllConns>,
 ) {
     let mut curse_queue = vec![];
     for (die, cols) in &interposer.sll_columns {
-        let grid = grids[die];
-        let all_rows = grid.rows();
-        let col_cfrm = grid
+        let chip = chips[die];
+        let all_rows = chip.rows();
+        let col_cfrm = chip
             .columns
             .iter()
             .find(|(_, c)| c.l == ColumnKind::Cfrm)
             .unwrap()
             .0;
-        let ps_height = grid.get_ps_height();
+        let ps_height = chip.get_ps_height();
         let cidx_ps = cols.binary_search(&col_cfrm).unwrap_err();
         for (cidx, &col) in cols.iter().enumerate() {
             let start = if col < col_cfrm {
                 ps_height
-            } else if grid.columns[col].has_bli_bot_l {
+            } else if chip.columns[col].has_bli_bot_l {
                 4
             } else {
                 0
@@ -916,7 +916,7 @@ fn fill_sll_mirror_square(
                         }
                     }
                 } else {
-                    if !(46..50).contains(&(row.to_idx() % (Grid::ROWS_PER_REG * 2))) {
+                    if !(46..50).contains(&(row.to_idx() % (Chip::ROWS_PER_REG * 2))) {
                         for bump in [0, 2, 4] {
                             let bump = UbumpId::from_idx(bump);
                             let odie = DieId::from_idx(die.to_idx() ^ 3);
@@ -924,7 +924,7 @@ fn fill_sll_mirror_square(
                             conns.conns[bump] = Some((odie, ocol, row, bump));
                         }
                     }
-                    if row.to_idx() % (Grid::ROWS_PER_REG * 2) == 50 {
+                    if row.to_idx() % (Chip::ROWS_PER_REG * 2) == 50 {
                         for bump in [0, 2, 4] {
                             let bump = UbumpId::from_idx(bump);
                             curse_queue.push((die, col, row, bump));
@@ -937,7 +937,7 @@ fn fill_sll_mirror_square(
                             let ocol = cols[cidx - 10];
                             conns.conns[bump] = Some((die, ocol, row, obump));
                         }
-                        if row.to_idx() % (Grid::ROWS_PER_REG * 2) == 50 {
+                        if row.to_idx() % (Chip::ROWS_PER_REG * 2) == 50 {
                             for bump in [1, 5] {
                                 let bump = UbumpId::from_idx(bump);
                                 curse_queue.push((die, col, row, bump));

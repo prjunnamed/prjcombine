@@ -1,8 +1,8 @@
 use prjcombine_interconnect::grid::{ColId, DieId};
 use prjcombine_re_xilinx_naming_versal::{DeviceNaming, DieNaming, HdioNaming, VNoc2Naming};
 use prjcombine_re_xilinx_rawdump::{Coord, NodeOrWire, Part, Tile, TkSiteSlot};
-use prjcombine_versal::grid::{
-    BotKind, BramKind, CleKind, Column, ColumnKind, CpmKind, DisabledPart, Grid, GtRowKind,
+use prjcombine_versal::chip::{
+    BotKind, BramKind, Chip, CleKind, Column, ColumnKind, CpmKind, DisabledPart, GtRowKind,
     HardColumn, HardRowKind, Interposer, InterposerKind, PsKind, RegId, RightKind, TopKind,
 };
 use std::collections::{BTreeMap, BTreeSet};
@@ -458,7 +458,7 @@ fn get_grid(
     disabled: &mut BTreeSet<DisabledPart>,
     is_vnoc2_scan_offset: &mut bool,
     sll_columns: &mut EntityVec<DieId, Vec<ColId>>,
-) -> (Grid, DieNaming) {
+) -> (Chip, DieNaming) {
     let mut naming = DieNaming {
         hdio: BTreeMap::new(),
         sysmon_sat_vnoc: BTreeMap::new(),
@@ -499,7 +499,7 @@ fn get_grid(
         RightKind::Term
     };
     let is_vr = !int.find_tiles(&["CLE_W_VR_CORE"]).is_empty();
-    let grid = Grid {
+    let grid = Chip {
         columns,
         cols_vbrk: get_cols_vbrk(int),
         cols_cpipe: get_cols_cpipe(int),
@@ -542,7 +542,7 @@ fn get_grid(
 pub fn make_grids(
     rd: &Part,
 ) -> (
-    EntityVec<DieId, Grid>,
+    EntityVec<DieId, Chip>,
     Interposer,
     BTreeSet<DisabledPart>,
     DeviceNaming,
