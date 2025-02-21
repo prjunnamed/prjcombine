@@ -20,11 +20,11 @@ use prjcombine_re_xilinx_cpld::{
 };
 use prjcombine_types::{
     FbId, FbMcId, IoId,
-    tiledb::{Tile, TileItem, TileItemKind},
+    tiledb::{Tile, TileBit, TileItem, TileItemKind},
 };
 use prjcombine_xpla3 as xpla3;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
-use xpla3::{BitCoord, FbColumn};
+use xpla3::FbColumn;
 
 const JED_MC_BITS_IOB: &[(&str, usize)] = &[
     ("MC_IOB_MUX", 0),
@@ -106,15 +106,15 @@ struct Args {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 struct DevData {
-    bs_cols: u32,
-    fb_rows: u32,
+    bs_cols: usize,
+    fb_rows: usize,
     fb_cols: Vec<FbColumn>,
-    imux_width: u32,
+    imux_width: usize,
     io_mcs: BTreeSet<FbMcId>,
     io_special: BTreeMap<String, (FbId, FbMcId)>,
 }
 
-fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<BitCoord> {
+fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<TileBit> {
     let (plane_bit, row_mask) = match dd.fb_rows {
         1 => (6, 0x3f),
         2 => (7, 0x7f),
@@ -124,25 +124,30 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
     let mut tile = Tile::new();
     for (fb, mc) in device.mcs() {
         let mcb = &fpart.bits.fbs[fb].mcs[mc];
-        let fbc = fb.to_idx() as u32 / (dd.fb_rows * 2);
-        let fbr = fb.to_idx() as u32 / 2 % dd.fb_rows;
+        let fbc = fb.to_idx() / (dd.fb_rows * 2);
+        let fbr = fb.to_idx() / 2 % dd.fb_rows;
         let xlat_bit = |bit| {
             let (row, column) = fpart.map.main[bit];
-            let plane = row >> plane_bit & 1u32;
+            let row = row as usize;
+            let plane = row >> plane_bit & 1;
             let row = row & row_mask;
             let row = row - fbr * 52;
             let row = if mc.to_idx() >= 8 {
-                row - mc.to_idx() as u32 * 3 - 4
+                row - mc.to_idx() * 3 - 4
             } else {
-                row - mc.to_idx() as u32 * 3
+                row - mc.to_idx() * 3
             };
-            let column = dd.bs_cols - 1 - column as u32;
+            let column = dd.bs_cols - 1 - column;
             let column = if fb.to_idx() % 2 == 0 {
-                column - dd.fb_cols[fbc as usize].mc_col
+                column - dd.fb_cols[fbc].mc_col
             } else {
-                9 - (column - dd.fb_cols[fbc as usize].mc_col)
+                9 - (column - dd.fb_cols[fbc].mc_col)
             };
-            BitCoord { row, plane, column }
+            TileBit {
+                tile: plane,
+                frame: row,
+                bit: column,
+            }
         };
         tile.insert(
             "CLK_MUX",
@@ -332,7 +337,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
     tile
 }
 
-fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile<BitCoord> {
+fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile<TileBit> {
     let (plane_bit, row_mask) = match dd.fb_rows {
         1 => (6, 0x3f),
         2 => (7, 0x7f),
@@ -342,20 +347,25 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile<BitCoord> {
     let mut tile = Tile::new();
     for fb in fpart.bits.fbs.ids() {
         let fbb = &fpart.bits.fbs[fb];
-        let fbc = fb.to_idx() as u32 / (dd.fb_rows * 2);
-        let fbr = fb.to_idx() as u32 / 2 % dd.fb_rows;
+        let fbc = fb.to_idx() / (dd.fb_rows * 2);
+        let fbr = fb.to_idx() / 2 % dd.fb_rows;
         let xlat_bit = |bit| {
             let (row, column) = fpart.map.main[bit];
-            let plane = row >> plane_bit & 1u32;
+            let row = row as usize;
+            let plane = row >> plane_bit & 1;
             let row = row & row_mask;
             let row = row - fbr * 52 - 24;
-            let column = dd.bs_cols - 1 - column as u32;
+            let column = dd.bs_cols - 1 - column;
             let column = if fb.to_idx() % 2 == 0 {
-                column - dd.fb_cols[fbc as usize].mc_col
+                column - dd.fb_cols[fbc].mc_col
             } else {
-                9 - (column - dd.fb_cols[fbc as usize].mc_col)
+                9 - (column - dd.fb_cols[fbc].mc_col)
             };
-            BitCoord { row, plane, column }
+            TileBit {
+                tile: plane,
+                frame: row,
+                bit: column,
+            }
         };
         tile.insert(
             "FCLK_MUX",
@@ -383,7 +393,7 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile<BitCoord> {
     tile
 }
 
-fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<BitCoord> {
+fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<TileBit> {
     let (plane_bit, row_mask) = match dd.fb_rows {
         1 => (6, 0x3f),
         2 => (7, 0x7f),
@@ -392,16 +402,26 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
     };
     let xlat_bit = |bit| {
         let (row, column) = fpart.map.main[bit];
-        let plane = row >> plane_bit & 1u32;
+        let row = row as usize;
+        let plane = row >> plane_bit & 1;
         let row = row & row_mask;
-        let column = dd.bs_cols - 1 - column as u32;
-        BitCoord { row, plane, column }
+        let column = dd.bs_cols - 1 - column;
+        TileBit {
+            tile: plane,
+            frame: row,
+            bit: column,
+        }
     };
     let xlat_bit_raw = |(row, column)| {
-        let plane = row >> plane_bit & 1u32;
+        let row = row as usize;
+        let plane = row >> plane_bit & 1;
         let row = row & row_mask;
-        let column = dd.bs_cols - 1 - column as u32;
-        BitCoord { row, plane, column }
+        let column = dd.bs_cols - 1 - column;
+        TileBit {
+            tile: plane,
+            frame: row,
+            bit: column,
+        }
     };
     let mut tile = Tile::new();
     for (gclk, &io) in &device.clk_pads {
@@ -517,7 +537,7 @@ fn extract_imux_bits(
         ipad_to_gclk.insert(ipad, gclk);
     }
     for fb in device.fbs() {
-        let fbc = fb.to_idx() / 2 / dd.fb_rows as usize;
+        let fbc = fb.to_idx() / 2 / dd.fb_rows;
         for i in 0..40 {
             let imux = ImuxId::from_idx(i);
             let enum_ = &fpart.bits.fbs[fb].imux[imux];
@@ -525,11 +545,11 @@ fn extract_imux_bits(
                 .bits
                 .iter()
                 .map(|&x| {
-                    let col = dd.bs_cols - 1 - fpart.map.main[x].1 as u32;
+                    let col = dd.bs_cols - 1 - fpart.map.main[x].1;
                     let col = col - dd.fb_cols[fbc].imux_col;
                     let col = dd.imux_width - 1 - col;
                     assert!(col < dd.imux_width);
-                    col as usize
+                    col
                 })
                 .collect();
             for (&val, bits) in &enum_.items {
@@ -540,7 +560,7 @@ fn extract_imux_bits(
                     ImuxInput::Pup => "STARTUP".to_string(),
                     _ => unreachable!(),
                 };
-                let mut vbits = BitVec::repeat(true, dd.imux_width as usize);
+                let mut vbits = BitVec::repeat(true, dd.imux_width);
                 for (i, bit) in bits.iter().enumerate() {
                     vbits.set(xlat[i], *bit);
                 }
@@ -550,20 +570,17 @@ fn extract_imux_bits(
     }
 }
 
-fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> Tile<BitCoord> {
+fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> Tile<TileBit> {
     let mut tile = Tile::new();
     for i in 0..40 {
         let mut values = imux_bits[i].clone();
-        values.insert(
-            "VCC".to_string(),
-            BitVec::repeat(true, dd.imux_width as usize),
-        );
+        values.insert("VCC".to_string(), BitVec::repeat(true, dd.imux_width));
         let item = TileItem {
             bits: (0..dd.imux_width)
-                .map(|j| BitCoord {
-                    row: if i < 20 { 2 + i as u32 } else { 10 + i as u32 },
-                    plane: 0,
-                    column: dd.imux_width - 1 - j,
+                .map(|j| TileBit {
+                    tile: 0,
+                    frame: if i < 20 { 2 + i } else { 10 + i },
+                    bit: dd.imux_width - 1 - j,
                 })
                 .collect(),
             kind: TileItemKind::Enum { values },
@@ -577,9 +594,9 @@ fn verify_jed(
     device: &Device,
     fpart: &FuzzDbPart,
     dd: &DevData,
-    mc_bits: &Tile<BitCoord>,
-    fb_bits: &Tile<BitCoord>,
-    global_bits: &Tile<BitCoord>,
+    mc_bits: &Tile<TileBit>,
+    fb_bits: &Tile<TileBit>,
+    global_bits: &Tile<TileBit>,
     jed_global_bits: &Vec<(String, usize)>,
 ) {
     let plane_bit = match dd.fb_rows {
@@ -588,40 +605,38 @@ fn verify_jed(
         4 => 8,
         _ => unreachable!(),
     };
-    let check_bit = |pos: &mut usize, col: u32, row: u32, plane: u32| {
-        let exp_coord = (row | plane << plane_bit, (dd.bs_cols - 1 - col) as usize);
+    let check_bit = |pos: &mut usize, col: usize, row: usize, plane: usize| {
+        let exp_coord = ((row | plane << plane_bit) as u32, dd.bs_cols - 1 - col);
         assert_eq!(fpart.map.main[*pos], exp_coord);
         *pos += 1;
     };
 
     let mut pos = 0;
     for fb in device.fbs() {
-        let fbc = fb.to_idx() as u32 / (dd.fb_rows * 2);
-        let fbr = fb.to_idx() as u32 / 2 % dd.fb_rows;
+        let fbc = fb.to_idx() / (dd.fb_rows * 2);
+        let fbr = fb.to_idx() / 2 % dd.fb_rows;
         let fb_odd = fb.to_idx() % 2 == 1;
         for i in 0..40 {
             for j in 0..dd.imux_width {
-                let exp_col = dd.fb_cols[fbc as usize].imux_col + (dd.imux_width - 1 - j);
+                let exp_col = dd.fb_cols[fbc].imux_col + (dd.imux_width - 1 - j);
                 let exp_row = fbr * 52 + if i < 20 { 2 + i } else { 2 + i + 8 };
                 let exp_plane = if fb_odd { 0 } else { 1 };
                 check_bit(&mut pos, exp_col, exp_row, exp_plane);
             }
         }
         for pt in 0..48 {
-            let exp_col = dd.fb_cols[fbc as usize].pt_col + if fb_odd { 95 - pt } else { pt };
+            let exp_col = dd.fb_cols[fbc].pt_col + if fb_odd { 95 - pt } else { pt };
             for imux in 0..40 {
                 let exp_row = fbr * 52 + if imux < 20 { 2 + imux } else { 2 + imux + 8 };
                 assert_eq!(
-                    fpart.bits.fbs[fb].pla_and[PTermId::from_idx(pt as usize)].imux
-                        [ImuxId::from_idx(imux as usize)]
-                    .0,
+                    fpart.bits.fbs[fb].pla_and[PTermId::from_idx(pt)].imux[ImuxId::from_idx(imux)]
+                        .0,
                     (pos, false)
                 );
                 check_bit(&mut pos, exp_col, exp_row, 0);
                 assert_eq!(
-                    fpart.bits.fbs[fb].pla_and[PTermId::from_idx(pt as usize)].imux
-                        [ImuxId::from_idx(imux as usize)]
-                    .1,
+                    fpart.bits.fbs[fb].pla_and[PTermId::from_idx(pt)].imux[ImuxId::from_idx(imux)]
+                        .1,
                     (pos, false)
                 );
                 check_bit(&mut pos, exp_col, exp_row, 1);
@@ -636,23 +651,22 @@ fn verify_jed(
                     (50, 1),
                     (51, 0),
                     (51, 1),
-                ][fbn as usize];
+                ][fbn];
                 let exp_row = fbr * 52 + row;
                 assert_eq!(
-                    fpart.bits.fbs[fb].pla_and[PTermId::from_idx(pt as usize)].fbn
-                        [FbnId::from_idx(fbn as usize)],
+                    fpart.bits.fbs[fb].pla_and[PTermId::from_idx(pt)].fbn[FbnId::from_idx(fbn)],
                     (pos, false)
                 );
                 check_bit(&mut pos, exp_col, exp_row, exp_plane);
             }
         }
         for pt in 0..48 {
-            let exp_col = dd.fb_cols[fbc as usize].pt_col + if fb_odd { 95 - pt } else { pt };
+            let exp_col = dd.fb_cols[fbc].pt_col + if fb_odd { 95 - pt } else { pt };
             for mc in device.fb_mcs() {
-                let exp_row = fbr * 52 + 22 + mc.to_idx() as u32 / 2;
-                let exp_plane = 1 - mc.to_idx() as u32 % 2;
+                let exp_row = fbr * 52 + 22 + mc.to_idx() / 2;
+                let exp_plane = 1 - mc.to_idx() % 2;
                 assert_eq!(
-                    fpart.bits.fbs[fb].mcs[mc].pla_or[PTermId::from_idx(pt as usize)],
+                    fpart.bits.fbs[fb].mcs[mc].pla_or[PTermId::from_idx(pt)],
                     (pos, false)
                 );
                 check_bit(&mut pos, exp_col, exp_row, exp_plane);
@@ -661,14 +675,9 @@ fn verify_jed(
         for &(name, bit) in JED_FB_BITS {
             let item = &fb_bits.items[name];
             let coord = item.bits[bit];
-            let exp_col = dd.fb_cols[fbc as usize].mc_col
-                + if fb_odd {
-                    9 - coord.column
-                } else {
-                    coord.column
-                };
-            let exp_row = fbr * 52 + 24 + coord.row;
-            let exp_plane = coord.plane;
+            let exp_col = dd.fb_cols[fbc].mc_col + if fb_odd { 9 - coord.bit } else { coord.bit };
+            let exp_row = fbr * 52 + 24 + coord.frame;
+            let exp_plane = coord.tile;
             check_bit(&mut pos, exp_col, exp_row, exp_plane);
         }
         for mc in device.fb_mcs() {
@@ -678,20 +687,16 @@ fn verify_jed(
             for &(name, bit) in JED_MC_BITS_IOB {
                 let item = &mc_bits.items[name];
                 let coord = item.bits[bit];
-                let exp_col = dd.fb_cols[fbc as usize].mc_col
-                    + if fb_odd {
-                        9 - coord.column
-                    } else {
-                        coord.column
-                    };
+                let exp_col =
+                    dd.fb_cols[fbc].mc_col + if fb_odd { 9 - coord.bit } else { coord.bit };
                 let exp_row = fbr * 52
                     + if mc.to_idx() < 8 {
-                        mc.to_idx() as u32 * 3
+                        mc.to_idx() * 3
                     } else {
-                        4 + mc.to_idx() as u32 * 3
+                        4 + mc.to_idx() * 3
                     }
-                    + coord.row;
-                let exp_plane = coord.plane;
+                    + coord.frame;
+                let exp_plane = coord.tile;
                 check_bit(&mut pos, exp_col, exp_row, exp_plane);
             }
         }
@@ -702,20 +707,16 @@ fn verify_jed(
             for &(name, bit) in JED_MC_BITS_BURIED {
                 let item = &mc_bits.items[name];
                 let coord = item.bits[bit];
-                let exp_col = dd.fb_cols[fbc as usize].mc_col
-                    + if fb_odd {
-                        9 - coord.column
-                    } else {
-                        coord.column
-                    };
+                let exp_col =
+                    dd.fb_cols[fbc].mc_col + if fb_odd { 9 - coord.bit } else { coord.bit };
                 let exp_row = fbr * 52
                     + if mc.to_idx() < 8 {
-                        mc.to_idx() as u32 * 3
+                        mc.to_idx() * 3
                     } else {
-                        4 + mc.to_idx() as u32 * 3
+                        4 + mc.to_idx() * 3
                     }
-                    + coord.row;
-                let exp_plane = coord.plane;
+                    + coord.frame;
+                let exp_plane = coord.tile;
                 check_bit(&mut pos, exp_col, exp_row, exp_plane);
             }
         }
@@ -723,7 +724,7 @@ fn verify_jed(
     for (name, bit) in jed_global_bits {
         let item = &global_bits.items[name];
         let coord = item.bits[*bit];
-        check_bit(&mut pos, coord.column, coord.row, coord.plane);
+        check_bit(&mut pos, coord.bit, coord.frame, coord.tile);
     }
     assert_eq!(pos, fpart.map.main.len());
 }
@@ -750,26 +751,26 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             .find(|p| p.dev_name == fpart.dev_name && p.pkg_name == fpart.pkg_name)
             .unwrap();
         let device = &db.devices[part.device].device;
-        let imux_width = (fpart.bits.fbs[FbId::from_idx(0)].pla_and[PTermId::from_idx(0)].imux
+        let imux_width = fpart.bits.fbs[FbId::from_idx(0)].pla_and[PTermId::from_idx(0)].imux
             [ImuxId::from_idx(0)]
         .0
-        .0 / 40) as u32;
-        let bs_cols = fpart.map.dims.unwrap().0 as u32;
-        let bs_rows = fpart.map.dims.unwrap().1 as u32;
-        let fb_rows = (device.fbs / device.fb_groups / 2) as u32;
+        .0 / 40;
+        let bs_cols = fpart.map.dims.unwrap().0;
+        let bs_rows = fpart.map.dims.unwrap().1;
+        let fb_rows = device.fbs / device.fb_groups / 2;
         assert_eq!(bs_rows, (fb_rows * 52 + 2) * 2);
         let fb_cols: Vec<_> = (0..device.fb_groups)
             .map(|i| {
-                let fb = FbId::from_idx(i * (fb_rows as usize) * 2);
+                let fb = FbId::from_idx(i * fb_rows * 2);
                 let pt_bit = fpart.bits.fbs[fb].pla_and[PTermId::from_idx(0)].imux
                     [ImuxId::from_idx(0)]
                 .0
                 .0;
-                let pt_col = bs_cols - 1 - (fpart.map.main[pt_bit].1 as u32);
+                let pt_col = bs_cols - 1 - fpart.map.main[pt_bit].1;
                 let imux_bit = fpart.bits.fbs[fb].imux[ImuxId::from_idx(0)].bits[0];
-                let imux_col = bs_cols - imux_width - fpart.map.main[imux_bit].1 as u32;
+                let imux_col = bs_cols - imux_width - fpart.map.main[imux_bit].1;
                 let mc_bit = fpart.bits.fbs[fb].ct_invert[PTermId::from_idx(0)].0;
-                let mc_col = bs_cols - 1 - (fpart.map.main[mc_bit].1 as u32);
+                let mc_col = bs_cols - 1 - fpart.map.main[mc_bit].1;
                 FbColumn {
                     pt_col,
                     imux_col,

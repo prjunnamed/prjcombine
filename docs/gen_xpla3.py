@@ -69,7 +69,7 @@ def gen_tile(f, tname, tile):
     columns = set()
     for item in tile.values():
         for bit in item["bits"]:
-            rows.add((bit[0], bit[1]))
+            rows.add((bit[1], bit[0]))
             columns.add(bit[2])
     for name, item in tile.items():
         for j, bit in enumerate(item["bits"]):
@@ -86,7 +86,7 @@ def gen_tile(f, tname, tile):
         f.write(f"<tr><td>{row}</td><td>{plane}</td>\n")
         for col in sorted(columns):
             f.write("<td>")
-            crd = (row, plane, col)
+            crd = (plane, row, col)
             if crd in rev:
                 for name, item, bidx in rev[crd]:
                     title = name

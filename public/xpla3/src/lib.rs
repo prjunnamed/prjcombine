@@ -6,7 +6,7 @@ use std::{
 };
 
 use jzon::JsonValue;
-use prjcombine_types::{FbId, FbMcId, tiledb::Tile};
+use prjcombine_types::{tiledb::{Tile, TileBit}, FbId, FbMcId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 
@@ -20,22 +20,22 @@ entity_id! {
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Chip {
     pub idcode_part: u32,
-    pub bs_cols: u32,
-    pub imux_width: u32,
-    pub fb_rows: u32,
+    pub bs_cols: usize,
+    pub imux_width: usize,
+    pub fb_rows: usize,
     pub fb_cols: Vec<FbColumn>,
     pub io_mcs: BTreeSet<FbMcId>,
     pub io_special: BTreeMap<String, (FbId, FbMcId)>,
-    pub global_bits: Tile<BitCoord>,
+    pub global_bits: Tile<TileBit>,
     pub jed_global_bits: Vec<(String, usize)>,
-    pub imux_bits: Tile<BitCoord>,
+    pub imux_bits: Tile<TileBit>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct FbColumn {
-    pub pt_col: u32,
-    pub imux_col: u32,
-    pub mc_col: u32,
+    pub pt_col: usize,
+    pub imux_col: usize,
+    pub mc_col: usize,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -80,21 +80,14 @@ pub struct Part {
     pub speeds: BTreeMap<String, SpeedId>,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
-pub struct BitCoord {
-    pub row: u32,
-    pub plane: u32,
-    pub column: u32,
-}
-
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Database {
     pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
     pub speeds: EntityVec<SpeedId, Speed>,
     pub parts: Vec<Part>,
-    pub mc_bits: Tile<BitCoord>,
-    pub fb_bits: Tile<BitCoord>,
+    pub mc_bits: Tile<TileBit>,
+    pub fb_bits: Tile<TileBit>,
     pub jed_mc_bits_iob: Vec<(String, usize)>,
     pub jed_mc_bits_buried: Vec<(String, usize)>,
     pub jed_fb_bits: Vec<(String, usize)>,
@@ -137,8 +130,8 @@ impl FbColumn {
 
 impl Chip {
     pub fn to_json(&self) -> JsonValue {
-        fn bit_to_json(crd: BitCoord) -> JsonValue {
-            jzon::array![crd.row, crd.plane, crd.column]
+        fn bit_to_json(crd: TileBit) -> JsonValue {
+            jzon::array![crd.tile, crd.frame, crd.bit]
         }
 
         jzon::object! {
@@ -198,8 +191,8 @@ impl Part {
 
 impl Database {
     pub fn to_json(&self) -> JsonValue {
-        fn bit_to_json(crd: BitCoord) -> JsonValue {
-            jzon::array![crd.row, crd.plane, crd.column]
+        fn bit_to_json(crd: TileBit) -> JsonValue {
+            jzon::array![crd.tile, crd.frame, crd.bit]
         }
 
         jzon::object! {
