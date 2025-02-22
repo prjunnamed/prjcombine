@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use enum_map::EnumMap;
 use prjcombine_interconnect::{
-    db::{BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, WireKind},
+    db::{BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, TermSlotId, TermSlotInfo, WireKind},
     grid::{DieId, EdgeIoCoord, LayerId},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
@@ -39,8 +39,45 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
 
 pub fn make_intdb() -> IntDb {
     let mut db = IntDb::default();
+
+    let slot_w = db
+        .term_slots
+        .insert(
+            "W".into(),
+            TermSlotInfo {
+                opposite: TermSlotId::from_idx(0),
+            },
+        )
+        .0;
+    let slot_e = db
+        .term_slots
+        .insert("E".into(), TermSlotInfo { opposite: slot_w })
+        .0;
+    let slot_s = db
+        .term_slots
+        .insert(
+            "S".into(),
+            TermSlotInfo {
+                opposite: TermSlotId::from_idx(0),
+            },
+        )
+        .0;
+    let slot_n = db
+        .term_slots
+        .insert("N".into(), TermSlotInfo { opposite: slot_s })
+        .0;
+    db.term_slots[slot_w].opposite = slot_e;
+    db.term_slots[slot_s].opposite = slot_n;
+
+    let term_slots = EnumMap::from_fn(|dir| match dir {
+        Dir::W => slot_w,
+        Dir::E => slot_e,
+        Dir::S => slot_s,
+        Dir::N => slot_n,
+    });
+
     let mut main_terms = EnumMap::from_fn(|dir| TermKind {
-        dir,
+        slot: term_slots[dir],
         wires: Default::default(),
     });
 
@@ -64,7 +101,7 @@ pub fn make_intdb() -> IntDb {
         let w0 = db.wires.insert(name.into(), WireKind::PipOut).0;
         let w1 = db
             .wires
-            .insert(format!("{name}.E"), WireKind::PipBranch(Dir::W))
+            .insert(format!("{name}.E"), WireKind::PipBranch(slot_w))
             .0;
         main_terms[Dir::W].wires.insert(w1, TermInfo::PassFar(w0));
         if stub {
@@ -92,7 +129,7 @@ pub fn make_intdb() -> IntDb {
         let w0 = db.wires.insert(name.into(), WireKind::PipOut).0;
         let w1 = db
             .wires
-            .insert(format!("{name}.S"), WireKind::PipBranch(Dir::N))
+            .insert(format!("{name}.S"), WireKind::PipBranch(slot_n))
             .0;
         main_terms[Dir::N].wires.insert(w1, TermInfo::PassFar(w0));
         if stub {
@@ -111,7 +148,7 @@ pub fn make_intdb() -> IntDb {
     ] {
         let w = db
             .wires
-            .insert(name.into(), WireKind::MultiBranch(Dir::W))
+            .insert(name.into(), WireKind::MultiBranch(slot_w))
             .0;
         main_terms[Dir::W].wires.insert(w, TermInfo::PassFar(w));
     }
@@ -127,7 +164,7 @@ pub fn make_intdb() -> IntDb {
     ] {
         let w = db
             .wires
-            .insert(name.into(), WireKind::MultiBranch(Dir::S))
+            .insert(name.into(), WireKind::MultiBranch(slot_s))
             .0;
         main_terms[Dir::S].wires.insert(w, TermInfo::PassFar(w));
     }
@@ -222,14 +259,14 @@ pub fn make_intdb() -> IntDb {
         for &dir in dirs {
             let wo = db
                 .wires
-                .insert(format!("{name}.{dir}"), WireKind::Branch(!dir))
+                .insert(format!("{name}.{dir}"), WireKind::Branch(term_slots[!dir]))
                 .0;
             main_terms[!dir].wires.insert(wo, TermInfo::PassFar(w));
 
             if name == "OUT.CLB.X" && dir == Dir::E {
                 let wos = db
                     .wires
-                    .insert(format!("{name}.{dir}S"), WireKind::Branch(Dir::N))
+                    .insert(format!("{name}.{dir}S"), WireKind::Branch(slot_n))
                     .0;
                 main_terms[Dir::N].wires.insert(wos, TermInfo::PassFar(wo));
             }

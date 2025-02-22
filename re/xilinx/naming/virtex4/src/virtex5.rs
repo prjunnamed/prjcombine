@@ -522,9 +522,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         _ => unreachable!(),
                     }
                 }
-                for (dir, term) in &die[(col, row)].terms {
-                    let Some(term) = term else { continue };
-                    let tloc = (die.die, col, row, dir);
+                for (slot, term) in &die[(col, row)].terms {
+                    let tloc = (die.die, col, row, slot);
                     let kind = egrid.db.terms.key(term.kind);
                     let x = col.to_idx();
                     let y = row.to_idx();

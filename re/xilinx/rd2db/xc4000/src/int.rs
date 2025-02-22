@@ -163,7 +163,7 @@ fn fill_io_double_wires(builder: &mut IntBuilder, cnr_terms: &mut CnrTerms) {
             for dir in Dir::DIRS {
                 wires[dir].push(builder.wire(
                     format!("IO.DOUBLE.{i}.{dir}.{j}"),
-                    WireKind::PipBranch(bdir[dir]),
+                    WireKind::PipBranch(builder.term_slots[bdir[dir]]),
                     &[""],
                 ));
             }
@@ -366,7 +366,7 @@ fn fill_io_octal_wires(builder: &mut IntBuilder, cnr_terms: &mut CnrTerms) {
         for dir in Dir::DIRS {
             wires[dir].push(builder.wire(
                 format!("IO.OCTAL.{dir}.{i}"),
-                WireKind::PipBranch(bdir[dir]),
+                WireKind::PipBranch(builder.term_slots[bdir[dir]]),
                 &[""],
             ));
         }
@@ -442,7 +442,7 @@ fn fill_long_wires(builder: &mut IntBuilder) {
         let ii = i + 1;
         let w = builder.wire(
             format!("LONG.H{i}"),
-            WireKind::MultiBranch(Dir::W),
+            WireKind::MultiBranch(builder.term_slots[Dir::W]),
             &[format!("CENTER_HLL{ii}")],
         );
         builder.conn_branch(w, Dir::E, w);
@@ -477,7 +477,7 @@ fn fill_long_wires(builder: &mut IntBuilder) {
         let ii = i + 1;
         let w = builder.wire(
             format!("LONG.V{i}"),
-            WireKind::MultiBranch(Dir::S),
+            WireKind::MultiBranch(builder.term_slots[Dir::S]),
             &[format!("CENTER_VLL{ii}")],
         );
         builder.conn_branch(w, Dir::N, w);
@@ -507,7 +507,7 @@ fn fill_long_wires(builder: &mut IntBuilder) {
         let ii = i + 1;
         let w = builder.wire(
             format!("LONG.IO.H{i}"),
-            WireKind::MultiBranch(Dir::W),
+            WireKind::MultiBranch(builder.term_slots[Dir::W]),
             &[""],
         );
         builder.conn_branch(w, Dir::E, w);
@@ -531,7 +531,7 @@ fn fill_long_wires(builder: &mut IntBuilder) {
         let ii = i + 1;
         let w = builder.wire(
             format!("LONG.IO.V{i}"),
-            WireKind::MultiBranch(Dir::S),
+            WireKind::MultiBranch(builder.term_slots[Dir::S]),
             &[""],
         );
         builder.conn_branch(w, Dir::N, w);
@@ -553,7 +553,7 @@ fn fill_dec_wires(builder: &mut IntBuilder) {
         let tii = 4 - i;
         let w = builder.wire(
             format!("DEC.H{i}"),
-            WireKind::MultiBranch(Dir::W),
+            WireKind::MultiBranch(builder.term_slots[Dir::W]),
             &[
                 format!("LL_BTX{ii}"),
                 format!("LR_BTX{ii}"),
@@ -574,7 +574,7 @@ fn fill_dec_wires(builder: &mut IntBuilder) {
         let lii = i + 1;
         let w = builder.wire(
             format!("DEC.V{i}"),
-            WireKind::MultiBranch(Dir::S),
+            WireKind::MultiBranch(builder.term_slots[Dir::S]),
             &[
                 format!("LL_LTX{lii}"),
                 format!("UL_LTX{lii}"),
@@ -603,7 +603,7 @@ fn fill_clk_wires(builder: &mut IntBuilder) {
         let ii = i + 1;
         let w = builder.wire(
             format!("GCLK{i}"),
-            WireKind::MultiBranch(Dir::S),
+            WireKind::MultiBranch(builder.term_slots[Dir::S]),
             &[format!("CENTER_K{ii}")],
         );
         builder.conn_branch(w, Dir::N, w);
@@ -619,7 +619,11 @@ fn fill_clk_wires(builder: &mut IntBuilder) {
     }
 
     if !matches!(&*builder.rd.family, "xc4000e" | "spartanxl") {
-        let w = builder.wire("VCLK", WireKind::MultiBranch(Dir::S), &["CENTER_KX"]);
+        let w = builder.wire(
+            "VCLK",
+            WireKind::MultiBranch(builder.term_slots[Dir::S]),
+            &["CENTER_KX"],
+        );
         builder.conn_branch(w, Dir::N, w);
         for k in BOT_KINDS
             .into_iter()
@@ -632,7 +636,7 @@ fn fill_clk_wires(builder: &mut IntBuilder) {
 
         let w = builder.wire(
             "ECLK.V",
-            WireKind::MultiBranch(Dir::S),
+            WireKind::MultiBranch(builder.term_slots[Dir::S]),
             &["LL_KX", "UL_KX", "LR_LRKX", "UR_URKX"],
         );
         builder.conn_branch(w, Dir::N, w);
@@ -645,7 +649,7 @@ fn fill_clk_wires(builder: &mut IntBuilder) {
 
         let w = builder.wire(
             "ECLK.H",
-            WireKind::MultiBranch(Dir::W),
+            WireKind::MultiBranch(builder.term_slots[Dir::W]),
             &["LR_FCLK", "UR_FCLK", "LL_FCLK", "UL_FCLK"],
         );
         builder.conn_branch(w, Dir::E, w);
@@ -655,7 +659,7 @@ fn fill_clk_wires(builder: &mut IntBuilder) {
 
         let w = builder.wire(
             "BUFGE.H",
-            WireKind::MultiBranch(Dir::W),
+            WireKind::MultiBranch(builder.term_slots[Dir::W]),
             &[
                 "LR_BUFGE_4_L",
                 "UR_BUFGE_7_L",
@@ -673,7 +677,7 @@ fn fill_clk_wires(builder: &mut IntBuilder) {
 
         let w = builder.wire(
             "BUFGE.V0",
-            WireKind::MultiBranch(Dir::S),
+            WireKind::MultiBranch(builder.term_slots[Dir::S]),
             &[
                 "LR_BUFGE_5_6",
                 "LL_BUFGE_1_2",
@@ -686,7 +690,7 @@ fn fill_clk_wires(builder: &mut IntBuilder) {
         builder.conn_branch(w, Dir::N, w);
         let w = builder.wire(
             "BUFGE.V1",
-            WireKind::MultiBranch(Dir::S),
+            WireKind::MultiBranch(builder.term_slots[Dir::S]),
             &[
                 "UR_BUFGE_5_6",
                 "UL_BUFGE_1_2",
@@ -699,7 +703,11 @@ fn fill_clk_wires(builder: &mut IntBuilder) {
         builder.conn_branch(w, Dir::N, w);
 
         for i in 0..8 {
-            let w = builder.wire(format!("BUFGLS.H{i}"), WireKind::MultiBranch(Dir::W), &[""]);
+            let w = builder.wire(
+                format!("BUFGLS.H{i}"),
+                WireKind::MultiBranch(builder.term_slots[Dir::W]),
+                &[""],
+            );
             builder.conn_branch(w, Dir::E, w);
             let ii = i + 1;
             for n in [
@@ -2673,7 +2681,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("CNR.UR.E", Dir::E, cnr_terms.term_ur_e),
     ] {
         let term = TermKind {
-            dir,
+            slot: builder.term_slots[dir],
             wires: wires
                 .into_iter()
                 .map(|(a, b)| (a, TermInfo::PassNear(b)))

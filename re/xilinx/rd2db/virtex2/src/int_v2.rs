@@ -207,7 +207,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         .map(|i| {
             builder.wire(
                 format!("LH.{i}"),
-                WireKind::MultiBranch(Dir::W),
+                WireKind::MultiBranch(builder.term_slots[Dir::W]),
                 &[format!("LH{i}"), format!("LPPC_INT_LH{i}")],
             )
         })
@@ -220,7 +220,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         .map(|i| {
             builder.wire(
                 format!("LV.{i}"),
-                WireKind::MultiBranch(Dir::S),
+                WireKind::MultiBranch(builder.term_slots[Dir::S]),
                 &[format!("LV{i}")],
             )
         })

@@ -3,6 +3,10 @@ name = "prjcombine-re-xilinx-xact-dump"
 edition.workspace = true
 version.workspace = true
 
+[[bin]]
+name = "xact_dump"
+path = "src/main.rs"
+
 [dependencies]
 enum-map.workspace = true
 ndarray.workspace = true

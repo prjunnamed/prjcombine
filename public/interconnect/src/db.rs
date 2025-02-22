@@ -48,6 +48,7 @@ impl std::fmt::Display for Dir {
 entity_id! {
     pub id WireId u16, reserve 1;
     pub id NodeKindId u16, reserve 1;
+    pub id TermSlotId u8, reserve 1;
     pub id TermKindId u16, reserve 1;
     pub id NodeTileId u16, reserve 1;
     pub id NodeIriId u16, reserve 1;
@@ -58,6 +59,7 @@ entity_id! {
 pub struct IntDb {
     pub wires: EntityMap<WireId, String, WireKind>,
     pub nodes: EntityMap<NodeKindId, String, NodeKind>,
+    pub term_slots: EntityMap<TermSlotId, String, TermSlotInfo>,
     pub terms: EntityMap<TermKindId, String, TermKind>,
 }
 
@@ -83,6 +85,13 @@ impl IntDb {
             .unwrap_or_else(|| panic!("no term {name}"))
             .0
     }
+    #[track_caller]
+    pub fn get_term_slot(&self, name: &str) -> TermSlotId {
+        self.term_slots
+            .get(name)
+            .unwrap_or_else(|| panic!("no term slot {name}"))
+            .0
+    }
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -97,9 +106,9 @@ pub enum WireKind {
     MultiOut,
     PipOut,
     Buf(WireId),
-    MultiBranch(Dir),
-    PipBranch(Dir),
-    Branch(Dir),
+    MultiBranch(TermSlotId),
+    PipBranch(TermSlotId),
+    Branch(TermSlotId),
 }
 
 impl WireKind {
@@ -115,9 +124,13 @@ impl WireKind {
             WireKind::MultiOut => "MULTI_OUT".into(),
             WireKind::PipOut => "PIP_OUT".into(),
             WireKind::Buf(wire_id) => format!("BUF:{}", db.wires.key(*wire_id)),
-            WireKind::MultiBranch(dir) => format!("MULTI_BRANCH:{dir}"),
-            WireKind::PipBranch(dir) => format!("PIP_BRANCH:{dir}"),
-            WireKind::Branch(dir) => format!("BRANCH:{dir}"),
+            WireKind::MultiBranch(slot) => {
+                format!("MULTI_BRANCH:{slot}", slot = db.term_slots.key(*slot))
+            }
+            WireKind::PipBranch(slot) => {
+                format!("PIP_BRANCH:{slot}", slot = db.term_slots.key(*slot))
+            }
+            WireKind::Branch(slot) => format!("BRANCH:{slot}", slot = db.term_slots.key(*slot)),
         }
     }
 }
@@ -201,7 +214,7 @@ impl std::fmt::Display for IriPin {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TermKind {
-    pub dir: Dir,
+    pub slot: TermSlotId,
     pub wires: EntityPartVec<WireId, TermInfo>,
 }
 
@@ -210,6 +223,11 @@ pub enum TermInfo {
     BlackHole,
     PassNear(WireId),
     PassFar(WireId),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct TermSlotInfo {
+    pub opposite: TermSlotId,
 }
 
 #[derive(Clone, Debug)]
@@ -391,6 +409,14 @@ impl NodeKind {
     }
 }
 
+impl TermSlotInfo {
+    pub fn to_json(self, db: &IntDb) -> JsonValue {
+        jzon::object! {
+            opposite: db.term_slots.key(self.opposite).as_str(),
+        }
+    }
+}
+
 impl TermInfo {
     pub fn to_json(self, db: &IntDb) -> JsonValue {
         match self {
@@ -412,7 +438,7 @@ impl TermInfo {
 impl TermKind {
     pub fn to_json(&self, db: &IntDb) -> JsonValue {
         jzon::object! {
-            dir: self.dir.to_string(),
+            slot: db.term_slots.key(self.slot).as_str(),
             wires: jzon::object::Object::from_iter(self.wires.iter().map(|(wire, ti)|
                 (db.wires.key(wire).to_string(), ti.to_json(db))
             ))
@@ -433,10 +459,12 @@ impl From<&IntDb> for JsonValue {
             nodes: jzon::object::Object::from_iter(db.nodes.iter().map(|(_, name, node)| {
                 (name.as_str(), node.to_json(db))
             })),
+            term_slots: jzon::object::Object::from_iter(db.term_slots.iter().map(|(_, name, term_slot)| {
+                (name.as_str(), term_slot.to_json(db))
+            })),
             terms: jzon::object::Object::from_iter(db.terms.iter().map(|(_, name, term)| {
                 (name.as_str(), term.to_json(db))
             })),
-
         }
     }
 }

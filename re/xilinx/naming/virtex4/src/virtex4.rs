@@ -1,7 +1,4 @@
-use prjcombine_interconnect::{
-    db::Dir,
-    grid::{ColId, DieId, ExpandedDieRef, RowId},
-};
+use prjcombine_interconnect::grid::{ColId, DieId, ExpandedDieRef, RowId};
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{chip::CfgRowKind, expanded::ExpandedDevice};
 use unnamed_entity::EntityId;
@@ -60,6 +57,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         die: egrid.die(DieId::from_idx(0)),
         ngrid,
     };
+
+    let term_slot_w = egrid.db.get_term_slot("W");
+    let term_slot_e = egrid.db.get_term_slot("E");
+    let term_slot_s = egrid.db.get_term_slot("S");
+    let term_slot_n = egrid.db.get_term_slot("N");
 
     for die in egrid.dies() {
         let chip = edev.chips[die.die];
@@ -288,12 +290,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             for dy in 0..22 {
                                 let name = if dy < 11 { &name_b } else { &name_t };
                                 namer.ngrid.name_term_tile(
-                                    (die.die, col, row + 1 + dy, Dir::E),
+                                    (die.die, col, row + 1 + dy, term_slot_e),
                                     &format!("TERM.PPC.E{dy}"),
                                     name.into(),
                                 );
                                 namer.ngrid.name_term_tile(
-                                    (die.die, col + 8, row + 1 + dy, Dir::W),
+                                    (die.die, col + 8, row + 1 + dy, term_slot_w),
                                     &format!("TERM.PPC.W{dy}"),
                                     name.into(),
                                 );
@@ -312,13 +314,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     &name_t,
                                 );
                                 namer.ngrid.name_term_pair(
-                                    (die.die, col + dx + 1, row, Dir::N),
+                                    (die.die, col + dx + 1, row, term_slot_n),
                                     &format!("TERM.PPC.N{dx}"),
                                     name_b.clone(),
                                     name_t.clone(),
                                 );
                                 namer.ngrid.name_term_pair(
-                                    (die.die, col + dx + 1, row + 23, Dir::S),
+                                    (die.die, col + dx + 1, row + 23, term_slot_s),
                                     &format!("TERM.PPC.S{dx}"),
                                     name_t.clone(),
                                     name_b.clone(),
@@ -346,13 +348,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     );
                                     if lr == 'L' {
                                         namer.ngrid.name_term_tile(
-                                            (die.die, col, br + tile, Dir::W),
+                                            (die.die, col, br + tile, term_slot_w),
                                             &format!("TERM.W.MGT{tile}"),
                                             name.into(),
                                         );
                                     } else {
                                         namer.ngrid.name_term_tile(
-                                            (die.die, col, br + tile, Dir::E),
+                                            (die.die, col, br + tile, term_slot_e),
                                             &format!("TERM.E.MGT{tile}"),
                                             name.into(),
                                         );
@@ -514,9 +516,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         _ => unreachable!(),
                     }
                 }
-                for (dir, term) in &die[(col, row)].terms {
-                    let Some(term) = term else { continue };
-                    let tloc = (die.die, col, row, dir);
+                for (slot, term) in &die[(col, row)].terms {
+                    let tloc = (die.die, col, row, slot);
                     let kind = egrid.db.terms.key(term.kind);
                     let x = col.to_idx();
                     let y = row.to_idx();

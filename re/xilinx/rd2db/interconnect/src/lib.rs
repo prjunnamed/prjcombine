@@ -4,7 +4,8 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use prjcombine_interconnect::db::{
     BelInfo, BelPin, Dir, IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, NodeIriId, NodeKind,
-    NodeKindId, NodeTileId, NodeWireId, PinDir, TermInfo, TermKind, WireId, WireKind,
+    NodeKindId, NodeTileId, NodeWireId, PinDir, TermInfo, TermKind, TermSlotId, TermSlotInfo,
+    WireId, WireKind,
 };
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, BelPinNaming, IntfWireInNaming, IntfWireOutNaming, IriNaming, NamingDb,
@@ -1337,6 +1338,7 @@ pub struct IntBuilder<'a> {
     pub rd: &'a Part,
     pub db: IntDb,
     pub ndb: NamingDb,
+    pub term_slots: EnumMap<Dir, TermSlotId>,
     is_mirror_square: bool,
     allow_mux_to_branch: bool,
     main_passes: EnumMap<Dir, EntityPartVec<WireId, WireId>>,
@@ -1350,19 +1352,50 @@ pub struct IntBuilder<'a> {
 
 impl<'a> IntBuilder<'a> {
     pub fn new(rd: &'a Part) -> Self {
-        let db = IntDb {
-            wires: Default::default(),
-            nodes: Default::default(),
-            terms: Default::default(),
-        };
-        let ndb = NamingDb {
-            node_namings: Default::default(),
-            term_namings: Default::default(),
-        };
+        let mut db = IntDb::default();
+
+        let slot_w = db
+            .term_slots
+            .insert(
+                "W".into(),
+                TermSlotInfo {
+                    opposite: TermSlotId::from_idx(0),
+                },
+            )
+            .0;
+        let slot_e = db
+            .term_slots
+            .insert("E".into(), TermSlotInfo { opposite: slot_w })
+            .0;
+        let slot_s = db
+            .term_slots
+            .insert(
+                "S".into(),
+                TermSlotInfo {
+                    opposite: TermSlotId::from_idx(0),
+                },
+            )
+            .0;
+        let slot_n = db
+            .term_slots
+            .insert("N".into(), TermSlotInfo { opposite: slot_s })
+            .0;
+        db.term_slots[slot_w].opposite = slot_e;
+        db.term_slots[slot_s].opposite = slot_n;
+
+        let term_slots = EnumMap::from_fn(|dir| match dir {
+            Dir::W => slot_w,
+            Dir::E => slot_e,
+            Dir::S => slot_s,
+            Dir::N => slot_n,
+        });
+
+        let ndb = NamingDb::default();
         Self {
             rd,
             db,
             ndb,
+            term_slots,
             is_mirror_square: false,
             allow_mux_to_branch: false,
             main_passes: Default::default(),
@@ -1632,7 +1665,7 @@ impl<'a> IntBuilder<'a> {
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>],
     ) -> WireId {
-        let res = self.wire(name, WireKind::Branch(!dir), raw_names);
+        let res = self.wire(name, WireKind::Branch(self.term_slots[!dir]), raw_names);
         self.conn_branch(src, dir, res);
         res
     }
@@ -1644,7 +1677,11 @@ impl<'a> IntBuilder<'a> {
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>],
     ) -> WireId {
-        let res = self.wire(name, WireKind::MultiBranch(!dir), raw_names);
+        let res = self.wire(
+            name,
+            WireKind::MultiBranch(self.term_slots[!dir]),
+            raw_names,
+        );
         self.conn_branch(src, dir, res);
         res
     }
@@ -1656,7 +1693,7 @@ impl<'a> IntBuilder<'a> {
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>],
     ) -> WireId {
-        let res = self.wire(name, WireKind::PipBranch(!dir), raw_names);
+        let res = self.wire(name, WireKind::PipBranch(self.term_slots[!dir]), raw_names);
         self.conn_branch(src, dir, res);
         res
     }
@@ -1716,7 +1753,7 @@ impl<'a> IntBuilder<'a> {
             self.db.terms.insert(
                 format!("MAIN.{dir}"),
                 TermKind {
-                    dir,
+                    slot: self.term_slots[dir],
                     wires: wires
                         .iter()
                         .map(|(k, &v)| (k, TermInfo::PassFar(v)))
@@ -2457,7 +2494,7 @@ impl<'a> IntBuilder<'a> {
                 self.db.terms.insert(name.to_string(), term);
             }
             Some((_, cterm)) => {
-                assert_eq!(term.dir, cterm.dir);
+                assert_eq!(term.slot, cterm.slot);
                 for k in self.db.wires.ids() {
                     let a = cterm.wires.get_mut(k);
                     let b = term.wires.get(k);
@@ -2538,8 +2575,8 @@ impl<'a> IntBuilder<'a> {
             if let Some(wtl) = names.get(&wti) {
                 for &wt in wtl {
                     match self.db.wires[wt] {
-                        WireKind::Branch(d) => {
-                            if d != dir {
+                        WireKind::Branch(slot) => {
+                            if slot != self.term_slots[dir] {
                                 continue;
                             }
                         }
@@ -2634,7 +2671,10 @@ impl<'a> IntBuilder<'a> {
         } else {
             assert!(node_muxes.is_empty());
         }
-        let term = TermKind { dir, wires };
+        let term = TermKind {
+            slot: self.term_slots[dir],
+            wires,
+        };
         self.insert_term_merge(name.as_ref(), term);
     }
 
@@ -2660,8 +2700,8 @@ impl<'a> IntBuilder<'a> {
             if let Some(wtl) = names.get(&wti) {
                 for &wt in wtl {
                     match self.db.wires[wt] {
-                        WireKind::Branch(d) => {
-                            if d != dir {
+                        WireKind::Branch(slot) => {
+                            if slot != self.term_slots[dir] {
                                 continue;
                             }
                         }
@@ -2715,7 +2755,10 @@ impl<'a> IntBuilder<'a> {
                 }
             }
         }
-        let term = TermKind { dir, wires };
+        let term = TermKind {
+            slot: self.term_slots[dir],
+            wires,
+        };
         self.insert_term_merge(name.as_ref(), term);
     }
 
@@ -2728,7 +2771,10 @@ impl<'a> IntBuilder<'a> {
     ) {
         let forced: HashMap<_, _> = forced.iter().copied().collect();
         let wires = self.extract_term_tile_conn(dir, int_xy, &forced);
-        let term = TermKind { dir, wires };
+        let term = TermKind {
+            slot: self.term_slots[dir],
+            wires,
+        };
         self.insert_term_merge(name.as_ref(), term);
     }
 
@@ -2964,8 +3010,8 @@ impl<'a> IntBuilder<'a> {
                 if let Some(wtl) = names.get(&wti) {
                     for &wt in wtl {
                         match self.db.wires[wt] {
-                            WireKind::Branch(d) => {
-                                if d != dir {
+                            WireKind::Branch(slot) => {
+                                if slot != self.term_slots[dir] {
                                     continue;
                                 }
                             }
@@ -3141,7 +3187,7 @@ impl<'a> IntBuilder<'a> {
                 }
                 if let Some(wtl) = names.get(&wti) {
                     for &wt in wtl {
-                        if self.db.wires[wt] != WireKind::MultiBranch(dir) {
+                        if self.db.wires[wt] != WireKind::MultiBranch(self.term_slots[dir]) {
                             continue;
                         }
                         let wf = self.main_passes[dir][wt];
@@ -3200,7 +3246,10 @@ impl<'a> IntBuilder<'a> {
             }
         }
 
-        let term = TermKind { dir, wires };
+        let term = TermKind {
+            slot: self.term_slots[dir],
+            wires,
+        };
         self.insert_term_merge(name.as_ref(), term);
     }
 
@@ -3290,7 +3339,7 @@ impl<'a> IntBuilder<'a> {
             assert!(self.main_passes[dir].contains_id(w));
         }
         let term = TermKind {
-            dir,
+            slot: self.term_slots[dir],
             wires: wires.iter().map(|&w| (w, TermInfo::BlackHole)).collect(),
         };
         match self.db.terms.get_mut(name.as_ref()) {

@@ -28,7 +28,7 @@ impl Chip {
                 continue;
             }
             for iob in [1, 2] {
-                let crd = EdgeIoCoord::T(col, TileIobId::from_idx(iob));
+                let crd = EdgeIoCoord::N(col, TileIobId::from_idx(iob));
                 io.insert(crd, builder.get_toi());
             }
             if col == self.col_clk() {
@@ -41,7 +41,7 @@ impl Chip {
                 continue;
             }
             for iob in [1, 2, 3] {
-                let crd = EdgeIoCoord::L(row, TileIobId::from_idx(iob));
+                let crd = EdgeIoCoord::W(row, TileIobId::from_idx(iob));
                 io.insert(crd, builder.get_toi());
             }
         }
@@ -60,7 +60,7 @@ impl Chip {
                 clk.insert(4, builder.get_i());
             }
             for iob in [2, 1] {
-                let crd = EdgeIoCoord::B(col, TileIobId::from_idx(iob));
+                let crd = EdgeIoCoord::S(col, TileIobId::from_idx(iob));
                 io.insert(crd, builder.get_toi());
             }
         }
@@ -71,7 +71,7 @@ impl Chip {
                 continue;
             }
             for iob in [3, 2, 1] {
-                let crd = EdgeIoCoord::R(row, TileIobId::from_idx(iob));
+                let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob));
                 io.insert(crd, builder.get_toi());
             }
         }

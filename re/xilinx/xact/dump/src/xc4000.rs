@@ -4,7 +4,7 @@ use enum_map::{EnumMap, enum_map};
 use prjcombine_interconnect::{
     db::{
         BelId, BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind,
-        WireKind,
+        TermSlotId, TermSlotInfo, WireKind,
     },
     grid::{DieId, EdgeIoCoord, LayerId},
 };
@@ -50,24 +50,61 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
 
 pub fn make_intdb(kind: ChipKind) -> IntDb {
     let mut db = IntDb::default();
+
+    let slot_w = db
+        .term_slots
+        .insert(
+            "W".into(),
+            TermSlotInfo {
+                opposite: TermSlotId::from_idx(0),
+            },
+        )
+        .0;
+    let slot_e = db
+        .term_slots
+        .insert("E".into(), TermSlotInfo { opposite: slot_w })
+        .0;
+    let slot_s = db
+        .term_slots
+        .insert(
+            "S".into(),
+            TermSlotInfo {
+                opposite: TermSlotId::from_idx(0),
+            },
+        )
+        .0;
+    let slot_n = db
+        .term_slots
+        .insert("N".into(), TermSlotInfo { opposite: slot_s })
+        .0;
+    db.term_slots[slot_w].opposite = slot_e;
+    db.term_slots[slot_s].opposite = slot_n;
+
+    let term_slots = EnumMap::from_fn(|dir| match dir {
+        Dir::W => slot_w,
+        Dir::E => slot_e,
+        Dir::S => slot_s,
+        Dir::N => slot_n,
+    });
+
     let mut main_terms = EnumMap::from_fn(|dir| TermKind {
-        dir,
+        slot: term_slots[dir],
         wires: Default::default(),
     });
     let mut cnr_ll_w = TermKind {
-        dir: Dir::W,
+        slot: slot_w,
         wires: Default::default(),
     };
     let cnr_lr_s = TermKind {
-        dir: Dir::S,
+        slot: slot_s,
         wires: Default::default(),
     };
     let mut cnr_ul_n = TermKind {
-        dir: Dir::N,
+        slot: slot_n,
         wires: Default::default(),
     };
     let mut cnr_ur_e = TermKind {
-        dir: Dir::E,
+        slot: slot_e,
         wires: Default::default(),
     };
 
@@ -82,7 +119,10 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 .0;
             let w1 = db
                 .wires
-                .insert(format!("SINGLE.{hv}{i}.{dir}"), WireKind::PipBranch(!dir))
+                .insert(
+                    format!("SINGLE.{hv}{i}.{dir}"),
+                    WireKind::PipBranch(term_slots[!dir]),
+                )
                 .0;
             main_terms[!dir].wires.insert(w1, TermInfo::PassFar(w0));
         }
@@ -96,11 +136,17 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 .0;
             let w1 = db
                 .wires
-                .insert(format!("DOUBLE.{hv}{i}.1"), WireKind::PipBranch(!dir))
+                .insert(
+                    format!("DOUBLE.{hv}{i}.1"),
+                    WireKind::PipBranch(term_slots[!dir]),
+                )
                 .0;
             let w2 = db
                 .wires
-                .insert(format!("DOUBLE.{hv}{i}.2"), WireKind::PipBranch(!dir))
+                .insert(
+                    format!("DOUBLE.{hv}{i}.2"),
+                    WireKind::PipBranch(term_slots[!dir]),
+                )
                 .0;
             main_terms[!dir].wires.insert(w1, TermInfo::PassFar(w0));
             main_terms[!dir].wires.insert(w2, TermInfo::PassFar(w1));
@@ -123,7 +169,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                     db.wires
                         .insert(
                             format!("IO.DOUBLE.{i}.{dir}.{j}"),
-                            WireKind::PipBranch(bdir[dir]),
+                            WireKind::PipBranch(term_slots[bdir[dir]]),
                         )
                         .0,
                 );
@@ -159,14 +205,14 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     for i in 0..long_num {
         let w = db
             .wires
-            .insert(format!("LONG.H{i}"), WireKind::MultiBranch(Dir::W))
+            .insert(format!("LONG.H{i}"), WireKind::MultiBranch(slot_w))
             .0;
         main_terms[Dir::W].wires.insert(w, TermInfo::PassFar(w));
     }
     for i in 0..long_num {
         let w = db
             .wires
-            .insert(format!("LONG.V{i}"), WireKind::MultiBranch(Dir::S))
+            .insert(format!("LONG.V{i}"), WireKind::MultiBranch(slot_s))
             .0;
         main_terms[Dir::S].wires.insert(w, TermInfo::PassFar(w));
     }
@@ -174,28 +220,28 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     for i in 0..io_long_num {
         let w = db
             .wires
-            .insert(format!("LONG.IO.H{i}"), WireKind::MultiBranch(Dir::W))
+            .insert(format!("LONG.IO.H{i}"), WireKind::MultiBranch(slot_w))
             .0;
         main_terms[Dir::W].wires.insert(w, TermInfo::PassFar(w));
     }
     for i in 0..io_long_num {
         let w = db
             .wires
-            .insert(format!("LONG.IO.V{i}"), WireKind::MultiBranch(Dir::S))
+            .insert(format!("LONG.IO.V{i}"), WireKind::MultiBranch(slot_s))
             .0;
         main_terms[Dir::S].wires.insert(w, TermInfo::PassFar(w));
     }
     for i in 0..io_long_num {
         let w = db
             .wires
-            .insert(format!("DEC.H{i}"), WireKind::MultiBranch(Dir::W))
+            .insert(format!("DEC.H{i}"), WireKind::MultiBranch(slot_w))
             .0;
         main_terms[Dir::W].wires.insert(w, TermInfo::PassFar(w));
     }
     for i in 0..io_long_num {
         let w = db
             .wires
-            .insert(format!("DEC.V{i}"), WireKind::MultiBranch(Dir::S))
+            .insert(format!("DEC.V{i}"), WireKind::MultiBranch(slot_s))
             .0;
         main_terms[Dir::S].wires.insert(w, TermInfo::PassFar(w));
     }
@@ -203,7 +249,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     for i in 0..4 {
         let w = db
             .wires
-            .insert(format!("GCLK{i}"), WireKind::MultiBranch(Dir::S))
+            .insert(format!("GCLK{i}"), WireKind::MultiBranch(slot_s))
             .0;
         main_terms[Dir::S].wires.insert(w, TermInfo::PassFar(w));
     }
@@ -217,14 +263,14 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             if i == 2 {
                 let wn = db
                     .wires
-                    .insert(format!("IMUX.CLB.{p}{i}.N"), WireKind::Branch(Dir::S))
+                    .insert(format!("IMUX.CLB.{p}{i}.N"), WireKind::Branch(slot_s))
                     .0;
                 main_terms[Dir::S].wires.insert(wn, TermInfo::PassFar(w));
             }
             if i == 3 {
                 let ww = db
                     .wires
-                    .insert(format!("IMUX.CLB.{p}{i}.W"), WireKind::Branch(Dir::E))
+                    .insert(format!("IMUX.CLB.{p}{i}.W"), WireKind::Branch(slot_e))
                     .0;
                 main_terms[Dir::E].wires.insert(ww, TermInfo::PassFar(w));
             }
@@ -293,7 +339,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         for &dir in dirs {
             let wo = db
                 .wires
-                .insert(format!("{name}.{dir}"), WireKind::Branch(!dir))
+                .insert(format!("{name}.{dir}"), WireKind::Branch(term_slots[!dir]))
                 .0;
             main_terms[!dir].wires.insert(wo, TermInfo::PassFar(w));
         }

@@ -350,13 +350,13 @@ impl PartContext<'_> {
                         let row = RowId::from_idx(loc.y.try_into().unwrap());
                         let iob = TileIobId::from_idx(loc.bel.try_into().unwrap());
                         let io = if row == row_bio {
-                            EdgeIoCoord::B(col, iob)
+                            EdgeIoCoord::S(col, iob)
                         } else if row == row_tio {
-                            EdgeIoCoord::T(col, iob)
+                            EdgeIoCoord::N(col, iob)
                         } else if col == col_lio {
-                            EdgeIoCoord::L(row, iob)
+                            EdgeIoCoord::W(row, iob)
                         } else if col == col_rio {
-                            EdgeIoCoord::R(row, iob)
+                            EdgeIoCoord::E(row, iob)
                         } else {
                             unreachable!()
                         };
@@ -381,13 +381,13 @@ impl PartContext<'_> {
                     let xy = (loc.x, loc.y, loc.bel);
                     assert_eq!(loc, info.loc);
                     let io = if row == row_bio {
-                        EdgeIoCoord::B(col, iob)
+                        EdgeIoCoord::S(col, iob)
                     } else if row == row_tio {
-                        EdgeIoCoord::T(col, iob)
+                        EdgeIoCoord::N(col, iob)
                     } else if col == col_lio {
-                        EdgeIoCoord::L(row, iob)
+                        EdgeIoCoord::W(row, iob)
                     } else if col == col_rio {
-                        EdgeIoCoord::R(row, iob)
+                        EdgeIoCoord::E(row, iob)
                     } else {
                         unreachable!()
                     };
@@ -406,20 +406,20 @@ impl PartContext<'_> {
             }
             if matches!(self.part.name, "iCE65L04" | "iCE65P04") && pkg == "CB132" {
                 // AAAAAAAAAAAAAAAAAAAaaaaaaaaaaaa
-                let io = EdgeIoCoord::L(RowId::from_idx(11), TileIobId::from_idx(0));
+                let io = EdgeIoCoord::W(RowId::from_idx(11), TileIobId::from_idx(0));
                 self.chip.io_iob.insert(io, io);
                 bond.pins.insert("G1".into(), BondPin::Io(io));
-                let io = EdgeIoCoord::L(RowId::from_idx(10), TileIobId::from_idx(1));
+                let io = EdgeIoCoord::W(RowId::from_idx(10), TileIobId::from_idx(1));
                 self.chip.io_iob.insert(io, io);
                 bond.pins.insert("H1".into(), BondPin::Io(io));
             }
             if self.part.kind.is_ice65() {
                 for &io in self.chip.io_iob.keys() {
                     let (col, row, iob) = match io {
-                        EdgeIoCoord::T(col, iob) => (col, row_tio, iob),
-                        EdgeIoCoord::R(row, iob) => (col_rio, row, iob),
-                        EdgeIoCoord::B(col, iob) => (col, row_bio, iob),
-                        EdgeIoCoord::L(row, iob) => (col_lio, row, iob),
+                        EdgeIoCoord::N(col, iob) => (col, row_tio, iob),
+                        EdgeIoCoord::E(row, iob) => (col_rio, row, iob),
+                        EdgeIoCoord::S(col, iob) => (col, row_bio, iob),
+                        EdgeIoCoord::W(row, iob) => (col_lio, row, iob),
                     };
                     let xy = (
                         col.to_idx().try_into().unwrap(),
@@ -517,7 +517,7 @@ impl PartContext<'_> {
         self.chip.col_bio_split = match self.part.kind {
             ChipKind::Ice40T04 | ChipKind::Ice40T05 => ColId::from_idx(12),
             _ => {
-                let EdgeIoCoord::B(col, _) = self.chip.cfg_io[&SharedCfgPin::SpiSo] else {
+                let EdgeIoCoord::S(col, _) = self.chip.cfg_io[&SharedCfgPin::SpiSo] else {
                     unreachable!()
                 };
                 col
@@ -706,16 +706,16 @@ impl PartContext<'_> {
         if self.part.kind.is_ice65() {
             // sigh.
             if !gb_io.contains_key(&1) {
-                let Some(&EdgeIoCoord::R(row, iob)) = gb_io.get(&0) else {
+                let Some(&EdgeIoCoord::E(row, iob)) = gb_io.get(&0) else {
                     unreachable!()
                 };
-                gb_io.insert(1, EdgeIoCoord::L(row, iob));
+                gb_io.insert(1, EdgeIoCoord::W(row, iob));
             }
             if !gb_io.contains_key(&4) {
-                let Some(&EdgeIoCoord::R(row, iob)) = gb_io.get(&5) else {
+                let Some(&EdgeIoCoord::E(row, iob)) = gb_io.get(&5) else {
                     unreachable!()
                 };
-                gb_io.insert(4, EdgeIoCoord::L(row, iob));
+                gb_io.insert(4, EdgeIoCoord::W(row, iob));
             }
         }
 

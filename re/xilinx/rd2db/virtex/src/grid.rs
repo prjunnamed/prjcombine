@@ -118,7 +118,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                         "IO_DOUT_BUSY" => SharedCfgPin::Dout,
                         "IO_IRDY" => {
                             match coord {
-                                EdgeIoCoord::L(row, iob) | EdgeIoCoord::R(row, iob) => {
+                                EdgeIoCoord::W(row, iob) | EdgeIoCoord::E(row, iob) => {
                                     assert_eq!(iob.to_idx(), 3);
                                     assert_eq!(row, grid.row_mid());
                                 }
@@ -128,7 +128,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                         }
                         "IO_TRDY" => {
                             match coord {
-                                EdgeIoCoord::L(row, iob) | EdgeIoCoord::R(row, iob) => {
+                                EdgeIoCoord::W(row, iob) | EdgeIoCoord::E(row, iob) => {
                                     assert_eq!(iob.to_idx(), 1);
                                     assert_eq!(row, grid.row_mid() - 1);
                                 }

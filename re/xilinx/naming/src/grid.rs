@@ -1,7 +1,7 @@
 use std::collections::{BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
-    db::{BelId, Dir, NodeIriId, NodeKind, NodeKindId, NodeTileId, TermInfo, WireKind},
+    db::{BelId, NodeIriId, NodeKind, NodeKindId, NodeTileId, TermInfo, TermSlotId, WireKind},
     grid::{ColId, DieId, ExpandedGrid, IntWire, LayerId, NodeLoc, NodePip, RowId, TracePip},
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -19,7 +19,7 @@ pub struct ExpandedGridNaming<'a> {
     pub tie_pin_vcc: Option<String>,
     pub tie_pin_pullup: Option<String>,
     pub nodes: HashMap<NodeLoc, GridNodeNaming>,
-    pub terms: HashMap<(DieId, ColId, RowId, Dir), GridTermNaming>,
+    pub terms: HashMap<(DieId, ColId, RowId, TermSlotId), GridTermNaming>,
 }
 
 #[derive(Clone, Debug)]
@@ -81,14 +81,14 @@ impl<'a> ExpandedGridNaming<'a> {
                     wire.1 = tile.clkroot;
                     break;
                 }
-                WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
-                    if let Some(t) = &tile.terms[dir] {
+                WireKind::MultiBranch(slot) | WireKind::Branch(slot) | WireKind::PipBranch(slot) => {
+                    if let Some(t) = tile.terms.get(slot) {
                         let term = &self.egrid.db.terms[t.kind];
                         match term.wires.get(wire.2) {
                             Some(&TermInfo::BlackHole) => return None,
                             Some(&TermInfo::PassNear(wf)) => {
                                 if let Some(naming) =
-                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, dir))
+                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, slot))
                                 {
                                     let n = &self.db.term_namings[naming.naming];
                                     if n.wires_out.contains_id(wire.2) {
@@ -99,7 +99,7 @@ impl<'a> ExpandedGridNaming<'a> {
                             }
                             Some(&TermInfo::PassFar(wf)) => {
                                 if let Some(naming) =
-                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, dir))
+                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, slot))
                                 {
                                     let n = &self.db.term_namings[naming.naming];
                                     if n.wires_out.contains_id(wire.2) {
@@ -139,14 +139,14 @@ impl<'a> ExpandedGridNaming<'a> {
                     wire.1 = tile.clkroot;
                     break;
                 }
-                WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
-                    if let Some(t) = &tile.terms[dir] {
+                WireKind::MultiBranch(slot) | WireKind::Branch(slot) | WireKind::PipBranch(slot) => {
+                    if let Some(t) = tile.terms.get(slot) {
                         let term = &self.egrid.db.terms[t.kind];
                         match term.wires.get(wire.2) {
                             Some(&TermInfo::BlackHole) => return None,
                             Some(&TermInfo::PassNear(wf)) => {
                                 if let Some(naming) =
-                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, dir))
+                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, slot))
                                 {
                                     let n = &self.db.term_namings[naming.naming];
                                     match n.wires_out.get(wire.2) {
@@ -171,7 +171,7 @@ impl<'a> ExpandedGridNaming<'a> {
                             }
                             Some(&TermInfo::PassFar(wf)) => {
                                 if let Some(naming) =
-                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, dir))
+                                    self.terms.get(&(wire.0, wire.1.0, wire.1.1, slot))
                                 {
                                     let n = &self.db.term_namings[naming.naming];
                                     match n.wires_out.get(wire.2) {
@@ -301,7 +301,7 @@ impl<'a> ExpandedGridNaming<'a> {
         entry.insert(nnode)
     }
 
-    pub fn name_term_tile(&mut self, tloc: (DieId, ColId, RowId, Dir), naming: &str, name: String) {
+    pub fn name_term_tile(&mut self, tloc: (DieId, ColId, RowId, TermSlotId), naming: &str, name: String) {
         let nterm = GridTermNaming {
             naming: self.db.get_term_naming(naming),
             tile: name,
@@ -315,7 +315,7 @@ impl<'a> ExpandedGridNaming<'a> {
 
     pub fn name_term_pair(
         &mut self,
-        tloc: (DieId, ColId, RowId, Dir),
+        tloc: (DieId, ColId, RowId, TermSlotId),
         naming: &str,
         name: String,
         name_far: String,

@@ -41,7 +41,7 @@ impl Chip {
                 continue;
             }
             for iob in iobs.iter().copied() {
-                let crd = EdgeIoCoord::T(col, TileIobId::from_idx(iob));
+                let crd = EdgeIoCoord::N(col, TileIobId::from_idx(iob));
                 if self.unbonded_io.contains(&crd) {
                     continue;
                 }
@@ -54,7 +54,7 @@ impl Chip {
                 continue;
             }
             for iob in iobs.iter().copied() {
-                let crd = EdgeIoCoord::R(row, TileIobId::from_idx(iob));
+                let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob));
                 if self.unbonded_io.contains(&crd) {
                     continue;
                 }
@@ -74,7 +74,7 @@ impl Chip {
                 continue;
             }
             for iob in iobs.iter().copied().rev() {
-                let crd = EdgeIoCoord::B(col, TileIobId::from_idx(iob));
+                let crd = EdgeIoCoord::S(col, TileIobId::from_idx(iob));
                 if self.unbonded_io.contains(&crd) {
                     continue;
                 }
@@ -87,7 +87,7 @@ impl Chip {
                 continue;
             }
             for iob in iobs.iter().copied().rev() {
-                let crd = EdgeIoCoord::L(row, TileIobId::from_idx(iob));
+                let crd = EdgeIoCoord::W(row, TileIobId::from_idx(iob));
                 if self.unbonded_io.contains(&crd) {
                     continue;
                 }

@@ -105,28 +105,28 @@ impl Chip {
 
     pub fn get_io_bank(&self, io: EdgeIoCoord) -> u32 {
         match io {
-            EdgeIoCoord::T(col, _) => {
+            EdgeIoCoord::N(col, _) => {
                 if col < self.col_clk() {
                     0
                 } else {
                     1
                 }
             }
-            EdgeIoCoord::R(row, _) => {
+            EdgeIoCoord::E(row, _) => {
                 if row < self.row_mid() {
                     3
                 } else {
                     2
                 }
             }
-            EdgeIoCoord::B(col, _) => {
+            EdgeIoCoord::S(col, _) => {
                 if col < self.col_clk() {
                     5
                 } else {
                     4
                 }
             }
-            EdgeIoCoord::L(row, _) => {
+            EdgeIoCoord::W(row, _) => {
                 if row < self.row_mid() {
                     6
                 } else {
@@ -138,10 +138,10 @@ impl Chip {
 
     pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
         let (col, row, iob) = match io {
-            EdgeIoCoord::T(col, iob) => (col, self.row_tio(), iob),
-            EdgeIoCoord::R(row, iob) => (self.col_rio(), row, iob),
-            EdgeIoCoord::B(col, iob) => (col, self.row_bio(), iob),
-            EdgeIoCoord::L(row, iob) => (self.col_lio(), row, iob),
+            EdgeIoCoord::N(col, iob) => (col, self.row_tio(), iob),
+            EdgeIoCoord::E(row, iob) => (self.col_rio(), row, iob),
+            EdgeIoCoord::S(col, iob) => (col, self.row_bio(), iob),
+            EdgeIoCoord::W(row, iob) => (self.col_lio(), row, iob),
         };
         let bel = BelId::from_idx(iob.to_idx());
         (col, row, bel)
@@ -150,13 +150,13 @@ impl Chip {
     pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
         let iob = TileIobId::from_idx(bel.to_idx());
         if col == self.col_lio() {
-            EdgeIoCoord::L(row, iob)
+            EdgeIoCoord::W(row, iob)
         } else if col == self.col_rio() {
-            EdgeIoCoord::R(row, iob)
+            EdgeIoCoord::E(row, iob)
         } else if row == self.row_bio() {
-            EdgeIoCoord::B(col, iob)
+            EdgeIoCoord::S(col, iob)
         } else if row == self.row_tio() {
-            EdgeIoCoord::T(col, iob)
+            EdgeIoCoord::N(col, iob)
         } else {
             unreachable!()
         }
@@ -172,7 +172,7 @@ impl Chip {
                 continue;
             }
             for iob in [2, 1] {
-                res.push(EdgeIoCoord::T(col, TileIobId::from_idx(iob)));
+                res.push(EdgeIoCoord::N(col, TileIobId::from_idx(iob)));
             }
         }
         for row in self.rows().rev() {
@@ -180,7 +180,7 @@ impl Chip {
                 continue;
             }
             for iob in [1, 2, 3] {
-                res.push(EdgeIoCoord::R(row, TileIobId::from_idx(iob)));
+                res.push(EdgeIoCoord::E(row, TileIobId::from_idx(iob)));
             }
         }
         for col in self.columns().rev() {
@@ -191,7 +191,7 @@ impl Chip {
                 continue;
             }
             for iob in [1, 2] {
-                res.push(EdgeIoCoord::B(col, TileIobId::from_idx(iob)));
+                res.push(EdgeIoCoord::S(col, TileIobId::from_idx(iob)));
             }
         }
         for row in self.rows() {
@@ -199,7 +199,7 @@ impl Chip {
                 continue;
             }
             for iob in [3, 2, 1] {
-                res.push(EdgeIoCoord::L(row, TileIobId::from_idx(iob)));
+                res.push(EdgeIoCoord::W(row, TileIobId::from_idx(iob)));
             }
         }
         res

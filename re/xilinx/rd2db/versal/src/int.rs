@@ -386,7 +386,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         for i in 0..64 {
             let w = builder.wire(
                 format!("BNODE.{dir}.{i}"),
-                WireKind::Branch(dir),
+                WireKind::Branch(builder.term_slots[dir]),
                 &[format!("BNODE_{dir}{i}")],
             );
             bnodes.push(w);
@@ -411,7 +411,11 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
                 }
                 _ => (),
             }
-            let cw = builder.wire(format!("CLE.OUT.{ew}.{i}"), WireKind::Branch(ew), &[""]);
+            let cw = builder.wire(
+                format!("CLE.OUT.{ew}.{i}"),
+                WireKind::Branch(builder.term_slots[ew]),
+                &[""],
+            );
             builder.test_mux_pass(cw);
             builder.extra_name_tile_sub("CLE_BC_CORE", format!("LOGIC_OUTS_{we}{i}"), sub, cw);
             builder.extra_name_tile_sub("CLE_BC_CORE_MX", format!("LOGIC_OUTS_{we}{i}"), sub, cw);
@@ -719,7 +723,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
                 }
                 let mut wires = EntityPartVec::new();
                 for &w in &bnodes {
-                    if builder.db.wires[w] != WireKind::Branch(dir) {
+                    if builder.db.wires[w] != WireKind::Branch(builder.term_slots[dir]) {
                         continue;
                     }
                     if let Some(n) = int_naming.wires.get(&(NodeTileId::from_idx(0), w)) {
@@ -731,7 +735,13 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
                         }
                     }
                 }
-                builder.insert_term_merge(tname, TermKind { dir, wires });
+                builder.insert_term_merge(
+                    tname,
+                    TermKind {
+                        slot: builder.term_slots[dir],
+                        wires,
+                    },
+                );
             }
             break;
         }
@@ -744,14 +754,14 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     builder.insert_term_merge(
         "CLE.W",
         TermKind {
-            dir: Dir::W,
+            slot: builder.term_slots[Dir::W],
             wires: logic_outs_w,
         },
     );
     builder.insert_term_merge(
         "CLE.E",
         TermKind {
-            dir: Dir::E,
+            slot: builder.term_slots[Dir::E],
             wires: logic_outs_e,
         },
     );
@@ -828,7 +838,13 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         TermInfo::PassNear(builder.db.wires.get("LONG.10.E.7.5").unwrap().0),
     );
     for (dir, wires) in term_wires {
-        builder.insert_term_merge(&format!("TERM.{dir}"), TermKind { dir, wires });
+        builder.insert_term_merge(
+            &format!("TERM.{dir}"),
+            TermKind {
+                slot: builder.term_slots[dir],
+                wires,
+            },
+        );
     }
     builder.extract_term_conn("TERM.W", Dir::W, "INTF_GT_BL_TILE", &[]);
     builder.extract_term_conn("TERM.W", Dir::W, "INTF_GT_TL_TILE", &[]);

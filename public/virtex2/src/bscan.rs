@@ -41,9 +41,9 @@ impl Chip {
             for col in self.columns.ids().rev() {
                 if self.columns[col].kind == ColumnKind::Clb {
                     for i in 0..4 {
-                        let crd = EdgeIoCoord::T(col, TileIobId::from_idx(4 + i));
+                        let crd = EdgeIoCoord::N(col, TileIobId::from_idx(4 + i));
                         io.insert(crd, builder.get_o());
-                        let crd = EdgeIoCoord::T(col, TileIobId::from_idx(i));
+                        let crd = EdgeIoCoord::N(col, TileIobId::from_idx(i));
                         io.insert(crd, builder.get_i());
                     }
                 }
@@ -52,9 +52,9 @@ impl Chip {
             for row in self.rows.ids().rev() {
                 if row != self.row_bot() && row != self.row_top() {
                     for i in (0..4).rev() {
-                        let crd = EdgeIoCoord::L(row, TileIobId::from_idx(4 + i));
+                        let crd = EdgeIoCoord::W(row, TileIobId::from_idx(4 + i));
                         io.insert(crd, builder.get_o());
-                        let crd = EdgeIoCoord::L(row, TileIobId::from_idx(i));
+                        let crd = EdgeIoCoord::W(row, TileIobId::from_idx(i));
                         io.insert(crd, builder.get_i());
                     }
                 }
@@ -65,9 +65,9 @@ impl Chip {
             for col in self.columns.ids() {
                 if self.columns[col].kind == ColumnKind::Clb {
                     for i in 0..4 {
-                        let crd = EdgeIoCoord::B(col, TileIobId::from_idx(4 + i));
+                        let crd = EdgeIoCoord::S(col, TileIobId::from_idx(4 + i));
                         io.insert(crd, builder.get_o());
-                        let crd = EdgeIoCoord::B(col, TileIobId::from_idx(i));
+                        let crd = EdgeIoCoord::S(col, TileIobId::from_idx(i));
                         io.insert(crd, builder.get_i());
                     }
                 }
@@ -88,9 +88,9 @@ impl Chip {
             for row in self.rows.ids() {
                 if row != self.row_bot() && row != self.row_top() {
                     for i in 0..4 {
-                        let crd = EdgeIoCoord::R(row, TileIobId::from_idx(4 + i));
+                        let crd = EdgeIoCoord::E(row, TileIobId::from_idx(4 + i));
                         io.insert(crd, builder.get_o());
-                        let crd = EdgeIoCoord::R(row, TileIobId::from_idx(i));
+                        let crd = EdgeIoCoord::E(row, TileIobId::from_idx(i));
                         io.insert(crd, builder.get_i());
                     }
                 }
@@ -101,7 +101,7 @@ impl Chip {
                 if let Some((data, tidx)) = self.get_iob_data((col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.tile == tidx {
-                            let crd = EdgeIoCoord::T(col, TileIobId::from_idx(iob.bel.to_idx()));
+                            let crd = EdgeIoCoord::N(col, TileIobId::from_idx(iob.bel.to_idx()));
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {
@@ -120,7 +120,7 @@ impl Chip {
                 if let Some((data, tidx)) = self.get_iob_data((col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.tile == tidx {
-                            let crd = EdgeIoCoord::L(row, TileIobId::from_idx(iob.bel.to_idx()));
+                            let crd = EdgeIoCoord::W(row, TileIobId::from_idx(iob.bel.to_idx()));
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {
@@ -140,7 +140,7 @@ impl Chip {
                 if let Some((data, tidx)) = self.get_iob_data((col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.tile == tidx {
-                            let crd = EdgeIoCoord::B(col, TileIobId::from_idx(iob.bel.to_idx()));
+                            let crd = EdgeIoCoord::S(col, TileIobId::from_idx(iob.bel.to_idx()));
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {
@@ -165,7 +165,7 @@ impl Chip {
                 if let Some((data, tidx)) = self.get_iob_data((col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.tile == tidx {
-                            let crd = EdgeIoCoord::R(row, TileIobId::from_idx(iob.bel.to_idx()));
+                            let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob.bel.to_idx()));
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {

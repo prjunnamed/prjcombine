@@ -296,16 +296,16 @@ impl From<&TileItem> for JsonValue {
     fn from(item: &TileItem) -> Self {
         match &item.kind {
             TileItemKind::Enum { values } => jzon::object! {
-                "bits": item.bits.clone(),
-                "values": jzon::object::Object::from_iter(
+                bits: item.bits.clone(),
+                values: jzon::object::Object::from_iter(
                     values.iter().map(|(value_name, value_bits)| {
                         (value_name.clone(), Vec::from_iter(value_bits.iter().map(|x| *x)))
                     })
                 ),
             },
             TileItemKind::BitVec { invert } => jzon::object! {
-                "bits": item.bits.clone(),
-                "invert": if invert.iter().all(|x| !*x) {
+                bits: item.bits.clone(),
+                invert: if invert.iter().all(|x| !*x) {
                     JsonValue::from(false)
                 } else if invert.iter().all(|x| *x) {
                     JsonValue::from(true)
@@ -333,7 +333,7 @@ impl From<&TileDb> for JsonValue {
             misc_data: jzon::object::Object::from_iter(tiledb.misc_data.iter().map(|(k, v)| {
                 (k.as_str(), v.to_json())
             })),
-            "device_data": jzon::object::Object::from_iter(tiledb.device_data.iter().map(|(k, v)| {
+            device_data: jzon::object::Object::from_iter(tiledb.device_data.iter().map(|(k, v)| {
                 (k.as_str(), jzon::object::Object::from_iter(v.iter().map(|(kk, vv)| {
                     (kk.as_str(), vv.to_json())
                 })))

@@ -162,8 +162,19 @@ impl IntDb {
                 writeln!(o)?;
             }
         }
+        for (_, name, slot) in &self.term_slots {
+            writeln!(
+                o,
+                "\tTERM SLOT {name}: opposite {oname}",
+                oname = self.term_slots.key(slot.opposite)
+            )?;
+        }
         for (_, name, term) in &self.terms {
-            writeln!(o, "\tTERM {name} {d}", d = term.dir)?;
+            writeln!(
+                o,
+                "\tTERM {name} {slot}",
+                slot = self.term_slots.key(term.slot)
+            )?;
             for (w, ti) in &term.wires {
                 let wn = &self.wires.key(w);
                 match ti {

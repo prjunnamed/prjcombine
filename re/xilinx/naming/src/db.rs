@@ -10,7 +10,7 @@ entity_id! {
     pub id NodeRawTileId u16, reserve 1;
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct NamingDb {
     pub node_namings: EntityMap<NodeNamingId, String, NodeNaming>,
     pub term_namings: EntityMap<TermNamingId, String, TermNaming>,

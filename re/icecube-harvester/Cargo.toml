@@ -7,7 +7,6 @@ version.workspace = true
 name = "icecube_harvester"
 path = "src/main.rs"
 
-
 [dependencies]
 tempfile.workspace = true
 bitvec.workspace = true

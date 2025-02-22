@@ -1,8 +1,8 @@
 #![allow(clippy::unnecessary_unwrap)]
 
 use prjcombine_interconnect::db::{
-    BelId, BelInfo, Dir, IntDb, IntfInfo, IriPin, NodeKindId, NodeWireId, PinDir, TermInfo, WireId,
-    WireKind,
+    BelId, BelInfo, IntDb, IntfInfo, IriPin, NodeKindId, NodeWireId, PinDir, TermInfo,
+    TermSlotId, WireId, WireKind,
 };
 use prjcombine_interconnect::grid::{
     ColId, DieId, ExpandedGrid, ExpandedTileNode, ExpandedTileTerm, IntWire, LayerId, NodeLoc,
@@ -329,9 +329,8 @@ impl<'a> Verifier<'a> {
                             }
                         }
                     }
-                    for (dir, t) in &et.terms {
-                        let Some(t) = t else { continue };
-                        if let Some(nt) = self.ngrid.terms.get(&(die.die, col, row, dir)) {
+                    for (slot, t) in &et.terms {
+                        if let Some(nt) = self.ngrid.terms.get(&(die.die, col, row, slot)) {
                             let tn = &self.ndb.term_namings[nt.naming];
                             let tk = &self.db.terms[t.kind];
                             for w in tn.wires_out.ids() {
@@ -1181,10 +1180,10 @@ impl<'a> Verifier<'a> {
         die: DieId,
         col: ColId,
         row: RowId,
-        dir: Dir,
+        slot: TermSlotId,
         term: &ExpandedTileTerm,
     ) {
-        let Some(nterm) = &self.ngrid.terms.get(&(die, col, row, dir)) else {
+        let Some(nterm) = &self.ngrid.terms.get(&(die, col, row, slot)) else {
             return;
         };
         let tn = &self.ndb.term_namings[nterm.naming];
@@ -1309,10 +1308,8 @@ impl<'a> Verifier<'a> {
                     for (layer, node) in &et.nodes {
                         self.handle_int_node((die.die, col, row, layer), node);
                     }
-                    for (dir, t) in &et.terms {
-                        if let Some(t) = t {
-                            self.handle_int_term(die.die, col, row, dir, t);
-                        }
+                    for (slot, t) in &et.terms {
+                        self.handle_int_term(die.die, col, row, slot, t);
                     }
                 }
             }

@@ -1310,9 +1310,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         _ => panic!("how to {kind}"),
                     }
                 }
-                for (dir, term) in &die[(col, row)].terms {
-                    let Some(term) = term else { continue };
-                    let tloc = (die.die, col, row, dir);
+                for (slot, term) in &die[(col, row)].terms {
+                    let tloc = (die.die, col, row, slot);
                     let kind = egrid.db.terms.key(term.kind);
                     let x = int_grid.xlut[col];
                     let y = int_grid.ylut[die.die][row];

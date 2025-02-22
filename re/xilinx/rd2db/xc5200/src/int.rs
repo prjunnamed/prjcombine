@@ -93,7 +93,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..8 {
         let w_be = builder.wire(
             format!("IO.SINGLE.B.E{i}"),
-            WireKind::PipBranch(Dir::W),
+            WireKind::PipBranch(builder.term_slots[Dir::W]),
             &[format!("WIRE_E{i}_BOT")],
         );
         let w_bw = builder.pip_branch(
@@ -104,7 +104,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         let w_rn = builder.wire(
             format!("IO.SINGLE.R.N{i}"),
-            WireKind::PipBranch(Dir::S),
+            WireKind::PipBranch(builder.term_slots[Dir::S]),
             &[format!("WIRE_N{i}_RIGHT")],
         );
         let w_rs = builder.pip_branch(
@@ -115,7 +115,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         let w_tw = builder.wire(
             format!("IO.SINGLE.T.W{i}"),
-            WireKind::PipBranch(Dir::E),
+            WireKind::PipBranch(builder.term_slots[Dir::E]),
             &[format!("WIRE_W{i}_TOP")],
         );
         let w_te = builder.pip_branch(
@@ -126,7 +126,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         let w_ls = builder.wire(
             format!("IO.SINGLE.L.S{i}"),
-            WireKind::PipBranch(Dir::N),
+            WireKind::PipBranch(builder.term_slots[Dir::N]),
             &[format!("WIRE_S{i}_LEFT")],
         );
         let w_ln = builder.pip_branch(
@@ -148,7 +148,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("CNR.UR", Dir::E, term_ur),
     ] {
         let term = TermKind {
-            dir,
+            slot: builder.term_slots[dir],
             wires: wires
                 .into_iter()
                 .map(|(a, b)| (a, TermInfo::PassNear(b)))
@@ -207,7 +207,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..8 {
         let w = builder.wire(
             format!("LONG.H{i}"),
-            WireKind::MultiBranch(Dir::W),
+            WireKind::MultiBranch(builder.term_slots[Dir::W]),
             &[
                 format!("WIRE_LH{i}_CLB"),
                 format!("WIRE_LH{i}_LEFT"),
@@ -225,7 +225,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..8 {
         let w = builder.wire(
             format!("LONG.V{i}"),
-            WireKind::MultiBranch(Dir::S),
+            WireKind::MultiBranch(builder.term_slots[Dir::S]),
             &[
                 format!("WIRE_LV{i}_CLB"),
                 format!("WIRE_LV{i}_LEFT"),
@@ -243,50 +243,50 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     let w = builder.wire(
         "GLOBAL.L",
-        WireKind::Branch(Dir::W),
+        WireKind::Branch(builder.term_slots[Dir::W]),
         &["WIRE_GH0_CLB", "WIRE_GH0_LEFT"],
     );
     builder.conn_branch(w, Dir::E, w);
     let w = builder.wire(
         "GLOBAL.R",
-        WireKind::Branch(Dir::E),
+        WireKind::Branch(builder.term_slots[Dir::E]),
         &["WIRE_GH1_CLB", "WIRE_GH1_RIGHT"],
     );
     builder.conn_branch(w, Dir::W, w);
     let w = builder.wire(
         "GLOBAL.B",
-        WireKind::Branch(Dir::S),
+        WireKind::Branch(builder.term_slots[Dir::S]),
         &["WIRE_GV0_CLB", "WIRE_GV0_BOT"],
     );
     builder.conn_branch(w, Dir::N, w);
     let w = builder.wire(
         "GLOBAL.T",
-        WireKind::Branch(Dir::N),
+        WireKind::Branch(builder.term_slots[Dir::N]),
         &["WIRE_GV1_CLB", "WIRE_GV1_TOP"],
     );
     builder.conn_branch(w, Dir::S, w);
 
     let w = builder.wire(
         "GLOBAL.TL",
-        WireKind::Branch(Dir::W),
+        WireKind::Branch(builder.term_slots[Dir::W]),
         &["WIRE_GTL_TOP", "WIRE_GTL_TL"],
     );
     builder.conn_branch(w, Dir::E, w);
     let w = builder.wire(
         "GLOBAL.BR",
-        WireKind::Branch(Dir::E),
+        WireKind::Branch(builder.term_slots[Dir::E]),
         &["WIRE_GBR_BOT", "WIRE_GBR_BR"],
     );
     builder.conn_branch(w, Dir::W, w);
     let w = builder.wire(
         "GLOBAL.BL",
-        WireKind::Branch(Dir::S),
+        WireKind::Branch(builder.term_slots[Dir::S]),
         &["WIRE_GBL_LEFT", "WIRE_GBL_BL"],
     );
     builder.conn_branch(w, Dir::N, w);
     let w = builder.wire(
         "GLOBAL.TR",
-        WireKind::Branch(Dir::N),
+        WireKind::Branch(builder.term_slots[Dir::N]),
         &["WIRE_GTR_RIGHT", "WIRE_GTR_TR"],
     );
     builder.conn_branch(w, Dir::S, w);

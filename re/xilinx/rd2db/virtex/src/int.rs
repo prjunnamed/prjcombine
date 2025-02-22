@@ -56,7 +56,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     let pci_ce = builder.wire(
         "PCI_CE",
-        WireKind::MultiBranch(Dir::S),
+        WireKind::MultiBranch(builder.term_slots[Dir::S]),
         &[
             "LEFT_PCI_CE",
             "RIGHT_PCI_CE",
@@ -246,7 +246,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         .map(|i| {
             builder.wire(
                 format!("LH.{i}"),
-                WireKind::MultiBranch(Dir::W),
+                WireKind::MultiBranch(builder.term_slots[Dir::W]),
                 &[
                     format!("LH{i}"),
                     format!("LEFT_LH{i}"),
@@ -271,7 +271,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         .map(|i| {
             builder.wire(
                 format!("LV.{i}"),
-                WireKind::MultiBranch(Dir::S),
+                WireKind::MultiBranch(builder.term_slots[Dir::S]),
                 &[
                     format!("LV{i}"),
                     format!("LEFT_LV{i}"),

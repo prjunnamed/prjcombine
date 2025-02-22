@@ -34,8 +34,8 @@ unnamed_entity = { version = "0.1.5", features = ["bitvec", "map", "serde"] }
 bitvec = { version = "1.0", features = ["serde"] }
 itertools = "0.14"
 arrayvec = "0.7.6"
-ndarray = { version = "0.16" }
-enum-map = { version = "2.4", features = ["serde"] }
+ndarray = "0.16"
+enum-map = "2.4"
 bimap = "0.6"
 arrayref = "0.3.6"
 des = "0.8.1"

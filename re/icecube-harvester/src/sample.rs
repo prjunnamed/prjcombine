@@ -386,10 +386,10 @@ pub fn make_sample(
                     let io = xlat_io[&(loc.loc.x, loc.loc.y, loc.loc.bel)];
                     let (col, row, bel) = edev.chip.get_io_loc(io);
                     let tile_kind = match io {
-                        EdgeIoCoord::T(..) => "IO.T",
-                        EdgeIoCoord::R(..) => "IO.R",
-                        EdgeIoCoord::B(..) => "IO.B",
-                        EdgeIoCoord::L(..) => "IO.L",
+                        EdgeIoCoord::N(..) => "IO.T",
+                        EdgeIoCoord::E(..) => "IO.R",
+                        EdgeIoCoord::S(..) => "IO.B",
+                        EdgeIoCoord::W(..) => "IO.L",
                     };
                     let mut global_idx = None;
                     for (&loc, node) in &edev.chip.extra_nodes {

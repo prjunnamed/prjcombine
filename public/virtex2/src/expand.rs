@@ -1,4 +1,4 @@
-use prjcombine_interconnect::db::{Dir, IntDb};
+use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
@@ -804,10 +804,12 @@ impl Expander<'_, '_> {
 
     fn fill_bram_passes(&mut self) {
         if matches!(self.chip.kind, ChipKind::Spartan3A | ChipKind::Spartan3ADsp) {
+            let slot_n = self.die.grid.db.get_term_slot("N");
+            let slot_s = self.die.grid.db.get_term_slot("S");
             for (col, cd) in &self.chip.columns {
                 if matches!(cd.kind, ColumnKind::BramCont(_)) {
-                    self.die[(col, self.chip.row_bot())].terms[Dir::N] = None;
-                    self.die[(col, self.chip.row_top())].terms[Dir::S] = None;
+                    self.die[(col, self.chip.row_bot())].terms.remove(slot_n);
+                    self.die[(col, self.chip.row_top())].terms.remove(slot_s);
                 }
             }
         }

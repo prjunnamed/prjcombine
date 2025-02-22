@@ -306,28 +306,28 @@ impl Chip {
         let bank = match self.kind {
             ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX | ChipKind::Spartan3 => {
                 match io {
-                    EdgeIoCoord::T(col, _) => {
+                    EdgeIoCoord::N(col, _) => {
                         if col < self.col_clk {
                             0
                         } else {
                             1
                         }
                     }
-                    EdgeIoCoord::R(row, _) => {
+                    EdgeIoCoord::E(row, _) => {
                         if row < self.row_mid() {
                             3
                         } else {
                             2
                         }
                     }
-                    EdgeIoCoord::B(col, _) => {
+                    EdgeIoCoord::S(col, _) => {
                         if col < self.col_clk {
                             5
                         } else {
                             4
                         }
                     }
-                    EdgeIoCoord::L(row, _) => {
+                    EdgeIoCoord::W(row, _) => {
                         if row < self.row_mid() {
                             6
                         } else {
@@ -338,10 +338,10 @@ impl Chip {
             }
             ChipKind::FpgaCore => 0,
             ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match io {
-                EdgeIoCoord::T(_, _) => 0,
-                EdgeIoCoord::R(_, _) => 1,
-                EdgeIoCoord::B(_, _) => 2,
-                EdgeIoCoord::L(_, _) => 3,
+                EdgeIoCoord::N(_, _) => 0,
+                EdgeIoCoord::E(_, _) => 1,
+                EdgeIoCoord::S(_, _) => 2,
+                EdgeIoCoord::W(_, _) => 3,
             },
         };
         let (col, row, bel) = self.get_io_loc(io);
@@ -433,7 +433,7 @@ impl Chip {
             if let Some((data, tidx)) = self.get_iob_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(EdgeIoCoord::T(col, TileIobId::from_idx(iob.bel.to_idx())));
+                        res.push(EdgeIoCoord::N(col, TileIobId::from_idx(iob.bel.to_idx())));
                     }
                 }
             }
@@ -443,7 +443,7 @@ impl Chip {
             if let Some((data, tidx)) = self.get_iob_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(EdgeIoCoord::R(row, TileIobId::from_idx(iob.bel.to_idx())));
+                        res.push(EdgeIoCoord::E(row, TileIobId::from_idx(iob.bel.to_idx())));
                     }
                 }
             }
@@ -453,7 +453,7 @@ impl Chip {
             if let Some((data, tidx)) = self.get_iob_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(EdgeIoCoord::B(col, TileIobId::from_idx(iob.bel.to_idx())));
+                        res.push(EdgeIoCoord::S(col, TileIobId::from_idx(iob.bel.to_idx())));
                     }
                 }
             }
@@ -463,7 +463,7 @@ impl Chip {
             if let Some((data, tidx)) = self.get_iob_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(EdgeIoCoord::L(row, TileIobId::from_idx(iob.bel.to_idx())));
+                        res.push(EdgeIoCoord::W(row, TileIobId::from_idx(iob.bel.to_idx())));
                     }
                 }
             }
@@ -473,10 +473,10 @@ impl Chip {
 
     pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
         let (col, row, iob) = match io {
-            EdgeIoCoord::T(col, iob) => (col, self.row_top(), iob),
-            EdgeIoCoord::R(row, iob) => (self.col_right(), row, iob),
-            EdgeIoCoord::B(col, iob) => (col, self.row_bot(), iob),
-            EdgeIoCoord::L(row, iob) => (self.col_left(), row, iob),
+            EdgeIoCoord::N(col, iob) => (col, self.row_top(), iob),
+            EdgeIoCoord::E(row, iob) => (self.col_right(), row, iob),
+            EdgeIoCoord::S(col, iob) => (col, self.row_bot(), iob),
+            EdgeIoCoord::W(row, iob) => (self.col_left(), row, iob),
         };
         let bel = BelId::from_idx(iob.to_idx());
         (col, row, bel)
@@ -485,13 +485,13 @@ impl Chip {
     pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
         let iob = TileIobId::from_idx(bel.to_idx());
         if col == self.col_left() {
-            EdgeIoCoord::L(row, iob)
+            EdgeIoCoord::W(row, iob)
         } else if col == self.col_right() {
-            EdgeIoCoord::R(row, iob)
+            EdgeIoCoord::E(row, iob)
         } else if row == self.row_bot() {
-            EdgeIoCoord::B(col, iob)
+            EdgeIoCoord::S(col, iob)
         } else if row == self.row_top() {
-            EdgeIoCoord::T(col, iob)
+            EdgeIoCoord::N(col, iob)
         } else {
             unreachable!()
         }
@@ -505,9 +505,9 @@ impl Chip {
                         return None;
                     }
                     if idx < 4 {
-                        Some(EdgeIoCoord::B(self.col_clk, TileIobId::from_idx(idx)))
+                        Some(EdgeIoCoord::S(self.col_clk, TileIobId::from_idx(idx)))
                     } else if idx < 8 {
-                        Some(EdgeIoCoord::B(
+                        Some(EdgeIoCoord::S(
                             self.col_clk - 1,
                             TileIobId::from_idx(idx - 4),
                         ))
@@ -520,9 +520,9 @@ impl Chip {
                         return None;
                     }
                     if idx < 4 {
-                        Some(EdgeIoCoord::T(self.col_clk, TileIobId::from_idx(idx)))
+                        Some(EdgeIoCoord::N(self.col_clk, TileIobId::from_idx(idx)))
                     } else if idx < 8 {
-                        Some(EdgeIoCoord::T(
+                        Some(EdgeIoCoord::N(
                             self.col_clk - 1,
                             TileIobId::from_idx(idx - 4),
                         ))
@@ -536,9 +536,9 @@ impl Chip {
             match edge {
                 Dir::S => {
                     if idx < 2 {
-                        Some(EdgeIoCoord::B(self.col_clk, TileIobId::from_idx(idx)))
+                        Some(EdgeIoCoord::S(self.col_clk, TileIobId::from_idx(idx)))
                     } else if idx < 4 {
-                        Some(EdgeIoCoord::B(
+                        Some(EdgeIoCoord::S(
                             self.col_clk - 1,
                             TileIobId::from_idx(idx - 2),
                         ))
@@ -548,9 +548,9 @@ impl Chip {
                 }
                 Dir::N => {
                     if idx < 2 {
-                        Some(EdgeIoCoord::T(self.col_clk, TileIobId::from_idx(idx)))
+                        Some(EdgeIoCoord::N(self.col_clk, TileIobId::from_idx(idx)))
                     } else if idx < 4 {
-                        Some(EdgeIoCoord::T(
+                        Some(EdgeIoCoord::N(
                             self.col_clk - 1,
                             TileIobId::from_idx(idx - 2),
                         ))
@@ -562,60 +562,60 @@ impl Chip {
             }
         } else if self.kind == ChipKind::Spartan3E {
             match (edge, idx) {
-                (Dir::S, 0 | 1) => Some(EdgeIoCoord::B(self.col_clk, TileIobId::from_idx(idx % 2))),
-                (Dir::S, 2 | 3) => Some(EdgeIoCoord::B(
+                (Dir::S, 0 | 1) => Some(EdgeIoCoord::S(self.col_clk, TileIobId::from_idx(idx % 2))),
+                (Dir::S, 2 | 3) => Some(EdgeIoCoord::S(
                     self.col_clk + 1,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::S, 4 | 5) => Some(EdgeIoCoord::B(
+                (Dir::S, 4 | 5) => Some(EdgeIoCoord::S(
                     self.col_clk - 3,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::S, 6 | 7) => Some(EdgeIoCoord::B(
+                (Dir::S, 6 | 7) => Some(EdgeIoCoord::S(
                     self.col_clk - 1,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::N, 0 | 1) => Some(EdgeIoCoord::T(
+                (Dir::N, 0 | 1) => Some(EdgeIoCoord::N(
                     self.col_clk + 2,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::N, 2 | 3) => Some(EdgeIoCoord::T(self.col_clk, TileIobId::from_idx(idx % 2))),
-                (Dir::N, 4 | 5) => Some(EdgeIoCoord::T(
+                (Dir::N, 2 | 3) => Some(EdgeIoCoord::N(self.col_clk, TileIobId::from_idx(idx % 2))),
+                (Dir::N, 4 | 5) => Some(EdgeIoCoord::N(
                     self.col_clk - 1,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::N, 6 | 7) => Some(EdgeIoCoord::T(
+                (Dir::N, 6 | 7) => Some(EdgeIoCoord::N(
                     self.col_clk - 2,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::W, 0 | 1) => Some(EdgeIoCoord::L(
+                (Dir::W, 0 | 1) => Some(EdgeIoCoord::W(
                     self.row_mid() + 3,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::W, 2 | 3) => Some(EdgeIoCoord::L(
+                (Dir::W, 2 | 3) => Some(EdgeIoCoord::W(
                     self.row_mid() + 1,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::W, 4 | 5) => Some(EdgeIoCoord::L(
+                (Dir::W, 4 | 5) => Some(EdgeIoCoord::W(
                     self.row_mid() - 1,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::W, 6 | 7) => Some(EdgeIoCoord::L(
+                (Dir::W, 6 | 7) => Some(EdgeIoCoord::W(
                     self.row_mid() - 3,
                     TileIobId::from_idx(idx % 2),
                 )),
                 (Dir::E, 0 | 1) => {
-                    Some(EdgeIoCoord::R(self.row_mid(), TileIobId::from_idx(idx % 2)))
+                    Some(EdgeIoCoord::E(self.row_mid(), TileIobId::from_idx(idx % 2)))
                 }
-                (Dir::E, 2 | 3) => Some(EdgeIoCoord::R(
+                (Dir::E, 2 | 3) => Some(EdgeIoCoord::E(
                     self.row_mid() + 2,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::E, 4 | 5) => Some(EdgeIoCoord::R(
+                (Dir::E, 4 | 5) => Some(EdgeIoCoord::E(
                     self.row_mid() - 4,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::E, 6 | 7) => Some(EdgeIoCoord::R(
+                (Dir::E, 6 | 7) => Some(EdgeIoCoord::E(
                     self.row_mid() - 2,
                     TileIobId::from_idx(idx % 2),
                 )),
@@ -623,60 +623,60 @@ impl Chip {
             }
         } else {
             match (edge, idx) {
-                (Dir::S, 0 | 1) => Some(EdgeIoCoord::B(self.col_clk, TileIobId::from_idx(idx % 2))),
-                (Dir::S, 2 | 3) => Some(EdgeIoCoord::B(
+                (Dir::S, 0 | 1) => Some(EdgeIoCoord::S(self.col_clk, TileIobId::from_idx(idx % 2))),
+                (Dir::S, 2 | 3) => Some(EdgeIoCoord::S(
                     self.col_clk + 1,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::S, 4 | 5) => Some(EdgeIoCoord::B(
+                (Dir::S, 4 | 5) => Some(EdgeIoCoord::S(
                     self.col_clk - 2,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::S, 6 | 7) => Some(EdgeIoCoord::B(
+                (Dir::S, 6 | 7) => Some(EdgeIoCoord::S(
                     self.col_clk - 1,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::N, 0 | 1) => Some(EdgeIoCoord::T(
+                (Dir::N, 0 | 1) => Some(EdgeIoCoord::N(
                     self.col_clk + 1,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::N, 2 | 3) => Some(EdgeIoCoord::T(self.col_clk, TileIobId::from_idx(idx % 2))),
-                (Dir::N, 4 | 5) => Some(EdgeIoCoord::T(
+                (Dir::N, 2 | 3) => Some(EdgeIoCoord::N(self.col_clk, TileIobId::from_idx(idx % 2))),
+                (Dir::N, 4 | 5) => Some(EdgeIoCoord::N(
                     self.col_clk - 1,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::N, 6 | 7) => Some(EdgeIoCoord::T(
+                (Dir::N, 6 | 7) => Some(EdgeIoCoord::N(
                     self.col_clk - 2,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::W, 0 | 1) => Some(EdgeIoCoord::L(
+                (Dir::W, 0 | 1) => Some(EdgeIoCoord::W(
                     self.row_mid() + 2,
                     TileIobId::from_idx((idx % 2) ^ 1),
                 )),
-                (Dir::W, 2 | 3) => Some(EdgeIoCoord::L(
+                (Dir::W, 2 | 3) => Some(EdgeIoCoord::W(
                     self.row_mid() + 1,
                     TileIobId::from_idx((idx % 2) ^ 1),
                 )),
-                (Dir::W, 4 | 5) => Some(EdgeIoCoord::L(
+                (Dir::W, 4 | 5) => Some(EdgeIoCoord::W(
                     self.row_mid() - 1,
                     TileIobId::from_idx((idx % 2) ^ 1),
                 )),
-                (Dir::W, 6 | 7) => Some(EdgeIoCoord::L(
+                (Dir::W, 6 | 7) => Some(EdgeIoCoord::W(
                     self.row_mid() - 2,
                     TileIobId::from_idx((idx % 2) ^ 1),
                 )),
                 (Dir::E, 0 | 1) => {
-                    Some(EdgeIoCoord::R(self.row_mid(), TileIobId::from_idx(idx % 2)))
+                    Some(EdgeIoCoord::E(self.row_mid(), TileIobId::from_idx(idx % 2)))
                 }
-                (Dir::E, 2 | 3) => Some(EdgeIoCoord::R(
+                (Dir::E, 2 | 3) => Some(EdgeIoCoord::E(
                     self.row_mid() + 1,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::E, 4 | 5) => Some(EdgeIoCoord::R(
+                (Dir::E, 4 | 5) => Some(EdgeIoCoord::E(
                     self.row_mid() - 3,
                     TileIobId::from_idx(idx % 2),
                 )),
-                (Dir::E, 6 | 7) => Some(EdgeIoCoord::R(
+                (Dir::E, 6 | 7) => Some(EdgeIoCoord::E(
                     self.row_mid() - 2,
                     TileIobId::from_idx(idx % 2),
                 )),
@@ -689,23 +689,23 @@ impl Chip {
         match self.kind {
             ChipKind::Spartan3E => match edge {
                 Dir::W => [
-                    EdgeIoCoord::L(self.row_mid() + 1, TileIobId::from_idx(1)),
-                    EdgeIoCoord::L(self.row_mid() - 1, TileIobId::from_idx(0)),
+                    EdgeIoCoord::W(self.row_mid() + 1, TileIobId::from_idx(1)),
+                    EdgeIoCoord::W(self.row_mid() - 1, TileIobId::from_idx(0)),
                 ],
                 Dir::E => [
-                    EdgeIoCoord::R(self.row_mid(), TileIobId::from_idx(0)),
-                    EdgeIoCoord::R(self.row_mid() - 2, TileIobId::from_idx(1)),
+                    EdgeIoCoord::E(self.row_mid(), TileIobId::from_idx(0)),
+                    EdgeIoCoord::E(self.row_mid() - 2, TileIobId::from_idx(1)),
                 ],
                 _ => unreachable!(),
             },
             ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match edge {
                 Dir::W => [
-                    EdgeIoCoord::L(self.row_mid() + 1, TileIobId::from_idx(0)),
-                    EdgeIoCoord::L(self.row_mid() - 2, TileIobId::from_idx(1)),
+                    EdgeIoCoord::W(self.row_mid() + 1, TileIobId::from_idx(0)),
+                    EdgeIoCoord::W(self.row_mid() - 2, TileIobId::from_idx(1)),
                 ],
                 Dir::E => [
-                    EdgeIoCoord::R(self.row_mid() + 1, TileIobId::from_idx(0)),
-                    EdgeIoCoord::R(self.row_mid() - 2, TileIobId::from_idx(1)),
+                    EdgeIoCoord::E(self.row_mid() + 1, TileIobId::from_idx(0)),
+                    EdgeIoCoord::E(self.row_mid() - 2, TileIobId::from_idx(1)),
                 ],
                 _ => unreachable!(),
             },

@@ -252,9 +252,9 @@ impl Chip {
 
     pub fn get_io_bank(&self, io: EdgeIoCoord) -> u32 {
         match io {
-            EdgeIoCoord::T(_, _) => 0,
-            EdgeIoCoord::R(_, _) => 1,
-            EdgeIoCoord::B(col, _) => {
+            EdgeIoCoord::N(_, _) => 0,
+            EdgeIoCoord::E(_, _) => 1,
+            EdgeIoCoord::S(col, _) => {
                 if col < self.col_bio_split {
                     2
                 } else if self.kind.has_lrio() {
@@ -263,16 +263,16 @@ impl Chip {
                     1
                 }
             }
-            EdgeIoCoord::L(_, _) => 3,
+            EdgeIoCoord::W(_, _) => 3,
         }
     }
 
     pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
         let (col, row, iob) = match io {
-            EdgeIoCoord::T(col, iob) => (col, self.row_tio(), iob),
-            EdgeIoCoord::R(row, iob) => (self.col_rio(), row, iob),
-            EdgeIoCoord::B(col, iob) => (col, self.row_bio(), iob),
-            EdgeIoCoord::L(row, iob) => (self.col_lio(), row, iob),
+            EdgeIoCoord::N(col, iob) => (col, self.row_tio(), iob),
+            EdgeIoCoord::E(row, iob) => (self.col_rio(), row, iob),
+            EdgeIoCoord::S(col, iob) => (col, self.row_bio(), iob),
+            EdgeIoCoord::W(row, iob) => (self.col_lio(), row, iob),
         };
         let bel = BelId::from_idx(iob.to_idx());
         (col, row, bel)
@@ -281,13 +281,13 @@ impl Chip {
     pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
         let iob = TileIobId::from_idx(bel.to_idx());
         if col == self.col_lio() {
-            EdgeIoCoord::L(row, iob)
+            EdgeIoCoord::W(row, iob)
         } else if col == self.col_rio() {
-            EdgeIoCoord::R(row, iob)
+            EdgeIoCoord::E(row, iob)
         } else if row == self.row_bio() {
-            EdgeIoCoord::B(col, iob)
+            EdgeIoCoord::S(col, iob)
         } else if row == self.row_tio() {
-            EdgeIoCoord::T(col, iob)
+            EdgeIoCoord::N(col, iob)
         } else {
             unreachable!()
         }
@@ -295,10 +295,10 @@ impl Chip {
 
     pub fn io_has_lvds(&self, crd: EdgeIoCoord) -> bool {
         let iob = match crd {
-            EdgeIoCoord::T(_, iob) => iob,
-            EdgeIoCoord::R(_, iob) => iob,
-            EdgeIoCoord::B(_, iob) => iob,
-            EdgeIoCoord::L(_, iob) => iob,
+            EdgeIoCoord::N(_, iob) => iob,
+            EdgeIoCoord::E(_, iob) => iob,
+            EdgeIoCoord::S(_, iob) => iob,
+            EdgeIoCoord::W(_, iob) => iob,
         };
         if iob.to_idx() != 0 {
             return false;

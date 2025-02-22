@@ -2,14 +2,13 @@
 
 use crate::db::*;
 use bimap::BiHashMap;
-use enum_map::EnumMap;
 use ndarray::Array2;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     ops::{Deref, DerefMut},
 };
-use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
+use unnamed_entity::{EntityId, EntityIds, EntityPartVec, EntityVec, entity_id};
 
 entity_id! {
     pub id DieId u8, reserve 1, delta;
@@ -21,37 +20,37 @@ entity_id! {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum EdgeIoCoord {
-    T(ColId, TileIobId),
-    R(RowId, TileIobId),
-    B(ColId, TileIobId),
-    L(RowId, TileIobId),
+    W(RowId, TileIobId),
+    E(RowId, TileIobId),
+    S(ColId, TileIobId),
+    N(ColId, TileIobId),
 }
 
 impl EdgeIoCoord {
     pub fn with_iob(self, iob: TileIobId) -> Self {
         match self {
-            EdgeIoCoord::T(col, _) => EdgeIoCoord::T(col, iob),
-            EdgeIoCoord::R(row, _) => EdgeIoCoord::R(row, iob),
-            EdgeIoCoord::B(col, _) => EdgeIoCoord::B(col, iob),
-            EdgeIoCoord::L(row, _) => EdgeIoCoord::L(row, iob),
+            EdgeIoCoord::W(row, _) => EdgeIoCoord::W(row, iob),
+            EdgeIoCoord::E(row, _) => EdgeIoCoord::E(row, iob),
+            EdgeIoCoord::S(col, _) => EdgeIoCoord::S(col, iob),
+            EdgeIoCoord::N(col, _) => EdgeIoCoord::N(col, iob),
         }
     }
 
     pub fn iob(self) -> TileIobId {
         match self {
-            EdgeIoCoord::T(_, iob) => iob,
-            EdgeIoCoord::R(_, iob) => iob,
-            EdgeIoCoord::B(_, iob) => iob,
-            EdgeIoCoord::L(_, iob) => iob,
+            EdgeIoCoord::W(_, iob) => iob,
+            EdgeIoCoord::E(_, iob) => iob,
+            EdgeIoCoord::S(_, iob) => iob,
+            EdgeIoCoord::N(_, iob) => iob,
         }
     }
 
     pub fn edge(&self) -> Dir {
         match self {
-            EdgeIoCoord::T(..) => Dir::N,
-            EdgeIoCoord::R(..) => Dir::E,
-            EdgeIoCoord::B(..) => Dir::S,
-            EdgeIoCoord::L(..) => Dir::W,
+            EdgeIoCoord::W(..) => Dir::W,
+            EdgeIoCoord::E(..) => Dir::E,
+            EdgeIoCoord::S(..) => Dir::S,
+            EdgeIoCoord::N(..) => Dir::N,
         }
     }
 }
@@ -59,10 +58,10 @@ impl EdgeIoCoord {
 impl std::fmt::Display for EdgeIoCoord {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            EdgeIoCoord::T(col, iob) => write!(f, "IOB_T{col}_{iob}"),
-            EdgeIoCoord::R(row, iob) => write!(f, "IOB_R{row}_{iob}"),
-            EdgeIoCoord::B(col, iob) => write!(f, "IOB_B{col}_{iob}"),
-            EdgeIoCoord::L(row, iob) => write!(f, "IOB_L{row}_{iob}"),
+            EdgeIoCoord::W(row, iob) => write!(f, "IOB_W{row}_{iob}"),
+            EdgeIoCoord::E(row, iob) => write!(f, "IOB_E{row}_{iob}"),
+            EdgeIoCoord::S(col, iob) => write!(f, "IOB_S{col}_{iob}"),
+            EdgeIoCoord::N(col, iob) => write!(f, "IOB_N{col}_{iob}"),
         }
     }
 }
@@ -360,34 +359,18 @@ impl ExpandedDieRefMut<'_, '_> {
         };
         let a = bwd.target.unwrap();
         let b = fwd.target.unwrap();
-        let dir = this.grid.db.terms[fwd.kind].dir;
-        assert_eq!(this.grid.db.terms[bwd.kind].dir, !dir);
-        match dir {
-            Dir::W => {
-                assert_eq!(a.1, b.1);
-                assert!(a.0 > b.0);
-            }
-            Dir::E => {
-                assert_eq!(a.1, b.1);
-                assert!(a.0 < b.0);
-            }
-            Dir::S => {
-                assert_eq!(a.0, b.0);
-                assert!(a.1 > b.1);
-            }
-            Dir::N => {
-                assert_eq!(a.0, b.0);
-                assert!(a.1 < b.1);
-            }
-        }
-        this[a].terms[dir] = Some(fwd);
-        this[b].terms[!dir] = Some(bwd);
+        let fwd_slot = this.grid.db.terms[fwd.kind].slot;
+        let bwd_slot = this.grid.db.terms[bwd.kind].slot;
+        this[a].terms.insert(fwd_slot, fwd);
+        this[b].terms.insert(bwd_slot, bwd);
     }
 
     pub fn fill_term(&mut self, xy: Coord, kind: &str) {
         let kind = self.grid.db.get_term(kind);
-        let dir = self.grid.db.terms[kind].dir;
-        self[xy].terms[dir] = Some(ExpandedTileTerm { target: None, kind });
+        let slot = self.grid.db.terms[kind].slot;
+        self[xy]
+            .terms
+            .insert(slot, ExpandedTileTerm { target: None, kind });
     }
 
     pub fn fill_main_passes(&mut self) {
@@ -395,6 +378,10 @@ impl ExpandedDieRefMut<'_, '_> {
         let pass_e = "MAIN.E";
         let pass_s = "MAIN.S";
         let pass_n = "MAIN.N";
+        let slot_w = self.grid.db.get_term_slot("W");
+        let slot_e = self.grid.db.get_term_slot("E");
+        let slot_s = self.grid.db.get_term_slot("S");
+        let slot_n = self.grid.db.get_term_slot("N");
         // horizontal
         for row in self.rows() {
             let mut prev = None;
@@ -403,11 +390,11 @@ impl ExpandedDieRefMut<'_, '_> {
                     continue;
                 }
                 if let Some(prev) = prev {
-                    if self[(col, row)].terms[Dir::W].is_none() {
+                    if !self[(col, row)].terms.contains_id(slot_w) {
                         self.fill_term_pair((prev, row), (col, row), pass_e, pass_w);
                     }
                 }
-                if self[(col, row)].terms[Dir::E].is_none() {
+                if !self[(col, row)].terms.contains_id(slot_e) {
                     prev = Some(col);
                 } else {
                     prev = None;
@@ -422,11 +409,11 @@ impl ExpandedDieRefMut<'_, '_> {
                     continue;
                 }
                 if let Some(prev) = prev {
-                    if self[(col, row)].terms[Dir::S].is_none() {
+                    if !self[(col, row)].terms.contains_id(slot_s) {
                         self.fill_term_pair((col, prev), (col, row), pass_n, pass_s);
                     }
                 }
-                if self[(col, row)].terms[Dir::N].is_none() {
+                if !self[(col, row)].terms.contains_id(slot_n) {
                     prev = Some(row);
                 } else {
                     prev = None;
@@ -468,8 +455,10 @@ impl ExpandedGrid<'_> {
                     wire.1 = tile.clkroot;
                     break;
                 }
-                WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
-                    if let Some(t) = &tile.terms[dir] {
+                WireKind::MultiBranch(slot)
+                | WireKind::Branch(slot)
+                | WireKind::PipBranch(slot) => {
+                    if let Some(t) = tile.terms.get(slot) {
                         let term = &self.db.terms[t.kind];
                         match term.wires.get(wire.2) {
                             Some(&TermInfo::BlackHole) => return None,
@@ -512,8 +501,10 @@ impl ExpandedGrid<'_> {
                     wire.1 = tile.clkroot;
                     break;
                 }
-                WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
-                    if let Some(t) = &tile.terms[dir] {
+                WireKind::MultiBranch(slot)
+                | WireKind::Branch(slot)
+                | WireKind::PipBranch(slot) => {
+                    if let Some(t) = tile.terms.get(slot) {
                         let term = &self.db.terms[t.kind];
                         match term.wires.get(wire.2) {
                             Some(&TermInfo::BlackHole) => return None,
@@ -555,28 +546,26 @@ impl ExpandedGrid<'_> {
         while let Some(wire) = queue.pop() {
             let die = self.die(wire.0);
             let tile = &die[wire.1];
+            res.push(wire);
             if matches!(self.db.wires[wire.2], WireKind::ClkOut(_)) && tile.clkroot == wire.1 {
                 for &crd in &die.clk_root_tiles[&wire.1] {
                     if crd != wire.1 {
                         queue.push((wire.0, crd, wire.2));
                     }
                 }
-            } else {
-                res.push(wire);
             }
             for &wt in &self.db_index.buf_ins[wire.2] {
                 queue.push((wire.0, wire.1, wt));
             }
-            for dir in Dir::DIRS {
-                if let Some(ref term) = tile.terms[dir] {
-                    for &wt in &self.db_index.terms[term.kind].wire_ins_near[wire.2] {
-                        queue.push((wire.0, wire.1, wt));
-                    }
-                    if let Some(ocrd) = term.target {
-                        let oterm = die[ocrd].terms[!dir].as_ref().unwrap();
-                        for &wt in &self.db_index.terms[oterm.kind].wire_ins_far[wire.2] {
-                            queue.push((wire.0, ocrd, wt));
-                        }
+            for (slot, term) in &tile.terms {
+                let oslot = self.db.term_slots[slot].opposite;
+                for &wt in &self.db_index.terms[term.kind].wire_ins_near[wire.2] {
+                    queue.push((wire.0, wire.1, wt));
+                }
+                if let Some(ocrd) = term.target {
+                    let oterm = &die[ocrd].terms[oslot];
+                    for &wt in &self.db_index.terms[oterm.kind].wire_ins_far[wire.2] {
+                        queue.push((wire.0, ocrd, wt));
                     }
                 }
             }
@@ -659,7 +648,7 @@ impl ExpandedGrid<'_> {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ExpandedTile {
     pub nodes: EntityVec<LayerId, ExpandedTileNode>,
-    pub terms: EnumMap<Dir, Option<ExpandedTileTerm>>,
+    pub terms: EntityPartVec<TermSlotId, ExpandedTileTerm>,
     pub node_index: Vec<(Coord, LayerId, NodeTileId)>,
     pub clkroot: Coord,
 }
