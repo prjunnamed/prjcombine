@@ -1,6 +1,5 @@
 use arrayvec::ArrayVec;
 use bitvec::prelude::*;
-use enum_map::{Enum, EnumMap};
 use prjcombine_interconnect::{db::Dir, grid::DieId};
 use std::collections::{BTreeMap, HashMap};
 use unnamed_entity::EntityVec;
@@ -9,7 +8,7 @@ mod packet;
 mod parse;
 pub use parse::parse;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Enum)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum Reg {
     Idcode,
     Ctl0,
@@ -147,23 +146,43 @@ impl Bitstream {
         assert_eq!(a.die.len(), b.die.len());
         let mut res = HashMap::new();
         for ((die, da), db) in a.die.iter().zip(b.die.values()) {
-            for (reg, &va) in &da.regs {
+            for (&reg, &va) in &da.regs {
                 if matches!(
                     reg,
                     Reg::RbCrcSw | Reg::Key | Reg::FakeEncrypted | Reg::FakeDoubleCclkFrequency
                 ) {
                     continue;
                 }
-                let vb = db.regs[reg];
-                if va.is_some() != vb.is_some() && reg != Reg::Testmode {
-                    res.insert(BitPos::RegPresent(die, reg), vb.is_some());
+                let vb = db.regs.get(&reg);
+                if vb.is_none() && reg != Reg::Testmode {
+                    res.insert(BitPos::RegPresent(die, reg), false);
                 }
-                let va = va.unwrap_or(0);
-                let vb = vb.unwrap_or(0);
+                let vb = vb.copied().unwrap_or(0);
                 if va != vb {
                     for j in 0..32 {
                         if (va >> j & 1) != (vb >> j & 1) {
                             res.insert(BitPos::Reg(die, reg, j), (vb >> j & 1) != 0);
+                        }
+                    }
+                }
+            }
+            for (&reg, &vb) in &db.regs {
+                if matches!(
+                    reg,
+                    Reg::RbCrcSw | Reg::Key | Reg::FakeEncrypted | Reg::FakeDoubleCclkFrequency
+                ) {
+                    continue;
+                }
+                if !da.regs.contains_key(&reg) {
+                    let va = 0;
+                    if reg != Reg::Testmode {
+                        res.insert(BitPos::RegPresent(die, reg), true);
+                    }
+                    if va != vb {
+                        for j in 0..32 {
+                            if (va >> j & 1) != (vb >> j & 1) {
+                                res.insert(BitPos::Reg(die, reg, j), (vb >> j & 1) != 0);
+                            }
                         }
                     }
                 }
@@ -240,11 +259,11 @@ impl Bitstream {
 
     pub fn get_bit(&self, bit: BitPos) -> bool {
         match bit {
-            BitPos::Reg(die, reg, bit) => match self.die[die].regs[reg] {
+            BitPos::Reg(die, reg, bit) => match self.die[die].regs.get(&reg) {
                 Some(val) => (val >> bit & 1) != 0,
                 None => false,
             },
-            BitPos::RegPresent(die, reg) => self.die[die].regs[reg].is_some(),
+            BitPos::RegPresent(die, reg) => self.die[die].regs.contains_key(&reg),
             BitPos::Main(die, frame, bit) => self.die[die].frame(frame)[bit],
             BitPos::Fixup(die, frame, bit) => {
                 self.die[die].frame_fixups.contains_key(&(frame, bit))
@@ -258,7 +277,7 @@ impl Bitstream {
 
 #[derive(Clone, Debug)]
 pub struct DieBitstream {
-    pub regs: EnumMap<Reg, Option<u32>>,
+    pub regs: BTreeMap<Reg, u32>,
     pub mode: BitstreamMode,
     pub iv: Vec<u8>,
     pub frame_len: usize,

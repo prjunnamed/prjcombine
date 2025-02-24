@@ -1461,8 +1461,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             }
             ctx.insert_device_data("FREEZE_DCI_NOPS", freeze_dci_nops);
 
-            let is_double_grestore =
-                ctx.empty_bs.die[DieId::from_idx(0)].regs[Reg::FakeDoubleGrestore] == Some(1);
+            let is_double_grestore = ctx.empty_bs.die[DieId::from_idx(0)]
+                .regs
+                .get(&Reg::FakeDoubleGrestore)
+                == Some(&1);
             ctx.insert_device_data("DOUBLE_GRESTORE", BitVec::repeat(is_double_grestore, 1));
         }
 
@@ -2840,8 +2842,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     }
 
     if edev.chip.kind.is_virtex2() {
-        let is_double_grestore =
-            ctx.empty_bs.die[DieId::from_idx(0)].regs[Reg::FakeDoubleGrestore] == Some(1);
+        let is_double_grestore = ctx.empty_bs.die[DieId::from_idx(0)]
+            .regs
+            .get(&Reg::FakeDoubleGrestore)
+            == Some(&1);
         ctx.insert_device_data("DOUBLE_GRESTORE", BitVec::repeat(is_double_grestore, 1));
     }
 }

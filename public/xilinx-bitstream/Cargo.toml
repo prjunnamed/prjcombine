@@ -6,7 +6,6 @@ edition.workspace = true
 [dependencies]
 arrayvec.workspace = true
 bitvec.workspace = true
-enum-map.workspace = true
 arrayref.workspace = true
 des.workspace = true
 cbc.workspace = true

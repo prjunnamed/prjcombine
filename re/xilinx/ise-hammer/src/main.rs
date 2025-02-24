@@ -679,7 +679,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
         intf::collect_fuzzers(&mut ctx);
     }
     for (die, dbs) in &ctx.empty_bs.die {
-        if let Some(val) = dbs.regs[Reg::Idcode] {
+        if let Some(&val) = dbs.regs.get(&Reg::Idcode) {
             let mut idcode = BitVec::new();
             for i in 0..32 {
                 idcode.push((val & 1 << i) != 0);

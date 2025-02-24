@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let bs_geom = gedev.bs_geom();
     let bitstream = prjcombine_xilinx_bitstream::parse(bs_geom, &bitdata, &KeyData::None);
     for (die, dbs) in &bitstream.die {
-        if let Some(val) = dbs.regs[Reg::Idcode] {
+        if let Some(&val) = dbs.regs.get(&Reg::Idcode) {
             println!("DIE {die} IDCODE {val:08x}");
         }
     }
