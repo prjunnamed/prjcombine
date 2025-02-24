@@ -1,8 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use bimap::BiHashMap;
-use enum_map::{EnumMap, enum_map};
-use prjcombine_interconnect::db::IntDb;
+use prjcombine_interconnect::db::{Dir, IntDb};
 use prjcombine_interconnect::grid::{
     ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId, TileIobId,
 };
@@ -10,8 +9,8 @@ use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{
-    Chip, ChipKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart,
-    DspKind, HardKind, HardRowKind, Interposer, IoRowKind, RegId,
+    Chip, ChipKind, CleMKind, Column, ColumnKind, DisabledPart, DspKind, HardKind, HardRowKind,
+    Interposer, IoRowKind, RegId,
 };
 use crate::expanded::{ClkSrc, ExpandedDevice, GtCoord, HdioCoord, HpioCoord, IoCoord};
 
@@ -35,105 +34,58 @@ impl DieExpander<'_, '_, '_> {
                 )) {
                     continue;
                 }
-                if let Some(ps) = self.chip.ps {
-                    if col < ps.col && row.to_idx() < ps.height() {
-                        continue;
-                    }
+                if self.chip.in_int_hole(col, row) {
+                    continue;
                 }
-                self.die.fill_tile((col, row), "INT");
-                if row.to_idx() % 60 == 30 {
+                if self.chip.col_side(col) == Dir::W {
                     self.die
-                        .add_xnode((col, row), "RCLK_INT", &[(col, row), (col, row - 1)]);
-                }
-                match cd.l {
-                    ColumnKindLeft::CleL | ColumnKindLeft::CleM(_) => (),
-                    ColumnKindLeft::Bram(_) | ColumnKindLeft::Uram => {
-                        self.die.add_xnode((col, row), "INTF.W", &[(col, row)]);
+                        .add_xnode((col, row), "INT", &[(col, row), (col + 1, row)]);
+                    if row.to_idx() % 60 == 30 {
+                        self.die.add_xnode(
+                            (col, row),
+                            "RCLK_INT",
+                            &[
+                                (col, row),
+                                (col + 1, row),
+                                (col, row - 1),
+                                (col + 1, row - 1),
+                            ],
+                        );
                     }
-                    ColumnKindLeft::Gt(_) | ColumnKindLeft::Io(_) => {
-                        let cio = self
-                            .chip
-                            .cols_io
-                            .iter()
-                            .find(|x| x.col == col && x.side == ColSide::Left)
-                            .unwrap();
-                        let rk = cio.regs[self.chip.row_to_reg(row)];
+                }
+                match cd.kind {
+                    ColumnKind::CleL(_) | ColumnKind::CleM(_) => (),
+                    ColumnKind::Bram(_)
+                    | ColumnKind::Dsp(_)
+                    | ColumnKind::Uram
+                    | ColumnKind::ContUram => {
+                        self.die.add_xnode((col, row), "INTF", &[(col, row)]);
+                    }
+                    ColumnKind::Gt(_) | ColumnKind::Io(_) => {
+                        let iocol = self.chip.cols_io.iter().find(|x| x.col == col).unwrap();
+                        let rk = iocol.regs[self.chip.row_to_reg(row)];
                         match (self.chip.kind, rk) {
                             (_, IoRowKind::None) => (),
+
                             (
                                 ChipKind::UltrascalePlus,
                                 IoRowKind::Hpio | IoRowKind::Hrio | IoRowKind::HdioLc,
                             ) => {
-                                self.die.add_xnode((col, row), "INTF.W.IO", &[(col, row)]);
+                                self.die.add_xnode((col, row), "INTF.IO", &[(col, row)]);
                             }
                             _ => {
-                                self.die
-                                    .add_xnode((col, row), "INTF.W.DELAY", &[(col, row)]);
+                                self.die.add_xnode((col, row), "INTF.DELAY", &[(col, row)]);
                             }
                         }
                     }
-                    ColumnKindLeft::Hard(_, _)
-                    | ColumnKindLeft::Sdfec
-                    | ColumnKindLeft::DfeC
-                    | ColumnKindLeft::DfeDF
-                    | ColumnKindLeft::DfeE => {
-                        self.die
-                            .add_xnode((col, row), "INTF.W.DELAY", &[(col, row)]);
-                    }
-                }
-                match cd.r {
-                    ColumnKindRight::CleL(_) => (),
-                    ColumnKindRight::Dsp(_) | ColumnKindRight::Uram => {
-                        self.die.add_xnode((col, row), "INTF.E", &[(col, row)]);
-                    }
-                    ColumnKindRight::Gt(_) | ColumnKindRight::Io(_) => {
-                        let cio = self
-                            .chip
-                            .cols_io
-                            .iter()
-                            .find(|x| x.col == col && x.side == ColSide::Right)
-                            .unwrap();
-                        let rk = cio.regs[self.chip.row_to_reg(row)];
-                        match (self.chip.kind, rk) {
-                            (_, IoRowKind::None) => (),
-                            (ChipKind::Ultrascale, IoRowKind::Hpio | IoRowKind::Hrio) => {
-                                unreachable!()
-                            }
-                            (ChipKind::UltrascalePlus, IoRowKind::Hpio | IoRowKind::Hrio) => {
-                                self.die.add_xnode((col, row), "INTF.E.IO", &[(col, row)]);
-                            }
-                            _ => {
-                                self.die
-                                    .add_xnode((col, row), "INTF.E.DELAY", &[(col, row)]);
-                            }
-                        }
-                    }
-                    ColumnKindRight::Hard(_, _)
-                    | ColumnKindRight::DfeB
-                    | ColumnKindRight::DfeC
-                    | ColumnKindRight::DfeDF
-                    | ColumnKindRight::DfeE => {
-                        self.die
-                            .add_xnode((col, row), "INTF.E.DELAY", &[(col, row)]);
-                    }
-                }
-            }
-        }
-    }
-
-    fn fill_io_pass(&mut self) {
-        if self.chip.kind == ChipKind::UltrascalePlus {
-            for (col, &cd) in &self.chip.columns {
-                if matches!(cd.l, ColumnKindLeft::Io(_)) && col.to_idx() != 0 {
-                    for row in self.die.rows() {
-                        if self.disabled.contains(&DisabledPart::Region(
-                            self.die.die,
-                            self.chip.row_to_reg(row),
-                        )) {
-                            continue;
-                        }
-                        self.die
-                            .fill_term_pair((col - 1, row), (col, row), "IO.E", "IO.W");
+                    ColumnKind::Hard(_, _)
+                    | ColumnKind::DfeC
+                    | ColumnKind::DfeDF
+                    | ColumnKind::DfeE
+                    | ColumnKind::ContHard
+                    | ColumnKind::Sdfec
+                    | ColumnKind::DfeB => {
+                        self.die.add_xnode((col, row), "INTF.DELAY", &[(col, row)]);
                     }
                 }
             }
@@ -148,14 +100,18 @@ impl DieExpander<'_, '_, '_> {
                 let row_t = RowId::from_idx(height);
                 for dx in 0..width {
                     let col = ColId::from_idx(dx);
-                    self.die.fill_term((col, row_t), "TERM.S");
+                    self.die.fill_term(
+                        (col, row_t),
+                        &format!("TERM.S{side}", side = col.to_idx() % 2),
+                    );
                 }
             }
             for dy in 0..height {
                 let row = RowId::from_idx(dy);
                 self.die.fill_term((ps.col, row), "TERM.W");
+                self.die.fill_term((ps.col, row), "TERM.LW");
                 self.die
-                    .add_xnode((ps.col, row), "INTF.W.IO", &[(ps.col, row)]);
+                    .add_xnode((ps.col, row), "INTF.IO", &[(ps.col, row)]);
                 if dy % 60 == 30 {
                     self.die
                         .add_xnode((ps.col, row), "RCLK_PS", &[(ps.col, row)]);
@@ -178,95 +134,147 @@ impl DieExpander<'_, '_, '_> {
         let row_b = self.die.rows().next().unwrap();
         let row_t = self.die.rows().next_back().unwrap();
         for col in self.die.cols() {
-            if !self.die[(col, row_b)].nodes.is_empty() {
-                self.die.fill_term((col, row_b), "TERM.S");
+            let side = col.to_idx() % 2;
+            if !self.chip.in_int_hole(col, row_b)
+                && !self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row_b),
+                ))
+            {
+                self.die.fill_term((col, row_b), &format!("TERM.S{side}"));
             }
-            if !self.die[(col, row_t)].nodes.is_empty() {
-                self.die.fill_term((col, row_t), "TERM.N");
+            if !self.chip.in_int_hole(col, row_t)
+                && !self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row_t),
+                ))
+            {
+                self.die.fill_term((col, row_t), &format!("TERM.N{side}"));
             }
         }
         for row in self.die.rows() {
-            if !self.die[(col_l, row)].nodes.is_empty() {
+            if !self.chip.in_int_hole(col_l, row) {
                 self.die.fill_term((col_l, row), "TERM.W");
+                self.die.fill_term((col_l, row), "TERM.LW");
             }
-            if !self.die[(col_r, row)].nodes.is_empty() {
+            if !self.chip.in_int_hole(col_r, row) {
                 self.die.fill_term((col_r, row), "TERM.E");
+                self.die.fill_term((col_r - 1, row), "TERM.LE");
+            }
+        }
+    }
+
+    fn fill_main_passes(&mut self) {
+        for (col, &cd) in &self.chip.columns {
+            if col == self.chip.columns.first_id().unwrap() {
+                continue;
+            }
+            let is_io_mid = matches!(cd.kind, ColumnKind::Io(_))
+                && col != self.chip.columns.last_id().unwrap()
+                && self.chip.kind == ChipKind::UltrascalePlus;
+            for row in self.die.rows() {
+                if self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row),
+                )) {
+                    continue;
+                }
+                if self.chip.in_int_hole(col, row) || self.chip.in_int_hole(col - 1, row) {
+                    continue;
+                }
+                if is_io_mid {
+                    self.die
+                        .fill_term_pair((col - 1, row), (col, row), "IO.E", "IO.W");
+                    self.die
+                        .fill_term_pair((col - 2, row), (col, row), "IO.LE", "IO.LW");
+                } else {
+                    self.die
+                        .fill_term_pair((col - 1, row), (col, row), "MAIN.E", "MAIN.W");
+                    if self.chip.col_side(col) == Dir::W {
+                        self.die
+                            .fill_term_pair((col - 2, row), (col, row), "MAIN.LE", "MAIN.LW");
+                    }
+                }
+            }
+        }
+        for col in self.die.cols() {
+            for row in self.die.rows() {
+                if row == self.chip.rows().next_back().unwrap() {
+                    continue;
+                }
+                if self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row),
+                )) {
+                    continue;
+                }
+                if self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row + 1),
+                )) {
+                    continue;
+                }
+                if self.chip.in_int_hole(col, row) || self.chip.in_int_hole(col, row + 1) {
+                    continue;
+                }
+                self.die
+                    .fill_term_pair((col, row), (col, row + 1), "MAIN.N", "MAIN.S");
             }
         }
     }
 
     fn fill_clb(&mut self) {
         for (col, &cd) in &self.chip.columns {
-            if let Some(kind) = match cd.l {
-                ColumnKindLeft::CleL => Some("CLEL_L"),
-                ColumnKindLeft::CleM(_) => Some("CLEM"),
+            let Some(kind) = (match cd.kind {
+                ColumnKind::CleL(_) => Some("CLEL"),
+                ColumnKind::CleM(_) => Some("CLEM"),
                 _ => None,
-            } {
-                for row in self.die.rows() {
-                    let tile = &mut self.die[(col, row)];
-                    if let Some(ps) = self.chip.ps {
-                        if col == ps.col && row.to_idx() < ps.height() {
-                            continue;
-                        }
-                    }
-                    if tile.nodes.is_empty() {
-                        continue;
-                    }
-                    if cd.l == ColumnKindLeft::CleM(CleMKind::Laguna)
-                        && self.chip.is_laguna_row(row)
-                    {
-                        self.die.add_xnode((col, row), "LAGUNA", &[(col, row)]);
-                    } else {
-                        self.die.add_xnode((col, row), kind, &[(col, row)]);
-                    }
+            }) else {
+                continue;
+            };
+            for row in self.die.rows() {
+                if self.chip.in_site_hole(col, row) {
+                    continue;
                 }
-                for reg in self.chip.regs() {
-                    let row = self.chip.row_reg_rclk(reg);
-                    let tile = &mut self.die[(col, row)];
-                    if tile.nodes.is_empty() {
-                        continue;
-                    }
-                    if let Some(ps) = self.chip.ps {
-                        if col == ps.col && row.to_idx() < ps.height() {
-                            continue;
-                        }
-                    }
-                    if matches!(cd.l, ColumnKindLeft::CleM(CleMKind::ClkBuf)) {
-                        self.die
-                            .add_xnode((col, row), "RCLK_HROUTE_SPLITTER_L.CLE", &[]);
-                    } else if cd.l == ColumnKindLeft::CleM(CleMKind::Laguna)
-                        && self.chip.is_laguna_row(row)
-                    {
-                        if self.chip.kind == ChipKind::Ultrascale {
-                            continue;
-                        }
-                        self.die
-                            .add_xnode((col, row), "RCLK_V_SINGLE_L.LAG", &[(col, row)]);
-                    } else {
-                        self.die
-                            .add_xnode((col, row), "RCLK_V_SINGLE_L.CLE", &[(col, row)]);
-                    }
+                if self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row),
+                )) {
+                    continue;
+                }
+                if cd.kind == ColumnKind::CleM(CleMKind::Laguna) && self.chip.is_laguna_row(row) {
+                    self.die.add_xnode((col, row), "LAGUNA", &[(col, row)]);
+                } else {
+                    self.die.add_xnode((col, row), kind, &[(col, row)]);
                 }
             }
-            if matches!(cd.r, ColumnKindRight::CleL(_)) {
-                for row in self.die.rows() {
-                    let tile = &mut self.die[(col, row)];
-                    if tile.nodes.is_empty() {
-                        continue;
-                    }
-                    self.die.add_xnode((col, row), "CLEL_R", &[(col, row)]);
+            for reg in self.chip.regs() {
+                let row = self.chip.row_reg_rclk(reg);
+                if self.chip.in_site_hole(col, row) {
+                    continue;
                 }
-                for reg in self.chip.regs() {
-                    let row = self.chip.row_reg_rclk(reg);
-                    let tile = &mut self.die[(col, row)];
-                    if tile.nodes.is_empty() {
-                        continue;
-                    }
-                    if self.chip.kind == ChipKind::UltrascalePlus {
+                if self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row),
+                )) {
+                    continue;
+                }
+                if matches!(cd.kind, ColumnKind::CleM(CleMKind::ClkBuf)) {
+                    self.die
+                        .add_xnode((col, row), "RCLK_HROUTE_SPLITTER.CLE", &[]);
+                } else if cd.kind == ColumnKind::CleM(CleMKind::Laguna)
+                    && self.chip.is_laguna_row(row)
+                {
+                    if self.chip.kind == ChipKind::Ultrascale {
                         continue;
                     }
                     self.die
-                        .add_xnode((col, row), "RCLK_V_SINGLE_R.CLE", &[(col, row)]);
+                        .add_xnode((col, row), "RCLK_V_SINGLE.LAG", &[(col, row)]);
+                } else if self.chip.col_side(col) == Dir::W
+                    || self.chip.kind != ChipKind::UltrascalePlus
+                {
+                    self.die
+                        .add_xnode((col, row), "RCLK_V_SINGLE.CLE", &[(col, row)]);
                 }
             }
         }
@@ -274,15 +282,20 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_bram(&mut self) {
         for (col, &cd) in &self.chip.columns {
-            if !matches!(cd.l, ColumnKindLeft::Bram(_)) {
+            if !matches!(cd.kind, ColumnKind::Bram(_)) {
                 continue;
             }
             for row in self.die.rows() {
                 if row.to_idx() % 5 != 0 {
                     continue;
                 }
-                let tile = &mut self.die[(col, row)];
-                if tile.nodes.is_empty() {
+                if self.chip.in_site_hole(col, row) {
+                    continue;
+                }
+                if self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row),
+                )) {
                     continue;
                 }
                 self.die.add_xnode(
@@ -301,10 +314,10 @@ impl DieExpander<'_, '_, '_> {
 
                     if self.chip.kind == ChipKind::Ultrascale {
                         self.die
-                            .add_xnode((col, row), "RCLK_V_DOUBLE_L", &[(col, row)]);
+                            .add_xnode((col, row), "RCLK_V_DOUBLE.BRAM", &[(col, row)]);
                     } else {
                         self.die
-                            .add_xnode((col, row), "RCLK_V_QUAD_L.BRAM", &[(col, row)]);
+                            .add_xnode((col, row), "RCLK_V_QUAD.BRAM", &[(col, row)]);
                     }
                 }
             }
@@ -313,11 +326,20 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_dsp(&mut self) {
         for (col, &cd) in &self.chip.columns {
-            if !matches!(cd.r, ColumnKindRight::Dsp(_)) {
+            if !matches!(cd.kind, ColumnKind::Dsp(_)) {
                 continue;
             }
             for row in self.die.rows() {
                 if row.to_idx() % 5 != 0 {
+                    continue;
+                }
+                if self.chip.in_int_hole(col, row) {
+                    continue;
+                }
+                if self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row),
+                )) {
                     continue;
                 }
                 if self.chip.has_hbm && row.to_idx() < 15 {
@@ -332,10 +354,6 @@ impl DieExpander<'_, '_, '_> {
                     let crds: [_; 15] = core::array::from_fn(|i| (col, row + i));
                     self.die.add_xnode((col, row), "BLI", &crds);
                 } else {
-                    let tile = &mut self.die[(col, row)];
-                    if tile.nodes.is_empty() {
-                        continue;
-                    }
                     self.die.add_xnode(
                         (col, row),
                         "DSP",
@@ -351,15 +369,20 @@ impl DieExpander<'_, '_, '_> {
             }
             for reg in self.chip.regs() {
                 let row = self.chip.row_reg_rclk(reg);
-                let tile = &mut self.die[(col, row)];
-                if tile.nodes.is_empty() {
+                if self.chip.in_int_hole(col, row) {
                     continue;
                 }
-                if matches!(cd.r, ColumnKindRight::Dsp(DspKind::ClkBuf)) {
+                if self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row),
+                )) {
+                    continue;
+                }
+                if matches!(cd.kind, ColumnKind::Dsp(DspKind::ClkBuf)) {
                     self.die.add_xnode((col, row), "RCLK_SPLITTER", &[]);
                 } else {
                     self.die
-                        .add_xnode((col, row), "RCLK_V_DOUBLE_R", &[(col, row)]);
+                        .add_xnode((col, row), "RCLK_V_DOUBLE.DSP", &[(col, row)]);
                 }
             }
         }
@@ -367,15 +390,20 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_uram(&mut self) {
         for (col, &cd) in &self.chip.columns {
-            if cd.r != ColumnKindRight::Uram {
+            if cd.kind != ColumnKind::Uram {
                 continue;
             }
             for row in self.die.rows() {
                 if row.to_idx() % 15 != 0 {
                     continue;
                 }
-                let tile = &mut self.die[(col, row)];
-                if tile.nodes.is_empty() {
+                if self.chip.in_int_hole(col, row) {
+                    continue;
+                }
+                if self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.chip.row_to_reg(row),
+                )) {
                     continue;
                 }
                 let mut crds = vec![];
@@ -388,7 +416,7 @@ impl DieExpander<'_, '_, '_> {
                 self.die.add_xnode((col, row), "URAM", &crds);
                 if row.to_idx() % 60 == 30 {
                     self.die
-                        .add_xnode((col + 1, row), "RCLK_V_QUAD_L.URAM", &[(col + 1, row)]);
+                        .add_xnode((col + 1, row), "RCLK_V_QUAD.URAM", &[(col + 1, row)]);
                 }
             }
         }
@@ -407,8 +435,7 @@ impl DieExpander<'_, '_, '_> {
         let nk = match kind {
             HardRowKind::None => return,
             HardRowKind::Hdio | HardRowKind::HdioAms => {
-                let col = col - 1;
-                for (i, nk) in ["HDIO_BOT", "HDIO_TOP"].into_iter().enumerate() {
+                for (i, nk) in ["HDIO_S", "HDIO_N"].into_iter().enumerate() {
                     let row = row + i * 30;
                     let crds: [_; 30] = core::array::from_fn(|i| (col, row + i));
                     self.die.add_xnode((col, row), nk, &crds);
@@ -427,8 +454,7 @@ impl DieExpander<'_, '_, '_> {
                 return;
             }
             HardRowKind::HdioLc => {
-                let col = col - 1;
-                for (i, nk) in ["HDIOLC_R_BOT", "HDIOLC_R_TOP"].into_iter().enumerate() {
+                for (i, nk) in ["HDIOLC_S", "HDIOLC_N"].into_iter().enumerate() {
                     let row = row + i * 30;
                     let crds: [_; 30] = core::array::from_fn(|i| (col, row + i));
                     self.die.add_xnode((col, row), nk, &crds);
@@ -443,35 +469,28 @@ impl DieExpander<'_, '_, '_> {
                     }
                 }
                 let crds: [_; 60] = core::array::from_fn(|i| (col, row + i));
-                self.die.add_xnode((col, row + 30), "RCLK_HDIOLC_R", &crds);
+                self.die.add_xnode((col, row + 30), "RCLK_HDIOLC", &crds);
                 return;
             }
             HardRowKind::Cfg => {
-                if self.chip.has_csec {
+                let kind = if self.chip.has_csec {
                     "CFG_CSEC"
                 } else {
                     "CFG"
-                }
+                };
+                let crds: [_; 60] = core::array::from_fn(|i| (col, row + i));
+                self.die.add_xnode((col, row), kind, &crds);
+                self.die
+                    .add_xnode((col, row + 30), "RCLK_HROUTE_SPLITTER.HARD", &[]);
+                return;
             }
             HardRowKind::Ams => {
-                let crds: [_; 60] = core::array::from_fn(|i| {
-                    if i < 30 {
-                        (col - 1, row + i)
-                    } else {
-                        (col, row + (i - 30))
-                    }
-                });
+                let crds: [_; 30] = core::array::from_fn(|i| (col, row + i));
                 self.die.add_xnode((col, row), "CFGIO", &crds);
                 let row = row + 30;
                 self.die
-                    .add_xnode((col, row), "RCLK_HROUTE_SPLITTER_L.HARD", &[]);
-                let crds: [_; 60] = core::array::from_fn(|i| {
-                    if i < 30 {
-                        (col - 1, row + i)
-                    } else {
-                        (col, row + (i - 30))
-                    }
-                });
+                    .add_xnode((col, row), "RCLK_HROUTE_SPLITTER.HARD", &[]);
+                let crds: [_; 30] = core::array::from_fn(|i| (col, row + i));
                 self.die.add_xnode((col, row), "AMS", &crds);
                 return;
             }
@@ -489,12 +508,12 @@ impl DieExpander<'_, '_, '_> {
             HardRowKind::DfeG => "DFE_G",
         };
         self.die
-            .add_xnode((col, row + 30), "RCLK_HROUTE_SPLITTER_L.HARD", &[]);
+            .add_xnode((col, row + 30), "RCLK_HROUTE_SPLITTER.HARD", &[]);
         let crds: [_; 120] = core::array::from_fn(|i| {
             if i < 60 {
-                (col - 1, row + i)
+                (col, row + i)
             } else {
-                (col, row + (i - 60))
+                (col + 1, row + (i - 60))
             }
         });
         self.die.add_xnode((col, row), nk, &crds);
@@ -540,7 +559,6 @@ impl DieExpander<'_, '_, '_> {
                             self.io.push(IoCoord::Hpio(HpioCoord {
                                 die,
                                 col: ioc.col,
-                                side: ioc.side,
                                 reg,
                                 iob: TileIobId::from_idx(idx),
                             }));
@@ -570,63 +588,35 @@ impl DieExpander<'_, '_, '_> {
                             }
                         } else {
                             let is_hbm = self.chip.has_hbm && reg.to_idx() == 0;
-                            let kind = if ioc.side == ColSide::Right {
-                                "CMT_R"
-                            } else if is_hbm {
-                                "CMT_L_HBM"
-                            } else {
-                                "CMT_L"
-                            };
+                            let kind = if is_hbm { "CMT_HBM" } else { "CMT" };
                             self.die.add_xnode((ioc.col, row), kind, &crds);
 
-                            let kind = if ioc.side == ColSide::Right {
-                                "RCLK_XIPHY_R"
-                            } else {
-                                "RCLK_XIPHY_L"
-                            };
-                            self.die.add_xnode((ioc.col, row), kind, &[]);
+                            self.die.add_xnode((ioc.col, row), "RCLK_XIPHY", &[]);
 
                             for i in 0..4 {
-                                let kind = if ioc.side == ColSide::Right {
-                                    "XIPHY_R"
-                                } else {
-                                    "XIPHY_L"
-                                };
                                 let row = self.chip.row_reg_bot(reg) + i * 15;
                                 self.die.add_xnode(
                                     (ioc.col, row),
-                                    kind,
+                                    "XIPHY",
                                     &crds[i * 15..i * 15 + 15],
                                 );
                             }
 
                             for i in 0..2 {
-                                let kind = if ioc.side == ColSide::Right {
-                                    "HPIO_R"
-                                } else {
-                                    "HPIO_L"
-                                };
                                 let row = self.chip.row_reg_bot(reg) + i * 30;
                                 self.die.add_xnode(
                                     (ioc.col, row),
-                                    kind,
+                                    "HPIO",
                                     &crds[i * 30..i * 30 + 30],
                                 );
                             }
-
-                            let kind = if ioc.side == ColSide::Left {
-                                "RCLK_HPIO_L"
-                            } else {
-                                "RCLK_HPIO_R"
-                            };
-                            self.die.add_xnode((ioc.col, row), kind, &crds);
+                            self.die.add_xnode((ioc.col, row), "RCLK_HPIO", &crds);
                         }
                     }
                     IoRowKind::HdioLc => {
                         let col = ioc.col;
                         let row = self.chip.row_reg_rclk(reg);
-                        let crds: [_; 60] = core::array::from_fn(|i| (ioc.col, row - 30 + i));
-                        for (i, nk) in ["HDIOLC_L_BOT", "HDIOLC_L_TOP"].into_iter().enumerate() {
+                        for (i, nk) in ["HDIOLC_S", "HDIOLC_N"].into_iter().enumerate() {
                             let row = row - 30 + i * 30;
                             let crds: [_; 30] = core::array::from_fn(|i| (col, row + i));
                             self.die.add_xnode((col, row), nk, &crds);
@@ -640,32 +630,28 @@ impl DieExpander<'_, '_, '_> {
                                 }));
                             }
                         }
-                        self.die.add_xnode((col, row), "CMT_L", &crds);
-                        self.die.add_xnode((col, row), "RCLK_HDIOLC_L", &crds);
+                        let crds: [_; 60] = core::array::from_fn(|i| (ioc.col, row - 30 + i));
+                        self.die.add_xnode((col, row), "CMT", &crds);
+                        self.die.add_xnode((col, row), "RCLK_HDIOLC", &crds);
                     }
                     _ => {
                         let row = self.chip.row_reg_rclk(reg);
                         let crds: [_; 60] = core::array::from_fn(|i| (ioc.col, row - 30 + i));
-                        let nk = match (kind, ioc.side) {
-                            (IoRowKind::Gth, ColSide::Left) => "GTH_L",
-                            (IoRowKind::Gth, ColSide::Right) => "GTH_R",
-                            (IoRowKind::Gty, ColSide::Left) => "GTY_L",
-                            (IoRowKind::Gty, ColSide::Right) => "GTY_R",
-                            (IoRowKind::Gtf, ColSide::Left) => "GTF_L",
-                            (IoRowKind::Gtf, ColSide::Right) => "GTF_R",
-                            (IoRowKind::Gtm, ColSide::Left) => "GTM_L",
-                            (IoRowKind::Gtm, ColSide::Right) => "GTM_R",
-                            (IoRowKind::HsAdc, ColSide::Right) => "HSADC_R",
-                            (IoRowKind::HsDac, ColSide::Right) => "HSDAC_R",
-                            (IoRowKind::RfAdc, ColSide::Right) => "RFADC_R",
-                            (IoRowKind::RfDac, ColSide::Right) => "RFDAC_R",
+                        let nk = match kind {
+                            IoRowKind::Gth => "GTH",
+                            IoRowKind::Gty => "GTY",
+                            IoRowKind::Gtf => "GTF",
+                            IoRowKind::Gtm => "GTM",
+                            IoRowKind::HsAdc => "HSADC",
+                            IoRowKind::HsDac => "HSDAC",
+                            IoRowKind::RfAdc => "RFADC",
+                            IoRowKind::RfDac => "RFDAC",
                             _ => unreachable!(),
                         };
                         self.die.add_xnode((ioc.col, row), nk, &crds);
                         self.gt.push(GtCoord {
                             die,
                             col: ioc.col,
-                            side: ioc.side,
                             reg,
                         });
                     }
@@ -676,29 +662,30 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_fe(&mut self) {
         for (col, &cd) in &self.chip.columns {
-            if cd.l == ColumnKindLeft::Sdfec {
-                for reg in self.chip.regs() {
-                    if self
-                        .disabled
-                        .contains(&DisabledPart::Region(self.die.die, reg))
-                    {
-                        continue;
-                    }
-                    let row = self.chip.row_reg_bot(reg);
-                    let crds: [_; 60] = core::array::from_fn(|i| (col, row + i));
-                    self.die.add_xnode((col, row), "FE", &crds);
+            if cd.kind != ColumnKind::Sdfec {
+                continue;
+            }
+            for reg in self.chip.regs() {
+                if self
+                    .disabled
+                    .contains(&DisabledPart::Region(self.die.die, reg))
+                {
+                    continue;
                 }
+                let row = self.chip.row_reg_bot(reg);
+                let crds: [_; 60] = core::array::from_fn(|i| (col, row + i));
+                self.die.add_xnode((col, row), "FE", &crds);
             }
         }
     }
 
     fn fill_dfe(&mut self) {
         for (col, &cd) in &self.chip.columns {
-            let (kind, bi) = match cd.r {
-                ColumnKindRight::DfeB => ("DFE_B", false),
-                ColumnKindRight::DfeC => ("DFE_C", true),
-                ColumnKindRight::DfeDF => ("DFE_D", true),
-                ColumnKindRight::DfeE => ("DFE_E", true),
+            let (kind, bi) = match cd.kind {
+                ColumnKind::DfeB => ("DFE_B", false),
+                ColumnKind::DfeC => ("DFE_C", true),
+                ColumnKind::DfeDF => ("DFE_D", true),
+                ColumnKind::DfeE => ("DFE_E", true),
                 _ => continue,
             };
             for reg in self.chip.regs() {
@@ -708,16 +695,9 @@ impl DieExpander<'_, '_, '_> {
                 } else {
                     kind
                 };
-                if matches!(cd.r, ColumnKindRight::DfeB | ColumnKindRight::DfeE) {
-                    self.die.add_xnode(
-                        (if bi { col + 1 } else { col }, row + 30),
-                        if bi {
-                            "RCLK_HROUTE_SPLITTER_L.HARD"
-                        } else {
-                            "RCLK_HROUTE_SPLITTER_R.HARD"
-                        },
-                        &[],
-                    );
+                if matches!(cd.kind, ColumnKind::DfeB | ColumnKind::DfeE) {
+                    self.die
+                        .add_xnode((col, row + 30), "RCLK_HROUTE_SPLITTER.HARD", &[]);
                 }
                 let crds: [_; 120] = core::array::from_fn(|i| {
                     if i < 60 {
@@ -726,11 +706,8 @@ impl DieExpander<'_, '_, '_> {
                         (col + 1, row + (i - 60))
                     }
                 });
-                self.die.add_xnode(
-                    (if bi { col + 1 } else { col }, row),
-                    kind,
-                    if bi { &crds } else { &crds[..60] },
-                );
+                self.die
+                    .add_xnode((col, row), kind, if bi { &crds } else { &crds[..60] });
             }
         }
     }
@@ -751,48 +728,36 @@ impl DieExpander<'_, '_, '_> {
 
 pub fn fill_clk_src(
     columns: &EntityVec<ColId, Column>,
-) -> (
-    EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
-    EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
-) {
+) -> (EntityVec<ColId, ClkSrc>, EntityVec<ColId, ClkSrc>) {
     let mut hroute_src = vec![];
     let mut hdistr_src = vec![];
     let mut hd = ClkSrc::Gt(columns.last_id().unwrap());
     let mut hr = ClkSrc::Gt(columns.last_id().unwrap());
-    if matches!(columns.last().unwrap().r, ColumnKindRight::Hard(_, _)) {
+    if matches!(columns.last().unwrap().kind, ColumnKind::Hard(_, _)) {
         hd = ClkSrc::RightHdio(columns.last_id().unwrap());
         hr = ClkSrc::RightHdio(columns.last_id().unwrap());
     }
     for (col, &cd) in columns.iter().rev() {
-        let rhd = hd;
-        let rhr = hr;
-        match cd.r {
-            ColumnKindRight::Dsp(DspKind::ClkBuf) => {
+        hroute_src.push(hr);
+        hdistr_src.push(hd);
+        match cd.kind {
+            ColumnKind::CleM(CleMKind::ClkBuf)
+            | ColumnKind::Hard(_, _)
+            | ColumnKind::DfeE
+            | ColumnKind::DfeB => {
+                if col != columns.last_id().unwrap() {
+                    hr = ClkSrc::RouteSplitter(col);
+                }
+            }
+            ColumnKind::Dsp(DspKind::ClkBuf) => {
                 hd = ClkSrc::DspSplitter(col);
                 hr = ClkSrc::DspSplitter(col);
             }
-            ColumnKindRight::DfeB => {
-                hr = ClkSrc::RouteSplitter(col);
-            }
-            _ => (),
-        }
-        hroute_src.push(enum_map! {
-            ColSide::Left => hr,
-            ColSide::Right => rhr,
-        });
-        hdistr_src.push(enum_map! {
-            ColSide::Left => hd,
-            ColSide::Right => rhd,
-        });
-        match cd.l {
-            ColumnKindLeft::CleM(CleMKind::ClkBuf)
-            | ColumnKindLeft::Hard(_, _)
-            | ColumnKindLeft::DfeE => {
-                hr = ClkSrc::RouteSplitter(col);
-            }
-            ColumnKindLeft::Io(_) => {
-                hr = ClkSrc::Cmt(col);
-                hd = ClkSrc::Cmt(col);
+            ColumnKind::Io(_) => {
+                if col != columns.last_id().unwrap() {
+                    hr = ClkSrc::Cmt(col);
+                    hd = ClkSrc::Cmt(col);
+                }
             }
             _ => (),
         }
@@ -825,10 +790,9 @@ pub fn expand_grid<'a>(
             gt: &mut gt,
         };
         expander.fill_int();
-        expander.fill_io_pass();
         expander.fill_ps();
         expander.fill_term();
-        expander.die.fill_main_passes();
+        expander.fill_main_passes();
         expander.fill_clb();
         expander.fill_bram();
         expander.fill_dsp();
@@ -853,15 +817,12 @@ pub fn expand_grid<'a>(
 
     let mut col_cfg_io = None;
     for (col, &cd) in &pchip.columns {
-        if let ColumnKindLeft::Io(_) = cd.l {
-            col_cfg_io = Some((col, ColSide::Left));
-        }
-        if let ColumnKindRight::Io(_) = cd.r {
-            if col_cfg_io.is_none() {
-                col_cfg_io = Some((col, ColSide::Right));
+        if let ColumnKind::Io(_) = cd.kind {
+            if col_cfg_io.is_none() || pchip.col_side(col) == Dir::W {
+                col_cfg_io = Some(col);
             }
         }
-        if let ColumnKindRight::Hard(HardKind::Term, idx) = cd.r {
+        if let ColumnKind::Hard(HardKind::Term, idx) = cd.kind {
             let mut has_hdiolc = false;
             for chip in chips.values() {
                 if chip.cols_hard[idx]
@@ -873,7 +834,7 @@ pub fn expand_grid<'a>(
                 }
             }
             if has_hdiolc {
-                col_cfg_io = Some((col, ColSide::Right));
+                col_cfg_io = Some(col);
             }
         }
     }
@@ -883,16 +844,12 @@ pub fn expand_grid<'a>(
     let mut bankxlut = EntityPartVec::new();
     let mut iox = 0;
     for (col, &cd) in &pchip.columns {
-        if let ColumnKindLeft::Io(_) = cd.l {
-            ioxlut.insert(col, iox);
-            iox += 1;
-        }
-        match cd.r {
-            ColumnKindRight::Io(_) => {
+        match cd.kind {
+            ColumnKind::Io(_) => {
                 ioxlut.insert(col, iox);
                 iox += 1;
             }
-            ColumnKindRight::Hard(_, idx) => {
+            ColumnKind::Hard(_, idx) => {
                 let regs = &pchip.cols_hard[idx].regs;
                 if regs.values().any(|x| {
                     matches!(
@@ -907,7 +864,7 @@ pub fn expand_grid<'a>(
             _ => (),
         }
     }
-    let iox_cfg = ioxlut[col_cfg_io.0];
+    let iox_cfg = ioxlut[col_cfg_io];
     for (col, &iox) in &ioxlut {
         let mut bank = (40 + iox * 20 - iox_cfg * 20) as u32;
         if col.to_idx() == 0
@@ -976,11 +933,7 @@ pub fn expand_grid<'a>(
     let mut cfg_io = EntityVec::new();
     for (die, &chip) in chips {
         let mut die_cfg_io = BiHashMap::new();
-        if let Some(iocol) = chip
-            .cols_io
-            .iter()
-            .find(|iocol| (iocol.col, iocol.side) == col_cfg_io)
-        {
+        if let Some(iocol) = chip.cols_io.iter().find(|iocol| iocol.col == col_cfg_io) {
             if matches!(
                 iocol.regs[chip.reg_cfg()],
                 IoRowKind::Hpio | IoRowKind::Hrio
@@ -1108,7 +1061,6 @@ pub fn expand_grid<'a>(
                             IoCoord::Hpio(HpioCoord {
                                 die,
                                 col: iocol.col,
-                                side: iocol.side,
                                 reg: chip.reg_cfg(),
                                 iob: TileIobId::from_idx(idx),
                             }),
@@ -1120,7 +1072,7 @@ pub fn expand_grid<'a>(
             let hcol = chip
                 .cols_hard
                 .iter()
-                .find(|hcol| hcol.col == col_cfg_io.0 + 1)
+                .find(|hcol| hcol.col == col_cfg_io)
                 .unwrap();
             for idx in 0..84 {
                 if let Some(cfg) = match idx {
@@ -1169,7 +1121,7 @@ pub fn expand_grid<'a>(
                         cfg,
                         IoCoord::HdioLc(HdioCoord {
                             die,
-                            col: hcol.col - 1,
+                            col: hcol.col,
                             reg: chip.reg_cfg(),
                             iob: TileIobId::from_idx(idx),
                         }),

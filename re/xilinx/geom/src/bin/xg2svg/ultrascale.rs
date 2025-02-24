@@ -1,7 +1,5 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
-use prjcombine_ultrascale::chip::{
-    CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, HardRowKind, IoRowKind,
-};
+use prjcombine_ultrascale::chip::{CleMKind, ColumnKind, HardRowKind, IoRowKind};
 use prjcombine_ultrascale::expanded::ExpandedDevice;
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -31,32 +29,22 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             x += W_BRK;
         }
         let xl = x;
-        let w = match cd.l {
-            ColumnKindLeft::CleL | ColumnKindLeft::CleM(_) => W_CLB,
-            ColumnKindLeft::Bram(_) => W_BRAM,
-            ColumnKindLeft::Io(_) | ColumnKindLeft::Gt(_) => W_IO,
-            ColumnKindLeft::Uram
-            | ColumnKindLeft::Hard(_, _)
-            | ColumnKindLeft::DfeC
-            | ColumnKindLeft::DfeDF
-            | ColumnKindLeft::DfeE => 0.,
-            ColumnKindLeft::Sdfec => W_HARD,
+        let w = match cd.kind {
+            ColumnKind::CleL(_) | ColumnKind::CleM(_) => W_CLB,
+            ColumnKind::Bram(_) => W_BRAM,
+            ColumnKind::Dsp(_) => W_DSP,
+            ColumnKind::Io(_) | ColumnKind::Gt(_) => W_IO,
+            ColumnKind::Uram => W_URAM,
+            ColumnKind::Hard(_, _)
+            | ColumnKind::DfeB
+            | ColumnKind::DfeC
+            | ColumnKind::DfeDF
+            | ColumnKind::DfeE
+            | ColumnKind::Sdfec => W_HARD,
+            ColumnKind::ContUram | ColumnKind::ContHard => 0.0,
         };
         x += w;
-        let xm = x;
-        let w = match cd.r {
-            ColumnKindRight::CleL(_) => W_CLB,
-            ColumnKindRight::Dsp(_) => W_DSP,
-            ColumnKindRight::Io(_) | ColumnKindRight::Gt(_) => W_IO,
-            ColumnKindRight::DfeB
-            | ColumnKindRight::DfeC
-            | ColumnKindRight::DfeDF
-            | ColumnKindRight::DfeE
-            | ColumnKindRight::Hard(_, _) => W_HARD,
-            ColumnKindRight::Uram => W_URAM,
-        };
-        x += w;
-        col_x.push((xl, xm, x));
+        col_x.push((xl, x));
     }
     x += W_TERM;
     let width = x;
@@ -124,17 +112,17 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
 
     for (die, grid) in &edev.chips {
         for (col, &cd) in &grid.columns {
-            match cd.l {
-                ColumnKindLeft::CleL | ColumnKindLeft::CleM(_) => {
+            match cd.kind {
+                ColumnKind::CleL(_) | ColumnKind::CleM(_) => {
                     for row in grid.rows() {
-                        let kind = match cd.l {
-                            ColumnKindLeft::CleL => "clel",
-                            ColumnKindLeft::CleM(CleMKind::Laguna) if grid.is_laguna_row(row) => {
+                        let kind = match cd.kind {
+                            ColumnKind::CleL(_) => "clel",
+                            ColumnKind::CleM(CleMKind::Laguna) if grid.is_laguna_row(row) => {
                                 "laguna"
                             }
                             _ => "clem",
                         };
-                        if edev.in_site_hole(die, col, row, ColSide::Left) {
+                        if edev.in_site_hole(die, col, row) {
                             continue;
                         }
                         drawer.bel_rect(
@@ -146,9 +134,9 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         )
                     }
                 }
-                ColumnKindLeft::Bram(_) => {
+                ColumnKind::Bram(_) => {
                     for row in grid.rows().step_by(5) {
-                        if edev.in_site_hole(die, col, row, ColSide::Left) {
+                        if edev.in_site_hole(die, col, row) {
                             continue;
                         }
                         drawer.bel_rect(
@@ -160,8 +148,35 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         )
                     }
                 }
-
-                ColumnKindLeft::Io(idx) | ColumnKindLeft::Gt(idx) => {
+                ColumnKind::Dsp(_) => {
+                    for row in grid.rows().step_by(5) {
+                        if edev.in_site_hole(die, col, row) {
+                            continue;
+                        }
+                        drawer.bel_rect(
+                            col_x[col].0,
+                            col_x[col].1,
+                            row_y[die][row].0,
+                            row_y[die][row + 4].1,
+                            "dsp",
+                        )
+                    }
+                }
+                ColumnKind::Uram => {
+                    for row in grid.rows().step_by(15) {
+                        if edev.in_site_hole(die, col, row) {
+                            continue;
+                        }
+                        drawer.bel_rect(
+                            col_x[col].0,
+                            col_x[col].1,
+                            row_y[die][row].0,
+                            row_y[die][row + 14].1,
+                            "uram",
+                        )
+                    }
+                }
+                ColumnKind::Io(idx) | ColumnKind::Gt(idx) => {
                     for (reg, kind) in &grid.cols_io[idx].regs {
                         let kind = match kind {
                             IoRowKind::None => continue,
@@ -186,7 +201,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         )
                     }
                 }
-                ColumnKindLeft::Sdfec => {
+                ColumnKind::Sdfec => {
                     for reg in grid.regs() {
                         drawer.bel_rect(
                             col_x[col].0,
@@ -197,88 +212,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         )
                     }
                 }
-                _ => (),
-            }
-            match cd.r {
-                ColumnKindRight::CleL(_) => {
-                    for row in grid.rows() {
-                        if edev.in_site_hole(die, col, row, ColSide::Right) {
-                            continue;
-                        }
-                        drawer.bel_rect(
-                            col_x[col].1,
-                            col_x[col].2,
-                            row_y[die][row].0,
-                            row_y[die][row].1,
-                            "clel",
-                        )
-                    }
-                }
-                ColumnKindRight::Dsp(_) => {
-                    for row in grid.rows().step_by(5) {
-                        if edev.in_site_hole(die, col, row, ColSide::Right) {
-                            continue;
-                        }
-                        drawer.bel_rect(
-                            col_x[col].1,
-                            col_x[col].2,
-                            row_y[die][row].0,
-                            row_y[die][row + 4].1,
-                            "dsp",
-                        )
-                    }
-                }
-                ColumnKindRight::Io(idx) | ColumnKindRight::Gt(idx) => {
-                    for (reg, kind) in &grid.cols_io[idx].regs {
-                        let kind = match kind {
-                            IoRowKind::None => continue,
-                            IoRowKind::Hpio => "hpio",
-                            IoRowKind::Hrio => "hrio",
-                            IoRowKind::HdioLc => "hdiolc",
-                            IoRowKind::Gth => "gth",
-                            IoRowKind::Gty => "gty",
-                            IoRowKind::Gtm => "gtm",
-                            IoRowKind::Gtf => "gtf",
-                            IoRowKind::HsAdc => "hsadc",
-                            IoRowKind::HsDac => "hsdac",
-                            IoRowKind::RfAdc => "rfadc",
-                            IoRowKind::RfDac => "rfdac",
-                        };
-                        drawer.bel_rect(
-                            col_x[col].1,
-                            col_x[col].2,
-                            row_y[die][grid.row_reg_bot(reg)].0,
-                            row_y[die][grid.row_reg_bot(reg + 1) - 1].1,
-                            kind,
-                        )
-                    }
-                }
-                ColumnKindRight::DfeB => {
-                    for reg in grid.regs() {
-                        drawer.bel_rect(
-                            col_x[col].1,
-                            col_x[col].2,
-                            row_y[die][grid.row_reg_bot(reg)].0,
-                            row_y[die][grid.row_reg_bot(reg + 1) - 1].1,
-                            "dfeb",
-                        )
-                    }
-                }
-                ColumnKindRight::Uram => {
-                    for row in grid.rows().step_by(15) {
-                        if edev.in_site_hole(die, col, row, ColSide::Left) {
-                            continue;
-                        }
-                        drawer.bel_rect(
-                            col_x[col].1,
-                            col_x[col].2,
-                            row_y[die][row].0,
-                            row_y[die][row + 14].1,
-                            "uram",
-                        )
-                    }
-                }
-                ColumnKindRight::Hard(_, idx) => {
+                ColumnKind::Hard(_, idx) => {
                     for (reg, kind) in &grid.cols_hard[idx].regs {
                         let kind = match kind {
                             HardRowKind::Cfg => "cfg",
@@ -293,37 +227,39 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             HardRowKind::DfeG => "dfeg",
                         };
                         drawer.bel_rect(
+                            col_x[col].0,
                             col_x[col].1,
-                            col_x[col].2,
                             row_y[die][grid.row_reg_bot(reg)].0,
                             row_y[die][grid.row_reg_bot(reg + 1) - 1].1,
                             kind,
                         )
                     }
                 }
-                ColumnKindRight::DfeC | ColumnKindRight::DfeDF | ColumnKindRight::DfeE => {
+                ColumnKind::DfeB | ColumnKind::DfeC | ColumnKind::DfeDF | ColumnKind::DfeE => {
                     for reg in grid.regs() {
-                        let kind = match cd.r {
-                            ColumnKindRight::DfeC => "dfec",
-                            ColumnKindRight::DfeDF => {
+                        let kind = match cd.kind {
+                            ColumnKind::DfeB => "dfeb",
+                            ColumnKind::DfeC => "dfec",
+                            ColumnKind::DfeDF => {
                                 if reg.to_idx() == 2 {
                                     "dfef"
                                 } else {
                                     "dfed"
                                 }
                             }
-                            ColumnKindRight::DfeE => "dfee",
+                            ColumnKind::DfeE => "dfee",
                             _ => unreachable!(),
                         };
                         drawer.bel_rect(
+                            col_x[col].0,
                             col_x[col].1,
-                            col_x[col].2,
                             row_y[die][grid.row_reg_bot(reg)].0,
                             row_y[die][grid.row_reg_bot(reg + 1) - 1].1,
                             kind,
                         )
                     }
                 }
+                ColumnKind::ContUram | ColumnKind::ContHard => (),
             }
         }
         if let Some(ps) = grid.ps {
@@ -358,18 +294,18 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 (col_x[col_l].0, row_y[die][row_b].0),
             ];
             for (col, cd) in &grid.columns {
-                if matches!(cd.r, ColumnKindRight::Dsp(_)) {
+                if matches!(cd.kind, ColumnKind::Dsp(_)) {
                     points.extend([
-                        (col_x[col].1, row_y[die][row_b].0),
+                        (col_x[col].0, row_y[die][row_b].0),
+                        (col_x[col].0, row_y[die][row_b + 14].1),
                         (col_x[col].1, row_y[die][row_b + 14].1),
-                        (col_x[col].2, row_y[die][row_b + 14].1),
-                        (col_x[col].2, row_y[die][row_b].0),
+                        (col_x[col].1, row_y[die][row_b].0),
                     ]);
                 }
             }
             points.extend([
-                (col_x[col_r].2, row_y[die][row_b].0),
-                (col_x[col_r].2, row_y[die][row_b].0 - H_HBM),
+                (col_x[col_r].1, row_y[die][row_b].0),
+                (col_x[col_r].1, row_y[die][row_b].0 - H_HBM),
             ]);
             drawer.bel_poly(points, "hbm");
         }

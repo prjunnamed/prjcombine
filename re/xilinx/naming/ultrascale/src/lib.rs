@@ -1,14 +1,14 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use prjcombine_interconnect::{
-    db::{NodeKind, NodeKindId},
-    grid::{ColId, DieId, ExpandedGrid, RowId},
+    db::Dir,
+    grid::{ColId, DieId, RowId},
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_ultrascale::{
     chip::{
-        BramKind, ChipKind, CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DisabledPart,
-        DspKind, HardKind, HardRowKind, IoRowKind, PsIntfKind, RegId,
+        BramKind, ChipKind, CleMKind, ColumnKind, DisabledPart, DspKind, HardKind, HardRowKind,
+        IoRowKind, PsIntfKind, RegId,
     },
     expanded::{ExpandedDevice, GtCoord, IoCoord},
 };
@@ -18,59 +18,6 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeviceNaming {
     pub rclk_alt_pins: BTreeMap<String, bool>,
-}
-
-#[derive(Clone, Debug)]
-struct BelMultiGridBi {
-    pub xlut_l: EntityPartVec<ColId, usize>,
-    pub xlut_r: EntityPartVec<ColId, usize>,
-    pub ylut: EntityVec<DieId, EntityPartVec<RowId, usize>>,
-}
-
-impl BelMultiGridBi {
-    pub fn new(
-        egrid: &ExpandedGrid,
-        fl: impl Fn(NodeKindId, &str, &NodeKind) -> bool,
-        fr: impl Fn(NodeKindId, &str, &NodeKind) -> bool,
-    ) -> Self {
-        let mut cols = BTreeSet::new();
-        let mut rows = BTreeSet::new();
-        for (kind, name, node) in &egrid.db.nodes {
-            if fl(kind, name, node) {
-                for &nloc in &egrid.node_index[kind] {
-                    cols.insert((nloc.1, ColSide::Left));
-                    rows.insert((nloc.0, nloc.2));
-                }
-            }
-            if fr(kind, name, node) {
-                for &nloc in &egrid.node_index[kind] {
-                    cols.insert((nloc.1, ColSide::Right));
-                    rows.insert((nloc.0, nloc.2));
-                }
-            }
-        }
-        let mut xlut_l = EntityPartVec::new();
-        let mut xlut_r = EntityPartVec::new();
-        let mut ylut: EntityVec<_, _> = egrid.die.ids().map(|_| EntityPartVec::new()).collect();
-        for (i, (col, side)) in cols.into_iter().enumerate() {
-            match side {
-                ColSide::Left => {
-                    xlut_l.insert(col, i);
-                }
-                ColSide::Right => {
-                    xlut_r.insert(col, i);
-                }
-            }
-        }
-        for (i, (die, row)) in rows.into_iter().enumerate() {
-            ylut[die].insert(row, i);
-        }
-        BelMultiGridBi {
-            xlut_l,
-            xlut_r,
-            ylut,
-        }
-    }
 }
 
 struct Asx {
@@ -100,14 +47,14 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
     let mut asx = 0;
     let dev_has_hbm = edev.chips.first().unwrap().has_hbm;
     let pchip = edev.chips[edev.interposer.primary];
-    for &cd in pchip.columns.values() {
+    for (col, &cd) in &pchip.columns {
         let cfg = asx;
         let gt = asx;
         let mut hdio = asx;
         let mut io = asx;
         let mut hbm = asx;
-        match cd.l {
-            ColumnKindLeft::Gt(idx) | ColumnKindLeft::Io(idx) => {
+        match cd.kind {
+            ColumnKind::Gt(idx) | ColumnKind::Io(idx) => {
                 let regs = &pchip.cols_io[idx].regs;
                 let has_hpio = regs.values().any(|&x| x == IoRowKind::Hpio);
                 let has_hrio = regs.values().any(|&x| x == IoRowKind::Hrio);
@@ -118,7 +65,7 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
                         IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio | IoRowKind::HdioLc
                     )
                 });
-                if has_gt {
+                if has_gt && pchip.col_side(col) == Dir::W {
                     asx += 1;
                 }
                 hdio = asx;
@@ -133,30 +80,11 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
                         ChipKind::Ultrascale => asx += 5,
                         ChipKind::UltrascalePlus => asx += 8,
                     }
-                }
-            }
-            _ => (),
-        }
-        match cd.r {
-            ColumnKindRight::Gt(idx) | ColumnKindRight::Io(idx) => {
-                let regs = &pchip.cols_io[idx].regs;
-                let has_hpio = regs.values().any(|&x| x == IoRowKind::Hpio);
-                let has_hrio = regs.values().any(|&x| x == IoRowKind::Hrio);
-                let has_gt = regs
-                    .values()
-                    .any(|&x| !matches!(x, IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio));
-                if has_hrio {
-                    asx += 8;
-                } else if has_hpio {
-                    match edev.kind {
-                        ChipKind::Ultrascale => asx += 5,
-                        ChipKind::UltrascalePlus => asx += 8,
-                    }
-                } else if has_gt {
+                } else if has_gt && pchip.col_side(col) == Dir::E {
                     asx += 1;
                 }
             }
-            ColumnKindRight::Hard(_, idx) => {
+            ColumnKind::Hard(_, idx) => {
                 let regs = &pchip.cols_hard[idx].regs;
                 let has_hdio = regs
                     .values()
@@ -264,8 +192,8 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
 }
 
 struct ClkGrid {
-    brxlut: EntityVec<ColId, (usize, usize)>,
-    gtbxlut: EntityVec<ColId, (usize, usize)>,
+    brxlut: EntityVec<ColId, usize>,
+    gtbxlut: EntityVec<ColId, usize>,
     gtbylut: EntityVec<DieId, EntityVec<RegId, (usize, usize)>>,
     brylut: EntityVec<DieId, EntityVec<RegId, usize>>,
     vsxlut: EntityVec<ColId, usize>,
@@ -282,22 +210,25 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
     let mut vsx = 0;
     for (col, &cd) in &pchip.columns {
         vsxlut.push(vsx);
-        let lbrx = brx;
-        let lgtbx = gtbx;
-        match cd.l {
-            ColumnKindLeft::CleM(CleMKind::ClkBuf) => (),
-            ColumnKindLeft::CleM(CleMKind::Laguna) if edev.kind == ChipKind::UltrascalePlus => {
+        brxlut.push(brx);
+        gtbxlut.push(gtbx);
+        match cd.kind {
+            ColumnKind::CleM(CleMKind::ClkBuf) => (),
+            ColumnKind::CleM(CleMKind::Laguna) if edev.kind == ChipKind::UltrascalePlus => {
                 brx += 2;
                 gtbx += 2;
             }
-            ColumnKindLeft::CleL | ColumnKindLeft::CleM(_) => {
+            ColumnKind::CleL(_) | ColumnKind::CleM(_) => {
+                if edev.kind == ChipKind::UltrascalePlus && pchip.col_side(col) == Dir::E {
+                    continue;
+                }
                 // skip leftmost column on whole-height PS devices
                 if col.to_idx() != 0 {
                     brx += 1;
                     gtbx += 1;
                 }
             }
-            ColumnKindLeft::Bram(_) | ColumnKindLeft::Uram => match edev.kind {
+            ColumnKind::Bram(_) | ColumnKind::ContUram => match edev.kind {
                 ChipKind::Ultrascale => {
                     brx += 2;
                     gtbx += 2;
@@ -308,25 +239,10 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
                     vsx += 2;
                 }
             },
-            ColumnKindLeft::Io(_) => {
-                if edev.kind == ChipKind::Ultrascale {
-                    brx += 1;
-                }
-                gtbx += 1;
-            }
-            _ => (),
-        }
-        let rbrx = brx;
-        let rgtbx = gtbx;
-        match cd.r {
-            ColumnKindRight::CleL(_) if edev.kind == ChipKind::Ultrascale => {
-                brx += 1;
-                gtbx += 1;
-            }
-            ColumnKindRight::Dsp(DspKind::ClkBuf) => (),
-            ColumnKindRight::Dsp(_) => {
+            ColumnKind::Dsp(DspKind::ClkBuf) => (),
+            ColumnKind::Dsp(_) => {
                 if (pchip.is_nocfg() && col > pchip.cols_hard.last().unwrap().col)
-                    || (matches!(pchip.columns.last().unwrap().r, ColumnKindRight::Hard(_, _))
+                    || (matches!(pchip.columns.last().unwrap().kind, ColumnKind::Hard(_, _))
                         && col > pchip.cols_hard.first().unwrap().col)
                 {
                     brx += 4;
@@ -336,10 +252,14 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
                     gtbx += 2;
                 }
             }
+            ColumnKind::Io(_) => {
+                if edev.kind == ChipKind::Ultrascale {
+                    brx += 1;
+                }
+                gtbx += 1;
+            }
             _ => (),
         }
-        brxlut.push((lbrx, rbrx));
-        gtbxlut.push((lgtbx, rgtbx));
     }
 
     let mut gtbylut: EntityVec<_, _> = edev.chips.ids().map(|_| EntityVec::new()).collect();
@@ -403,37 +323,33 @@ fn make_io_grid(edev: &ExpandedDevice) -> IoGrid {
     let mut hpio_xlut = EntityPartVec::new();
     let mut hdio_xlut = EntityPartVec::new();
     for (col, &cd) in &pchip.columns {
-        if let ColumnKindLeft::Io(idx) = cd.l {
-            let mut has_hdiolc = false;
-            let mut has_hpio = false;
-            for chip in edev.chips.values() {
-                let iocol = &chip.cols_io[idx];
-                if iocol
-                    .regs
-                    .values()
-                    .any(|x| matches!(x, IoRowKind::Hpio | IoRowKind::Hrio))
-                {
-                    has_hpio = true;
+        match cd.kind {
+            ColumnKind::Io(idx) => {
+                let mut has_hdiolc = false;
+                let mut has_hpio = false;
+                for chip in edev.chips.values() {
+                    let iocol = &chip.cols_io[idx];
+                    if iocol
+                        .regs
+                        .values()
+                        .any(|x| matches!(x, IoRowKind::Hpio | IoRowKind::Hrio))
+                    {
+                        has_hpio = true;
+                    }
+                    if iocol.regs.values().any(|x| matches!(x, IoRowKind::HdioLc)) {
+                        has_hdiolc = true;
+                    }
                 }
-                if iocol.regs.values().any(|x| matches!(x, IoRowKind::HdioLc)) {
-                    has_hdiolc = true;
+                if has_hdiolc {
+                    hdio_xlut.insert(col, iox);
+                    iox += 1;
+                }
+                if has_hpio {
+                    hpio_xlut.insert(col, iox);
+                    iox += 1;
                 }
             }
-            if has_hdiolc {
-                hdio_xlut.insert(col, iox);
-                iox += 1;
-            }
-            if has_hpio {
-                hpio_xlut.insert(col, iox);
-                iox += 1;
-            }
-        }
-        match cd.r {
-            ColumnKindRight::Io(_) => {
-                hpio_xlut.insert(col, iox);
-                iox += 1;
-            }
-            ColumnKindRight::Hard(_, idx) => {
+            ColumnKind::Hard(_, idx) => {
                 let regs = &pchip.cols_hard[idx].regs;
                 if regs.values().any(|x| {
                     matches!(
@@ -449,7 +365,7 @@ fn make_io_grid(edev: &ExpandedDevice) -> IoGrid {
         }
     }
     let mut is_cfg_io_hrio = false;
-    if let Some(ioc_cfg) = pchip.cols_io.iter().find(|x| x.col == edev.col_cfg_io.0) {
+    if let Some(ioc_cfg) = pchip.cols_io.iter().find(|x| x.col == edev.col_cfg_io) {
         is_cfg_io_hrio = ioc_cfg.regs[pchip.reg_cfg()] == IoRowKind::Hrio;
     }
 
@@ -708,41 +624,33 @@ fn get_bram_tk(
     let chip = edev.chips[die];
     let in_laguna = has_laguna && chip.is_laguna_row(row);
     let cd = chip.columns[col];
-    match (chip.kind, cd.l, col < chip.col_cfg()) {
-        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::Plain), true) => "RCLK_BRAM_L",
-        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::Plain), false) => "RCLK_BRAM_R",
-        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::BramClmp), true) => {
+    match (chip.kind, cd.kind, col < chip.col_cfg()) {
+        (ChipKind::Ultrascale, ColumnKind::Bram(BramKind::Plain), true) => "RCLK_BRAM_L",
+        (ChipKind::Ultrascale, ColumnKind::Bram(BramKind::Plain), false) => "RCLK_BRAM_R",
+        (ChipKind::Ultrascale, ColumnKind::Bram(BramKind::BramClmp), true) => {
             "RCLK_RCLK_BRAM_L_BRAMCLMP_FT"
         }
-        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::AuxClmp), true) => {
+        (ChipKind::Ultrascale, ColumnKind::Bram(BramKind::AuxClmp), true) => {
             "RCLK_RCLK_BRAM_L_AUXCLMP_FT"
         }
-        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::BramClmpMaybe), true) => {
+        (ChipKind::Ultrascale, ColumnKind::Bram(BramKind::BramClmpMaybe), true) => {
             if in_laguna {
                 "RCLK_BRAM_L"
             } else {
                 "RCLK_RCLK_BRAM_L_BRAMCLMP_FT"
             }
         }
-        (ChipKind::Ultrascale, ColumnKindLeft::Bram(BramKind::AuxClmpMaybe), true) => {
+        (ChipKind::Ultrascale, ColumnKind::Bram(BramKind::AuxClmpMaybe), true) => {
             if in_laguna {
                 "RCLK_BRAM_L"
             } else {
                 "RCLK_RCLK_BRAM_L_AUXCLMP_FT"
             }
         }
-        (ChipKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Plain), true) => {
-            "RCLK_BRAM_INTF_L"
-        }
-        (ChipKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Plain), false) => {
-            "RCLK_BRAM_INTF_R"
-        }
-        (ChipKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Td), true) => {
-            "RCLK_BRAM_INTF_TD_L"
-        }
-        (ChipKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Td), false) => {
-            "RCLK_BRAM_INTF_TD_R"
-        }
+        (ChipKind::UltrascalePlus, ColumnKind::Bram(BramKind::Plain), true) => "RCLK_BRAM_INTF_L",
+        (ChipKind::UltrascalePlus, ColumnKind::Bram(BramKind::Plain), false) => "RCLK_BRAM_INTF_R",
+        (ChipKind::UltrascalePlus, ColumnKind::Bram(BramKind::Td), true) => "RCLK_BRAM_INTF_TD_L",
+        (ChipKind::UltrascalePlus, ColumnKind::Bram(BramKind::Td), false) => "RCLK_BRAM_INTF_TD_R",
         _ => unreachable!(),
     }
 }
@@ -756,6 +664,9 @@ pub fn name_device<'a>(
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
 
     let mut int_grid = ngrid.bel_multi_grid(|_, node, _| node == "INT");
+    for col in edev.chips[edev.interposer.primary].columns.ids() {
+        int_grid.xlut.insert(col, col.to_idx() / 2);
+    }
     if edev.kind == ChipKind::Ultrascale
         && edev.disabled.contains(&DisabledPart::Region(
             DieId::from_idx(0),
@@ -771,11 +682,7 @@ pub fn name_device<'a>(
 
     let rclk_int_grid = ngrid.bel_multi_grid(|_, node, _| node == "RCLK_INT");
     let rclk_ps_grid = ngrid.bel_multi_grid(|_, node, _| node == "RCLK_PS");
-    let cle_grid = BelMultiGridBi::new(
-        egrid,
-        |_, node, _| matches!(node, "CLEL_L" | "CLEM"),
-        |_, node, _| matches!(node, "CLEL_R"),
-    );
+    let cle_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "CLEL" | "CLEM"));
     let laguna_grid = ngrid.bel_multi_grid(|_, node, _| node == "LAGUNA");
     let bram_grid = ngrid.bel_multi_grid(|_, node, _| node == "BRAM");
     let hard_sync_grid = ngrid.bel_multi_grid(|_, node, _| node == "HARD_SYNC");
@@ -797,58 +704,41 @@ pub fn name_device<'a>(
     let dfe_e_grid = ngrid.bel_multi_grid(|_, node, _| node == "DFE_E");
     let dfe_f_grid = ngrid.bel_multi_grid(|_, node, _| node == "DFE_F");
     let dfe_g_grid = ngrid.bel_multi_grid(|_, node, _| node == "DFE_G");
-    let hdio_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "HDIO_BOT" | "HDIO_TOP"));
-    let hdiolc_grid = ngrid.bel_multi_grid(|_, node, _| {
-        matches!(
-            node,
-            "HDIOLC_L_BOT" | "HDIOLC_L_TOP" | "HDIOLC_R_BOT" | "HDIOLC_R_TOP"
-        )
-    });
-    let hpio_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "HPIO" | "HPIO_L" | "HPIO_R"));
-    let rclk_hpio_grid = ngrid
-        .bel_multi_grid(|_, node, _| matches!(node, "RCLK_HPIO" | "RCLK_HPIO_L" | "RCLK_HPIO_R"));
+    let hdio_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "HDIO_S" | "HDIO_N"));
+    let hdiolc_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "HDIOLC_S" | "HDIOLC_N"));
+    let hpio_grid = ngrid.bel_multi_grid(|_, node, _| node == "HPIO");
+    let rclk_hpio_grid = ngrid.bel_multi_grid(|_, node, _| node == "RCLK_HPIO");
     let hrio_grid = ngrid.bel_multi_grid(|_, node, _| node == "HRIO");
-    let rclk_hdio_grid = ngrid.bel_multi_grid(|_, node, _| {
-        matches!(node, "RCLK_HDIO" | "RCLK_HDIOLC_L" | "RCLK_HDIOLC_R")
-    });
+    let rclk_hdio_grid =
+        ngrid.bel_multi_grid(|_, node, _| matches!(node, "RCLK_HDIO" | "RCLK_HDIOLC"));
     let aswitch_grid = make_aswitch_grid(edev);
     let io_grid = make_io_grid(edev);
     let clk_grid = make_clk_grid(edev);
-    let xiphy_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "XIPHY_L" | "XIPHY_R"));
-    let cmt_grid = ngrid
-        .bel_multi_grid(|_, node, _| matches!(node, "XIPHY" | "CMT_L" | "CMT_L_HBM" | "CMT_R"));
+    let xiphy_grid = ngrid.bel_multi_grid(|_, node, _| node == "XIPHY");
+    let cmt_grid = ngrid.bel_multi_grid(|_, node, _| {
+        matches!(node, "CMT" | "CMT_HBM") || (edev.kind == ChipKind::Ultrascale && node == "XIPHY")
+    });
     let gt_grid = ngrid.bel_multi_grid(|_, node, _| {
         matches!(
             node,
-            "GTH_L"
-                | "GTH_R"
-                | "GTY_L"
-                | "GTY_R"
-                | "GTM_L"
-                | "GTM_R"
-                | "GTF_L"
-                | "GTF_R"
-                | "HSADC_R"
-                | "HSDAC_R"
-                | "RFADC_R"
-                | "RFDAC_R"
+            "GTH" | "GTY" | "GTM" | "GTF" | "HSADC" | "HSDAC" | "RFADC" | "RFDAC"
         )
     });
-    let gth_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "GTH_L" | "GTH_R"));
-    let gty_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "GTY_L" | "GTY_R"));
-    let gtm_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "GTM_L" | "GTM_R"));
-    let gtf_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "GTF_L" | "GTF_R"));
-    let hsadc_grid = ngrid.bel_multi_grid(|_, node, _| node == "HSADC_R");
-    let hsdac_grid = ngrid.bel_multi_grid(|_, node, _| node == "HSDAC_R");
-    let rfadc_grid = ngrid.bel_multi_grid(|_, node, _| node == "RFADC_R");
-    let rfdac_grid = ngrid.bel_multi_grid(|_, node, _| node == "RFDAC_R");
+    let gth_grid = ngrid.bel_multi_grid(|_, node, _| node == "GTH");
+    let gty_grid = ngrid.bel_multi_grid(|_, node, _| node == "GTY");
+    let gtm_grid = ngrid.bel_multi_grid(|_, node, _| node == "GTM");
+    let gtf_grid = ngrid.bel_multi_grid(|_, node, _| node == "GTF");
+    let hsadc_grid = ngrid.bel_multi_grid(|_, node, _| node == "HSADC");
+    let hsdac_grid = ngrid.bel_multi_grid(|_, node, _| node == "HSDAC");
+    let rfadc_grid = ngrid.bel_multi_grid(|_, node, _| node == "RFADC");
+    let rfdac_grid = ngrid.bel_multi_grid(|_, node, _| node == "RFDAC");
 
     for die in egrid.dies() {
         let chip = edev.chips[die.die];
         let has_laguna = chip
             .columns
             .values()
-            .any(|cd| cd.l == ColumnKindLeft::CleM(CleMKind::Laguna));
+            .any(|cd| cd.kind == ColumnKind::CleM(CleMKind::Laguna));
         let hdio_cfg_only: Vec<_> = chip
             .cols_hard
             .iter()
@@ -887,128 +777,155 @@ pub fn name_device<'a>(
                         "INT" => {
                             ngrid.name_node(nloc, "INT", [format!("INT_X{x}Y{y}")]);
                         }
-                        "INTF.W" => match chip.kind {
+                        "INTF" => match chip.kind {
                             ChipKind::Ultrascale => {
-                                ngrid.name_node(
-                                    nloc,
-                                    "INTF.W",
-                                    [format!("INT_INTERFACE_L_X{x}Y{y}")],
-                                );
+                                if chip.col_side(col) == Dir::W {
+                                    ngrid.name_node(
+                                        nloc,
+                                        "INTF.W",
+                                        [format!("INT_INTERFACE_L_X{x}Y{y}")],
+                                    );
+                                } else {
+                                    ngrid.name_node(
+                                        nloc,
+                                        "INTF.E",
+                                        [format!("INT_INTERFACE_R_X{x}Y{y}")],
+                                    );
+                                }
                             }
                             ChipKind::UltrascalePlus => {
-                                ngrid.name_node(nloc, "INTF.W", [format!("INT_INTF_L_X{x}Y{y}")]);
+                                if chip.col_side(col) == Dir::W {
+                                    ngrid.name_node(
+                                        nloc,
+                                        "INTF.W",
+                                        [format!("INT_INTF_L_X{x}Y{y}")],
+                                    );
+                                } else {
+                                    ngrid.name_node(
+                                        nloc,
+                                        "INTF.E",
+                                        [format!("INT_INTF_R_X{x}Y{y}")],
+                                    );
+                                }
                             }
                         },
-                        "INTF.E" => match chip.kind {
-                            ChipKind::Ultrascale => {
-                                ngrid.name_node(
-                                    nloc,
-                                    "INTF.E",
-                                    [format!("INT_INTERFACE_R_X{x}Y{y}")],
-                                );
-                            }
-                            ChipKind::UltrascalePlus => {
-                                ngrid.name_node(nloc, "INTF.E", [format!("INT_INTF_R_X{x}Y{y}")]);
-                            }
-                        },
-                        "INTF.W.DELAY" => match chip.columns[col].l {
-                            ColumnKindLeft::Io(_) | ColumnKindLeft::Gt(_) => {
-                                let cio = chip
-                                    .cols_io
-                                    .iter()
-                                    .find(|x| x.col == col && x.side == ColSide::Left)
-                                    .unwrap();
-                                match cio.regs[reg] {
-                                    IoRowKind::Hpio | IoRowKind::Hrio => {
-                                        ngrid.name_node(
-                                            nloc,
-                                            "INTF.W.IO",
-                                            [format!("INT_INT_INTERFACE_XIPHY_FT_X{x}Y{y}")],
-                                        );
+                        "INTF.DELAY" => {
+                            if chip.col_side(col) == Dir::W {
+                                match chip.columns[col].kind {
+                                    ColumnKind::Io(_) | ColumnKind::Gt(_) => {
+                                        let cio =
+                                            chip.cols_io.iter().find(|x| x.col == col).unwrap();
+                                        match cio.regs[reg] {
+                                            IoRowKind::Hpio | IoRowKind::Hrio => {
+                                                ngrid.name_node(
+                                                    nloc,
+                                                    "INTF.W.IO",
+                                                    [format!(
+                                                        "INT_INT_INTERFACE_XIPHY_FT_X{x}Y{y}"
+                                                    )],
+                                                );
+                                            }
+                                            _ => {
+                                                let kind = if chip.kind == ChipKind::Ultrascale {
+                                                    "INT_INT_INTERFACE_GT_LEFT_FT"
+                                                } else {
+                                                    "INT_INTF_L_TERM_GT"
+                                                };
+                                                ngrid.name_node(
+                                                    nloc,
+                                                    "INTF.W.GT",
+                                                    [format!("{kind}_X{x}Y{y}")],
+                                                );
+                                            }
+                                        }
                                     }
-                                    _ => {
+                                    ColumnKind::ContHard | ColumnKind::Sdfec => {
                                         let kind = if chip.kind == ChipKind::Ultrascale {
-                                            "INT_INT_INTERFACE_GT_LEFT_FT"
+                                            "INT_INTERFACE_PCIE_L"
                                         } else {
-                                            "INT_INTF_L_TERM_GT"
+                                            "INT_INTF_L_PCIE4"
                                         };
                                         ngrid.name_node(
                                             nloc,
-                                            "INTF.W.GT",
+                                            "INTF.W.PCIE",
                                             [format!("{kind}_X{x}Y{y}")],
                                         );
                                     }
+                                    _ => unreachable!(),
+                                }
+                            } else {
+                                match chip.columns[col].kind {
+                                    ColumnKind::Gt(_) | ColumnKind::Io(_) => {
+                                        let kind = if chip.kind == ChipKind::Ultrascale {
+                                            "INT_INTERFACE_GT_R"
+                                        } else {
+                                            "INT_INTF_R_TERM_GT"
+                                        };
+                                        ngrid.name_node(
+                                            nloc,
+                                            "INTF.E.GT",
+                                            [format!("{kind}_X{x}Y{y}")],
+                                        );
+                                    }
+                                    ColumnKind::Hard(HardKind::Term, _) => {
+                                        ngrid.name_node(
+                                            nloc,
+                                            "INTF.E.GT",
+                                            [format!("INT_INTF_RIGHT_TERM_HDIO_FT_X{x}Y{y}")],
+                                        );
+                                    }
+                                    ColumnKind::Hard(_, _)
+                                    | ColumnKind::DfeB
+                                    | ColumnKind::DfeC
+                                    | ColumnKind::DfeDF
+                                    | ColumnKind::DfeE => {
+                                        let kind = if chip.kind == ChipKind::Ultrascale {
+                                            "INT_INTERFACE_PCIE_R"
+                                        } else {
+                                            "INT_INTF_R_PCIE4"
+                                        };
+                                        ngrid.name_node(
+                                            nloc,
+                                            "INTF.E.PCIE",
+                                            [format!("{kind}_X{x}Y{y}")],
+                                        );
+                                    }
+                                    _ => unreachable!(),
                                 }
                             }
-                            ColumnKindLeft::Hard(_, _)
-                            | ColumnKindLeft::Sdfec
-                            | ColumnKindLeft::DfeC
-                            | ColumnKindLeft::DfeDF
-                            | ColumnKindLeft::DfeE => {
-                                let kind = if chip.kind == ChipKind::Ultrascale {
-                                    "INT_INTERFACE_PCIE_L"
-                                } else {
-                                    "INT_INTF_L_PCIE4"
-                                };
-                                ngrid.name_node(nloc, "INTF.W.PCIE", [format!("{kind}_X{x}Y{y}")]);
-                            }
-                            _ => unreachable!(),
-                        },
-                        "INTF.E.DELAY" => match chip.columns[col].r {
-                            ColumnKindRight::Gt(_) | ColumnKindRight::Io(_) => {
-                                let kind = if chip.kind == ChipKind::Ultrascale {
-                                    "INT_INTERFACE_GT_R"
-                                } else {
-                                    "INT_INTF_R_TERM_GT"
-                                };
-                                ngrid.name_node(nloc, "INTF.E.GT", [format!("{kind}_X{x}Y{y}")]);
-                            }
-                            ColumnKindRight::Hard(HardKind::Term, _) => {
+                        }
+                        "INTF.IO" => {
+                            if chip.col_side(col) == Dir::W {
+                                match chip.columns[col].kind {
+                                    ColumnKind::Io(_) | ColumnKind::Gt(_) => {
+                                        let kind = if col.to_idx() == 0 {
+                                            "INT_INTF_LEFT_TERM_IO_FT"
+                                        } else if matches!(row.to_idx() % 15, 0 | 1 | 13 | 14) {
+                                            "INT_INTF_L_CMT"
+                                        } else {
+                                            "INT_INTF_L_IO"
+                                        };
+                                        ngrid.name_node(
+                                            nloc,
+                                            "INTF.W.IO",
+                                            [format!("{kind}_X{x}Y{y}")],
+                                        );
+                                    }
+                                    _ => {
+                                        ngrid.name_node(
+                                            nloc,
+                                            "INTF.PSS",
+                                            [format!("INT_INTF_LEFT_TERM_PSS_X{x}Y{y}")],
+                                        );
+                                    }
+                                }
+                            } else {
                                 ngrid.name_node(
                                     nloc,
-                                    "INTF.E.GT",
-                                    [format!("INT_INTF_RIGHT_TERM_HDIO_FT_X{x}Y{y}")],
+                                    "INTF.E.IO",
+                                    [format!("INT_INTF_RIGHT_TERM_IO_X{x}Y{y}")],
                                 );
                             }
-                            ColumnKindRight::Hard(_, _)
-                            | ColumnKindRight::DfeB
-                            | ColumnKindRight::DfeC
-                            | ColumnKindRight::DfeDF
-                            | ColumnKindRight::DfeE => {
-                                let kind = if chip.kind == ChipKind::Ultrascale {
-                                    "INT_INTERFACE_PCIE_R"
-                                } else {
-                                    "INT_INTF_R_PCIE4"
-                                };
-                                ngrid.name_node(nloc, "INTF.E.PCIE", [format!("{kind}_X{x}Y{y}")]);
-                            }
-                            _ => unreachable!(),
-                        },
-                        "INTF.W.IO" => match chip.columns[col].l {
-                            ColumnKindLeft::Io(_) | ColumnKindLeft::Gt(_) => {
-                                let kind = if col.to_idx() == 0 {
-                                    "INT_INTF_LEFT_TERM_IO_FT"
-                                } else if matches!(row.to_idx() % 15, 0 | 1 | 13 | 14) {
-                                    "INT_INTF_L_CMT"
-                                } else {
-                                    "INT_INTF_L_IO"
-                                };
-                                ngrid.name_node(nloc, "INTF.W.IO", [format!("{kind}_X{x}Y{y}")]);
-                            }
-                            _ => {
-                                ngrid.name_node(
-                                    nloc,
-                                    "INTF.PSS",
-                                    [format!("INT_INTF_LEFT_TERM_PSS_X{x}Y{y}")],
-                                );
-                            }
-                        },
-                        "INTF.E.IO" => {
-                            ngrid.name_node(
-                                nloc,
-                                "INTF.E.IO",
-                                [format!("INT_INTF_RIGHT_TERM_IO_X{x}Y{y}")],
-                            );
                         }
                         "RCLK_INT" => {
                             let lr = if col < chip.col_cfg() { 'L' } else { 'R' };
@@ -1050,15 +967,19 @@ pub fn name_device<'a>(
                             }
                         }
 
-                        "CLEL_L" => {
-                            let nnode =
-                                ngrid.name_node(nloc, "CLEL_L", [format!("CLEL_L_X{x}Y{y}")]);
+                        "CLEL" => {
+                            let tkn = if chip.col_side(col) == Dir::W {
+                                "CLEL_L"
+                            } else {
+                                "CLEL_R"
+                            };
+                            let nnode = ngrid.name_node(nloc, "CLEL", [format!("{tkn}_X{x}Y{y}")]);
                             if !(row.to_idx() % 60 == 59
                                 && edev
                                     .disabled
                                     .contains(&DisabledPart::TopRow(die.die, chip.row_to_reg(row))))
                             {
-                                let sx = cle_grid.xlut_l[col];
+                                let sx = cle_grid.xlut[col];
                                 let sy = cle_grid.ylut[die.die][row];
                                 nnode.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
                             }
@@ -1076,20 +997,7 @@ pub fn name_device<'a>(
                                     .disabled
                                     .contains(&DisabledPart::TopRow(die.die, chip.row_to_reg(row))))
                             {
-                                let sx = cle_grid.xlut_l[col];
-                                let sy = cle_grid.ylut[die.die][row];
-                                nnode.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
-                            }
-                        }
-                        "CLEL_R" => {
-                            let nnode =
-                                ngrid.name_node(nloc, "CLEL_R", [format!("CLEL_R_X{x}Y{y}")]);
-                            if !(row.to_idx() % 60 == 59
-                                && edev
-                                    .disabled
-                                    .contains(&DisabledPart::TopRow(die.die, chip.row_to_reg(row))))
-                            {
-                                let sx = cle_grid.xlut_r[col];
+                                let sx = cle_grid.xlut[col];
                                 let sy = cle_grid.ylut[die.die][row];
                                 nnode.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
                             }
@@ -1165,14 +1073,14 @@ pub fn name_device<'a>(
                             nnode.add_bel(3, format!("URAM288_X{ux}Y{uy3}"));
                         }
                         "CFG" | "CFG_CSEC" => {
-                            let ColumnKindLeft::Hard(_, idx) = chip.columns[col].l else {
+                            let ColumnKind::Hard(_, idx) = chip.columns[col].kind else {
                                 unreachable!()
                             };
                             let x = if chip.kind == ChipKind::UltrascalePlus && !hdio_cfg_only[idx]
                             {
-                                x
+                                x + 1
                             } else {
-                                x - 1
+                                x
                             };
                             let tk = if chip.kind == ChipKind::Ultrascale {
                                 "CFG_CFG"
@@ -1190,20 +1098,20 @@ pub fn name_device<'a>(
                             } else {
                                 nnode.add_bel(0, format!("CONFIG_SITE_X{sx}Y{sy}"));
                             }
-                            let asx = aswitch_grid.xlut[col - 1].cfg;
+                            let asx = aswitch_grid.xlut[col].cfg;
                             let asy = aswitch_grid.ylut[die.die][reg].cfg;
                             nnode.add_bel(1, format!("ABUS_SWITCH_X{asx}Y{asy}"));
                         }
                         "CFGIO" => {
-                            let ColumnKindLeft::Hard(_, idx) = chip.columns[col].l else {
+                            let ColumnKind::Hard(_, idx) = chip.columns[col].kind else {
                                 unreachable!()
                             };
                             let x = if chip.kind == ChipKind::UltrascalePlus
                                 && (!hdio_cfg_only[idx] || chip.has_csec)
                             {
-                                x
+                                x + 1
                             } else {
-                                x - 1
+                                x
                             };
                             let tk = if chip.kind == ChipKind::Ultrascale {
                                 "CFGIO_IOB"
@@ -1225,15 +1133,15 @@ pub fn name_device<'a>(
                             }
                         }
                         "AMS" => {
-                            let ColumnKindLeft::Hard(_, idx) = chip.columns[col].l else {
+                            let ColumnKind::Hard(_, idx) = chip.columns[col].kind else {
                                 unreachable!()
                             };
                             let x = if chip.kind == ChipKind::UltrascalePlus
                                 && (!hdio_cfg_only[idx] || chip.has_csec)
                             {
-                                x
+                                x + 1
                             } else {
-                                x - 1
+                                x
                             };
                             let name = format!("AMS_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
@@ -1247,14 +1155,14 @@ pub fn name_device<'a>(
                             nnode.add_bel(0, format!("{bk}_X{sx}Y{sy}"));
                         }
                         "PCIE" => {
-                            let name = format!("PCIE_X{x}Y{y}", x = x - 1);
+                            let name = format!("PCIE_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = pcie_grid.xlut[col];
                             let sy = pcie_grid.ylut[die.die][row];
                             nnode.add_bel(0, format!("PCIE_3_1_X{sx}Y{sy}"));
                         }
                         "PCIE4" => {
-                            let name = format!("PCIE4_PCIE4_FT_X{x}Y{y}", x = x - 1);
+                            let name = format!("PCIE4_PCIE4_FT_X{x}Y{y}");
                             let naming = if has_mcap { "PCIE4" } else { "PCIE4.NOCFG" };
                             let nnode = ngrid.name_node(nloc, naming, [name]);
                             let sx = pcie4_grid.xlut[col];
@@ -1262,7 +1170,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(0, format!("PCIE40E4_X{sx}Y{sy}"));
                         }
                         "PCIE4C" => {
-                            let name = format!("PCIE4C_PCIE4C_FT_X{x}Y{y}", x = x - 1);
+                            let name = format!("PCIE4C_PCIE4C_FT_X{x}Y{y}");
                             let naming = if has_mcap { "PCIE4C" } else { "PCIE4C.NOCFG" };
                             let nnode = ngrid.name_node(nloc, naming, [name]);
                             let sx = pcie4c_grid.xlut[col];
@@ -1271,10 +1179,10 @@ pub fn name_device<'a>(
                         }
                         "CMAC" => {
                             let name = if chip.kind == ChipKind::Ultrascale {
-                                let x = if col == chip.col_cfg() { x - 1 } else { x };
+                                let x = if col == chip.col_cfg() { x } else { x + 1 };
                                 format!("CMAC_CMAC_FT_X{x}Y{y}")
                             } else {
-                                format!("CMAC_X{x}Y{y}", x = x - 1)
+                                format!("CMAC_X{x}Y{y}")
                             };
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = cmac_grid.xlut[col];
@@ -1287,9 +1195,9 @@ pub fn name_device<'a>(
                         }
                         "ILKN" => {
                             let name = if chip.kind == ChipKind::Ultrascale {
-                                format!("ILMAC_ILMAC_FT_X{x}Y{y}", x = x - 1)
+                                format!("ILMAC_ILMAC_FT_X{x}Y{y}")
                             } else {
-                                format!("ILKN_ILKN_FT_X{x}Y{y}", x = x - 1)
+                                format!("ILKN_ILKN_FT_X{x}Y{y}")
                             };
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = ilkn_grid.xlut[col];
@@ -1308,7 +1216,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(0, format!("FE_X{sx}Y{sy}"));
                         }
                         "DFE_A" => {
-                            let name = format!("DFE_DFE_TILEA_FT_X{x}Y{y}", x = x - 1);
+                            let name = format!("DFE_DFE_TILEA_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_a_grid.xlut[col];
                             let sy = dfe_a_grid.ylut[die.die][row];
@@ -1322,51 +1230,56 @@ pub fn name_device<'a>(
                             nnode.add_bel(0, format!("DFE_B_X{sx}Y{sy}"));
                         }
                         "DFE_C" => {
-                            let name = format!("DFE_DFE_TILEC_FT_X{x}Y{y}", x = x - 1);
+                            let name = format!("DFE_DFE_TILEC_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_c_grid.xlut[col];
                             let sy = dfe_c_grid.ylut[die.die][row];
                             nnode.add_bel(0, format!("DFE_C_X{sx}Y{sy}"));
                         }
                         "DFE_D" => {
-                            let name = format!("DFE_DFE_TILED_FT_X{x}Y{y}", x = x - 1);
+                            let name = format!("DFE_DFE_TILED_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_d_grid.xlut[col];
                             let sy = dfe_d_grid.ylut[die.die][row];
                             nnode.add_bel(0, format!("DFE_D_X{sx}Y{sy}"));
                         }
                         "DFE_E" => {
-                            let name = format!("DFE_DFE_TILEE_FT_X{x}Y{y}", x = x - 1);
+                            let name = format!("DFE_DFE_TILEE_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_e_grid.xlut[col];
                             let sy = dfe_e_grid.ylut[die.die][row];
                             nnode.add_bel(0, format!("DFE_E_X{sx}Y{sy}"));
                         }
                         "DFE_F" => {
-                            let name = format!("DFE_DFE_TILEF_FT_X{x}Y{y}", x = x - 1);
+                            let name = format!("DFE_DFE_TILEF_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_f_grid.xlut[col];
                             let sy = dfe_f_grid.ylut[die.die][row];
                             nnode.add_bel(0, format!("DFE_F_X{sx}Y{sy}"));
                         }
                         "DFE_G" => {
-                            let name = format!("DFE_DFE_TILEG_FT_X{x}Y{y}", x = x - 1);
+                            let name = format!("DFE_DFE_TILEG_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_g_grid.xlut[col];
                             let sy = dfe_g_grid.ylut[die.die][row];
                             nnode.add_bel(0, format!("DFE_G_X{sx}Y{sy}"));
                         }
-                        "HDIO_BOT" | "HDIO_TOP" => {
-                            let ColumnKindRight::Hard(_, idx) = chip.columns[col].r else {
+                        "HDIO_S" | "HDIO_N" => {
+                            let ColumnKind::Hard(_, idx) = chip.columns[col].kind else {
                                 unreachable!()
                             };
+                            let tkn = match kind.as_str() {
+                                "HDIO_S" => "HDIO_BOT",
+                                "HDIO_N" => "HDIO_TOP",
+                                _ => unreachable!(),
+                            };
                             let x = if hdio_cfg_only[idx] { x } else { x + 1 };
-                            let name = format!("{kind}_RIGHT_X{x}Y{y}");
+                            let name = format!("{tkn}_RIGHT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let iox = io_grid.hdio_xlut[col];
                             let ioy = match &kind[..] {
-                                "HDIO_BOT" => io_grid.hdio_ylut[die.die][reg].0,
-                                "HDIO_TOP" => io_grid.hdio_ylut[die.die][reg].1,
+                                "HDIO_S" => io_grid.hdio_ylut[die.die][reg].0,
+                                "HDIO_N" => io_grid.hdio_ylut[die.die][reg].1,
                                 _ => unreachable!(),
                             };
                             let sx = hdio_grid.xlut[col];
@@ -1389,25 +1302,27 @@ pub fn name_device<'a>(
                                 );
                             }
                             nnode.add_bel(30, format!("HDLOGIC_CSSD_X{sx}Y{sy}"));
-                            if kind == "HDIO_BOT" {
+                            if kind == "HDIO_S" {
                                 nnode.add_bel(31, format!("HDIO_VREF_X{sx}Y{y}", y = sy / 2));
                             } else {
                                 nnode.add_bel(31, format!("HDIO_BIAS_X{sx}Y{y}", y = sy / 2));
                             }
                         }
-                        "HDIOLC_L_BOT" | "HDIOLC_L_TOP" | "HDIOLC_R_BOT" | "HDIOLC_R_TOP" => {
+                        "HDIOLC_S" | "HDIOLC_N" => {
                             let naming = match &kind[..] {
-                                "HDIOLC_L_BOT" => "HDIOLC_HDIOL_BOT_LEFT_FT",
-                                "HDIOLC_L_TOP" => "HDIOLC_HDIOL_TOP_LEFT_FT",
-                                "HDIOLC_R_BOT" => {
-                                    if reg == chip.reg_cfg() {
+                                "HDIOLC_S" => {
+                                    if chip.col_side(col) == Dir::W {
+                                        "HDIOLC_HDIOL_BOT_LEFT_FT"
+                                    } else if reg == chip.reg_cfg() {
                                         "HDIOLC_HDIOL_BOT_RIGHT_CFG_FT"
                                     } else {
                                         "HDIOLC_HDIOL_BOT_RIGHT_AUX_FT"
                                     }
                                 }
-                                "HDIOLC_R_TOP" => {
-                                    if reg == chip.reg_cfg() {
+                                "HDIOLC_N" => {
+                                    if chip.col_side(col) == Dir::W {
+                                        "HDIOLC_HDIOL_TOP_LEFT_FT"
+                                    } else if reg == chip.reg_cfg() {
                                         "HDIOLC_HDIOL_TOP_RIGHT_CFG_FT"
                                     } else {
                                         "HDIOLC_HDIOL_TOP_RIGHT_AUX_FT"
@@ -1419,12 +1334,8 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, naming, [name]);
                             let iox = io_grid.hdio_xlut[col];
                             let ioy = match &kind[..] {
-                                "HDIOLC_L_BOT" | "HDIOLC_R_BOT" => {
-                                    io_grid.hdio_ylut[die.die][reg].0
-                                }
-                                "HDIOLC_L_TOP" | "HDIOLC_R_TOP" => {
-                                    io_grid.hdio_ylut[die.die][reg].1
-                                }
+                                "HDIOLC_S" => io_grid.hdio_ylut[die.die][reg].0,
+                                "HDIOLC_N" => io_grid.hdio_ylut[die.die][reg].1,
                                 _ => unreachable!(),
                             };
                             let sx = hdiolc_grid.xlut[col];
@@ -1461,7 +1372,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(110, format!("HDIO_BIAS_X{sx}Y{sy}"));
                         }
                         "RCLK_HDIO" => {
-                            let ColumnKindRight::Hard(hk, idx) = chip.columns[col].r else {
+                            let ColumnKind::Hard(hk, idx) = chip.columns[col].kind else {
                                 unreachable!()
                             };
                             let x = if hdio_cfg_only[idx] { x } else { x + 1 };
@@ -1509,14 +1420,14 @@ pub fn name_device<'a>(
                                 );
                             }
                         }
-                        "RCLK_HDIOLC_L" | "RCLK_HDIOLC_R" => {
-                            let tkn = if kind == "RCLK_HDIOLC_L" {
-                                "RCLK_RCLK_HDIOL_L_FT"
+                        "RCLK_HDIOLC" => {
+                            let (naming, tkn) = if chip.col_side(col) == Dir::W {
+                                ("RCLK_HDIOLC_L", "RCLK_RCLK_HDIOL_L_FT")
                             } else {
-                                "RCLK_RCLK_HDIOL_R_FT"
+                                ("RCLK_HDIOLC_R", "RCLK_RCLK_HDIOL_R_FT")
                             };
                             let name = format!("{tkn}_X{x}Y{y}", y = y - 1);
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_node(nloc, naming, [name]);
                             let sx = rclk_hdio_grid.xlut[col];
                             let sy = rclk_hdio_grid.ylut[die.die][row];
                             nnode.add_bel(
@@ -1560,29 +1471,31 @@ pub fn name_device<'a>(
                             }
                         }
 
-                        "CMT_L" | "CMT_L_HBM" | "CMT_R" => {
+                        "CMT" | "CMT_HBM" => {
                             let iocol = chip.cols_io.iter().find(|iocol| iocol.col == col).unwrap();
-                            let tk = match &kind[..] {
-                                "CMT_L" => {
-                                    if iocol.regs[reg] == IoRowKind::HdioLc {
-                                        "CMT_CMT_LEFT_DL3_FT"
-                                    } else {
-                                        "CMT_L"
-                                    }
+                            let tk = if chip.col_side(col) == Dir::W {
+                                if kind == "CMT_HBM" {
+                                    "CMT_LEFT_H"
+                                } else if iocol.regs[reg] == IoRowKind::HdioLc {
+                                    "CMT_CMT_LEFT_DL3_FT"
+                                } else {
+                                    "CMT_L"
                                 }
-                                "CMT_L_HBM" => "CMT_LEFT_H",
-                                "CMT_R" => "CMT_RIGHT",
-                                _ => unreachable!(),
+                            } else {
+                                "CMT_RIGHT"
+                            };
+                            let naming = if kind == "CMT_HBM" {
+                                "CMT_L_HBM"
+                            } else if chip.col_side(col) == Dir::W {
+                                "CMT_L"
+                            } else {
+                                "CMT_R"
                             };
                             let name = format!("{tk}_X{x}Y{y}", y = y - 30);
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_node(nloc, naming, [name]);
                             let cmtx = cmt_grid.xlut[col];
                             let cmty = cmt_grid.ylut[die.die][row];
-                            let gtbx = if kind != "CMT_R" {
-                                clk_grid.gtbxlut[col].0
-                            } else {
-                                clk_grid.gtbxlut[col].1
-                            };
+                            let gtbx = clk_grid.gtbxlut[col];
                             for i in 0..24 {
                                 nnode.add_bel(
                                     i,
@@ -1617,7 +1530,7 @@ pub fn name_device<'a>(
                                 nnode.add_bel(84 + i, format!("PLL_X{cmtx}Y{y}", y = cmty * 2 + i));
                             }
                             nnode.add_bel(86, format!("MMCM_X{cmtx}Y{cmty}"));
-                            let asx = if kind != "CMT_R" {
+                            let asx = if chip.col_side(col) == Dir::W {
                                 aswitch_grid.xlut[col].io + 7
                             } else {
                                 aswitch_grid.xlut[col].io
@@ -1629,12 +1542,12 @@ pub fn name_device<'a>(
                                     y = aswitch_grid.ylut[die.die][reg].cmt
                                 ),
                             );
-                            if kind == "CMT_L_HBM" {
+                            if kind == "CMT_HBM" {
                                 nnode.add_bel(88, "HBM_REF_CLK_X0Y0".to_string());
                                 nnode.add_bel(89, "HBM_REF_CLK_X0Y1".to_string());
                             }
                         }
-                        "XIPHY" => {
+                        "XIPHY" if edev.kind == ChipKind::Ultrascale => {
                             let nnode = ngrid.name_node(
                                 nloc,
                                 "XIPHY",
@@ -1647,7 +1560,7 @@ pub fn name_device<'a>(
                                     i,
                                     format!(
                                         "BUFCE_ROW_X{x}Y{y}",
-                                        x = clk_grid.brxlut[col].0,
+                                        x = clk_grid.brxlut[col],
                                         y = cmty * 25 + i
                                     ),
                                 );
@@ -1655,7 +1568,7 @@ pub fn name_device<'a>(
                                     24 + i,
                                     format!(
                                         "GCLK_TEST_BUFE3_X{x}Y{y}",
-                                        x = clk_grid.gtbxlut[col].0,
+                                        x = clk_grid.gtbxlut[col],
                                         y = clk_grid.gtbylut[die.die][reg].0 + i
                                     ),
                                 );
@@ -1728,8 +1641,8 @@ pub fn name_device<'a>(
                                 );
                             }
                         }
-                        "XIPHY_L" | "XIPHY_R" => {
-                            let tk = if kind == "XIPHY_L" {
+                        "XIPHY" => {
+                            let tk = if chip.col_side(col) == Dir::W {
                                 "XIPHY_BYTE_L"
                             } else {
                                 "XIPHY_BYTE_RIGHT"
@@ -1764,17 +1677,17 @@ pub fn name_device<'a>(
                             nnode.add_bel(19, format!("RIU_OR_X{phyx}Y{phyy}"));
                             nnode.add_bel(20, format!("XIPHY_FEEDTHROUGH_X{phyx}Y{phyy}"));
                         }
-                        "RCLK_XIPHY_L" | "RCLK_XIPHY_R" => {
-                            let tk = match &kind[..] {
-                                "RCLK_XIPHY_L" => "RCLK_RCLK_XIPHY_INNER_FT",
-                                "RCLK_XIPHY_R" => "RCLK_XIPHY_OUTER_RIGHT",
+                        "RCLK_XIPHY" => {
+                            let (naming, tk) = match chip.col_side(col) {
+                                Dir::W => ("RCLK_XIPHY_L", "RCLK_RCLK_XIPHY_INNER_FT"),
+                                Dir::E => ("RCLK_XIPHY_R", "RCLK_XIPHY_OUTER_RIGHT"),
                                 _ => unreachable!(),
                             };
                             let name = format!("{tk}_X{x}Y{y}", y = y - 1);
-                            ngrid.name_node(nloc, kind, [name]);
+                            ngrid.name_node(nloc, naming, [name]);
                         }
 
-                        "HPIO" => {
+                        "HPIO" if chip.kind == ChipKind::Ultrascale => {
                             let name =
                                 format!("HPIO_L_X{x}Y{y}", x = if x > 0 { x - 1 } else { x });
                             let naming = if io_grid.is_cfg_io_hrio {
@@ -1817,7 +1730,7 @@ pub fn name_device<'a>(
                             }
                             nnode.add_bel(50, format!("HPIO_VREF_SITE_X{sx}Y{sy}"));
                         }
-                        "RCLK_HPIO" => {
+                        "RCLK_HPIO" if chip.kind == ChipKind::Ultrascale => {
                             let name = format!(
                                 "RCLK_HPIO_L_X{x}Y{y}",
                                 x = if x > 0 { x - 1 } else { x },
@@ -1898,39 +1811,30 @@ pub fn name_device<'a>(
                                 );
                             }
                         }
-                        "HPIO_L" | "HPIO_R" => {
-                            let (naming, naming_alt, naming_nocfg, naming_noams, tk) =
-                                if kind == "HPIO_R" {
-                                    (
-                                        "HPIO_R",
-                                        "HPIO_R.ALTCFG",
-                                        "HPIO_R.NOCFG",
-                                        "HPIO_R.NOAMS",
-                                        "HPIO_RIGHT",
-                                    )
-                                } else {
-                                    (
-                                        "HPIO_L",
-                                        "HPIO_L.ALTCFG",
-                                        "HPIO_L.NOCFG",
-                                        "HPIO_L.NOAMS",
-                                        "HPIO_L",
-                                    )
-                                };
+                        "HPIO" => {
+                            let tk = if chip.col_side(col) == Dir::W {
+                                "HPIO_L"
+                            } else {
+                                "HPIO_RIGHT"
+                            };
                             let naming = if chip.has_csec {
-                                naming_noams
+                                "HPIO.NOAMS"
                             } else if chip.is_nocfg() {
-                                naming_nocfg
+                                "HPIO.NOCFG"
                             } else if chip.ps.is_some()
                                 && (chip.is_alt_cfg || !edev.disabled.contains(&DisabledPart::Ps))
                             {
-                                naming_alt
+                                "HPIO.ALTCFG"
                             } else {
-                                naming
+                                "HPIO"
                             };
                             let name = format!(
                                 "{tk}_X{x}Y{y}",
-                                x = if x > 0 && kind == "HPIO_L" { x - 1 } else { x }
+                                x = if x > 0 && chip.col_side(col) == Dir::W {
+                                    x - 1
+                                } else {
+                                    x
+                                }
                             );
                             let nnode = ngrid.name_node(nloc, naming, [name]);
                             let iox = io_grid.hpio_xlut[col];
@@ -1974,10 +1878,15 @@ pub fn name_device<'a>(
                             nnode.add_bel(52, format!("HPIO_VREF_SITE_X{sx}Y{sy}"));
                             nnode.add_bel(53, format!("BIAS_X{sx}Y{sy}"));
                         }
-                        "RCLK_HPIO_L" | "RCLK_HPIO_R" => {
+                        "RCLK_HPIO" => {
                             let name = format!(
-                                "{kind}_X{x}Y{y}",
-                                x = if x > 0 && kind == "RCLK_HPIO_L" {
+                                "{kind}_{lr}_X{x}Y{y}",
+                                lr = if chip.col_side(col) == Dir::W {
+                                    'L'
+                                } else {
+                                    'R'
+                                },
+                                x = if x > 0 && chip.col_side(col) == Dir::W {
                                     x - 1
                                 } else {
                                     x
@@ -1987,17 +1896,22 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = rclk_hpio_grid.xlut[col];
                             let sy = rclk_hpio_grid.ylut[die.die][row];
-                            let asx = if kind == "RCLK_HPIO_L" {
+                            let asx = if chip.col_side(col) == Dir::W {
                                 aswitch_grid.xlut[col].io
                             } else {
                                 aswitch_grid.xlut[col].io + 1
                             };
                             for i in 0..7 {
+                                let idx = if chip.col_side(col) == Dir::W {
+                                    i
+                                } else {
+                                    [0, 6, 1, 3, 2, 4, 5][i]
+                                };
                                 nnode.add_bel(
                                     i,
                                     format!(
                                         "ABUS_SWITCH_X{x}Y{y}",
-                                        x = asx + i,
+                                        x = asx + idx,
                                         y = aswitch_grid.ylut[die.die][reg].hpio
                                     ),
                                 );
@@ -2006,52 +1920,58 @@ pub fn name_device<'a>(
                             nnode.add_bel(8, format!("HPIO_RCLK_PRBS_X{sx}Y{sy}"));
                         }
 
-                        "GTH_L" | "GTH_R" | "GTY_L" | "GTY_R" | "GTF_L" | "GTF_R" | "GTM_L"
-                        | "GTM_R" | "HSADC_R" | "HSDAC_R" | "RFADC_R" | "RFDAC_R" => {
-                            let (tk, gtk, gtk_grid) = match (chip.kind, &kind[..]) {
-                                (ChipKind::Ultrascale, "GTH_L") => {
-                                    ("GTH_QUAD_LEFT_FT", "GTH", &gth_grid)
-                                }
-                                (ChipKind::Ultrascale, "GTY_L") => {
-                                    ("GTY_QUAD_LEFT_FT", "GTY", &gty_grid)
-                                }
-                                (ChipKind::Ultrascale, "GTH_R") => ("GTH_R", "GTH", &gth_grid),
-                                (ChipKind::UltrascalePlus, "GTH_L") => {
-                                    ("GTH_QUAD_LEFT", "GTH", &gth_grid)
-                                }
-                                (ChipKind::UltrascalePlus, "GTH_R") => {
-                                    ("GTH_QUAD_RIGHT", "GTH", &gth_grid)
-                                }
-                                (ChipKind::UltrascalePlus, "GTY_L") => ("GTY_L", "GTY", &gty_grid),
-                                (ChipKind::UltrascalePlus, "GTY_R") => ("GTY_R", "GTY", &gty_grid),
-                                (ChipKind::UltrascalePlus, "GTF_L") => {
-                                    ("GTFY_QUAD_LEFT_FT", "GTF", &gtf_grid)
-                                }
-                                (ChipKind::UltrascalePlus, "GTF_R") => {
-                                    ("GTFY_QUAD_RIGHT_FT", "GTF", &gtf_grid)
-                                }
-                                (ChipKind::UltrascalePlus, "GTM_L") => {
-                                    ("GTM_DUAL_LEFT_FT", "GTM", &gtm_grid)
-                                }
-                                (ChipKind::UltrascalePlus, "GTM_R") => {
-                                    ("GTM_DUAL_RIGHT_FT", "GTM", &gtm_grid)
-                                }
-                                (ChipKind::UltrascalePlus, "HSADC_R") => {
-                                    ("HSADC_HSADC_RIGHT_FT", "HSADC", &hsadc_grid)
-                                }
-                                (ChipKind::UltrascalePlus, "HSDAC_R") => {
-                                    ("HSDAC_HSDAC_RIGHT_FT", "HSDAC", &hsdac_grid)
-                                }
-                                (ChipKind::UltrascalePlus, "RFADC_R") => {
-                                    ("RFADC_RFADC_RIGHT_FT", "RFADC", &rfadc_grid)
-                                }
-                                (ChipKind::UltrascalePlus, "RFDAC_R") => {
-                                    ("RFDAC_RFDAC_RIGHT_FT", "RFDAC", &rfdac_grid)
-                                }
-                                _ => unreachable!(),
-                            };
+                        "GTH" | "GTY" | "GTF" | "GTM" | "HSADC" | "HSDAC" | "RFADC" | "RFDAC" => {
+                            let (tk, naming, gtk_grid) =
+                                match (chip.kind, &kind[..], chip.col_side(col)) {
+                                    (ChipKind::Ultrascale, "GTH", Dir::W) => {
+                                        ("GTH_QUAD_LEFT_FT", "GTH_L", &gth_grid)
+                                    }
+                                    (ChipKind::Ultrascale, "GTY", Dir::W) => {
+                                        ("GTY_QUAD_LEFT_FT", "GTY_L", &gty_grid)
+                                    }
+                                    (ChipKind::Ultrascale, "GTH", Dir::E) => {
+                                        ("GTH_R", "GTH_R", &gth_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "GTH", Dir::W) => {
+                                        ("GTH_QUAD_LEFT", "GTH_L", &gth_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "GTH", Dir::E) => {
+                                        ("GTH_QUAD_RIGHT", "GTH_R", &gth_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "GTY", Dir::W) => {
+                                        ("GTY_L", "GTY_L", &gty_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "GTY", Dir::E) => {
+                                        ("GTY_R", "GTY_R", &gty_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "GTF", Dir::W) => {
+                                        ("GTFY_QUAD_LEFT_FT", "GTF_L", &gtf_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "GTF", Dir::E) => {
+                                        ("GTFY_QUAD_RIGHT_FT", "GTF_R", &gtf_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "GTM", Dir::W) => {
+                                        ("GTM_DUAL_LEFT_FT", "GTM_L", &gtm_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "GTM", Dir::E) => {
+                                        ("GTM_DUAL_RIGHT_FT", "GTM_R", &gtm_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "HSADC", Dir::E) => {
+                                        ("HSADC_HSADC_RIGHT_FT", "HSADC_R", &hsadc_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "HSDAC", Dir::E) => {
+                                        ("HSDAC_HSDAC_RIGHT_FT", "HSDAC_R", &hsdac_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "RFADC", Dir::E) => {
+                                        ("RFADC_RFADC_RIGHT_FT", "RFADC_R", &rfadc_grid)
+                                    }
+                                    (ChipKind::UltrascalePlus, "RFDAC", Dir::E) => {
+                                        ("RFDAC_RFDAC_RIGHT_FT", "RFDAC_R", &rfdac_grid)
+                                    }
+                                    _ => unreachable!(),
+                                };
                             let name = format!("{tk}_X{x}Y{y}", y = y - 30);
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_node(nloc, naming, [name]);
                             let gtx = gt_grid.xlut[col];
                             let gty = gt_grid.ylut[die.die][row];
                             for i in 0..24 {
@@ -2079,10 +1999,10 @@ pub fn name_device<'a>(
                                 for i in 0..4 {
                                     nnode.add_bel(
                                         39 + i,
-                                        format!("{gtk}E3_CHANNEL_X{gtkx}Y{y}", y = gtky * 4 + i),
+                                        format!("{kind}E3_CHANNEL_X{gtkx}Y{y}", y = gtky * 4 + i),
                                     );
                                 }
-                                nnode.add_bel(43, format!("{gtk}E3_COMMON_X{gtkx}Y{gtky}"));
+                                nnode.add_bel(43, format!("{kind}E3_COMMON_X{gtkx}Y{gtky}"));
                             } else {
                                 for i in 0..15 {
                                     nnode.add_bel(
@@ -2102,14 +2022,14 @@ pub fn name_device<'a>(
                                 }
                                 let gtkx = gtk_grid.xlut[col];
                                 let gtky = gtk_grid.ylut[die.die][row];
-                                if gtk == "GTM" {
+                                if kind == "GTM" {
                                     nnode.add_bel(44, format!("GTM_DUAL_X{gtkx}Y{gtky}"));
                                     nnode.add_bel(45, format!("GTM_REFCLK_X{gtkx}Y{gtky}"));
-                                } else if gtk.starts_with("GT") {
-                                    let pref = if gtk == "GTF" {
+                                } else if kind.starts_with("GT") {
+                                    let pref = if kind == "GTF" {
                                         "GTF".to_string()
                                     } else {
-                                        format!("{gtk}E4")
+                                        format!("{kind}E4")
                                     };
 
                                     for i in 0..4 {
@@ -2120,7 +2040,7 @@ pub fn name_device<'a>(
                                     }
                                     nnode.add_bel(48, format!("{pref}_COMMON_X{gtkx}Y{gtky}"));
                                 } else {
-                                    nnode.add_bel(44, format!("{gtk}_X{gtkx}Y{gtky}"));
+                                    nnode.add_bel(44, format!("{kind}_X{gtkx}Y{gtky}"));
                                 }
                             }
                         }
@@ -2161,94 +2081,99 @@ pub fn name_device<'a>(
                             nnode.add_bel(1, format!("BLI_HBM_AXI_INTF_X{dx}Y0"));
                         }
 
-                        "RCLK_V_SINGLE_L.CLE" => {
+                        "RCLK_V_SINGLE.CLE" => {
                             let is_l = col < chip.col_cfg();
-                            let tk = match (chip.kind, chip.columns[col].l, is_l) {
-                                (ChipKind::Ultrascale, ColumnKindLeft::CleL, true) => "RCLK_CLEL_L",
-                                (ChipKind::Ultrascale, ColumnKindLeft::CleL, false) => {
-                                    "RCLK_CLEL_R"
-                                }
-                                (ChipKind::Ultrascale, ColumnKindLeft::CleM(_), true) => {
-                                    "RCLK_CLE_M_L"
-                                }
-                                (ChipKind::Ultrascale, ColumnKindLeft::CleM(_), false) => {
-                                    "RCLK_CLE_M_R"
-                                }
-                                (ChipKind::UltrascalePlus, ColumnKindLeft::CleL, true) => {
-                                    "RCLK_CLEL_L_L"
-                                }
-                                (ChipKind::UltrascalePlus, ColumnKindLeft::CleL, false) => {
-                                    "RCLK_CLEL_L_R"
-                                }
-                                (ChipKind::UltrascalePlus, ColumnKindLeft::CleM(subkind), true) => {
-                                    if chip.is_dmc && subkind == CleMKind::Laguna {
-                                        "RCLK_CLEM_DMC_L"
+                            if chip.col_side(col) == Dir::W {
+                                let tk = match (chip.kind, chip.columns[col].kind, is_l) {
+                                    (ChipKind::Ultrascale, ColumnKind::CleL(_), true) => {
+                                        "RCLK_CLEL_L"
+                                    }
+                                    (ChipKind::Ultrascale, ColumnKind::CleL(_), false) => {
+                                        "RCLK_CLEL_R"
+                                    }
+                                    (ChipKind::Ultrascale, ColumnKind::CleM(_), true) => {
+                                        "RCLK_CLE_M_L"
+                                    }
+                                    (ChipKind::Ultrascale, ColumnKind::CleM(_), false) => {
+                                        "RCLK_CLE_M_R"
+                                    }
+                                    (ChipKind::UltrascalePlus, ColumnKind::CleL(_), true) => {
+                                        "RCLK_CLEL_L_L"
+                                    }
+                                    (ChipKind::UltrascalePlus, ColumnKind::CleL(_), false) => {
+                                        "RCLK_CLEL_L_R"
+                                    }
+                                    (ChipKind::UltrascalePlus, ColumnKind::CleM(subkind), true) => {
+                                        if chip.is_dmc && subkind == CleMKind::Laguna {
+                                            "RCLK_CLEM_DMC_L"
+                                        } else {
+                                            "RCLK_CLEM_L"
+                                        }
+                                    }
+                                    (ChipKind::UltrascalePlus, ColumnKind::CleM(_), false) => {
+                                        "RCLK_CLEM_R"
+                                    }
+                                    _ => unreachable!(),
+                                };
+                                let is_alt = dev_naming.rclk_alt_pins[tk];
+                                let name = format!("{tk}_X{x}Y{y}", y = y - 1);
+                                let nnode = ngrid.name_node(
+                                    nloc,
+                                    if is_alt {
+                                        "RCLK_V_SINGLE.ALT"
                                     } else {
-                                        "RCLK_CLEM_L"
+                                        "RCLK_V_SINGLE"
+                                    },
+                                    [name],
+                                );
+                                let reg = chip.row_to_reg(row);
+                                let mut brx = clk_grid.brxlut[col];
+                                let bry = clk_grid.brylut[die.die][reg];
+                                let mut gtbx = clk_grid.gtbxlut[col];
+                                let gtby = clk_grid.gtbylut[die.die][reg].1;
+                                if chip.kind == ChipKind::UltrascalePlus
+                                    && chip.columns[col].kind == ColumnKind::CleM(CleMKind::Laguna)
+                                {
+                                    brx += 1;
+                                    gtbx += 1;
+                                }
+                                match chip.kind {
+                                    ChipKind::Ultrascale => nnode.add_bel(
+                                        0,
+                                        format!("BUFCE_ROW_X{brx}Y{y}", y = bry * 25 + 24),
+                                    ),
+                                    ChipKind::UltrascalePlus => {
+                                        nnode.add_bel(0, format!("BUFCE_ROW_FSR_X{brx}Y{bry}"))
                                     }
                                 }
-                                (ChipKind::UltrascalePlus, ColumnKindLeft::CleM(_), false) => {
-                                    "RCLK_CLEM_R"
-                                }
-                                _ => unreachable!(),
-                            };
-                            let is_alt = dev_naming.rclk_alt_pins[tk];
-                            let name = format!("{tk}_X{x}Y{y}", y = y - 1);
-                            let nnode = ngrid.name_node(
-                                nloc,
-                                if is_alt {
-                                    "RCLK_V_SINGLE_L.ALT"
-                                } else {
-                                    "RCLK_V_SINGLE_L"
-                                },
-                                [name],
-                            );
-                            let reg = chip.row_to_reg(row);
-                            let mut brx = clk_grid.brxlut[col].0;
-                            let bry = clk_grid.brylut[die.die][reg];
-                            let mut gtbx = clk_grid.gtbxlut[col].0;
-                            let gtby = clk_grid.gtbylut[die.die][reg].1;
-                            if chip.kind == ChipKind::UltrascalePlus
-                                && chip.columns[col].l == ColumnKindLeft::CleM(CleMKind::Laguna)
-                            {
-                                brx += 1;
-                                gtbx += 1;
-                            }
-                            match chip.kind {
-                                ChipKind::Ultrascale => nnode
-                                    .add_bel(0, format!("BUFCE_ROW_X{brx}Y{y}", y = bry * 25 + 24)),
-                                ChipKind::UltrascalePlus => {
-                                    nnode.add_bel(0, format!("BUFCE_ROW_FSR_X{brx}Y{bry}"))
-                                }
-                            }
-                            nnode.add_bel(1, format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"));
-                        }
-                        "RCLK_V_SINGLE_R.CLE" => {
-                            let is_l = col < chip.col_cfg();
-                            let tk = if is_l {
-                                "RCLK_CLEL_R_L"
+                                nnode.add_bel(1, format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"));
                             } else {
-                                "RCLK_CLEL_R_R"
-                            };
-                            let is_alt = dev_naming.rclk_alt_pins[tk];
-                            let name = format!("{tk}_X{x}Y{y}", y = y - 1);
-                            let nnode = ngrid.name_node(
-                                nloc,
-                                if is_alt {
-                                    "RCLK_V_SINGLE_R.ALT"
+                                let tk = if is_l {
+                                    "RCLK_CLEL_R_L"
                                 } else {
-                                    "RCLK_V_SINGLE_R"
-                                },
-                                [name],
-                            );
-                            let brx = clk_grid.brxlut[col].1;
-                            let bry = clk_grid.brylut[die.die][reg];
-                            nnode.add_bel(0, format!("BUFCE_ROW_X{brx}Y{y}", y = bry * 25 + 24));
-                            let gtbx = clk_grid.gtbxlut[col].1;
-                            let gtby = clk_grid.gtbylut[die.die][reg].1;
-                            nnode.add_bel(1, format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"));
+                                    "RCLK_CLEL_R_R"
+                                };
+                                let is_alt = dev_naming.rclk_alt_pins[tk];
+                                let name = format!("{tk}_X{x}Y{y}", y = y - 1);
+                                let nnode = ngrid.name_node(
+                                    nloc,
+                                    if is_alt {
+                                        "RCLK_V_SINGLE.ALT"
+                                    } else {
+                                        "RCLK_V_SINGLE"
+                                    },
+                                    [name],
+                                );
+                                let brx = clk_grid.brxlut[col];
+                                let bry = clk_grid.brylut[die.die][reg];
+                                nnode
+                                    .add_bel(0, format!("BUFCE_ROW_X{brx}Y{y}", y = bry * 25 + 24));
+                                let gtbx = clk_grid.gtbxlut[col];
+                                let gtby = clk_grid.gtbylut[die.die][reg].1;
+                                nnode.add_bel(1, format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"));
+                            }
                         }
-                        "RCLK_V_SINGLE_L.LAG" => {
+                        "RCLK_V_SINGLE.LAG" => {
                             let is_l = col < chip.col_cfg();
                             let tk = if is_l {
                                 if chip.is_dmc {
@@ -2264,34 +2189,34 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(
                                 nloc,
                                 if is_alt {
-                                    "RCLK_V_SINGLE_L.ALT"
+                                    "RCLK_V_SINGLE.ALT"
                                 } else {
-                                    "RCLK_V_SINGLE_L"
+                                    "RCLK_V_SINGLE"
                                 },
                                 [name],
                             );
-                            let brx = clk_grid.brxlut[col].0;
+                            let brx = clk_grid.brxlut[col];
                             let bry = clk_grid.brylut[die.die][reg];
                             nnode.add_bel(0, format!("BUFCE_ROW_FSR_X{brx}Y{bry}"));
-                            let gtbx = clk_grid.gtbxlut[col].0;
+                            let gtbx = clk_grid.gtbxlut[col];
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             nnode.add_bel(1, format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"));
                         }
 
-                        "RCLK_V_DOUBLE_L" => {
+                        "RCLK_V_DOUBLE.BRAM" => {
                             let tk = get_bram_tk(edev, has_laguna, die.die, col, row);
                             let is_alt = dev_naming.rclk_alt_pins[tk];
                             let name = format!("{tk}_X{x}Y{y}", y = y - 1);
                             let nnode = ngrid.name_node(
                                 nloc,
                                 if is_alt {
-                                    "RCLK_V_DOUBLE_L.ALT"
+                                    "RCLK_V_DOUBLE.ALT"
                                 } else {
-                                    "RCLK_V_DOUBLE_L"
+                                    "RCLK_V_DOUBLE"
                                 },
                                 [name],
                             );
-                            let brx = clk_grid.brxlut[col].0;
+                            let brx = clk_grid.brxlut[col];
                             let bry = clk_grid.brylut[die.die][reg];
                             for i in 0..2 {
                                 nnode.add_bel(
@@ -2299,7 +2224,7 @@ pub fn name_device<'a>(
                                     format!("BUFCE_ROW_X{x}Y{y}", x = brx + i, y = bry * 25 + 24),
                                 );
                             }
-                            let gtbx = clk_grid.gtbxlut[col].0;
+                            let gtbx = clk_grid.gtbxlut[col];
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..2 {
                                 nnode.add_bel(
@@ -2308,9 +2233,9 @@ pub fn name_device<'a>(
                                 );
                             }
                         }
-                        "RCLK_V_DOUBLE_R" => {
-                            let mut brx = clk_grid.brxlut[col].1;
-                            let mut gtbx = clk_grid.gtbxlut[col].1;
+                        "RCLK_V_DOUBLE.DSP" => {
+                            let mut brx = clk_grid.brxlut[col];
+                            let mut gtbx = clk_grid.gtbxlut[col];
                             let tk = match chip.kind {
                                 ChipKind::Ultrascale => "RCLK_DSP_L",
                                 ChipKind::UltrascalePlus => {
@@ -2330,8 +2255,8 @@ pub fn name_device<'a>(
                                         }
                                     }
                                     if matches!(
-                                        chip.columns.last().unwrap().r,
-                                        ColumnKindRight::Hard(_, _)
+                                        chip.columns.last().unwrap().kind,
+                                        ColumnKind::Hard(_, _)
                                     ) && col > chip.cols_hard.first().unwrap().col
                                     {
                                         if reg != chip.reg_cfg() {
@@ -2361,9 +2286,9 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(
                                 nloc,
                                 if is_alt {
-                                    "RCLK_V_DOUBLE_R.ALT"
+                                    "RCLK_V_DOUBLE.ALT"
                                 } else {
-                                    "RCLK_V_DOUBLE_R"
+                                    "RCLK_V_DOUBLE"
                                 },
                                 [name],
                             );
@@ -2392,25 +2317,25 @@ pub fn name_device<'a>(
                                 );
                             }
                         }
-                        "RCLK_V_QUAD_L.BRAM" => {
+                        "RCLK_V_QUAD.BRAM" => {
                             let tk = get_bram_tk(edev, has_laguna, die.die, col, row);
                             let is_alt = dev_naming.rclk_alt_pins[tk];
                             let name = format!("{tk}_X{x}Y{y}", y = y - 1);
                             let nnode = ngrid.name_node(
                                 nloc,
                                 if is_alt {
-                                    "RCLK_V_QUAD_L.BRAM.ALT"
+                                    "RCLK_V_QUAD.BRAM.ALT"
                                 } else {
-                                    "RCLK_V_QUAD_L.BRAM"
+                                    "RCLK_V_QUAD.BRAM"
                                 },
                                 [name],
                             );
-                            let brx = clk_grid.brxlut[col].0;
+                            let brx = clk_grid.brxlut[col];
                             let bry = clk_grid.brylut[die.die][reg];
                             for i in 0..4 {
                                 nnode.add_bel(i, format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,));
                             }
-                            let gtbx = clk_grid.gtbxlut[col].0;
+                            let gtbx = clk_grid.gtbxlut[col];
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..4 {
                                 nnode.add_bel(
@@ -2432,25 +2357,25 @@ pub fn name_device<'a>(
                                 );
                             }
                         }
-                        "RCLK_V_QUAD_L.URAM" => {
+                        "RCLK_V_QUAD.URAM" => {
                             let tk = "RCLK_RCLK_URAM_INTF_L_FT";
                             let is_alt = dev_naming.rclk_alt_pins[tk];
                             let name = format!("{tk}_X{x}Y{y}", x = x - 1, y = y - 1);
                             let nnode = ngrid.name_node(
                                 nloc,
                                 if is_alt {
-                                    "RCLK_V_QUAD_L.URAM.ALT"
+                                    "RCLK_V_QUAD.URAM.ALT"
                                 } else {
-                                    "RCLK_V_QUAD_L.URAM"
+                                    "RCLK_V_QUAD.URAM"
                                 },
                                 [name],
                             );
-                            let brx = clk_grid.brxlut[col].0;
+                            let brx = clk_grid.brxlut[col];
                             let bry = clk_grid.brylut[die.die][reg];
                             for i in 0..4 {
                                 nnode.add_bel(i, format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,));
                             }
-                            let gtbx = clk_grid.gtbxlut[col].0;
+                            let gtbx = clk_grid.gtbxlut[col];
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..4 {
                                 nnode.add_bel(
@@ -2483,47 +2408,43 @@ pub fn name_device<'a>(
                                 [format!("{tk}_X{x}Y{y}", y = y - 1)],
                             );
                         }
-                        "RCLK_HROUTE_SPLITTER_L.CLE" => {
+                        "RCLK_HROUTE_SPLITTER.CLE" => {
                             ngrid.name_node(
                                 nloc,
                                 "RCLK_HROUTE_SPLITTER",
                                 [format!("RCLK_CLEM_CLKBUF_L_X{x}Y{y}", y = y - 1)],
                             );
                         }
-                        "RCLK_HROUTE_SPLITTER_L.HARD" => {
-                            let name = match chip.columns[col].l {
-                                ColumnKindLeft::Hard(_, idx) => {
+                        "RCLK_HROUTE_SPLITTER.HARD" => {
+                            let name = match chip.columns[col].kind {
+                                ColumnKind::Hard(_, idx) => {
                                     let col_hard = &chip.cols_hard[idx];
                                     match (chip.kind, col_hard.regs[reg]) {
                                         (ChipKind::Ultrascale, HardRowKind::Cfg) => {
-                                            format!("CFG_CFG_X{x}Y{y}", x = x - 1, y = y - 30)
+                                            format!("CFG_CFG_X{x}Y{y}", y = y - 30)
                                         }
                                         (_, HardRowKind::Ams) => {
                                             let x = if chip.kind == ChipKind::UltrascalePlus
                                                 && (!hdio_cfg_only[idx] || chip.has_csec)
                                             {
-                                                x
+                                                x + 1
                                             } else {
-                                                x - 1
+                                                x
                                             };
                                             format!("RCLK_AMS_CFGIO_X{x}Y{y}", y = y - 1)
                                         }
                                         (ChipKind::Ultrascale, HardRowKind::Pcie) => {
-                                            format!("PCIE_X{x}Y{y}", x = x - 1, y = y - 30)
+                                            format!("PCIE_X{x}Y{y}", y = y - 30)
                                         }
                                         (ChipKind::Ultrascale, HardRowKind::Cmac) => {
-                                            let x = if col == chip.col_cfg() { x - 1 } else { x };
+                                            let x = if col == chip.col_cfg() { x } else { x + 1 };
                                             format!("CMAC_CMAC_FT_X{x}Y{y}", y = y - 30)
                                         }
                                         (ChipKind::Ultrascale, HardRowKind::Ilkn) => {
-                                            format!(
-                                                "ILMAC_ILMAC_FT_X{x}Y{y}",
-                                                x = x - 1,
-                                                y = y - 30
-                                            )
+                                            format!("ILMAC_ILMAC_FT_X{x}Y{y}", y = y - 30)
                                         }
                                         (ChipKind::UltrascalePlus, HardRowKind::Cfg) => {
-                                            let x = if hdio_cfg_only[idx] { x - 1 } else { x };
+                                            let x = if hdio_cfg_only[idx] { x } else { x + 1 };
                                             let tkn = if chip.has_csec {
                                                 "CSEC_CONFIG_FT"
                                             } else {
@@ -2532,61 +2453,43 @@ pub fn name_device<'a>(
                                             format!("{tkn}_X{x}Y{y}", y = y - 30)
                                         }
                                         (ChipKind::UltrascalePlus, HardRowKind::Pcie) => {
-                                            format!(
-                                                "PCIE4_PCIE4_FT_X{x}Y{y}",
-                                                x = x - 1,
-                                                y = y - 30
-                                            )
+                                            format!("PCIE4_PCIE4_FT_X{x}Y{y}", y = y - 30)
                                         }
                                         (ChipKind::UltrascalePlus, HardRowKind::PciePlus) => {
-                                            format!(
-                                                "PCIE4C_PCIE4C_FT_X{x}Y{y}",
-                                                x = x - 1,
-                                                y = y - 30
-                                            )
+                                            format!("PCIE4C_PCIE4C_FT_X{x}Y{y}", y = y - 30)
                                         }
                                         (ChipKind::UltrascalePlus, HardRowKind::Cmac) => {
-                                            format!("CMAC_X{x}Y{y}", x = x - 1, y = y - 30)
+                                            format!("CMAC_X{x}Y{y}", y = y - 30)
                                         }
                                         (ChipKind::UltrascalePlus, HardRowKind::Ilkn) => {
-                                            format!("ILKN_ILKN_FT_X{x}Y{y}", x = x - 1, y = y - 30)
+                                            format!("ILKN_ILKN_FT_X{x}Y{y}", y = y - 30)
                                         }
                                         (ChipKind::UltrascalePlus, HardRowKind::DfeA) => {
-                                            format!(
-                                                "DFE_DFE_TILEA_FT_X{x}Y{y}",
-                                                x = x - 1,
-                                                y = y - 30
-                                            )
+                                            format!("DFE_DFE_TILEA_FT_X{x}Y{y}", y = y - 30)
                                         }
                                         (ChipKind::UltrascalePlus, HardRowKind::DfeG) => {
-                                            format!(
-                                                "DFE_DFE_TILEG_FT_X{x}Y{y}",
-                                                x = x - 1,
-                                                y = y - 30
-                                            )
+                                            format!("DFE_DFE_TILEG_FT_X{x}Y{y}", y = y - 30)
                                         }
                                         _ => unreachable!(),
                                     }
                                 }
-                                ColumnKindLeft::DfeE => {
-                                    format!("DFE_DFE_TILEE_FT_X{x}Y{y}", x = x - 1, y = y - 30)
+                                ColumnKind::DfeE => {
+                                    format!("DFE_DFE_TILEE_FT_X{x}Y{y}", y = y - 30)
+                                }
+                                ColumnKind::DfeB => {
+                                    format!("DFE_DFE_TILEB_FT_X{x}Y{y}", y = y - 30)
                                 }
                                 _ => unreachable!(),
                             };
                             ngrid.name_node(nloc, "RCLK_HROUTE_SPLITTER", [name]);
                         }
-                        "RCLK_HROUTE_SPLITTER_R.HARD" => {
-                            let name = format!("DFE_DFE_TILEB_FT_X{x}Y{y}", y = y - 30);
-                            ngrid.name_node(nloc, "RCLK_HROUTE_SPLITTER", [name]);
-                        }
-
                         "HBM_ABUS_SWITCH" => {
                             let nnode = ngrid.name_node(
                                 nloc,
                                 kind,
-                                [format!("CFRM_CFRAME_TERM_H_FT_X{x}Y{y}")],
+                                [format!("CFRM_CFRAME_TERM_H_FT_X{x}Y{y}", x = x + 1)],
                             );
-                            let asx = aswitch_grid.xlut[col - 1].hbm;
+                            let asx = aswitch_grid.xlut[col].hbm;
                             for i in 0..8 {
                                 nnode.add_bel(
                                     i,

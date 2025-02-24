@@ -9,7 +9,7 @@ use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_ultrascale::{
     bond::Bond,
-    chip::{Chip, CleMKind, ColumnKindLeft, DisabledPart, HardRowKind, Interposer, IoRowKind},
+    chip::{Chip, CleMKind, ColumnKind, DisabledPart, HardRowKind, Interposer, IoRowKind},
     db::{Database, DeviceCombo, Part},
 };
 use regex::Regex;
@@ -163,7 +163,7 @@ fn sort_key<'a>(name: &'a str, part: &TmpPart) -> SortKey<'a> {
     } else if chip
         .columns
         .values()
-        .any(|col| col.l == ColumnKindLeft::CleM(CleMKind::Laguna))
+        .any(|col| col.kind == ColumnKind::CleM(CleMKind::Laguna))
     {
         DeviceKind::VirtexSlr
     } else {

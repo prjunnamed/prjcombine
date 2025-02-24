@@ -1,27 +1,11 @@
-use crate::db::{IntDb, IntfInfo, IriPin, PinDir, TermInfo, WireKind};
+use crate::db::{IntDb, IntfInfo, IriPin, PinDir, TermInfo};
 use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
 
 impl IntDb {
     pub fn print(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
         for (_, k, &w) in &self.wires {
-            write!(o, "\tWIRE {k:14} ")?;
-            match w {
-                WireKind::Tie0 => write!(o, "TIE_0")?,
-                WireKind::Tie1 => write!(o, "TIE_1")?,
-                WireKind::TiePullup => write!(o, "TIE_PULLUP")?,
-                WireKind::ClkOut(i) => write!(o, "CLKOUT {i}")?,
-                WireKind::MuxOut => write!(o, "MUXOUT")?,
-                WireKind::LogicOut => write!(o, "LOGICOUT")?,
-                WireKind::TestOut => write!(o, "TESTOUT")?,
-                WireKind::MultiOut => write!(o, "MULTIOUT")?,
-                WireKind::PipOut => write!(o, "PIPOUT")?,
-                WireKind::Buf(bw) => write!(o, "BUF {bwn}", bwn = self.wires.key(bw))?,
-                WireKind::Branch(d) => write!(o, "BRANCH {d}")?,
-                WireKind::PipBranch(d) => write!(o, "PIPBRANCH {d}")?,
-                WireKind::MultiBranch(d) => write!(o, "MULTIBRANCH {d}")?,
-            }
-            writeln!(o)?;
+            writeln!(o, "\tWIRE {k:14} {w}", w = w.to_string(self))?;
         }
         for (_, name, node) in &self.nodes {
             writeln!(o, "\tNODE {name} {nt}", nt = node.tiles.len())?;

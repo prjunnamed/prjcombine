@@ -1,13 +1,11 @@
 use bimap::BiHashMap;
-use enum_map::EnumMap;
 use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{
-    Chip, ChipKind, ColSide, ColumnKindRight, DisabledPart, HardRowKind, Interposer, IoRowKind,
-    RegId,
+    Chip, ChipKind, DisabledPart, HardRowKind, Interposer, IoRowKind, RegId,
 };
 
 use crate::bond::SharedCfgPin;
@@ -25,7 +23,6 @@ pub enum ClkSrc {
 pub struct HpioCoord {
     pub die: DieId,
     pub col: ColId,
-    pub side: ColSide,
     pub reg: RegId,
     pub iob: TileIobId,
 }
@@ -49,7 +46,6 @@ pub enum IoCoord {
 pub struct GtCoord {
     pub die: DieId,
     pub col: ColId,
-    pub side: ColSide,
     pub reg: RegId,
 }
 
@@ -91,39 +87,22 @@ pub struct ExpandedDevice<'a> {
     pub interposer: &'a Interposer,
     pub egrid: ExpandedGrid<'a>,
     pub disabled: BTreeSet<DisabledPart>,
-    pub hdistr_src: EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
-    pub hroute_src: EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
+    pub hdistr_src: EntityVec<ColId, ClkSrc>,
+    pub hroute_src: EntityVec<ColId, ClkSrc>,
     pub has_pcie_cfg: bool,
     pub is_cut: bool,
     pub is_cut_d: bool,
     pub io: Vec<IoCoord>,
     pub cfg_io: EntityVec<DieId, BiHashMap<SharedCfgPin, IoCoord>>,
     pub gt: Vec<GtCoord>,
-    pub col_cfg_io: (ColId, ColSide),
+    pub col_cfg_io: ColId,
     pub bankxlut: EntityPartVec<ColId, u32>,
     pub bankylut: EntityVec<DieId, EntityPartVec<RegId, u32>>,
 }
 
 impl ExpandedDevice<'_> {
-    pub fn in_site_hole(&self, die: DieId, col: ColId, row: RowId, side: ColSide) -> bool {
-        if let Some(ps) = self.chips[die].ps {
-            if row.to_idx() < ps.height() {
-                if col < ps.col {
-                    return true;
-                }
-                if col == ps.col && side == ColSide::Left {
-                    return true;
-                }
-            }
-        }
-        if self.chips[die].has_hbm
-            && side == ColSide::Right
-            && matches!(self.chips[die].columns[col].r, ColumnKindRight::Dsp(_))
-            && row.to_idx() < 15
-        {
-            return true;
-        }
-        false
+    pub fn in_site_hole(&self, die: DieId, col: ColId, row: RowId) -> bool {
+        self.chips[die].in_site_hole(col, row)
     }
 
     pub fn get_io_info(&self, io: IoCoord) -> IoInfo {
@@ -201,7 +180,7 @@ impl ExpandedDevice<'_> {
                 let hcol = chip
                     .cols_hard
                     .iter()
-                    .find(|hcol| hcol.col == hdio.col + 1)
+                    .find(|hcol| hcol.col == hdio.col)
                     .unwrap();
                 let kind = hcol.regs[hdio.reg];
                 let x = self.bankxlut[hdio.col];
@@ -325,7 +304,7 @@ impl ExpandedDevice<'_> {
             let hcol = chip
                 .cols_hard
                 .iter()
-                .find(|hcol| hcol.col == crd.col + 1)
+                .find(|hcol| hcol.col == crd.col)
                 .unwrap();
             hcol.regs[crd.reg] == HardRowKind::HdioLc
         }

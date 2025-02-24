@@ -1,6 +1,8 @@
-use enum_map::Enum;
 use jzon::JsonValue;
-use prjcombine_interconnect::grid::{ColId, DieId, RowId, TileIobId};
+use prjcombine_interconnect::{
+    db::Dir,
+    grid::{ColId, DieId, RowId, TileIobId},
+};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
@@ -13,14 +15,6 @@ entity_id! {
 pub enum ChipKind {
     Ultrascale,
     UltrascalePlus,
-}
-
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize, Enum,
-)]
-pub enum ColSide {
-    Left,
-    Right,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -45,18 +39,70 @@ pub struct Chip {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub enum ColumnKindLeft {
-    CleL,
+pub enum ColumnKind {
+    // both W and E; W can only be plain
+    CleL(CleLKind),
+    // W only
     CleM(CleMKind),
+    // W only
     Bram(BramKind),
+    // E only
+    Dsp(DspKind),
+    // E only; creates a ContUram on the next W
     Uram,
+    // E only; creates a ContHard on the next W (unless this is the final column)
     Hard(HardKind, usize),
+    // both W and E
     Io(usize),
+    // both W and E
     Gt(usize),
+    // W only
     Sdfec,
+    // E only
+    DfeB,
+    // E only; creates a ContHard on the next W
     DfeC,
+    // E only; creates a ContHard on the next W
     DfeDF,
+    // E only; creates a ContHard on the next W
     DfeE,
+    // URAM continuation, W only
+    ContUram,
+    // hard or DFE continuation, W only
+    ContHard,
+}
+
+impl std::fmt::Display for ColumnKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ColumnKind::CleL(CleLKind::Plain) => write!(f, "CLEL"),
+            ColumnKind::CleL(CleLKind::Dcg10) => write!(f, "CLEL:DCG10"),
+            ColumnKind::CleM(CleMKind::Plain) => write!(f, "CLEM"),
+            ColumnKind::CleM(CleMKind::ClkBuf) => write!(f, "CLEM:CLKBUF"),
+            ColumnKind::CleM(CleMKind::Laguna) => write!(f, "CLEM:LAGUNA"),
+            ColumnKind::Bram(BramKind::Plain) => write!(f, "BRAM"),
+            ColumnKind::Bram(BramKind::Td) => write!(f, "BRAM:TD"),
+            ColumnKind::Bram(BramKind::AuxClmp) => write!(f, "BRAM:AUXCLMP"),
+            ColumnKind::Bram(BramKind::AuxClmpMaybe) => write!(f, "BRAM:AUXCLMP_MAYBE"),
+            ColumnKind::Bram(BramKind::BramClmp) => write!(f, "BRAM:BRAMCLMP"),
+            ColumnKind::Bram(BramKind::BramClmpMaybe) => write!(f, "BRAM:BRAMCLMP_MAYBE"),
+            ColumnKind::Dsp(DspKind::Plain) => write!(f, "DSP"),
+            ColumnKind::Dsp(DspKind::ClkBuf) => write!(f, "DSP:CLKBUF"),
+            ColumnKind::Uram => write!(f, "URAM"),
+            ColumnKind::Hard(HardKind::Clk, i) => write!(f, "HARD:CLK:{i}"),
+            ColumnKind::Hard(HardKind::NonClk, i) => write!(f, "HARD:NON_CLK:{i}"),
+            ColumnKind::Hard(HardKind::Term, i) => write!(f, "HARD:TERM:{i}"),
+            ColumnKind::Io(i) => write!(f, "IO:{i}"),
+            ColumnKind::Gt(i) => write!(f, "GT:{i}"),
+            ColumnKind::Sdfec => write!(f, "SDFEC"),
+            ColumnKind::DfeB => write!(f, "DFE_B"),
+            ColumnKind::DfeC => write!(f, "DFE_C"),
+            ColumnKind::DfeDF => write!(f, "DFE_DF"),
+            ColumnKind::DfeE => write!(f, "DFE_E"),
+            ColumnKind::ContUram => write!(f, "CONT_URAM"),
+            ColumnKind::ContHard => write!(f, "CONT_HARD"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -74,20 +120,6 @@ pub enum BramKind {
     AuxClmpMaybe,
     BramClmpMaybe,
     Td,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub enum ColumnKindRight {
-    CleL(CleLKind),
-    Dsp(DspKind),
-    Uram,
-    Hard(HardKind, usize),
-    Io(usize),
-    Gt(usize),
-    DfeB,
-    DfeC,
-    DfeDF,
-    DfeE,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -111,13 +143,11 @@ pub enum DspKind {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Column {
-    pub l: ColumnKindLeft,
-    pub r: ColumnKindRight,
-    pub clk_l: [Option<u8>; 4],
-    pub clk_r: [Option<u8>; 2],
+    pub kind: ColumnKind,
+    pub clk: [Option<u8>; 4],
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Enum)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum HardRowKind {
     None,
     Cfg,
@@ -139,7 +169,7 @@ pub struct HardColumn {
     pub regs: EntityVec<RegId, HardRowKind>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Enum)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum IoRowKind {
     None,
     Hpio,
@@ -158,7 +188,6 @@ pub enum IoRowKind {
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct IoColumn {
     pub col: ColId,
-    pub side: ColSide,
     pub regs: EntityVec<RegId, IoRowKind>,
 }
 
@@ -301,6 +330,36 @@ impl Chip {
             .iter()
             .any(|x| matches!(x.regs[reg_cfg], IoRowKind::Hpio | IoRowKind::Hrio))
     }
+
+    pub fn col_side(&self, col: ColId) -> Dir {
+        if col.to_idx() % 2 == 0 {
+            Dir::W
+        } else {
+            Dir::E
+        }
+    }
+
+    pub fn in_int_hole(&self, col: ColId, row: RowId) -> bool {
+        if let Some(ps) = self.ps {
+            if row.to_idx() < ps.height() && col < ps.col {
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn in_site_hole(&self, col: ColId, row: RowId) -> bool {
+        if let Some(ps) = self.ps {
+            if row.to_idx() < ps.height() && col <= ps.col {
+                return true;
+            }
+        }
+        if self.has_hbm && matches!(self.columns[col].kind, ColumnKind::Dsp(_)) && row.to_idx() < 15
+        {
+            return true;
+        }
+        false
+    }
 }
 
 impl From<&HardColumn> for JsonValue {
@@ -355,46 +414,8 @@ impl From<&Chip> for JsonValue {
                 ChipKind::UltrascalePlus => "ultrascaleplus",
             },
             columns: Vec::from_iter(chip.columns.values().map(|column| jzon::object! {
-                l: match column.l {
-                    ColumnKindLeft::CleL => "CLEL".to_string(),
-                    ColumnKindLeft::CleM(CleMKind::Plain) => "CLEM".to_string(),
-                    ColumnKindLeft::CleM(CleMKind::ClkBuf) => "CLEM:CLKBUF".to_string(),
-                    ColumnKindLeft::CleM(CleMKind::Laguna) => "CLEM:LAGUNA".to_string(),
-                    ColumnKindLeft::Bram(BramKind::Plain) => "BRAM".to_string(),
-                    ColumnKindLeft::Bram(BramKind::Td) => "BRAM:TD".to_string(),
-                    ColumnKindLeft::Bram(BramKind::AuxClmp) => "BRAM:AUXCLMP".to_string(),
-                    ColumnKindLeft::Bram(BramKind::AuxClmpMaybe) => "BRAM:AUXCLMP_MAYBE".to_string(),
-                    ColumnKindLeft::Bram(BramKind::BramClmp) => "BRAM:BRAMCLMP".to_string(),
-                    ColumnKindLeft::Bram(BramKind::BramClmpMaybe) => "BRAM:BRAMCLMP_MAYBE".to_string(),
-                    ColumnKindLeft::Uram => "URAM".to_string(),
-                    ColumnKindLeft::Hard(HardKind::Clk, i) => format!("HARD:CLK:{i}"),
-                    ColumnKindLeft::Hard(HardKind::NonClk, i) => format!("HARD:NON_CLK:{i}"),
-                    ColumnKindLeft::Hard(HardKind::Term, i) => format!("HARD:TERM:{i}"),
-                    ColumnKindLeft::Io(i) => format!("IO:{i}"),
-                    ColumnKindLeft::Gt(i) => format!("GT:{i}"),
-                    ColumnKindLeft::Sdfec => "SDFEC".to_string(),
-                    ColumnKindLeft::DfeC => "DFE_C".to_string(),
-                    ColumnKindLeft::DfeDF => "DFE_DF".to_string(),
-                    ColumnKindLeft::DfeE => "DFE_E".to_string(),
-                },
-                r: match column.r {
-                    ColumnKindRight::CleL(CleLKind::Plain) => "CLEL".to_string(),
-                    ColumnKindRight::CleL(CleLKind::Dcg10) => "CLEL:DCG10".to_string(),
-                    ColumnKindRight::Dsp(DspKind::Plain) => "DSP".to_string(),
-                    ColumnKindRight::Dsp(DspKind::ClkBuf) => "DSP:CLKBUF".to_string(),
-                    ColumnKindRight::Uram => "URAM".to_string(),
-                    ColumnKindRight::Hard(HardKind::Clk, i) => format!("HARD:CLK:{i}"),
-                    ColumnKindRight::Hard(HardKind::NonClk, i) => format!("HARD:NON_CLK:{i}"),
-                    ColumnKindRight::Hard(HardKind::Term, i) => format!("HARD:TERM:{i}"),
-                    ColumnKindRight::Io(i) => format!("IO:{i}"),
-                    ColumnKindRight::Gt(i) => format!("GT:{i}"),
-                    ColumnKindRight::DfeB => "DFE_B".to_string(),
-                    ColumnKindRight::DfeC => "DFE_C".to_string(),
-                    ColumnKindRight::DfeDF => "DFE_DF".to_string(),
-                    ColumnKindRight::DfeE => "DFE_E".to_string(),
-                },
-                clk_l: column.clk_l.to_vec(),
-                clk_r: column.clk_r.to_vec(),
+                kind: column.kind.to_string(),
+                clk: column.clk.to_vec(),
             })),
             cols_vbrk: Vec::from_iter(chip.cols_vbrk.iter().map(|col| col.to_idx())),
             cols_fsr_gap: Vec::from_iter(chip.cols_fsr_gap.iter().map(|col| col.to_idx())),
@@ -454,43 +475,25 @@ impl std::fmt::Display for Chip {
             if self.cols_fsr_gap.contains(&col) {
                 writeln!(f, "\t\t--- FSR gap")?;
             }
+            if matches!(cd.kind, ColumnKind::ContUram | ColumnKind::ContHard) {
+                continue;
+            }
             if matches!(
-                cd.l,
-                ColumnKindLeft::Uram
-                    | ColumnKindLeft::Hard(_, _)
-                    | ColumnKindLeft::DfeC
-                    | ColumnKindLeft::DfeDF
-                    | ColumnKindLeft::DfeE
+                cd.kind,
+                ColumnKind::Uram
+                    | ColumnKind::Hard(_, _)
+                    | ColumnKind::DfeC
+                    | ColumnKind::DfeDF
+                    | ColumnKind::DfeE
             ) {
-                write!(f, "\t\tX{cl}.R-X{c}.L: ", cl = col - 1, c = col)?;
+                write!(f, "\t\tX{col}-X{cr}: ", cr = col + 1)?;
             } else {
-                write!(f, "\t\tX{c}.L: ", c = col.to_idx())?;
+                write!(f, "\t\tX{col}: ")?;
             }
-            match cd.l {
-                ColumnKindLeft::Io(_) => write!(f, "IO")?,
-                ColumnKindLeft::Gt(_) => write!(f, "GT")?,
-                ColumnKindLeft::CleL => write!(f, "CLEL")?,
-                ColumnKindLeft::CleM(CleMKind::Plain) => write!(f, "CLEM")?,
-                ColumnKindLeft::CleM(CleMKind::ClkBuf) => write!(f, "CLEM.CLK")?,
-                ColumnKindLeft::CleM(CleMKind::Laguna) => write!(f, "CLEM.LAGUNA")?,
-                ColumnKindLeft::Bram(BramKind::Plain) => write!(f, "BRAM")?,
-                ColumnKindLeft::Bram(BramKind::AuxClmp) => write!(f, "BRAM.AUX_CLMP")?,
-                ColumnKindLeft::Bram(BramKind::BramClmp) => write!(f, "BRAM.BRAM_CLMP")?,
-                ColumnKindLeft::Bram(BramKind::AuxClmpMaybe) => write!(f, "BRAM.AUX_CLMP*")?,
-                ColumnKindLeft::Bram(BramKind::BramClmpMaybe) => write!(f, "BRAM.BRAM_CLMP*")?,
-                ColumnKindLeft::Bram(BramKind::Td) => write!(f, "BRAM.TD")?,
-                ColumnKindLeft::Uram => write!(f, "URAM")?,
-                ColumnKindLeft::Hard(hk, _) => {
-                    write!(f, "HARD{}", if hk == HardKind::Clk { " CLK" } else { "" })?
-                }
-                ColumnKindLeft::Sdfec => write!(f, "SDFEC")?,
-                ColumnKindLeft::DfeC => write!(f, "DFE_C")?,
-                ColumnKindLeft::DfeDF => write!(f, "DFE_DF")?,
-                ColumnKindLeft::DfeE => write!(f, "DFE_E")?,
-            }
-            if cd.clk_l.iter().any(|x| x.is_some()) {
+            write!(f, "{}", cd.kind)?;
+            if cd.clk.iter().any(|x| x.is_some()) {
                 write!(f, " CLK")?;
-                for v in cd.clk_l {
+                for v in cd.clk {
                     if let Some(v) = v {
                         write!(f, " {v}")?;
                     } else {
@@ -504,7 +507,7 @@ impl std::fmt::Display for Chip {
                 }
             }
             writeln!(f,)?;
-            if let ColumnKindLeft::Io(idx) | ColumnKindLeft::Gt(idx) = cd.l {
+            if let ColumnKind::Io(idx) | ColumnKind::Gt(idx) = cd.kind {
                 let ioc = &self.cols_io[idx];
                 for (reg, kind) in &ioc.regs {
                     writeln!(
@@ -514,63 +517,7 @@ impl std::fmt::Display for Chip {
                     )?;
                 }
             }
-            if let ColumnKindLeft::Hard(_, idx) = cd.l {
-                let hc = &self.cols_hard[idx];
-                for (reg, kind) in &hc.regs {
-                    writeln!(
-                        f,
-                        "\t\t\tY{y}: {kind:?}",
-                        y = self.row_reg_bot(reg).to_idx()
-                    )?;
-                }
-            }
-            if matches!(
-                cd.r,
-                ColumnKindRight::Uram
-                    | ColumnKindRight::Hard(HardKind::Clk | HardKind::NonClk, _)
-                    | ColumnKindRight::DfeC
-                    | ColumnKindRight::DfeDF
-                    | ColumnKindRight::DfeE
-            ) {
-                continue;
-            }
-            write!(f, "\t\tX{c}.R: ", c = col.to_idx())?;
-            match cd.r {
-                ColumnKindRight::Io(_) => write!(f, "IO")?,
-                ColumnKindRight::Gt(_) => write!(f, "GT")?,
-                ColumnKindRight::CleL(CleLKind::Plain) => write!(f, "CLEL")?,
-                ColumnKindRight::CleL(CleLKind::Dcg10) => write!(f, "CLEL.DCG10")?,
-                ColumnKindRight::Dsp(DspKind::Plain) => write!(f, "DSP")?,
-                ColumnKindRight::Dsp(DspKind::ClkBuf) => write!(f, "DSP.CLK")?,
-                ColumnKindRight::Uram => write!(f, "URAM")?,
-                ColumnKindRight::Hard(_, _) => write!(f, "HARD TERM")?,
-                ColumnKindRight::DfeB => write!(f, "DFE_B")?,
-                ColumnKindRight::DfeC => write!(f, "DFE_C")?,
-                ColumnKindRight::DfeDF => write!(f, "DFE_DF")?,
-                ColumnKindRight::DfeE => write!(f, "DFE_E")?,
-            }
-            if cd.clk_r.iter().any(|x| x.is_some()) {
-                write!(f, " CLK")?;
-                for v in cd.clk_r {
-                    if let Some(v) = v {
-                        write!(f, " {v}")?;
-                    } else {
-                        write!(f, " -")?;
-                    }
-                }
-            }
-            writeln!(f)?;
-            if let ColumnKindRight::Io(idx) | ColumnKindRight::Gt(idx) = cd.r {
-                let ioc = &self.cols_io[idx];
-                for (reg, kind) in &ioc.regs {
-                    writeln!(
-                        f,
-                        "\t\t\tY{y}: {kind:?}",
-                        y = self.row_reg_bot(reg).to_idx()
-                    )?;
-                }
-            }
-            if let ColumnKindRight::Hard(__, idx) = cd.r {
+            if let ColumnKind::Hard(_, idx) = cd.kind {
                 let hc = &self.cols_hard[idx];
                 for (reg, kind) in &hc.regs {
                     writeln!(

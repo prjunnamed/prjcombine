@@ -1,52 +1,95 @@
-use prjcombine_interconnect::grid::{ColId, DieId, RowId, TileIobId};
+use prjcombine_interconnect::{
+    db::Dir,
+    grid::{ColId, DieId, RowId, TileIobId},
+};
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::chip::{
-    BramKind, Chip, ChipKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight,
-    DisabledPart, DspKind, HardColumn, HardKind, HardRowKind, Interposer, IoColumn, IoRowKind, Ps,
-    PsIntfKind, RegId,
+    BramKind, Chip, ChipKind, CleLKind, CleMKind, Column, ColumnKind, DisabledPart, DspKind,
+    HardColumn, HardKind, HardRowKind, Interposer, IoColumn, IoRowKind, Ps, PsIntfKind, RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityVec};
 
 use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int_slr_column, find_rows};
 
-fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
-    let mut res: EntityVec<ColId, (Option<ColumnKindLeft>, Option<ColumnKindRight>)> =
-        int.cols.map_values(|_| (None, None));
+fn adjust_column(col: ColId, side: Dir) -> ColId {
+    match side {
+        Dir::W => ColId::from_idx(col.to_idx() * 2),
+        Dir::E => ColId::from_idx(col.to_idx() * 2 + 1),
+        _ => unreachable!(),
+    }
+}
+
+struct IntGridWrapper<'a> {
+    int: IntGrid<'a>,
+}
+
+impl IntGridWrapper<'_> {
+    pub fn num_cols(&self) -> usize {
+        self.int.cols.len() * 2
+    }
+
+    pub fn find_columns(&self, tts: &[&str]) -> Vec<i32> {
+        self.int.find_columns(tts)
+    }
+
+    pub fn find_column(&self, tts: &[&str]) -> Option<i32> {
+        self.int.find_column(tts)
+    }
+
+    pub fn find_tiles(&self, tts: &[&str]) -> BTreeSet<(i32, i32)> {
+        self.int.find_tiles(tts)
+    }
+
+    pub fn lookup_column(&self, col: i32, side: Dir) -> ColId {
+        adjust_column(self.int.lookup_column(col), side)
+    }
+
+    pub fn lookup_column_inter(&self, col: i32) -> ColId {
+        adjust_column(self.int.lookup_column_inter(col), Dir::W)
+    }
+
+    pub fn lookup_row(&self, row: i32) -> RowId {
+        self.int.lookup_row(row)
+    }
+}
+
+fn make_columns(int: &IntGridWrapper) -> EntityVec<ColId, Column> {
+    let mut res: EntityVec<ColId, Option<ColumnKind>> = (0..int.num_cols()).map(|_| None).collect();
     for (tkn, delta, kind) in [
-        ("CLEL_L", 1, ColumnKindLeft::CleL),
-        ("CLE_M", 1, ColumnKindLeft::CleM(CleMKind::Plain)),
-        ("CLE_M_R", 1, ColumnKindLeft::CleM(CleMKind::Plain)),
-        ("CLEM", 1, ColumnKindLeft::CleM(CleMKind::Plain)),
-        ("CLEM_R", 1, ColumnKindLeft::CleM(CleMKind::Plain)),
+        ("CLEL_L", 1, ColumnKind::CleL(CleLKind::Plain)),
+        ("CLE_M", 1, ColumnKind::CleM(CleMKind::Plain)),
+        ("CLE_M_R", 1, ColumnKind::CleM(CleMKind::Plain)),
+        ("CLEM", 1, ColumnKind::CleM(CleMKind::Plain)),
+        ("CLEM_R", 1, ColumnKind::CleM(CleMKind::Plain)),
         (
             "INT_INTF_LEFT_TERM_PSS",
             1,
-            ColumnKindLeft::CleM(CleMKind::Plain),
+            ColumnKind::CleM(CleMKind::Plain),
         ),
-        ("BRAM", 2, ColumnKindLeft::Bram(BramKind::Plain)),
-        ("URAM_URAM_FT", 2, ColumnKindLeft::Uram),
-        ("INT_INT_INTERFACE_GT_LEFT_FT", 1, ColumnKindLeft::Gt(0)),
-        ("INT_INTF_L_TERM_GT", 1, ColumnKindLeft::Gt(0)),
-        ("INT_INT_INTERFACE_XIPHY_FT", 1, ColumnKindLeft::Io(0)),
-        ("INT_INTF_LEFT_TERM_IO_FT", 1, ColumnKindLeft::Io(0)),
-        ("INT_INTF_L_IO", 1, ColumnKindLeft::Io(0)),
+        ("BRAM", 2, ColumnKind::Bram(BramKind::Plain)),
+        ("URAM_URAM_FT", 2, ColumnKind::ContUram),
+        ("INT_INT_INTERFACE_GT_LEFT_FT", 1, ColumnKind::Gt(0)),
+        ("INT_INTF_L_TERM_GT", 1, ColumnKind::Gt(0)),
+        ("INT_INT_INTERFACE_XIPHY_FT", 1, ColumnKind::Io(0)),
+        ("INT_INTF_LEFT_TERM_IO_FT", 1, ColumnKind::Io(0)),
+        ("INT_INTF_L_IO", 1, ColumnKind::Io(0)),
     ] {
         for c in int.find_columns(&[tkn]) {
-            res[int.lookup_column(c + delta)].0 = Some(kind);
+            res[int.lookup_column(c + delta, Dir::W)] = Some(kind);
         }
     }
     for (tkn, delta, kind) in [
-        ("CLEL_R", 1, ColumnKindRight::CleL(CleLKind::Plain)),
-        ("DSP", 2, ColumnKindRight::Dsp(DspKind::Plain)),
-        ("URAM_URAM_FT", 2, ColumnKindRight::Uram),
-        ("INT_INTERFACE_GT_R", 1, ColumnKindRight::Gt(0)),
-        ("INT_INTF_R_TERM_GT", 1, ColumnKindRight::Gt(0)),
-        ("INT_INTF_RIGHT_TERM_IO", 1, ColumnKindRight::Io(0)),
+        ("CLEL_R", 1, ColumnKind::CleL(CleLKind::Plain)),
+        ("DSP", 2, ColumnKind::Dsp(DspKind::Plain)),
+        ("URAM_URAM_FT", 2, ColumnKind::Uram),
+        ("INT_INTERFACE_GT_R", 1, ColumnKind::Gt(0)),
+        ("INT_INTF_R_TERM_GT", 1, ColumnKind::Gt(0)),
+        ("INT_INTF_RIGHT_TERM_IO", 1, ColumnKind::Io(0)),
     ] {
         for c in int.find_columns(&[tkn]) {
-            res[int.lookup_column(c - delta)].1 = Some(kind);
+            res[int.lookup_column(c - delta, Dir::E)] = Some(kind);
         }
     }
     for c in int.find_columns(&[
@@ -67,56 +110,59 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
         "DFE_DFE_TILEA_FT",
         "DFE_DFE_TILEG_FT",
     ]) {
-        let col = int.lookup_column_inter(c);
-        if col == res.next_id() {
-            res[col - 1].1 = Some(ColumnKindRight::Hard(HardKind::Term, 0));
+        let col = int.lookup_column_inter(c) - 1;
+        if col == res.next_id() - 1 {
+            res[col] = Some(ColumnKind::Hard(HardKind::Term, 0));
         } else {
-            res[col - 1].1 = Some(ColumnKindRight::Hard(HardKind::Clk, 0));
-            res[col].0 = Some(ColumnKindLeft::Hard(HardKind::Clk, 0));
+            res[col] = Some(ColumnKind::Hard(HardKind::Clk, 0));
+            res[col + 1] = Some(ColumnKind::ContHard);
         }
     }
     for c in int.find_columns(&["RCLK_RCLK_HDIO_R_FT"]) {
-        let col = int.lookup_column_inter(c);
-        res[col - 1].1 = Some(ColumnKindRight::Hard(HardKind::NonClk, 0));
-        res[col].0 = Some(ColumnKindLeft::Hard(HardKind::NonClk, 0));
+        let col = int.lookup_column_inter(c) - 1;
+        res[col] = Some(ColumnKind::Hard(HardKind::NonClk, 0));
+        res[col + 1] = Some(ColumnKind::ContHard);
     }
     for c in int.find_columns(&["FE_FE_FT"]) {
-        res[int.lookup_column_inter(c)].0 = Some(ColumnKindLeft::Sdfec);
+        res[int.lookup_column_inter(c)] = Some(ColumnKind::Sdfec);
     }
     for c in int.find_columns(&["DFE_DFE_TILEB_FT"]) {
-        res[int.lookup_column_inter(c) - 1].1 = Some(ColumnKindRight::DfeB);
+        res[int.lookup_column_inter(c) - 1] = Some(ColumnKind::DfeB);
     }
     for c in int.find_columns(&["DFE_DFE_TILEC_FT"]) {
-        res[int.lookup_column_inter(c) - 1].1 = Some(ColumnKindRight::DfeC);
-        res[int.lookup_column_inter(c)].0 = Some(ColumnKindLeft::DfeC);
+        let col = int.lookup_column_inter(c) - 1;
+        res[col] = Some(ColumnKind::DfeC);
+        res[col + 1] = Some(ColumnKind::ContHard);
     }
     for c in int.find_columns(&["DFE_DFE_TILED_FT"]) {
-        res[int.lookup_column_inter(c) - 1].1 = Some(ColumnKindRight::DfeDF);
-        res[int.lookup_column_inter(c)].0 = Some(ColumnKindLeft::DfeDF);
+        let col = int.lookup_column_inter(c) - 1;
+        res[col] = Some(ColumnKind::DfeDF);
+        res[col + 1] = Some(ColumnKind::ContHard);
     }
     for c in int.find_columns(&["DFE_DFE_TILEE_FT"]) {
-        res[int.lookup_column_inter(c) - 1].1 = Some(ColumnKindRight::DfeE);
-        res[int.lookup_column_inter(c)].0 = Some(ColumnKindLeft::DfeE);
+        let col = int.lookup_column_inter(c) - 1;
+        res[col] = Some(ColumnKind::DfeE);
+        res[col + 1] = Some(ColumnKind::ContHard);
     }
     for c in int.find_columns(&["RCLK_CLEM_CLKBUF_L"]) {
-        let c = int.lookup_column(c + 1);
-        assert_eq!(res[c].0, Some(ColumnKindLeft::CleM(CleMKind::Plain)));
-        res[c].0 = Some(ColumnKindLeft::CleM(CleMKind::ClkBuf));
+        let c = int.lookup_column(c + 1, Dir::W);
+        assert_eq!(res[c], Some(ColumnKind::CleM(CleMKind::Plain)));
+        res[c] = Some(ColumnKind::CleM(CleMKind::ClkBuf));
     }
     for c in int.find_columns(&["LAGUNA_TILE"]) {
-        let c = int.lookup_column(c + 1);
-        assert_eq!(res[c].0, Some(ColumnKindLeft::CleM(CleMKind::Plain)));
-        res[c].0 = Some(ColumnKindLeft::CleM(CleMKind::Laguna));
+        let c = int.lookup_column(c + 1, Dir::W);
+        assert_eq!(res[c], Some(ColumnKind::CleM(CleMKind::Plain)));
+        res[c] = Some(ColumnKind::CleM(CleMKind::Laguna));
     }
     for c in int.find_columns(&["LAG_LAG"]) {
-        let c = int.lookup_column(c + 2);
-        assert_eq!(res[c].0, Some(ColumnKindLeft::CleM(CleMKind::Plain)));
-        res[c].0 = Some(ColumnKindLeft::CleM(CleMKind::Laguna));
+        let c = int.lookup_column(c + 2, Dir::W);
+        assert_eq!(res[c], Some(ColumnKind::CleM(CleMKind::Plain)));
+        res[c] = Some(ColumnKind::CleM(CleMKind::Laguna));
     }
     for c in int.find_columns(&["RCLK_CLEL_R_DCG10_R"]) {
-        let c = int.lookup_column(c - 1);
-        assert_eq!(res[c].1, Some(ColumnKindRight::CleL(CleLKind::Plain)));
-        res[c].1 = Some(ColumnKindRight::CleL(CleLKind::Dcg10));
+        let c = int.lookup_column(c - 1, Dir::E);
+        assert_eq!(res[c], Some(ColumnKind::CleL(CleLKind::Plain)));
+        res[c] = Some(ColumnKind::CleL(CleLKind::Dcg10));
     }
     for (tkn, kind) in [
         ("RCLK_RCLK_BRAM_L_AUXCLMP_FT", BramKind::AuxClmp),
@@ -125,109 +171,110 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
         ("RCLK_BRAM_INTF_TD_R", BramKind::Td),
     ] {
         for c in int.find_columns(&[tkn]) {
-            let c = int.lookup_column(c + 2);
-            assert_eq!(res[c].0, Some(ColumnKindLeft::Bram(BramKind::Plain)));
-            res[c].0 = Some(ColumnKindLeft::Bram(kind));
+            let c = int.lookup_column(c + 2, Dir::W);
+            assert_eq!(res[c], Some(ColumnKind::Bram(BramKind::Plain)));
+            res[c] = Some(ColumnKind::Bram(kind));
         }
     }
     for c in int.find_columns(&["RCLK_BRAM_L"]) {
-        let c = int.lookup_column(c + 2);
-        match res[c].0 {
-            Some(ColumnKindLeft::Bram(BramKind::BramClmp)) => {
-                res[c].0 = Some(ColumnKindLeft::Bram(BramKind::BramClmpMaybe))
+        let c = int.lookup_column(c + 2, Dir::W);
+        match res[c] {
+            Some(ColumnKind::Bram(BramKind::BramClmp)) => {
+                res[c] = Some(ColumnKind::Bram(BramKind::BramClmpMaybe))
             }
-            Some(ColumnKindLeft::Bram(BramKind::AuxClmp)) => {
-                res[c].0 = Some(ColumnKindLeft::Bram(BramKind::AuxClmpMaybe))
+            Some(ColumnKind::Bram(BramKind::AuxClmp)) => {
+                res[c] = Some(ColumnKind::Bram(BramKind::AuxClmpMaybe))
             }
-            Some(ColumnKindLeft::Bram(BramKind::Plain)) => (),
+            Some(ColumnKind::Bram(BramKind::Plain)) => (),
             _ => unreachable!(),
         }
     }
     for c in int.find_columns(&["RCLK_DSP_CLKBUF_L"]) {
-        let c = int.lookup_column(c - 2);
-        assert_eq!(res[c].1, Some(ColumnKindRight::Dsp(DspKind::Plain)));
-        res[c].1 = Some(ColumnKindRight::Dsp(DspKind::ClkBuf));
+        let c = int.lookup_column(c - 2, Dir::E);
+        assert_eq!(res[c], Some(ColumnKind::Dsp(DspKind::Plain)));
+        res[c] = Some(ColumnKind::Dsp(DspKind::ClkBuf));
     }
     for c in int.find_columns(&["RCLK_DSP_INTF_CLKBUF_L"]) {
-        let c = int.lookup_column(c - 1);
-        assert_eq!(res[c].1, Some(ColumnKindRight::Dsp(DspKind::Plain)));
-        res[c].1 = Some(ColumnKindRight::Dsp(DspKind::ClkBuf));
+        let c = int.lookup_column(c - 1, Dir::E);
+        assert_eq!(res[c], Some(ColumnKind::Dsp(DspKind::Plain)));
+        res[c] = Some(ColumnKind::Dsp(DspKind::ClkBuf));
     }
-    for (i, &(l, r)) in res.iter() {
-        if l.is_none() {
-            println!("FAILED TO DETERMINE COLUMN {}.L", i.to_idx());
-        }
-        if r.is_none() {
-            println!("FAILED TO DETERMINE COLUMN {}.R", i.to_idx());
+    for (col, &kind) in res.iter() {
+        if kind.is_none() {
+            println!("FAILED TO DETERMINE COLUMN {col}");
         }
     }
-    let mut res = res.into_map_values(|(l, r)| Column {
-        l: l.unwrap(),
-        r: r.unwrap(),
-        clk_l: [None; 4],
-        clk_r: [None; 2],
+    let mut res = res.into_map_values(|kind| Column {
+        kind: kind.unwrap(),
+        clk: [None; 4],
     });
     for (col, cd) in res.iter_mut() {
-        let x = int.cols[col] as u16;
-        let row = if int.rd.family == "ultrascale" {
+        let x = int.int.cols[ColId::from_idx(col.to_idx() / 2)] as u16;
+        let row = if int.int.rd.family == "ultrascale" {
             // avoid laguna rows, if present
             RowId::from_idx(90)
         } else {
             // avoid PS rows
-            RowId::from_idx(int.rows.len() - 30)
+            RowId::from_idx(int.int.rows.len() - 30)
         };
-        let y = int.rows[row] as u16 - 1;
+        let y = int.int.rows[row] as u16 - 1;
         let crd = Coord { x, y };
         let hdistr: [_; 24] = core::array::from_fn(|i| {
-            int.rd
+            int.int
+                .rd
                 .lookup_wire(crd, &format!("CLK_HDISTR_FT0_{i}"))
                 .unwrap()
         });
-        if let Some((xy, num)) = match cd.l {
-            ColumnKindLeft::CleL => Some((crd.delta(-1, 0), 1)),
-            ColumnKindLeft::CleM(CleMKind::ClkBuf) => None,
-            ColumnKindLeft::CleM(CleMKind::Laguna) if int.rd.family == "ultrascaleplus" => {
-                Some((crd.delta(-2, 0), 1))
-            }
-            ColumnKindLeft::CleM(_) => Some((crd.delta(-1, 0), 1)),
-            ColumnKindLeft::Bram(_) => {
-                if int.rd.family == "ultrascale" {
-                    Some((crd.delta(-2, 0), 2))
-                } else {
-                    Some((crd.delta(-2, 0), 4))
+        if col.to_idx() % 2 == 0 {
+            if let Some((xy, num)) = match cd.kind {
+                ColumnKind::CleL(_) => Some((crd.delta(-1, 0), 1)),
+                ColumnKind::CleM(CleMKind::ClkBuf) => None,
+                ColumnKind::CleM(CleMKind::Laguna) if int.int.rd.family == "ultrascaleplus" => {
+                    Some((crd.delta(-2, 0), 1))
+                }
+                ColumnKind::CleM(_) => Some((crd.delta(-1, 0), 1)),
+                ColumnKind::Bram(_) => {
+                    if int.int.rd.family == "ultrascale" {
+                        Some((crd.delta(-2, 0), 2))
+                    } else {
+                        Some((crd.delta(-2, 0), 4))
+                    }
+                }
+                ColumnKind::ContUram => Some((crd.delta(-3, 0), 4)),
+                _ => None,
+            } {
+                for j in 0..num {
+                    let nw = int.int.rd.lookup_wire(
+                        xy,
+                        &format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = j * 2 + 1),
+                    );
+                    if let Some(idx) = hdistr.iter().position(|&x| Some(x) == nw) {
+                        cd.clk[j] = Some(idx as u8);
+                    }
                 }
             }
-            ColumnKindLeft::Uram => Some((crd.delta(-3, 0), 4)),
-            _ => None,
-        } {
-            for j in 0..num {
-                let nw = int.rd.lookup_wire(
-                    xy,
-                    &format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = j * 2 + 1),
-                );
-                if let Some(idx) = hdistr.iter().position(|&x| Some(x) == nw) {
-                    cd.clk_l[j] = Some(idx as u8);
+        } else {
+            if let Some((xy, num)) = match cd.kind {
+                ColumnKind::CleL(_) if int.int.rd.family == "ultrascale" => {
+                    Some((crd.delta(1, 0), 1))
                 }
-            }
-        }
-        if let Some((xy, num)) = match cd.r {
-            ColumnKindRight::CleL(_) if int.rd.family == "ultrascale" => Some((crd.delta(1, 0), 1)),
-            ColumnKindRight::Dsp(_) => {
-                if int.rd.family == "ultrascale" {
-                    Some((crd.delta(2, 0), 2))
-                } else {
-                    Some((crd.delta(1, 0), 2))
+                ColumnKind::Dsp(_) => {
+                    if int.int.rd.family == "ultrascale" {
+                        Some((crd.delta(2, 0), 2))
+                    } else {
+                        Some((crd.delta(1, 0), 2))
+                    }
                 }
-            }
-            _ => None,
-        } {
-            for j in 0..num {
-                let nw = int.rd.lookup_wire(
-                    xy,
-                    &format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = j * 2 + 1),
-                );
-                if let Some(idx) = hdistr.iter().position(|&x| Some(x) == nw) {
-                    cd.clk_r[j] = Some(idx as u8);
+                _ => None,
+            } {
+                for j in 0..num {
+                    let nw = int.int.rd.lookup_wire(
+                        xy,
+                        &format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = j * 2 + 1),
+                    );
+                    if let Some(idx) = hdistr.iter().position(|&x| Some(x) == nw) {
+                        cd.clk[j] = Some(idx as u8);
+                    }
                 }
             }
         }
@@ -235,7 +282,7 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
     res
 }
 
-fn get_cols_vbrk(int: &IntGrid) -> BTreeSet<ColId> {
+fn get_cols_vbrk(int: &IntGridWrapper) -> BTreeSet<ColId> {
     let mut res = BTreeSet::new();
     for c in int.find_columns(&["CFRM_CBRK_L", "CFRM_CBRK_R"]) {
         res.insert(int.lookup_column_inter(c));
@@ -243,7 +290,7 @@ fn get_cols_vbrk(int: &IntGrid) -> BTreeSet<ColId> {
     res
 }
 
-fn get_cols_fsr_gap(int: &IntGrid) -> BTreeSet<ColId> {
+fn get_cols_fsr_gap(int: &IntGridWrapper) -> BTreeSet<ColId> {
     let mut res = BTreeSet::new();
     for c in int.find_columns(&["FSR_GAP"]) {
         res.insert(int.lookup_column_inter(c));
@@ -252,16 +299,16 @@ fn get_cols_fsr_gap(int: &IntGrid) -> BTreeSet<ColId> {
 }
 
 fn get_cols_hard(
-    int: &IntGrid,
+    int: &IntGridWrapper,
     dieid: DieId,
     disabled: &mut BTreeSet<DisabledPart>,
 ) -> Vec<HardColumn> {
     let mut vp_aux0: HashSet<NodeId> = HashSet::new();
-    if let Some((_, tk)) = int.rd.tile_kinds.get("AMS") {
+    if let Some((_, tk)) = int.int.rd.tile_kinds.get("AMS") {
         for (i, &v) in tk.conn_wires.iter() {
-            if &int.rd.wires[v] == "AMS_AMS_CORE_0_VP_AUX0" {
+            if &int.int.rd.wires[v] == "AMS_AMS_CORE_0_VP_AUX0" {
                 for crd in &tk.tiles {
-                    let tile = &int.rd.tiles[crd];
+                    let tile = &int.int.rd.tiles[crd];
                     if let Some(&n) = tile.conn_wires.get(i) {
                         vp_aux0.insert(n);
                     }
@@ -293,41 +340,41 @@ fn get_cols_hard(
         ("HDIOLC_HDIOL_BOT_RIGHT_AUX_FT", HardRowKind::HdioLc),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
-            let col = int.lookup_column_inter(x);
+            let col = int.lookup_column_inter(x) - 1;
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 60);
             cells.insert((col, reg), kind);
             let crd = Coord {
                 x: x as u16,
                 y: y as u16,
             };
-            let tile = &int.rd.tiles[&crd];
+            let tile = &int.int.rd.tiles[&crd];
             if tile.sites.iter().next().is_none() && tt != "DFE_DFE_TILEG_FT" {
                 disabled.insert(DisabledPart::HardIp(dieid, col, reg));
             }
             if tt == "HDIO_BOT_RIGHT" {
-                let sk = int.rd.slot_kinds.get("IOB").unwrap();
-                let tk = &int.rd.tile_kinds[tile.kind];
+                let sk = int.int.rd.slot_kinds.get("IOB").unwrap();
+                let tk = &int.int.rd.tile_kinds[tile.kind];
                 for i in 0..12 {
                     let slot = TkSiteSlot::Xy(sk, 0, i as u8);
                     let sid = tk.sites.get(&slot).unwrap().0;
                     if !tile.sites.contains_id(sid) {
                         disabled.insert(DisabledPart::HdioIob(
                             dieid,
-                            col - 1,
+                            col,
                             reg,
                             TileIobId::from_idx(i),
                         ));
                     }
                 }
-                let tile = &int.rd.tiles[&crd.delta(0, 31)];
-                let tk = &int.rd.tile_kinds[tile.kind];
+                let tile = &int.int.rd.tiles[&crd.delta(0, 31)];
+                let tk = &int.int.rd.tile_kinds[tile.kind];
                 for i in 0..12 {
                     let slot = TkSiteSlot::Xy(sk, 0, i as u8);
                     let sid = tk.sites.get(&slot).unwrap().0;
                     if !tile.sites.contains_id(sid) {
                         disabled.insert(DisabledPart::HdioIob(
                             dieid,
-                            col - 1,
+                            col,
                             reg,
                             TileIobId::from_idx(i + 12),
                         ));
@@ -336,16 +383,16 @@ fn get_cols_hard(
             }
         }
     }
-    if let Some((_, tk)) = int.rd.tile_kinds.get("HDIO_TOP_RIGHT") {
+    if let Some((_, tk)) = int.int.rd.tile_kinds.get("HDIO_TOP_RIGHT") {
         for (i, &v) in tk.conn_wires.iter() {
-            if &int.rd.wires[v] == "HDIO_IOBPAIR_53_SWITCH_OUT" {
+            if &int.int.rd.wires[v] == "HDIO_IOBPAIR_53_SWITCH_OUT" {
                 for crd in &tk.tiles {
-                    if !(int.slr_start_y..int.slr_end_y).contains(&crd.y) {
+                    if !(int.int.slr_start_y..int.int.slr_end_y).contains(&crd.y) {
                         continue;
                     }
-                    let col = int.lookup_column_inter(crd.x as i32);
+                    let col = int.lookup_column_inter(crd.x as i32) - 1;
                     let reg = RegId::from_idx(int.lookup_row(crd.y as i32).to_idx() / 60);
-                    let tile = &int.rd.tiles[crd];
+                    let tile = &int.int.rd.tiles[crd];
                     if let Some(&n) = tile.conn_wires.get(i) {
                         if vp_aux0.contains(&n) {
                             cells.insert((col, reg), HardRowKind::HdioAms);
@@ -359,7 +406,7 @@ fn get_cols_hard(
     let mut res = Vec::new();
     for col in cols {
         let mut regs = EntityVec::new();
-        for _ in 0..(int.rows.len() / 60) {
+        for _ in 0..(int.int.rows.len() / 60) {
             regs.push(HardRowKind::None);
         }
         for (&(c, r), &kind) in cells.iter() {
@@ -374,7 +421,7 @@ fn get_cols_hard(
 }
 
 fn get_cols_io(
-    int: &IntGrid,
+    int: &IntGridWrapper,
     dieid: DieId,
     disabled: &mut BTreeSet<DisabledPart>,
 ) -> Vec<IoColumn> {
@@ -396,15 +443,15 @@ fn get_cols_io(
         for (x, y) in int.find_tiles(&[tt]) {
             let col = int.lookup_column_inter(x);
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 60);
-            cells.insert((col, ColSide::Left, reg), kind);
+            cells.insert((col, reg), kind);
             let crd = Coord {
                 x: x as u16,
                 y: y as u16,
             };
-            let tile = &int.rd.tiles[&crd];
-            let tk = &int.rd.tile_kinds[tile.kind];
+            let tile = &int.int.rd.tiles[&crd];
+            let tk = &int.int.rd.tile_kinds[tile.kind];
             if tt == "HPIO_L" {
-                let sk = int.rd.slot_kinds.get("IOB").unwrap();
+                let sk = int.int.rd.slot_kinds.get("IOB").unwrap();
                 let bi = if int.lookup_row(y).to_idx() % 60 == 0 {
                     0
                 } else {
@@ -422,8 +469,8 @@ fn get_cols_io(
                         ));
                     }
                 }
-                if int.rd.family == "ultrascaleplus" {
-                    let sk = int.rd.slot_kinds.get("HPIOB_DCI_SNGL").unwrap();
+                if int.int.rd.family == "ultrascaleplus" {
+                    let sk = int.int.rd.slot_kinds.get("HPIOB_DCI_SNGL").unwrap();
                     let slot = TkSiteSlot::Xy(sk, 0, 0);
                     let sid = tk.sites.get(&slot).unwrap().0;
                     if !tile.sites.contains_id(sid) {
@@ -432,7 +479,7 @@ fn get_cols_io(
                 }
             }
             if tt == "GTY_L" {
-                let sk = int.rd.slot_kinds.get("GTYE4_COMMON").unwrap();
+                let sk = int.int.rd.slot_kinds.get("GTYE4_COMMON").unwrap();
                 let slot = TkSiteSlot::Xy(sk, 0, 0);
                 let sid = tk.sites.get(&slot).unwrap().0;
                 if !tile.sites.contains_id(sid) {
@@ -440,7 +487,7 @@ fn get_cols_io(
                 }
             }
             if tt == "GTM_DUAL_LEFT_FT" {
-                let sk = int.rd.slot_kinds.get("BUFG_GT_SYNC").unwrap();
+                let sk = int.int.rd.slot_kinds.get("BUFG_GT_SYNC").unwrap();
                 let slot = TkSiteSlot::Xy(sk, 0, 6);
                 if let Some((sid, _)) = tk.sites.get(&slot) {
                     if !tile.sites.contains_id(sid) {
@@ -449,7 +496,7 @@ fn get_cols_io(
                 } else {
                     disabled.insert(DisabledPart::GtmSpareBufs(dieid, col, reg));
                 }
-                let sk = int.rd.slot_kinds.get("GTM_DUAL").unwrap();
+                let sk = int.int.rd.slot_kinds.get("GTM_DUAL").unwrap();
                 let slot = TkSiteSlot::Xy(sk, 0, 0);
                 let sid = tk.sites.get(&slot).unwrap().0;
                 if !tile.sites.contains_id(sid) {
@@ -475,15 +522,15 @@ fn get_cols_io(
         for (x, y) in int.find_tiles(&[tt]) {
             let col = int.lookup_column_inter(x) - 1;
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 60);
-            cells.insert((col, ColSide::Right, reg), kind);
+            cells.insert((col, reg), kind);
             let crd = Coord {
                 x: x as u16,
                 y: y as u16,
             };
-            let tile = &int.rd.tiles[&crd];
-            let tk = &int.rd.tile_kinds[tile.kind];
+            let tile = &int.int.rd.tiles[&crd];
+            let tk = &int.int.rd.tile_kinds[tile.kind];
             if tt == "GTY_R" {
-                let sk = int.rd.slot_kinds.get("GTYE4_COMMON").unwrap();
+                let sk = int.int.rd.slot_kinds.get("GTYE4_COMMON").unwrap();
                 let slot = TkSiteSlot::Xy(sk, 0, 0);
                 let sid = tk.sites.get(&slot).unwrap().0;
                 if !tile.sites.contains_id(sid) {
@@ -491,13 +538,13 @@ fn get_cols_io(
                 }
             }
             if tt.starts_with("HS") || tt.starts_with("RF") {
-                if let Some(sk) = int.rd.slot_kinds.get(&tt[..5]) {
+                if let Some(sk) = int.int.rd.slot_kinds.get(&tt[..5]) {
                     let slot = TkSiteSlot::Xy(sk, 0, 0);
                     let sid = tk.sites.get(&slot).unwrap().0;
                     if !tile.sites.contains_id(sid) {
                         disabled.insert(DisabledPart::Gt(dieid, col, reg));
                     }
-                    let sk = int.rd.slot_kinds.get("BUFG_GT").unwrap();
+                    let sk = int.int.rd.slot_kinds.get("BUFG_GT").unwrap();
                     let slot = TkSiteSlot::Xy(sk, 0, 0);
                     let sid = tk.sites.get(&slot).unwrap().0;
                     if !tile.sites.contains_id(sid) {
@@ -508,7 +555,7 @@ fn get_cols_io(
                 }
             }
             if tt == "GTM_DUAL_RIGHT_FT" {
-                let sk = int.rd.slot_kinds.get("BUFG_GT_SYNC").unwrap();
+                let sk = int.int.rd.slot_kinds.get("BUFG_GT_SYNC").unwrap();
                 let slot = TkSiteSlot::Xy(sk, 0, 6);
                 if let Some((sid, _)) = tk.sites.get(&slot) {
                     if !tile.sites.contains_id(sid) {
@@ -517,7 +564,7 @@ fn get_cols_io(
                 } else {
                     disabled.insert(DisabledPart::GtmSpareBufs(dieid, col, reg));
                 }
-                if let Some(sk) = int.rd.slot_kinds.get("GTM_DUAL") {
+                if let Some(sk) = int.int.rd.slot_kinds.get("GTM_DUAL") {
                     let slot = TkSiteSlot::Xy(sk, 0, 0);
                     let sid = tk.sites.get(&slot).unwrap().0;
                     if !tile.sites.contains_id(sid) {
@@ -529,28 +576,38 @@ fn get_cols_io(
             }
         }
     }
-    let cols: BTreeSet<(ColId, ColSide)> = cells.keys().map(|&(c, s, _)| (c, s)).collect();
+    let cols: BTreeSet<ColId> = cells.keys().map(|&(c, _)| c).collect();
     let mut res = Vec::new();
-    for (col, side) in cols {
+    for col in cols {
         let mut regs = EntityVec::new();
-        for _ in 0..(int.rows.len() / 60) {
+        for _ in 0..(int.int.rows.len() / 60) {
             regs.push(IoRowKind::None);
         }
-        for (&(c, s, r), &kind) in cells.iter() {
-            if c == col && side == s {
+        for (&(c, r), &kind) in cells.iter() {
+            if c == col {
                 assert_eq!(regs[r], IoRowKind::None);
                 regs[r] = kind;
             }
         }
-        res.push(IoColumn { col, side, regs });
+        res.push(IoColumn { col, regs });
     }
     res
 }
 
-fn get_ps(int: &IntGrid) -> Option<Ps> {
-    let col = int.lookup_column(int.find_column(&["INT_INTF_LEFT_TERM_PSS"])? + 1);
-    let &ps = int.rd.tiles_by_kind_name("PSS_ALTO").iter().next().unwrap();
-    let intf_tk = &int.rd.tile_kinds.key(int.rd.tiles[&ps.delta(159, 30)].kind)[..];
+fn get_ps(int: &IntGridWrapper) -> Option<Ps> {
+    let col = int.lookup_column(int.find_column(&["INT_INTF_LEFT_TERM_PSS"])? + 1, Dir::W);
+    let &ps = int
+        .int
+        .rd
+        .tiles_by_kind_name("PSS_ALTO")
+        .iter()
+        .next()
+        .unwrap();
+    let intf_tk = &int
+        .int
+        .rd
+        .tile_kinds
+        .key(int.int.rd.tiles[&ps.delta(159, 30)].kind)[..];
     Some(Ps {
         col,
         intf_kind: match intf_tk {
@@ -651,34 +708,24 @@ pub fn make_grids(
     let mut dieid = DieId::from_idx(0);
     for w in rows_slr_split.windows(2) {
         let int = extract_int_slr_column(rd, &["INT"], &[], *w[0], *w[1]);
+        let int = IntGridWrapper { int };
         let mut columns = make_columns(&int);
         let cols_vbrk = get_cols_vbrk(&int);
         let cols_fsr_gap = get_cols_fsr_gap(&int);
         let cols_hard = get_cols_hard(&int, dieid, &mut disabled);
         let cols_io = get_cols_io(&int, dieid, &mut disabled);
         for (i, hc) in cols_hard.iter().enumerate() {
-            let ColumnKindRight::Hard(_, ref mut idx) = columns[hc.col - 1].r else {
+            let ColumnKind::Hard(_, ref mut idx) = columns[hc.col].kind else {
                 unreachable!();
             };
             *idx = i;
-            if hc.col != columns.next_id() {
-                let ColumnKindLeft::Hard(_, ref mut idx) = columns[hc.col].l else {
-                    unreachable!();
-                };
-                *idx = i;
-            }
         }
         for (i, ioc) in cols_io.iter().enumerate() {
-            match ioc.side {
-                ColSide::Left => match columns[ioc.col].l {
-                    ColumnKindLeft::Io(ref mut ci) | ColumnKindLeft::Gt(ref mut ci) => *ci = i,
-                    _ => unreachable!(),
-                },
-                ColSide::Right => match columns[ioc.col].r {
-                    ColumnKindRight::Io(ref mut ci) | ColumnKindRight::Gt(ref mut ci) => *ci = i,
-                    _ => unreachable!(),
-                },
-            }
+            let (ColumnKind::Io(ref mut ci) | ColumnKind::Gt(ref mut ci)) = columns[ioc.col].kind
+            else {
+                unreachable!()
+            };
+            *ci = i;
         }
         let is_alt_cfg = is_plus
             && int
@@ -688,7 +735,7 @@ pub fn make_grids(
                 ])
                 .is_empty();
 
-        assert_eq!(int.rows.len() % 60, 0);
+        assert_eq!(int.int.rows.len() % 60, 0);
         grids.push(Chip {
             kind,
             columns,
@@ -696,7 +743,7 @@ pub fn make_grids(
             cols_fsr_gap,
             cols_hard,
             cols_io,
-            regs: int.rows.len() / 60,
+            regs: int.int.rows.len() / 60,
             ps: get_ps(&int),
             has_hbm: int.find_column(&["HBM_DMAH_FT"]).is_some(),
             has_csec: int.find_column(&["CSEC_CONFIG_FT"]).is_some(),
