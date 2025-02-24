@@ -1,12 +1,10 @@
 use std::collections::{BTreeSet, HashMap, hash_map};
 
-use enum_map::EnumMap;
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, TermSlotId,
+        BelInfo, BelPin, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, TermSlotId,
         TermSlotInfo, WireKind,
-    },
-    grid::{ColId, EdgeIoCoord, RowId},
+    }, dir::{Dir, DirMap}, grid::{ColId, EdgeIoCoord, RowId}
 };
 use prjcombine_siliconblue::chip::{ChipKind, ExtraNode};
 use unnamed_entity::{EntityId, EntityVec};
@@ -71,14 +69,14 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     db.term_slots[slot_w].opposite = slot_e;
     db.term_slots[slot_s].opposite = slot_n;
 
-    let term_slots = EnumMap::from_fn(|dir| match dir {
+    let term_slots = DirMap::from_fn(|dir| match dir {
         Dir::W => slot_w,
         Dir::E => slot_e,
         Dir::S => slot_s,
         Dir::N => slot_n,
     });
 
-    let mut main_terms = EnumMap::from_fn(|dir| TermKind {
+    let mut main_terms = DirMap::from_fn(|dir| TermKind {
         slot: term_slots[dir],
         wires: Default::default(),
     });

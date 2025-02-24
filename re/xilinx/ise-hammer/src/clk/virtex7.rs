@@ -1,4 +1,4 @@
-use prjcombine_interconnect::db::{BelId, Dir};
+use prjcombine_interconnect::{db::BelId, dir::Dir};
 use prjcombine_re_collector::{Diff, OcdMode, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;

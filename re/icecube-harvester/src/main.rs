@@ -14,8 +14,7 @@ use parts::Part;
 use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
 use prjcombine_interconnect::{
-    db::{BelId, Dir, IntDb, MuxInfo, MuxKind, NodeKindId, NodeTileId, NodeWireId},
-    grid::{ColId, EdgeIoCoord, IntWire, RowId, TileIobId},
+    db::{BelId, IntDb, MuxInfo, MuxKind, NodeKindId, NodeTileId, NodeWireId}, dir::Dir, grid::{ColId, EdgeIoCoord, IntWire, RowId, TileIobId}
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{

@@ -6,7 +6,6 @@ edition.workspace = true
 [dependencies]
 unnamed_entity.workspace = true
 assert_matches.workspace = true
-enum-map.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-re-xilinx-naming.workspace = true
 prjcombine-re-xilinx-rawdump.workspace = true

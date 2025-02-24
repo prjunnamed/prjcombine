@@ -1,5 +1,5 @@
 use bitvec::prelude::*;
-use prjcombine_interconnect::db::{BelId, Dir};
+use prjcombine_interconnect::{db::BelId, dir::Dir};
 use prjcombine_re_collector::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem};

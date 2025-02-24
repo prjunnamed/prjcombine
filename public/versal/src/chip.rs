@@ -99,7 +99,7 @@ pub enum CpmKind {
     Cpm5N,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Enum)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum HardRowKind {
     None,
     Hdio,

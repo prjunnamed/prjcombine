@@ -7,7 +7,6 @@ version.workspace = true
 bytes.workspace = true
 ndarray.workspace = true
 regex.workspace = true
-enum-map.workspace = true
 clap.workspace = true
 unnamed_entity.workspace = true
 prjcombine-interconnect.workspace = true

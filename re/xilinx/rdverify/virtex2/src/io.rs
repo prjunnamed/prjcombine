@@ -1,4 +1,4 @@
-use prjcombine_interconnect::db::Dir;
+use prjcombine_interconnect::dir::Dir;
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_naming::db::NodeRawTileId;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;

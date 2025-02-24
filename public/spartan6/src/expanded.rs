@@ -1,6 +1,5 @@
-use enum_map::EnumMap;
 use prjcombine_interconnect::{
-    db::Dir,
+    dir::{Dir, DirMap},
     grid::{ColId, DieId, ExpandedGrid, Rect, RowId},
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
@@ -20,7 +19,7 @@ pub struct ExpandedDevice<'a> {
     pub spine_frame: EntityVec<RegId, usize>,
     pub bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
     pub iob_frame: HashMap<(ColId, RowId), usize>,
-    pub reg_frame: EnumMap<Dir, usize>,
+    pub reg_frame: DirMap<usize>,
 }
 
 impl ExpandedDevice<'_> {

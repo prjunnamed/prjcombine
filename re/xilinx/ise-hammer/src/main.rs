@@ -1,6 +1,6 @@
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_interconnect::db::Dir;
+use prjcombine_interconnect::dir::Dir;
 use prjcombine_re_collector::Collector;
 use prjcombine_re_hammer::{Backend, Session};
 use prjcombine_re_toolchain::Toolchain;

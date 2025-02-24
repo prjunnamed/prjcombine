@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::Dir,
+    dir::Dir,
     grid::{ColId, DieId, RowId, TileIobId},
 };
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;

@@ -1,6 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 
-use crate::db::*;
+use crate::{db::*, dir::Dir};
 use bimap::BiHashMap;
 use ndarray::Array2;
 use serde::{Deserialize, Serialize};

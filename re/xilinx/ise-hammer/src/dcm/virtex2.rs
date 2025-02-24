@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
-use prjcombine_interconnect::db::Dir;
+use prjcombine_interconnect::dir::Dir;
 use prjcombine_re_collector::{
     Diff, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
     xlat_bool, xlat_enum,

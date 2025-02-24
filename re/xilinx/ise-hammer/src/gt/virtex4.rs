@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{BelId, Dir},
+    {db::BelId, dir::Dir},
     grid::DieId,
 };
 use prjcombine_re_collector::{

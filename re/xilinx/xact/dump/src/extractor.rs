@@ -5,8 +5,7 @@ use std::{
 
 use ndarray::Array2;
 use prjcombine_interconnect::{
-    db::{BelId, Dir, IntDb, MuxInfo, MuxKind, NodeKindId, NodeWireId, WireId, WireKind},
-    grid::{ColId, DieId, ExpandedGrid, IntWire, NodeLoc, RowId},
+    db::{BelId, IntDb, MuxInfo, MuxKind, NodeKindId, NodeWireId, WireId, WireKind}, dir::Dir, grid::{ColId, DieId, ExpandedGrid, IntWire, NodeLoc, RowId}
 };
 use prjcombine_re_xilinx_xact_data::die::{BoxId, Die, PrimId};
 use prjcombine_re_xilinx_xact_naming::{

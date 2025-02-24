@@ -5,7 +5,7 @@ use crate::{
 };
 use arrayref::array_ref;
 use bitvec::prelude::*;
-use prjcombine_interconnect::db::Dir;
+use prjcombine_interconnect::dir::Dir;
 use std::collections::HashMap;
 
 fn parse_xc2000_bitstream(bs: &mut Bitstream, data: &[u8]) {

@@ -1,4 +1,3 @@
-use prjcombine_interconnect::db::Dir;
 use prjcombine_re_collector::OcdMode;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::{ExpandedDevice, ExpandedNamedDevice};
@@ -2715,10 +2714,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     let ExpandedNamedDevice::Virtex4(endev) = backend.endev else {
         unreachable!()
     };
-    for dir in [Dir::S, Dir::N] {
-        let Some(ref ngt) = endev.gtz[dir] else {
-            continue;
-        };
+    for (dir, ngt) in &endev.gtz {
         let ctx = FuzzCtx::new_fake_tile(
             session,
             backend,
@@ -2782,7 +2778,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Virtex4(edev) = ctx.edev else {
         unreachable!()
     };
-    if edev.gtz.values().any(|x| x.is_some()) {
+    if !edev.gtz.is_empty() {
         let tile = "GTZ";
         let bel = "GTZ";
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();

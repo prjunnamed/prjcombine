@@ -8,7 +8,6 @@ name = "xact_dump"
 path = "src/main.rs"
 
 [dependencies]
-enum-map.workspace = true
 ndarray.workspace = true
 clap.workspace = true
 unnamed_entity.workspace = true

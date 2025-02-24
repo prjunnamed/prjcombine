@@ -1,5 +1,6 @@
 use prjcombine_interconnect::{
-    db::{BelId, Dir, NodeKindId, NodeTileId, NodeWireId},
+    db::{BelId, NodeKindId, NodeTileId, NodeWireId},
+    dir::Dir,
     grid::{ColId, DieId, IntWire, LayerId, NodeLoc, RowId, TileIobId},
 };
 use prjcombine_re_collector::{FeatureId, State};

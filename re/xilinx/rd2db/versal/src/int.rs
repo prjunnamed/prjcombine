@@ -1,5 +1,5 @@
-use enum_map::EnumMap;
-use prjcombine_interconnect::db::{Dir, IntDb, NodeTileId, TermInfo, TermKind, WireKind};
+use prjcombine_interconnect::db::{IntDb, NodeTileId, TermInfo, TermKind, WireKind};
+use prjcombine_interconnect::dir::{Dir, DirMap};
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming_versal::DeviceNaming;
 use prjcombine_re_xilinx_naming_versal::{
@@ -18,7 +18,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     if tile.name.contains("_S") {
         builder.set_mirror_square();
     }
-    let mut term_wires: EnumMap<Dir, EntityPartVec<_, _>> = Default::default();
+    let mut term_wires: DirMap<EntityPartVec<_, _>> = Default::default();
     let intf_kinds = [
         (Dir::W, "INTF_LOCF_BL_TILE", "INTF.W", false),
         (Dir::W, "INTF_LOCF_TL_TILE", "INTF.W", false),

@@ -1,4 +1,4 @@
-use prjcombine_interconnect::db::{BelInfo, BelPin, Dir, IntDb, NodeTileId, PinDir, WireKind};
+use prjcombine_interconnect::{db::{BelInfo, BelPin, IntDb, NodeTileId, PinDir, WireKind}, dir::Dir};
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, BelPinNaming, NamingDb, NodeExtPipNaming, NodeRawTileId,
 };

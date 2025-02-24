@@ -2,7 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use jzon::JsonValue;
 use prjcombine_interconnect::{
-    db::{BelId, Dir, NodeTileId},
+    dir::Dir,
+    db::{BelId, NodeTileId},
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};

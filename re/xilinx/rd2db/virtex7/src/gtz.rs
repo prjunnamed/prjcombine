@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashMap};
 
-use prjcombine_interconnect::db::{Dir, PinDir};
+use prjcombine_interconnect::{db::PinDir, dir::Dir};
 use prjcombine_re_xilinx_rawdump::{Part, TkSitePinDir, TkSiteSlot};
 use prjcombine_virtex4::gtz::{GtzBel, GtzClkPin, GtzDb, GtzIntColId, GtzIntPin, GtzIntRowId};
 use unnamed_entity::EntityId;

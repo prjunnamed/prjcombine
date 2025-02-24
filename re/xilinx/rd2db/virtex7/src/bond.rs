@@ -60,47 +60,45 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
     }
     let mut gtz_lookup: HashMap<String, (String, u32, GtzPin)> = HashMap::new();
     for (dir, egt) in &endev.edev.gtz {
-        if let Some(egt) = egt {
-            let ngt = endev.gtz[dir].as_ref().unwrap();
-            let bank = egt.bank;
-            for (i, (pp, pn)) in ngt.pads_clk.iter().enumerate() {
-                gtz_lookup.insert(
-                    pp.clone(),
-                    (
-                        format!("MGTZREFCLK{i}P_{bank}"),
-                        bank,
-                        GtzPin::ClkP(i as u8),
-                    ),
-                );
-                gtz_lookup.insert(
-                    pn.clone(),
-                    (
-                        format!("MGTZREFCLK{i}N_{bank}"),
-                        bank,
-                        GtzPin::ClkN(i as u8),
-                    ),
-                );
-            }
-            for (i, (pp, pn)) in ngt.pads_rx.iter().enumerate() {
-                gtz_lookup.insert(
-                    pp.clone(),
-                    (format!("MGTZRXP{i}_{bank}"), bank, GtzPin::RxP(i as u8)),
-                );
-                gtz_lookup.insert(
-                    pn.clone(),
-                    (format!("MGTZRXN{i}_{bank}"), bank, GtzPin::RxN(i as u8)),
-                );
-            }
-            for (i, (pp, pn)) in ngt.pads_tx.iter().enumerate() {
-                gtz_lookup.insert(
-                    pp.clone(),
-                    (format!("MGTZTXP{i}_{bank}"), bank, GtzPin::TxP(i as u8)),
-                );
-                gtz_lookup.insert(
-                    pn.clone(),
-                    (format!("MGTZTXN{i}_{bank}"), bank, GtzPin::TxN(i as u8)),
-                );
-            }
+        let ngt = &endev.gtz[dir];
+        let bank = egt.bank;
+        for (i, (pp, pn)) in ngt.pads_clk.iter().enumerate() {
+            gtz_lookup.insert(
+                pp.clone(),
+                (
+                    format!("MGTZREFCLK{i}P_{bank}"),
+                    bank,
+                    GtzPin::ClkP(i as u8),
+                ),
+            );
+            gtz_lookup.insert(
+                pn.clone(),
+                (
+                    format!("MGTZREFCLK{i}N_{bank}"),
+                    bank,
+                    GtzPin::ClkN(i as u8),
+                ),
+            );
+        }
+        for (i, (pp, pn)) in ngt.pads_rx.iter().enumerate() {
+            gtz_lookup.insert(
+                pp.clone(),
+                (format!("MGTZRXP{i}_{bank}"), bank, GtzPin::RxP(i as u8)),
+            );
+            gtz_lookup.insert(
+                pn.clone(),
+                (format!("MGTZRXN{i}_{bank}"), bank, GtzPin::RxN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in ngt.pads_tx.iter().enumerate() {
+            gtz_lookup.insert(
+                pp.clone(),
+                (format!("MGTZTXP{i}_{bank}"), bank, GtzPin::TxP(i as u8)),
+            );
+            gtz_lookup.insert(
+                pn.clone(),
+                (format!("MGTZTXN{i}_{bank}"), bank, GtzPin::TxN(i as u8)),
+            );
         }
     }
     let mut sm_lookup: HashMap<&str, (u32, SysMonPin)> = HashMap::new();

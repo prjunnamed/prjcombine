@@ -1,4 +1,4 @@
-use prjcombine_interconnect::db::{BelId, Dir};
+use prjcombine_interconnect::{db::BelId, dir::Dir};
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::chip::{ChipKind, Dcms};

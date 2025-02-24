@@ -1,5 +1,5 @@
-use enum_map::EnumMap;
-use prjcombine_interconnect::db::{Dir, IntDb};
+use prjcombine_interconnect::db::IntDb;
+use prjcombine_interconnect::dir::{Dir, DirMap};
 use prjcombine_interconnect::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
@@ -25,7 +25,7 @@ struct Expander<'a, 'b> {
     spine_frame: EntityVec<RegId, usize>,
     bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
     iob_frame: HashMap<(ColId, RowId), usize>,
-    reg_frame: EnumMap<Dir, usize>,
+    reg_frame: DirMap<usize>,
 }
 
 impl Expander<'_, '_> {
@@ -983,7 +983,7 @@ impl Chip {
             spine_frame: EntityVec::new(),
             bram_frame: EntityVec::new(),
             iob_frame: HashMap::new(),
-            reg_frame: EnumMap::from_fn(|_| 0),
+            reg_frame: DirMap::from_fn(|_| 0),
         };
 
         expander.fill_holes();

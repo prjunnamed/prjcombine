@@ -1,6 +1,5 @@
 use prjcombine_interconnect::{
-    db::{Dir, NodeTileId, NodeWireId, TermInfo, WireId},
-    grid::{IntWire, LayerId, NodeLoc},
+    db::{NodeTileId, NodeWireId, TermInfo, WireId}, dir::Dir, grid::{IntWire, LayerId, NodeLoc}
 };
 use prjcombine_re_collector::{Diff, FeatureId, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};

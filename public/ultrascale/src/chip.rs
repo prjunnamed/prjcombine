@@ -1,6 +1,6 @@
 use jzon::JsonValue;
 use prjcombine_interconnect::{
-    db::Dir,
+    dir::Dir,
     grid::{ColId, DieId, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};

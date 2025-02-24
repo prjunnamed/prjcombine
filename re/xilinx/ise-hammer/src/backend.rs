@@ -258,7 +258,6 @@ impl<'a> Backend for IseBackend<'a> {
         }
         if let ExpandedNamedDevice::Virtex4(endev) = self.endev {
             for ngt in endev.gtz.values() {
-                let Some(ngt) = ngt else { continue };
                 site_to_tile.insert(ngt.bel.clone(), ngt.tile.clone());
             }
         }

@@ -5,7 +5,6 @@ version.workspace = true
 
 [dependencies]
 clap.workspace = true
-enum-map.workspace = true
 bitvec.workspace = true
 itertools.workspace = true
 serde.workspace = true

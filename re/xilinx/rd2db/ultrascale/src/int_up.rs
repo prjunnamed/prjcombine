@@ -1,12 +1,13 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use prjcombine_interconnect::db::{
-    Dir, IntDb, NodeTileId, NodeWireId, TermInfo, TermKind, TermSlotId, TermSlotInfo, WireId,
-    WireKind,
+use prjcombine_interconnect::{
+    db::{
+        IntDb, NodeTileId, NodeWireId, TermInfo, TermKind, TermSlotId, TermSlotInfo, WireId,
+        WireKind,
+    },
+    dir::{Dir, DirMap, DirPartMap},
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
-
-use enum_map::{EnumMap, enum_map};
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
@@ -89,8 +90,8 @@ impl XNodeInfoExt for XNodeInfo<'_, '_> {
 
 struct IntMaker<'a> {
     builder: IntBuilder<'a>,
-    long_term_slots: EnumMap<Dir, Option<TermSlotId>>,
-    long_main_passes: EnumMap<Dir, Option<TermKind>>,
+    long_term_slots: DirPartMap<TermSlotId>,
+    long_main_passes: DirPartMap<TermKind>,
     // how many mental illnesses do you think I could be diagnosed with just from this repo?
     sng_fixup_map: BTreeMap<NodeWireId, NodeWireId>,
     term_wires_w: EntityPartVec<WireId, TermInfo>,
@@ -121,17 +122,17 @@ impl IntMaker<'_> {
             .0;
         self.builder.db.term_slots[slot_lw].opposite = slot_le;
 
-        self.long_term_slots[Dir::W] = Some(slot_lw);
-        self.long_term_slots[Dir::E] = Some(slot_le);
+        self.long_term_slots.insert(Dir::W, slot_lw);
+        self.long_term_slots.insert(Dir::E, slot_le);
     }
 
     fn fill_wires_long(&mut self) {
-        let d2n = enum_map!(
+        let d2n = DirMap::from_fn(|dir| match dir {
             Dir::N => 0,
             Dir::S => 1,
             Dir::E => 2,
             Dir::W => 3,
-        );
+        });
 
         for (dir, name, length, fts, ftn) in [
             (Dir::W, "LONG", 6, false, false),
@@ -152,11 +153,11 @@ impl IntMaker<'_> {
                     if matches!(dir, Dir::W | Dir::E) {
                         let wn = self.builder.wire(
                             wname,
-                            WireKind::Branch(self.long_term_slots[!dir].unwrap()),
+                            WireKind::Branch(self.long_term_slots[!dir]),
                             &[vwname],
                         );
-                        self.long_main_passes[!dir]
-                            .as_mut()
+                        self.long_main_passes
+                            .get_mut(!dir)
                             .unwrap()
                             .wires
                             .insert(wn, TermInfo::PassFar(w));
@@ -170,11 +171,11 @@ impl IntMaker<'_> {
                 if matches!(dir, Dir::W | Dir::E) {
                     let wn = self.builder.wire(
                         wname,
-                        WireKind::Branch(self.long_term_slots[!dir].unwrap()),
+                        WireKind::Branch(self.long_term_slots[!dir]),
                         &[vwname],
                     );
-                    self.long_main_passes[!dir]
-                        .as_mut()
+                    self.long_main_passes
+                        .get_mut(!dir)
                         .unwrap()
                         .wires
                         .insert(wn, TermInfo::PassFar(w));
@@ -273,12 +274,12 @@ impl IntMaker<'_> {
     }
 
     fn fill_wires_sdq(&mut self) {
-        let d2n = enum_map!(
+        let d2n = DirMap::from_fn(|dir| match dir {
             Dir::N => 0,
             Dir::S => 1,
             Dir::E => 2,
             Dir::W => 3,
-        );
+        });
 
         for (dir, name, length, fts, ftn) in [
             (Dir::E, "SNG", 1, false, false),
@@ -654,15 +655,15 @@ impl IntMaker<'_> {
 
     fn fill_wires(&mut self) {
         let main_pass_lw = TermKind {
-            slot: self.long_term_slots[Dir::W].unwrap(),
+            slot: self.long_term_slots[Dir::W],
             wires: Default::default(),
         };
         let main_pass_le = TermKind {
-            slot: self.long_term_slots[Dir::E].unwrap(),
+            slot: self.long_term_slots[Dir::E],
             wires: Default::default(),
         };
-        self.long_main_passes[Dir::W] = Some(main_pass_lw);
-        self.long_main_passes[Dir::E] = Some(main_pass_le);
+        self.long_main_passes.insert(Dir::W, main_pass_lw);
+        self.long_main_passes.insert(Dir::E, main_pass_le);
 
         // common wires
 
@@ -717,11 +718,11 @@ impl IntMaker<'_> {
         self.builder.extract_main_passes();
         self.builder.db.terms.insert(
             "MAIN.LW".into(),
-            self.long_main_passes[Dir::W].take().unwrap(),
+            self.long_main_passes.remove(Dir::W).unwrap(),
         );
         self.builder.db.terms.insert(
             "MAIN.LE".into(),
-            self.long_main_passes[Dir::E].take().unwrap(),
+            self.long_main_passes.remove(Dir::E).unwrap(),
         );
         self.builder.db.terms.insert(
             "TERM.W".into(),
@@ -740,14 +741,14 @@ impl IntMaker<'_> {
         self.builder.db.terms.insert(
             "TERM.LW".into(),
             TermKind {
-                slot: self.long_term_slots[Dir::W].unwrap(),
+                slot: self.long_term_slots[Dir::W],
                 wires: std::mem::take(&mut self.term_wires_lw),
             },
         );
         self.builder.db.terms.insert(
             "TERM.LE".into(),
             TermKind {
-                slot: self.long_term_slots[Dir::E].unwrap(),
+                slot: self.long_term_slots[Dir::E],
                 wires: std::mem::take(&mut self.term_wires_le),
             },
         );
@@ -942,7 +943,7 @@ impl IntMaker<'_> {
                 }
             }
             let term = TermKind {
-                slot: self.long_term_slots[dir].unwrap(),
+                slot: self.long_term_slots[dir],
                 wires,
             };
             self.builder.insert_term_merge(&format!("IO.L{dir}"), term);
@@ -3643,8 +3644,8 @@ impl IntMaker<'_> {
 pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     let mut maker = IntMaker {
         builder: IntBuilder::new(rd),
-        long_term_slots: EnumMap::default(),
-        long_main_passes: EnumMap::default(),
+        long_term_slots: DirPartMap::new(),
+        long_main_passes: DirPartMap::new(),
         sng_fixup_map: BTreeMap::new(),
         term_wires_w: EntityPartVec::new(),
         term_wires_e: EntityPartVec::new(),

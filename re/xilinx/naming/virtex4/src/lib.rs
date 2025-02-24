@@ -1,6 +1,5 @@
-use enum_map::EnumMap;
 use prjcombine_interconnect::{
-    db::Dir,
+    dir::DirPartMap,
     grid::{ColId, DieId, RowId},
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
@@ -54,7 +53,7 @@ pub struct ExpandedNamedGtz {
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,
     pub ngrid: ExpandedGridNaming<'a>,
-    pub gtz: EnumMap<Dir, Option<ExpandedNamedGtz>>,
+    pub gtz: DirPartMap<ExpandedNamedGtz>,
 }
 
 impl ExpandedNamedDevice<'_> {

@@ -1,6 +1,6 @@
 use bimap::BiHashMap;
-use enum_map::EnumMap;
-use prjcombine_interconnect::db::{Dir, IntDb};
+use prjcombine_interconnect::db::IntDb;
+use prjcombine_interconnect::dir::{Dir, DirPartMap};
 use prjcombine_interconnect::grid::{
     ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
 };
@@ -1183,27 +1183,33 @@ pub fn expand_grid<'a>(
         );
     }
 
-    let mut gtz = EnumMap::from_fn(|_| None);
+    let mut gtz = DirPartMap::new();
     if interposer.gtz_bot {
         let die = chips.first_id().unwrap();
-        gtz[Dir::S] = Some(ExpandedGtz {
-            kind: gdb.gtz.get("GTZ_BOT").unwrap().0,
-            bank: 400,
-            die,
-            cols: get_gtz_cols(chips[die], 46, 40),
-            rows: (0..49).map(|i| RowId::from_idx(1 + i)).collect(),
-        });
+        gtz.insert(
+            Dir::S,
+            ExpandedGtz {
+                kind: gdb.gtz.get("GTZ_BOT").unwrap().0,
+                bank: 400,
+                die,
+                cols: get_gtz_cols(chips[die], 46, 40),
+                rows: (0..49).map(|i| RowId::from_idx(1 + i)).collect(),
+            },
+        );
     }
     if interposer.gtz_top {
         let die = chips.last_id().unwrap();
         let row_base = RowId::from_idx(chips[die].regs * 50 - 50);
-        gtz[Dir::N] = Some(ExpandedGtz {
-            kind: gdb.gtz.get("GTZ_TOP").unwrap().0,
-            bank: 300,
-            die,
-            cols: get_gtz_cols(chips[die], 40, 46),
-            rows: (0..49).map(|i| row_base + i).collect(),
-        });
+        gtz.insert(
+            Dir::N,
+            ExpandedGtz {
+                kind: gdb.gtz.get("GTZ_TOP").unwrap().0,
+                bank: 300,
+                die,
+                cols: get_gtz_cols(chips[die], 40, 46),
+                rows: (0..49).map(|i| row_base + i).collect(),
+            },
+        );
     }
 
     egrid.finish();

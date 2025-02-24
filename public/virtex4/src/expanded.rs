@@ -2,8 +2,7 @@ use crate::bond::{PsPin, SharedCfgPin};
 use crate::chip::{Chip, ChipKind, DisabledPart, GtKind, Interposer, IoKind, RegId, XadcIoLoc};
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use bimap::BiHashMap;
-use enum_map::EnumMap;
-use prjcombine_interconnect::db::Dir;
+use prjcombine_interconnect::dir::DirPartMap;
 use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, Rect, RowId, TileIobId};
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashSet};
@@ -41,7 +40,7 @@ pub struct ExpandedDevice<'a> {
     pub row_iobdcm: Option<RowId>,
     pub io: Vec<IoCoord>,
     pub gt: Vec<(DieId, ColId, RowId)>,
-    pub gtz: EnumMap<Dir, Option<ExpandedGtz>>,
+    pub gtz: DirPartMap<ExpandedGtz>,
     pub cfg_io: BiHashMap<SharedCfgPin, IoCoord>,
     pub banklut: EntityVec<DieId, u32>,
 }

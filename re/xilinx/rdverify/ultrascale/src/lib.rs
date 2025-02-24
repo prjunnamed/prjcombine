@@ -1,4 +1,4 @@
-use prjcombine_interconnect::db::Dir;
+use prjcombine_interconnect::dir::Dir;
 use prjcombine_interconnect::grid::{ColId, DieId, RowId, TileIobId};
 use prjcombine_re_xilinx_naming_ultrascale::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;

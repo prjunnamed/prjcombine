@@ -1,4 +1,4 @@
-use prjcombine_interconnect::db::Dir;
+use prjcombine_interconnect::dir::Dir;
 use prjcombine_re_collector::{Diff, xlat_bit, xlat_bit_wide, xlat_bool};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem};

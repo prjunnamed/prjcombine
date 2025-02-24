@@ -1,5 +1,6 @@
 use prjcombine_interconnect::{
-    db::{Dir, PinDir},
+    db::PinDir,
+    dir::Dir,
     grid::{ColId, DieId, RowId},
 };
 use prjcombine_re_xilinx_naming_virtex4::{ExpandedNamedDevice, ExpandedNamedGtz};
@@ -3779,8 +3780,7 @@ fn verify_gtz(
 
 fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
     for (dir, egt) in &endev.edev.gtz {
-        let Some(egt) = egt else { continue };
-        let ngt = endev.gtz[dir].as_ref().unwrap();
+        let ngt = &endev.gtz[dir];
         verify_gtz(endev, vrf, egt, ngt);
     }
     let mut stub_out_cond = vec![

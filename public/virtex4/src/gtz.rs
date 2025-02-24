@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use jzon::JsonValue;
-use prjcombine_interconnect::db::{Dir, PinDir};
+use prjcombine_interconnect::{db::PinDir, dir::Dir};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityMap, entity_id};
 

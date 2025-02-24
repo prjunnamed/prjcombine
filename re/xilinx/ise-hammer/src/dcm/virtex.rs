@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
 
-use prjcombine_interconnect::db::Dir;
+use prjcombine_interconnect::dir::Dir;
 use prjcombine_re_collector::{xlat_bit, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;

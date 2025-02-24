@@ -1,4 +1,4 @@
-use prjcombine_interconnect::db::{BelId, Dir};
+use prjcombine_interconnect::{db::BelId, dir::Dir};
 use unnamed_entity::EntityId;
 
 use crate::chip::{ChipKind, ColumnIoKind, RowIoKind};

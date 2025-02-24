@@ -1,49 +1,7 @@
-use enum_map::Enum;
 use jzon::JsonValue;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
-
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Enum, Serialize, Deserialize,
-)]
-pub enum Dir {
-    W,
-    E,
-    S,
-    N,
-}
-
-impl Dir {
-    pub const DIRS: [Dir; 4] = [Dir::W, Dir::E, Dir::S, Dir::N];
-}
-
-impl core::ops::Not for Dir {
-    type Output = Dir;
-    fn not(self) -> Dir {
-        match self {
-            Dir::W => Dir::E,
-            Dir::E => Dir::W,
-            Dir::S => Dir::N,
-            Dir::N => Dir::S,
-        }
-    }
-}
-
-impl std::fmt::Display for Dir {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Dir::W => "W",
-                Dir::E => "E",
-                Dir::S => "S",
-                Dir::N => "N",
-            }
-        )
-    }
-}
 
 entity_id! {
     pub id WireId u16, reserve 1;

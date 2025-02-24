@@ -52,7 +52,6 @@ prjcombine-re-xilinx-rdverify-versal.workspace = true
 clap.workspace = true
 simple-error.workspace = true
 serde.workspace = true
-enum-map.workspace = true
 std-semaphore.workspace = true
 
 [lints]

@@ -5,8 +5,7 @@ use std::{
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
-    db::{Dir, PinDir},
-    grid::{ColId, DieId, IntWire, RowId},
+    db::PinDir, dir::Dir, grid::{ColId, DieId, IntWire, RowId}
 };
 use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
 use prjcombine_types::tiledb::{TileDb, TileItemKind};

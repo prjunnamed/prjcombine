@@ -1,15 +1,14 @@
 use std::fmt::Write;
 
-use prjcombine_interconnect::db::{
-    Dir, IntDb, NodeTileId, NodeWireId, TermInfo, TermKind, WireId, WireKind,
+use prjcombine_interconnect::{
+    db::{IntDb, NodeTileId, NodeWireId, TermInfo, TermKind, WireId, WireKind},
+    dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{NamingDb, NodeNamingId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
-
-use enum_map::{EnumMap, enum_map};
 
 const BOT_KINDS: [&str; 4] = ["BOT", "BOTS", "BOTSL", "BOTRR"];
 const TOP_KINDS: [&str; 4] = ["TOP", "TOPS", "TOPSL", "TOPRR"];
@@ -149,15 +148,15 @@ fn fill_double_wires(builder: &mut IntBuilder) {
 }
 
 fn fill_io_double_wires(builder: &mut IntBuilder, cnr_terms: &mut CnrTerms) {
-    let bdir = enum_map!(
+    let bdir = DirMap::from_fn(|dir| match dir {
         Dir::S => Dir::W,
         Dir::E => Dir::S,
         Dir::N => Dir::E,
         Dir::W => Dir::N,
-    );
+    });
 
     for i in 0..4 {
-        let mut wires = EnumMap::from_fn(|_| vec![]);
+        let mut wires = DirMap::from_fn(|_| vec![]);
 
         for j in 0..3 {
             for dir in Dir::DIRS {
@@ -353,14 +352,14 @@ fn fill_io_octal_wires(builder: &mut IntBuilder, cnr_terms: &mut CnrTerms) {
         return;
     }
 
-    let mut wires = EnumMap::from_fn(|_| vec![]);
+    let mut wires = DirMap::from_fn(|_| vec![]);
 
-    let bdir = enum_map!(
+    let bdir = DirMap::from_fn(|dir| match dir {
         Dir::S => Dir::W,
         Dir::E => Dir::S,
         Dir::N => Dir::E,
         Dir::W => Dir::N,
-    );
+    });
 
     for i in 0..9 {
         for dir in Dir::DIRS {

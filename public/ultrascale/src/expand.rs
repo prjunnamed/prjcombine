@@ -1,7 +1,8 @@
 #![allow(clippy::type_complexity)]
 
 use bimap::BiHashMap;
-use prjcombine_interconnect::db::{Dir, IntDb};
+use prjcombine_interconnect::db::IntDb;
+use prjcombine_interconnect::dir::Dir;
 use prjcombine_interconnect::grid::{
     ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId, TileIobId,
 };

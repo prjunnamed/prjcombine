@@ -2,10 +2,13 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
-use prjcombine_interconnect::db::{
-    BelInfo, BelPin, Dir, IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, NodeIriId, NodeKind,
-    NodeKindId, NodeTileId, NodeWireId, PinDir, TermInfo, TermKind, TermSlotId, TermSlotInfo,
-    WireId, WireKind,
+use prjcombine_interconnect::{
+    db::{
+        BelInfo, BelPin, IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, NodeIriId, NodeKind,
+        NodeKindId, NodeTileId, NodeWireId, PinDir, TermInfo, TermKind, TermSlotId, TermSlotInfo,
+        WireId, WireKind,
+    },
+    dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, BelPinNaming, IntfWireInNaming, IntfWireOutNaming, IriNaming, NamingDb,
@@ -17,7 +20,6 @@ use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
 
 use assert_matches::assert_matches;
 
-use enum_map::EnumMap;
 use rawdump::TileKindId;
 
 #[derive(Clone, Debug)]
@@ -1338,10 +1340,10 @@ pub struct IntBuilder<'a> {
     pub rd: &'a Part,
     pub db: IntDb,
     pub ndb: NamingDb,
-    pub term_slots: EnumMap<Dir, TermSlotId>,
+    pub term_slots: DirMap<TermSlotId>,
     is_mirror_square: bool,
     allow_mux_to_branch: bool,
-    main_passes: EnumMap<Dir, EntityPartVec<WireId, WireId>>,
+    main_passes: DirMap<EntityPartVec<WireId, WireId>>,
     node_types: Vec<NodeType>,
     injected_node_types: Vec<rawdump::TileKindId>,
     stub_outs: HashSet<String>,
@@ -1383,7 +1385,7 @@ impl<'a> IntBuilder<'a> {
         db.term_slots[slot_w].opposite = slot_e;
         db.term_slots[slot_s].opposite = slot_n;
 
-        let term_slots = EnumMap::from_fn(|dir| match dir {
+        let term_slots = DirMap::from_fn(|dir| match dir {
             Dir::W => slot_w,
             Dir::E => slot_e,
             Dir::S => slot_s,

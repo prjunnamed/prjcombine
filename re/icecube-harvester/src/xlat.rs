@@ -1,8 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use prjcombine_interconnect::{
-    db::{Dir, WireId},
-    grid::{ColId, DieId, IntWire, RowId},
+    db::WireId, dir::Dir, grid::{ColId, DieId, IntWire, RowId}
 };
 use prjcombine_siliconblue::{
     chip::{ChipKind, ExtraNodeLoc},

@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use itertools::Itertools;
 use jzon::JsonValue;
-use prjcombine_interconnect::{db::Dir, grid::EdgeIoCoord};
+use prjcombine_interconnect::{dir::Dir, grid::EdgeIoCoord};
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]

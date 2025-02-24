@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use enum_map::{EnumMap, enum_map};
 use prjcombine_interconnect::{
     db::{
-        BelId, BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind,
+        BelId, BelInfo, BelPin, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind,
         TermSlotId, TermSlotInfo, WireKind,
     },
+    dir::{Dir, DirMap},
     grid::{DieId, EdgeIoCoord, LayerId},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
@@ -80,14 +80,14 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     db.term_slots[slot_w].opposite = slot_e;
     db.term_slots[slot_s].opposite = slot_n;
 
-    let term_slots = EnumMap::from_fn(|dir| match dir {
+    let term_slots = DirMap::from_fn(|dir| match dir {
         Dir::W => slot_w,
         Dir::E => slot_e,
         Dir::S => slot_s,
         Dir::N => slot_n,
     });
 
-    let mut main_terms = EnumMap::from_fn(|dir| TermKind {
+    let mut main_terms = DirMap::from_fn(|dir| TermKind {
         slot: term_slots[dir],
         wires: Default::default(),
     });
@@ -154,14 +154,14 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     }
 
     let io_double_num = if kind == ChipKind::Xc4000A { 2 } else { 4 };
-    let bdir = enum_map!(
+    let bdir = DirMap::from_fn(|dir| match dir {
         Dir::S => Dir::W,
         Dir::E => Dir::S,
         Dir::N => Dir::E,
         Dir::W => Dir::N,
-    );
+    });
     for i in 0..io_double_num {
-        let mut wires = EnumMap::from_fn(|_| vec![]);
+        let mut wires = DirMap::from_fn(|_| vec![]);
 
         for j in 0..3 {
             for dir in Dir::DIRS {

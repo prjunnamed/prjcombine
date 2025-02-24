@@ -1,9 +1,8 @@
 use std::{collections::BTreeMap, path::Path};
 
 use bytes::{Buf, Bytes};
-use enum_map::{EnumMap, enum_map};
 use ndarray::Array2;
-use prjcombine_interconnect::db::Dir;
+use prjcombine_interconnect::dir::{Dir, DirMap};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 
 entity_id! {
@@ -33,8 +32,8 @@ pub struct Die {
     pub columns: Vec<Column>,
     pub rows: Vec<Row>,
     pub matrix: Option<Array2<u16>>,
-    pub matrix_cells_bwd: EnumMap<Dir, [u8; 0x100]>,
-    pub matrix_cells_fwd: EnumMap<Dir, [u8; 0x100]>,
+    pub matrix_cells_bwd: DirMap<[u8; 0x100]>,
+    pub matrix_cells_fwd: DirMap<[u8; 0x100]>,
     pub matrix_cells_flags: [u8; 0x100],
     pub die: String,
     pub prog: String,
@@ -357,29 +356,29 @@ impl Die {
         };
         chksum(&mut stream);
         assert_eq!(stream.get_u8(), 0x6d);
-        let matrix_cells_bwd_u: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
-        let matrix_cells_bwd_r: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
-        let matrix_cells_bwd_d: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
-        let matrix_cells_bwd_l: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
-        let matrix_cells_bwd = enum_map! {
-            Dir::N => matrix_cells_bwd_u,
-            Dir::E => matrix_cells_bwd_r,
-            Dir::S => matrix_cells_bwd_d,
-            Dir::W => matrix_cells_bwd_l,
-        };
+        let matrix_cells_bwd_n: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
+        let matrix_cells_bwd_e: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
+        let matrix_cells_bwd_s: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
+        let matrix_cells_bwd_w: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
+        let matrix_cells_bwd = DirMap::from_fn(|dir| match dir {
+            Dir::N => matrix_cells_bwd_n,
+            Dir::E => matrix_cells_bwd_e,
+            Dir::S => matrix_cells_bwd_s,
+            Dir::W => matrix_cells_bwd_w,
+        });
         assert_eq!(stream.get_u8(), 0);
         chksum(&mut stream);
         assert_eq!(stream.get_u8(), 0x6c);
-        let matrix_cells_fwd_u: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
-        let matrix_cells_fwd_r: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
-        let matrix_cells_fwd_d: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
-        let matrix_cells_fwd_l: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
-        let matrix_cells_fwd = enum_map! {
-            Dir::N => matrix_cells_fwd_u,
-            Dir::E => matrix_cells_fwd_r,
-            Dir::S => matrix_cells_fwd_d,
-            Dir::W => matrix_cells_fwd_l,
-        };
+        let matrix_cells_fwd_n: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
+        let matrix_cells_fwd_e: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
+        let matrix_cells_fwd_s: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
+        let matrix_cells_fwd_w: [u8; 0x100] = core::array::from_fn(|_| stream.get_u8());
+        let matrix_cells_fwd = DirMap::from_fn(|dir| match dir {
+            Dir::N => matrix_cells_fwd_n,
+            Dir::E => matrix_cells_fwd_e,
+            Dir::S => matrix_cells_fwd_s,
+            Dir::W => matrix_cells_fwd_w,
+        });
         assert_eq!(stream.get_u8(), 0);
         chksum(&mut stream);
         assert_eq!(stream.get_u8(), 0x6e);
