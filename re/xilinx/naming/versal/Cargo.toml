@@ -5,7 +5,6 @@ version.workspace = true
 
 [dependencies]
 serde.workspace = true
-enum-map.workspace = true
 unnamed_entity.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-versal.workspace = true

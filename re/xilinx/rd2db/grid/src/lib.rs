@@ -1,7 +1,7 @@
 #![allow(clippy::too_many_arguments)]
 
 use prjcombine_interconnect::grid::{ColId, RowId};
-use prjcombine_re_xilinx_rawdump::Part;
+use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use std::collections::BTreeSet;
 use unnamed_entity::EntityVec;
 
@@ -195,6 +195,16 @@ impl IntGrid<'_> {
             panic!("more than one column found for {tts:?}");
         }
         res.into_iter().next()
+    }
+
+    pub fn delta(&self, xy: Coord, mut dx: i32, mut dy: i32) -> Coord {
+        if self.mirror_x {
+            dx = -dx;
+        }
+        if self.mirror_y {
+            dy = -dy;
+        }
+        xy.delta(dx, dy)
     }
 }
 

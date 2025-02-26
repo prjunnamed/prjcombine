@@ -1,4 +1,7 @@
-use prjcombine_interconnect::grid::{ColId, DieId};
+use prjcombine_interconnect::{
+    dir::Dir,
+    grid::{ColId, DieId, RowId},
+};
 use prjcombine_re_xilinx_naming_versal::{DeviceNaming, DieNaming, HdioNaming, VNoc2Naming};
 use prjcombine_re_xilinx_rawdump::{Coord, NodeOrWire, Part, Tile, TkSiteSlot};
 use prjcombine_versal::chip::{
@@ -11,6 +14,52 @@ use unnamed_entity::{EntityId, EntityVec};
 use prjcombine_re_xilinx_rd2db_grid::{
     IntGrid, extract_int_slr, extract_int_slr_column, find_rows,
 };
+
+fn adjust_column(col: ColId, side: Dir) -> ColId {
+    match side {
+        Dir::W => ColId::from_idx(col.to_idx() * 2),
+        Dir::E => ColId::from_idx(col.to_idx() * 2 + 1),
+        _ => unreachable!(),
+    }
+}
+
+struct IntGridWrapper<'a> {
+    int: IntGrid<'a>,
+}
+
+impl IntGridWrapper<'_> {
+    pub fn num_cols(&self) -> usize {
+        self.int.cols.len() * 2
+    }
+
+    pub fn find_columns(&self, tts: &[&str]) -> Vec<i32> {
+        self.int.find_columns(tts)
+    }
+
+    pub fn find_column(&self, tts: &[&str]) -> Option<i32> {
+        self.int.find_column(tts)
+    }
+
+    pub fn find_tiles(&self, tts: &[&str]) -> BTreeSet<(i32, i32)> {
+        self.int.find_tiles(tts)
+    }
+
+    pub fn find_rows(&self, tts: &[&str]) -> Vec<i32> {
+        self.int.find_rows(tts)
+    }
+
+    pub fn lookup_column_inter(&self, col: i32) -> ColId {
+        adjust_column(self.int.lookup_column_inter(col), Dir::W)
+    }
+
+    pub fn lookup_row(&self, row: i32) -> RowId {
+        self.int.lookup_row(row)
+    }
+
+    pub fn delta(&self, xy: Coord, dx: i32, dy: i32) -> Coord {
+        self.int.delta(xy, dx, dy)
+    }
+}
 
 fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
     let (l, r) = s.rsplit_once("_X")?;
@@ -51,34 +100,49 @@ fn extract_site_xy(rd: &Part, tile: &Tile, sname: &str) -> Option<(u32, u32)> {
 
 fn make_columns(
     die: DieId,
-    int: &IntGrid,
+    int: &IntGridWrapper,
     disabled: &mut BTreeSet<DisabledPart>,
     naming: &mut DieNaming,
 ) -> (EntityVec<ColId, Column>, Vec<HardColumn>) {
-    let mut res = int.cols.map_values(|_| Column {
-        l: ColumnKind::None,
-        r: ColumnKind::None,
-        has_bli_bot_l: false,
-        has_bli_bot_r: false,
-        has_bli_top_l: false,
-        has_bli_top_r: false,
-    });
+    let mut res: EntityVec<ColId, Column> = (0..int.num_cols())
+        .map(|_| Column {
+            kind: ColumnKind::None,
+            has_bli_s: false,
+            has_bli_n: false,
+        })
+        .collect();
 
-    for (tkn, kind) in [
-        ("CLE_W_CORE", ColumnKind::Cle(CleKind::Plain)),
-        ("CLE_W_VR_CORE", ColumnKind::Cle(CleKind::Plain)),
-        ("DSP_LOCF_B_TILE", ColumnKind::Dsp),
-        ("DSP_LOCF_T_TILE", ColumnKind::Dsp),
-        ("DSP_ROCF_B_TILE", ColumnKind::Dsp),
-        ("DSP_ROCF_T_TILE", ColumnKind::Dsp),
-        ("NOC_NSU512_TOP", ColumnKind::VNoc),
-        ("NOC2_NSU512_VNOC_TILE", ColumnKind::VNoc2),
-        ("NOC2_NSU512_VNOC4_TILE", ColumnKind::VNoc4),
+    for (tkn, kind_w, kind_e) in [
+        (
+            "CLE_W_CORE",
+            ColumnKind::Cle(CleKind::Plain),
+            ColumnKind::Cle(CleKind::Plain),
+        ),
+        (
+            "CLE_W_VR_CORE",
+            ColumnKind::Cle(CleKind::Plain),
+            ColumnKind::Cle(CleKind::Plain),
+        ),
+        ("DSP_LOCF_B_TILE", ColumnKind::Dsp, ColumnKind::ContDsp),
+        ("DSP_LOCF_T_TILE", ColumnKind::Dsp, ColumnKind::ContDsp),
+        ("DSP_ROCF_B_TILE", ColumnKind::Dsp, ColumnKind::ContDsp),
+        ("DSP_ROCF_T_TILE", ColumnKind::Dsp, ColumnKind::ContDsp),
+        ("NOC_NSU512_TOP", ColumnKind::VNoc, ColumnKind::ContVNoc),
+        (
+            "NOC2_NSU512_VNOC_TILE",
+            ColumnKind::VNoc2,
+            ColumnKind::ContVNoc,
+        ),
+        (
+            "NOC2_NSU512_VNOC4_TILE",
+            ColumnKind::VNoc4,
+            ColumnKind::ContVNoc,
+        ),
     ] {
         for c in int.find_columns(&[tkn]) {
             let c = int.lookup_column_inter(c);
-            res[c].l = kind;
-            res[c - 1].r = kind;
+            res[c - 1].kind = kind_w;
+            res[c].kind = kind_e;
         }
     }
     for (tkn, kind) in [
@@ -91,7 +155,7 @@ fn make_columns(
     ] {
         for c in int.find_columns(&[tkn]) {
             let c = int.lookup_column_inter(c);
-            res[c - 1].r = kind;
+            res[c - 1].kind = kind;
         }
     }
     for (tkn, kind) in [
@@ -108,40 +172,35 @@ fn make_columns(
     ] {
         for c in int.find_columns(&[tkn]) {
             let c = int.lookup_column_inter(c);
-            res[c].l = kind;
+            res[c].kind = kind;
         }
     }
-    for c in int.find_columns(&["SLL"]) {
-        let c = int.lookup_column_inter(c);
-        assert_eq!(res[c].l, ColumnKind::Cle(CleKind::Plain));
-        assert_eq!(res[c - 1].r, ColumnKind::Cle(CleKind::Plain));
-        res[c].l = ColumnKind::Cle(CleKind::Sll);
-        res[c - 1].r = ColumnKind::Cle(CleKind::Sll);
-    }
-    for c in int.find_columns(&["SLL2"]) {
-        let c = int.lookup_column_inter(c);
-        assert_eq!(res[c].l, ColumnKind::Cle(CleKind::Plain));
-        assert_eq!(res[c - 1].r, ColumnKind::Cle(CleKind::Plain));
-        res[c].l = ColumnKind::Cle(CleKind::Sll2);
-        res[c - 1].r = ColumnKind::Cle(CleKind::Sll2);
+    for (tkn, kind) in [("SLL", CleKind::Sll), ("SLL2", CleKind::Sll2)] {
+        for c in int.find_columns(&[tkn]) {
+            let c = int.lookup_column_inter(c);
+            assert_eq!(res[c].kind, ColumnKind::Cle(CleKind::Plain));
+            assert_eq!(res[c - 1].kind, ColumnKind::Cle(CleKind::Plain));
+            res[c].kind = ColumnKind::Cle(kind);
+            res[c - 1].kind = ColumnKind::Cle(kind);
+        }
     }
     for c in int.find_columns(&["RCLK_BRAM_CLKBUF_CORE", "RCLK_BRAM_CLKBUF_VR_CORE"]) {
         let c = int.lookup_column_inter(c);
-        assert_eq!(res[c - 1].r, ColumnKind::Bram(BramKind::Plain));
-        res[c - 1].r = ColumnKind::Bram(BramKind::ClkBuf);
+        assert_eq!(res[c - 1].kind, ColumnKind::Bram(BramKind::Plain));
+        res[c - 1].kind = ColumnKind::Bram(BramKind::ClkBuf);
     }
     for c in int.find_columns(&[
         "RCLK_BRAM_CLKBUF_NOPD_CORE",
         "RCLK_BRAM_CLKBUF_NOPD_VR_CORE",
     ]) {
         let c = int.lookup_column_inter(c);
-        assert_eq!(res[c - 1].r, ColumnKind::Bram(BramKind::Plain));
-        res[c - 1].r = ColumnKind::Bram(BramKind::ClkBufNoPd);
+        assert_eq!(res[c - 1].kind, ColumnKind::Bram(BramKind::Plain));
+        res[c - 1].kind = ColumnKind::Bram(BramKind::ClkBufNoPd);
     }
     for c in int.find_columns(&["RCLK_BRAM_CORE", "RCLK_BRAM_VR_CORE"]) {
         let c = int.lookup_column_inter(c);
-        if res[c - 1].r == ColumnKind::Bram(BramKind::ClkBufNoPd) {
-            res[c - 1].r = ColumnKind::Bram(BramKind::MaybeClkBufNoPd);
+        if res[c - 1].kind == ColumnKind::Bram(BramKind::ClkBufNoPd) {
+            res[c - 1].kind = ColumnKind::Bram(BramKind::MaybeClkBufNoPd);
         }
     }
 
@@ -153,7 +212,7 @@ fn make_columns(
         "BLI_BRAM_ROCF_TR_TILE",
     ]) {
         let c = int.lookup_column_inter(c);
-        res[c - 1].has_bli_top_r = true;
+        res[c - 1].has_bli_n = true;
     }
     for c in int.find_columns(&[
         "BLI_CLE_TOP_CORE_MY",
@@ -164,7 +223,7 @@ fn make_columns(
         "BLI_URAM_ROCF_TL_TILE",
     ]) {
         let c = int.lookup_column_inter(c);
-        res[c].has_bli_top_l = true;
+        res[c].has_bli_n = true;
     }
     for c in int.find_columns(&[
         "BLI_CLE_BOT_CORE",
@@ -172,7 +231,7 @@ fn make_columns(
         "BLI_BRAM_ROCF_BR_TILE",
     ]) {
         let c = int.lookup_column_inter(c);
-        res[c - 1].has_bli_bot_r = true;
+        res[c - 1].has_bli_s = true;
     }
     for c in int.find_columns(&[
         "BLI_CLE_BOT_CORE_MY",
@@ -181,14 +240,14 @@ fn make_columns(
         "BLI_URAM_ROCF_BL_TILE",
     ]) {
         let c = int.lookup_column_inter(c);
-        res[c].has_bli_bot_l = true;
+        res[c].has_bli_s = true;
     }
 
     let col_cfrm = int.lookup_column_inter(
         int.find_column(&["CFRM_PMC_TILE", "CFRM_PMC_VR_TILE"])
             .unwrap(),
     );
-    res[col_cfrm].l = ColumnKind::Cfrm;
+    res[col_cfrm].kind = ColumnKind::Cfrm;
 
     let mut hard_cells = BTreeMap::new();
     for (tt, kind) in [
@@ -206,32 +265,32 @@ fn make_columns(
         ("CPM_EXT_TILE", HardRowKind::CpmExt),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
-            let tile = &int.rd.tiles[&Coord {
+            let tile = &int.int.rd.tiles[&Coord {
                 x: x as u16,
                 y: y as u16,
             }];
-            let col = int.lookup_column_inter(x);
+            let col = int.lookup_column_inter(x) - 1;
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 48);
             if tile.sites.iter().next().is_none() {
                 disabled.insert(DisabledPart::HardIpSite(die, col, reg));
             }
             hard_cells.insert((col, reg), kind);
             if tt.starts_with("HDIO") {
-                let iob_xy = extract_site_xy(int.rd, tile, "IOB").unwrap();
-                let dpll_xy = extract_site_xy(int.rd, tile, "DPLL").unwrap_or_else(|| {
+                let iob_xy = extract_site_xy(int.int.rd, tile, "IOB").unwrap();
+                let dpll_xy = extract_site_xy(int.int.rd, tile, "DPLL").unwrap_or_else(|| {
                     disabled.insert(DisabledPart::HdioDpll(die, col, reg));
                     let is_vc1902 = ["vc1902", "vc1802", "vm1802", "v65"]
                         .into_iter()
-                        .any(|x| int.rd.part.contains(x));
+                        .any(|x| int.int.rd.part.contains(x));
                     if is_vc1902 {
                         let dpll_x = match col.to_idx() {
-                            5 => 3,
-                            108 => 12,
+                            9 => 3,
+                            215 => 12,
                             _ => unreachable!(),
                         };
                         (dpll_x, 7)
                     } else {
-                        panic!("MISSING DPLL FOR UNK PART {part}", part = int.rd.part);
+                        panic!("MISSING DPLL FOR UNK PART {part}", part = int.int.rd.part);
                     }
                 });
                 naming
@@ -246,11 +305,11 @@ fn make_columns(
         ("HSC_TILE", HardRowKind::HscB, HardRowKind::HscT),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
-            let tile = &int.rd.tiles[&Coord {
+            let tile = &int.int.rd.tiles[&Coord {
                 x: x as u16,
                 y: y as u16,
             }];
-            let col = int.lookup_column_inter(x);
+            let col = int.lookup_column_inter(x) - 1;
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 48);
             if tile.sites.iter().next().is_none() {
                 disabled.insert(DisabledPart::HardIpSite(die, col, reg));
@@ -262,10 +321,10 @@ fn make_columns(
     let mut cols_hard = Vec::new();
     let cols: BTreeSet<ColId> = hard_cells.keys().map(|&(c, _)| c).collect();
     for col in cols {
-        res[col].l = ColumnKind::Hard;
-        res[col - 1].r = ColumnKind::Hard;
+        res[col].kind = ColumnKind::Hard;
+        res[col + 1].kind = ColumnKind::ContHard;
         let mut regs = EntityVec::new();
-        for _ in 0..(int.rows.len() / 48) {
+        for _ in 0..(int.int.rows.len() / 48) {
             regs.push(HardRowKind::None);
         }
         for (&(c, r), &kind) in hard_cells.iter() {
@@ -279,7 +338,7 @@ fn make_columns(
     (res, cols_hard)
 }
 
-fn get_cols_vbrk(int: &IntGrid) -> BTreeSet<ColId> {
+fn get_cols_vbrk(int: &IntGridWrapper) -> BTreeSet<ColId> {
     let mut res = BTreeSet::new();
     for c in int.find_columns(&["CBRK_LOCF_TOP_TILE", "CBRK_TOP_TILE"]) {
         res.insert(int.lookup_column_inter(c));
@@ -287,7 +346,7 @@ fn get_cols_vbrk(int: &IntGrid) -> BTreeSet<ColId> {
     res
 }
 
-fn get_cols_cpipe(int: &IntGrid) -> BTreeSet<ColId> {
+fn get_cols_cpipe(int: &IntGridWrapper) -> BTreeSet<ColId> {
     let mut res = BTreeSet::new();
     for c in int.find_columns(&["CPIPE_TOP_TILE"]) {
         res.insert(int.lookup_column_inter(c));
@@ -295,10 +354,10 @@ fn get_cols_cpipe(int: &IntGrid) -> BTreeSet<ColId> {
     res
 }
 
-fn get_rows_gt_left(int: &IntGrid) -> (EntityVec<RegId, GtRowKind>, bool) {
+fn get_rows_gt_left(int: &IntGridWrapper) -> (EntityVec<RegId, GtRowKind>, bool) {
     let mut res = EntityVec::new();
     let mut has_xram_top = false;
-    for _ in 0..(int.rows.len() / 48) {
+    for _ in 0..(int.int.rows.len() / 48) {
         res.push(GtRowKind::None);
     }
     for (tkn, kind) in [
@@ -308,10 +367,10 @@ fn get_rows_gt_left(int: &IntGrid) -> (EntityVec<RegId, GtRowKind>, bool) {
         ("XRAM_CORE", GtRowKind::Xram),
     ] {
         for row in int.find_rows(&[tkn]) {
-            let oob = if int.mirror_y {
-                row < *int.rows.last().unwrap()
+            let oob = if int.int.mirror_y {
+                row < *int.int.rows.last().unwrap()
             } else {
-                row > *int.rows.last().unwrap()
+                row > *int.int.rows.last().unwrap()
             };
             if oob {
                 assert_eq!(tkn, "XRAM_CORE");
@@ -325,9 +384,9 @@ fn get_rows_gt_left(int: &IntGrid) -> (EntityVec<RegId, GtRowKind>, bool) {
     (res, has_xram_top)
 }
 
-fn get_rows_gt_right(int: &IntGrid) -> Option<EntityVec<RegId, GtRowKind>> {
+fn get_rows_gt_right(int: &IntGridWrapper) -> Option<EntityVec<RegId, GtRowKind>> {
     let mut res = EntityVec::new();
-    for _ in 0..(int.rows.len() / 48) {
+    for _ in 0..(int.int.rows.len() / 48) {
         res.push(GtRowKind::None);
     }
     for (tkn, kind) in [
@@ -359,69 +418,77 @@ fn get_rows_gt_right(int: &IntGrid) -> Option<EntityVec<RegId, GtRowKind>> {
     }
 }
 
-fn get_vnoc_naming(int: &IntGrid, naming: &mut DieNaming, is_vnoc2_scan_offset: &mut bool) {
+fn get_vnoc_naming(int: &IntGridWrapper, naming: &mut DieNaming, is_vnoc2_scan_offset: &mut bool) {
     for (x, y) in int.find_tiles(&["AMS_SAT_VNOC_TILE"]) {
-        let col = int.lookup_column_inter(x);
+        let col = int.lookup_column_inter(x) - 1;
         let reg = RegId::from_idx(int.lookup_row(y + 1).to_idx() / 48);
-        let tile = &int.rd.tiles[&Coord {
+        let tile = &int.int.rd.tiles[&Coord {
             x: x as u16,
             y: y as u16,
         }];
-        if let Some(xy) = extract_site_xy(int.rd, tile, "SYSMON_SAT") {
+        if let Some(xy) = extract_site_xy(int.int.rd, tile, "SYSMON_SAT") {
             naming.sysmon_sat_vnoc.insert((col, reg), xy);
         }
     }
     for (x, y) in int.find_tiles(&["NOC2_NSU512_VNOC_TILE"]) {
-        let col = int.lookup_column_inter(x);
+        let col = int.lookup_column_inter(x) - 1;
         let reg = RegId::from_idx(int.lookup_row(y + 1).to_idx() / 48);
         let nsu_crd = Coord {
             x: x as u16,
             y: y as u16,
         };
-        let mut nps_a_crd = nsu_crd.delta(0, 4);
-        if int.rd.tile_kinds.key(int.rd.tiles[&nps_a_crd].kind) == "NULL" {
+        let mut nps_a_crd = int.delta(nsu_crd, 0, 4);
+        if int.int.rd.tile_kinds.key(int.int.rd.tiles[&nps_a_crd].kind) == "NULL" {
             *is_vnoc2_scan_offset = true;
-            nps_a_crd = nps_a_crd.delta(-1, 0);
+            nps_a_crd = int.delta(nps_a_crd, -1, 0);
         }
-        let nmu_crd = nps_a_crd.delta(0, 7);
-        let scan_crd = nsu_crd.delta(1, 0);
+        let nmu_crd = int.delta(nps_a_crd, 0, 7);
+        let scan_crd = int.delta(nsu_crd, 1, 0);
         naming.vnoc2.insert(
             (col, reg),
             VNoc2Naming {
-                nsu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nsu_crd], "NOC2_NSU512").unwrap(),
-                nmu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nmu_crd], "NOC2_NMU512").unwrap(),
-                nps_xy: extract_site_xy(int.rd, &int.rd.tiles[&nps_a_crd], "NOC2_NPS5555").unwrap(),
-                scan_xy: extract_site_xy(int.rd, &int.rd.tiles[&scan_crd], "NOC2_SCAN").unwrap(),
+                nsu_xy: extract_site_xy(int.int.rd, &int.int.rd.tiles[&nsu_crd], "NOC2_NSU512")
+                    .unwrap(),
+                nmu_xy: extract_site_xy(int.int.rd, &int.int.rd.tiles[&nmu_crd], "NOC2_NMU512")
+                    .unwrap(),
+                nps_xy: extract_site_xy(int.int.rd, &int.int.rd.tiles[&nps_a_crd], "NOC2_NPS5555")
+                    .unwrap(),
+                scan_xy: extract_site_xy(int.int.rd, &int.int.rd.tiles[&scan_crd], "NOC2_SCAN")
+                    .unwrap(),
             },
         );
     }
     for (x, y) in int.find_tiles(&["NOC2_NSU512_VNOC4_TILE"]) {
-        let col = int.lookup_column_inter(x);
+        let col = int.lookup_column_inter(x) - 1;
         let reg = RegId::from_idx(int.lookup_row(y + 1).to_idx() / 48);
         let nsu_crd = Coord {
             x: x as u16,
             y: y as u16,
         };
-        let mut nps_a_crd = nsu_crd.delta(0, 4);
-        if int.rd.tile_kinds.key(int.rd.tiles[&nps_a_crd].kind) == "NULL" {
+        let mut nps_a_crd = int.delta(nsu_crd, 0, 4);
+        if int.int.rd.tile_kinds.key(int.int.rd.tiles[&nps_a_crd].kind) == "NULL" {
             *is_vnoc2_scan_offset = true;
-            nps_a_crd = nps_a_crd.delta(-1, 0);
+            nps_a_crd = int.delta(nps_a_crd, -1, 0);
         }
-        let nmu_crd = nps_a_crd.delta(0, 7);
-        let scan_crd = nsu_crd.delta(1, 0);
+        let nmu_crd = int.delta(nps_a_crd, 0, 7);
+        let scan_crd = int.delta(nsu_crd, 1, 0);
         naming.vnoc2.insert(
             (col, reg),
             VNoc2Naming {
-                nsu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nsu_crd], "NOC2_NSU512").unwrap(),
-                nmu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nmu_crd], "NOC2_NMU512").unwrap(),
-                nps_xy: extract_site_xy(int.rd, &int.rd.tiles[&nps_a_crd], "NOC2_NPS6X").unwrap(),
-                scan_xy: extract_site_xy(int.rd, &int.rd.tiles[&scan_crd], "NOC2_SCAN").unwrap(),
+                nsu_xy: extract_site_xy(int.int.rd, &int.int.rd.tiles[&nsu_crd], "NOC2_NSU512")
+                    .unwrap(),
+                nmu_xy: extract_site_xy(int.int.rd, &int.int.rd.tiles[&nmu_crd], "NOC2_NMU512")
+                    .unwrap(),
+                nps_xy: extract_site_xy(int.int.rd, &int.int.rd.tiles[&nps_a_crd], "NOC2_NPS6X")
+                    .unwrap(),
+                scan_xy: extract_site_xy(int.int.rd, &int.int.rd.tiles[&scan_crd], "NOC2_SCAN")
+                    .unwrap(),
             },
         );
     }
 }
 
-fn get_gt_naming(int: &IntGrid, naming: &mut DieNaming) {
+fn get_gt_naming(int: &IntGridWrapper, naming: &mut DieNaming) {
     for tkn in [
         "AMS_SAT_GT_BOT_TILE",
         "AMS_SAT_GT_TOP_TILE",
@@ -429,32 +496,30 @@ fn get_gt_naming(int: &IntGrid, naming: &mut DieNaming) {
         "AMS_SAT_GT_TOP_TILE_MY",
     ] {
         for (x, y) in int.find_tiles(&[tkn]) {
+            let xy = Coord {
+                x: x as u16,
+                y: y as u16,
+            };
             let mut col = int.lookup_column_inter(x);
             if col.to_idx() != 0 {
                 col -= 1;
             }
             let reg = RegId::from_idx(int.lookup_row(y + 1).to_idx() / 48);
-            let tile = &int.rd.tiles[&Coord {
-                x: x as u16,
-                y: y as u16,
-            }];
-            if let Some(xy) = extract_site_xy(int.rd, tile, "SYSMON_SAT") {
+            let tile = &int.int.rd.tiles[&xy];
+            if let Some(xy) = extract_site_xy(int.int.rd, tile, "SYSMON_SAT") {
                 naming.sysmon_sat_gt.insert((col, reg), xy);
             }
-            let tile = &int.rd.tiles[&Coord {
-                x: x as u16,
-                y: (y - 15) as u16,
-            }];
-            if let Some(xy) = extract_site_xy(int.rd, tile, "DPLL") {
+            let tile = &int.int.rd.tiles[&int.delta(xy, 0, -15)];
+            if let Some(xy) = extract_site_xy(int.int.rd, tile, "DPLL") {
                 naming.dpll_gt.insert((col, reg), xy);
             }
         }
     }
 }
 
-fn get_grid(
+fn get_chip(
     die: DieId,
-    int: &IntGrid<'_>,
+    int: &IntGridWrapper<'_>,
     disabled: &mut BTreeSet<DisabledPart>,
     is_vnoc2_scan_offset: &mut bool,
     sll_columns: &mut EntityVec<DieId, Vec<ColId>>,
@@ -485,7 +550,7 @@ fn get_grid(
     } else {
         CpmKind::None
     };
-    assert_eq!(int.rows.len() % 48, 0);
+    assert_eq!(int.int.rows.len() % 48, 0);
     let (regs_gt_left, has_xram_top) = get_rows_gt_left(int);
     let right = if !int.find_tiles(&["HNICX_TILE"]).is_empty() {
         RightKind::HNicX
@@ -499,12 +564,12 @@ fn get_grid(
         RightKind::Term
     };
     let is_vr = !int.find_tiles(&["CLE_W_VR_CORE"]).is_empty();
-    let grid = Chip {
+    let chip = Chip {
         columns,
         cols_vbrk: get_cols_vbrk(int),
         cols_cpipe: get_cols_cpipe(int),
         cols_hard,
-        regs: int.rows.len() / 48,
+        regs: int.int.rows.len() / 48,
         regs_gt_left,
         ps,
         cpm,
@@ -522,24 +587,24 @@ fn get_grid(
             x: x as u16,
             y: y as u16,
         };
-        let Some(nw) = int.rd.lookup_wire(crd, "UBUMP2") else {
+        let Some(nw) = int.int.rd.lookup_wire(crd, "UBUMP2") else {
             continue;
         };
         let NodeOrWire::Node(node) = nw else {
             continue;
         };
-        let node = &int.rd.nodes[node];
-        let templ = &int.rd.templates[node.template];
+        let node = &int.int.rd.nodes[node];
+        let templ = &int.int.rd.templates[node.template];
         if templ.len() > 1 {
-            let col = int.lookup_column_inter(x);
+            let col = int.lookup_column_inter(x) - 1;
             die_sll_columns.insert(col);
         }
     }
     sll_columns.push(Vec::from_iter(die_sll_columns));
-    (grid, naming)
+    (chip, naming)
 }
 
-pub fn make_grids(
+pub fn make_chips(
     rd: &Part,
 ) -> (
     EntityVec<DieId, Chip>,
@@ -555,7 +620,7 @@ pub fn make_grids(
     } else {
         InterposerKind::Column
     };
-    let mut grids = EntityVec::new();
+    let mut chips = EntityVec::new();
     let mut namings = EntityVec::new();
     let mut is_vnoc2_scan_offset = false;
     let mut sll_columns = EntityVec::new();
@@ -572,15 +637,16 @@ pub fn make_grids(
         let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
         for (dieid, w) in rows_slr_split.windows(2).enumerate() {
             let int = extract_int_slr_column(rd, &["INT"], &[], *w[0], *w[1]);
+            let int = IntGridWrapper { int };
             let die = DieId::from_idx(dieid);
-            let (grid, naming) = get_grid(
+            let (chip, naming) = get_chip(
                 die,
                 &int,
                 &mut disabled,
                 &mut is_vnoc2_scan_offset,
                 &mut sll_columns,
             );
-            grids.push(grid);
+            chips.push(chip);
             namings.push(naming);
         }
     } else {
@@ -633,29 +699,30 @@ pub fn make_grids(
         .into_iter()
         .enumerate()
         {
+            let int = IntGridWrapper { int };
             let die = DieId::from_idx(dieid);
-            let (grid, naming) = get_grid(
+            let (chip, naming) = get_chip(
                 die,
                 &int,
                 &mut disabled,
                 &mut is_vnoc2_scan_offset,
                 &mut sll_columns,
             );
-            grids.push(grid);
+            chips.push(chip);
             namings.push(naming);
         }
     }
     if rd.part.contains("vc1502") {
         let s0 = DieId::from_idx(0);
-        assert_eq!(grids[s0].regs, 7);
-        let col_hard_r = &mut grids[s0].cols_hard[1];
+        assert_eq!(chips[s0].regs, 7);
+        let col_hard_r = &mut chips[s0].cols_hard[1];
         for (reg, kind) in [(0, HardRowKind::Mrmac), (6, HardRowKind::Hdio)] {
             let reg = RegId::from_idx(reg);
             assert_eq!(col_hard_r.regs[reg], HardRowKind::None);
             col_hard_r.regs[reg] = kind;
             disabled.insert(DisabledPart::HardIp(s0, col_hard_r.col, reg));
         }
-        let RightKind::Gt(ref mut regs_gt_r) = grids[s0].right else {
+        let RightKind::Gt(ref mut regs_gt_r) = chips[s0].right else {
             unreachable!()
         };
         for reg in [0, 1, 6] {
@@ -667,88 +734,85 @@ pub fn make_grids(
     }
     if rd.part.contains("vm1302") {
         let s0 = DieId::from_idx(0);
-        assert_eq!(grids[s0].regs, 9);
-        assert_eq!(grids[s0].columns.len(), 38);
-        while grids[s0].columns.len() != 61 {
-            grids[s0].columns.push(Column {
-                l: ColumnKind::None,
-                r: ColumnKind::None,
-                has_bli_bot_l: false,
-                has_bli_top_l: false,
-                has_bli_bot_r: false,
-                has_bli_top_r: false,
+        assert_eq!(chips[s0].regs, 9);
+        assert_eq!(chips[s0].columns.len(), 76);
+        while chips[s0].columns.len() != 122 {
+            chips[s0].columns.push(Column {
+                kind: ColumnKind::None,
+                has_bli_s: false,
+                has_bli_n: false,
             });
         }
         for i in [
-            36, 37, 38, 40, 41, 43, 44, 45, 47, 48, 49, 51, 52, 53, 55, 56, 58, 59,
+            73, 75, 77, 81, 83, 87, 89, 91, 95, 97, 99, 103, 105, 107, 111, 113, 117, 119,
         ] {
             let col = ColId::from_idx(i);
-            grids[s0].columns[col].r = ColumnKind::Cle(CleKind::Plain);
-            grids[s0].columns[col + 1].l = ColumnKind::Cle(CleKind::Plain);
-            grids[s0].columns[col].has_bli_bot_r = true;
-            grids[s0].columns[col].has_bli_top_r = true;
-            grids[s0].columns[col + 1].has_bli_bot_l = true;
-            grids[s0].columns[col + 1].has_bli_top_l = true;
+            chips[s0].columns[col].kind = ColumnKind::Cle(CleKind::Plain);
+            chips[s0].columns[col + 1].kind = ColumnKind::Cle(CleKind::Plain);
+            chips[s0].columns[col].has_bli_s = true;
+            chips[s0].columns[col].has_bli_n = true;
+            chips[s0].columns[col + 1].has_bli_s = true;
+            chips[s0].columns[col + 1].has_bli_n = true;
         }
-        for i in [39, 54] {
+        for i in [79, 109] {
             let col = ColId::from_idx(i);
-            grids[s0].columns[col].r = ColumnKind::Dsp;
-            grids[s0].columns[col + 1].l = ColumnKind::Dsp;
-            grids[s0].columns[col].has_bli_bot_r = true;
-            grids[s0].columns[col].has_bli_top_r = true;
-            grids[s0].columns[col + 1].has_bli_bot_l = true;
-            grids[s0].columns[col + 1].has_bli_top_l = true;
+            chips[s0].columns[col].kind = ColumnKind::Dsp;
+            chips[s0].columns[col + 1].kind = ColumnKind::ContDsp;
+            chips[s0].columns[col].has_bli_s = true;
+            chips[s0].columns[col].has_bli_n = true;
+            chips[s0].columns[col + 1].has_bli_s = true;
+            chips[s0].columns[col + 1].has_bli_n = true;
         }
-        for i in [36, 43, 58] {
+        for i in [72, 86, 116] {
             let col = ColId::from_idx(i);
-            grids[s0].columns[col].l = ColumnKind::Bram(BramKind::Plain);
+            chips[s0].columns[col].kind = ColumnKind::Bram(BramKind::Plain);
         }
-        for i in [42, 50, 57] {
+        for i in [85, 101, 115] {
             let col = ColId::from_idx(i);
-            grids[s0].columns[col].r = ColumnKind::Bram(BramKind::Plain);
+            chips[s0].columns[col].kind = ColumnKind::Bram(BramKind::Plain);
         }
-        let col = ColId::from_idx(51);
-        grids[s0].columns[col].l = ColumnKind::Uram;
-        grids[s0].columns[col].has_bli_top_l = true;
-        grids[s0].columns[col - 1].has_bli_top_r = true;
-        let col = ColId::from_idx(46);
-        grids[s0].columns[col].r = ColumnKind::VNoc;
-        grids[s0].columns[col + 1].l = ColumnKind::VNoc;
-        let col = ColId::from_idx(60);
-        grids[s0].columns[col].r = ColumnKind::Gt;
-        for i in [37, 41, 46, 48, 53, 57, 59] {
-            grids[s0].cols_vbrk.insert(ColId::from_idx(i));
+        let col = ColId::from_idx(100);
+        chips[s0].columns[col].kind = ColumnKind::Uram;
+        chips[s0].columns[col].has_bli_n = true;
+        chips[s0].columns[col - 1].has_bli_n = true;
+        let col = ColId::from_idx(93);
+        chips[s0].columns[col].kind = ColumnKind::VNoc;
+        chips[s0].columns[col + 1].kind = ColumnKind::VNoc;
+        let col = ColId::from_idx(121);
+        chips[s0].columns[col].kind = ColumnKind::Gt;
+        for i in [74, 82, 92, 96, 106, 114, 118] {
+            chips[s0].cols_vbrk.insert(ColId::from_idx(i));
         }
-        for i in [43, 51] {
-            grids[s0].cols_cpipe.insert(ColId::from_idx(i));
+        for i in [86, 102] {
+            chips[s0].cols_cpipe.insert(ColId::from_idx(i));
         }
-        for i in 36..61 {
+        for i in 72..122 {
             disabled.insert(DisabledPart::Column(s0, ColId::from_idx(i)));
         }
         let dn = &mut namings[s0];
         for (i, y) in [(0, 1), (2, 2), (4, 5), (6, 8)] {
             dn.sysmon_sat_vnoc
-                .insert((ColId::from_idx(47), RegId::from_idx(i)), (5, y));
+                .insert((ColId::from_idx(93), RegId::from_idx(i)), (5, y));
         }
     }
     if rd.part.contains("vp1002") {
         let s0 = DieId::from_idx(0);
-        assert_eq!(grids[s0].regs, 11);
+        assert_eq!(chips[s0].regs, 11);
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(8)));
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(9)));
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(10)));
-        let col_hard_l = &mut grids[s0].cols_hard[0];
+        let col_hard_l = &mut chips[s0].cols_hard[0];
         col_hard_l.regs[RegId::from_idx(8)] = HardRowKind::DcmacB;
         col_hard_l.regs[RegId::from_idx(9)] = HardRowKind::DcmacT;
         col_hard_l.regs[RegId::from_idx(10)] = HardRowKind::Mrmac;
-        let col_hard_r = &mut grids[s0].cols_hard[1];
+        let col_hard_r = &mut chips[s0].cols_hard[1];
         col_hard_r.regs[RegId::from_idx(8)] = HardRowKind::IlknB;
         col_hard_r.regs[RegId::from_idx(9)] = HardRowKind::IlknT;
         col_hard_r.regs[RegId::from_idx(10)] = HardRowKind::Mrmac;
-        grids[s0].regs_gt_left[RegId::from_idx(8)] = GtRowKind::Gtm;
-        grids[s0].regs_gt_left[RegId::from_idx(9)] = GtRowKind::Gtm;
-        grids[s0].regs_gt_left[RegId::from_idx(10)] = GtRowKind::Gtm;
-        let RightKind::Gt(ref mut col_gt_r) = grids[s0].right else {
+        chips[s0].regs_gt_left[RegId::from_idx(8)] = GtRowKind::Gtm;
+        chips[s0].regs_gt_left[RegId::from_idx(9)] = GtRowKind::Gtm;
+        chips[s0].regs_gt_left[RegId::from_idx(10)] = GtRowKind::Gtm;
+        let RightKind::Gt(ref mut col_gt_r) = chips[s0].right else {
             unreachable!()
         };
         col_gt_r[RegId::from_idx(8)] = GtRowKind::Gtm;
@@ -757,31 +821,31 @@ pub fn make_grids(
     }
     if rd.part.contains("vp1102") {
         let s0 = DieId::from_idx(0);
-        assert_eq!(grids[s0].regs, 14);
+        assert_eq!(chips[s0].regs, 14);
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(10)));
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(11)));
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(12)));
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(13)));
-        let col_hard_l = &mut grids[s0].cols_hard[0];
+        let col_hard_l = &mut chips[s0].cols_hard[0];
         col_hard_l.regs[RegId::from_idx(10)] = HardRowKind::DcmacB;
         col_hard_l.regs[RegId::from_idx(11)] = HardRowKind::DcmacT;
         col_hard_l.regs[RegId::from_idx(12)] = HardRowKind::DcmacB;
         col_hard_l.regs[RegId::from_idx(13)] = HardRowKind::DcmacT;
-        let col_hard_m = &mut grids[s0].cols_hard[1];
+        let col_hard_m = &mut chips[s0].cols_hard[1];
         col_hard_m.regs[RegId::from_idx(10)] = HardRowKind::HscB;
         col_hard_m.regs[RegId::from_idx(11)] = HardRowKind::HscT;
         col_hard_m.regs[RegId::from_idx(12)] = HardRowKind::Hdio;
         col_hard_m.regs[RegId::from_idx(13)] = HardRowKind::Hdio;
-        let col_hard_r = &mut grids[s0].cols_hard[2];
+        let col_hard_r = &mut chips[s0].cols_hard[2];
         col_hard_r.regs[RegId::from_idx(10)] = HardRowKind::DcmacB;
         col_hard_r.regs[RegId::from_idx(11)] = HardRowKind::DcmacT;
         col_hard_r.regs[RegId::from_idx(12)] = HardRowKind::DcmacB;
         col_hard_r.regs[RegId::from_idx(13)] = HardRowKind::DcmacT;
-        grids[s0].regs_gt_left[RegId::from_idx(10)] = GtRowKind::Gtm;
-        grids[s0].regs_gt_left[RegId::from_idx(11)] = GtRowKind::Gtm;
-        grids[s0].regs_gt_left[RegId::from_idx(12)] = GtRowKind::Gtm;
-        grids[s0].regs_gt_left[RegId::from_idx(13)] = GtRowKind::Gtm;
-        let RightKind::Gt(ref mut col_gt_r) = grids[s0].right else {
+        chips[s0].regs_gt_left[RegId::from_idx(10)] = GtRowKind::Gtm;
+        chips[s0].regs_gt_left[RegId::from_idx(11)] = GtRowKind::Gtm;
+        chips[s0].regs_gt_left[RegId::from_idx(12)] = GtRowKind::Gtm;
+        chips[s0].regs_gt_left[RegId::from_idx(13)] = GtRowKind::Gtm;
+        let RightKind::Gt(ref mut col_gt_r) = chips[s0].right else {
             unreachable!()
         };
         col_gt_r[RegId::from_idx(10)] = GtRowKind::Gtm;
@@ -794,14 +858,10 @@ pub fn make_grids(
         kind: ikind,
         sll_columns,
     };
-    (
-        grids,
-        interposer,
-        disabled,
-        DeviceNaming {
-            die: namings,
-            is_dsp_v2,
-            is_vnoc2_scan_offset,
-        },
-    )
+    let dev_naming = DeviceNaming {
+        die: namings,
+        is_dsp_v2,
+        is_vnoc2_scan_offset,
+    };
+    (chips, interposer, disabled, dev_naming)
 }

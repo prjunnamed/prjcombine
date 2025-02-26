@@ -99,7 +99,6 @@ bitvec = { version = "1.0", features = ["serde"] }
 itertools = "0.14"
 arrayvec = "0.7.6"
 ndarray = { version = "0.16", features = ["serde"] }
-enum-map = { version = "2.4", features = ["serde"] }
 bimap = "0.6"
 arrayref = "0.3.6"
 assert_matches = "1.5"
@@ -155,6 +154,7 @@ prjcombine-re-xilinx-xact-geom = { path = "re/xilinx/xact/geom" }
 prjcombine-re-xilinx-xact-data = { path = "re/xilinx/xact/data" }
 prjcombine-re-xilinx-cpld = { path = "re/xilinx/cpld" }
 prjcombine-re-lattice-rawdump = { path = "re/lattice/rawdump" }
+enum-map = { version = "2.4", features = ["serde"] }
 indexmap = { version = "2", features = ["serde"] }
 rand = { version = "0.9", features = ["small_rng"] }
 nix = { version = "0.29", features = ["fs"] }

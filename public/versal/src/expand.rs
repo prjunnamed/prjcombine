@@ -1,4 +1,5 @@
 use prjcombine_interconnect::db::IntDb;
+use prjcombine_interconnect::dir::Dir;
 use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId};
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
@@ -26,12 +27,7 @@ impl Expander<'_> {
             self.egrid
                 .add_die(chip.columns.len(), chip.regs * Chip::ROWS_PER_REG);
             self.die.push(DieInfo {
-                col_cfrm: chip
-                    .columns
-                    .iter()
-                    .find(|(_, cd)| cd.l == ColumnKind::Cfrm)
-                    .unwrap()
-                    .0,
+                col_cfrm: chip.col_cfrm(),
                 ps_height: chip.get_ps_height(),
             });
         }
@@ -59,10 +55,42 @@ impl Expander<'_> {
                     if col < di.col_cfrm && row.to_idx() < di.ps_height {
                         continue;
                     }
-                    die.fill_tile((col, row), "INT");
-                    if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_top(reg) {
-                        die.add_xnode((col, row), "RCLK", &[(col, row)]);
+                    if chip.col_side(col) == Dir::W {
+                        die.add_xnode((col, row), "INT", &[(col, row), (col + 1, row)]);
+                        if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_top(reg) {
+                            die.add_xnode((col, row), "RCLK", &[(col, row), (col + 1, row)]);
+                        }
                     }
+                }
+            }
+
+            for col in die.cols() {
+                for row in die.rows() {
+                    if col == chip.columns.last_id().unwrap() {
+                        continue;
+                    }
+                    if chip.in_int_hole(col, row) || chip.in_int_hole(col + 1, row) {
+                        continue;
+                    }
+                    die.fill_term_pair((col, row), (col + 1, row), "MAIN.E", "MAIN.W");
+                    if col == chip.columns.last_id().unwrap() - 1 {
+                        continue;
+                    }
+                    if chip.col_side(col) == Dir::W {
+                        die.fill_term_pair((col, row), (col + 2, row), "MAIN.LE", "MAIN.LW");
+                    }
+                }
+            }
+
+            for col in die.cols() {
+                for row in die.rows() {
+                    if row == chip.rows().next_back().unwrap() {
+                        continue;
+                    }
+                    if chip.in_int_hole(col, row) || chip.in_int_hole(col, row + 1) {
+                        continue;
+                    }
+                    die.fill_term_pair((col, row), (col, row + 1), "MAIN.N", "MAIN.S");
                 }
             }
 
@@ -76,23 +104,22 @@ impl Expander<'_> {
             for dy in 0..di.ps_height {
                 let row = RowId::from_idx(dy);
                 die.fill_term((di.col_cfrm, row), "TERM.W");
+                die.fill_term((di.col_cfrm, row), "TERM.LW");
             }
 
             for col in die.cols() {
-                if !die[(col, row_b)].nodes.is_empty() {
+                if col >= di.col_cfrm {
                     die.fill_term((col, row_b), "TERM.S");
                 }
-                if !die[(col, row_t)].nodes.is_empty() {
-                    die.fill_term((col, row_t), "TERM.N");
-                }
+                die.fill_term((col, row_t), "TERM.N");
             }
             for row in die.rows() {
-                if !die[(col_l, row)].nodes.is_empty() {
+                if row.to_idx() >= di.ps_height {
                     die.fill_term((col_l, row), "TERM.W");
+                    die.fill_term((col_l, row), "TERM.LW");
                 }
-                if !die[(col_r, row)].nodes.is_empty() {
-                    die.fill_term((col_r, row), "TERM.E");
-                }
+                die.fill_term((col_r, row), "TERM.E");
+                die.fill_term((col_r - 1, row), "TERM.LE");
             }
         }
     }
@@ -104,29 +131,29 @@ impl Expander<'_> {
             let row_b = die.rows().next().unwrap();
             let row_t = die.rows().next_back().unwrap();
             for (col, &cd) in &chip.columns {
-                if matches!(cd.r, ColumnKind::Cle(_)) {
+                if matches!(cd.kind, ColumnKind::Cle(_)) && chip.col_side(col) == Dir::E {
                     for row in die.rows() {
-                        if die[(col, row)].nodes.is_empty() {
+                        if chip.in_int_hole(col, row) {
                             continue;
                         }
-                        let has_bli_r = if row < row_b + 4 {
-                            cd.has_bli_bot_r
+                        let has_bli = if row < row_b + 4 {
+                            cd.has_bli_s
                         } else if row > row_t - 4 {
-                            cd.has_bli_top_r
+                            cd.has_bli_n
                         } else {
                             false
                         };
-                        let kind = match cd.r {
+                        let kind = match cd.kind {
                             ColumnKind::Cle(CleKind::Plain) => "CLE_BC",
                             ColumnKind::Cle(CleKind::Sll) => {
-                                if has_bli_r {
+                                if has_bli {
                                     "CLE_BC"
                                 } else {
                                     "CLE_BC.SLL"
                                 }
                             }
                             ColumnKind::Cle(CleKind::Sll2) => {
-                                if has_bli_r {
+                                if has_bli {
                                     "CLE_BC"
                                 } else {
                                     "CLE_BC.SLL2"
@@ -135,15 +162,12 @@ impl Expander<'_> {
                             _ => unreachable!(),
                         };
                         die.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
-                        if has_bli_r {
-                            die.fill_term_pair(
-                                (col, row),
-                                (col + 1, row),
-                                "CLE.BLI.E",
-                                "CLE.BLI.W",
-                            );
+                        if has_bli {
+                            die.fill_term((col, row), "CLE.BLI.E");
+                            die.fill_term((col + 1, row), "CLE.BLI.W");
                         } else {
-                            die.fill_term_pair((col, row), (col + 1, row), "CLE.E", "CLE.W");
+                            die.fill_term((col, row), "CLE.E");
+                            die.fill_term((col + 1, row), "CLE.W");
                         }
                         let reg = chip.row_to_reg(row);
                         if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_top(reg) {
@@ -172,103 +196,90 @@ impl Expander<'_> {
             let row_t = die.rows().next_back().unwrap();
             for (col, &cd) in &chip.columns {
                 for row in die.rows() {
-                    if die[(col, row)].nodes.is_empty() {
+                    if chip.in_int_hole(col, row) {
                         continue;
                     }
-                    if !matches!(cd.l, ColumnKind::Cle(_) | ColumnKind::None) {
-                        let kind = match cd.l {
-                            ColumnKind::Gt => "INTF.W.TERM.GT",
+
+                    let side = chip.col_side(col);
+                    if !matches!(cd.kind, ColumnKind::Cle(_) | ColumnKind::None) {
+                        let kind = match cd.kind {
+                            ColumnKind::Gt => format!("INTF.{side}.TERM.GT"),
                             ColumnKind::Cfrm => {
                                 if row.to_idx() < di.ps_height {
-                                    "INTF.W.TERM.PSS"
+                                    format!("INTF.{side}.TERM.PSS")
                                 } else {
-                                    "INTF.W.PSS"
+                                    format!("INTF.{side}.PSS")
                                 }
                             }
                             ColumnKind::Hard => {
                                 let ch = chip.get_col_hard(col).unwrap();
                                 match ch.regs[chip.row_to_reg(row)] {
-                                    HardRowKind::Hdio => "INTF.W.HDIO",
-                                    _ => "INTF.W.HB",
+                                    HardRowKind::Hdio => format!("INTF.{side}.HDIO"),
+                                    _ => format!("INTF.{side}.HB"),
                                 }
                             }
-                            _ => "INTF.W",
-                        };
-                        die.add_xnode((col, row), kind, &[(col, row)]);
-                    } else if matches!(cd.l, ColumnKind::Cle(_))
-                        && cd.has_bli_bot_l
-                        && row < row_b + 4
-                    {
-                        let idx = row - row_b;
-                        die.add_xnode(
-                            (col, row),
-                            &format!("INTF.BLI_CLE.BOT.W.{idx}"),
-                            &[(col, row)],
-                        );
-                    } else if matches!(cd.l, ColumnKind::Cle(_))
-                        && cd.has_bli_top_l
-                        && row > row_t - 4
-                    {
-                        let idx = row - (row_t - 3);
-                        die.add_xnode(
-                            (col, row),
-                            &format!("INTF.BLI_CLE.TOP.W.{idx}"),
-                            &[(col, row)],
-                        );
-                    }
-                    if !matches!(cd.r, ColumnKind::Cle(_) | ColumnKind::None) {
-                        let kind = match cd.r {
-                            ColumnKind::Gt => "INTF.E.TERM.GT",
-                            ColumnKind::Hard => {
-                                let ch = chip.get_col_hard(col + 1).unwrap();
+                            ColumnKind::ContHard => {
+                                let ch = chip.get_col_hard(col - 1).unwrap();
                                 match ch.regs[chip.row_to_reg(row)] {
-                                    HardRowKind::Hdio => "INTF.E.HDIO",
-                                    _ => "INTF.E.HB",
+                                    HardRowKind::Hdio => format!("INTF.{side}.HDIO"),
+                                    _ => format!("INTF.{side}.HB"),
                                 }
                             }
-                            _ => "INTF.E",
+                            _ => format!("INTF.{side}"),
                         };
-                        die.add_xnode((col, row), kind, &[(col, row)]);
-                    } else if matches!(cd.r, ColumnKind::Cle(_))
-                        && cd.has_bli_bot_r
+                        die.add_xnode((col, row), &kind, &[(col, row)]);
+                    } else if matches!(cd.kind, ColumnKind::Cle(_))
+                        && cd.has_bli_s
                         && row < row_b + 4
                     {
                         let idx = row - row_b;
                         die.add_xnode(
                             (col, row),
-                            &format!("INTF.BLI_CLE.BOT.E.{idx}"),
+                            &format!("INTF.BLI_CLE.{side}.S.{idx}"),
                             &[(col, row)],
                         );
-                    } else if matches!(cd.r, ColumnKind::Cle(_))
-                        && cd.has_bli_top_r
+                    } else if matches!(cd.kind, ColumnKind::Cle(_))
+                        && cd.has_bli_n
                         && row > row_t - 4
                     {
                         let idx = row - (row_t - 3);
                         die.add_xnode(
                             (col, row),
-                            &format!("INTF.BLI_CLE.TOP.E.{idx}"),
+                            &format!("INTF.BLI_CLE.{side}.N.{idx}"),
                             &[(col, row)],
                         );
                     }
                     let reg = chip.row_to_reg(row);
                     if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_top(reg) {
-                        if !matches!(cd.l, ColumnKind::Cle(_) | ColumnKind::None) {
+                        if !matches!(cd.kind, ColumnKind::Cle(_) | ColumnKind::None)
+                            && !(chip.col_side(col) == Dir::E
+                                && matches!(cd.kind, ColumnKind::Gt)
+                                && matches!(chip.right, RightKind::Cidb))
+                        {
                             if reg.to_idx() % 2 == 1 {
                                 die.add_xnode(
                                     (col, row),
-                                    "RCLK_INTF.W",
+                                    &format!("RCLK_INTF.{side}"),
                                     &[(col, row), (col, row - 1)],
                                 );
                             } else {
-                                die.add_xnode((col, row), "RCLK_INTF.W.HALF", &[(col, row)]);
+                                die.add_xnode(
+                                    (col, row),
+                                    &format!("RCLK_INTF.{side}.HALF"),
+                                    &[(col, row)],
+                                );
                             }
                             if matches!(
-                                cd.l,
-                                ColumnKind::Dsp | ColumnKind::Bram(_) | ColumnKind::Uram
+                                cd.kind,
+                                ColumnKind::ContDsp | ColumnKind::Bram(_) | ColumnKind::Uram
                             ) {
-                                die.add_xnode((col, row), "RCLK_DFX.W", &[(col, row)]);
+                                die.add_xnode(
+                                    (col, row),
+                                    &format!("RCLK_DFX.{side}"),
+                                    &[(col, row)],
+                                );
                             }
-                            if cd.l == ColumnKind::Hard {
+                            if cd.kind == ColumnKind::Hard {
                                 let hc = chip.get_col_hard(col).unwrap();
                                 if hc.regs[reg] == HardRowKind::Hdio {
                                     die.add_xnode((col, row), "RCLK_HDIO", &[]);
@@ -277,23 +288,6 @@ impl Expander<'_> {
                                 {
                                     die.add_xnode((col, row), "RCLK_HB_HDIO", &[]);
                                 }
-                            }
-                        }
-                        if !matches!(cd.r, ColumnKind::Cle(_) | ColumnKind::None)
-                            && !(matches!(cd.r, ColumnKind::Gt)
-                                && matches!(chip.right, RightKind::Cidb))
-                        {
-                            if reg.to_idx() % 2 == 1 {
-                                die.add_xnode(
-                                    (col, row),
-                                    "RCLK_INTF.E",
-                                    &[(col, row), (col, row - 1)],
-                                )
-                            } else {
-                                die.add_xnode((col, row), "RCLK_INTF.E.HALF", &[(col, row)])
-                            };
-                            if matches!(cd.r, ColumnKind::Bram(_) | ColumnKind::Uram) {
-                                die.add_xnode((col, row), "RCLK_DFX.E", &[(col, row)]);
                             }
                         }
                     }
@@ -306,30 +300,33 @@ impl Expander<'_> {
         for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
             for (col, &cd) in &chip.columns {
-                if !matches!(cd.r, ColumnKind::Cle(_)) {
+                if !matches!(cd.kind, ColumnKind::Cle(_)) {
                     continue;
                 }
                 for row in die.rows() {
-                    if cd.has_bli_bot_r && row.to_idx() < 4 {
+                    if cd.has_bli_s && row.to_idx() < 4 {
                         continue;
                     }
-                    if cd.has_bli_top_r && row.to_idx() >= die.rows().len() - 4 {
+                    if cd.has_bli_n && row.to_idx() >= die.rows().len() - 4 {
                         continue;
                     }
-                    let tile = &mut die[(col, row)];
-                    if tile.nodes.is_empty() {
+                    if chip.in_int_hole(col, row) {
                         continue;
                     }
-                    die.add_xnode(
-                        (col, row),
-                        if chip.is_vr { "CLE_R.VR" } else { "CLE_R" },
-                        &[(col, row), (col + 1, row)],
-                    );
-                    die.add_xnode(
-                        (col + 1, row),
-                        if chip.is_vr { "CLE_L.VR" } else { "CLE_L" },
-                        &[(col + 1, row)],
-                    );
+
+                    if chip.col_side(col) == Dir::W {
+                        die.add_xnode(
+                            (col, row),
+                            if chip.is_vr { "CLE_W.VR" } else { "CLE_W" },
+                            &[(col, row), (col - 1, row)],
+                        );
+                    } else {
+                        die.add_xnode(
+                            (col, row),
+                            if chip.is_vr { "CLE_E.VR" } else { "CLE_E" },
+                            &[(col, row)],
+                        );
+                    }
                 }
             }
         }
@@ -339,21 +336,20 @@ impl Expander<'_> {
         for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
             for (col, &cd) in &chip.columns {
-                if cd.r != ColumnKind::Dsp {
+                if cd.kind != ColumnKind::Dsp {
                     continue;
                 }
                 for row in die.rows() {
                     if row.to_idx() % 2 != 0 {
                         continue;
                     }
-                    if cd.has_bli_bot_r && row.to_idx() < 4 {
+                    if cd.has_bli_s && row.to_idx() < 4 {
                         continue;
                     }
-                    if cd.has_bli_top_r && row.to_idx() >= die.rows().len() - 4 {
+                    if cd.has_bli_n && row.to_idx() >= die.rows().len() - 4 {
                         continue;
                     }
-                    let tile = &mut die[(col, row)];
-                    if tile.nodes.is_empty() {
+                    if chip.in_int_hole(col, row) {
                         continue;
                     }
                     die.add_xnode(
@@ -375,33 +371,31 @@ impl Expander<'_> {
         for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
             for (col, &cd) in &chip.columns {
-                for (kind, ck, has_bli_bot, has_bli_top) in [
-                    ("BRAM_L", cd.l, cd.has_bli_bot_l, cd.has_bli_top_l),
-                    ("BRAM_R", cd.r, cd.has_bli_bot_r, cd.has_bli_top_r),
-                ] {
-                    if !matches!(ck, ColumnKind::Bram(_)) {
+                if !matches!(cd.kind, ColumnKind::Bram(_)) {
+                    continue;
+                }
+                for row in die.rows() {
+                    if row.to_idx() % 4 != 0 {
                         continue;
                     }
-                    for row in die.rows() {
-                        if row.to_idx() % 4 != 0 {
-                            continue;
-                        }
-                        if has_bli_bot && row.to_idx() < 4 {
-                            continue;
-                        }
-                        if has_bli_top && row.to_idx() >= die.rows().len() - 4 {
-                            continue;
-                        }
-                        let tile = &mut die[(col, row)];
-                        if tile.nodes.is_empty() {
-                            continue;
-                        }
-                        die.add_xnode(
-                            (col, row),
-                            kind,
-                            &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
-                        );
+                    if cd.has_bli_s && row.to_idx() < 4 {
+                        continue;
                     }
+                    if cd.has_bli_n && row.to_idx() >= die.rows().len() - 4 {
+                        continue;
+                    }
+                    if chip.in_int_hole(col, row) {
+                        continue;
+                    }
+                    die.add_xnode(
+                        (col, row),
+                        if chip.col_side(col) == Dir::W {
+                            "BRAM_W"
+                        } else {
+                            "BRAM_E"
+                        },
+                        &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
+                    );
                 }
             }
         }
@@ -411,20 +405,20 @@ impl Expander<'_> {
         for (dieid, chip) in &self.chips {
             let mut die = self.egrid.die_mut(dieid);
             for (col, &cd) in &chip.columns {
-                if cd.l != ColumnKind::Uram {
+                if cd.kind != ColumnKind::Uram {
                     continue;
                 }
                 for row in die.rows() {
                     if row.to_idx() % 4 != 0 {
                         continue;
                     }
-                    if cd.has_bli_bot_l && row.to_idx() < 4 {
+                    if cd.has_bli_s && row.to_idx() < 4 {
                         continue;
                     }
-                    if cd.has_bli_top_l && row.to_idx() >= die.rows().len() - 4 {
+                    if cd.has_bli_n && row.to_idx() >= die.rows().len() - 4 {
                         continue;
                     }
-                    if die[(col, row)].nodes.is_empty() {
+                    if chip.in_int_hole(col, row) {
                         continue;
                     }
                     let reg = chip.row_to_reg(row);
@@ -483,10 +477,10 @@ impl Expander<'_> {
                         Chip::ROWS_PER_REG
                     };
                     for i in 0..height {
-                        crd.push((hc.col - 1, row + i));
+                        crd.push((hc.col, row + i));
                     }
                     for i in 0..height {
-                        crd.push((hc.col, row + i));
+                        crd.push((hc.col + 1, row + i));
                     }
                     die.add_xnode((hc.col, row), nk, &crd);
                 }
@@ -499,7 +493,7 @@ impl Expander<'_> {
             let mut die = self.egrid.die_mut(dieid);
             for (col, cd) in &chip.columns {
                 if !matches!(
-                    cd.l,
+                    cd.kind,
                     ColumnKind::VNoc | ColumnKind::VNoc2 | ColumnKind::VNoc4
                 ) {
                     continue;
@@ -514,12 +508,12 @@ impl Expander<'_> {
                     let row = chip.row_reg_bot(reg);
                     let mut crd = vec![];
                     for i in 0..Chip::ROWS_PER_REG {
-                        crd.push((col - 1, row + i));
-                    }
-                    for i in 0..Chip::ROWS_PER_REG {
                         crd.push((col, row + i));
                     }
-                    match cd.l {
+                    for i in 0..Chip::ROWS_PER_REG {
+                        crd.push((col + 1, row + i));
+                    }
+                    match cd.kind {
                         ColumnKind::VNoc => {
                             die.add_xnode((col, row), "VNOC", &crd);
                         }
@@ -532,7 +526,7 @@ impl Expander<'_> {
                         _ => unreachable!(),
                     }
                     if chip.is_reg_top(reg) {
-                        die.add_xnode((col, row), "MISR", &crd);
+                        die.add_xnode((col + 1, row), "MISR", &crd);
                     } else {
                         die.add_xnode((col, row), "SYSMON_SAT.VNOC", &crd);
                     }
@@ -654,9 +648,6 @@ pub fn expand_grid<'a>(
     expander.fill_int();
     expander.fill_cle_bc();
     expander.fill_intf();
-    for dieid in expander.chips.ids() {
-        expander.egrid.die_mut(dieid).fill_main_passes();
-    }
     expander.fill_cle();
     expander.fill_dsp();
     expander.fill_bram();
@@ -703,13 +694,13 @@ fn fill_sll_column(
         let has_link_bot = die != chips.first_id().unwrap();
         let has_link_top = die != chips.last_id().unwrap();
         for (cidx, &col) in cols.iter().enumerate() {
-            let start = if chip.columns[col].has_bli_bot_l {
+            let start = if chip.columns[col].has_bli_s {
                 assert!(!has_link_bot);
                 4
             } else {
                 0
             };
-            let end = if chip.columns[col].has_bli_top_l {
+            let end = if chip.columns[col].has_bli_n {
                 assert!(!has_link_top);
                 all_rows.len() - 4
             } else {
@@ -837,18 +828,13 @@ fn fill_sll_mirror_square(
     for (die, cols) in &interposer.sll_columns {
         let chip = chips[die];
         let all_rows = chip.rows();
-        let col_cfrm = chip
-            .columns
-            .iter()
-            .find(|(_, c)| c.l == ColumnKind::Cfrm)
-            .unwrap()
-            .0;
+        let col_cfrm = chip.col_cfrm();
         let ps_height = chip.get_ps_height();
         let cidx_ps = cols.binary_search(&col_cfrm).unwrap_err();
         for (cidx, &col) in cols.iter().enumerate() {
             let start = if col < col_cfrm {
                 ps_height
-            } else if chip.columns[col].has_bli_bot_l {
+            } else if chip.columns[col].has_bli_s {
                 4
             } else {
                 0

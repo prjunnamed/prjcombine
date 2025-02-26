@@ -8,7 +8,7 @@ use prjcombine_re_xilinx_rd2db_versal::{grid, int};
 use prjcombine_re_xilinx_rdverify_versal::verify_device;
 
 pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
-    let (grids, interposer, disabled, naming) = grid::make_grids(rd);
+    let (grids, interposer, disabled, naming) = grid::make_chips(rd);
     let (intdb, ndb) = int::make_int_db(rd, &naming);
     let mut bonds = Vec::new();
     for (pkg, _) in rd.packages.iter() {

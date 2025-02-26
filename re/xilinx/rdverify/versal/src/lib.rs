@@ -57,11 +57,11 @@ fn verify_laguna(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
             bel.wire(&format!("IN{i}")),
         );
         let bump = UbumpId::from_idx(i);
-        if let Some(conns) = edev.sll.get(&(bel.die, bel.col + 1, bel.row)) {
+        if let Some(conns) = edev.sll.get(&(bel.die, bel.col, bel.row)) {
             if !conns.cursed[bump] {
                 if let Some((odie, ocol, orow, obump)) = conns.conns[bump] {
-                    let obel = vrf.find_bel(odie, (ocol - 1, orow), "LAGUNA").unwrap();
-                    if (bel.die, bel.col + 1, bel.row, bump) < (odie, ocol, orow, obump) {
+                    let obel = vrf.find_bel(odie, (ocol, orow), "LAGUNA").unwrap();
+                    if (bel.die, bel.col, bel.row, bump) < (odie, ocol, orow, obump) {
                         vrf.claim_node(&[
                             bel.fwire(&format!("UBUMP{i}")),
                             obel.fwire(&format!("UBUMP{obump}")),
@@ -262,14 +262,7 @@ fn verify_bram_f(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_bram_h(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut inps = vec![];
     let mut outps = vec![];
-    let obel_f = vrf.find_bel_sibling(
-        bel,
-        if bel.key.starts_with("BRAM_L") {
-            "BRAM_L_F"
-        } else {
-            "BRAM_R_F"
-        },
-    );
+    let obel_f = vrf.find_bel_sibling(bel, "BRAM_F");
     let idx = if bel.key.ends_with('1') { 1 } else { 0 };
     for ab in ['A', 'B'] {
         for i in 0..16 {
@@ -295,8 +288,8 @@ fn verify_bram_h(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_pip(bel.crd(), obel_f.wire_far(opin_f), bel.wire(opin));
     }
     let kind = match bel.key {
-        "BRAM_L_H0" | "BRAM_R_H0" => "RAMB18_L",
-        "BRAM_L_H1" | "BRAM_R_H1" => "RAMB18_U",
+        "BRAM_H0" => "RAMB18_L",
+        "BRAM_H1" => "RAMB18_U",
         _ => unreachable!(),
     };
     vrf.verify_bel(bel, kind, &pins, &[]);
@@ -417,10 +410,8 @@ fn verify_bufdiv_leaf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
     vrf.claim_pip(bel.crd(), bel.wire("I"), bel.wire_far("I"));
     let (key_hdistr_loc, key_vcc) = if bel.key.starts_with("BUFDIV_LEAF.CLE") {
         ("RCLK_HDISTR_LOC.CLE", "VCC.RCLK_CLE")
-    } else if bel.key.starts_with("BUFDIV_LEAF.W") {
-        ("RCLK_HDISTR_LOC.W", "VCC.RCLK_INTF.W")
     } else {
-        ("RCLK_HDISTR_LOC.E", "VCC.RCLK_INTF.E")
+        ("RCLK_HDISTR_LOC", "VCC.RCLK_INTF")
     };
     let obel_hdistr_loc = vrf.find_bel_sibling(bel, key_hdistr_loc);
     let obel_vcc = vrf.find_bel_sibling(bel, key_vcc);
@@ -642,8 +633,8 @@ fn verify_dpll_gt(_endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
 }
 
 fn verify_rclk_hdio_dpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF.W");
-    let obel_hdistr_loc = vrf.find_bel_sibling(bel, "RCLK_HDISTR_LOC.W");
+    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF");
+    let obel_hdistr_loc = vrf.find_bel_sibling(bel, "RCLK_HDISTR_LOC");
     for opin in ["OUT_S", "OUT_N"] {
         vrf.claim_node(&[bel.fwire(opin)]);
         vrf.claim_pip(bel.crd(), bel.wire(opin), obel_vcc.wire("VCC"));
@@ -658,7 +649,7 @@ fn verify_rclk_hdio_dpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_rclk_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF.W");
+    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF");
     for i in 0..24 {
         let opin = format!("HDISTR{i}");
         let mpin = format!("HDISTR{i}_MUX");
@@ -719,7 +710,7 @@ fn verify_rclk_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
 }
 
 fn verify_rclk_hb_hdio(_endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF.W");
+    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF");
     for i in 0..24 {
         let opin = format!("HDISTR{i}");
         let mpin = format!("HDISTR{i}_MUX");
@@ -971,8 +962,8 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         "LAGUNA" => verify_laguna(endev, vrf, bel),
         "DSP0" | "DSP1" => verify_dsp(vrf, bel),
         "DSP_CPLX" => verify_dsp_cplx(vrf, bel),
-        "BRAM_L_F" | "BRAM_R_F" => verify_bram_f(vrf, bel),
-        "BRAM_L_H0" | "BRAM_L_H1" | "BRAM_R_H0" | "BRAM_R_H1" => verify_bram_h(vrf, bel),
+        "BRAM_F" => verify_bram_f(vrf, bel),
+        "BRAM_H0" | "BRAM_H1" => verify_bram_h(vrf, bel),
         "URAM" | "URAM_CAS_DLY" => verify_uram(vrf, bel),
         "PCIE4" => verify_hardip(endev, vrf, bel, "PCIE40"),
         "PCIE5" => verify_hardip(endev, vrf, bel, "PCIE50"),

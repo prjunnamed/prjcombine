@@ -43,7 +43,6 @@ aes = "0.8.4"
 sha2 = "0.10.8"
 assert_matches = "1.5"
 # these are slated to be removed, one way or another
-enum-map = "2.4"
 serde = { version = "1.0", features = ["derive"] }
 zstd = "0.13"
 clap = { version = "4.1", features = ["derive"] }

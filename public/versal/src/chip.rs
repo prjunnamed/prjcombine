@@ -1,5 +1,7 @@
-use enum_map::Enum;
-use prjcombine_interconnect::grid::{ColId, DieId, RowId};
+use prjcombine_interconnect::{
+    dir::Dir,
+    grid::{ColId, DieId, RowId},
+};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
@@ -40,12 +42,9 @@ pub struct Interposer {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Column {
-    pub l: ColumnKind,
-    pub r: ColumnKind,
-    pub has_bli_bot_l: bool,
-    pub has_bli_top_l: bool,
-    pub has_bli_bot_r: bool,
-    pub has_bli_top_r: bool,
+    pub kind: ColumnKind,
+    pub has_bli_s: bool,
+    pub has_bli_n: bool,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -75,13 +74,10 @@ pub enum ColumnKind {
     VNoc,
     VNoc2,
     VNoc4,
+    ContDsp,
+    ContVNoc,
+    ContHard,
     None,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, Enum)]
-pub enum ColSide {
-    Left,
-    Right,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -246,6 +242,26 @@ impl Chip {
             _ => unreachable!(),
         }
     }
+
+    pub fn col_side(&self, col: ColId) -> Dir {
+        if col.to_idx() % 2 == 0 {
+            Dir::W
+        } else {
+            Dir::E
+        }
+    }
+
+    pub fn col_cfrm(&self) -> ColId {
+        self.columns
+            .iter()
+            .find(|(_, cd)| cd.kind == ColumnKind::Cfrm)
+            .unwrap()
+            .0
+    }
+
+    pub fn in_int_hole(&self, col: ColId, row: RowId) -> bool {
+        row.to_idx() < self.get_ps_height() && col < self.col_cfrm()
+    }
 }
 
 impl std::fmt::Display for Chip {
@@ -266,19 +282,24 @@ impl std::fmt::Display for Chip {
                 writeln!(f, "\t\t--- CPIPE")?;
             }
             if matches!(
-                cd.l,
-                ColumnKind::Cle(_)
-                    | ColumnKind::Dsp
+                cd.kind,
+                ColumnKind::ContDsp | ColumnKind::ContVNoc | ColumnKind::ContHard
+            ) {
+                continue;
+            }
+            if matches!(
+                cd.kind,
+                ColumnKind::Dsp
                     | ColumnKind::Hard
                     | ColumnKind::VNoc
                     | ColumnKind::VNoc2
                     | ColumnKind::VNoc4
             ) {
-                write!(f, "\t\tX{cl}.R-X{col}.L: ", cl = col - 1)?;
+                write!(f, "\t\tX{col}-X{col1}: ", col1 = col + 1)?;
             } else {
-                write!(f, "\t\tX{col}.L: ")?;
+                write!(f, "\t\tX{col}: ")?;
             }
-            match cd.l {
+            match cd.kind {
                 ColumnKind::None => write!(f, "---")?,
                 ColumnKind::Cle(CleKind::Plain) => write!(f, "CLE")?,
                 ColumnKind::Cle(CleKind::Sll) => write!(f, "CLE.SLL")?,
@@ -295,14 +316,15 @@ impl std::fmt::Display for Chip {
                 ColumnKind::VNoc => write!(f, "VNOC")?,
                 ColumnKind::VNoc2 => write!(f, "VNOC2")?,
                 ColumnKind::VNoc4 => write!(f, "VNOC4")?,
+                ColumnKind::ContDsp | ColumnKind::ContVNoc | ColumnKind::ContHard => unreachable!(),
             }
-            if cd.has_bli_bot_l {
-                write!(f, " BLI.BOT")?;
+            if cd.has_bli_s {
+                write!(f, " BLI.S")?;
             }
-            if cd.has_bli_top_l {
-                write!(f, " BLI.TOP")?;
+            if cd.has_bli_n {
+                write!(f, " BLI.N")?;
             }
-            writeln!(f,)?;
+            writeln!(f)?;
             for hc in &self.cols_hard {
                 if hc.col == col {
                     for (reg, kind) in &hc.regs {
@@ -310,43 +332,6 @@ impl std::fmt::Display for Chip {
                     }
                 }
             }
-            if matches!(
-                cd.r,
-                ColumnKind::Cle(_)
-                    | ColumnKind::Dsp
-                    | ColumnKind::Hard
-                    | ColumnKind::VNoc
-                    | ColumnKind::VNoc2
-                    | ColumnKind::VNoc4
-            ) {
-                continue;
-            }
-            write!(f, "\t\tX{col}.R: ")?;
-            match cd.r {
-                ColumnKind::None => write!(f, "---")?,
-                ColumnKind::Cle(CleKind::Plain) => write!(f, "CLE")?,
-                ColumnKind::Cle(CleKind::Sll) => write!(f, "CLE.SLL")?,
-                ColumnKind::Cle(CleKind::Sll2) => write!(f, "CLE.SLL2")?,
-                ColumnKind::Dsp => write!(f, "DSP")?,
-                ColumnKind::Bram(BramKind::Plain) => write!(f, "BRAM")?,
-                ColumnKind::Bram(BramKind::ClkBuf) => write!(f, "BRAM.CLKBUF")?,
-                ColumnKind::Bram(BramKind::ClkBufNoPd) => write!(f, "BRAM.CLKBUF.NOPD")?,
-                ColumnKind::Bram(BramKind::MaybeClkBufNoPd) => write!(f, "BRAM.MAYBE.CLKBUF.NOPD")?,
-                ColumnKind::Uram => write!(f, "URAM")?,
-                ColumnKind::Hard => write!(f, "HARD")?,
-                ColumnKind::Gt => write!(f, "GT")?,
-                ColumnKind::Cfrm => write!(f, "CFRM")?,
-                ColumnKind::VNoc => write!(f, "VNOC")?,
-                ColumnKind::VNoc2 => write!(f, "VNOC2")?,
-                ColumnKind::VNoc4 => write!(f, "VNOC4")?,
-            }
-            if cd.has_bli_bot_r {
-                write!(f, " BLI.BOT")?;
-            }
-            if cd.has_bli_top_r {
-                write!(f, " BLI.TOP")?;
-            }
-            writeln!(f,)?;
         }
         writeln!(f, "\tGT LEFT:")?;
         for (reg, kind) in &self.regs_gt_left {

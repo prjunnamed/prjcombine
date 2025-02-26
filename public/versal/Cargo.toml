@@ -6,7 +6,6 @@ edition.workspace = true
 [dependencies]
 serde.workspace = true
 unnamed_entity.workspace = true
-enum-map.workspace = true
 prjcombine-interconnect.workspace = true
 
 [lints]
