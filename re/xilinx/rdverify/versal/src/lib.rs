@@ -586,7 +586,7 @@ fn verify_dpll_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
     vrf.claim_node(&[bel.fwire("CLKIN_DESKEW_DUMMY0")]);
     vrf.claim_node(&[bel.fwire("CLKIN_DESKEW_DUMMY1")]);
 
-    if grid.is_reg_top(reg) {
+    if grid.is_reg_n(reg) {
         let obel = vrf.find_bel_delta(bel, 0, 0, "RCLK_HDIO_DPLL").unwrap();
         vrf.verify_node(&[bel.fwire("CLKIN_RCLK"), obel.fwire("OUT_N")]);
     } else {

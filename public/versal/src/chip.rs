@@ -212,12 +212,16 @@ impl Chip {
     }
 
     pub fn row_reg_hclk(&self, reg: RegId) -> RowId {
-        let reg = if self.is_reg_top(reg) { reg } else { reg + 1 };
+        let reg = if self.is_reg_n(reg) { reg } else { reg + 1 };
         self.row_reg_bot(reg)
     }
 
-    pub fn is_reg_top(&self, reg: RegId) -> bool {
+    pub fn is_reg_n(&self, reg: RegId) -> bool {
         reg.to_idx() == self.regs - 1 || reg.to_idx() % 2 == 1
+    }
+
+    pub fn is_reg_half(&self, reg: RegId) -> bool {
+        reg.to_idx() % 2 == 0 && reg.to_idx() == self.regs - 1
     }
 
     pub fn regs(&self) -> EntityIds<RegId> {

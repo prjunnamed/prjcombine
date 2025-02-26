@@ -494,7 +494,7 @@ pub fn name_device<'a>(
                             } else {
                                 "ROCF"
                             };
-                            let bt = if chip.is_reg_top(reg) { 'T' } else { 'B' };
+                            let bt = if chip.is_reg_n(reg) { 'T' } else { 'B' };
                             let name = int_grid.name(
                                 &match &kind[..] {
                                     "INTF.W" => format!("INTF_{ocf}_{bt}L_TILE"),
@@ -524,7 +524,7 @@ pub fn name_device<'a>(
                             } else {
                                 "ROCF"
                             };
-                            let bt = if chip.is_reg_top(reg) { 'T' } else { 'B' };
+                            let bt = if chip.is_reg_n(reg) { 'T' } else { 'B' };
                             let name = int_grid.name(
                                 &match &kind[..] {
                                     "INTF.E" => format!("INTF_{ocf}_{bt}R_TILE"),
@@ -1535,7 +1535,7 @@ pub fn name_device<'a>(
                             } else {
                                 "ROCF"
                             };
-                            let bt = if chip.is_reg_top(reg) { 'T' } else { 'B' };
+                            let bt = if chip.is_reg_n(reg) { 'T' } else { 'B' };
                             let name = int_grid.name(
                                 &format!("DSP_{ocf}_{bt}_TILE"),
                                 die.die,
@@ -1568,7 +1568,7 @@ pub fn name_device<'a>(
                             } else {
                                 "ROCF"
                             };
-                            let bt = if chip.is_reg_top(reg) { 'T' } else { 'B' };
+                            let bt = if chip.is_reg_n(reg) { 'T' } else { 'B' };
                             let name = int_grid.name(
                                 &format!("BRAM_{ocf}_{bt}{lr}_TILE"),
                                 die.die,
@@ -1593,7 +1593,7 @@ pub fn name_device<'a>(
                             } else {
                                 "ROCF"
                             };
-                            let bt = if chip.is_reg_top(reg) { 'T' } else { 'B' };
+                            let bt = if chip.is_reg_n(reg) { 'T' } else { 'B' };
                             let name = int_grid.name(
                                 &format!("{kind}_{ocf}_{bt}L_TILE"),
                                 die.die,
@@ -1621,7 +1621,7 @@ pub fn name_device<'a>(
                                 "DFE_CFC_TOP" => ("DFE_CFC", "DFE_CFC_TOP", &dfe_cfc_top_grid),
                                 _ => unreachable!(),
                             };
-                            let bt = if chip.is_reg_top(reg) { "TOP" } else { "BOT" };
+                            let bt = if chip.is_reg_n(reg) { "TOP" } else { "BOT" };
                             let name =
                                 int_grid.name(&format!("{tk}_{bt}_TILE"), die.die, col, row, 0, 0);
                             let nnode = ngrid.name_node(nloc, kind, [name]);
@@ -1641,7 +1641,7 @@ pub fn name_device<'a>(
                         }
                         "HDIO" => {
                             let name = int_grid.name(
-                                if chip.is_reg_top(reg) {
+                                if chip.is_reg_n(reg) {
                                     "HDIO_TILE"
                                 } else {
                                     "HDIO_BOT_TILE"
@@ -1924,7 +1924,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(0, vnoc_grid.name_manual("SYSMON_SAT", die.die, sx, sy));
                         }
                         "SYSMON_SAT.LGT" | "SYSMON_SAT.RGT" => {
-                            let bt = if chip.is_reg_top(reg) { "TOP" } else { "BOT" };
+                            let bt = if chip.is_reg_n(reg) { "TOP" } else { "BOT" };
                             let nnode = ngrid.name_node(
                                 nloc,
                                 kind,
@@ -1950,7 +1950,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(0, vnoc_grid.name_manual("DPLL", die.die, sx, sy));
                         }
                         "BFR_B.E" => {
-                            let bt = if chip.is_reg_top(reg) { "TOP" } else { "BOT" };
+                            let bt = if chip.is_reg_n(reg) { "TOP" } else { "BOT" };
                             let nnode = ngrid.name_node(
                                 nloc,
                                 kind,

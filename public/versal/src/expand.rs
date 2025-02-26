@@ -57,7 +57,7 @@ impl Expander<'_> {
                     }
                     if chip.col_side(col) == Dir::W {
                         die.add_xnode((col, row), "INT", &[(col, row), (col + 1, row)]);
-                        if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_top(reg) {
+                        if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_n(reg) {
                             die.add_xnode((col, row), "RCLK", &[(col, row), (col + 1, row)]);
                         }
                     }
@@ -170,16 +170,16 @@ impl Expander<'_> {
                             die.fill_term((col + 1, row), "CLE.W");
                         }
                         let reg = chip.row_to_reg(row);
-                        if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_top(reg) {
-                            if reg.to_idx() % 2 == 1 {
+                        if row.to_idx() % Chip::ROWS_PER_REG == 0 {
+                            if chip.is_reg_half(reg) {
+                                die.add_xnode((col + 1, row), "RCLK_CLE.HALF", &[(col + 1, row)]);
+                            } else if chip.is_reg_n(reg) {
                                 die.add_xnode(
                                     (col + 1, row),
                                     "RCLK_CLE",
                                     &[(col + 1, row), (col + 1, row - 1)],
-                                )
-                            } else {
-                                die.add_xnode((col + 1, row), "RCLK_CLE.HALF", &[(col + 1, row)])
-                            };
+                                );
+                            }
                         }
                     }
                 }
@@ -250,23 +250,23 @@ impl Expander<'_> {
                         );
                     }
                     let reg = chip.row_to_reg(row);
-                    if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_top(reg) {
+                    if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_n(reg) {
                         if !matches!(cd.kind, ColumnKind::Cle(_) | ColumnKind::None)
                             && !(chip.col_side(col) == Dir::E
                                 && matches!(cd.kind, ColumnKind::Gt)
                                 && matches!(chip.right, RightKind::Cidb))
                         {
-                            if reg.to_idx() % 2 == 1 {
-                                die.add_xnode(
-                                    (col, row),
-                                    &format!("RCLK_INTF.{side}"),
-                                    &[(col, row), (col, row - 1)],
-                                );
-                            } else {
+                            if chip.is_reg_half(reg) {
                                 die.add_xnode(
                                     (col, row),
                                     &format!("RCLK_INTF.{side}.HALF"),
                                     &[(col, row)],
+                                );
+                            } else {
+                                die.add_xnode(
+                                    (col, row),
+                                    &format!("RCLK_INTF.{side}"),
+                                    &[(col, row), (col, row - 1)],
                                 );
                             }
                             if matches!(
@@ -424,7 +424,7 @@ impl Expander<'_> {
                     let reg = chip.row_to_reg(row);
                     die.add_xnode(
                         (col, row),
-                        if chip.is_reg_top(reg) && row.to_idx() % Chip::ROWS_PER_REG == 44 {
+                        if chip.is_reg_n(reg) && row.to_idx() % Chip::ROWS_PER_REG == 44 {
                             "URAM_DELAY"
                         } else {
                             "URAM"
@@ -525,7 +525,7 @@ impl Expander<'_> {
                         }
                         _ => unreachable!(),
                     }
-                    if chip.is_reg_top(reg) {
+                    if chip.is_reg_n(reg) {
                         die.add_xnode((col + 1, row), "MISR", &crd);
                     } else {
                         die.add_xnode((col, row), "SYSMON_SAT.VNOC", &crd);
@@ -620,7 +620,7 @@ impl Expander<'_> {
             for col in die.cols() {
                 for row in die.rows() {
                     let reg = chip.row_to_reg(row);
-                    let crow = if chip.is_reg_top(reg) {
+                    let crow = if chip.is_reg_n(reg) {
                         chip.row_reg_hclk(reg)
                     } else {
                         chip.row_reg_hclk(reg) - 1
