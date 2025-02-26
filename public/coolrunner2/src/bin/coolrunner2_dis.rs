@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
-use clap::Parser;
+use clap::{Arg, Command, value_parser};
 use prjcombine_coolrunner2::{Chip, Database};
 use prjcombine_types::{
     FbId, FbMcId, IoId,
@@ -96,12 +96,6 @@ impl Bitstream {
     }
 }
 
-#[derive(Parser)]
-struct Args {
-    db: PathBuf,
-    jed: PathBuf,
-}
-
 fn parse_jed(jed: &str) -> (String, BitVec) {
     let stx = jed.find('\x02').unwrap();
     let etx = jed.find('\x03').unwrap();
@@ -178,8 +172,21 @@ fn print_tile(data: &BTreeMap<String, BitVec>, tile: &Tile) {
 }
 
 pub fn main() -> Result<(), Box<dyn Error>> {
-    let args = Args::parse();
-    let jed = std::fs::read_to_string(args.jed)?;
+    let m = Command::new("coolrunner2_dis")
+        .arg(
+            Arg::new("db")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .arg(
+            Arg::new("jed")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .get_matches();
+    let arg_db = m.get_one::<PathBuf>("db").unwrap();
+    let arg_jed = m.get_one::<PathBuf>("jed").unwrap();
+    let jed = std::fs::read_to_string(arg_jed)?;
     let (device, fuses) = parse_jed(&jed);
     let device = device.to_ascii_lowercase();
     let dev = if let Some(pos) = device.find('-') {
@@ -187,7 +194,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     } else {
         &device[..]
     };
-    let db = Database::from_file(args.db)?;
+    let db = Database::from_file(arg_db)?;
     let mut part = None;
     for p in &db.parts {
         if p.name == dev {

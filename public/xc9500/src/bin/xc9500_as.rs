@@ -6,7 +6,7 @@ use std::{
 };
 
 use bitvec::vec::BitVec;
-use clap::Parser;
+use clap::{Arg, Command, value_parser};
 use prjcombine_xc9500::{Chip, ChipKind, Database};
 
 use prjcombine_types::tiledb::{Tile, TileBit, TileItemKind};
@@ -184,16 +184,28 @@ fn set_tile_item(tile: &Tile, chip: &Chip, item: &str, mut put_bit: impl FnMut(T
     }
 }
 
-#[derive(Parser)]
-struct Args {
-    dbdir: PathBuf,
-    src: PathBuf,
-    jed: PathBuf,
-}
-
 pub fn main() -> Result<(), Box<dyn Error>> {
-    let args = Args::parse();
-    let src = read_to_string(args.src)?;
+    let m = Command::new("xc9500_as")
+        .arg(
+            Arg::new("dbdir")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .arg(
+            Arg::new("src")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .arg(
+            Arg::new("jed")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .get_matches();
+    let arg_dbdir = m.get_one::<PathBuf>("dbdir").unwrap();
+    let arg_src = m.get_one::<PathBuf>("src").unwrap();
+    let arg_jed = m.get_one::<PathBuf>("jed").unwrap();
+    let src = read_to_string(arg_src)?;
     let mut lines = src.lines();
     let mut dev = None;
     for mut line in &mut lines {
@@ -212,11 +224,11 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     }
     let dev = dev.unwrap();
     let dbfn = if dev.ends_with("xv") {
-        args.dbdir.join("xc9500xv.zstd")
+        arg_dbdir.join("xc9500xv.zstd")
     } else if dev.ends_with("xl") {
-        args.dbdir.join("xc9500xl.zstd")
+        arg_dbdir.join("xc9500xl.zstd")
     } else {
-        args.dbdir.join("xc9500.zstd")
+        arg_dbdir.join("xc9500.zstd")
     };
     let db = Database::from_file(dbfn)?;
     let mut part = None;
@@ -298,7 +310,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     let fuses = bs.to_jed();
-    write_jed(args.jed, dev, &fuses)?;
+    write_jed(arg_jed, dev, &fuses)?;
 
     Ok(())
 }

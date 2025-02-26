@@ -1,29 +1,51 @@
-use clap::Parser;
+use clap::{Arg, ArgAction, Command, value_parser};
 use prjcombine_siliconblue::db::Database;
 use std::{error::Error, path::PathBuf};
 
-#[derive(Debug, Parser)]
-#[command(name = "sbprint", about = "Dump SiliconBlue db file.")]
-struct Args {
-    file: PathBuf,
-    #[arg(short, long)]
-    intdb: bool,
-    #[arg(short, long)]
-    devices: bool,
-    #[arg(short, long)]
-    chips: bool,
-    #[arg(short, long)]
-    pkgs: bool,
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
-    let args = Args::parse();
-    let db = Database::from_file(args.file)?;
-    if args.intdb {
+    let m = Command::new("sbprint")
+        .arg(
+            Arg::new("db")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .arg(
+            Arg::new("intdb")
+                .short('i')
+                .long("intdb")
+                .action(ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("devices")
+                .short('d')
+                .long("devices")
+                .action(ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("chips")
+                .short('c')
+                .long("chips")
+                .action(ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("packages")
+                .short('p')
+                .long("packages")
+                .action(ArgAction::SetTrue),
+        )
+        .get_matches();
+    let arg_db = m.get_one::<PathBuf>("db").unwrap();
+    let flag_intdb = m.get_flag("intdb");
+    let flag_devices = m.get_flag("devices");
+    let flag_chips = m.get_flag("chips");
+    let flag_packages = m.get_flag("packages");
+
+    let db = Database::from_file(arg_db)?;
+    if flag_intdb {
         println!("INTDB");
         db.int.print(&mut std::io::stdout())?;
     }
-    if args.chips || args.devices {
+    if flag_chips || flag_devices {
         for (gid, chip) in &db.chips {
             print!("GRID {gid}:");
             for dev in &db.parts {
@@ -32,12 +54,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             println!();
-            if args.chips {
+            if flag_chips {
                 print!("{chip}");
             }
         }
     }
-    if args.pkgs || args.devices {
+    if flag_packages || flag_devices {
         for (bid, bond) in &db.bonds {
             print!("BOND {bid}:");
             for dev in &db.parts {
@@ -48,12 +70,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             println!();
-            if args.pkgs {
+            if flag_packages {
                 print!("{bond}");
             }
         }
     }
-    if args.devices {
+    if flag_devices {
         for dev in &db.parts {
             println!("DEVICE {n} GRID {g}", n = dev.name, g = dev.chip);
             for (pkg, bond) in &dev.bonds {

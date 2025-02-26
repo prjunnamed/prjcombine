@@ -7,7 +7,7 @@ use std::{
 };
 
 use bitvec::vec::BitVec;
-use clap::Parser;
+use clap::{Arg, Command, value_parser};
 use prjcombine_coolrunner2::{Chip, Database};
 use prjcombine_types::{
     FbId, FbMcId, IoId,
@@ -138,13 +138,6 @@ fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile, item: &str) {
     }
 }
 
-#[derive(Parser)]
-struct Args {
-    db: PathBuf,
-    src: PathBuf,
-    jed: PathBuf,
-}
-
 fn write_jed(fname: impl AsRef<Path>, dev: &str, bits: &BitVec) -> Result<(), Box<dyn Error>> {
     let mut f = File::create(fname)?;
     writeln!(f, "\x02QF{n}*", n = bits.len())?;
@@ -162,8 +155,27 @@ fn write_jed(fname: impl AsRef<Path>, dev: &str, bits: &BitVec) -> Result<(), Bo
 }
 
 pub fn main() -> Result<(), Box<dyn Error>> {
-    let args = Args::parse();
-    let src = read_to_string(args.src)?;
+    let m = Command::new("coolrunner2_as")
+        .arg(
+            Arg::new("db")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .arg(
+            Arg::new("src")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .arg(
+            Arg::new("jed")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .get_matches();
+    let arg_db = m.get_one::<PathBuf>("db").unwrap();
+    let arg_src = m.get_one::<PathBuf>("src").unwrap();
+    let arg_jed = m.get_one::<PathBuf>("jed").unwrap();
+    let src = read_to_string(arg_src)?;
     let mut lines = src.lines();
     let mut dev = None;
     for mut line in &mut lines {
@@ -181,7 +193,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         break;
     }
     let dev = dev.unwrap();
-    let db = Database::from_file(args.db)?;
+    let db = Database::from_file(arg_db)?;
     let mut part = None;
     for p in &db.parts {
         if p.name == dev {
@@ -252,7 +264,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     let fuses = bs.to_jed(chip, &db);
-    write_jed(args.jed, dev, &fuses)?;
+    write_jed(arg_jed, dev, &fuses)?;
 
     Ok(())
 }

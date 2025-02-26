@@ -1,7 +1,7 @@
 use std::{error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
-use clap::Parser;
+use clap::{Arg, Command, value_parser};
 use prjcombine_types::tiledb::{Tile, TileBit, TileItemKind};
 use prjcombine_xc9500::{Chip, ChipKind, Database};
 
@@ -100,12 +100,6 @@ impl Bitstream {
     fn get_uim(&self, fb: usize, sfb: usize, imux: usize, mc: usize) -> bool {
         (self.uim[fb][sfb][mc][imux % 5] >> (imux / 5) & 1) != 0
     }
-}
-
-#[derive(Parser)]
-struct Args {
-    dbdir: PathBuf,
-    jed: PathBuf,
 }
 
 fn parse_jed(jed: &str) -> (String, BitVec) {
@@ -287,8 +281,21 @@ fn print_mc(bs: &Bitstream, db: &Database, chip: &Chip) {
 }
 
 pub fn main() -> Result<(), Box<dyn Error>> {
-    let args = Args::parse();
-    let jed = std::fs::read_to_string(args.jed)?;
+    let m = Command::new("xc9500_dis")
+        .arg(
+            Arg::new("dbdir")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .arg(
+            Arg::new("jed")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .get_matches();
+    let arg_dbdir = m.get_one::<PathBuf>("dbdir").unwrap();
+    let arg_jed = m.get_one::<PathBuf>("jed").unwrap();
+    let jed = std::fs::read_to_string(arg_jed)?;
     let (device, fuses) = parse_jed(&jed);
     let device = device.to_ascii_lowercase();
     let dev = if let Some(pos) = device.find('-') {
@@ -297,11 +304,11 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         &device[..]
     };
     let dbfn = if dev.ends_with("xv") {
-        args.dbdir.join("xc9500xv.zstd")
+        arg_dbdir.join("xc9500xv.zstd")
     } else if dev.ends_with("xl") {
-        args.dbdir.join("xc9500xl.zstd")
+        arg_dbdir.join("xc9500xl.zstd")
     } else {
-        args.dbdir.join("xc9500.zstd")
+        arg_dbdir.join("xc9500.zstd")
     };
     let db = Database::from_file(dbfn)?;
     let mut part = None;
