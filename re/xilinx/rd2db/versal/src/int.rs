@@ -857,7 +857,7 @@ impl IntMaker<'_> {
         for i in 0..16 {
             let w = self
                 .builder
-                .wire(format!("CLE.GCLK.{i}"), WireKind::ClkOut(32 + i), &[""]);
+                .wire(format!("CLE.GCLK.{i}"), WireKind::ClkOut, &[""]);
             self.builder.extra_name_sub(format!("GCLK_B{i}"), 1, w);
         }
 
@@ -903,7 +903,7 @@ impl IntMaker<'_> {
         for i in 0..16 {
             self.builder.wire(
                 format!("INTF.GCLK.{i}"),
-                WireKind::ClkOut(i),
+                WireKind::ClkOut,
                 &[format!("IF_GCLK_GCLK_B{i}")],
             );
         }

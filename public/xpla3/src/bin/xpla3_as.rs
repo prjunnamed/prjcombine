@@ -9,7 +9,8 @@ use std::{
 use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_types::{
-    tiledb::{Tile, TileItemKind}, FbMcId
+    FbMcId,
+    tiledb::{Tile, TileItemKind},
 };
 use prjcombine_xpla3::{Chip, Database};
 use unnamed_entity::EntityId;

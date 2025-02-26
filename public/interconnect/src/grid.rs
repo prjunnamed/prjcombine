@@ -451,7 +451,7 @@ impl ExpandedGrid<'_> {
             let tile = die.tile(wire.1);
             let wi = self.db.wires[wire.2];
             match wi {
-                WireKind::ClkOut(_) => {
+                WireKind::ClkOut => {
                     wire.1 = tile.clkroot;
                     break;
                 }
@@ -497,7 +497,7 @@ impl ExpandedGrid<'_> {
             let tile = die.tile(wire.1);
             let wi = self.db.wires[wire.2];
             match wi {
-                WireKind::ClkOut(_) => {
+                WireKind::ClkOut => {
                     wire.1 = tile.clkroot;
                     break;
                 }
@@ -547,7 +547,7 @@ impl ExpandedGrid<'_> {
             let die = self.die(wire.0);
             let tile = &die[wire.1];
             res.push(wire);
-            if matches!(self.db.wires[wire.2], WireKind::ClkOut(_)) && tile.clkroot == wire.1 {
+            if matches!(self.db.wires[wire.2], WireKind::ClkOut) && tile.clkroot == wire.1 {
                 for &crd in &die.clk_root_tiles[&wire.1] {
                     if crd != wire.1 {
                         queue.push((wire.0, crd, wire.2));

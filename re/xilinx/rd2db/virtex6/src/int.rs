@@ -1,4 +1,7 @@
-use prjcombine_interconnect::{db::{IntDb, WireKind}, dir::Dir};
+use prjcombine_interconnect::{
+    db::{IntDb, WireKind},
+    dir::Dir,
+};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
@@ -13,7 +16,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..8 {
         builder.wire(
             format!("LCLK{i}"),
-            WireKind::ClkOut(i),
+            WireKind::ClkOut,
             &[format!("GCLK_B{i}")],
         );
     }

@@ -4,7 +4,8 @@ use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_coolrunner2::{Chip, Database};
 use prjcombine_types::{
-    tiledb::{Tile, TileItemKind}, FbId, FbMcId, IoId
+    FbId, FbMcId, IoId,
+    tiledb::{Tile, TileItemKind},
 };
 use unnamed_entity::EntityId;
 

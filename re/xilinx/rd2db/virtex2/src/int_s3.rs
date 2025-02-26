@@ -1,4 +1,7 @@
-use prjcombine_interconnect::{db::{IntDb, NodeTileId, WireKind}, dir::Dir};
+use prjcombine_interconnect::{
+    db::{IntDb, NodeTileId, WireKind},
+    dir::Dir,
+};
 use prjcombine_re_xilinx_naming::db::{NamingDb, NodeExtPipNaming, NodeRawTileId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use unnamed_entity::EntityId;
@@ -28,7 +31,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..8 {
         let w = builder.wire(
             format!("GCLK{i}"),
-            WireKind::ClkOut(i),
+            WireKind::ClkOut,
             &[format!("GCLK{i}"), format!("GCLK{i}_BRK")],
         );
         gclk.push(w);

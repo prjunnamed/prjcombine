@@ -4,7 +4,9 @@ use prjcombine_interconnect::{
     db::{
         BelInfo, BelPin, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, TermSlotId,
         TermSlotInfo, WireKind,
-    }, dir::{Dir, DirMap}, grid::{DieId, EdgeIoCoord, LayerId}
+    },
+    dir::{Dir, DirMap},
+    grid::{DieId, EdgeIoCoord, LayerId},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
@@ -174,7 +176,7 @@ pub fn make_intdb() -> IntDb {
         "GCLK", "ACLK", "IOCLK.B0", "IOCLK.B1", "IOCLK.T0", "IOCLK.T1", "IOCLK.L0", "IOCLK.L1",
         "IOCLK.R0", "IOCLK.R1",
     ] {
-        db.wires.insert(name.into(), WireKind::ClkOut(0));
+        db.wires.insert(name.into(), WireKind::ClkOut);
     }
 
     for name in [

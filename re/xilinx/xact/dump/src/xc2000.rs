@@ -1,7 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
-    db::{BelInfo, BelPin, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, TermSlotId, TermSlotInfo, WireKind}, dir::{Dir, DirMap}, grid::{ColId, DieId, EdgeIoCoord, LayerId, RowId}
+    db::{
+        BelInfo, BelPin, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, TermSlotId,
+        TermSlotInfo, WireKind,
+    },
+    dir::{Dir, DirMap},
+    grid::{ColId, DieId, EdgeIoCoord, LayerId, RowId},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
@@ -146,7 +151,7 @@ pub fn make_intdb() -> IntDb {
     }
 
     for name in ["GCLK", "ACLK", "IOCLK.B", "IOCLK.T", "IOCLK.L", "IOCLK.R"] {
-        db.wires.insert(name.into(), WireKind::ClkOut(0));
+        db.wires.insert(name.into(), WireKind::ClkOut);
     }
 
     for name in [

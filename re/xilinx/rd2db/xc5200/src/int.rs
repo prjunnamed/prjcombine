@@ -1,4 +1,7 @@
-use prjcombine_interconnect::{db::{IntDb, TermInfo, TermKind, WireKind}, dir::Dir};
+use prjcombine_interconnect::{
+    db::{IntDb, TermInfo, TermKind, WireKind},
+    dir::Dir,
+};
 use prjcombine_re_xilinx_rawdump::Part;
 
 use prjcombine_re_xilinx_naming::db::NamingDb;

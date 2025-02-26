@@ -82,13 +82,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         );
     }
 
-    pub fn item_int_inv(
-        &self,
-        int_tiles: &[&str],
-        tile: &str,
-        bel: &str,
-        pin: &str,
-    ) -> TileItem {
+    pub fn item_int_inv(&self, int_tiles: &[&str], tile: &str, bel: &str, pin: &str) -> TileItem {
         let intdb = self.edev.egrid().db;
         let node = intdb.nodes.get(tile).unwrap().1;
         let bel = node.bels.get(bel).unwrap().1;

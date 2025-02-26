@@ -4,9 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::chip::{
-    Chip, ChipKind, DisabledPart, HardRowKind, Interposer, IoRowKind, RegId,
-};
+use crate::chip::{Chip, ChipKind, DisabledPart, HardRowKind, Interposer, IoRowKind, RegId};
 
 use crate::bond::SharedCfgPin;
 

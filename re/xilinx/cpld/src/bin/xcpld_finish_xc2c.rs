@@ -888,8 +888,8 @@ struct DevData {
     fb_cols: Vec<usize>,
     mc_width: usize,
     imux_width: usize,
-    mc_bits: Tile<>,
-    global_bits: Tile<>,
+    mc_bits: Tile,
+    global_bits: Tile,
     jed_global_bits: Vec<(String, usize)>,
 }
 

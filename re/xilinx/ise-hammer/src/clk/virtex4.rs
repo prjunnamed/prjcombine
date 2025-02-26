@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
-    {db::BelId, dir::Dir},
     grid::DieId,
+    {db::BelId, dir::Dir},
 };
 use prjcombine_re_collector::{Diff, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;

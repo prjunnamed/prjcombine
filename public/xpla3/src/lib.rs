@@ -6,7 +6,7 @@ use std::{
 };
 
 use jzon::JsonValue;
-use prjcombine_types::{tiledb::Tile, FbId, FbMcId};
+use prjcombine_types::{FbId, FbMcId, tiledb::Tile};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 

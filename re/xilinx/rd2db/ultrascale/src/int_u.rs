@@ -732,7 +732,7 @@ impl IntMaker<'_> {
         for i in 0..16 {
             let w = self.builder.wire(
                 format!("GCLK{i}"),
-                WireKind::ClkOut(i),
+                WireKind::ClkOut,
                 &[format!("GCLK_B_0_{i}")],
             );
             for tkn in ["RCLK_INT_L", "RCLK_INT_R"] {

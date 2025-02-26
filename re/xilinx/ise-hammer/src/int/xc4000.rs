@@ -1,6 +1,9 @@
 use std::collections::{BTreeMap, HashSet, btree_map};
 
-use prjcombine_interconnect::{db::{BelId, NodeTileId, NodeWireId}, dir::Dir};
+use prjcombine_interconnect::{
+    db::{BelId, NodeTileId, NodeWireId},
+    dir::Dir,
+};
 use prjcombine_re_collector::{Diff, FeatureId, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;

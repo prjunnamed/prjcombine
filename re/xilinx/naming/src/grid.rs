@@ -77,11 +77,13 @@ impl<'a> ExpandedGridNaming<'a> {
             let tile = &die[wire.1];
             let wi = self.egrid.db.wires[wire.2];
             match wi {
-                WireKind::ClkOut(_) => {
+                WireKind::ClkOut => {
                     wire.1 = tile.clkroot;
                     break;
                 }
-                WireKind::MultiBranch(slot) | WireKind::Branch(slot) | WireKind::PipBranch(slot) => {
+                WireKind::MultiBranch(slot)
+                | WireKind::Branch(slot)
+                | WireKind::PipBranch(slot) => {
                     if let Some(t) = tile.terms.get(slot) {
                         let term = &self.egrid.db.terms[t.kind];
                         match term.wires.get(wire.2) {
@@ -135,11 +137,13 @@ impl<'a> ExpandedGridNaming<'a> {
             let tile = die.tile(wire.1);
             let wi = self.egrid.db.wires[wire.2];
             match wi {
-                WireKind::ClkOut(_) => {
+                WireKind::ClkOut => {
                     wire.1 = tile.clkroot;
                     break;
                 }
-                WireKind::MultiBranch(slot) | WireKind::Branch(slot) | WireKind::PipBranch(slot) => {
+                WireKind::MultiBranch(slot)
+                | WireKind::Branch(slot)
+                | WireKind::PipBranch(slot) => {
                     if let Some(t) = tile.terms.get(slot) {
                         let term = &self.egrid.db.terms[t.kind];
                         match term.wires.get(wire.2) {
@@ -301,7 +305,12 @@ impl<'a> ExpandedGridNaming<'a> {
         entry.insert(nnode)
     }
 
-    pub fn name_term_tile(&mut self, tloc: (DieId, ColId, RowId, TermSlotId), naming: &str, name: String) {
+    pub fn name_term_tile(
+        &mut self,
+        tloc: (DieId, ColId, RowId, TermSlotId),
+        naming: &str,
+        name: String,
+    ) {
         let nterm = GridTermNaming {
             naming: self.db.get_term_naming(naming),
             tile: name,

@@ -4,7 +4,9 @@ use prjcombine_interconnect::{
     db::{
         BelInfo, BelPin, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, TermSlotId,
         TermSlotInfo, WireKind,
-    }, dir::{Dir, DirMap}, grid::{ColId, EdgeIoCoord, RowId}
+    },
+    dir::{Dir, DirMap},
+    grid::{ColId, EdgeIoCoord, RowId},
 };
 use prjcombine_siliconblue::chip::{ChipKind, ExtraNode};
 use unnamed_entity::{EntityId, EntityVec};
@@ -82,7 +84,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     });
 
     for i in 0..8 {
-        db.wires.insert(format!("GLOBAL.{i}"), WireKind::ClkOut(0));
+        db.wires.insert(format!("GLOBAL.{i}"), WireKind::ClkOut);
     }
 
     for i in 0..4 {

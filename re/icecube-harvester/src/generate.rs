@@ -2,7 +2,9 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
-    db::BelId, dir::Dir, grid::{ColId, EdgeIoCoord, RowId}
+    db::BelId,
+    dir::Dir,
+    grid::{ColId, EdgeIoCoord, RowId},
 };
 use prjcombine_siliconblue::{
     bond::{Bond, BondPin},

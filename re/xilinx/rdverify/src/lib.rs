@@ -1,8 +1,8 @@
 #![allow(clippy::unnecessary_unwrap)]
 
 use prjcombine_interconnect::db::{
-    BelId, BelInfo, IntDb, IntfInfo, IriPin, NodeKindId, NodeWireId, PinDir, TermInfo,
-    TermSlotId, WireId, WireKind,
+    BelId, BelInfo, IntDb, IntfInfo, IriPin, NodeKindId, NodeWireId, PinDir, TermInfo, TermSlotId,
+    WireId, WireKind,
 };
 use prjcombine_interconnect::grid::{
     ColId, DieId, ExpandedGrid, ExpandedTileNode, ExpandedTileTerm, IntWire, LayerId, NodeLoc,
