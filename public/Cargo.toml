@@ -3,6 +3,7 @@ resolver = "3"
 members = [
     "types",
     "interconnect",
+    "jed",
     "siliconblue",
     "xilinx-bitstream",
     "xc2000",
@@ -27,6 +28,7 @@ authors = []
 [workspace.dependencies]
 prjcombine-types = { path = "types" }
 prjcombine-interconnect = { path = "interconnect" }
+prjcombine-jed = { path = "jed" }
 prjcombine-xilinx-bitstream = { path = "xilinx-bitstream" }
 jzon = "0.12"
 bincode = "1.3"

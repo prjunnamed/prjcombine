@@ -87,6 +87,7 @@ prjcombine-spartan6 = { path = "public/spartan6" }
 prjcombine-virtex4 = { path = "public/virtex4" }
 prjcombine-ultrascale = { path = "public/ultrascale" }
 prjcombine-versal = { path = "public/versal" }
+prjcombine-jed = { path = "public/jed" }
 prjcombine-xc9500 = { path = "public/xc9500" }
 prjcombine-xpla3 = { path = "public/xpla3" }
 prjcombine-coolrunner2 = { path = "public/coolrunner2" }

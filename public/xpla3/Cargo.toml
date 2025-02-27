@@ -12,6 +12,7 @@ bincode.workspace = true
 clap.workspace = true
 jzon.workspace = true
 prjcombine-types.workspace = true
+prjcombine-jed.workspace = true
 
 [lints]
 workspace = true

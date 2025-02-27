@@ -6,6 +6,7 @@ edition.workspace = true
 [dependencies]
 unnamed_entity.workspace = true
 prjcombine-types.workspace = true
+prjcombine-jed.workspace = true
 prjcombine-xc9500.workspace = true
 prjcombine-xpla3.workspace = true
 prjcombine-coolrunner2.workspace = true

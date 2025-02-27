@@ -6,6 +6,7 @@ use std::{
 };
 
 use bitvec::vec::BitVec;
+use prjcombine_jed::JedFile;
 use prjcombine_re_toolchain::Toolchain;
 use simple_error::bail;
 
@@ -23,19 +24,10 @@ pub fn run_impact(
     let dir = tempfile::Builder::new()
         .prefix("prjcombine_xilinx_recpld_hprep6")
         .tempdir()?;
-    let mut f = File::create(dir.path().join("t.jed"))?;
-    writeln!(f, "\x02QF{n}*", n = bits.len())?;
-    writeln!(f, "F0*")?;
-    writeln!(f, "N DEVICE {dev}-{pkg}*")?;
-    for (i, c) in bits.chunks(80).enumerate() {
-        write!(f, "L{ii:06} ", ii = i * 80)?;
-        for bit in c {
-            write!(f, "{x}", x = u32::from(*bit))?;
-        }
-        writeln!(f, "*")?;
-    }
-    writeln!(f, "\x030")?;
-    drop(f);
+    let jed = JedFile::new()
+        .with_fuses(bits.clone())
+        .with_note(format!(" DEVICE {dev}-{pkg}"));
+    jed.emit_to_file(dir.path().join("t.jed"))?;
 
     let mut f = File::create(dir.path().join("t.batch"))?;
     writeln!(f, "setmode -bscan")?;

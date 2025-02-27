@@ -2,6 +2,7 @@ use std::{error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
 use clap::{Arg, Command, value_parser};
+use prjcombine_jed::{JedFile, JedParserOptions};
 use prjcombine_types::tiledb::{Tile, TileBit, TileItemKind};
 use prjcombine_xc9500::{Chip, ChipKind, Database};
 
@@ -11,7 +12,8 @@ struct Bitstream {
 }
 
 impl Bitstream {
-    fn from_jed(fuses: &BitVec, chip: &Chip) -> Self {
+    fn from_jed(jed: &JedFile, chip: &Chip) -> Self {
+        let fuses = jed.fuses.as_ref().unwrap();
         let mut fbs = vec![];
         let mut uim = vec![];
         let mut pos = 0;
@@ -100,52 +102,6 @@ impl Bitstream {
     fn get_uim(&self, fb: usize, sfb: usize, imux: usize, mc: usize) -> bool {
         (self.uim[fb][sfb][mc][imux % 5] >> (imux / 5) & 1) != 0
     }
-}
-
-fn parse_jed(jed: &str) -> (String, BitVec) {
-    let stx = jed.find('\x02').unwrap();
-    let etx = jed.find('\x03').unwrap();
-    let mut res = None;
-    let mut len = None;
-    let mut device = None;
-    for cmd in jed[stx + 1..etx].split('*') {
-        let cmd = cmd.trim();
-        if let Some(arg) = cmd.strip_prefix("QF") {
-            assert!(len.is_none());
-            let n: usize = arg.parse().unwrap();
-            len = Some(n);
-        } else if let Some(arg) = cmd.strip_prefix("N DEVICE ") {
-            device = Some(arg.to_string())
-        } else if let Some(arg) = cmd.strip_prefix('F') {
-            assert!(res.is_none());
-            let x: u32 = arg.parse().unwrap();
-            let x = match x {
-                0 => false,
-                1 => true,
-                _ => unreachable!(),
-            };
-            res = Some(BitVec::repeat(x, len.unwrap()));
-        } else if let Some(arg) = cmd.strip_prefix('L') {
-            let sp = arg.find(' ').unwrap();
-            let mut pos: usize = arg[..sp].parse().unwrap();
-            let v = res.as_mut().unwrap();
-            for c in arg[sp..].chars() {
-                match c {
-                    '0' => {
-                        v.set(pos, false);
-                        pos += 1;
-                    }
-                    '1' => {
-                        v.set(pos, true);
-                        pos += 1;
-                    }
-                    ' ' => (),
-                    _ => unreachable!(),
-                }
-            }
-        }
-    }
-    (device.unwrap(), res.unwrap())
 }
 
 fn print_tile(tile: &Tile, chip: &Chip, get_bit: impl Fn(TileBit) -> bool) {
@@ -295,9 +251,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         .get_matches();
     let arg_dbdir = m.get_one::<PathBuf>("dbdir").unwrap();
     let arg_jed = m.get_one::<PathBuf>("jed").unwrap();
-    let jed = std::fs::read_to_string(arg_jed)?;
-    let (device, fuses) = parse_jed(&jed);
-    let device = device.to_ascii_lowercase();
+    let jed = JedFile::parse_from_file(arg_jed, &JedParserOptions::new().skip_design_spec())?;
+    let mut device = None;
+    for note in &jed.notes {
+        if let Some(dev) = note.strip_prefix(" DEVICE ") {
+            device = Some(dev.to_ascii_lowercase());
+        }
+    }
+    let device = device.unwrap();
     let dev = if let Some(pos) = device.find('-') {
         &device[..pos]
     } else {
@@ -323,7 +284,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         return Ok(());
     };
     let chip = &db.chips[part.chip];
-    let bs = Bitstream::from_jed(&fuses, chip);
+    let bs = Bitstream::from_jed(&jed, chip);
     println!("DEVICE: {dev}");
     print_globals(&bs, &db, chip);
     // TODO: print UIM IBUF

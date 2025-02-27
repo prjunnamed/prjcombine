@@ -1254,7 +1254,7 @@ impl Backend for CpldBackend<'_> {
         } else {
             None
         };
-        run_hprep6(self.tc, &vm6, usercode).unwrap()
+        run_hprep6(self.tc, &vm6, usercode).unwrap().fuses.unwrap()
     }
 
     fn diff(bs1: &BitVec, bs2: &BitVec) -> HashMap<usize, bool> {

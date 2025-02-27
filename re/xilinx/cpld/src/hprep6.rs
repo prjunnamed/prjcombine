@@ -1,19 +1,19 @@
 use std::{
     error::Error,
     ffi::OsStr,
-    fs::{create_dir_all, read_to_string},
+    fs::create_dir_all,
     io::Write,
     os::unix::prelude::OsStrExt,
     process::Stdio,
 };
 
-use bitvec::vec::BitVec;
+use prjcombine_jed::{JedFile, JedParserOptions};
 use prjcombine_re_toolchain::Toolchain;
 use simple_error::bail;
 
 use crate::vm6::Vm6;
 
-pub fn run_hprep6(tc: &Toolchain, vm6: &Vm6, sig: Option<u32>) -> Result<BitVec, Box<dyn Error>> {
+pub fn run_hprep6(tc: &Toolchain, vm6: &Vm6, sig: Option<u32>) -> Result<JedFile, Box<dyn Error>> {
     let dir = tempfile::Builder::new()
         .prefix("prjcombine_xilinx_recpld_hprep6")
         .tempdir()?;
@@ -50,50 +50,9 @@ pub fn run_hprep6(tc: &Toolchain, vm6: &Vm6, sig: Option<u32>) -> Result<BitVec,
         bail!("non-zero hprep6 status");
     }
 
-    let jed = read_to_string(dir.path().join("t.jed"))?;
-    let jed = parse_jed(&jed);
+    let jed = JedFile::parse_from_file(
+        dir.path().join("t.jed"),
+        &JedParserOptions::new().skip_design_spec(),
+    )?;
     Ok(jed)
-}
-
-fn parse_jed(jed: &str) -> BitVec {
-    let stx = jed.find('\x02').unwrap();
-    let etx = jed.find('\x03').unwrap();
-    let mut res = None;
-    let mut len = None;
-    for cmd in jed[stx + 1..etx].split('*') {
-        let cmd = cmd.trim();
-        if let Some(arg) = cmd.strip_prefix("QF") {
-            assert!(len.is_none());
-            let n: usize = arg.parse().unwrap();
-            len = Some(n);
-        } else if let Some(arg) = cmd.strip_prefix('F') {
-            assert!(res.is_none());
-            let x: u32 = arg.parse().unwrap();
-            let x = match x {
-                0 => false,
-                1 => true,
-                _ => unreachable!(),
-            };
-            res = Some(BitVec::repeat(x, len.unwrap()));
-        } else if let Some(arg) = cmd.strip_prefix('L') {
-            let sp = arg.find(' ').unwrap();
-            let mut pos: usize = arg[..sp].parse().unwrap();
-            let v = res.as_mut().unwrap();
-            for c in arg[sp..].chars() {
-                match c {
-                    '0' => {
-                        v.set(pos, false);
-                        pos += 1;
-                    }
-                    '1' => {
-                        v.set(pos, true);
-                        pos += 1;
-                    }
-                    ' ' => (),
-                    _ => unreachable!(),
-                }
-            }
-        }
-    }
-    res.unwrap()
 }

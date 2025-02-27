@@ -1,14 +1,14 @@
 use std::{
     collections::BTreeMap,
     error::Error,
-    fs::{File, read_to_string},
-    io::Write,
-    path::{Path, PathBuf},
+    fs::read_to_string,
+    path::PathBuf,
 };
 
 use bitvec::vec::BitVec;
 use clap::{Arg, Command, value_parser};
 use prjcombine_coolrunner2::{Chip, Database};
+use prjcombine_jed::JedFile;
 use prjcombine_types::{
     FbId, FbMcId, IoId,
     tiledb::{Tile, TileItemKind},
@@ -58,7 +58,7 @@ impl Bitstream {
         }
     }
 
-    fn to_jed(&self, chip: &Chip, db: &Database) -> BitVec {
+    fn to_jed(&self, chip: &Chip, db: &Database, device: &str) -> JedFile {
         let mut res = BitVec::new();
         for (fb, fbd) in self.fbs.iter().enumerate() {
             for i in 0..40 {
@@ -98,7 +98,9 @@ impl Bitstream {
         for (bn, bi) in &chip.jed_global_bits {
             res.push(self.globals[bn][*bi]);
         }
-        res
+        JedFile::new()
+            .with_fuses(res)
+            .with_note(format!(" DEVICE {device}"))
     }
 }
 
@@ -136,22 +138,6 @@ fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile, item: &str) {
             }
         }
     }
-}
-
-fn write_jed(fname: impl AsRef<Path>, dev: &str, bits: &BitVec) -> Result<(), Box<dyn Error>> {
-    let mut f = File::create(fname)?;
-    writeln!(f, "\x02QF{n}*", n = bits.len())?;
-    writeln!(f, "F0*")?;
-    writeln!(f, "N DEVICE {dev}*")?;
-    for (i, c) in bits.chunks(80).enumerate() {
-        write!(f, "L{ii:06} ", ii = i * 80)?;
-        for bit in c {
-            write!(f, "{x}", x = u32::from(*bit))?;
-        }
-        writeln!(f, "*")?;
-    }
-    writeln!(f, "\x030000")?;
-    Ok(())
 }
 
 pub fn main() -> Result<(), Box<dyn Error>> {
@@ -263,8 +249,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             _ => panic!("weird line {line}"),
         }
     }
-    let fuses = bs.to_jed(chip, &db);
-    write_jed(arg_jed, dev, &fuses)?;
+    let jed = bs.to_jed(chip, &db, dev);
+    jed.emit_to_file(arg_jed)?;
 
     Ok(())
 }

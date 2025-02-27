@@ -45,7 +45,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         println!("MAIN RE DONE {d} {p}", d = part.dev_name, p = part.pkg_name);
         let mut vm6 = prep_vm6(part, &device.device, package, &part.speeds[0]);
         insert_dummy_obuf(&mut vm6);
-        let blank = run_hprep6(&tc, &vm6, None)?;
+        let blank = run_hprep6(&tc, &vm6, None)?.fuses.unwrap();
         let map = reverse_bitstream(
             &tc,
             device.device.kind,
