@@ -7,10 +7,7 @@ use std::{
 };
 
 use bitvec::prelude::*;
-use prjcombine_interconnect::{
-    db::BelId,
-    grid::{ExpandedGrid, IntWire, NodeLoc},
-};
+use prjcombine_interconnect::grid::{ExpandedGrid, IntBel, IntWire};
 use prjcombine_re_collector::{Diff, FeatureData, FeatureId, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_xilinx_xact_geom::Device;
@@ -47,7 +44,7 @@ pub enum Key<'a> {
     BlockPin(&'a str, String),
     Pip(PipCoords),
     GlobalOpt(String),
-    BelMutex(NodeLoc, BelId, String),
+    BelMutex(IntBel, String),
     NodeMutex(IntWire),
     GlobalMutex(String),
 }

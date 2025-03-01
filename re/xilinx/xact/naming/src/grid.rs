@@ -4,10 +4,10 @@ use std::{
 };
 
 use prjcombine_interconnect::{
-    db::{BelId, NodeWireId},
-    grid::{ColId, DieId, ExpandedGrid, NodeLoc, RowId},
+    db::{BelSlotId, NodeWireId},
+    grid::{ExpandedGrid, IntBel, NodeLoc},
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use unnamed_entity::{EntityPartVec, EntityVec};
 
 use crate::db::{IntPipNaming, NamingDb, NodeNamingId, NodeRawTileId};
 
@@ -24,12 +24,12 @@ pub struct GridNodeNaming {
     pub naming: NodeNamingId,
     pub coords: EntityVec<NodeRawTileId, (Range<usize>, Range<usize>)>,
     pub tie_names: Vec<String>,
-    pub bels: EntityPartVec<BelId, Vec<String>>,
+    pub bels: EntityPartVec<BelSlotId, Vec<String>>,
 }
 
 impl GridNodeNaming {
-    pub fn add_bel(&mut self, idx: usize, names: Vec<String>) {
-        self.bels.insert(BelId::from_idx(idx), names);
+    pub fn add_bel(&mut self, slot: BelSlotId, names: Vec<String>) {
+        self.bels.insert(slot, names);
     }
 }
 
@@ -67,19 +67,22 @@ impl<'a> ExpandedGridNaming<'a> {
         entry.insert(nnode)
     }
 
-    pub fn get_bel_name(&self, col: ColId, row: RowId, key: &str) -> Option<&str> {
-        let die = DieId::from_idx(0);
-        if let Some((layer, _, bel, _)) = self.egrid.find_bel(die, (col, row), key) {
+    pub fn get_bel_name(&self, bel: IntBel) -> Option<&str> {
+        let (die, (col, row), slot) = bel;
+        if let Some(layer) = self.egrid.find_bel_layer(bel) {
             let nnode = &self.nodes[&(die, col, row, layer)];
-            Some(&nnode.bels[bel][0])
+            Some(&nnode.bels[slot][0])
         } else {
             None
         }
     }
 
-    pub fn bel_pip(&self, nloc: NodeLoc, bel: BelId, key: &str) -> PipCoords {
+    pub fn bel_pip(&self, bel: IntBel, key: &str) -> PipCoords {
+        let (die, (col, row), slot) = bel;
+        let layer = self.egrid.find_bel_layer(bel).unwrap();
+        let nloc = (die, col, row, layer);
         let nnode = &self.nodes[&nloc];
-        let naming = &self.db.node_namings[nnode.naming].bel_pips[&(bel, key.to_string())];
+        let naming = &self.db.node_namings[nnode.naming].bel_pips[&(slot, key.to_string())];
         PipCoords::Pip((
             naming.x + nnode.coords[naming.rt].0.start,
             naming.y + nnode.coords[naming.rt].1.start,

@@ -263,7 +263,7 @@ fn verify_bufo(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 
     vrf.claim_pip(bel.crd(), bel.wire("I_PRE"), bel.wire("I_PRE2"));
-    let idx = bel.bid.to_idx() % 2;
+    let idx = bel.slot.to_idx() % 2;
     let obel = vrf.find_bel_sibling(bel, "HCLK_IOI");
     vrf.claim_pip(
         bel.crd(),
@@ -281,7 +281,7 @@ fn verify_bufiodqs(vrf: &mut Verifier, bel: &BelContext<'_>) {
     );
     vrf.claim_node(&[bel.fwire("I")]);
     vrf.claim_node(&[bel.fwire("O")]);
-    let idx = bel.bid.to_idx() % 4;
+    let idx = bel.slot.to_idx() % 4;
     let obel = vrf.find_bel_sibling(bel, "HCLK_IOI");
     vrf.claim_pip(
         bel.crd(),
@@ -1612,7 +1612,7 @@ pub fn verify_bufgctrl(vrf: &mut Verifier, bel: &BelContext<'_>) {
             obel_gio.wire(&format!("GIO{i}_BUFG")),
         );
     }
-    let idx = bel.bid.to_idx();
+    let idx = bel.slot.to_idx();
     for oi in [(idx + 1) % 16, (idx + 15) % 16] {
         let obi = if is_b { oi } else { oi + 16 };
         let obel = vrf.find_bel_sibling(bel, &format!("BUFGCTRL{obi}"));

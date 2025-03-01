@@ -1,3 +1,4 @@
+pub mod bels;
 pub mod bond;
 pub mod bscan;
 pub mod chip;

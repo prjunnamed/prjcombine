@@ -7,6 +7,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_versal::{
+    bels,
     chip::{BramKind, CleKind, ColumnKind, HardRowKind, InterposerKind, RegId, RightKind},
     expanded::ExpandedDevice,
 };
@@ -471,7 +472,11 @@ pub fn name_device<'a>(
                             };
                             for (i, dy) in swz.into_iter().enumerate() {
                                 nnode.add_bel(
-                                    i,
+                                    if i < 16 {
+                                        bels::BUFDIV_LEAF_S[i]
+                                    } else {
+                                        bels::BUFDIV_LEAF_N[i - 16]
+                                    },
                                     bufdiv_grid.name(
                                         if chip.is_vr {
                                             "BUFDIV_LEAF_ULVT"
@@ -915,7 +920,11 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, &format!("{kind}.{subkind}"), [name]);
                             for (i, dy) in swz.into_iter().enumerate() {
                                 nnode.add_bel(
-                                    i,
+                                    if i < 16 {
+                                        bels::BUFDIV_LEAF_S[i]
+                                    } else {
+                                        bels::BUFDIV_LEAF_N[i - 16]
+                                    },
                                     if wide {
                                         bufdiv_grid.name(
                                             if chip.is_vr {
@@ -1295,7 +1304,11 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, &format!("{kind}.{subkind}"), [name]);
                             for (i, dy) in swz.into_iter().enumerate() {
                                 nnode.add_bel(
-                                    i,
+                                    if i < 16 {
+                                        bels::BUFDIV_LEAF_S[i]
+                                    } else {
+                                        bels::BUFDIV_LEAF_N[i - 16]
+                                    },
                                     bufdiv_grid.name(
                                         if chip.is_vr {
                                             "BUFDIV_LEAF_ULVT"
@@ -1364,7 +1377,10 @@ pub fn name_device<'a>(
                             let vr = if chip.is_vr { ".VR" } else { "" };
                             let nnode =
                                 ngrid.name_node(nloc, &format!("{kind}.{subkind}{vr}"), [name]);
-                            nnode.add_bel(0, rclk_dfx_grid.name("RCLK", die.die, col, row, 0, 0));
+                            nnode.add_bel(
+                                bels::RCLK_DFX_TEST,
+                                rclk_dfx_grid.name("RCLK", die.die, col, row, 0, 0),
+                            );
                         }
                         "RCLK_DFX.E" => {
                             let srow = if reg.to_idx() % 2 == 1 { row - 1 } else { row };
@@ -1470,7 +1486,10 @@ pub fn name_device<'a>(
                             let vr = if chip.is_vr { ".VR" } else { "" };
                             let nnode =
                                 ngrid.name_node(nloc, &format!("{kind}.{subkind}{vr}"), [name]);
-                            nnode.add_bel(0, rclk_dfx_grid.name("RCLK", die.die, col, row, dx, 0));
+                            nnode.add_bel(
+                                bels::RCLK_DFX_TEST,
+                                rclk_dfx_grid.name("RCLK", die.die, col, row, dx, 0),
+                            );
                         }
                         "RCLK_HDIO" | "RCLK_HB_HDIO" => {
                             let srow = if reg.to_idx() % 2 == 1 { row - 1 } else { row };
@@ -1506,7 +1525,7 @@ pub fn name_device<'a>(
                             );
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::SLICE[i],
                                     slice_grid.name("SLICE", die.die, col, row, i as i32, 0),
                                 );
                             }
@@ -1524,7 +1543,7 @@ pub fn name_device<'a>(
                             );
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::SLICE[i],
                                     slice_grid.name("SLICE", die.die, col, row, i as i32, 0),
                                 );
                             }
@@ -1555,11 +1574,14 @@ pub fn name_device<'a>(
                             );
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::DSP[i],
                                     dsp_grid.name_mult("DSP", die.die, col, row, 2, i as i32, 1, 0),
                                 );
                             }
-                            nnode.add_bel(2, dsp_grid.name("DSP58_CPLX", die.die, col, row, 0, 0));
+                            nnode.add_bel(
+                                bels::DSP_CPLX,
+                                dsp_grid.name("DSP58_CPLX", die.die, col, row, 0, 0),
+                            );
                         }
                         "BRAM_E" | "BRAM_W" => {
                             let lr = if kind == "BRAM_W" { 'L' } else { 'R' };
@@ -1578,10 +1600,13 @@ pub fn name_device<'a>(
                                 0,
                             );
                             let nnode = ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, bram_grid.name("RAMB36", die.die, col, row, 0, 0));
+                            nnode.add_bel(
+                                bels::BRAM_F,
+                                bram_grid.name("RAMB36", die.die, col, row, 0, 0),
+                            );
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    1 + i,
+                                    bels::BRAM_H[i],
                                     bram_grid
                                         .name_mult("RAMB18", die.die, col, row, 1, 0, 2, i as i32),
                                 );
@@ -1603,41 +1628,54 @@ pub fn name_device<'a>(
                                 0,
                             );
                             let nnode = ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, uram_grid.name("URAM288", die.die, col, row, 0, 0));
+                            nnode.add_bel(
+                                bels::URAM,
+                                uram_grid.name("URAM288", die.die, col, row, 0, 0),
+                            );
                             if kind == "URAM_DELAY" {
                                 nnode.add_bel(
-                                    1,
+                                    bels::URAM_CAS_DLY,
                                     uram_delay_grid.name("URAM_CAS_DLY", die.die, col, row, 0, 0),
                                 );
                             }
                         }
                         "PCIE4" | "PCIE5" | "MRMAC" | "SDFEC" | "DFE_CFC_BOT" | "DFE_CFC_TOP" => {
-                            let (tk, bk, bel_grid) = match &kind[..] {
-                                "PCIE4" => ("PCIEB", "PCIE40", &pcie4_grid),
-                                "PCIE5" => ("PCIEB5", "PCIE50", &pcie5_grid),
-                                "MRMAC" => ("MRMAC", "MRMAC", &mrmac_grid),
-                                "SDFEC" => ("SDFECA", "SDFEC_A", &sdfec_grid),
-                                "DFE_CFC_BOT" => ("DFE_CFC", "DFE_CFC_BOT", &dfe_cfc_bot_grid),
-                                "DFE_CFC_TOP" => ("DFE_CFC", "DFE_CFC_TOP", &dfe_cfc_top_grid),
+                            let (slot, tk, bk, bel_grid) = match &kind[..] {
+                                "PCIE4" => (bels::PCIE4, "PCIEB", "PCIE40", &pcie4_grid),
+                                "PCIE5" => (bels::PCIE5, "PCIEB5", "PCIE50", &pcie5_grid),
+                                "MRMAC" => (bels::MRMAC, "MRMAC", "MRMAC", &mrmac_grid),
+                                "SDFEC" => (bels::SDFEC, "SDFECA", "SDFEC_A", &sdfec_grid),
+                                "DFE_CFC_BOT" => (
+                                    bels::DFE_CFC_BOT,
+                                    "DFE_CFC",
+                                    "DFE_CFC_BOT",
+                                    &dfe_cfc_bot_grid,
+                                ),
+                                "DFE_CFC_TOP" => (
+                                    bels::DFE_CFC_TOP,
+                                    "DFE_CFC",
+                                    "DFE_CFC_TOP",
+                                    &dfe_cfc_top_grid,
+                                ),
                                 _ => unreachable!(),
                             };
                             let bt = if chip.is_reg_n(reg) { "TOP" } else { "BOT" };
                             let name =
                                 int_grid.name(&format!("{tk}_{bt}_TILE"), die.die, col, row, 0, 0);
                             let nnode = ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, bel_grid.name(bk, die.die, col, row, 0, 0));
+                            nnode.add_bel(slot, bel_grid.name(bk, die.die, col, row, 0, 0));
                         }
                         "DCMAC" | "ILKN" | "HSC" => {
-                            let (bk, bel_grid) = match &kind[..] {
-                                "DCMAC" => ("DCMAC", &dcmac_grid),
-                                "ILKN" => ("ILKNF", &ilkn_grid),
-                                "HSC" => ("HSC", &hsc_grid),
+                            let (slot, bk, bel_grid) = match &kind[..] {
+                                "DCMAC" => (bels::DCMAC, "DCMAC", &dcmac_grid),
+                                "ILKN" => (bels::ILKN, "ILKNF", &ilkn_grid),
+                                "HSC" => (bels::HSC, "HSC", &hsc_grid),
                                 _ => unreachable!(),
                             };
                             let name =
                                 int_grid.name(&format!("{kind}_TILE"), die.die, col, row, 0, 0);
                             let nnode = ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, bel_grid.name(bk, die.die, col, row, 0, 0));
+                            nnode.add_bel(slot, bel_grid.name(bk, die.die, col, row, 0, 0));
                         }
                         "HDIO" => {
                             let name = int_grid.name(
@@ -1656,7 +1694,7 @@ pub fn name_device<'a>(
                             let naming = &dev_naming.die[die.die].hdio[&(col, reg)];
                             for i in 0..11 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::HDIOLOGIC[i],
                                     hdio_grid.name_mult(
                                         "HDIOLOGIC",
                                         die.die,
@@ -1671,7 +1709,7 @@ pub fn name_device<'a>(
                             }
                             for i in 0..11 {
                                 nnode.add_bel(
-                                    11 + i,
+                                    bels::HDIOB[i],
                                     hdio_grid.name_manual(
                                         "IOB",
                                         die.die,
@@ -1682,7 +1720,7 @@ pub fn name_device<'a>(
                             }
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    22 + i,
+                                    bels::BUFGCE_HDIO[i],
                                     hdio_grid.name_mult(
                                         "BUFGCE_HDIO",
                                         die.die,
@@ -1696,7 +1734,7 @@ pub fn name_device<'a>(
                                 );
                             }
                             nnode.add_bel(
-                                26,
+                                bels::DPLL_HDIO,
                                 hdio_grid.name_manual(
                                     "DPLL",
                                     die.die,
@@ -1704,11 +1742,16 @@ pub fn name_device<'a>(
                                     naming.dpll_xy.1,
                                 ),
                             );
-                            nnode.add_bel(27, hdio_grid.name("HDIO_BIAS", die.die, col, row, 0, 0));
-                            nnode
-                                .add_bel(28, hdio_grid.name("RPI_HD_APB", die.die, col, row, 0, 0));
                             nnode.add_bel(
-                                29,
+                                bels::HDIO_BIAS,
+                                hdio_grid.name("HDIO_BIAS", die.die, col, row, 0, 0),
+                            );
+                            nnode.add_bel(
+                                bels::RPI_HD_APB,
+                                hdio_grid.name("RPI_HD_APB", die.die, col, row, 0, 0),
+                            );
+                            nnode.add_bel(
+                                bels::HDLOGIC_APB,
                                 hdio_grid.name("HDLOGIC_APB", die.die, col, row, 0, 0),
                             );
                         }
@@ -1723,16 +1766,22 @@ pub fn name_device<'a>(
                                     int_grid.name("NOC_NMU512_TOP", die.die, col, row + 31, 0, 0),
                                 ],
                             );
-                            nnode.add_bel(0, vnoc_grid.name("NOC_NSU512", die.die, col, row, 0, 0));
                             nnode.add_bel(
-                                1,
+                                bels::VNOC_NSU512,
+                                vnoc_grid.name("NOC_NSU512", die.die, col, row, 0, 0),
+                            );
+                            nnode.add_bel(
+                                bels::VNOC_NPS_A,
                                 vnoc_grid.name_mult("NOC_NPS_VNOC", die.die, col, row, 1, 0, 2, 0),
                             );
                             nnode.add_bel(
-                                2,
+                                bels::VNOC_NPS_B,
                                 vnoc_grid.name_mult("NOC_NPS_VNOC", die.die, col, row, 1, 0, 2, 1),
                             );
-                            nnode.add_bel(3, vnoc_grid.name("NOC_NMU512", die.die, col, row, 0, 0));
+                            nnode.add_bel(
+                                bels::VNOC_NMU512,
+                                vnoc_grid.name("NOC_NMU512", die.die, col, row, 0, 0),
+                            );
                         }
                         "VNOC2" => {
                             let nnode = ngrid.name_node(
@@ -1773,7 +1822,7 @@ pub fn name_device<'a>(
                             );
                             let naming = &dev_naming.die[die.die].vnoc2[&(col, reg)];
                             nnode.add_bel(
-                                0,
+                                bels::VNOC2_NSU512,
                                 vnoc_grid.name_manual(
                                     "NOC2_NSU512",
                                     die.die,
@@ -1782,7 +1831,7 @@ pub fn name_device<'a>(
                                 ),
                             );
                             nnode.add_bel(
-                                1,
+                                bels::VNOC2_NPS_A,
                                 vnoc_grid.name_manual(
                                     "NOC2_NPS5555",
                                     die.die,
@@ -1791,7 +1840,7 @@ pub fn name_device<'a>(
                                 ),
                             );
                             nnode.add_bel(
-                                2,
+                                bels::VNOC2_NPS_B,
                                 vnoc_grid.name_manual(
                                     "NOC2_NPS5555",
                                     die.die,
@@ -1800,7 +1849,7 @@ pub fn name_device<'a>(
                                 ),
                             );
                             nnode.add_bel(
-                                3,
+                                bels::VNOC2_NMU512,
                                 vnoc_grid.name_manual(
                                     "NOC2_NMU512",
                                     die.die,
@@ -1809,7 +1858,7 @@ pub fn name_device<'a>(
                                 ),
                             );
                             nnode.add_bel(
-                                4,
+                                bels::VNOC2_SCAN,
                                 vnoc_grid.name_manual(
                                     "NOC2_SCAN",
                                     die.die,
@@ -1846,7 +1895,7 @@ pub fn name_device<'a>(
                             );
                             let naming = &dev_naming.die[die.die].vnoc2[&(col, reg)];
                             nnode.add_bel(
-                                0,
+                                bels::VNOC4_NSU512,
                                 vnoc_grid.name_manual(
                                     "NOC2_NSU512",
                                     die.die,
@@ -1855,7 +1904,7 @@ pub fn name_device<'a>(
                                 ),
                             );
                             nnode.add_bel(
-                                1,
+                                bels::VNOC4_NPS_A,
                                 vnoc_grid.name_manual(
                                     "NOC2_NPS6X",
                                     die.die,
@@ -1864,7 +1913,7 @@ pub fn name_device<'a>(
                                 ),
                             );
                             nnode.add_bel(
-                                2,
+                                bels::VNOC4_NPS_B,
                                 vnoc_grid.name_manual(
                                     "NOC2_NPS6X",
                                     die.die,
@@ -1873,7 +1922,7 @@ pub fn name_device<'a>(
                                 ),
                             );
                             nnode.add_bel(
-                                3,
+                                bels::VNOC4_NMU512,
                                 vnoc_grid.name_manual(
                                     "NOC2_NMU512",
                                     die.die,
@@ -1882,7 +1931,7 @@ pub fn name_device<'a>(
                                 ),
                             );
                             nnode.add_bel(
-                                4,
+                                bels::VNOC4_SCAN,
                                 vnoc_grid.name_manual(
                                     "NOC2_SCAN",
                                     die.die,
@@ -1904,7 +1953,10 @@ pub fn name_device<'a>(
                                     0,
                                 )],
                             );
-                            nnode.add_bel(0, misr_grid.name("MISR", die.die, col, row, 0, 0));
+                            nnode.add_bel(
+                                bels::MISR,
+                                misr_grid.name("MISR", die.die, col, row, 0, 0),
+                            );
                         }
                         "SYSMON_SAT.VNOC" => {
                             let nnode =
@@ -1921,7 +1973,10 @@ pub fn name_device<'a>(
                                     )],
                                 );
                             let (sx, sy) = dev_naming.die[die.die].sysmon_sat_vnoc[&(col, reg)];
-                            nnode.add_bel(0, vnoc_grid.name_manual("SYSMON_SAT", die.die, sx, sy));
+                            nnode.add_bel(
+                                bels::SYSMON_SAT_VNOC,
+                                vnoc_grid.name_manual("SYSMON_SAT", die.die, sx, sy),
+                            );
                         }
                         "SYSMON_SAT.LGT" | "SYSMON_SAT.RGT" => {
                             let bt = if chip.is_reg_n(reg) { "TOP" } else { "BOT" };
@@ -1938,7 +1993,10 @@ pub fn name_device<'a>(
                                 )],
                             );
                             let (sx, sy) = dev_naming.die[die.die].sysmon_sat_gt[&(col, reg)];
-                            nnode.add_bel(0, vnoc_grid.name_manual("SYSMON_SAT", die.die, sx, sy));
+                            nnode.add_bel(
+                                bels::SYSMON_SAT_GT,
+                                vnoc_grid.name_manual("SYSMON_SAT", die.die, sx, sy),
+                            );
                         }
                         "DPLL.LGT" | "DPLL.RGT" => {
                             let nnode = ngrid.name_node(
@@ -1947,7 +2005,10 @@ pub fn name_device<'a>(
                                 [int_grid_gt.name("CMT_DPLL", die.die, col, row + 7, 0, 0)],
                             );
                             let (sx, sy) = dev_naming.die[die.die].dpll_gt[&(col, reg)];
-                            nnode.add_bel(0, vnoc_grid.name_manual("DPLL", die.die, sx, sy));
+                            nnode.add_bel(
+                                bels::DPLL_GT,
+                                vnoc_grid.name_manual("DPLL", die.die, sx, sy),
+                            );
                         }
                         "BFR_B.E" => {
                             let bt = if chip.is_reg_n(reg) { "TOP" } else { "BOT" };
@@ -1963,7 +2024,10 @@ pub fn name_device<'a>(
                                     0,
                                 )],
                             );
-                            nnode.add_bel(0, bfr_b_grid.name("BFR_B", die.die, col, row, 0, 0));
+                            nnode.add_bel(
+                                bels::BFR_B,
+                                bfr_b_grid.name("BFR_B", die.die, col, row, 0, 0),
+                            );
                         }
                         "VDU.E" => {
                             let nnode = ngrid.name_node(
@@ -1971,7 +2035,7 @@ pub fn name_device<'a>(
                                 kind,
                                 [int_grid.name("VDU_CORE", die.die, col, row, 0, 0)],
                             );
-                            nnode.add_bel(0, vdu_grid.name("VDU", die.die, col, row, 0, 0));
+                            nnode.add_bel(bels::VDU, vdu_grid.name("VDU", die.die, col, row, 0, 0));
                         }
 
                         _ => panic!("how to {kind}"),

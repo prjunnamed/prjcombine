@@ -5,9 +5,9 @@ use std::{
 
 use ndarray::Array2;
 use prjcombine_interconnect::{
-    db::{BelId, IntDb, MuxInfo, MuxKind, NodeKindId, NodeWireId, WireId, WireKind},
+    db::{BelSlotId, IntDb, MuxInfo, MuxKind, NodeKindId, NodeWireId, WireId, WireKind},
     dir::Dir,
-    grid::{ColId, DieId, ExpandedGrid, IntWire, NodeLoc, RowId},
+    grid::{ColId, DieId, ExpandedGrid, IntBel, IntWire, NodeLoc, RowId},
 };
 use prjcombine_re_xilinx_xact_data::die::{BoxId, Die, PrimId};
 use prjcombine_re_xilinx_xact_naming::{
@@ -49,7 +49,7 @@ pub struct Extractor<'a> {
     pub prims_by_name_a: BTreeMap<&'a str, PrimId>,
     pub prims_by_name_i: BTreeMap<&'a str, PrimId>,
     pub int_nets: BTreeMap<IntWire, NetId>,
-    pub bel_nets: BTreeMap<(NodeLoc, BelId, &'a str), NetId>,
+    pub bel_nets: BTreeMap<(IntBel, &'a str), NetId>,
     pub egrid: &'a ExpandedGrid<'a>,
     pub ngrid: &'a ExpandedGridNaming<'a>,
     pub used_prims: EntityBitVec<PrimId>,
@@ -58,7 +58,7 @@ pub struct Extractor<'a> {
     pub tbuf_pseudos: BTreeSet<(NetId, NetId)>,
     pub int_pip_force_dst: BTreeMap<(NetId, NetId), NodeWireId>,
     pub used_pips: BTreeSet<(NetId, NetId)>,
-    pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelId, String), PipNaming>>,
+    pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
     pub node_muxes: EntityPartVec<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>,
     pub int_pips: EntityPartVec<NodeNamingId, BTreeMap<(NodeWireId, NodeWireId), IntPipNaming>>,
     pub net_by_tile_override: BTreeMap<(ColId, RowId), BTreeMap<NetId, WireId>>,
@@ -66,7 +66,7 @@ pub struct Extractor<'a> {
 }
 
 pub struct Finisher {
-    pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelId, String), PipNaming>>,
+    pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
     pub node_muxes: EntityPartVec<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>,
     pub int_pips: EntityPartVec<NodeNamingId, BTreeMap<(NodeWireId, NodeWireId), IntPipNaming>>,
 }
@@ -84,7 +84,7 @@ pub enum NetBinding<'a> {
     None,
     Dummy,
     Int(IntWire),
-    Bel(NodeLoc, BelId, &'a str),
+    Bel(IntBel, &'a str),
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -251,11 +251,11 @@ impl<'a> Extractor<'a> {
         self.get_net(x, y, dir).unwrap()
     }
 
-    pub fn net_bel(&mut self, net_id: NetId, nloc: NodeLoc, bel: BelId, key: &'a str) {
+    pub fn net_bel(&mut self, net_id: NetId, bel: IntBel, key: &'a str) {
         let net = &mut self.nets[net_id];
-        let nbind = NetBinding::Bel(nloc, bel, key);
+        let nbind = NetBinding::Bel(bel, key);
         if net.binding == NetBinding::None {
-            match self.bel_nets.entry((nloc, bel, key)) {
+            match self.bel_nets.entry((bel, key)) {
                 btree_map::Entry::Vacant(entry) => {
                     entry.insert(net_id);
                     net.binding = nbind;
@@ -264,7 +264,7 @@ impl<'a> Extractor<'a> {
                     let (nx, ny, nd) = net.root;
                     let (cx, cy, cd) = self.nets[*entry.get()].root;
                     eprintln!(
-                        "BEL NET ALREADY USED: {nloc:?} {bel} {key} is {cx}.{cy}.{cd} setting {nx}.{ny}.{nd}"
+                        "BEL NET ALREADY USED: {bel:?} {key} is {cx}.{cy}.{cd} setting {nx}.{ny}.{nd}"
                     )
                 }
             }
@@ -318,9 +318,12 @@ impl<'a> Extractor<'a> {
         }
     }
 
-    pub fn net_bel_int(&mut self, net_id: NetId, nloc: NodeLoc, bel: BelId, pin: &'a str) {
-        let node = &self.egrid.die(nloc.0)[(nloc.1, nloc.2)].nodes[nloc.3];
-        for &wire in &self.egrid.db.nodes[node.kind].bels[bel].pins[pin].wires {
+    pub fn net_bel_int(&mut self, net_id: NetId, bel: IntBel, pin: &'a str) {
+        let (die, (col, row), slot) = bel;
+        let layer = self.egrid.find_bel_layer(bel).unwrap();
+        let nloc = (die, col, row, layer);
+        let node = &self.egrid.die(die)[(col, row)].nodes[layer];
+        for &wire in &self.egrid.db.nodes[node.kind].bels[slot].pins[pin].wires {
             let wire = (nloc.0, node.tiles[wire.0], wire.1);
             self.net_int(net_id, wire);
         }
@@ -335,9 +338,12 @@ impl<'a> Extractor<'a> {
         self.int_nets[&w]
     }
 
-    pub fn get_bel_int_net(&self, nloc: NodeLoc, bel: BelId, pin: &'a str) -> NetId {
-        let node = &self.egrid.die(nloc.0)[(nloc.1, nloc.2)].nodes[nloc.3];
-        let nw = *self.egrid.db.nodes[node.kind].bels[bel].pins[pin]
+    pub fn get_bel_int_net(&self, bel: IntBel, pin: &'a str) -> NetId {
+        let (die, (col, row), slot) = bel;
+        let layer = self.egrid.find_bel_layer(bel).unwrap();
+        let nloc = (die, col, row, layer);
+        let node = &self.egrid.die(die)[(col, row)].nodes[layer];
+        let nw = *self.egrid.db.nodes[node.kind].bels[slot].pins[pin]
             .wires
             .iter()
             .next()
@@ -346,8 +352,8 @@ impl<'a> Extractor<'a> {
     }
 
     #[track_caller]
-    pub fn get_bel_net(&self, nloc: NodeLoc, bel: BelId, pin: &'a str) -> NetId {
-        self.bel_nets[&(nloc, bel, pin)]
+    pub fn get_bel_net(&self, bel: IntBel, pin: &'a str) -> NetId {
+        self.bel_nets[&(bel, pin)]
     }
 
     pub fn xlat_pip_loc(&self, nloc: NodeLoc, crd: (usize, usize)) -> PipNaming {
@@ -470,7 +476,7 @@ impl<'a> Extractor<'a> {
     pub fn bel_pip(
         &mut self,
         naming: NodeNamingId,
-        bel: BelId,
+        bel: BelSlotId,
         key: impl Into<String>,
         pip: PipNaming,
     ) {

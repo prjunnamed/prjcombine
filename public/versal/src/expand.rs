@@ -250,44 +250,39 @@ impl Expander<'_> {
                         );
                     }
                     let reg = chip.row_to_reg(row);
-                    if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_n(reg) {
-                        if !matches!(cd.kind, ColumnKind::Cle(_) | ColumnKind::None)
-                            && !(chip.col_side(col) == Dir::E
-                                && matches!(cd.kind, ColumnKind::Gt)
-                                && matches!(chip.right, RightKind::Cidb))
-                        {
-                            if chip.is_reg_half(reg) {
-                                die.add_xnode(
-                                    (col, row),
-                                    &format!("RCLK_INTF.{side}.HALF"),
-                                    &[(col, row)],
-                                );
-                            } else {
-                                die.add_xnode(
-                                    (col, row),
-                                    &format!("RCLK_INTF.{side}"),
-                                    &[(col, row), (col, row - 1)],
-                                );
-                            }
-                            if matches!(
-                                cd.kind,
-                                ColumnKind::ContDsp | ColumnKind::Bram(_) | ColumnKind::Uram
-                            ) {
-                                die.add_xnode(
-                                    (col, row),
-                                    &format!("RCLK_DFX.{side}"),
-                                    &[(col, row)],
-                                );
-                            }
-                            if cd.kind == ColumnKind::Hard {
-                                let hc = chip.get_col_hard(col).unwrap();
-                                if hc.regs[reg] == HardRowKind::Hdio {
-                                    die.add_xnode((col, row), "RCLK_HDIO", &[]);
-                                } else if reg.to_idx() % 2 != 0
-                                    && hc.regs[reg - 1] == HardRowKind::Hdio
-                                {
-                                    die.add_xnode((col, row), "RCLK_HB_HDIO", &[]);
-                                }
+                    if row.to_idx() % Chip::ROWS_PER_REG == 0
+                        && chip.is_reg_n(reg)
+                        && !matches!(cd.kind, ColumnKind::Cle(_) | ColumnKind::None)
+                        && !(chip.col_side(col) == Dir::E
+                            && matches!(cd.kind, ColumnKind::Gt)
+                            && matches!(chip.right, RightKind::Cidb))
+                    {
+                        if chip.is_reg_half(reg) {
+                            die.add_xnode(
+                                (col, row),
+                                &format!("RCLK_INTF.{side}.HALF"),
+                                &[(col, row)],
+                            );
+                        } else {
+                            die.add_xnode(
+                                (col, row),
+                                &format!("RCLK_INTF.{side}"),
+                                &[(col, row), (col, row - 1)],
+                            );
+                        }
+                        if matches!(
+                            cd.kind,
+                            ColumnKind::ContDsp | ColumnKind::Bram(_) | ColumnKind::Uram
+                        ) {
+                            die.add_xnode((col, row), &format!("RCLK_DFX.{side}"), &[(col, row)]);
+                        }
+                        if cd.kind == ColumnKind::Hard {
+                            let hc = chip.get_col_hard(col).unwrap();
+                            if hc.regs[reg] == HardRowKind::Hdio {
+                                die.add_xnode((col, row), "RCLK_HDIO", &[]);
+                            } else if reg.to_idx() % 2 != 0 && hc.regs[reg - 1] == HardRowKind::Hdio
+                            {
+                                die.add_xnode((col, row), "RCLK_HB_HDIO", &[]);
                             }
                         }
                     }

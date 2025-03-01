@@ -1,6 +1,9 @@
-use prjcombine_interconnect::db::BelId;
+use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_xilinx_rawdump::{Part, TkSiteSlot};
-use prjcombine_xc2000::chip::{Chip, ChipKind, SharedCfgPin};
+use prjcombine_xc2000::{
+    bels::xc4000 as bels,
+    chip::{Chip, ChipKind, SharedCfgPin},
+};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use unnamed_entity::EntityId;
 
@@ -17,7 +20,7 @@ fn get_kind(rd: &Part) -> ChipKind {
     }
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
+fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
     let mut io_lookup = HashMap::new();
     for (&crd, tile) in &rd.tiles {
         let tk = &rd.tile_kinds[tile.kind];
@@ -26,11 +29,14 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                 if rd.slot_kinds[sn] == "IOB" {
                     io_lookup.insert(
                         v.clone(),
-                        grid.get_io_crd(
-                            int.lookup_column(crd.x.into()),
-                            int.lookup_row(crd.y.into()),
-                            BelId::from_idx(idx as usize - 1),
-                        ),
+                        chip.get_io_crd((
+                            DieId::from_idx(0),
+                            (
+                                int.lookup_column(crd.x.into()),
+                                int.lookup_row(crd.y.into()),
+                            ),
+                            bels::IO[idx as usize - 1],
+                        )),
                     );
                 }
             }
@@ -51,7 +57,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                             continue;
                         }
                     };
-                    let old = grid.cfg_io.insert(cfg, io);
+                    let old = chip.cfg_io.insert(cfg, io);
                     assert!(old.is_none() || old == Some(io));
                 }
             }
@@ -63,7 +69,7 @@ pub fn make_grid(rd: &Part) -> Chip {
     // This list of int tiles is incomplete, but suffices for the purpose of grid determination
     let int = extract_int(rd, &["CENTER", "LL", "LR", "UL", "UR"], &[]);
     let kind = get_kind(rd);
-    let mut grid = Chip {
+    let mut chip = Chip {
         kind,
         columns: int.cols.len(),
         rows: int.rows.len(),
@@ -74,6 +80,6 @@ pub fn make_grid(rd: &Part) -> Chip {
         rows_bidi: Default::default(),
         unbonded_io: BTreeSet::new(),
     };
-    handle_spec_io(rd, &mut grid, &int);
-    grid
+    handle_spec_io(rd, &mut chip, &int);
+    chip
 }

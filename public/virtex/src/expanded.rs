@@ -25,7 +25,7 @@ pub struct ExpandedDevice<'a> {
 
 impl ExpandedDevice<'_> {
     pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
-        let width = if col == self.chip.col_lio() || col == self.chip.col_rio() {
+        let width = if col == self.chip.col_w() || col == self.chip.col_e() {
             54
         } else if self.chip.cols_bram.contains(&col) {
             27

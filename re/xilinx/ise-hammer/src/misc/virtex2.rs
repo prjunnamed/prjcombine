@@ -297,28 +297,28 @@ pub fn add_fuzzers<'a>(
         for val in ["NO", "YES"] {
             let extras = vec![
                 ExtraFeature::new(
-                    ExtraFeatureKind::Corner(edev.chip.col_left(), edev.chip.row_bot()),
+                    ExtraFeatureKind::Corner(edev.chip.col_w(), edev.chip.row_s()),
                     "LL.FC",
                     "MISC",
                     "MISR_RESET",
                     val,
                 ),
                 ExtraFeature::new(
-                    ExtraFeatureKind::Corner(edev.chip.col_left(), edev.chip.row_top()),
+                    ExtraFeatureKind::Corner(edev.chip.col_w(), edev.chip.row_n()),
                     "UL.FC",
                     "MISC",
                     "MISR_RESET",
                     val,
                 ),
                 ExtraFeature::new(
-                    ExtraFeatureKind::Corner(edev.chip.col_right(), edev.chip.row_bot()),
+                    ExtraFeatureKind::Corner(edev.chip.col_e(), edev.chip.row_s()),
                     "LR.FC",
                     "MISC",
                     "MISR_RESET",
                     val,
                 ),
                 ExtraFeature::new(
-                    ExtraFeatureKind::Corner(edev.chip.col_right(), edev.chip.row_top()),
+                    ExtraFeatureKind::Corner(edev.chip.col_e(), edev.chip.row_n()),
                     "UR.FC",
                     "MISC",
                     "MISR_RESET",
@@ -331,56 +331,56 @@ pub fn add_fuzzers<'a>(
         }
         let extras = vec![
             ExtraFeature::new(
-                ExtraFeatureKind::Corner(edev.chip.col_left(), edev.chip.row_bot()),
+                ExtraFeatureKind::Corner(edev.chip.col_w(), edev.chip.row_s()),
                 "LL.FC",
                 "MISC",
                 "MISR_CLOCK",
                 "GCLK0",
             ),
             ExtraFeature::new(
-                ExtraFeatureKind::Corner(edev.chip.col_left(), edev.chip.row_top()),
+                ExtraFeatureKind::Corner(edev.chip.col_w(), edev.chip.row_n()),
                 "UL.FC",
                 "MISC",
                 "MISR_CLOCK",
                 "GCLK0",
             ),
             ExtraFeature::new(
-                ExtraFeatureKind::Corner(edev.chip.col_right(), edev.chip.row_bot()),
+                ExtraFeatureKind::Corner(edev.chip.col_e(), edev.chip.row_s()),
                 "LR.FC",
                 "MISC",
                 "MISR_CLOCK",
                 "GCLK0",
             ),
             ExtraFeature::new(
-                ExtraFeatureKind::Corner(edev.chip.col_right(), edev.chip.row_top()),
+                ExtraFeatureKind::Corner(edev.chip.col_e(), edev.chip.row_n()),
                 "UR.FC",
                 "MISC",
                 "MISR_CLOCK",
                 "GCLK0",
             ),
             ExtraFeature::new(
-                ExtraFeatureKind::MainFixed(edev.chip.col_left(), edev.chip.row_bot()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_w(), edev.chip.row_s()),
                 "CNR",
                 "MISC",
                 "MISR_CLOCK",
                 "GCLK0",
             ),
             ExtraFeature::new(
-                ExtraFeatureKind::MainFixed(edev.chip.col_left(), edev.chip.row_top()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_w(), edev.chip.row_n()),
                 "CNR",
                 "MISC",
                 "MISR_CLOCK",
                 "GCLK0",
             ),
             ExtraFeature::new(
-                ExtraFeatureKind::MainFixed(edev.chip.col_right(), edev.chip.row_bot()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_e(), edev.chip.row_s()),
                 "CNR",
                 "MISC",
                 "MISR_CLOCK",
                 "GCLK0",
             ),
             ExtraFeature::new(
-                ExtraFeatureKind::MainFixed(edev.chip.col_right(), edev.chip.row_top()),
+                ExtraFeatureKind::MainFixed(edev.chip.col_e(), edev.chip.row_n()),
                 "CNR",
                 "MISC",
                 "MISR_CLOCK",
@@ -439,14 +439,14 @@ pub fn add_fuzzers<'a>(
                 let bel_name = ["DCI0", "DCI1"][bel];
                 let node_kind = backend.egrid.db.get_node(tile_name);
                 let col = if tile_name == ul || tile_name == ll {
-                    edev.chip.col_left()
+                    edev.chip.col_w()
                 } else {
-                    edev.chip.col_right()
+                    edev.chip.col_e()
                 };
                 let row = if tile_name == ll || tile_name == lr {
-                    edev.chip.row_bot()
+                    edev.chip.row_s()
                 } else {
-                    edev.chip.row_top()
+                    edev.chip.row_n()
                 };
                 let mut btiles = vec![edev.btile_lrterm(col, row)];
                 if edev.chip.kind.is_virtex2() {
@@ -473,7 +473,7 @@ pub fn add_fuzzers<'a>(
                     let (io_col, io_row, _) = edev.chip.get_io_loc(io);
                     if ioinfo.bank == bank && coords.insert((io_col, io_row)) {
                         btiles.push(edev.btile_main(io_col, io_row));
-                        if io_col == edev.chip.col_left() || io_col == edev.chip.col_right() {
+                        if io_col == edev.chip.col_w() || io_col == edev.chip.col_e() {
                             btiles.push(edev.btile_lrterm(io_col, io_row));
                         } else {
                             btiles.push(edev.btile_btterm(io_col, io_row));
@@ -841,14 +841,14 @@ pub fn add_fuzzers<'a>(
                 && !backend.device.name.ends_with("2vp7")
             {
                 ctx.bits = TileBits::Raw(vec![
-                    edev.btile_btterm(edev.chip.col_left(), edev.chip.row_top()),
-                    edev.btile_btterm(edev.chip.col_right(), edev.chip.row_top()),
-                    edev.btile_lrterm(edev.chip.col_right(), edev.chip.row_top()),
-                    edev.btile_lrterm(edev.chip.col_right(), edev.chip.row_bot()),
-                    edev.btile_btterm(edev.chip.col_right(), edev.chip.row_bot()),
-                    edev.btile_btterm(edev.chip.col_left(), edev.chip.row_bot()),
-                    edev.btile_lrterm(edev.chip.col_left(), edev.chip.row_bot()),
-                    edev.btile_lrterm(edev.chip.col_left(), edev.chip.row_top()),
+                    edev.btile_btterm(edev.chip.col_w(), edev.chip.row_n()),
+                    edev.btile_btterm(edev.chip.col_e(), edev.chip.row_n()),
+                    edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_n()),
+                    edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_s()),
+                    edev.btile_btterm(edev.chip.col_e(), edev.chip.row_s()),
+                    edev.btile_btterm(edev.chip.col_w(), edev.chip.row_s()),
+                    edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_s()),
+                    edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_n()),
                 ]);
                 for val in ["ASREQUIRED", "CONTINUOUS", "QUIET"] {
                     fuzz_one!(ctx, "DCIUPDATEMODE", val, [
@@ -863,22 +863,22 @@ pub fn add_fuzzers<'a>(
                 &[
                     (
                         ul,
-                        edev.btile_lrterm(edev.chip.col_left(), edev.chip.row_top()),
+                        edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_n()),
                         0,
                     ),
                     (
                         ur,
-                        edev.btile_lrterm(edev.chip.col_right(), edev.chip.row_top()),
+                        edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_n()),
                         1,
                     ),
                     (
                         lr,
-                        edev.btile_lrterm(edev.chip.col_right(), edev.chip.row_bot()),
+                        edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_s()),
                         2,
                     ),
                     (
                         ll,
-                        edev.btile_lrterm(edev.chip.col_left(), edev.chip.row_bot()),
+                        edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_s()),
                         3,
                     ),
                 ][..]
@@ -886,12 +886,12 @@ pub fn add_fuzzers<'a>(
                 &[
                     (
                         ul,
-                        edev.btile_lrterm(edev.chip.col_left(), edev.chip.row_top()),
+                        edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_n()),
                         0,
                     ),
                     (
                         ll,
-                        edev.btile_lrterm(edev.chip.col_left(), edev.chip.row_bot()),
+                        edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_s()),
                         2,
                     ),
                 ][..]
@@ -901,36 +901,36 @@ pub fn add_fuzzers<'a>(
                 let mut btiles = vec![btile];
                 match bank {
                     0 => {
-                        let row = edev.chip.row_top();
+                        let row = edev.chip.row_n();
                         for col in edev.chip.columns.ids() {
-                            if col != edev.chip.col_left() && col != edev.chip.col_right() {
+                            if col != edev.chip.col_w() && col != edev.chip.col_e() {
                                 btiles.push(edev.btile_main(col, row));
                                 btiles.push(edev.btile_btterm(col, row));
                             }
                         }
                     }
                     1 => {
-                        let col = edev.chip.col_right();
+                        let col = edev.chip.col_e();
                         for row in edev.chip.rows.ids() {
-                            if row != edev.chip.row_bot() && row != edev.chip.row_top() {
+                            if row != edev.chip.row_s() && row != edev.chip.row_n() {
                                 btiles.push(edev.btile_main(col, row));
                                 btiles.push(edev.btile_lrterm(col, row));
                             }
                         }
                     }
                     2 => {
-                        let row = edev.chip.row_bot();
+                        let row = edev.chip.row_s();
                         for col in edev.chip.columns.ids() {
-                            if col != edev.chip.col_left() && col != edev.chip.col_right() {
+                            if col != edev.chip.col_w() && col != edev.chip.col_e() {
                                 btiles.push(edev.btile_main(col, row));
                                 btiles.push(edev.btile_btterm(col, row));
                             }
                         }
                     }
                     3 => {
-                        let col = edev.chip.col_left();
+                        let col = edev.chip.col_w();
                         for row in edev.chip.rows.ids() {
-                            if row != edev.chip.row_bot() && row != edev.chip.row_top() {
+                            if row != edev.chip.row_s() && row != edev.chip.row_n() {
                                 btiles.push(edev.btile_main(col, row));
                                 btiles.push(edev.btile_lrterm(col, row));
                             }
@@ -2517,19 +2517,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             for (tile, btile) in [
                 (
                     ll,
-                    edev.btile_lrterm(edev.chip.col_left(), edev.chip.row_bot()),
+                    edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_s()),
                 ),
                 (
                     ul,
-                    edev.btile_lrterm(edev.chip.col_left(), edev.chip.row_top()),
+                    edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_n()),
                 ),
                 (
                     lr,
-                    edev.btile_lrterm(edev.chip.col_right(), edev.chip.row_bot()),
+                    edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_s()),
                 ),
                 (
                     ur,
-                    edev.btile_lrterm(edev.chip.col_right(), edev.chip.row_top()),
+                    edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_n()),
                 ),
             ] {
                 let bel = "MISC";

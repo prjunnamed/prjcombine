@@ -66,7 +66,7 @@ fn resolve_tile_relation(
             }) {
                 loc.3 = layer;
                 if let ExpandedDevice::Virtex2(edev) = backend.edev {
-                    if loc.1 == edev.chip.col_right() - 1 {
+                    if loc.1 == edev.chip.col_e() - 1 {
                         return None;
                     }
                 }
@@ -509,7 +509,7 @@ fn find_ioi(backend: &IseBackend, loc: NodeLoc, tile: usize) -> NodeLoc {
     let ExpandedDevice::Virtex2(edev) = backend.edev else {
         unreachable!()
     };
-    let (col, row) = if loc.1 == edev.chip.col_left() || loc.1 == edev.chip.col_right() {
+    let (col, row) = if loc.1 == edev.chip.col_w() || loc.1 == edev.chip.col_e() {
         (loc.1, loc.2 + tile)
     } else {
         (loc.1 + tile, loc.2)
@@ -886,7 +886,7 @@ impl<'a> TileKV<'a> {
                             if wire_name == "IMUX.DATA13"
                                 && edev.chip.kind
                                     == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
-                                && loc.1 == edev.chip.col_left()
+                                && loc.1 == edev.chip.col_w()
                             {
                                 // ISE bug. sigh.
                                 return None;
@@ -901,7 +901,7 @@ impl<'a> TileKV<'a> {
                         }
                         if backend.egrid.db.nodes.key(node.kind) == "INT.IOI.S3A.TB"
                             && wire_name == "IMUX.DATA15"
-                            && loc.2 == edev.chip.row_top()
+                            && loc.2 == edev.chip.row_n()
                         {
                             // also ISE bug.
                             return None;
@@ -911,9 +911,9 @@ impl<'a> TileKV<'a> {
                         {
                             // avoid SR in corners — it causes the inverter bit to be auto-set
                             let is_lr =
-                                loc.1 == edev.chip.col_left() || loc.1 == edev.chip.col_right();
+                                loc.1 == edev.chip.col_w() || loc.1 == edev.chip.col_e();
                             let is_bt =
-                                loc.2 == edev.chip.row_bot() || loc.2 == edev.chip.row_top();
+                                loc.2 == edev.chip.row_s() || loc.2 == edev.chip.row_n();
                             if intdb.wires.key(wire.1).starts_with("IMUX.SR") && is_lr && is_bt {
                                 return None;
                             }
@@ -1114,7 +1114,7 @@ impl<'a> TileKV<'a> {
                                 return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
                             }
                         }
-                        if src_col == edev.chip.col_left() || src_col == edev.chip.col_right() {
+                        if src_col == edev.chip.col_w() || src_col == edev.chip.col_e() {
                             return None;
                         }
                         if wire.0.to_idx() == 0 {
@@ -1217,7 +1217,7 @@ impl<'a> TileKV<'a> {
                                 return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
                             }
                         }
-                        if src_row == edev.chip.row_bot() || src_row == edev.chip.row_top() {
+                        if src_row == edev.chip.row_s() || src_row == edev.chip.row_n() {
                             return None;
                         }
                         if wire.0.to_idx() == 0 {
@@ -4759,14 +4759,14 @@ impl TileBits {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
                     unreachable!()
                 };
-                if row == edev.chip.row_bot() + 1 {
+                if row == edev.chip.row_s() + 1 {
                     vec![
                         edev.btile_btspine(row - 1),
                         edev.btile_spine(row - 1),
                         edev.btile_spine(row),
                         edev.btile_spine(row + 1),
                     ]
-                } else if row == edev.chip.row_top() {
+                } else if row == edev.chip.row_n() {
                     vec![
                         edev.btile_spine(row - 2),
                         edev.btile_spine(row - 1),
@@ -4882,10 +4882,10 @@ impl TileBits {
                     unreachable!()
                 };
                 vec![
-                    edev.btile_lrterm(edev.chip.col_left(), edev.chip.row_top()),
-                    edev.btile_btterm(edev.chip.col_left(), edev.chip.row_top()),
-                    edev.btile_lrterm(edev.chip.col_right(), edev.chip.row_top()),
-                    edev.btile_btterm(edev.chip.col_right(), edev.chip.row_top()),
+                    edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_n()),
+                    edev.btile_btterm(edev.chip.col_w(), edev.chip.row_n()),
+                    edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_n()),
+                    edev.btile_btterm(edev.chip.col_e(), edev.chip.row_n()),
                 ]
             }
             TileBits::RandorLeft => {
@@ -4898,7 +4898,7 @@ impl TileBits {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
                     unreachable!()
                 };
-                if col == edev.chip.col_left() || col == edev.chip.col_right() {
+                if col == edev.chip.col_w() || col == edev.chip.col_e() {
                     (0..n)
                         .map(|idx| edev.btile_lrterm(col, row + idx))
                         .chain((0..n).map(|idx| edev.btile_main(col, row + idx)))
@@ -5628,28 +5628,28 @@ impl ExtraFeatureKind {
                 };
                 match dir {
                     Dir::W => {
-                        if loc.1 != edev.chip.col_left() {
+                        if loc.1 != edev.chip.col_w() {
                             vec![]
                         } else {
                             vec![vec![edev.btile_lrterm(loc.1, loc.2)]]
                         }
                     }
                     Dir::E => {
-                        if loc.1 != edev.chip.col_right() {
+                        if loc.1 != edev.chip.col_e() {
                             vec![]
                         } else {
                             vec![vec![edev.btile_lrterm(loc.1, loc.2)]]
                         }
                     }
                     Dir::S => {
-                        if loc.2 != edev.chip.row_bot() {
+                        if loc.2 != edev.chip.row_s() {
                             vec![]
                         } else {
                             vec![vec![edev.btile_btterm(loc.1, loc.2)]]
                         }
                     }
                     Dir::N => {
-                        if loc.2 != edev.chip.row_top() {
+                        if loc.2 != edev.chip.row_n() {
                             vec![]
                         } else {
                             vec![vec![edev.btile_btterm(loc.1, loc.2)]]

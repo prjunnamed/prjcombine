@@ -855,7 +855,7 @@ fn verify_bufgctrl(vrf: &mut Verifier, bel: &BelContext<'_>) {
     // very likely a case of wrong-direction pip
     vrf.claim_pip(bel.crd(), bel.wire("I0"), bel.wire("FB_TEST0"));
     vrf.claim_pip(bel.crd(), bel.wire("I1"), bel.wire("FB_TEST1"));
-    let idx = bel.bid.to_idx();
+    let idx = bel.slot.to_idx();
     for d in [1, 15] {
         let oidx = (idx + d) % 16;
         let obel = vrf.find_bel_sibling(bel, &format!("BUFGCTRL{oidx}"));
@@ -900,7 +900,7 @@ fn verify_bufio(vrf: &mut Verifier, bel: &BelContext<'_>) {
     );
     vrf.claim_node(&[bel.fwire("I")]);
     vrf.claim_node(&[bel.fwire("O")]);
-    let idx = bel.bid.to_idx() % 4;
+    let idx = bel.slot.to_idx() % 4;
     let obel = vrf.find_bel_sibling(bel, "HCLK_IOI");
     vrf.claim_pip(
         bel.crd(),

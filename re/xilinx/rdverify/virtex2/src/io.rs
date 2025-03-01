@@ -4,6 +4,7 @@ use prjcombine_re_xilinx_naming::db::NodeRawTileId;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Coord;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
+use prjcombine_virtex2::bels;
 use prjcombine_virtex2::chip::{ChipKind, IoDiffKind};
 use unnamed_entity::EntityId;
 
@@ -18,14 +19,14 @@ fn verify_pci_ce(
     crd: Coord,
     wire: &str,
 ) {
-    if col == endev.chip.col_left() || col == endev.chip.col_right() {
+    if col == endev.chip.col_w() || col == endev.chip.col_e() {
         if row < endev.chip.row_mid() {
             for &(srow, _, _) in &endev.chip.rows_hclk {
                 if srow > endev.chip.row_mid() {
                     break;
                 }
                 if row < srow {
-                    let obel = vrf.find_bel(die, (col, srow), "PCI_CE_S").unwrap();
+                    let obel = vrf.get_bel((die, (col, srow), bels::PCI_CE_S));
                     vrf.verify_node(&[obel.fwire("O"), (crd, wire)]);
                     return;
                 }
@@ -36,47 +37,47 @@ fn verify_pci_ce(
                     break;
                 }
                 if row >= srow {
-                    let obel = vrf.find_bel(die, (col, srow), "PCI_CE_N").unwrap();
+                    let obel = vrf.get_bel((die, (col, srow), bels::PCI_CE_N));
                     vrf.verify_node(&[obel.fwire("O"), (crd, wire)]);
                     return;
                 }
             }
         }
-        let obel = vrf
-            .find_bel(die, (col, endev.chip.row_mid()), "PCILOGICSE")
-            .unwrap();
+        let obel = vrf.get_bel((die, (col, endev.chip.row_mid()), bels::PCILOGICSE));
         let pip = &obel.naming.pins["PCI_CE"].pips[0];
         vrf.verify_node(&[(obel.crds[pip.tile], &pip.wire_to), (crd, wire)]);
     } else {
         if endev.chip.kind == ChipKind::Spartan3A {
             if let Some((col_l, col_r)) = endev.chip.cols_clkv {
                 if col >= col_l && col < col_r {
-                    let (scol, kind) = if col < endev.chip.col_clk {
-                        (col_l, "PCI_CE_E")
+                    let (scol, slot) = if col < endev.chip.col_clk {
+                        (col_l, bels::PCI_CE_E)
                     } else {
-                        (col_r, "PCI_CE_W")
+                        (col_r, bels::PCI_CE_W)
                     };
-                    let obel = vrf.find_bel(die, (scol, row), kind).unwrap();
+                    let obel = vrf.get_bel((die, (scol, row), slot));
                     vrf.verify_node(&[obel.fwire("O"), (crd, wire)]);
                     return;
                 }
             }
         }
         let scol = if col < endev.chip.col_clk {
-            endev.chip.col_left()
+            endev.chip.col_w()
         } else {
-            endev.chip.col_right()
+            endev.chip.col_e()
         };
-        let obel = vrf.find_bel(die, (scol, row), "PCI_CE_CNR").unwrap();
+        let obel = vrf.get_bel((die, (scol, row), bels::PCI_CE_CNR));
         vrf.verify_node(&[obel.fwire("O"), (crd, wire)]);
     }
 }
 
 pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let io = endev.chip.get_io_crd(bel.col, bel.row, bel.bid);
+    let io = endev
+        .chip
+        .get_io_crd((bel.die, (bel.col, bel.row), bel.slot));
     let io_info = endev.chip.get_io_info(io);
     let tn = &bel.nnode.names[NodeRawTileId::from_idx(0)];
-    let is_ipad = tn.contains("IBUFS") || (tn.contains("IOIB") && bel.bid.to_idx() == 2);
+    let is_ipad = tn.contains("IBUFS") || (tn.contains("IOIB") && bel.slot.to_idx() == 2);
     let kind = if matches!(
         endev.chip.kind,
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp
@@ -201,9 +202,9 @@ pub fn verify_pcilogicse(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         ],
         &[],
     );
-    let edge = if bel.col == endev.chip.col_left() {
+    let edge = if bel.col == endev.chip.col_w() {
         Dir::W
-    } else if bel.col == endev.chip.col_right() {
+    } else if bel.col == endev.chip.col_e() {
         Dir::E
     } else {
         unreachable!()

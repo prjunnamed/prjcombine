@@ -83,9 +83,9 @@ impl ExpandedDevice<'_> {
             BitPos::Main(bank, frame, bit) => {
                 let row = frame / 0x10;
                 let row = if (bank & 1) == 0 {
-                    self.chip.row_bio() + row
+                    self.chip.row_s() + row
                 } else {
-                    self.chip.row_tio() - row
+                    self.chip.row_n() - row
                 };
                 if let Some(col) = self.chip.columns().find(|&col| {
                     bit >= self.col_bit[col]

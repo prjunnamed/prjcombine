@@ -15,23 +15,23 @@ impl Chip {
 
         for col in die.cols() {
             for row in die.rows() {
-                if row == self.row_bio() {
-                    if col == self.col_lio() || col == self.col_rio() {
+                if row == self.row_s() {
+                    if col == self.col_w() || col == self.col_e() {
                         die.fill_tile((col, row), "CNR");
                     } else {
-                        die.fill_tile((col, row), "IO.B");
+                        die.fill_tile((col, row), "IO.S");
                     }
-                } else if row == self.row_tio() {
-                    if col == self.col_lio() || col == self.col_rio() {
+                } else if row == self.row_n() {
+                    if col == self.col_w() || col == self.col_e() {
                         die.fill_tile((col, row), "CNR");
                     } else {
-                        die.fill_tile((col, row), "IO.T");
+                        die.fill_tile((col, row), "IO.N");
                     }
                 } else {
-                    if self.kind.has_lrio() && col == self.col_lio() {
-                        die.fill_tile((col, row), "IO.L");
-                    } else if self.kind.has_lrio() && col == self.col_rio() {
-                        die.fill_tile((col, row), "IO.R");
+                    if self.kind.has_io_we() && col == self.col_w() {
+                        die.fill_tile((col, row), "IO.W");
+                    } else if self.kind.has_io_we() && col == self.col_e() {
+                        die.fill_tile((col, row), "IO.E");
                     } else if self.cols_bram.contains(&col) {
                         die.fill_tile((col, row), "INT.BRAM");
                         if (row.to_idx() - 1) % 2 == 0 {
@@ -43,6 +43,12 @@ impl Chip {
                 }
             }
         }
+
+        die.add_xnode(
+            (self.col_w(), self.row_s()),
+            "GB_OUT",
+            &[(self.col_w(), self.row_s())],
+        );
 
         for (&loc, node) in &self.extra_nodes {
             die.add_xnode(
@@ -56,24 +62,24 @@ impl Chip {
 
         for col in die.cols() {
             for row in die.rows() {
-                die[(col, row)].clkroot = (self.col_lio(), self.row_bio());
+                die[(col, row)].clkroot = (self.col_w(), self.row_s());
             }
         }
 
-        if self.kind.has_lrio() {
+        if self.kind.has_io_we() {
             for i in 0..4 {
                 for j in 0..4 {
                     let wh = egrid
                         .resolve_wire((
                             DieId::from_idx(0),
-                            (self.col_lio(), self.row_bio()),
+                            (self.col_w(), self.row_s()),
                             db.get_wire(&format!("QUAD.H{i}.{j}")),
                         ))
                         .unwrap();
                     let wv = egrid
                         .resolve_wire((
                             DieId::from_idx(0),
-                            (self.col_lio(), self.row_bio()),
+                            (self.col_w(), self.row_s()),
                             db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 3 - j)),
                         ))
                         .unwrap();
@@ -85,14 +91,14 @@ impl Chip {
                     let wh = egrid
                         .resolve_wire((
                             DieId::from_idx(0),
-                            (self.col_lio(), self.row_tio()),
+                            (self.col_w(), self.row_n()),
                             db.get_wire(&format!("QUAD.H{i}.{j}")),
                         ))
                         .unwrap();
                     let wv = egrid
                         .resolve_wire((
                             DieId::from_idx(0),
-                            (self.col_lio(), self.row_tio()),
+                            (self.col_w(), self.row_n()),
                             db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 4 - j)),
                         ))
                         .unwrap();
@@ -104,14 +110,14 @@ impl Chip {
                     let wh = egrid
                         .resolve_wire((
                             DieId::from_idx(0),
-                            (self.col_rio(), self.row_bio()),
+                            (self.col_e(), self.row_s()),
                             db.get_wire(&format!("QUAD.H{i}.{jj}", jj = 1 + j)),
                         ))
                         .unwrap();
                     let wv = egrid
                         .resolve_wire((
                             DieId::from_idx(0),
-                            (self.col_rio(), self.row_bio()),
+                            (self.col_e(), self.row_s()),
                             db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 3 - j)),
                         ))
                         .unwrap();
@@ -123,14 +129,14 @@ impl Chip {
                     let wh = egrid
                         .resolve_wire((
                             DieId::from_idx(0),
-                            (self.col_rio(), self.row_tio()),
+                            (self.col_e(), self.row_n()),
                             db.get_wire(&format!("QUAD.H{i}.{jj}", jj = 1 + j)),
                         ))
                         .unwrap();
                     let wv = egrid
                         .resolve_wire((
                             DieId::from_idx(0),
-                            (self.col_rio(), self.row_tio()),
+                            (self.col_e(), self.row_n()),
                             db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 4 - j)),
                         ))
                         .unwrap();
@@ -144,7 +150,7 @@ impl Chip {
                 let wh = egrid
                     .resolve_wire((
                         DieId::from_idx(0),
-                        (self.col_lio(), self.row_bio()),
+                        (self.col_w(), self.row_s()),
                         db.get_wire(&format!("QUAD.H{which}.{seg}")),
                     ))
                     .unwrap();
@@ -154,7 +160,7 @@ impl Chip {
                 let wv = egrid
                     .resolve_wire((
                         DieId::from_idx(0),
-                        (self.col_lio(), self.row_bio()),
+                        (self.col_w(), self.row_s()),
                         db.get_wire(&format!("QUAD.V{which}.{seg}")),
                     ))
                     .unwrap();
@@ -166,7 +172,7 @@ impl Chip {
                 let wh = egrid
                     .resolve_wire((
                         DieId::from_idx(0),
-                        (self.col_lio(), self.row_tio()),
+                        (self.col_w(), self.row_n()),
                         db.get_wire(&format!("QUAD.H{which}.{seg}")),
                     ))
                     .unwrap();
@@ -177,7 +183,7 @@ impl Chip {
                 let wv = egrid
                     .resolve_wire((
                         DieId::from_idx(0),
-                        (self.col_lio(), self.row_tio()),
+                        (self.col_w(), self.row_n()),
                         db.get_wire(&format!("QUAD.V{which}.{seg}")),
                     ))
                     .unwrap();
@@ -189,7 +195,7 @@ impl Chip {
                 let wh = egrid
                     .resolve_wire((
                         DieId::from_idx(0),
-                        (self.col_rio(), self.row_bio()),
+                        (self.col_e(), self.row_s()),
                         db.get_wire(&format!("QUAD.H{which}.{seg}")),
                     ))
                     .unwrap();
@@ -199,7 +205,7 @@ impl Chip {
                 let wv = egrid
                     .resolve_wire((
                         DieId::from_idx(0),
-                        (self.col_rio(), self.row_bio()),
+                        (self.col_e(), self.row_s()),
                         db.get_wire(&format!("QUAD.V{which}.{seg}")),
                     ))
                     .unwrap();
@@ -211,7 +217,7 @@ impl Chip {
                 let wh = egrid
                     .resolve_wire((
                         DieId::from_idx(0),
-                        (self.col_rio(), self.row_tio()),
+                        (self.col_e(), self.row_n()),
                         db.get_wire(&format!("QUAD.H{which}.{seg}")),
                     ))
                     .unwrap();
@@ -222,7 +228,7 @@ impl Chip {
                 let wv = egrid
                     .resolve_wire((
                         DieId::from_idx(0),
-                        (self.col_rio(), self.row_tio()),
+                        (self.col_e(), self.row_n()),
                         db.get_wire(&format!("QUAD.V{which}.{seg}")),
                     ))
                     .unwrap();

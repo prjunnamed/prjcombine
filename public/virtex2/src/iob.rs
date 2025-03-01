@@ -1,4 +1,4 @@
-use prjcombine_interconnect::{db::BelId, dir::Dir};
+use prjcombine_interconnect::{dir::Dir, grid::TileIobId};
 use unnamed_entity::EntityId;
 
 use crate::chip::{ChipKind, ColumnIoKind, RowIoKind};
@@ -21,7 +21,7 @@ pub enum IobKind {
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct IobData {
     pub tile: usize,
-    pub bel: BelId,
+    pub iob: TileIobId,
     pub diff: IobDiff,
     pub kind: IobKind,
 }
@@ -34,80 +34,80 @@ pub struct IobTileData {
     pub iobs: Vec<IobData>,
 }
 
-fn iob(tile: usize, bel: usize) -> IobData {
+fn iob(tile: usize, iob: usize) -> IobData {
     IobData {
         kind: IobKind::Iob,
         diff: IobDiff::None,
         tile,
-        bel: BelId::from_idx(bel),
+        iob: TileIobId::from_idx(iob),
     }
 }
-fn iobt(tile: usize, bel: usize, other: usize) -> IobData {
+fn iobt(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
         kind: IobKind::Iob,
         diff: IobDiff::True(other),
         tile,
-        bel: BelId::from_idx(bel),
+        iob: TileIobId::from_idx(iob),
     }
 }
-fn iobc(tile: usize, bel: usize, other: usize) -> IobData {
+fn iobc(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
         kind: IobKind::Iob,
         diff: IobDiff::Comp(other),
         tile,
-        bel: BelId::from_idx(bel),
+        iob: TileIobId::from_idx(iob),
     }
 }
-fn ibuf(tile: usize, bel: usize) -> IobData {
+fn ibuf(tile: usize, iob: usize) -> IobData {
     IobData {
         kind: IobKind::Ibuf,
         diff: IobDiff::None,
         tile,
-        bel: BelId::from_idx(bel),
+        iob: TileIobId::from_idx(iob),
     }
 }
-fn ibuft(tile: usize, bel: usize, other: usize) -> IobData {
+fn ibuft(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
         kind: IobKind::Ibuf,
         diff: IobDiff::True(other),
         tile,
-        bel: BelId::from_idx(bel),
+        iob: TileIobId::from_idx(iob),
     }
 }
-fn ibufc(tile: usize, bel: usize, other: usize) -> IobData {
+fn ibufc(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
         kind: IobKind::Ibuf,
         diff: IobDiff::Comp(other),
         tile,
-        bel: BelId::from_idx(bel),
+        iob: TileIobId::from_idx(iob),
     }
 }
-fn obuf(tile: usize, bel: usize) -> IobData {
+fn obuf(tile: usize, iob: usize) -> IobData {
     IobData {
         kind: IobKind::Obuf,
         diff: IobDiff::None,
         tile,
-        bel: BelId::from_idx(bel),
+        iob: TileIobId::from_idx(iob),
     }
 }
-fn clkt(tile: usize, bel: usize, other: usize) -> IobData {
+fn clkt(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
         kind: IobKind::Clk,
         diff: IobDiff::True(other),
         tile,
-        bel: BelId::from_idx(bel),
+        iob: TileIobId::from_idx(iob),
     }
 }
-fn clkc(tile: usize, bel: usize, other: usize) -> IobData {
+fn clkc(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
         kind: IobKind::Clk,
         diff: IobDiff::Comp(other),
         tile,
-        bel: BelId::from_idx(bel),
+        iob: TileIobId::from_idx(iob),
     }
 }
 
-pub fn get_iob_data_b(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_s(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, usize) {
     match kind {
         ChipKind::Virtex2 => match col {
             ColumnIoKind::DoubleLeft(i) => (get_iob_data("IOBS.V2.B.L2"), i.into()),
@@ -143,7 +143,7 @@ pub fn get_iob_data_b(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, usize)
     }
 }
 
-pub fn get_iob_data_t(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_n(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, usize) {
     match kind {
         ChipKind::Virtex2 => match col {
             ColumnIoKind::DoubleLeft(i) => (get_iob_data("IOBS.V2.T.L2"), i.into()),
@@ -179,7 +179,7 @@ pub fn get_iob_data_t(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, usize)
     }
 }
 
-pub fn get_iob_data_l(kind: ChipKind, row: RowIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_w(kind: ChipKind, row: RowIoKind) -> (IobTileData, usize) {
     match kind {
         ChipKind::Virtex2 => match row {
             RowIoKind::DoubleBot(i) => (get_iob_data("IOBS.V2.L.B2"), i.into()),
@@ -210,7 +210,7 @@ pub fn get_iob_data_l(kind: ChipKind, row: RowIoKind) -> (IobTileData, usize) {
     }
 }
 
-pub fn get_iob_data_r(kind: ChipKind, row: RowIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_e(kind: ChipKind, row: RowIoKind) -> (IobTileData, usize) {
     match kind {
         ChipKind::Virtex2 => match row {
             RowIoKind::DoubleBot(i) => (get_iob_data("IOBS.V2.R.B2"), i.into()),

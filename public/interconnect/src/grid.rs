@@ -69,6 +69,7 @@ impl std::fmt::Display for EdgeIoCoord {
 pub type Coord = (ColId, RowId);
 pub type NodeLoc = (DieId, ColId, RowId, LayerId);
 pub type IntWire = (DieId, Coord, WireId);
+pub type IntBel = (DieId, Coord, BelSlotId);
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Rect {
@@ -206,18 +207,14 @@ impl<'a> ExpandedGrid<'a> {
         None
     }
 
-    pub fn find_bel(
-        &self,
-        die: DieId,
-        coord: Coord,
-        key: &str,
-    ) -> Option<(LayerId, &ExpandedTileNode, BelId, &BelInfo)> {
+    pub fn find_bel_layer(&self, bel: IntBel) -> Option<LayerId> {
+        let (die, coord, slot) = bel;
         let die = self.die(die);
         let tile = die.tile(coord);
         for (layer, node) in &tile.nodes {
             let nk = &self.db.nodes[node.kind];
-            if let Some((id, bel)) = nk.bels.get(key) {
-                return Some((layer, node, id, bel));
+            if nk.bels.contains_id(slot) {
+                return Some(layer);
             }
         }
         None

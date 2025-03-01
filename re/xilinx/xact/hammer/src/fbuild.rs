@@ -1,6 +1,6 @@
 use bitvec::vec::BitVec;
 use prjcombine_interconnect::{
-    db::{BelId, NodeKindId},
+    db::{BelSlotId, NodeKindId},
     grid::NodeLoc,
 };
 use prjcombine_re_collector::FeatureId;
@@ -53,13 +53,7 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
         })
     }
 
-    pub fn bel<'c>(&'c mut self, bel: impl Into<String>) -> FuzzCtxBel<'c, 'a> {
-        let bel_name = bel.into();
-        let bel = self.backend.egrid.db.nodes[self.node_kind]
-            .bels
-            .get(&bel_name)
-            .unwrap()
-            .0;
+    pub fn bel<'c>(&'c mut self, bel: BelSlotId) -> FuzzCtxBel<'c, 'a> {
         FuzzCtxBel {
             session: &mut *self.session,
             backend: self.backend,
@@ -263,7 +257,7 @@ pub struct FuzzCtxBel<'sm, 'a> {
     pub session: &'sm mut Session<'a, XactBackend<'a>>,
     pub backend: &'a XactBackend<'a>,
     pub node_kind: NodeKindId,
-    pub bel: BelId,
+    pub bel: BelSlotId,
 }
 
 impl<'a> FuzzCtxBel<'_, 'a> {
@@ -290,7 +284,7 @@ pub struct FuzzBuilderBel<'sm, 'a> {
     pub session: &'sm mut Session<'a, XactBackend<'a>>,
     pub backend: &'a XactBackend<'a>,
     pub node_kind: NodeKindId,
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub props: Vec<Box<dyn Prop>>,
 }
 
@@ -351,10 +345,7 @@ impl<'sm, 'a> FuzzBuilderBel<'sm, 'a> {
             let val = val.as_ref();
             let feature = FeatureId {
                 tile: self.backend.egrid.db.nodes.key(self.node_kind).clone(),
-                bel: self.backend.egrid.db.nodes[self.node_kind]
-                    .bels
-                    .key(self.bel)
-                    .clone(),
+                bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
                 attr: attr.into(),
                 val: val.into(),
             };
@@ -413,10 +404,7 @@ impl<'sm, 'a> FuzzBuilderBel<'sm, 'a> {
         let val = val.as_ref();
         let feature = FeatureId {
             tile: self.backend.egrid.db.nodes.key(self.node_kind).clone(),
-            bel: self.backend.egrid.db.nodes[self.node_kind]
-                .bels
-                .key(self.bel)
-                .clone(),
+            bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
             attr: attr.into(),
             val: val.into(),
         };
@@ -433,7 +421,7 @@ impl<'sm, 'a> FuzzBuilderBel<'sm, 'a> {
 pub struct FuzzBuilderBelTestManual<'sm, 'a> {
     pub session: &'sm mut Session<'a, XactBackend<'a>>,
     pub node_kind: NodeKindId,
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub props: Vec<Box<dyn Prop>>,
     pub feature: FeatureId,
 }

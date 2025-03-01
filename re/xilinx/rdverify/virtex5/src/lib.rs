@@ -107,7 +107,7 @@ fn verify_bufgctrl(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
         ],
         &["I0MUX", "I1MUX", "CKINT0", "CKINT1"],
     );
-    let is_b = bel.bid.to_idx() < 16;
+    let is_b = bel.slot.to_idx() < 16;
     vrf.claim_node(&[bel.fwire("I0")]);
     vrf.claim_node(&[bel.fwire("I1")]);
     vrf.claim_pip(bel.crd(), bel.wire("I0"), bel.wire("I0MUX"));
@@ -160,8 +160,8 @@ fn verify_bufgctrl(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
         endev.edev.chips[bel.die].row_bufg() + 20
     };
     let obel = vrf.find_bel(bel.die, (bel.col, srow), "CLK_IOB").unwrap();
-    let idx0 = (bel.bid.to_idx() % 16) * 2;
-    let idx1 = (bel.bid.to_idx() % 16) * 2 + 1;
+    let idx0 = (bel.slot.to_idx() % 16) * 2;
+    let idx1 = (bel.slot.to_idx() % 16) * 2 + 1;
     vrf.verify_node(&[bel.fwire("MUXBUS0"), obel.fwire(&format!("MUXBUS_O{idx0}"))]);
     vrf.verify_node(&[bel.fwire("MUXBUS1"), obel.fwire(&format!("MUXBUS_O{idx1}"))]);
 }

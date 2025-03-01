@@ -2,7 +2,7 @@ use std::collections::{BTreeSet, HashMap};
 
 use bitvec::vec::BitVec;
 use prjcombine_interconnect::{
-    db::{BelId, NodeKindId},
+    db::{BelSlotId, NodeKindId},
     grid::NodeLoc,
 };
 use prjcombine_re_collector::{FeatureId, State};
@@ -84,12 +84,12 @@ impl Prop for FuzzRaw {
 
 #[derive(Clone, Debug)]
 pub struct BaseBelMode {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub val: String,
 }
 
 impl BaseBelMode {
-    pub fn new(bel: BelId, val: String) -> Self {
+    pub fn new(bel: BelSlotId, val: String) -> Self {
         Self { bel, val }
     }
 }
@@ -115,12 +115,12 @@ impl Prop for BaseBelMode {
 
 #[derive(Clone, Debug)]
 pub struct FuzzBelMode {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub val: String,
 }
 
 impl FuzzBelMode {
-    pub fn new(bel: BelId, val: String) -> Self {
+    pub fn new(bel: BelSlotId, val: String) -> Self {
         Self { bel, val }
     }
 }
@@ -150,13 +150,13 @@ impl Prop for FuzzBelMode {
 
 #[derive(Clone, Debug)]
 pub struct BaseBelMutex {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub attr: String,
     pub val: String,
 }
 
 impl BaseBelMutex {
-    pub fn new(bel: BelId, attr: String, val: String) -> Self {
+    pub fn new(bel: BelSlotId, attr: String, val: String) -> Self {
         Self { bel, attr, val }
     }
 }
@@ -174,7 +174,7 @@ impl Prop for BaseBelMutex {
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         Some((
             fuzzer.base(
-                Key::BelMutex(nloc, self.bel, self.attr.clone()),
+                Key::BelMutex((nloc.0, (nloc.1, nloc.2), self.bel), self.attr.clone()),
                 self.val.clone(),
             ),
             false,
@@ -184,13 +184,13 @@ impl Prop for BaseBelMutex {
 
 #[derive(Clone, Debug)]
 pub struct BaseBelConfig {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub attr: String,
     pub val: String,
 }
 
 impl BaseBelConfig {
-    pub fn new(bel: BelId, attr: String, val: String) -> Self {
+    pub fn new(bel: BelSlotId, attr: String, val: String) -> Self {
         Self { bel, attr, val }
     }
 }
@@ -223,13 +223,13 @@ impl Prop for BaseBelConfig {
 
 #[derive(Clone, Debug)]
 pub struct BaseBelNoConfig {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub attr: String,
     pub val: String,
 }
 
 impl BaseBelNoConfig {
-    pub fn new(bel: BelId, attr: String, val: String) -> Self {
+    pub fn new(bel: BelSlotId, attr: String, val: String) -> Self {
         Self { bel, attr, val }
     }
 }
@@ -262,13 +262,13 @@ impl Prop for BaseBelNoConfig {
 
 #[derive(Clone, Debug)]
 pub struct FuzzBelConfig {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub attr: String,
     pub val: String,
 }
 
 impl FuzzBelConfig {
-    pub fn new(bel: BelId, attr: String, val: String) -> Self {
+    pub fn new(bel: BelSlotId, attr: String, val: String) -> Self {
         Self { bel, attr, val }
     }
 }
@@ -302,14 +302,14 @@ impl Prop for FuzzBelConfig {
 
 #[derive(Clone, Debug)]
 pub struct FuzzBelConfigDiff {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub attr: String,
     pub val0: String,
     pub val1: String,
 }
 
 impl FuzzBelConfigDiff {
-    pub fn new(bel: BelId, attr: String, val0: String, val1: String) -> Self {
+    pub fn new(bel: BelSlotId, attr: String, val0: String, val1: String) -> Self {
         Self {
             bel,
             attr,
@@ -358,13 +358,13 @@ impl Prop for FuzzBelConfigDiff {
 
 #[derive(Clone, Debug)]
 pub struct FuzzEquate {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub attr: String,
     pub inps: &'static [&'static str],
 }
 
 impl FuzzEquate {
-    pub fn new(bel: BelId, attr: String, inps: &'static [&'static str]) -> Self {
+    pub fn new(bel: BelSlotId, attr: String, inps: &'static [&'static str]) -> Self {
         Self { bel, attr, inps }
     }
 }
@@ -402,14 +402,14 @@ impl Prop for FuzzEquate {
 
 #[derive(Clone, Debug)]
 pub struct FuzzEquateFixed {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub attr: String,
     pub inps: &'static [&'static str],
     pub bits: BitVec,
 }
 
 impl FuzzEquateFixed {
-    pub fn new(bel: BelId, attr: String, inps: &'static [&'static str], bits: BitVec) -> Self {
+    pub fn new(bel: BelSlotId, attr: String, inps: &'static [&'static str], bits: BitVec) -> Self {
         Self {
             bel,
             attr,
@@ -452,13 +452,13 @@ impl Prop for FuzzEquateFixed {
 
 #[derive(Clone, Debug)]
 pub struct FuzzBelPipBufg {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub key: String,
     pub buf: &'static str,
 }
 
 impl FuzzBelPipBufg {
-    pub fn new(bel: BelId, key: String, buf: &'static str) -> Self {
+    pub fn new(bel: BelSlotId, key: String, buf: &'static str) -> Self {
         Self { bel, key, buf }
     }
 }
@@ -474,7 +474,9 @@ impl Prop for FuzzBelPipBufg {
         nloc: NodeLoc,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let crd = backend.ngrid.bel_pip(nloc, self.bel, &self.key);
+        let crd = backend
+            .ngrid
+            .bel_pip((nloc.0, (nloc.1, nloc.2), self.bel), &self.key);
         Some((
             fuzzer.fuzz(Key::Pip(crd), None, Value::FromPin(self.buf, "O".into())),
             false,
@@ -484,12 +486,12 @@ impl Prop for FuzzBelPipBufg {
 
 #[derive(Clone, Debug)]
 pub struct PinMutexExclusive {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub pin: String,
 }
 
 impl PinMutexExclusive {
-    pub fn new(bel: BelId, pin: String) -> Self {
+    pub fn new(bel: BelSlotId, pin: String) -> Self {
         Self { bel, pin }
     }
 }
@@ -518,13 +520,13 @@ impl Prop for PinMutexExclusive {
 
 #[derive(Clone, Debug)]
 pub struct FuzzBelPipPin {
-    pub bel: BelId,
+    pub bel: BelSlotId,
     pub key: String,
     pub pin: String,
 }
 
 impl FuzzBelPipPin {
-    pub fn new(bel: BelId, key: String, pin: String) -> Self {
+    pub fn new(bel: BelSlotId, key: String, pin: String) -> Self {
         Self { bel, key, pin }
     }
 }
@@ -542,7 +544,9 @@ impl Prop for FuzzBelPipPin {
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let nnode = &backend.ngrid.nodes[&nloc];
         let bname = &nnode.bels[self.bel][0];
-        let crd = backend.ngrid.bel_pip(nloc, self.bel, &self.key);
+        let crd = backend
+            .ngrid
+            .bel_pip((nloc.0, (nloc.1, nloc.2), self.bel), &self.key);
         Some((
             fuzzer.fuzz(Key::Pip(crd), None, Value::FromPin(bname, self.pin.clone())),
             false,
@@ -552,11 +556,11 @@ impl Prop for FuzzBelPipPin {
 
 #[derive(Clone, Debug)]
 pub struct BondedIo {
-    pub bel: BelId,
+    pub bel: BelSlotId,
 }
 
 impl BondedIo {
-    pub fn new(bel: BelId) -> Self {
+    pub fn new(bel: BelSlotId) -> Self {
         Self { bel }
     }
 }
@@ -572,7 +576,10 @@ impl Prop for BondedIo {
         nloc: NodeLoc,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let io = backend.edev.chip.get_io_crd(nloc.1, nloc.2, self.bel);
+        let io = backend
+            .edev
+            .chip
+            .get_io_crd((nloc.0, (nloc.1, nloc.2), self.bel));
         if backend.edev.chip.unbonded_io.contains(&io) {
             None
         } else {
@@ -591,8 +598,8 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                 todo!()
             } else {
                 let mut res = vec![edev.btile_main(nloc.1, nloc.2)];
-                if nloc.1 != edev.chip.col_rio()
-                    && (nloc.2 == edev.chip.row_bio() || nloc.2 == edev.chip.row_tio())
+                if nloc.1 != edev.chip.col_e()
+                    && (nloc.2 == edev.chip.row_s() || nloc.2 == edev.chip.row_n())
                 {
                     res.push(edev.btile_main(nloc.1 + 1, nloc.2));
                 }
@@ -609,7 +616,7 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                 ]
             } else {
                 let mut res = vec![edev.btile_main(nloc.1, nloc.2)];
-                if nloc.2 != edev.chip.row_tio() {
+                if nloc.2 != edev.chip.row_n() {
                     res.push(edev.btile_main(nloc.1, nloc.2 + 1));
                 }
                 res
@@ -624,18 +631,18 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
         | ChipKind::Xc4000Xv
         | ChipKind::SpartanXl => {
             if kind.starts_with("LLH") {
-                if nloc.2 == edev.chip.row_bio() {
+                if nloc.2 == edev.chip.row_s() {
                     vec![
                         edev.btile_llh(nloc.1, nloc.2),
                         edev.btile_main(nloc.1 - 1, nloc.2),
                     ]
-                } else if nloc.2 == edev.chip.row_tio() {
+                } else if nloc.2 == edev.chip.row_n() {
                     vec![
                         edev.btile_llh(nloc.1, nloc.2),
                         edev.btile_llh(nloc.1, nloc.2 - 1),
                         edev.btile_main(nloc.1 - 1, nloc.2),
                     ]
-                } else if nloc.2 == edev.chip.row_bio() + 1 {
+                } else if nloc.2 == edev.chip.row_s() + 1 {
                     vec![
                         edev.btile_llh(nloc.1, nloc.2),
                         edev.btile_llh(nloc.1, nloc.2 - 1),
@@ -648,7 +655,7 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                     ]
                 }
             } else if kind.starts_with("LLV") {
-                if nloc.1 == edev.chip.col_lio() {
+                if nloc.1 == edev.chip.col_w() {
                     vec![
                         edev.btile_llv(nloc.1, nloc.2),
                         edev.btile_llv(nloc.1 + 1, nloc.2),
@@ -657,11 +664,11 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                     vec![edev.btile_llv(nloc.1, nloc.2)]
                 }
             } else {
-                if nloc.1 == edev.chip.col_lio() {
-                    if nloc.2 == edev.chip.row_bio() {
+                if nloc.1 == edev.chip.col_w() {
+                    if nloc.2 == edev.chip.row_s() {
                         // LL
                         vec![edev.btile_main(nloc.1, nloc.2)]
-                    } else if nloc.2 == edev.chip.row_tio() {
+                    } else if nloc.2 == edev.chip.row_n() {
                         // UL
                         vec![edev.btile_main(nloc.1, nloc.2)]
                     } else {
@@ -671,11 +678,11 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                             edev.btile_main(nloc.1, nloc.2 - 1),
                         ]
                     }
-                } else if nloc.1 == edev.chip.col_rio() {
-                    if nloc.2 == edev.chip.row_bio() {
+                } else if nloc.1 == edev.chip.col_e() {
+                    if nloc.2 == edev.chip.row_s() {
                         // LR
                         vec![edev.btile_main(nloc.1, nloc.2)]
-                    } else if nloc.2 == edev.chip.row_tio() {
+                    } else if nloc.2 == edev.chip.row_n() {
                         // UR
                         vec![
                             edev.btile_main(nloc.1, nloc.2),
@@ -691,13 +698,13 @@ pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
                         ]
                     }
                 } else {
-                    if nloc.2 == edev.chip.row_bio() {
+                    if nloc.2 == edev.chip.row_s() {
                         // BOT
                         vec![
                             edev.btile_main(nloc.1, nloc.2),
                             edev.btile_main(nloc.1 + 1, nloc.2),
                         ]
-                    } else if nloc.2 == edev.chip.row_tio() {
+                    } else if nloc.2 == edev.chip.row_n() {
                         // TOP
                         vec![
                             edev.btile_main(nloc.1, nloc.2),

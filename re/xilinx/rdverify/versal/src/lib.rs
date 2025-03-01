@@ -1,7 +1,7 @@
 use prjcombine_re_xilinx_naming_versal::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
-use prjcombine_versal::{chip::DisabledPart, expanded::UbumpId};
+use prjcombine_versal::{bels, chip::DisabledPart, expanded::UbumpId};
 use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -24,7 +24,7 @@ fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
         }
     }
     vrf.claim_node(&[bel.fwire_far("COUT")]);
-    if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
+    if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.slot) {
         vrf.verify_node(&[bel.fwire_far("CIN"), obel.fwire_far("COUT")]);
     } else {
         vrf.claim_node(&[bel.fwire_far("CIN")]);
@@ -32,7 +32,7 @@ fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     if kind == "SLICEM" {
         vrf.claim_node(&[bel.fwire_far("SRL_OUT_B")]);
         if bel.row.to_idx() % 48 != 0 {
-            if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
+            if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.slot) {
                 vrf.verify_node(&[bel.fwire_far("SRL_IN_B"), obel.fwire_far("SRL_OUT_B")]);
             } else {
                 vrf.claim_node(&[bel.fwire_far("SRL_IN_B")]);
@@ -60,7 +60,7 @@ fn verify_laguna(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
         if let Some(conns) = edev.sll.get(&(bel.die, bel.col, bel.row)) {
             if !conns.cursed[bump] {
                 if let Some((odie, ocol, orow, obump)) = conns.conns[bump] {
-                    let obel = vrf.find_bel(odie, (ocol, orow), "LAGUNA").unwrap();
+                    let obel = vrf.get_bel((odie, (ocol, orow), bels::LAGUNA));
                     if (bel.die, bel.col, bel.row, bump) < (odie, ocol, orow, obump) {
                         vrf.claim_node(&[
                             bel.fwire(&format!("UBUMP{i}")),
@@ -86,9 +86,16 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut inps = vec![];
     let mut outps = vec![];
     let mut cascs = vec![];
-    let obel_cplx = vrf.find_bel_sibling(bel, "DSP_CPLX");
-    let obel_odsp = vrf.find_bel_sibling(bel, if bel.key == "DSP1" { "DSP0" } else { "DSP1" });
-    let lr = if bel.key == "DSP1" { 'R' } else { 'L' };
+    let obel_cplx = vrf.find_bel_sibling(bel, bels::DSP_CPLX);
+    let obel_odsp = vrf.find_bel_sibling(
+        bel,
+        match bel.slot {
+            bels::DSP1 => bels::DSP0,
+            bels::DSP0 => bels::DSP1,
+            _ => unreachable!(),
+        },
+    );
+    let lr = if bel.slot == bels::DSP1 { 'R' } else { 'L' };
     for i in 0..10 {
         inps.push((
             format!("AD_CPLX_{i}_"),
@@ -145,7 +152,7 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_node(&[bel.fwire(inp)]);
         vrf.claim_pip(bel.crd(), bel.wire(inp), obel.wire_far(opin));
     }
-    let obel_s = vrf.find_bel_delta(bel, 0, -2, bel.key);
+    let obel_s = vrf.find_bel_delta(bel, 0, -2, bel.slot);
     for (ipin, opin) in &cascs {
         pins.push((&**ipin, SitePinDir::In));
         pins.push((&**opin, SitePinDir::Out));
@@ -166,8 +173,8 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_dsp_cplx(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut inps = vec![];
     let mut outps = vec![];
-    let obel_dsp0 = vrf.find_bel_sibling(bel, "DSP0");
-    let obel_dsp1 = vrf.find_bel_sibling(bel, "DSP1");
+    let obel_dsp0 = vrf.find_bel_sibling(bel, bels::DSP0);
+    let obel_dsp1 = vrf.find_bel_sibling(bel, bels::DSP1);
     for i in 0..10 {
         outps.push(format!("AD_CPLX_DSPL_{i}_"));
         outps.push(format!("AD_CPLX_DSPR_{i}_"));
@@ -241,7 +248,7 @@ fn verify_bram_f(vrf: &mut Verifier, bel: &BelContext<'_>) {
     cascs.push(("CASINSBITERR".to_string(), "CASOUTSBITERR".to_string()));
     cascs.push(("CASINDBITERR".to_string(), "CASOUTDBITERR".to_string()));
     let mut pins = vec![];
-    let obel_s = vrf.find_bel_delta(bel, 0, -4, bel.key);
+    let obel_s = vrf.find_bel_delta(bel, 0, -4, bel.slot);
     for (ipin, opin) in &cascs {
         pins.push((&**ipin, SitePinDir::In));
         pins.push((&**opin, SitePinDir::Out));
@@ -262,8 +269,8 @@ fn verify_bram_f(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_bram_h(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut inps = vec![];
     let mut outps = vec![];
-    let obel_f = vrf.find_bel_sibling(bel, "BRAM_F");
-    let idx = if bel.key.ends_with('1') { 1 } else { 0 };
+    let obel_f = vrf.find_bel_sibling(bel, bels::BRAM_F);
+    let idx = if bel.slot == bels::BRAM_H1 { 1 } else { 0 };
     for ab in ['A', 'B'] {
         for i in 0..16 {
             let ii = i * 2 + idx;
@@ -287,9 +294,9 @@ fn verify_bram_h(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_node(&[bel.fwire(opin)]);
         vrf.claim_pip(bel.crd(), obel_f.wire_far(opin_f), bel.wire(opin));
     }
-    let kind = match bel.key {
-        "BRAM_H0" => "RAMB18_L",
-        "BRAM_H1" => "RAMB18_U",
+    let kind = match bel.slot {
+        bels::BRAM_H0 => "RAMB18_L",
+        bels::BRAM_H1 => "RAMB18_U",
         _ => unreachable!(),
     };
     vrf.verify_bel(bel, kind, &pins, &[]);
@@ -325,11 +332,11 @@ fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
         }
     }
     let mut pins = vec![];
-    let obel_s = if bel.key == "URAM" {
-        vrf.find_bel_delta(bel, 0, -4, "URAM_CAS_DLY")
-            .or_else(|| vrf.find_bel_delta(bel, 0, -4, bel.key))
+    let obel_s = if bel.slot == bels::URAM {
+        vrf.find_bel_delta(bel, 0, -4, bels::URAM_CAS_DLY)
+            .or_else(|| vrf.find_bel_delta(bel, 0, -4, bel.slot))
     } else {
-        Some(vrf.find_bel_sibling(bel, "URAM"))
+        Some(vrf.find_bel_sibling(bel, bels::URAM))
     };
     for (ipin, opin) in &cascs {
         pins.push((&**ipin, SitePinDir::In));
@@ -347,10 +354,10 @@ fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
     vrf.verify_bel(
         bel,
-        if bel.key == "URAM" {
+        if bel.slot == bels::URAM {
             "URAM288"
         } else {
-            bel.key
+            "URAM_CAS_DLY"
         },
         &pins,
         &[],
@@ -384,9 +391,11 @@ fn verify_bufdiv_leaf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
     }
     if !bel.bel.pins.contains_key("I_CASC") {
         pins.push(("I_CASC", SitePinDir::In));
-        let (key_base, idx) = bel.key.rsplit_once('.').unwrap();
-        let idx: u32 = idx.parse().unwrap();
-        let obel = vrf.find_bel_sibling(bel, &format!("{key_base}.{oidx}", oidx = idx - 1));
+        let idx = bels::BUFDIV_LEAF
+            .into_iter()
+            .position(|x| x == bel.slot)
+            .unwrap();
+        let obel = vrf.find_bel_sibling(bel, bels::BUFDIV_LEAF[idx - 1]);
         vrf.claim_node(&[bel.fwire("I_CASC")]);
         vrf.claim_pip(bel.crd(), bel.wire("I_CASC"), obel.wire_far("O_CASC"));
     }
@@ -408,13 +417,8 @@ fn verify_bufdiv_leaf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
     vrf.claim_node(&[bel.fwire("I")]);
     vrf.claim_node(&[bel.fwire_far("I")]);
     vrf.claim_pip(bel.crd(), bel.wire("I"), bel.wire_far("I"));
-    let (key_hdistr_loc, key_vcc) = if bel.key.starts_with("BUFDIV_LEAF.CLE") {
-        ("RCLK_HDISTR_LOC.CLE", "VCC.RCLK_CLE")
-    } else {
-        ("RCLK_HDISTR_LOC", "VCC.RCLK_INTF")
-    };
-    let obel_hdistr_loc = vrf.find_bel_sibling(bel, key_hdistr_loc);
-    let obel_vcc = vrf.find_bel_sibling(bel, key_vcc);
+    let obel_hdistr_loc = vrf.find_bel_sibling(bel, bels::RCLK_HDISTR_LOC);
+    let obel_vcc = vrf.find_bel_sibling(bel, bels::VCC_RCLK);
     vrf.claim_pip(bel.crd(), bel.wire_far("I"), obel_vcc.wire("VCC"));
     for i in 0..24 {
         vrf.claim_pip(
@@ -434,8 +438,8 @@ fn verify_rclk_hdistr_loc(
 }
 
 fn verify_hdiob(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let idx: u32 = bel.key[5..].parse().unwrap();
-    let obel = vrf.find_bel_sibling(bel, &format!("HDIOLOGIC{idx}"));
+    let idx = bels::HDIOB.into_iter().position(|x| x == bel.slot).unwrap();
+    let obel = vrf.find_bel_sibling(bel, bels::HDIOLOGIC[idx]);
     vrf.verify_bel(
         bel,
         "HDIOB",
@@ -466,8 +470,11 @@ fn verify_hdiob(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_hdiologic(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let idx: u32 = bel.key[9..].parse().unwrap();
-    let obel = vrf.find_bel_sibling(bel, &format!("HDIOB{idx}"));
+    let idx = bels::HDIOLOGIC
+        .into_iter()
+        .position(|x| x == bel.slot)
+        .unwrap();
+    let obel = vrf.find_bel_sibling(bel, bels::HDIOB[idx]);
     vrf.verify_bel(
         bel,
         "HDIOLOGIC",
@@ -503,16 +510,16 @@ fn verify_bufgce_hdio(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("I")]);
     vrf.claim_node(&[bel.fwire_far("I")]);
     vrf.claim_pip(bel.crd(), bel.wire("I"), bel.wire_far("I"));
-    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.HDIO");
+    let obel_vcc = vrf.find_bel_sibling(bel, bels::VCC_HDIO);
     vrf.claim_pip(bel.crd(), bel.wire_far("I"), obel_vcc.wire("VCC"));
-    let obel_dpll = vrf.find_bel_sibling(bel, "DPLL.HDIO");
+    let obel_dpll = vrf.find_bel_sibling(bel, bels::DPLL_HDIO);
     for opin in ["CLKOUT0", "CLKOUT1", "CLKOUT2", "CLKOUT3", "TMUXOUT"] {
         vrf.claim_pip(bel.crd(), bel.wire_far("I"), obel_dpll.wire_far(opin));
     }
     vrf.claim_pip(bel.crd(), bel.wire_far("I"), obel_dpll.wire("CLKIN_INT"));
-    let obel_iob_a = vrf.find_bel_sibling(bel, "HDIOB5");
+    let obel_iob_a = vrf.find_bel_sibling(bel, bels::HDIOB5);
     vrf.claim_pip(bel.crd(), bel.wire_far("I"), obel_iob_a.wire_far("RXOUT_M"));
-    let obel_iob_b = vrf.find_bel_sibling(bel, "HDIOB6");
+    let obel_iob_b = vrf.find_bel_sibling(bel, bels::HDIOB6);
     vrf.claim_pip(bel.crd(), bel.wire_far("I"), obel_iob_b.wire_far("RXOUT_M"));
     for i in 0..8 {
         let pin = format!("I_DUMMY{i}");
@@ -556,13 +563,13 @@ fn verify_dpll_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
     }
     vrf.claim_pip(bel.crd(), bel.wire_far("CLKIN"), bel.wire("CLKIN_INT"));
     vrf.claim_pip(bel.crd(), bel.wire_far("CLKIN"), bel.wire("CLKIN_RCLK"));
-    let obel_iob_a = vrf.find_bel_sibling(bel, "HDIOB5");
+    let obel_iob_a = vrf.find_bel_sibling(bel, bels::HDIOB5);
     vrf.claim_pip(
         bel.crd(),
         bel.wire_far("CLKIN"),
         obel_iob_a.wire_far("RXOUT_M"),
     );
-    let obel_iob_b = vrf.find_bel_sibling(bel, "HDIOB6");
+    let obel_iob_b = vrf.find_bel_sibling(bel, bels::HDIOB6);
     vrf.claim_pip(
         bel.crd(),
         bel.wire_far("CLKIN"),
@@ -587,10 +594,12 @@ fn verify_dpll_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
     vrf.claim_node(&[bel.fwire("CLKIN_DESKEW_DUMMY1")]);
 
     if grid.is_reg_n(reg) {
-        let obel = vrf.find_bel_delta(bel, 0, 0, "RCLK_HDIO_DPLL").unwrap();
+        let obel = vrf.find_bel_delta(bel, 0, 0, bels::RCLK_HDIO_DPLL).unwrap();
         vrf.verify_node(&[bel.fwire("CLKIN_RCLK"), obel.fwire("OUT_N")]);
     } else {
-        let obel = vrf.find_bel_delta(bel, 0, 48, "RCLK_HDIO_DPLL").unwrap();
+        let obel = vrf
+            .find_bel_delta(bel, 0, 48, bels::RCLK_HDIO_DPLL)
+            .unwrap();
         vrf.verify_node(&[bel.fwire("CLKIN_RCLK"), obel.fwire("OUT_S")]);
     }
 
@@ -633,8 +642,8 @@ fn verify_dpll_gt(_endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
 }
 
 fn verify_rclk_hdio_dpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF");
-    let obel_hdistr_loc = vrf.find_bel_sibling(bel, "RCLK_HDISTR_LOC");
+    let obel_vcc = vrf.find_bel_sibling(bel, bels::VCC_RCLK);
+    let obel_hdistr_loc = vrf.find_bel_sibling(bel, bels::RCLK_HDISTR_LOC);
     for opin in ["OUT_S", "OUT_N"] {
         vrf.claim_node(&[bel.fwire(opin)]);
         vrf.claim_pip(bel.crd(), bel.wire(opin), obel_vcc.wire("VCC"));
@@ -649,7 +658,7 @@ fn verify_rclk_hdio_dpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_rclk_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF");
+    let obel_vcc = vrf.find_bel_sibling(bel, bels::VCC_RCLK);
     for i in 0..24 {
         let opin = format!("HDISTR{i}");
         let mpin = format!("HDISTR{i}_MUX");
@@ -689,13 +698,13 @@ fn verify_rclk_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
     let grid = endev.edev.chips[bel.die];
     let reg = grid.row_to_reg(bel.row);
     for i in 0..4 {
-        if let Some(obel) = vrf.find_bel_delta(bel, 0, 0, &format!("BUFGCE_HDIO{i}")) {
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, 0, bels::BUFGCE_HDIO[i]) {
             vrf.verify_node(&[bel.fwire(&format!("BUFGCE_OUT_N{i}")), obel.fwire_far("O")]);
         }
     }
     if reg.to_idx() % 2 == 1 {
         for i in 0..4 {
-            if let Some(obel) = vrf.find_bel_delta(bel, 0, -48, &format!("BUFGCE_HDIO{i}")) {
+            if let Some(obel) = vrf.find_bel_delta(bel, 0, -48, bels::BUFGCE_HDIO[i]) {
                 vrf.verify_node(&[bel.fwire(&format!("BUFGCE_OUT_S{i}")), obel.fwire_far("O")]);
             } else {
                 vrf.claim_node(&[bel.fwire(&format!("BUFGCE_OUT_S{i}"))]);
@@ -710,7 +719,7 @@ fn verify_rclk_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
 }
 
 fn verify_rclk_hb_hdio(_endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF");
+    let obel_vcc = vrf.find_bel_sibling(bel, bels::VCC_RCLK);
     for i in 0..24 {
         let opin = format!("HDISTR{i}");
         let mpin = format!("HDISTR{i}_MUX");
@@ -748,7 +757,7 @@ fn verify_rclk_hb_hdio(_endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
         }
     }
     for i in 0..4 {
-        if let Some(obel) = vrf.find_bel_delta(bel, 0, -48, &format!("BUFGCE_HDIO{i}")) {
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, -48, bels::BUFGCE_HDIO[i]) {
             vrf.verify_node(&[bel.fwire(&format!("BUFGCE_OUT_S{i}")), obel.fwire_far("O")]);
         } else {
             vrf.claim_node(&[bel.fwire(&format!("BUFGCE_OUT_S{i}"))]);
@@ -758,13 +767,13 @@ fn verify_rclk_hb_hdio(_endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
 }
 
 fn verify_vnoc_nxu512(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let (kind, obel_key, obel_pin) = match bel.key {
-        "VNOC_NSU512" => ("NOC_NSU512", "VNOC_NPS_A", "OUT_3"),
-        "VNOC_NMU512" => ("NOC_NMU512", "VNOC_NPS_B", "OUT_3"),
-        "VNOC2_NSU512" => ("NOC2_NSU512", "VNOC2_NPS_A", "OUT_3"),
-        "VNOC2_NMU512" => ("NOC2_NMU512", "VNOC2_NPS_B", "OUT_3"),
-        "VNOC4_NSU512" => ("NOC2_NSU512", "VNOC4_NPS_A", "OUT_3"),
-        "VNOC4_NMU512" => ("NOC2_NMU512", "VNOC4_NPS_B", "OUT_0"),
+    let (kind, obel_key, obel_pin) = match bel.slot {
+        bels::VNOC_NSU512 => ("NOC_NSU512", bels::VNOC_NPS_A, "OUT_3"),
+        bels::VNOC_NMU512 => ("NOC_NMU512", bels::VNOC_NPS_B, "OUT_3"),
+        bels::VNOC2_NSU512 => ("NOC2_NSU512", bels::VNOC2_NPS_A, "OUT_3"),
+        bels::VNOC2_NMU512 => ("NOC2_NMU512", bels::VNOC2_NPS_B, "OUT_3"),
+        bels::VNOC4_NSU512 => ("NOC2_NSU512", bels::VNOC4_NPS_A, "OUT_3"),
+        bels::VNOC4_NMU512 => ("NOC2_NMU512", bels::VNOC4_NPS_B, "OUT_0"),
         _ => unreachable!(),
     };
     vrf.verify_bel(
@@ -783,11 +792,11 @@ fn verify_vnoc_nxu512(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_vnoc_nps(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let (kind, obel_key_nxu, obel_key_nps) = match bel.key {
-        "VNOC_NPS_A" => ("NOC_NPS_VNOC", "VNOC_NSU512", "VNOC_NPS_B"),
-        "VNOC_NPS_B" => ("NOC_NPS_VNOC", "VNOC_NMU512", "VNOC_NPS_A"),
-        "VNOC2_NPS_A" => ("NOC2_NPS5555", "VNOC2_NSU512", "VNOC2_NPS_B"),
-        "VNOC2_NPS_B" => ("NOC2_NPS5555", "VNOC2_NMU512", "VNOC2_NPS_A"),
+    let (kind, is_a, obel_key_nxu, obel_key_nps) = match bel.slot {
+        bels::VNOC_NPS_A => ("NOC_NPS_VNOC", true, bels::VNOC_NSU512, bels::VNOC_NPS_B),
+        bels::VNOC_NPS_B => ("NOC_NPS_VNOC", false, bels::VNOC_NMU512, bels::VNOC_NPS_A),
+        bels::VNOC2_NPS_A => ("NOC2_NPS5555", true, bels::VNOC2_NSU512, bels::VNOC2_NPS_B),
+        bels::VNOC2_NPS_B => ("NOC2_NPS5555", false, bels::VNOC2_NMU512, bels::VNOC2_NPS_A),
         _ => unreachable!(),
     };
     vrf.verify_bel(
@@ -818,24 +827,24 @@ fn verify_vnoc_nps(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_nps = vrf.find_bel_sibling(bel, obel_key_nps);
     vrf.verify_node(&[bel.fwire_far("IN_3"), obel_nxu.fwire_far("TO_NOC")]);
     vrf.verify_node(&[bel.fwire_far("IN_1"), obel_nps.fwire_far("OUT_1")]);
-    if bel.key.ends_with('A') {
-        if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -48, bel.key) {
+    if is_a {
+        if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -48, bel.slot) {
             vrf.verify_node(&[bel.fwire_far("IN_0"), obel_s.fwire_far("OUT_2")]);
         } else {
             vrf.claim_node(&[bel.fwire_far("IN_0")]);
         }
-        if let Some(obel_n) = vrf.find_bel_delta(bel, 0, 48, bel.key) {
+        if let Some(obel_n) = vrf.find_bel_delta(bel, 0, 48, bel.slot) {
             vrf.verify_node(&[bel.fwire_far("IN_2"), obel_n.fwire_far("OUT_0")]);
         } else {
             vrf.claim_node(&[bel.fwire_far("IN_2")]);
         }
     } else {
-        if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -48, bel.key) {
+        if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -48, bel.slot) {
             vrf.verify_node(&[bel.fwire_far("IN_2"), obel_s.fwire_far("OUT_0")]);
         } else {
             vrf.claim_node(&[bel.fwire_far("IN_2")]);
         }
-        if let Some(obel_n) = vrf.find_bel_delta(bel, 0, 48, bel.key) {
+        if let Some(obel_n) = vrf.find_bel_delta(bel, 0, 48, bel.slot) {
             vrf.verify_node(&[bel.fwire_far("IN_0"), obel_n.fwire_far("OUT_2")]);
         } else {
             vrf.claim_node(&[bel.fwire_far("IN_0")]);
@@ -872,25 +881,25 @@ fn verify_vnoc_nps6x(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_node(&[bel.fwire(pin)]);
         vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
     }
-    if bel.key == "VNOC4_NPS_A" {
-        let obel_nxu = vrf.find_bel_sibling(bel, "VNOC4_NSU512");
-        let obel_nps = vrf.find_bel_sibling(bel, "VNOC4_NPS_B");
+    if bel.slot == bels::VNOC4_NPS_A {
+        let obel_nxu = vrf.find_bel_sibling(bel, bels::VNOC4_NSU512);
+        let obel_nps = vrf.find_bel_sibling(bel, bels::VNOC4_NPS_B);
         vrf.verify_node(&[bel.fwire_far("IN_3"), obel_nxu.fwire_far("TO_NOC")]);
         vrf.verify_node(&[bel.fwire_far("IN_0"), obel_nps.fwire_far("OUT_3")]);
     } else {
-        let obel_nxu = vrf.find_bel_sibling(bel, "VNOC4_NMU512");
-        let obel_nps = vrf.find_bel_sibling(bel, "VNOC4_NPS_A");
+        let obel_nxu = vrf.find_bel_sibling(bel, bels::VNOC4_NMU512);
+        let obel_nps = vrf.find_bel_sibling(bel, bels::VNOC4_NPS_A);
         vrf.verify_node(&[bel.fwire_far("IN_0"), obel_nxu.fwire_far("TO_NOC")]);
         vrf.verify_node(&[bel.fwire_far("IN_3"), obel_nps.fwire_far("OUT_0")]);
     }
-    if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -48, bel.key) {
+    if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -48, bel.slot) {
         vrf.verify_node(&[bel.fwire_far("IN_4"), obel_s.fwire_far("OUT_2")]);
         vrf.verify_node(&[bel.fwire_far("IN_5"), obel_s.fwire_far("OUT_1")]);
     } else {
         vrf.claim_node(&[bel.fwire_far("IN_4")]);
         vrf.claim_node(&[bel.fwire_far("IN_5")]);
     }
-    if let Some(obel_n) = vrf.find_bel_delta(bel, 0, 48, bel.key) {
+    if let Some(obel_n) = vrf.find_bel_delta(bel, 0, 48, bel.slot) {
         vrf.verify_node(&[bel.fwire_far("IN_2"), obel_n.fwire_far("OUT_4")]);
         vrf.verify_node(&[bel.fwire_far("IN_1"), obel_n.fwire_far("OUT_5")]);
     } else {
@@ -902,7 +911,7 @@ fn verify_vnoc_nps6x(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_vnoc_scan(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut outps = vec![];
     let mut inps = vec![];
-    if bel.key == "VNOC2_SCAN" {
+    if bel.slot == bels::VNOC2_SCAN {
         for i in 6..15 {
             outps.push(format!("NOC2_SCAN_CHNL_TO_PL_{i}_"));
             inps.push(format!("NOC2_SCAN_CHNL_FROM_PL_{i}_"))
@@ -945,7 +954,7 @@ fn verify_vdu(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ],
         &[],
     );
-    let obel = vrf.find_bel_sibling(bel, "DPLL.RGT");
+    let obel = vrf.find_bel_sibling(bel, bels::DPLL_GT);
     for (pin, pllpin) in [("VDUCORECLK", "CLKOUT2"), ("VDUMCUCLK", "CLKOUT3")] {
         vrf.claim_node(&[bel.fwire(pin)]);
         vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
@@ -958,49 +967,54 @@ fn verify_vcc(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    match bel.key {
-        "LAGUNA" => verify_laguna(endev, vrf, bel),
-        "DSP0" | "DSP1" => verify_dsp(vrf, bel),
-        "DSP_CPLX" => verify_dsp_cplx(vrf, bel),
-        "BRAM_F" => verify_bram_f(vrf, bel),
-        "BRAM_H0" | "BRAM_H1" => verify_bram_h(vrf, bel),
-        "URAM" | "URAM_CAS_DLY" => verify_uram(vrf, bel),
-        "PCIE4" => verify_hardip(endev, vrf, bel, "PCIE40"),
-        "PCIE5" => verify_hardip(endev, vrf, bel, "PCIE50"),
-        "MRMAC" => verify_hardip(endev, vrf, bel, "MRMAC"),
-        "DCMAC" => verify_hardip(endev, vrf, bel, "DCMAC"),
-        "ILKN" => verify_hardip(endev, vrf, bel, "ILKNF"),
-        "HSC" => verify_hardip(endev, vrf, bel, "HSC"),
-        "SDFEC" => verify_hardip(endev, vrf, bel, "SDFEC_A"),
-        "DFE_CFC_BOT" => verify_hardip(endev, vrf, bel, "DFE_CFC_BOT"),
-        "DFE_CFC_TOP" => verify_hardip(endev, vrf, bel, "DFE_CFC_TOP"),
-        "RCLK_DFX_TEST.E" | "RCLK_DFX_TEST.W" => vrf.verify_bel(bel, "RCLK_DFX_TEST", &[], &[]),
-        "SYSMON_SAT.VNOC" | "SYSMON_SAT.LGT" | "SYSMON_SAT.RGT" => {
-            vrf.verify_bel(bel, "SYSMON_SAT", &[], &[])
+    let slot_name = &endev.edev.egrid.db.bel_slots[bel.slot];
+    match bel.slot {
+        bels::LAGUNA => verify_laguna(endev, vrf, bel),
+        bels::DSP0 | bels::DSP1 => verify_dsp(vrf, bel),
+        bels::DSP_CPLX => verify_dsp_cplx(vrf, bel),
+        bels::BRAM_F => verify_bram_f(vrf, bel),
+        bels::BRAM_H0 | bels::BRAM_H1 => verify_bram_h(vrf, bel),
+        bels::URAM | bels::URAM_CAS_DLY => verify_uram(vrf, bel),
+        bels::PCIE4 => verify_hardip(endev, vrf, bel, "PCIE40"),
+        bels::PCIE5 => verify_hardip(endev, vrf, bel, "PCIE50"),
+        bels::MRMAC => verify_hardip(endev, vrf, bel, "MRMAC"),
+        bels::DCMAC => verify_hardip(endev, vrf, bel, "DCMAC"),
+        bels::ILKN => verify_hardip(endev, vrf, bel, "ILKNF"),
+        bels::HSC => verify_hardip(endev, vrf, bel, "HSC"),
+        bels::SDFEC => verify_hardip(endev, vrf, bel, "SDFEC_A"),
+        bels::DFE_CFC_BOT => verify_hardip(endev, vrf, bel, "DFE_CFC_BOT"),
+        bels::DFE_CFC_TOP => verify_hardip(endev, vrf, bel, "DFE_CFC_TOP"),
+        bels::RCLK_DFX_TEST => vrf.verify_bel(bel, "RCLK_DFX_TEST", &[], &[]),
+        bels::SYSMON_SAT_VNOC | bels::SYSMON_SAT_GT => vrf.verify_bel(bel, "SYSMON_SAT", &[], &[]),
+        bels::DPLL_HDIO => verify_dpll_hdio(endev, vrf, bel),
+        bels::DPLL_GT => verify_dpll_gt(endev, vrf, bel),
+        bels::RCLK_HDIO_DPLL => verify_rclk_hdio_dpll(vrf, bel),
+        bels::RCLK_HDIO => verify_rclk_hdio(endev, vrf, bel),
+        bels::RCLK_HB_HDIO => verify_rclk_hb_hdio(endev, vrf, bel),
+        bels::VNOC_NSU512
+        | bels::VNOC_NMU512
+        | bels::VNOC2_NSU512
+        | bels::VNOC2_NMU512
+        | bels::VNOC4_NSU512
+        | bels::VNOC4_NMU512 => verify_vnoc_nxu512(vrf, bel),
+        bels::VNOC_NPS_A | bels::VNOC_NPS_B | bels::VNOC2_NPS_A | bels::VNOC2_NPS_B => {
+            verify_vnoc_nps(vrf, bel)
         }
-        "DPLL.HDIO" => verify_dpll_hdio(endev, vrf, bel),
-        "DPLL.LGT" | "DPLL.RGT" => verify_dpll_gt(endev, vrf, bel),
-        "RCLK_HDIO_DPLL" => verify_rclk_hdio_dpll(vrf, bel),
-        "RCLK_HDIO" => verify_rclk_hdio(endev, vrf, bel),
-        "RCLK_HB_HDIO" => verify_rclk_hb_hdio(endev, vrf, bel),
-        "VNOC_NSU512" | "VNOC_NMU512" | "VNOC2_NSU512" | "VNOC2_NMU512" | "VNOC4_NSU512"
-        | "VNOC4_NMU512" => verify_vnoc_nxu512(vrf, bel),
-        "VNOC_NPS_A" | "VNOC_NPS_B" | "VNOC2_NPS_A" | "VNOC2_NPS_B" => verify_vnoc_nps(vrf, bel),
-        "VNOC4_NPS_A" | "VNOC4_NPS_B" => verify_vnoc_nps6x(vrf, bel),
-        "VNOC2_SCAN" | "VNOC4_SCAN" => verify_vnoc_scan(vrf, bel),
-        "HDIO_BIAS" | "RPI_HD_APB" | "HDLOGIC_APB" | "MISR" | "BFR_B" => {
-            vrf.verify_bel(bel, bel.key, &[], &[])
+        bels::VNOC4_NPS_A | bels::VNOC4_NPS_B => verify_vnoc_nps6x(vrf, bel),
+        bels::VNOC2_SCAN | bels::VNOC4_SCAN => verify_vnoc_scan(vrf, bel),
+        bels::HDIO_BIAS | bels::RPI_HD_APB | bels::HDLOGIC_APB | bels::MISR | bels::BFR_B => {
+            vrf.verify_bel(bel, slot_name, &[], &[])
         }
-        "VDU" => verify_vdu(vrf, bel),
+        bels::VDU => verify_vdu(vrf, bel),
 
-        _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
-        _ if bel.key.starts_with("BUFDIV_LEAF") => verify_bufdiv_leaf(endev, vrf, bel),
-        _ if bel.key.starts_with("RCLK_HDISTR_LOC") => verify_rclk_hdistr_loc(endev, vrf, bel),
-        _ if bel.key.starts_with("HDIOB") => verify_hdiob(vrf, bel),
-        _ if bel.key.starts_with("HDIOLOGIC") => verify_hdiologic(vrf, bel),
-        _ if bel.key.starts_with("BUFGCE_HDIO") => verify_bufgce_hdio(vrf, bel),
-        _ if bel.key.starts_with("VCC") => verify_vcc(vrf, bel),
-        _ => println!("MEOW {} {:?}", bel.key, bel.name),
+        _ if slot_name.starts_with("SLICE") => verify_slice(vrf, bel),
+        _ if slot_name.starts_with("BUFDIV_LEAF") => verify_bufdiv_leaf(endev, vrf, bel),
+        _ if slot_name.starts_with("RCLK_HDISTR_LOC") => verify_rclk_hdistr_loc(endev, vrf, bel),
+        _ if slot_name.starts_with("HDIOB") => verify_hdiob(vrf, bel),
+        _ if slot_name.starts_with("HDIOLOGIC") => verify_hdiologic(vrf, bel),
+        _ if slot_name.starts_with("BUFGCE_HDIO") => verify_bufgce_hdio(vrf, bel),
+        _ if slot_name.starts_with("VCC") => verify_vcc(vrf, bel),
+        _ => println!("MEOW {} {:?}", slot_name, bel.name),
     }
 }
 

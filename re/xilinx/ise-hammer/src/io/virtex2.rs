@@ -303,7 +303,7 @@ fn has_any_vref<'a>(
         }
     }
     for &(_, mut col, mut row, _) in &edev.egrid.node_index[node_kind] {
-        if col == edev.chip.col_left() || col == edev.chip.col_right() {
+        if col == edev.chip.col_w() || col == edev.chip.col_e() {
             row += ioi_tile;
         } else {
             col += ioi_tile
@@ -340,7 +340,7 @@ fn has_any_vr<'a>(
         }
     }
     for &(_, mut col, mut row, _) in &edev.egrid.node_index[node_kind] {
-        if col == edev.chip.col_left() || col == edev.chip.col_right() {
+        if col == edev.chip.col_w() || col == edev.chip.col_e() {
             row += ioi_tile;
         } else {
             col += ioi_tile

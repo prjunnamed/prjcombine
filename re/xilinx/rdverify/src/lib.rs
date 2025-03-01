@@ -1,12 +1,12 @@
 #![allow(clippy::unnecessary_unwrap)]
 
 use prjcombine_interconnect::db::{
-    BelId, BelInfo, IntDb, IntfInfo, IriPin, NodeKindId, NodeWireId, PinDir, TermInfo, TermSlotId,
-    WireId, WireKind,
+    BelInfo, BelSlotId, IntDb, IntfInfo, IriPin, NodeKindId, NodeWireId, PinDir, TermInfo,
+    TermSlotId, WireId, WireKind,
 };
 use prjcombine_interconnect::grid::{
-    ColId, DieId, ExpandedGrid, ExpandedTileNode, ExpandedTileTerm, IntWire, LayerId, NodeLoc,
-    RowId,
+    ColId, DieId, ExpandedGrid, ExpandedTileNode, ExpandedTileTerm, IntBel, IntWire, LayerId,
+    NodeLoc, RowId,
 };
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, IntfWireInNaming, IntfWireOutNaming, NamingDb, NodeRawTileId, TermWireInFarNaming,
@@ -22,12 +22,11 @@ pub struct BelContext<'a> {
     pub die: DieId,
     pub col: ColId,
     pub row: RowId,
+    pub slot: BelSlotId,
     pub layer: LayerId,
     pub node: &'a ExpandedTileNode,
     pub nnode: &'a GridNodeNaming,
     pub node_kind: &'a str,
-    pub bid: BelId,
-    pub key: &'a str,
     pub bel: &'a BelInfo,
     pub naming: &'a BelNaming,
     pub name: Option<&'a str>,
@@ -116,7 +115,7 @@ pub struct Verifier<'a> {
     cond_stub_outs: HashSet<rawdump::WireId>,
     cond_stub_ins: HashSet<rawdump::WireId>,
     cond_stub_ins_tk: HashSet<(rawdump::TileKindId, rawdump::WireId)>,
-    skip_bel_pins: HashSet<(DieId, ColId, RowId, LayerId, BelId, &'static str)>,
+    skip_bel_pins: HashSet<(IntBel, &'static str)>,
 }
 
 #[derive(Debug, Default)]
@@ -867,12 +866,12 @@ impl<'a> Verifier<'a> {
             );
         }
 
-        for (id, _, bel) in &kind.bels {
-            let bn = &naming.bels[id];
+        for (slot, bel) in &kind.bels {
+            let bn = &naming.bels[slot];
             for (k, v) in &bel.pins {
                 if self
                     .skip_bel_pins
-                    .contains(&(nloc.0, nloc.1, nloc.2, nloc.3, id, k))
+                    .contains(&((nloc.0, (nloc.1, nloc.2), slot), k))
                 {
                     continue;
                 }
@@ -1349,7 +1348,10 @@ impl<'a> Verifier<'a> {
                 });
             } else {
                 if !bel.naming.pins.contains_key(pin) {
-                    panic!("MISSING PIN NAME {key} {pin}", key = bel.key);
+                    panic!(
+                        "MISSING PIN NAME {slot} {pin}",
+                        slot = self.grid.db.bel_slots[bel.slot]
+                    );
                 }
                 pins.push(SitePin {
                     dir,
@@ -1361,7 +1363,11 @@ impl<'a> Verifier<'a> {
         if let Some(name) = bel.name {
             self.claim_site(bel.crd(), name, kind, &pins);
         } else {
-            println!("MISSING SITE NAME {:?} {}", bel.node.tiles, bel.key);
+            println!(
+                "MISSING SITE NAME {tiles:?} {slot}",
+                tiles = bel.node.tiles,
+                slot = self.grid.db.bel_slots[bel.slot]
+            );
         }
     }
 
@@ -1375,15 +1381,22 @@ impl<'a> Verifier<'a> {
         self.verify_bel_dummies(bel, kind, extras, skip, &[]);
     }
 
-    pub fn get_bel(&self, nloc: NodeLoc, node: &'a ExpandedTileNode, bid: BelId) -> BelContext<'a> {
+    pub fn get_bel(&self, bel: IntBel) -> BelContext<'a> {
+        self.find_bel(bel).unwrap()
+    }
+
+    pub fn find_bel(&self, bel: IntBel) -> Option<BelContext<'a>> {
+        let (die, (col, row), slot) = bel;
+        let layer = self.grid.find_bel_layer(bel)?;
+        let nloc = (die, col, row, layer);
+        let node = &self.grid.die(die).tile((col, row)).nodes[layer];
         let crds = self.get_node_crds(nloc).unwrap();
         let nk = &self.db.nodes[node.kind];
         let nnode = &self.ngrid.nodes[&nloc];
         let nn = &self.ndb.node_namings[nnode.naming];
-        let bel = &nk.bels[bid];
-        let naming = &nn.bels[bid];
-        let key = &**nk.bels.key(bid);
-        BelContext {
+        let bel = &nk.bels[slot];
+        let naming = &nn.bels[slot];
+        Some(BelContext {
             die: nloc.0,
             col: nloc.1,
             row: nloc.2,
@@ -1391,25 +1404,12 @@ impl<'a> Verifier<'a> {
             node,
             nnode,
             node_kind: self.db.nodes.key(node.kind),
-            bid,
-            key,
+            slot,
             bel,
             naming,
             crds,
-            name: nnode.bels.get(bid).map(|x| &**x),
-        }
-    }
-
-    pub fn find_bel(&self, die: DieId, coord: (ColId, RowId), key: &str) -> Option<BelContext<'a>> {
-        let die = self.grid.die(die);
-        let tile = die.tile(coord);
-        for (layer, node) in &tile.nodes {
-            let nk = &self.db.nodes[node.kind];
-            if let Some((id, _)) = nk.bels.get(key) {
-                return Some(self.get_bel((die.die, coord.0, coord.1, layer), node, id));
-            }
-        }
-        None
+            name: nnode.bels.get(slot).map(|x| &**x),
+        })
     }
 
     pub fn find_bel_delta(
@@ -1417,7 +1417,7 @@ impl<'a> Verifier<'a> {
         bel: &BelContext<'_>,
         dx: isize,
         dy: isize,
-        key: &str,
+        slot: BelSlotId,
     ) -> Option<BelContext<'a>> {
         let nc = bel.col.to_idx() as isize + dx;
         let nr = bel.row.to_idx() as isize + dy;
@@ -1430,7 +1430,7 @@ impl<'a> Verifier<'a> {
         if nc >= die.cols().len() || nr >= die.rows().len() {
             return None;
         }
-        self.find_bel(bel.die, (ColId::from_idx(nc), RowId::from_idx(nr)), key)
+        self.find_bel((bel.die, (ColId::from_idx(nc), RowId::from_idx(nr)), slot))
     }
 
     pub fn find_bel_walk(
@@ -1438,7 +1438,7 @@ impl<'a> Verifier<'a> {
         bel: &BelContext<'_>,
         dx: isize,
         dy: isize,
-        key: &str,
+        slot: BelSlotId,
     ) -> Option<BelContext<'a>> {
         let mut c = bel.col.to_idx();
         let mut r = bel.row.to_idx();
@@ -1454,15 +1454,17 @@ impl<'a> Verifier<'a> {
             if c >= die.cols().len() || r >= die.rows().len() {
                 return None;
             }
-            if let Some(x) = self.find_bel(bel.die, (ColId::from_idx(c), RowId::from_idx(r)), key) {
+            if let Some(x) =
+                self.find_bel((bel.die, (ColId::from_idx(c), RowId::from_idx(r)), slot))
+            {
                 return Some(x);
             }
         }
     }
 
     #[track_caller]
-    pub fn find_bel_sibling(&self, bel: &BelContext<'_>, key: &str) -> BelContext<'a> {
-        self.find_bel(bel.die, (bel.col, bel.row), key).unwrap()
+    pub fn find_bel_sibling(&self, bel: &BelContext<'_>, slot: BelSlotId) -> BelContext<'a> {
+        self.get_bel((bel.die, (bel.col, bel.row), slot))
     }
 
     pub fn skip_residual_sites(&mut self) {
@@ -1515,16 +1517,8 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn skip_bel_pin(
-        &mut self,
-        die: DieId,
-        col: ColId,
-        row: RowId,
-        layer: LayerId,
-        bel: BelId,
-        pin: &'static str,
-    ) {
-        self.skip_bel_pins.insert((die, col, row, layer, bel, pin));
+    pub fn skip_bel_pin(&mut self, bel: IntBel, pin: &'static str) {
+        self.skip_bel_pins.insert((bel, pin));
     }
 
     fn finish(mut self) {
@@ -1653,10 +1647,10 @@ pub fn verify(
     for die in grid.egrid.dies() {
         for col in die.cols() {
             for row in die.rows() {
-                for (layer, node) in &die[(col, row)].nodes {
+                for node in die[(col, row)].nodes.values() {
                     let nk = &grid.egrid.db.nodes[node.kind];
-                    for id in nk.bels.ids() {
-                        let ctx = vrf.get_bel((die.die, col, row, layer), node, id);
+                    for slot in nk.bels.ids() {
+                        let ctx = vrf.get_bel((die.die, (col, row), slot));
                         bel_handler(&mut vrf, &ctx);
                     }
                 }

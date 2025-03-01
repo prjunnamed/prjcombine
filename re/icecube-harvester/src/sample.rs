@@ -2,11 +2,12 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
-    db::{BelId, NodeKindId, NodeWireId, WireId},
-    grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId},
+    db::{NodeKindId, NodeWireId, WireId},
+    grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };
 use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
+    bels,
     bitstream::Bitstream,
     chip::{ChipKind, ExtraNodeLoc},
     expanded::{BitOwner, ExpandedDevice},
@@ -113,12 +114,12 @@ pub fn make_sample(
                                 } else {
                                     row_colbuf
                                 };
-                                let cb_tile_name = if edev.chip.kind.has_lrio()
-                                    && col == edev.chip.col_lio()
+                                let cb_tile_name = if edev.chip.kind.has_io_we()
+                                    && col == edev.chip.col_w()
                                 {
-                                    "IO.L"
-                                } else if edev.chip.kind.has_lrio() && col == edev.chip.col_rio() {
-                                    "IO.R"
+                                    "IO.W"
+                                } else if edev.chip.kind.has_io_we() && col == edev.chip.col_e() {
+                                    "IO.E"
                                 } else if edev.chip.cols_bram.contains(&col) {
                                     "INT.BRAM"
                                 } else {
@@ -384,12 +385,14 @@ pub fn make_sample(
                 }
                 "SB_IO" | "SB_IO_DS" | "SB_GB_IO" | "SB_IO_OD" | "SB_IO_I3C" => {
                     let io = xlat_io[&(loc.loc.x, loc.loc.y, loc.loc.bel)];
-                    let (col, row, bel) = edev.chip.get_io_loc(io);
+                    let (_, (col, row), slot) = edev.chip.get_io_loc(io);
+                    let iob = io.iob();
+                    let slot_name = edev.egrid.db.bel_slots[slot].as_str();
                     let tile_kind = match io {
-                        EdgeIoCoord::N(..) => "IO.T",
-                        EdgeIoCoord::E(..) => "IO.R",
-                        EdgeIoCoord::S(..) => "IO.B",
-                        EdgeIoCoord::W(..) => "IO.L",
+                        EdgeIoCoord::W(..) => "IO.W",
+                        EdgeIoCoord::E(..) => "IO.E",
+                        EdgeIoCoord::S(..) => "IO.S",
+                        EdgeIoCoord::N(..) => "IO.N",
                     };
                     let mut global_idx = None;
                     for (&loc, node) in &edev.chip.extra_nodes {
@@ -407,8 +410,8 @@ pub fn make_sample(
                             &[BitOwner::Main(col, row)],
                             format!("{tile_kind}:IO:LVDS_INPUT:BIT0"),
                         );
-                        let obel = BelId::from_idx(bel.to_idx() ^ 1);
-                        sample.add_global_pattern(format!("IO:{col}.{row}.{obel}:PULLUP:DISABLE"));
+                        let oiob = TileIobId::from_idx(iob.to_idx() ^ 1);
+                        sample.add_global_pattern(format!("IO:{col}.{row}.{oiob}:PULLUP:DISABLE"));
                     }
 
                     if let Some(pin_type) = inst.props.get("PIN_TYPE") {
@@ -422,7 +425,7 @@ pub fn make_sample(
                             if c == '1' {
                                 sample.add_tiled_pattern_single(
                                     &[BitOwner::Main(col, row)],
-                                    format!("{tile_kind}:IO{bel}:PIN_TYPE:BIT{i}"),
+                                    format!("{tile_kind}:{slot_name}:PIN_TYPE:BIT{i}"),
                                 );
                             }
                         }
@@ -434,13 +437,13 @@ pub fn make_sample(
                         {
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tile_kind}:IO{bel}:OUTPUT_ENABLE:BIT0"),
+                                format!("{tile_kind}:{slot_name}:OUTPUT_ENABLE:BIT0"),
                             );
                             if is_lvds {
-                                let obel = BelId::from_idx(bel.to_idx() ^ 1);
+                                let oiob = TileIobId::from_idx(iob.to_idx() ^ 1);
                                 sample.add_tiled_pattern(
                                     &[BitOwner::Main(col, row)],
-                                    format!("{tile_kind}:IO{obel}:OUTPUT_ENABLE:BIT0"),
+                                    format!("{tile_kind}:IO{oiob}:OUTPUT_ENABLE:BIT0"),
                                 );
                             }
                         }
@@ -461,24 +464,24 @@ pub fn make_sample(
                     if let Some(pullup) = inst.props.get("PULLUP") {
                         if pullup.ends_with('0') || is_lvds {
                             sample
-                                .add_global_pattern(format!("IO:{col}.{row}.{bel}:PULLUP:DISABLE"));
+                                .add_global_pattern(format!("IO:{col}.{row}.{iob}:PULLUP:DISABLE"));
                         } else if let Some(pullup_kind) = inst.props.get("PULLUP_RESISTOR") {
                             sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{bel}:PULLUP:{pullup_kind}"
+                                "IO:{col}.{row}.{iob}:PULLUP:{pullup_kind}"
                             ));
                         }
                     } else {
-                        sample.add_global_pattern(format!("IO:{col}.{row}.{bel}:PULLUP:DISABLE"));
+                        sample.add_global_pattern(format!("IO:{col}.{row}.{iob}:PULLUP:DISABLE"));
                     }
                     if let Some(iostd) = iostd {
-                        if col == edev.chip.col_lio() && edev.chip.kind.has_vref() {
+                        if col == edev.chip.col_w() && edev.chip.kind.has_vref() {
                             sample
-                                .add_global_pattern(format!("IO:{col}.{row}.{bel}:IOSTD:{iostd}"));
+                                .add_global_pattern(format!("IO:{col}.{row}.{iob}:IOSTD:{iostd}"));
                         }
                     }
 
                     if ibuf_used.contains(&iid) && !is_lvds {
-                        if col == edev.chip.col_lio() && edev.chip.kind.has_vref() {
+                        if col == edev.chip.col_w() && edev.chip.kind.has_vref() {
                             let iostd = inst.props["IO_STANDARD"].as_str();
                             let mode = match iostd {
                                 "SB_SSTL2_CLASS_2" | "SB_SSTL2_CLASS_1" | "SB_SSTL18_FULL"
@@ -487,11 +490,11 @@ pub fn make_sample(
                                 _ => "CMOS",
                             };
                             sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{bel}:IBUF_ENABLE:{mode}"
+                                "IO:{col}.{row}.{iob}:IBUF_ENABLE:{mode}"
                             ));
                         } else {
                             sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{bel}:IBUF_ENABLE:BIT0"
+                                "IO:{col}.{row}.{iob}:IBUF_ENABLE:BIT0"
                             ));
                         }
                     }
@@ -549,7 +552,7 @@ pub fn make_sample(
                 kind if kind.starts_with("SB_RAM") => {
                     let node = edev.egrid.db.get_node("BRAM");
                     let node = &edev.egrid.db.nodes[node];
-                    let bel_info = node.bels.get("BRAM").unwrap().1;
+                    let bel_info = &node.bels[bels::BRAM];
                     let get_pin = |pin: &str| -> NodeWireId {
                         bel_info.pins[pin].wires.iter().copied().next().unwrap()
                     };
@@ -709,9 +712,9 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             result.push(format!("PLB:COLBUF:GLOBAL.{i}:BIT0"));
             result.push(format!("INT.BRAM:COLBUF:GLOBAL.{i}:BIT0"));
             // TODO: adjust [?]
-            if edev.chip.kind.has_actual_lrio() {
-                result.push(format!("IO.L:COLBUF:GLOBAL.{i}:BIT0"));
-                result.push(format!("IO.R:COLBUF:GLOBAL.{i}:BIT0"));
+            if edev.chip.kind.has_actual_io_we() {
+                result.push(format!("IO.W:COLBUF:GLOBAL.{i}:BIT0"));
+                result.push(format!("IO.E:COLBUF:GLOBAL.{i}:BIT0"));
             }
         }
     }
@@ -738,8 +741,8 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         }
     }
     // IO
-    for tile in ["IO.B", "IO.T", "IO.L", "IO.R"] {
-        if matches!(tile, "IO.L" | "IO.R") && !edev.chip.kind.has_actual_lrio() {
+    for tile in ["IO.W", "IO.E", "IO.S", "IO.N"] {
+        if matches!(tile, "IO.W" | "IO.E") && !edev.chip.kind.has_actual_io_we() {
             continue;
         }
         for io in 0..2 {
@@ -753,10 +756,10 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         result.push(format!("{tile}:IO:NEG_TRIGGER:BIT0"));
         let has_lvds = if edev.chip.kind == ChipKind::Ice65L01 {
             false
-        } else if edev.chip.kind.has_actual_lrio() {
-            tile == "IO.L"
+        } else if edev.chip.kind.has_actual_io_we() {
+            tile == "IO.W"
         } else if edev.chip.kind == ChipKind::Ice40R04 {
-            tile == "IO.T"
+            tile == "IO.N"
         } else {
             true
         };
@@ -766,7 +769,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     }
     // misc
     for i in 0..8 {
-        if matches!(i, 4 | 5) && !edev.chip.kind.has_lrio() {
+        if matches!(i, 4 | 5) && !edev.chip.kind.has_io_we() {
             // TODO: remove
             continue;
         }
@@ -814,15 +817,16 @@ pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
         }
     }
     for &crd in edev.chip.io_iob.keys() {
-        let (col, row, bel) = edev.chip.get_io_loc(crd);
+        let (_, (col, row), _) = edev.chip.get_io_loc(crd);
+        let iob = crd.iob();
         let is_od = edev.chip.io_od.contains(&crd);
-        result.push(format!("IO:{col}.{row}.{bel}:IBUF_ENABLE:BIT0"));
-        result.push(format!("IO:{col}.{row}.{bel}:PULLUP:DISABLE"));
+        result.push(format!("IO:{col}.{row}.{iob}:IBUF_ENABLE:BIT0"));
+        result.push(format!("IO:{col}.{row}.{iob}:PULLUP:DISABLE"));
         if matches!(edev.chip.kind, ChipKind::Ice40T01 | ChipKind::Ice40T05) && !is_od {
-            result.push(format!("IO:{col}.{row}.{bel}:PULLUP:3P3K"));
-            result.push(format!("IO:{col}.{row}.{bel}:PULLUP:6P8K"));
-            result.push(format!("IO:{col}.{row}.{bel}:PULLUP:10K"));
-            result.push(format!("IO:{col}.{row}.{bel}:PULLUP:100K"));
+            result.push(format!("IO:{col}.{row}.{iob}:PULLUP:3P3K"));
+            result.push(format!("IO:{col}.{row}.{iob}:PULLUP:6P8K"));
+            result.push(format!("IO:{col}.{row}.{iob}:PULLUP:10K"));
+            result.push(format!("IO:{col}.{row}.{iob}:PULLUP:100K"));
         }
     }
     result
@@ -894,7 +898,7 @@ pub fn get_golden_mux_stats(kind: ChipKind, nkn: &str) -> BTreeMap<String, usize
                 golden_stats.insert(format!("LOCAL.{g}.{i}"), 14);
             }
         }
-        if matches!(nkn, "IO.B" | "IO.T") {
+        if matches!(nkn, "IO.S" | "IO.N") {
             for (k, v) in [
                 ("OUT-LONG.V", 12),
                 ("OUT-QUAD.H", 16),

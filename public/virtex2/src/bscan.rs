@@ -50,7 +50,7 @@ impl Chip {
             }
             cfg.insert(CfgPin::ProgB, builder.get_i());
             for row in self.rows.ids().rev() {
-                if row != self.row_bot() && row != self.row_top() {
+                if row != self.row_s() && row != self.row_n() {
                     for i in (0..4).rev() {
                         let crd = EdgeIoCoord::W(row, TileIobId::from_idx(4 + i));
                         io.insert(crd, builder.get_o());
@@ -86,7 +86,7 @@ impl Chip {
             fc_cfg.insert(FcCfgPin::CsB, builder.get_i());
             fc_cfg.insert(FcCfgPin::Cclk, builder.get_i());
             for row in self.rows.ids() {
-                if row != self.row_bot() && row != self.row_top() {
+                if row != self.row_s() && row != self.row_n() {
                     for i in 0..4 {
                         let crd = EdgeIoCoord::E(row, TileIobId::from_idx(4 + i));
                         io.insert(crd, builder.get_o());
@@ -97,11 +97,11 @@ impl Chip {
             }
         } else {
             for col in self.columns.ids().rev() {
-                let row = self.row_top();
-                if let Some((data, tidx)) = self.get_iob_data((col, row)) {
+                let row = self.row_n();
+                if let Some((data, tidx)) = self.get_iob_tile_data((col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.tile == tidx {
-                            let crd = EdgeIoCoord::N(col, TileIobId::from_idx(iob.bel.to_idx()));
+                            let crd = EdgeIoCoord::N(col, iob.iob);
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {
@@ -116,11 +116,11 @@ impl Chip {
             }
             cfg.insert(CfgPin::ProgB, builder.get_i());
             for row in self.rows.ids().rev() {
-                let col = self.col_left();
-                if let Some((data, tidx)) = self.get_iob_data((col, row)) {
+                let col = self.col_w();
+                if let Some((data, tidx)) = self.get_iob_tile_data((col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.tile == tidx {
-                            let crd = EdgeIoCoord::W(row, TileIobId::from_idx(iob.bel.to_idx()));
+                            let crd = EdgeIoCoord::W(row, iob.iob);
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {
@@ -136,11 +136,11 @@ impl Chip {
                 }
             }
             for col in self.columns.ids() {
-                let row = self.row_bot();
-                if let Some((data, tidx)) = self.get_iob_data((col, row)) {
+                let row = self.row_s();
+                if let Some((data, tidx)) = self.get_iob_tile_data((col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.tile == tidx {
-                            let crd = EdgeIoCoord::S(col, TileIobId::from_idx(iob.bel.to_idx()));
+                            let crd = EdgeIoCoord::S(col, iob.iob);
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {
@@ -161,11 +161,11 @@ impl Chip {
                 cfg.insert(CfgPin::Suspend, builder.get_i());
             }
             for row in self.rows.ids() {
-                let col = self.col_right();
-                if let Some((data, tidx)) = self.get_iob_data((col, row)) {
+                let col = self.col_e();
+                if let Some((data, tidx)) = self.get_iob_tile_data((col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.tile == tidx {
-                            let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob.bel.to_idx()));
+                            let crd = EdgeIoCoord::E(row, iob.iob);
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {

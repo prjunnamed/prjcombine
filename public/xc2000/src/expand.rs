@@ -15,9 +15,9 @@ use crate::{
 impl Chip {
     fn get_bio_node(&self, col: ColId) -> &'static str {
         assert!(self.kind.is_xc4000());
-        if col == self.col_lio() + 1 {
+        if col == self.col_w() + 1 {
             "IO.BS.L"
-        } else if col == self.col_rio() - 1 {
+        } else if col == self.col_e() - 1 {
             "IO.B.R"
         } else if col.to_idx() % 2 == 0 {
             "IO.B"
@@ -28,9 +28,9 @@ impl Chip {
 
     fn get_tio_node(&self, col: ColId) -> &'static str {
         assert!(self.kind.is_xc4000());
-        if col == self.col_lio() + 1 {
+        if col == self.col_w() + 1 {
             "IO.TS.L"
-        } else if col == self.col_rio() - 1 {
+        } else if col == self.col_e() - 1 {
             "IO.T.R"
         } else if col.to_idx() % 2 == 0 {
             "IO.T"
@@ -41,9 +41,9 @@ impl Chip {
 
     fn get_lio_node(&self, row: RowId) -> &'static str {
         assert!(self.kind.is_xc4000());
-        if row == self.row_bio() + 1 {
+        if row == self.row_s() + 1 {
             "IO.LS.B"
-        } else if row == self.row_tio() - 1 {
+        } else if row == self.row_n() - 1 {
             "IO.L.T"
         } else if self.kind.is_xl() && row == self.row_qb() {
             if row.to_idx() % 2 == 0 {
@@ -76,9 +76,9 @@ impl Chip {
         } else {
             self.row_qt() - 1
         };
-        if row == self.row_bio() + 1 {
+        if row == self.row_s() + 1 {
             "IO.RS.B"
-        } else if row == self.row_tio() - 1 {
+        } else if row == self.row_n() - 1 {
             "IO.R.T"
         } else if self.kind.is_xl() && row == row_f {
             if row.to_idx() % 2 == 0 {
@@ -113,11 +113,11 @@ impl Chip {
         match self.kind {
             ChipKind::Xc2000 => {
                 for col in die.cols() {
-                    if col == self.col_lio() {
+                    if col == self.col_w() {
                         for row in die.rows() {
-                            if row == self.row_bio() {
+                            if row == self.row_s() {
                                 die.add_xnode((col, row), "CLB.BL", &[(col, row), (col + 1, row)]);
-                            } else if row == self.row_tio() {
+                            } else if row == self.row_n() {
                                 die.add_xnode(
                                     (col, row),
                                     "CLB.TL",
@@ -129,11 +129,11 @@ impl Chip {
                                 die.add_xnode((col, row), "CLB.L", &[(col, row), (col, row - 1)]);
                             }
                         }
-                    } else if col == self.col_rio() {
+                    } else if col == self.col_e() {
                         for row in die.rows() {
-                            if row == self.row_bio() {
+                            if row == self.row_s() {
                                 die.add_xnode((col, row), "CLB.BR", &[(col, row)]);
-                            } else if row == self.row_tio() {
+                            } else if row == self.row_n() {
                                 die.add_xnode((col, row), "CLB.TR", &[(col, row), (col, row - 1)]);
                             } else if row == self.row_mid() - 1 {
                                 die.add_xnode((col, row), "CLB.MR", &[(col, row), (col, row - 1)]);
@@ -143,15 +143,15 @@ impl Chip {
                         }
                     } else {
                         for row in die.rows() {
-                            if row == self.row_bio() {
-                                let kind = if col == self.col_rio() - 1 {
+                            if row == self.row_s() {
+                                let kind = if col == self.col_e() - 1 {
                                     "CLB.BR1"
                                 } else {
                                     "CLB.B"
                                 };
                                 die.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
-                            } else if row == self.row_tio() {
-                                let kind = if col == self.col_rio() - 1 {
+                            } else if row == self.row_n() {
+                                let kind = if col == self.col_e() - 1 {
                                     "CLB.TR1"
                                 } else {
                                     "CLB.T"
@@ -229,18 +229,18 @@ impl Chip {
                     for row in die.rows() {
                         let mut subkind =
                             (row.to_idx() + 2 * (self.columns - 1 - col.to_idx())) % 3;
-                        if subkind == 1 && col == self.col_rio() && row == self.row_tio() - 1 {
+                        if subkind == 1 && col == self.col_e() && row == self.row_n() - 1 {
                             // fuck me with the rustiest fork you can find
                             subkind = 3;
                         }
-                        if col == self.col_lio() {
-                            if row == self.row_bio() {
+                        if col == self.col_w() {
+                            if row == self.row_s() {
                                 die.add_xnode(
                                     (col, row),
                                     &format!("CLB.BL{s}.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row + 1)],
                                 );
-                            } else if row == self.row_tio() {
+                            } else if row == self.row_n() {
                                 die.add_xnode(
                                     (col, row),
                                     &format!("CLB.TL{s}.{subkind}"),
@@ -253,14 +253,14 @@ impl Chip {
                                     &[(col, row), (col + 1, row), (col, row - 1), (col, row + 1)],
                                 );
                             }
-                        } else if col == self.col_rio() {
-                            if row == self.row_bio() {
+                        } else if col == self.col_e() {
+                            if row == self.row_s() {
                                 die.add_xnode(
                                     (col, row),
                                     &format!("CLB.BR{s}.{subkind}"),
                                     &[(col, row), (col, row + 1)],
                                 );
-                            } else if row == self.row_tio() {
+                            } else if row == self.row_n() {
                                 die.add_xnode(
                                     (col, row),
                                     &format!("CLB.TR{s}.{subkind}"),
@@ -274,13 +274,13 @@ impl Chip {
                                 );
                             }
                         } else {
-                            if row == self.row_bio() {
+                            if row == self.row_s() {
                                 die.add_xnode(
                                     (col, row),
                                     &format!("CLB.B.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row + 1)],
                                 );
-                            } else if row == self.row_tio() {
+                            } else if row == self.row_n() {
                                 die.add_xnode(
                                     (col, row),
                                     &format!("CLB.T{s}.{subkind}"),
@@ -298,27 +298,27 @@ impl Chip {
                 }
                 {
                     let col = self.col_mid();
-                    let row = self.row_bio();
+                    let row = self.row_s();
                     die.fill_term_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
                     die.add_xnode((col, row), "LLH.B", &[(col - 1, row), (col, row)]);
-                    let row = self.row_tio();
+                    let row = self.row_n();
                     die.fill_term_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
                     die.add_xnode((col, row), "LLH.T", &[(col - 1, row), (col, row)]);
                 }
                 if self.is_small {
                     let row = self.row_mid();
-                    let col = self.col_lio();
+                    let col = self.col_w();
                     die.fill_term_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
                     die.add_xnode((col, row), "LLV.LS", &[(col, row - 1), (col, row)]);
-                    let col = self.col_rio();
+                    let col = self.col_e();
                     die.fill_term_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
                     die.add_xnode((col, row), "LLV.RS", &[(col, row - 1), (col, row)]);
                 } else {
                     let row = self.row_mid();
                     for col in die.cols() {
-                        let kind = if col == self.col_lio() {
+                        let kind = if col == self.col_w() {
                             "LLV.L"
-                        } else if col == self.col_rio() {
+                        } else if col == self.col_e() {
                             "LLV.R"
                         } else {
                             "LLV"
@@ -374,11 +374,11 @@ impl Chip {
                 let row_t = die.rows().next_back().unwrap();
 
                 for col in die.cols() {
-                    if col == self.col_lio() {
+                    if col == self.col_w() {
                         for row in die.rows() {
-                            if row == self.row_bio() {
+                            if row == self.row_s() {
                                 die.add_xnode((col, row), "CNR.BL", &[(col, row), (col + 1, row)]);
-                            } else if row == self.row_tio() {
+                            } else if row == self.row_n() {
                                 die.add_xnode(
                                     (col, row),
                                     "CNR.TL",
@@ -397,11 +397,11 @@ impl Chip {
                                 );
                             }
                         }
-                    } else if col == self.col_rio() {
+                    } else if col == self.col_e() {
                         for row in die.rows() {
-                            if row == self.row_bio() {
+                            if row == self.row_s() {
                                 die.fill_tile((col, row), "CNR.BR");
-                            } else if row == self.row_tio() {
+                            } else if row == self.row_n() {
                                 die.add_xnode((col, row), "CNR.TR", &[(col, row), (col, row - 1)]);
                             } else {
                                 die.add_xnode(
@@ -413,39 +413,39 @@ impl Chip {
                         }
                     } else {
                         for row in die.rows() {
-                            if row == self.row_bio() {
+                            if row == self.row_s() {
                                 die.add_xnode(
                                     (col, row),
                                     self.get_bio_node(col),
                                     &[(col, row), (col, row + 1), (col + 1, row), (col - 1, row)],
                                 );
-                            } else if row == self.row_tio() {
+                            } else if row == self.row_n() {
                                 die.add_xnode(
                                     (col, row),
                                     self.get_tio_node(col),
                                     &[(col, row), (col + 1, row), (col - 1, row)],
                                 );
                             } else {
-                                let kind = if row == self.row_bio() + 1 {
-                                    if col == self.col_lio() + 1 {
+                                let kind = if row == self.row_s() + 1 {
+                                    if col == self.col_w() + 1 {
                                         "CLB.LB"
-                                    } else if col == self.col_rio() - 1 {
+                                    } else if col == self.col_e() - 1 {
                                         "CLB.RB"
                                     } else {
                                         "CLB.B"
                                     }
-                                } else if row == self.row_tio() - 1 {
-                                    if col == self.col_lio() + 1 {
+                                } else if row == self.row_n() - 1 {
+                                    if col == self.col_w() + 1 {
                                         "CLB.LT"
-                                    } else if col == self.col_rio() - 1 {
+                                    } else if col == self.col_e() - 1 {
                                         "CLB.RT"
                                     } else {
                                         "CLB.T"
                                     }
                                 } else {
-                                    if col == self.col_lio() + 1 {
+                                    if col == self.col_w() + 1 {
                                         "CLB.L"
-                                    } else if col == self.col_rio() - 1 {
+                                    } else if col == self.col_e() - 1 {
                                         "CLB.R"
                                     } else {
                                         "CLB"
@@ -464,7 +464,7 @@ impl Chip {
                 if self.kind.is_xl() {
                     for row in die.rows() {
                         for col in [self.col_ql(), self.col_qr()] {
-                            if row == self.row_bio() || row == self.row_tio() {
+                            if row == self.row_s() || row == self.row_n() {
                                 die.fill_term_pair(
                                     (col - 1, row),
                                     (col, row),
@@ -474,14 +474,14 @@ impl Chip {
                             } else {
                                 die.fill_term_pair((col - 1, row), (col, row), "LLHQ.E", "LLHQ.W");
                             }
-                            let kind = if row == self.row_bio() {
+                            let kind = if row == self.row_s() {
                                 "LLHQ.IO.B"
-                            } else if row == self.row_tio() {
+                            } else if row == self.row_n() {
                                 "LLHQ.IO.T"
                             } else {
-                                if row == self.row_bio() + 1 {
+                                if row == self.row_s() + 1 {
                                     "LLHQ.CLB.B"
-                                } else if row == self.row_tio() - 1 {
+                                } else if row == self.row_n() - 1 {
                                     "LLHQ.CLB.T"
                                 } else {
                                     "LLHQ.CLB"
@@ -491,11 +491,11 @@ impl Chip {
                         }
                         let col = self.col_mid();
                         die.fill_term_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
-                        let kind = if row == self.row_bio() {
+                        let kind = if row == self.row_s() {
                             "LLHC.IO.B"
-                        } else if row == self.row_tio() {
+                        } else if row == self.row_n() {
                             "LLHC.IO.T"
-                        } else if row == self.row_bio() + 1 {
+                        } else if row == self.row_s() + 1 {
                             "LLHC.CLB.B"
                         } else {
                             "LLHC.CLB"
@@ -506,13 +506,13 @@ impl Chip {
                     for col in die.cols() {
                         for (bt, row) in [('B', self.row_qb()), ('T', self.row_qt())] {
                             die.fill_term_pair((col, row - 1), (col, row), "LLVQ.N", "LLVQ.S");
-                            let kind = if col == self.col_lio() {
+                            let kind = if col == self.col_w() {
                                 if bt == 'B' {
                                     "LLVQ.IO.L.B"
                                 } else {
                                     "LLVQ.IO.L.T"
                                 }
-                            } else if col == self.col_rio() {
+                            } else if col == self.col_e() {
                                 if bt == 'B' {
                                     "LLVQ.IO.R.B"
                                 } else {
@@ -525,9 +525,9 @@ impl Chip {
                         }
                         let row = self.row_mid();
                         die.fill_term_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
-                        let kind = if col == self.col_lio() {
+                        let kind = if col == self.col_w() {
                             "LLVC.IO.L"
-                        } else if col == self.col_rio() {
+                        } else if col == self.col_e() {
                             "LLVC.IO.R"
                         } else {
                             "LLVC.CLB"
@@ -558,11 +558,11 @@ impl Chip {
                     for row in die.rows() {
                         let col = self.col_mid();
                         die.fill_term_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
-                        let kind = if row == self.row_bio() {
+                        let kind = if row == self.row_s() {
                             "LLH.IO.B"
-                        } else if row == self.row_tio() {
+                        } else if row == self.row_n() {
                             "LLH.IO.T"
-                        } else if row == self.row_bio() + 1 {
+                        } else if row == self.row_s() + 1 {
                             "LLH.CLB.B"
                         } else {
                             "LLH.CLB"
@@ -573,9 +573,9 @@ impl Chip {
                     for col in die.cols() {
                         let row = self.row_mid();
                         die.fill_term_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
-                        let kind = if col == self.col_lio() {
+                        let kind = if col == self.col_w() {
                             "LLV.IO.L"
-                        } else if col == self.col_rio() {
+                        } else if col == self.col_e() {
                             "LLV.IO.R"
                         } else {
                             "LLV.CLB"
@@ -585,10 +585,10 @@ impl Chip {
                 }
 
                 for col in die.cols() {
-                    if col != self.col_lio() && col != self.col_rio() {
+                    if col != self.col_w() && col != self.col_e() {
                         die.fill_term_pair(
-                            (col, self.row_tio() - 1),
-                            (col, self.row_tio()),
+                            (col, self.row_n() - 1),
+                            (col, self.row_n()),
                             "TCLB.N",
                             "MAIN.S",
                         );
@@ -596,10 +596,10 @@ impl Chip {
                 }
 
                 for row in die.rows() {
-                    if row != self.row_bio() && row != self.row_tio() {
+                    if row != self.row_s() && row != self.row_n() {
                         die.fill_term_pair(
-                            (self.col_lio(), row),
-                            (self.col_lio() + 1, row),
+                            (self.col_w(), row),
+                            (self.col_w() + 1, row),
                             "MAIN.E",
                             "LCLB.W",
                         );

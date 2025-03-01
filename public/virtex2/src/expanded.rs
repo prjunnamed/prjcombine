@@ -68,9 +68,9 @@ impl ExpandedDevice<'_> {
             (2, 64)
         };
         let bit = 16 + height * row.to_idx();
-        let frame = if col == self.chip.col_left() {
+        let frame = if col == self.chip.col_w() {
             self.lterm_frame
-        } else if col == self.chip.col_right() {
+        } else if col == self.chip.col_e() {
             self.rterm_frame
         } else {
             unreachable!()
@@ -84,7 +84,7 @@ impl ExpandedDevice<'_> {
         } else {
             (19, 64)
         };
-        let bit = if row == self.chip.row_bot() {
+        let bit = if row == self.chip.row_s() {
             if self.chip.kind.is_virtex2() {
                 4
             } else if !self.chip.kind.is_spartan3a() {
@@ -92,7 +92,7 @@ impl ExpandedDevice<'_> {
             } else {
                 0
             }
-        } else if row == self.chip.row_top() {
+        } else if row == self.chip.row_n() {
             16 + height * self.chip.rows.len()
         } else {
             unreachable!()
@@ -153,9 +153,9 @@ impl ExpandedDevice<'_> {
         } else {
             (1, 64)
         };
-        let bit = if row == self.chip.row_bot() {
+        let bit = if row == self.chip.row_s() {
             0
-        } else if row == self.chip.row_top() {
+        } else if row == self.chip.row_n() {
             16 + height * self.chip.rows.len()
         } else {
             unreachable!()

@@ -1,47 +1,48 @@
 use prjcombine_re_xilinx_naming_xc2000::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
+use prjcombine_xc2000::bels::xc5200 as bels;
 
 fn verify_lc(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let kind = match bel.key {
-        "LC0" | "LC2" => "LC5A",
-        "LC1" | "LC3" => "LC5B",
+    let kind = match bel.slot {
+        bels::LC0 | bels::LC2 => "LC5A",
+        bels::LC1 | bels::LC3 => "LC5B",
         _ => unreachable!(),
     };
     let mut pins = vec![("CI", SitePinDir::In), ("CO", SitePinDir::Out)];
     if kind == "LC5A" {
         pins.push(("F5I", SitePinDir::In));
-        let okey = match bel.key {
-            "LC0" => "LC1",
-            "LC2" => "LC3",
+        let oslot = match bel.slot {
+            bels::LC0 => bels::LC1,
+            bels::LC2 => bels::LC3,
             _ => unreachable!(),
         };
         vrf.claim_node(&[bel.fwire("F5I")]);
-        let obel = vrf.find_bel_sibling(bel, okey);
+        let obel = vrf.find_bel_sibling(bel, oslot);
         vrf.claim_pip(bel.crd(), bel.wire("F5I"), obel.wire("X"));
     }
     vrf.verify_bel(bel, kind, &pins, &[]);
     vrf.claim_node(&[bel.fwire("CI")]);
     vrf.claim_node(&[bel.fwire("CO")]);
-    if bel.key == "LC0" {
+    if bel.slot == bels::LC0 {
         vrf.claim_pip(bel.crd(), bel.wire("CI"), bel.wire_far("CI"));
-        if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, "LC3") {
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bels::LC3) {
             vrf.claim_node(&[bel.fwire_far("CI"), obel.fwire_far("CO")]);
         } else {
-            let obel = vrf.find_bel_delta(bel, 0, -1, "BOT_CIN").unwrap();
+            let obel = vrf.find_bel_delta(bel, 0, -1, bels::CIN).unwrap();
             vrf.verify_node(&[bel.fwire_far("CI"), obel.fwire("IN")]);
         }
     } else {
-        let okey = match bel.key {
-            "LC1" => "LC0",
-            "LC2" => "LC1",
-            "LC3" => "LC2",
+        let okey = match bel.slot {
+            bels::LC1 => bels::LC0,
+            bels::LC2 => bels::LC1,
+            bels::LC3 => bels::LC2,
             _ => unreachable!(),
         };
         let obel = vrf.find_bel_sibling(bel, okey);
         vrf.claim_pip(bel.crd(), bel.wire("CI"), obel.wire("CO"));
     }
-    if bel.key == "LC3" {
+    if bel.slot == bels::LC3 {
         vrf.claim_pip(bel.crd(), bel.wire_far("CO"), bel.wire("CO"));
     }
 }
@@ -50,18 +51,18 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     let mut pins = vec![];
     let kind = if bel.naming.pins.contains_key("CLKIN") {
         pins.push(("CLKIN", SitePinDir::Out));
-        let st = if bel.row == endev.edev.chip.row_bio() {
-            (endev.edev.chip.col_lio(), endev.edev.chip.row_bio())
-        } else if bel.row == endev.edev.chip.row_tio() {
-            (endev.edev.chip.col_rio(), endev.edev.chip.row_tio())
-        } else if bel.col == endev.edev.chip.col_lio() {
-            (endev.edev.chip.col_lio(), endev.edev.chip.row_tio())
-        } else if bel.col == endev.edev.chip.col_rio() {
-            (endev.edev.chip.col_rio(), endev.edev.chip.row_bio())
+        let st = if bel.row == endev.edev.chip.row_s() {
+            (endev.edev.chip.col_w(), endev.edev.chip.row_s())
+        } else if bel.row == endev.edev.chip.row_n() {
+            (endev.edev.chip.col_e(), endev.edev.chip.row_n())
+        } else if bel.col == endev.edev.chip.col_w() {
+            (endev.edev.chip.col_w(), endev.edev.chip.row_n())
+        } else if bel.col == endev.edev.chip.col_e() {
+            (endev.edev.chip.col_e(), endev.edev.chip.row_s())
         } else {
             unreachable!()
         };
-        let obel = vrf.find_bel(bel.die, st, "CLKIOB").unwrap();
+        let obel = vrf.get_bel((bel.die, st, bels::CLKIOB));
         vrf.verify_node(&[bel.fwire("CLKIN"), obel.fwire("OUT")]);
         "CLKIOB"
     } else {
@@ -71,7 +72,7 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
 }
 
 fn verify_top_cout(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let obel = vrf.find_bel_delta(bel, 0, -1, "LC3").unwrap();
+    let obel = vrf.find_bel_delta(bel, 0, -1, bels::LC3).unwrap();
     vrf.verify_node(&[bel.fwire("OUT"), obel.fwire_far("CO")]);
     // artifact of unbuffered pip representation — disregard
     vrf.claim_pip(bel.crd(), "WIRE_COUT_TOP", "WIRE_M14_TOP");
@@ -83,19 +84,24 @@ fn verify_bot_cin(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    match bel.key {
-        _ if bel.key.starts_with("LC") => verify_lc(vrf, bel),
-        _ if bel.key.starts_with("IOB") => verify_iob(endev, vrf, bel),
-        _ if bel.key.starts_with("TBUF") => vrf.verify_bel(bel, "TBUF", &[], &[]),
-        "BUFG" => vrf.verify_bel(bel, "CLK", &[], &[]),
-        "CLKIOB" => (),
-        "BUFR" => vrf.claim_pip(bel.crd(), bel.wire("OUT"), bel.wire("IN")),
-        "TOP_COUT" => verify_top_cout(vrf, bel),
-        "BOT_CIN" => verify_bot_cin(vrf, bel),
-        "RDBK" | "STARTUP" | "BSCAN" | "OSC" | "BYPOSC" | "BSUPD" | "VCC_GND" => {
-            vrf.verify_bel(bel, bel.key, &[], &[])
-        }
-        _ => println!("MEOW {} {:?}", bel.key, bel.name),
+    let slot_name = &endev.edev.egrid.db.bel_slots[bel.slot];
+    match bel.slot {
+        _ if slot_name.starts_with("LC") => verify_lc(vrf, bel),
+        _ if slot_name.starts_with("IO") => verify_iob(endev, vrf, bel),
+        _ if slot_name.starts_with("TBUF") => vrf.verify_bel(bel, "TBUF", &[], &[]),
+        bels::BUFG => vrf.verify_bel(bel, "CLK", &[], &[]),
+        bels::CLKIOB => (),
+        bels::BUFR => vrf.claim_pip(bel.crd(), bel.wire("OUT"), bel.wire("IN")),
+        bels::COUT => verify_top_cout(vrf, bel),
+        bels::CIN => verify_bot_cin(vrf, bel),
+        bels::RDBK
+        | bels::STARTUP
+        | bels::BSCAN
+        | bels::OSC
+        | bels::BYPOSC
+        | bels::BSUPD
+        | bels::VCC_GND => vrf.verify_bel(bel, slot_name, &[], &[]),
+        _ => println!("MEOW {} {:?}", slot_name, bel.name),
     }
 }
 
