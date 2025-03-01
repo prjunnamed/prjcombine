@@ -8,6 +8,7 @@ use prjcombine_re_xilinx_naming_versal::{
     BUFDIV_LEAF_SWZ_A, BUFDIV_LEAF_SWZ_AH, BUFDIV_LEAF_SWZ_B, BUFDIV_LEAF_SWZ_BH,
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkWire};
+use prjcombine_versal::bels;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use unnamed_entity::{EntityId, EntityPartVec};
 
@@ -1013,7 +1014,7 @@ impl IntMaker<'_> {
                 let int_xy_e = self.builder.walk_to_int(xy, Dir::E, false).unwrap();
                 let mut bels = vec![];
                 if kind != "CLE_BC" {
-                    let mut bel = self.builder.bel_virtual("LAGUNA");
+                    let mut bel = self.builder.bel_virtual(bels::LAGUNA);
                     for i in 0..6 {
                         bel = bel
                             .extra_int_in(format!("IN{i}"), &[format!("LAG_CASCOUT_TXI{i}")])
@@ -1153,13 +1154,9 @@ impl IntMaker<'_> {
                     .builder
                     .delta(xy, if side == Dir::E { 1 } else { -1 }, 0);
                 for i in 0..4 {
-                    let iriy = if is_top {
-                        4 * i as u8
-                    } else {
-                        4 * (3 - i) as u8
-                    };
-                    let cur_int_xy = self.builder.delta(int_xy, 0, i);
-                    let cur_cle_xy = self.builder.delta(cle_xy, 0, i);
+                    let iriy = if is_top { 4 * i } else { 4 * (3 - i) };
+                    let cur_int_xy = self.builder.delta(int_xy, 0, i as i32);
+                    let cur_cle_xy = self.builder.delta(cle_xy, 0, i as i32);
                     self.builder
                         .xnode(format!("{name}.{i}"), format!("{name}.{i}"), xy)
                         .ref_int_side(cur_int_xy, side, 0)
@@ -1274,7 +1271,16 @@ impl IntMaker<'_> {
                 for (i, &y) in swz.iter().enumerate() {
                     let mut bel = self
                         .builder
-                        .bel_xy(format!("BUFDIV_LEAF.CLE.{i}"), bkind, 0, y as u8)
+                        .bel_xy(
+                            if i < 16 {
+                                bels::BUFDIV_LEAF_S[i]
+                            } else {
+                                bels::BUFDIV_LEAF_N[i - 16]
+                            },
+                            bkind,
+                            0,
+                            y as usize,
+                        )
                         .pin_name_only("I", 1)
                         .pin_name_only("O_CASC", 1);
                     if i != 0 {
@@ -1285,7 +1291,7 @@ impl IntMaker<'_> {
                     }
                     bels.push(bel);
                 }
-                let mut bel = self.builder.bel_virtual("RCLK_HDISTR_LOC.CLE");
+                let mut bel = self.builder.bel_virtual(bels::RCLK_HDISTR_LOC);
                 for i in 0..24 {
                     bel = bel.extra_wire(
                         format!("HDISTR_LOC{i}"),
@@ -1295,7 +1301,7 @@ impl IntMaker<'_> {
                 bels.push(bel);
                 bels.push(
                     self.builder
-                        .bel_virtual("VCC.RCLK_CLE")
+                        .bel_virtual(bels::VCC_RCLK)
                         .extra_wire("VCC", &["VCC_WIRE"]),
                 );
                 let kind = if is_full { "RCLK_CLE" } else { "RCLK_CLE.HALF" };
@@ -1736,7 +1742,16 @@ impl IntMaker<'_> {
                 for (i, &y) in swz.iter().enumerate() {
                     let mut bel = self
                         .builder
-                        .bel_xy(format!("BUFDIV_LEAF.{i}"), bkind, 0, y as u8)
+                        .bel_xy(
+                            if i < 16 {
+                                bels::BUFDIV_LEAF_S[i]
+                            } else {
+                                bels::BUFDIV_LEAF_N[i - 16]
+                            },
+                            bkind,
+                            0,
+                            y as usize,
+                        )
                         .pin_name_only("I", 1)
                         .pin_name_only("O_CASC", 1);
                     if i != 0 {
@@ -1747,7 +1762,7 @@ impl IntMaker<'_> {
                     }
                     bels.push(bel);
                 }
-                let mut bel = self.builder.bel_virtual("RCLK_HDISTR_LOC");
+                let mut bel = self.builder.bel_virtual(bels::RCLK_HDISTR_LOC);
                 for i in 0..24 {
                     bel = bel.extra_wire(
                         format!("HDISTR_LOC{i}"),
@@ -1760,7 +1775,7 @@ impl IntMaker<'_> {
                 bels.push(bel);
                 bels.push(
                     self.builder
-                        .bel_virtual("VCC.RCLK_INTF")
+                        .bel_virtual(bels::VCC_RCLK)
                         .extra_wire("VCC", &["VCC_WIRE"]),
                 );
                 let intf = self.builder.ndb.get_node_naming(if side == Dir::E {
@@ -1794,9 +1809,7 @@ impl IntMaker<'_> {
                 }
                 xn.bels(bels).extract();
                 if has_dfx {
-                    let bel = self
-                        .builder
-                        .bel_xy(format!("RCLK_DFX_TEST.{side}"), "RCLK", 0, 0);
+                    let bel = self.builder.bel_xy(bels::RCLK_DFX_TEST, "RCLK", 0, 0);
                     self.builder
                         .xnode(
                             format!("RCLK_DFX.{side}"),
@@ -1820,33 +1833,24 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_rclk_clkbuf(&mut self) {
-        for (tkn, kind, is_nopd) in [
-            ("RCLK_BRAM_CLKBUF_CORE", "RCLK_CLKBUF", false),
-            ("RCLK_BRAM_CLKBUF_VR_CORE", "RCLK_CLKBUF.VR", false),
-            ("RCLK_BRAM_CLKBUF_NOPD_CORE", "RCLK_CLKBUF.NOPD", true),
-            ("RCLK_BRAM_CLKBUF_NOPD_VR_CORE", "RCLK_CLKBUF.NOPD.VR", true),
+        for (tkn, kind) in [
+            ("RCLK_BRAM_CLKBUF_CORE", "RCLK_CLKBUF"),
+            ("RCLK_BRAM_CLKBUF_VR_CORE", "RCLK_CLKBUF.VR"),
+            ("RCLK_BRAM_CLKBUF_NOPD_CORE", "RCLK_CLKBUF.NOPD"),
+            ("RCLK_BRAM_CLKBUF_NOPD_VR_CORE", "RCLK_CLKBUF.NOPD.VR"),
         ] {
             for &xy in self.builder.rd.tiles_by_kind_name(tkn) {
                 let mut bels = vec![];
                 for i in 0..24 {
                     bels.push(
                         self.builder
-                            .bel_xy(
-                                if !is_nopd {
-                                    format!("GCLK_PD_CLKBUF{i}")
-                                } else {
-                                    format!("GCLK_PD_DUMMY{i}")
-                                },
-                                "GCLK_PD",
-                                0,
-                                i,
-                            )
+                            .bel_xy(bels::GCLK_PD_CLKBUF[i], "GCLK_PD", 0, i)
                             .pin_name_only("CLK_IN0", 1)
                             .pin_name_only("CLK_IN1", 1)
                             .pin_name_only("PD_OUT", 1),
                     );
                 }
-                let mut bel = self.builder.bel_virtual("RCLK_CLKBUF");
+                let mut bel = self.builder.bel_virtual(bels::RCLK_CLKBUF);
                 for i in 0..24 {
                     if kind == "RCLK_CLKBUF.NOPD.VR" && matches!(i, 8..12 | 20..24) {
                         continue;
@@ -1889,12 +1893,12 @@ impl IntMaker<'_> {
                 let int_xy = self.builder.walk_to_int(xy, !side, false).unwrap();
                 let bel_slicel = self
                     .builder
-                    .bel_xy("SLICE0", "SLICE", 0, 0)
+                    .bel_xy(bels::SLICE0, "SLICE", 0, 0)
                     .pin_name_only("CIN", 1)
                     .pin_name_only("COUT", 1);
                 let bel_slicem = self
                     .builder
-                    .bel_xy("SLICE1", "SLICE", 1, 0)
+                    .bel_xy(bels::SLICE1, "SLICE", 1, 0)
                     .pin_name_only("SRL_IN_B", 1)
                     .pin_name_only("SRL_OUT_B", 1)
                     .pin_name_only("CIN", 1)
@@ -1952,7 +1956,7 @@ impl IntMaker<'_> {
                 };
                 let mut bel_f = self
                     .builder
-                    .bel_xy("BRAM_F", "RAMB36", 0, 0)
+                    .bel_xy(bels::BRAM_F, "RAMB36", 0, 0)
                     .pin_name_only("CASINSBITERR", 1)
                     .pin_name_only("CASINDBITERR", 1)
                     .pin_name_only("CASOUTSBITERR", 1)
@@ -1969,8 +1973,8 @@ impl IntMaker<'_> {
                             .pin_name_only(&format!("CASDOUTP{ab}_{i}_"), 1);
                     }
                 }
-                let mut bel_h0 = self.builder.bel_xy("BRAM_H0", "RAMB18", 0, 0);
-                let mut bel_h1 = self.builder.bel_xy("BRAM_H1", "RAMB18", 0, 1);
+                let mut bel_h0 = self.builder.bel_xy(bels::BRAM_H0, "RAMB18", 0, 0);
+                let mut bel_h1 = self.builder.bel_xy(bels::BRAM_H1, "RAMB18", 0, 1);
                 for ab in ['A', 'B'] {
                     for i in 0..16 {
                         bel_h0 = bel_h0
@@ -2012,9 +2016,12 @@ impl IntMaker<'_> {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
                 let intf = self.builder.ndb.get_node_naming("INTF.W");
                 let intf_xy = self.builder.delta(xy, 1, 0);
-                let mut bels = vec![self.builder.bel_xy("URAM", "URAM288", 0, 0)];
+                let mut bels = vec![self.builder.bel_xy(bels::URAM, "URAM288", 0, 0)];
                 if kind == "URAM_DELAY" {
-                    bels.push(self.builder.bel_xy("URAM_CAS_DLY", "URAM_CAS_DLY", 0, 0));
+                    bels.push(
+                        self.builder
+                            .bel_xy(bels::URAM_CAS_DLY, "URAM_CAS_DLY", 0, 0),
+                    );
                 }
                 let bels: Vec<_> = bels
                     .into_iter()
@@ -2074,7 +2081,7 @@ impl IntMaker<'_> {
                 for i in 0..2 {
                     let mut bel = self
                         .builder
-                        .bel_xy(format!("DSP{i}"), "DSP", i, 0)
+                        .bel_xy(bels::DSP[i], "DSP", i, 0)
                         .pin_name_only("MULTSIGNIN", 1)
                         .pin_name_only("MULTSIGNOUT", 1)
                         .pin_name_only("CARRYCASCIN", 1)
@@ -2118,7 +2125,7 @@ impl IntMaker<'_> {
                 }
                 let mut bel = self
                     .builder
-                    .bel_xy("DSP_CPLX", "DSP58_CPLX", 0, 0)
+                    .bel_xy(bels::DSP_CPLX, "DSP58_CPLX", 0, 0)
                     .pin_name_only("CONJ_DSP_L_IN", 0)
                     .pin_name_only("CONJ_DSP_R_IN", 0)
                     .pin_name_only("CONJ_DSP_L_MULT_OUT", 1)
@@ -2169,22 +2176,34 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_hard(&mut self) {
-        for (kind, tkn, sk, is_large) in [
-            ("PCIE4", "PCIEB_BOT_TILE", "PCIE40", false),
-            ("PCIE4", "PCIEB_TOP_TILE", "PCIE40", false),
-            ("PCIE5", "PCIEB5_BOT_TILE", "PCIE50", false),
-            ("PCIE5", "PCIEB5_TOP_TILE", "PCIE50", false),
-            ("MRMAC", "MRMAC_BOT_TILE", "MRMAC", false),
-            ("MRMAC", "MRMAC_TOP_TILE", "MRMAC", false),
-            ("DFE_CFC_BOT", "DFE_CFC_BOT_TILE", "DFE_CFC_BOT", false),
-            ("DFE_CFC_TOP", "DFE_CFC_TOP_TILE", "DFE_CFC_TOP", false),
-            ("SDFEC", "SDFECA_TOP_TILE", "SDFEC_A", false),
-            ("DCMAC", "DCMAC_TILE", "DCMAC", true),
-            ("ILKN", "ILKN_TILE", "ILKNF", true),
-            ("HSC", "HSC_TILE", "HSC", true),
+        for (slot, kind, tkn, sk, is_large) in [
+            (bels::PCIE4, "PCIE4", "PCIEB_BOT_TILE", "PCIE40", false),
+            (bels::PCIE4, "PCIE4", "PCIEB_TOP_TILE", "PCIE40", false),
+            (bels::PCIE5, "PCIE5", "PCIEB5_BOT_TILE", "PCIE50", false),
+            (bels::PCIE5, "PCIE5", "PCIEB5_TOP_TILE", "PCIE50", false),
+            (bels::MRMAC, "MRMAC", "MRMAC_BOT_TILE", "MRMAC", false),
+            (bels::MRMAC, "MRMAC", "MRMAC_TOP_TILE", "MRMAC", false),
+            (
+                bels::DFE_CFC_BOT,
+                "DFE_CFC_BOT",
+                "DFE_CFC_BOT_TILE",
+                "DFE_CFC_BOT",
+                false,
+            ),
+            (
+                bels::DFE_CFC_TOP,
+                "DFE_CFC_TOP",
+                "DFE_CFC_TOP_TILE",
+                "DFE_CFC_TOP",
+                false,
+            ),
+            (bels::SDFEC, "SDFEC", "SDFECA_TOP_TILE", "SDFEC_A", false),
+            (bels::DCMAC, "DCMAC", "DCMAC_TILE", "DCMAC", true),
+            (bels::ILKN, "ILKN", "ILKN_TILE", "ILKNF", true),
+            (bels::HSC, "HSC", "HSC_TILE", "HSC", true),
         ] {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
-                let bel = self.builder.bel_xy(kind, sk, 0, 0);
+                let bel = self.builder.bel_xy(slot, sk, 0, 0);
                 let intf_e = self.builder.ndb.get_node_naming("INTF.E.HB");
                 let intf_w = self.builder.ndb.get_node_naming("INTF.W.HB");
                 let height = if is_large { 96 } else { 48 };
@@ -2210,7 +2229,7 @@ impl IntMaker<'_> {
                 for i in 0..11 {
                     bels.push(
                         self.builder
-                            .bel_xy(format!("HDIOLOGIC{i}"), "HDIOLOGIC", 0, i)
+                            .bel_xy(bels::HDIOLOGIC[i], "HDIOLOGIC", 0, i)
                             .pin_name_only("TFFM_Q", 1)
                             .pin_name_only("TFFS_Q", 1)
                             .pin_name_only("OPFFM_Q", 1)
@@ -2222,7 +2241,7 @@ impl IntMaker<'_> {
                 for i in 0..11 {
                     bels.push(
                         self.builder
-                            .bel_xy(format!("HDIOB{i}"), "IOB", 0, i)
+                            .bel_xy(bels::HDIOB[i], "IOB", 0, i)
                             .pin_name_only("RXOUT_M", 1)
                             .pin_name_only("RXOUT_S", 1)
                             .pin_name_only("OP_M", 0)
@@ -2234,7 +2253,7 @@ impl IntMaker<'_> {
                 for i in 0..4 {
                     let mut bel = self
                         .builder
-                        .bel_xy(format!("BUFGCE_HDIO{i}"), "BUFGCE_HDIO", 0, i)
+                        .bel_xy(bels::BUFGCE_HDIO[i], "BUFGCE_HDIO", 0, i)
                         .pin_name_only("O", 1)
                         .pin_name_only("I", 1);
                     for j in 0..8 {
@@ -2247,7 +2266,7 @@ impl IntMaker<'_> {
                 }
                 bels.push(
                     self.builder
-                        .bel_xy("DPLL.HDIO", "DPLL", 0, 0)
+                        .bel_xy(bels::DPLL_HDIO, "DPLL", 0, 0)
                         .pin_name_only("CLKIN", 1)
                         .extra_int_in("CLKIN_INT", &["IF_COE_W24_CTRL14"])
                         .extra_wire("CLKIN_RCLK", &["IF_RCLK_CLK_TO_DPLL"])
@@ -2260,12 +2279,12 @@ impl IntMaker<'_> {
                         .pin_name_only("CLKOUT3", 1)
                         .pin_name_only("TMUXOUT", 1),
                 );
-                bels.push(self.builder.bel_xy("HDIO_BIAS", "HDIO_BIAS", 0, 0));
-                bels.push(self.builder.bel_xy("RPI_HD_APB", "RPI_HD_APB", 0, 0));
-                bels.push(self.builder.bel_xy("HDLOGIC_APB", "HDLOGIC_APB", 0, 0));
+                bels.push(self.builder.bel_xy(bels::HDIO_BIAS, "HDIO_BIAS", 0, 0));
+                bels.push(self.builder.bel_xy(bels::RPI_HD_APB, "RPI_HD_APB", 0, 0));
+                bels.push(self.builder.bel_xy(bels::HDLOGIC_APB, "HDLOGIC_APB", 0, 0));
                 bels.push(
                     self.builder
-                        .bel_virtual("VCC.HDIO")
+                        .bel_virtual(bels::VCC_HDIO)
                         .extra_wire("VCC", &["VCC_WIRE"]),
                 );
                 let intf_e = self.builder.ndb.get_node_naming("INTF.E.HB");
@@ -2291,10 +2310,10 @@ impl IntMaker<'_> {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
                 let bel_dpll = self
                     .builder
-                    .bel_virtual("RCLK_HDIO_DPLL")
+                    .bel_virtual(bels::RCLK_HDIO_DPLL)
                     .extra_wire("OUT_S", &["IF_RCLK_BOT_CLK_TO_DPLL"])
                     .extra_wire("OUT_N", &["IF_RCLK_TOP_CLK_TO_DPLL"]);
-                let mut bel_hdio = self.builder.bel_virtual("RCLK_HDIO");
+                let mut bel_hdio = self.builder.bel_virtual(bels::RCLK_HDIO);
                 for i in 0..4 {
                     bel_hdio = bel_hdio
                         .extra_wire(
@@ -2361,7 +2380,7 @@ impl IntMaker<'_> {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
                 let bel_dpll = self
                     .builder
-                    .bel_virtual("RCLK_HDIO_DPLL")
+                    .bel_virtual(bels::RCLK_HDIO_DPLL)
                     .extra_wire("OUT_S", &["IF_RCLK_BOT_CLK_TO_DPLL"])
                     .extra_wire(
                         "OUT_N",
@@ -2370,7 +2389,7 @@ impl IntMaker<'_> {
                             "CLK_CMT_MUX_24_ENC_ULVT_1_CLK_OUT",
                         ],
                     );
-                let mut bel_hdio = self.builder.bel_virtual("RCLK_HB_HDIO");
+                let mut bel_hdio = self.builder.bel_virtual(bels::RCLK_HB_HDIO);
                 for i in 0..4 {
                     bel_hdio = bel_hdio.extra_wire(
                         format!("BUFGCE_OUT_S{i}"),
@@ -2451,7 +2470,9 @@ impl IntMaker<'_> {
             .iter()
             .next()
         {
-            let bel = self.builder.bel_xy("SYSMON_SAT.VNOC", "SYSMON_SAT", 0, 0);
+            let bel = self
+                .builder
+                .bel_xy(bels::SYSMON_SAT_VNOC, "SYSMON_SAT", 0, 0);
             let intf_e = self.builder.ndb.get_node_naming("INTF.E");
             let mut xn = self
                 .builder
@@ -2471,7 +2492,7 @@ impl IntMaker<'_> {
             .iter()
             .next()
         {
-            let bel = self.builder.bel_xy("MISR", "MISR", 0, 0);
+            let bel = self.builder.bel_xy(bels::MISR, "MISR", 0, 0);
             let intf_w = self.builder.ndb.get_node_naming("INTF.W");
             let mut xn = self.builder.xnode("MISR", "MISR", xy).num_tiles(96);
             for i in 0..48 {
@@ -2495,11 +2516,11 @@ impl IntMaker<'_> {
             let intf_e = self.builder.ndb.get_node_naming("INTF.W");
             let bels = [
                 self.builder
-                    .bel_xy("VNOC_NSU512", "NOC_NSU512", 0, 0)
+                    .bel_xy(bels::VNOC_NSU512, "NOC_NSU512", 0, 0)
                     .pin_name_only("TO_NOC", 1)
                     .pin_name_only("FROM_NOC", 1),
                 self.builder
-                    .bel_xy("VNOC_NPS_A", "NOC_NPS_VNOC", 0, 0)
+                    .bel_xy(bels::VNOC_NPS_A, "NOC_NPS_VNOC", 0, 0)
                     .raw_tile(1)
                     .pin_name_only("IN_0", 1)
                     .pin_name_only("IN_1", 1)
@@ -2510,7 +2531,7 @@ impl IntMaker<'_> {
                     .pin_name_only("OUT_2", 1)
                     .pin_name_only("OUT_3", 1),
                 self.builder
-                    .bel_xy("VNOC_NPS_B", "NOC_NPS_VNOC", 0, 0)
+                    .bel_xy(bels::VNOC_NPS_B, "NOC_NPS_VNOC", 0, 0)
                     .raw_tile(2)
                     .pin_name_only("IN_0", 1)
                     .pin_name_only("IN_1", 1)
@@ -2521,7 +2542,7 @@ impl IntMaker<'_> {
                     .pin_name_only("OUT_2", 1)
                     .pin_name_only("OUT_3", 1),
                 self.builder
-                    .bel_xy("VNOC_NMU512", "NOC_NMU512", 0, 0)
+                    .bel_xy(bels::VNOC_NMU512, "NOC_NMU512", 0, 0)
                     .raw_tile(3)
                     .pin_name_only("TO_NOC", 1)
                     .pin_name_only("FROM_NOC", 1),
@@ -2567,7 +2588,7 @@ impl IntMaker<'_> {
             let intf_w = self.builder.ndb.get_node_naming("INTF.W");
             let mut bel_scan = self
                 .builder
-                .bel_xy("VNOC2_SCAN", "NOC2_SCAN", 0, 0)
+                .bel_xy(bels::VNOC2_SCAN, "NOC2_SCAN", 0, 0)
                 .raw_tile(4);
             for i in 6..15 {
                 bel_scan = bel_scan
@@ -2579,11 +2600,11 @@ impl IntMaker<'_> {
             }
             let bels = [
                 self.builder
-                    .bel_xy("VNOC2_NSU512", "NOC2_NSU512", 0, 0)
+                    .bel_xy(bels::VNOC2_NSU512, "NOC2_NSU512", 0, 0)
                     .pin_name_only("TO_NOC", 1)
                     .pin_name_only("FROM_NOC", 1),
                 self.builder
-                    .bel_xy("VNOC2_NPS_A", "NOC2_NPS5555", 0, 0)
+                    .bel_xy(bels::VNOC2_NPS_A, "NOC2_NPS5555", 0, 0)
                     .raw_tile(1)
                     .pin_name_only("IN_0", 1)
                     .pin_name_only("IN_1", 1)
@@ -2594,7 +2615,7 @@ impl IntMaker<'_> {
                     .pin_name_only("OUT_2", 1)
                     .pin_name_only("OUT_3", 1),
                 self.builder
-                    .bel_xy("VNOC2_NPS_B", "NOC2_NPS5555", 0, 0)
+                    .bel_xy(bels::VNOC2_NPS_B, "NOC2_NPS5555", 0, 0)
                     .raw_tile(2)
                     .pin_name_only("IN_0", 1)
                     .pin_name_only("IN_1", 1)
@@ -2605,7 +2626,7 @@ impl IntMaker<'_> {
                     .pin_name_only("OUT_2", 1)
                     .pin_name_only("OUT_3", 1),
                 self.builder
-                    .bel_xy("VNOC2_NMU512", "NOC2_NMU512", 0, 0)
+                    .bel_xy(bels::VNOC2_NMU512, "NOC2_NMU512", 0, 0)
                     .raw_tile(3)
                     .pin_name_only("TO_NOC", 1)
                     .pin_name_only("FROM_NOC", 1),
@@ -2644,7 +2665,7 @@ impl IntMaker<'_> {
             let intf_e = self.builder.ndb.get_node_naming("INTF.W");
             let mut bel_scan = self
                 .builder
-                .bel_xy("VNOC4_SCAN", "NOC2_SCAN", 0, 0)
+                .bel_xy(bels::VNOC4_SCAN, "NOC2_SCAN", 0, 0)
                 .raw_tile(4);
             for i in 7..15 {
                 bel_scan = bel_scan
@@ -2656,11 +2677,11 @@ impl IntMaker<'_> {
             }
             let bels = [
                 self.builder
-                    .bel_xy("VNOC4_NSU512", "NOC2_NSU512", 0, 0)
+                    .bel_xy(bels::VNOC4_NSU512, "NOC2_NSU512", 0, 0)
                     .pin_name_only("TO_NOC", 1)
                     .pin_name_only("FROM_NOC", 1),
                 self.builder
-                    .bel_xy("VNOC4_NPS_A", "NOC2_NPS6X", 0, 0)
+                    .bel_xy(bels::VNOC4_NPS_A, "NOC2_NPS6X", 0, 0)
                     .raw_tile(1)
                     .pin_name_only("IN_0", 1)
                     .pin_name_only("IN_1", 1)
@@ -2675,7 +2696,7 @@ impl IntMaker<'_> {
                     .pin_name_only("OUT_4", 1)
                     .pin_name_only("OUT_5", 1),
                 self.builder
-                    .bel_xy("VNOC4_NPS_B", "NOC2_NPS6X", 0, 0)
+                    .bel_xy(bels::VNOC4_NPS_B, "NOC2_NPS6X", 0, 0)
                     .raw_tile(2)
                     .pin_name_only("IN_0", 1)
                     .pin_name_only("IN_1", 1)
@@ -2690,7 +2711,7 @@ impl IntMaker<'_> {
                     .pin_name_only("OUT_4", 1)
                     .pin_name_only("OUT_5", 1),
                 self.builder
-                    .bel_xy("VNOC4_NMU512", "NOC2_NMU512", 0, 0)
+                    .bel_xy(bels::VNOC4_NMU512, "NOC2_NMU512", 0, 0)
                     .raw_tile(3)
                     .pin_name_only("TO_NOC", 1)
                     .pin_name_only("FROM_NOC", 1),
@@ -2748,7 +2769,7 @@ impl IntMaker<'_> {
             ),
         ] {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
-                let bel = self.builder.bel_xy(kind, "SYSMON_SAT", 0, 0);
+                let bel = self.builder.bel_xy(bels::SYSMON_SAT_GT, "SYSMON_SAT", 0, 0);
                 let intf = self.builder.ndb.get_node_naming(intf_kind);
                 let base_xy = self.builder.delta(xy, 0, -24);
                 let int_xy = self.builder.walk_to_int(base_xy, int_dir, true).unwrap();
@@ -2763,7 +2784,7 @@ impl IntMaker<'_> {
                 xn.bel(bel).extract();
                 let bel = self
                     .builder
-                    .bel_xy(dpll_kind, "DPLL", 0, 0)
+                    .bel_xy(bels::DPLL_GT, "DPLL", 0, 0)
                     .pin_name_only("CLKIN", 1)
                     .pin_name_only("CLKIN_DESKEW", 1)
                     .pin_name_only("CLKOUT0", 1)
@@ -2795,7 +2816,7 @@ impl IntMaker<'_> {
         {
             let bel = self
                 .builder
-                .bel_xy("VDU", "VDU", 0, 0)
+                .bel_xy(bels::VDU, "VDU", 0, 0)
                 .pin_name_only("VDUCORECLK", 1)
                 .pin_name_only("VDUMCUCLK", 1);
             let intf_e = self.builder.ndb.get_node_naming("INTF.E.TERM.GT");
@@ -2809,7 +2830,7 @@ impl IntMaker<'_> {
         //
         for tkn in ["BFR_TILE_B_BOT_CORE", "BFR_TILE_B_TOP_CORE"] {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
-                let bel = self.builder.bel_xy("BFR_B", "BFR_B", 0, 0);
+                let bel = self.builder.bel_xy(bels::BFR_B, "BFR_B", 0, 0);
                 let intf_e = self.builder.ndb.get_node_naming("INTF.E.TERM.GT");
                 let int_xy = self.builder.walk_to_int(xy, Dir::W, false).unwrap();
                 let mut xn = self.builder.xnode("BFR_B.E", "BFR_B.E", xy).num_tiles(48);
@@ -2837,6 +2858,11 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         term_logic_outs: EntityPartVec::new(),
         dev_naming,
     };
+
+    for &slot in bels::SLOTS {
+        maker.builder.db.bel_slots.insert(slot.into());
+    }
+
     for dir in [Dir::W, Dir::E] {
         maker.term_wires_l.insert(dir, EntityPartVec::new());
     }

@@ -1,9 +1,9 @@
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::grid::{DieId, ExpandedGrid};
+use prjcombine_interconnect::grid::{DieId, ExpandedGrid, NodeLoc};
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming::grid::ExpandedGridNaming;
 use prjcombine_virtex4::gtz::GtzDb;
-use prjcombine_xilinx_bitstream::BitstreamGeom;
+use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
@@ -209,6 +209,18 @@ impl<'a> ExpandedDevice<'a> {
             ExpandedDevice::Virtex2(edev) => &edev.bs_geom,
             ExpandedDevice::Spartan6(edev) => &edev.bs_geom,
             ExpandedDevice::Virtex4(edev) => &edev.bs_geom,
+            ExpandedDevice::Ultrascale(_) => todo!(),
+            ExpandedDevice::Versal(_) => todo!(),
+        }
+    }
+
+    pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+        match self {
+            ExpandedDevice::Xc2000(edev) => edev.node_bits(nloc),
+            ExpandedDevice::Virtex(edev) => edev.node_bits(nloc),
+            ExpandedDevice::Virtex2(edev) => edev.node_bits(nloc),
+            ExpandedDevice::Spartan6(edev) => edev.node_bits(nloc),
+            ExpandedDevice::Virtex4(edev) => edev.node_bits(nloc),
             ExpandedDevice::Ultrascale(_) => todo!(),
             ExpandedDevice::Versal(_) => todo!(),
         }

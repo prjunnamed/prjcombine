@@ -57,8 +57,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             y += H_PCI;
         } else if edev.chip.kind.is_spartan3ea() && edev.chip.row_mid() == row {
             y += H_CLK;
-        } else if edev.chip.rows_hclk.iter().any(|&(_, b, _)| b == row)
-            && row != edev.chip.row_bot()
+        } else if edev.chip.rows_hclk.iter().any(|&(_, b, _)| b == row) && row != edev.chip.row_s()
         {
             y += H_BRKH;
         }
@@ -117,7 +116,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         let (row_b, row_t): (RowId, RowId) = if let Some((row_b, row_t)) = edev.chip.rows_ram {
             (row_b + 1, row_t)
         } else {
-            (edev.chip.row_bot() + 1, edev.chip.row_top())
+            (edev.chip.row_s() + 1, edev.chip.row_n())
         };
         for row in row_b.range(row_t).step_by(4) {
             if edev.chip.kind != ChipKind::Spartan3E && edev.is_in_hole(col, row) {
@@ -155,30 +154,30 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         }
         if !edev.chip.kind.is_spartan3ea() && cd.kind == ColumnKind::Bram {
             if !edev.chip.kind.is_virtex2()
-                && col != edev.chip.col_left() + 3
-                && col != edev.chip.col_right() - 3
+                && col != edev.chip.col_w() + 3
+                && col != edev.chip.col_e() - 3
             {
                 continue;
             }
-            if edev.is_in_hole(col, edev.chip.row_bot()) {
+            if edev.is_in_hole(col, edev.chip.row_s()) {
                 continue;
             }
             drawer.bel_rect(
                 col_x[col].0,
                 col_x[col].1,
                 term_y_b,
-                row_y[edev.chip.row_bot()].1,
+                row_y[edev.chip.row_s()].1,
                 "dcm",
             );
             drawer.bel_rect(
                 col_x[col].0,
                 col_x[col].1,
-                row_y[edev.chip.row_top()].0,
+                row_y[edev.chip.row_n()].0,
                 term_y_t,
                 "dcm",
             );
         } else {
-            for row in [edev.chip.row_bot(), edev.chip.row_top()] {
+            for row in [edev.chip.row_s(), edev.chip.row_n()] {
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 1 - 1].1,
@@ -204,13 +203,13 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 col_x[col].0,
                 col_x[cr].1,
                 term_y_b,
-                row_y[edev.chip.row_bot()].0,
+                row_y[edev.chip.row_s()].0,
                 "iob",
             );
             drawer.bel_rect(
                 col_x[col].0,
                 col_x[cr].1,
-                row_y[edev.chip.row_top()].1,
+                row_y[edev.chip.row_n()].1,
                 term_y_t,
                 "iob",
             );
@@ -220,7 +219,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         if rd == RowIoKind::None {
             continue;
         }
-        for col in [edev.chip.col_left(), edev.chip.col_right()] {
+        for col in [edev.chip.col_w(), edev.chip.col_e()] {
             drawer.bel_rect(
                 col_x[col].0,
                 col_x[col + 1 - 1].1,
@@ -238,13 +237,13 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         };
         drawer.bel_rect(
             term_x_l,
-            col_x[edev.chip.col_left()].0,
+            col_x[edev.chip.col_w()].0,
             row_y[row].0,
             row_y[rt].1,
             "iob",
         );
         drawer.bel_rect(
-            col_x[edev.chip.col_right()].1,
+            col_x[edev.chip.col_e()].1,
             term_x_r,
             row_y[row].0,
             row_y[rt].1,
@@ -376,7 +375,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         }
     }
     for &col in edev.chip.cols_gt.keys() {
-        let row = edev.chip.row_bot();
+        let row = edev.chip.row_s();
         let sz = if edev.chip.kind == ChipKind::Virtex2PX {
             8
         } else {
@@ -395,7 +394,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             ],
             "gt",
         );
-        let row = edev.chip.row_top();
+        let row = edev.chip.row_n();
         drawer.bel_poly(
             vec![
                 (col_x[col].0, row_y[row - sz].0),
@@ -421,29 +420,29 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     }
     drawer.bel_rect(
         term_x_l,
-        col_x[edev.chip.col_left()].1,
+        col_x[edev.chip.col_w()].1,
         term_y_b,
-        row_y[edev.chip.row_bot()].1,
+        row_y[edev.chip.row_s()].1,
         "cfg",
     );
     drawer.bel_rect(
         term_x_l,
-        col_x[edev.chip.col_left()].1,
-        row_y[edev.chip.row_top()].0,
+        col_x[edev.chip.col_w()].1,
+        row_y[edev.chip.row_n()].0,
         term_y_t,
         "cfg",
     );
     drawer.bel_rect(
-        col_x[edev.chip.col_right()].0,
+        col_x[edev.chip.col_e()].0,
         term_x_r,
         term_y_b,
-        row_y[edev.chip.row_bot()].1,
+        row_y[edev.chip.row_s()].1,
         "cfg",
     );
     drawer.bel_rect(
-        col_x[edev.chip.col_right()].0,
+        col_x[edev.chip.col_e()].0,
         term_x_r,
-        row_y[edev.chip.row_top()].0,
+        row_y[edev.chip.row_n()].0,
         term_y_t,
         "cfg",
     );
@@ -453,13 +452,13 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         col_x[col - 1].1,
         col_x[col].0,
         term_y_b,
-        row_y[edev.chip.row_bot()].1,
+        row_y[edev.chip.row_s()].1,
         "bufg",
     );
     drawer.bel_rect(
         col_x[col - 1].1,
         col_x[col].0,
-        row_y[edev.chip.row_top()].0,
+        row_y[edev.chip.row_n()].0,
         term_y_t,
         "bufg",
     );
@@ -468,13 +467,13 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         let row = edev.chip.row_pci.unwrap();
         drawer.bel_rect(
             term_x_l,
-            col_x[edev.chip.col_left()].1,
+            col_x[edev.chip.col_w()].1,
             row_y[row - 1].1,
             row_y[row].0,
             "pci",
         );
         drawer.bel_rect(
-            col_x[edev.chip.col_right()].0,
+            col_x[edev.chip.col_e()].0,
             term_x_r,
             row_y[row - 1].1,
             row_y[row].0,
@@ -485,13 +484,13 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         let row = edev.chip.row_mid();
         drawer.bel_rect(
             term_x_l,
-            col_x[edev.chip.col_left()].1,
+            col_x[edev.chip.col_w()].1,
             row_y[row - 1].1,
             row_y[row].0,
             "bufg",
         );
         drawer.bel_rect(
-            col_x[edev.chip.col_right()].0,
+            col_x[edev.chip.col_e()].0,
             term_x_r,
             row_y[row - 1].1,
             row_y[row].0,

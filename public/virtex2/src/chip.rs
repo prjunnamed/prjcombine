@@ -1,13 +1,14 @@
 use jzon::JsonValue;
-use prjcombine_interconnect::db::BelId;
+use prjcombine_interconnect::db::NodeTileId;
 use prjcombine_interconnect::dir::Dir;
-use prjcombine_interconnect::grid::{ColId, Coord, EdgeIoCoord, RowId, TileIobId};
+use prjcombine_interconnect::grid::{ColId, Coord, DieId, EdgeIoCoord, IntBel, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use unnamed_entity::{EntityId, EntityVec};
 
+use crate::bels;
 use crate::iob::{
-    IobKind, IobTileData, get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t,
+    IobKind, IobTileData, get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -196,19 +197,19 @@ pub struct IoInfo {
 }
 
 impl Chip {
-    pub fn col_left(&self) -> ColId {
+    pub fn col_w(&self) -> ColId {
         self.columns.first_id().unwrap()
     }
 
-    pub fn col_right(&self) -> ColId {
+    pub fn col_e(&self) -> ColId {
         self.columns.last_id().unwrap()
     }
 
-    pub fn row_bot(&self) -> RowId {
+    pub fn row_s(&self) -> RowId {
         self.rows.first_id().unwrap()
     }
 
-    pub fn row_top(&self) -> RowId {
+    pub fn row_n(&self) -> RowId {
         self.rows.last_id().unwrap()
     }
 
@@ -224,7 +225,7 @@ impl Chip {
                 Some((row.to_idx() - (b.to_idx() + 1)) % 4)
             }
         } else {
-            if row == self.row_bot() || row == self.row_top() {
+            if row == self.row_s() || row == self.row_n() {
                 None
             } else {
                 Some((row.to_idx() - 1) % 4)
@@ -241,19 +242,19 @@ impl Chip {
                         DcmPair {
                             kind: DcmPairKind::BotSingle,
                             col: self.col_clk,
-                            row: self.row_bot() + 1,
+                            row: self.row_s() + 1,
                         },
                         DcmPair {
                             kind: DcmPairKind::TopSingle,
                             col: self.col_clk,
-                            row: self.row_top() - 1,
+                            row: self.row_n() - 1,
                         },
                     ]);
                 } else {
                     res.extend([DcmPair {
                         kind: DcmPairKind::Top,
                         col: self.col_clk,
-                        row: self.row_top() - 1,
+                        row: self.row_n() - 1,
                     }]);
                 }
             } else {
@@ -261,12 +262,12 @@ impl Chip {
                     DcmPair {
                         kind: DcmPairKind::Bot,
                         col: self.col_clk,
-                        row: self.row_bot() + 1,
+                        row: self.row_s() + 1,
                     },
                     DcmPair {
                         kind: DcmPairKind::Top,
                         col: self.col_clk,
-                        row: self.row_top() - 1,
+                        row: self.row_n() - 1,
                     },
                 ]);
             }
@@ -275,12 +276,12 @@ impl Chip {
                     res.extend([
                         DcmPair {
                             kind: DcmPairKind::Left,
-                            col: self.col_left() + 9,
+                            col: self.col_w() + 9,
                             row: self.row_mid(),
                         },
                         DcmPair {
                             kind: DcmPairKind::Right,
-                            col: self.col_right() - 9,
+                            col: self.col_e() - 9,
                             row: self.row_mid(),
                         },
                     ]);
@@ -288,12 +289,12 @@ impl Chip {
                     res.extend([
                         DcmPair {
                             kind: DcmPairKind::Bram,
-                            col: self.col_left() + 3,
+                            col: self.col_w() + 3,
                             row: self.row_mid(),
                         },
                         DcmPair {
                             kind: DcmPairKind::Bram,
-                            col: self.col_right() - 6,
+                            col: self.col_e() - 6,
                             row: self.row_mid(),
                         },
                     ]);
@@ -345,14 +346,19 @@ impl Chip {
                 EdgeIoCoord::W(_, _) => 3,
             },
         };
-        let (col, row, bel) = self.get_io_loc(io);
+        let iob = io.iob();
         let diff = match self.kind {
             ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => {
-                if matches!(
-                    self.columns[col].io,
-                    ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt
-                ) {
-                    match bel.to_idx() {
+                let is_single = if let EdgeIoCoord::S(col, _) | EdgeIoCoord::N(col, _) = io {
+                    matches!(
+                        self.columns[col].io,
+                        ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt
+                    )
+                } else {
+                    false
+                };
+                if is_single {
+                    match iob.to_idx() {
                         0 => IoDiffKind::None,
                         1 => IoDiffKind::P(TileIobId::from_idx(2)),
                         2 => IoDiffKind::N(TileIobId::from_idx(1)),
@@ -360,7 +366,7 @@ impl Chip {
                         _ => unreachable!(),
                     }
                 } else {
-                    match bel.to_idx() {
+                    match iob.to_idx() {
                         0 => IoDiffKind::P(TileIobId::from_idx(1)),
                         1 => IoDiffKind::N(TileIobId::from_idx(0)),
                         2 => IoDiffKind::P(TileIobId::from_idx(3)),
@@ -370,15 +376,15 @@ impl Chip {
                 }
             }
             ChipKind::Spartan3 => {
-                if col == self.col_left() {
-                    match bel.to_idx() {
+                if matches!(io, EdgeIoCoord::W(..)) {
+                    match iob.to_idx() {
                         0 => IoDiffKind::N(TileIobId::from_idx(1)),
                         1 => IoDiffKind::P(TileIobId::from_idx(0)),
                         2 => IoDiffKind::None,
                         _ => unreachable!(),
                     }
                 } else {
-                    match bel.to_idx() {
+                    match iob.to_idx() {
                         0 => IoDiffKind::P(TileIobId::from_idx(1)),
                         1 => IoDiffKind::N(TileIobId::from_idx(0)),
                         2 => IoDiffKind::None,
@@ -387,22 +393,22 @@ impl Chip {
                 }
             }
             ChipKind::FpgaCore => IoDiffKind::None,
-            ChipKind::Spartan3E => match bel.to_idx() {
+            ChipKind::Spartan3E => match iob.to_idx() {
                 0 => IoDiffKind::P(TileIobId::from_idx(1)),
                 1 => IoDiffKind::N(TileIobId::from_idx(0)),
                 2 => IoDiffKind::None,
                 _ => unreachable!(),
             },
             ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
-                if row == self.row_top() || col == self.col_left() {
-                    match bel.to_idx() {
+                if matches!(io, EdgeIoCoord::N(..) | EdgeIoCoord::W(..)) {
+                    match iob.to_idx() {
                         0 => IoDiffKind::N(TileIobId::from_idx(1)),
                         1 => IoDiffKind::P(TileIobId::from_idx(0)),
                         2 => IoDiffKind::None,
                         _ => unreachable!(),
                     }
                 } else {
-                    match bel.to_idx() {
+                    match iob.to_idx() {
                         0 => IoDiffKind::P(TileIobId::from_idx(1)),
                         1 => IoDiffKind::N(TileIobId::from_idx(0)),
                         2 => IoDiffKind::None,
@@ -412,10 +418,11 @@ impl Chip {
             }
         };
         let mut pad_kind = None;
-        if let Some((data, tidx)) = self.get_iob_data((col, row)) {
-            for &iob in &data.iobs {
-                if iob.tile == tidx && iob.bel.to_idx() == bel.to_idx() {
-                    pad_kind = Some(iob.kind);
+        let (_, (col, row), _) = self.get_io_loc(io);
+        if let Some((data, tidx)) = self.get_iob_tile_data((col, row)) {
+            for &iob_data in &data.iobs {
+                if iob_data.tile == tidx && iob_data.iob == iob {
+                    pad_kind = Some(iob_data.kind);
                 }
             }
         }
@@ -430,41 +437,41 @@ impl Chip {
     pub fn get_bonded_ios(&self) -> Vec<EdgeIoCoord> {
         let mut res = vec![];
         for col in self.columns.ids() {
-            let row = self.row_top();
-            if let Some((data, tidx)) = self.get_iob_data((col, row)) {
+            let row = self.row_n();
+            if let Some((data, tidx)) = self.get_iob_tile_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(EdgeIoCoord::N(col, TileIobId::from_idx(iob.bel.to_idx())));
+                        res.push(EdgeIoCoord::N(col, TileIobId::from_idx(iob.iob.to_idx())));
                     }
                 }
             }
         }
         for row in self.rows.ids().rev() {
-            let col = self.col_right();
-            if let Some((data, tidx)) = self.get_iob_data((col, row)) {
+            let col = self.col_e();
+            if let Some((data, tidx)) = self.get_iob_tile_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(EdgeIoCoord::E(row, TileIobId::from_idx(iob.bel.to_idx())));
+                        res.push(EdgeIoCoord::E(row, TileIobId::from_idx(iob.iob.to_idx())));
                     }
                 }
             }
         }
         for col in self.columns.ids().rev() {
-            let row = self.row_bot();
-            if let Some((data, tidx)) = self.get_iob_data((col, row)) {
+            let row = self.row_s();
+            if let Some((data, tidx)) = self.get_iob_tile_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(EdgeIoCoord::S(col, TileIobId::from_idx(iob.bel.to_idx())));
+                        res.push(EdgeIoCoord::S(col, TileIobId::from_idx(iob.iob.to_idx())));
                     }
                 }
             }
         }
         for row in self.rows.ids() {
-            let col = self.col_left();
-            if let Some((data, tidx)) = self.get_iob_data((col, row)) {
+            let col = self.col_w();
+            if let Some((data, tidx)) = self.get_iob_tile_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(EdgeIoCoord::W(row, TileIobId::from_idx(iob.bel.to_idx())));
+                        res.push(EdgeIoCoord::W(row, TileIobId::from_idx(iob.iob.to_idx())));
                     }
                 }
             }
@@ -472,26 +479,42 @@ impl Chip {
         res
     }
 
-    pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> IntBel {
         let (col, row, iob) = match io {
-            EdgeIoCoord::N(col, iob) => (col, self.row_top(), iob),
-            EdgeIoCoord::E(row, iob) => (self.col_right(), row, iob),
-            EdgeIoCoord::S(col, iob) => (col, self.row_bot(), iob),
-            EdgeIoCoord::W(row, iob) => (self.col_left(), row, iob),
+            EdgeIoCoord::N(col, iob) => (col, self.row_n(), iob),
+            EdgeIoCoord::E(row, iob) => (self.col_e(), row, iob),
+            EdgeIoCoord::S(col, iob) => (col, self.row_s(), iob),
+            EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
         };
-        let bel = BelId::from_idx(iob.to_idx());
-        (col, row, bel)
+        let slot = if self.kind == ChipKind::FpgaCore {
+            if iob.to_idx() < 4 {
+                bels::IBUF[iob.to_idx()]
+            } else {
+                bels::OBUF[iob.to_idx() - 4]
+            }
+        } else {
+            bels::IO[iob.to_idx()]
+        };
+        (DieId::from_idx(0), (col, row), slot)
     }
 
-    pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
-        let iob = TileIobId::from_idx(bel.to_idx());
-        if col == self.col_left() {
+    pub fn get_io_crd(&self, bel: IntBel) -> EdgeIoCoord {
+        let (_, (col, row), slot) = bel;
+        let iob = TileIobId::from_idx(if self.kind == ChipKind::FpgaCore {
+            bels::IBUF
+                .iter()
+                .position(|&x| x == slot)
+                .unwrap_or_else(|| bels::OBUF.iter().position(|&x| x == slot).unwrap() + 4)
+        } else {
+            bels::IO.iter().position(|&x| x == slot).unwrap()
+        });
+        if col == self.col_w() {
             EdgeIoCoord::W(row, iob)
-        } else if col == self.col_right() {
+        } else if col == self.col_e() {
             EdgeIoCoord::E(row, iob)
-        } else if row == self.row_bot() {
+        } else if row == self.row_s() {
             EdgeIoCoord::S(col, iob)
-        } else if row == self.row_top() {
+        } else if row == self.row_n() {
             EdgeIoCoord::N(col, iob)
         } else {
             unreachable!()
@@ -714,34 +737,34 @@ impl Chip {
         }
     }
 
-    pub fn get_iob_data(&self, coord: Coord) -> Option<(IobTileData, usize)> {
-        if coord.0 == self.col_left() {
+    pub fn get_iob_tile_data(&self, coord: Coord) -> Option<(IobTileData, NodeTileId)> {
+        if coord.0 == self.col_w() {
             let kind = self.rows[coord.1];
             if kind == RowIoKind::None {
                 None
             } else {
-                Some(get_iob_data_l(self.kind, kind))
+                Some(get_iob_data_w(self.kind, kind))
             }
-        } else if coord.0 == self.col_right() {
+        } else if coord.0 == self.col_e() {
             let kind = self.rows[coord.1];
             if kind == RowIoKind::None {
                 None
             } else {
-                Some(get_iob_data_r(self.kind, kind))
+                Some(get_iob_data_e(self.kind, kind))
             }
-        } else if coord.1 == self.row_bot() {
+        } else if coord.1 == self.row_s() {
             let kind = self.columns[coord.0].io;
             if kind == ColumnIoKind::None {
                 None
             } else {
-                Some(get_iob_data_b(self.kind, kind))
+                Some(get_iob_data_s(self.kind, kind))
             }
-        } else if coord.1 == self.row_top() {
+        } else if coord.1 == self.row_n() {
             let kind = self.columns[coord.0].io;
             if kind == ColumnIoKind::None {
                 None
             } else {
-                Some(get_iob_data_t(self.kind, kind))
+                Some(get_iob_data_n(self.kind, kind))
             }
         } else {
             unreachable!()

@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use prjcombine_interconnect::db::{MuxInfo, NodeKindId, NodeWireId};
-use prjcombine_re_collector::{
+use prjcombine_re_fpga_hammer::{
     Collector, Diff, FeatureData, FeatureId, OcdMode, State, xlat_enum_ocd,
 };
 use prjcombine_re_harvester::Harvester;
@@ -150,9 +150,9 @@ pub fn collect(
             collector.collect_bit("PLB", "COLBUF", &format!("GLOBAL.{i}"), "");
             collector.collect_bit("INT.BRAM", "COLBUF", &format!("GLOBAL.{i}"), "");
             // TODO: adjust [?]
-            if edev.chip.kind.has_actual_lrio() {
-                collector.collect_bit("IO.L", "COLBUF", &format!("GLOBAL.{i}"), "");
-                collector.collect_bit("IO.R", "COLBUF", &format!("GLOBAL.{i}"), "");
+            if edev.chip.kind.has_actual_io_we() {
+                collector.collect_bit("IO.W", "COLBUF", &format!("GLOBAL.{i}"), "");
+                collector.collect_bit("IO.E", "COLBUF", &format!("GLOBAL.{i}"), "");
             }
         }
     }
@@ -190,8 +190,8 @@ pub fn collect(
             collector.collect_enum(tile, bel, "WRITE_MODE", &["0", "1", "2", "3"]);
         }
     }
-    for tile in ["IO.B", "IO.T", "IO.L", "IO.R"] {
-        if matches!(tile, "IO.L" | "IO.R") && !edev.chip.kind.has_actual_lrio() {
+    for tile in ["IO.W", "IO.E", "IO.S", "IO.N"] {
+        if matches!(tile, "IO.W" | "IO.E") && !edev.chip.kind.has_actual_io_we() {
             continue;
         }
         for io in 0..2 {
@@ -205,10 +205,10 @@ pub fn collect(
         collector.collect_bit_wide(tile, "IO", "NEG_TRIGGER", "");
         let has_lvds = if edev.chip.kind == ChipKind::Ice65L01 {
             false
-        } else if edev.chip.kind.has_actual_lrio() {
-            tile == "IO.L"
+        } else if edev.chip.kind.has_actual_io_we() {
+            tile == "IO.W"
         } else if edev.chip.kind == ChipKind::Ice40R04 {
-            tile == "IO.T"
+            tile == "IO.N"
         } else {
             true
         };
@@ -221,7 +221,7 @@ pub fn collect(
         let tile = "GBOUT";
         let bel = "GBOUT";
         for i in 0..8 {
-            if matches!(i, 4 | 5) && !edev.chip.kind.has_lrio() {
+            if matches!(i, 4 | 5) && !edev.chip.kind.has_io_we() {
                 // TODO: remove
                 continue;
             }

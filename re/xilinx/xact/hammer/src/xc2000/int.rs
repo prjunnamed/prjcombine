@@ -3,15 +3,18 @@ use prjcombine_interconnect::{
     dir::Dir,
     grid::{IntWire, LayerId, NodeLoc},
 };
-use prjcombine_re_collector::{Diff, FeatureId, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
+use prjcombine_re_fpga_hammer::{
+    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd,
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
+use prjcombine_xc2000::bels::xc2000 as bels;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FuzzerFeature, Key, Value, XactBackend},
+    backend::{Key, Value, XactBackend},
     collector::CollectorCtx,
     fbuild::FuzzCtx,
-    fgen::Prop,
+    props::DynProp,
 };
 
 fn apply_int_pip<'a>(
@@ -46,38 +49,37 @@ fn drive_wire<'a>(
     let (die, (mut col, mut row), wt) = wire_target;
     let wtn = &backend.egrid.db.wires.key(wt)[..];
     let (ploc, pwt, pwf) = if wtn.starts_with("OUT") || wtn == "GCLK" || wtn == "ACLK" {
-        let (bel, pin) = match wtn {
-            "OUT.CLB.X" => ("CLB", "X"),
-            "OUT.CLB.Y" => ("CLB", "Y"),
-            "OUT.BIOB0.I" => ("BIOB0", "I"),
-            "OUT.BIOB1.I" => ("BIOB1", "I"),
-            "OUT.TIOB0.I" => ("TIOB0", "I"),
-            "OUT.TIOB1.I" => ("TIOB1", "I"),
-            "OUT.LIOB0.I" => ("LIOB0", "I"),
-            "OUT.LIOB1.I" => ("LIOB1", "I"),
-            "OUT.RIOB0.I" => ("RIOB0", "I"),
-            "OUT.RIOB1.I" => ("RIOB1", "I"),
-            "OUT.OSC" => ("OSC", "O"),
+        let (slot, pin) = match wtn {
+            "OUT.CLB.X" => (bels::CLB, "X"),
+            "OUT.CLB.Y" => (bels::CLB, "Y"),
+            "OUT.BIOB0.I" => (bels::IO_S0, "I"),
+            "OUT.BIOB1.I" => (bels::IO_S1, "I"),
+            "OUT.TIOB0.I" => (bels::IO_N0, "I"),
+            "OUT.TIOB1.I" => (bels::IO_N1, "I"),
+            "OUT.LIOB0.I" => (bels::IO_W0, "I"),
+            "OUT.LIOB1.I" => (bels::IO_W1, "I"),
+            "OUT.RIOB0.I" => (bels::IO_E0, "I"),
+            "OUT.RIOB1.I" => (bels::IO_E1, "I"),
+            "OUT.OSC" => (bels::OSC, "O"),
             "GCLK" => {
-                col = grid.col_lio();
-                row = grid.row_tio();
-                ("BUFG", "O")
+                col = grid.col_w();
+                row = grid.row_n();
+                (bels::BUFG, "O")
             }
             "ACLK" => {
-                col = grid.col_rio();
-                row = grid.row_bio();
-                ("BUFG", "O")
+                col = grid.col_e();
+                row = grid.row_s();
+                (bels::BUFG, "O")
             }
             _ => panic!("umm {wtn}"),
         };
-        let nloc = (die, col, row, LayerId::from_idx(0));
-        let node = backend.egrid.node(nloc);
-        let node_kind = &backend.egrid.db.nodes[node.kind];
+        let bel = (die, (col, row), slot);
+        let layer = backend.edev.egrid.find_bel_layer(bel).unwrap();
+        let nloc = (die, col, row, layer);
         let nnode = &backend.ngrid.nodes[&nloc];
-        let bel = node_kind.bels.get(bel).unwrap().0;
         return (
             fuzzer.base(Key::NodeMutex(wire_target), "SHARED_ROOT"),
-            &nnode.bels[bel][0],
+            &nnode.bels[slot][0],
             pin,
         );
     } else if wtn.starts_with("SINGLE.V")
@@ -164,45 +166,43 @@ fn apply_imux_finish<'a>(
     if !wn.starts_with("IMUX") {
         return fuzzer;
     }
-    let (bel, pin) = match wn {
-        "IMUX.CLB.A" => ("CLB", "A"),
-        "IMUX.CLB.B" => ("CLB", "B"),
-        "IMUX.CLB.C" => ("CLB", "C"),
+    let (slot, pin) = match wn {
+        "IMUX.CLB.A" => (bels::CLB, "A"),
+        "IMUX.CLB.B" => (bels::CLB, "B"),
+        "IMUX.CLB.C" => (bels::CLB, "C"),
         "IMUX.CLB.D" => {
             row += 1;
-            ("CLB", "D")
+            (bels::CLB, "D")
         }
-        "IMUX.CLB.D.N" => ("CLB", "D"),
-        "IMUX.CLB.K" => ("CLB", "K"),
-        "IMUX.BIOB0.O" => ("BIOB0", "O"),
-        "IMUX.BIOB0.T" => ("BIOB0", "T"),
-        "IMUX.BIOB1.O" => ("BIOB1", "O"),
-        "IMUX.BIOB1.T" => ("BIOB1", "T"),
-        "IMUX.TIOB0.O" => ("TIOB0", "O"),
-        "IMUX.TIOB0.T" => ("TIOB0", "T"),
-        "IMUX.TIOB1.O" => ("TIOB1", "O"),
-        "IMUX.TIOB1.T" => ("TIOB1", "T"),
-        "IMUX.LIOB0.O" => ("LIOB0", "O"),
-        "IMUX.LIOB0.T" => ("LIOB0", "T"),
-        "IMUX.LIOB1.O" => ("LIOB1", "O"),
-        "IMUX.LIOB1.T" => ("LIOB1", "T"),
-        "IMUX.RIOB0.O" => ("RIOB0", "O"),
-        "IMUX.RIOB0.T" => ("RIOB0", "T"),
-        "IMUX.RIOB1.O" => ("RIOB1", "O"),
-        "IMUX.RIOB1.T" => ("RIOB1", "T"),
-        "IMUX.BUFG" => ("BUFG", "I"),
+        "IMUX.CLB.D.N" => (bels::CLB, "D"),
+        "IMUX.CLB.K" => (bels::CLB, "K"),
+        "IMUX.BIOB0.O" => (bels::IO_S0, "O"),
+        "IMUX.BIOB0.T" => (bels::IO_S0, "T"),
+        "IMUX.BIOB1.O" => (bels::IO_S1, "O"),
+        "IMUX.BIOB1.T" => (bels::IO_S1, "T"),
+        "IMUX.TIOB0.O" => (bels::IO_N0, "O"),
+        "IMUX.TIOB0.T" => (bels::IO_N0, "T"),
+        "IMUX.TIOB1.O" => (bels::IO_N1, "O"),
+        "IMUX.TIOB1.T" => (bels::IO_N1, "T"),
+        "IMUX.LIOB0.O" => (bels::IO_W0, "O"),
+        "IMUX.LIOB0.T" => (bels::IO_W0, "T"),
+        "IMUX.LIOB1.O" => (bels::IO_W1, "O"),
+        "IMUX.LIOB1.T" => (bels::IO_W1, "T"),
+        "IMUX.RIOB0.O" => (bels::IO_E0, "O"),
+        "IMUX.RIOB0.T" => (bels::IO_E0, "T"),
+        "IMUX.RIOB1.O" => (bels::IO_E1, "O"),
+        "IMUX.RIOB1.T" => (bels::IO_E1, "T"),
+        "IMUX.BUFG" => (bels::BUFG, "I"),
         _ => panic!("umm {wn}?"),
     };
+    let bel = (die, (col, row), slot);
     let nloc = (die, col, row, LayerId::from_idx(0));
-    let node = backend.egrid.node(nloc);
-    let node_kind = &backend.egrid.db.nodes[node.kind];
     let nnode = &backend.ngrid.nodes[&nloc];
-    let belid = node_kind.bels.get(bel).unwrap().0;
-    let block = &nnode.bels[belid][0];
-    if bel == "CLB" && pin == "K" {
+    let block = &nnode.bels[slot][0];
+    if slot == bels::CLB && pin == "K" {
         fuzzer = fuzzer
             .base(Key::BlockBase(block), "FG")
-            .base(Key::BelMutex(nloc, belid, "CLK".into()), pin)
+            .base(Key::BelMutex(bel, "CLK".into()), pin)
             .fuzz(
                 Key::BlockConfig(block, "CLK".into(), pin.into()),
                 false,
@@ -212,7 +212,7 @@ fn apply_imux_finish<'a>(
     if pin == "T" {
         fuzzer = fuzzer
             .base(Key::BlockBase(block), "IO")
-            .base(Key::BelMutex(nloc, belid, "BUF".into()), "TRI")
+            .base(Key::BelMutex(bel, "BUF".into()), "TRI")
             .fuzz(
                 Key::BlockConfig(block, "BUF".into(), "TRI".into()),
                 false,
@@ -238,8 +238,8 @@ impl IntPip {
     }
 }
 
-impl Prop for IntPip {
-    fn dyn_clone(&self) -> Box<dyn Prop> {
+impl<'b> FuzzerProp<'b, XactBackend<'b>> for IntPip {
+    fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
 
@@ -278,8 +278,8 @@ impl SingleBidi {
     }
 }
 
-impl Prop for SingleBidi {
-    fn dyn_clone(&self) -> Box<dyn Prop> {
+impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
+    fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
 
@@ -292,18 +292,18 @@ impl Prop for SingleBidi {
         let wn = backend.egrid.db.wires.key(self.wire);
         let bidi_tile = match self.dir {
             Dir::W | Dir::E => {
-                if nloc.2 == backend.edev.chip.row_bio() {
+                if nloc.2 == backend.edev.chip.row_s() {
                     "BIDIH.B"
-                } else if nloc.2 == backend.edev.chip.row_tio() {
+                } else if nloc.2 == backend.edev.chip.row_n() {
                     "BIDIH.T"
                 } else {
                     "BIDIH"
                 }
             }
             Dir::S | Dir::N => {
-                if nloc.1 == backend.edev.chip.col_lio() {
+                if nloc.1 == backend.edev.chip.col_w() {
                     "BIDIV.L"
-                } else if nloc.1 == backend.edev.chip.col_rio() {
+                } else if nloc.1 == backend.edev.chip.col_e() {
                     "BIDIV.R"
                 } else {
                     "BIDIV"
@@ -381,8 +381,8 @@ struct HasBidi {
     val: bool,
 }
 
-impl Prop for HasBidi {
-    fn dyn_clone(&self) -> Box<dyn Prop> {
+impl<'b> FuzzerProp<'b, XactBackend<'b>> for HasBidi {
+    fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
 
@@ -549,7 +549,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     inps.push((in_name.to_string(), diff));
                 }
                 if out_name.starts_with("IMUX") && out_name.ends_with("T") {
-                    let bel = &out_name[5..10];
+                    let slot = match &out_name[5..10] {
+                        "LIOB0" => bels::IO_W[0],
+                        "LIOB1" => bels::IO_W[1],
+                        "RIOB0" => bels::IO_E[0],
+                        "RIOB1" => bels::IO_E[1],
+                        "BIOB0" => bels::IO_S[0],
+                        "BIOB1" => bels::IO_S[1],
+                        "TIOB0" => bels::IO_N[0],
+                        "TIOB1" => bels::IO_N[1],
+                        _ => unreachable!(),
+                    };
+                    let bel = &ctx.edev.egrid.db.bel_slots[slot];
                     assert!(!got_empty);
                     inps.push(("VCC".to_string(), Diff::default()));
                     inps.push((

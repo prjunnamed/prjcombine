@@ -3,7 +3,7 @@ use crate::chip::{Chip, ChipKind, DisabledPart, GtKind, Interposer, IoKind, RegI
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use bimap::BiHashMap;
 use prjcombine_interconnect::dir::DirPartMap;
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, Rect, RowId, TileIobId};
+use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, NodeLoc, Rect, RowId, TileIobId};
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -905,5 +905,175 @@ impl ExpandedDevice<'_> {
             320,
             flip,
         )
+    }
+
+    pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+        let (die, col, row, _) = nloc;
+        let node = self.egrid.node(nloc);
+        let kind = self.egrid.db.nodes.key(node.kind).as_str();
+        if kind == "BRAM" {
+            if self.kind == ChipKind::Virtex4 {
+                vec![
+                    self.btile_main(die, col, row),
+                    self.btile_main(die, col, row + 1),
+                    self.btile_main(die, col, row + 2),
+                    self.btile_main(die, col, row + 3),
+                    self.btile_bram(die, col, row),
+                ]
+            } else {
+                vec![
+                    self.btile_main(die, col, row),
+                    self.btile_main(die, col, row + 1),
+                    self.btile_main(die, col, row + 2),
+                    self.btile_main(die, col, row + 3),
+                    self.btile_main(die, col, row + 4),
+                    self.btile_bram(die, col, row),
+                ]
+            }
+        } else if self.kind == ChipKind::Virtex7 && kind == "HCLK" {
+            assert_eq!(col.to_idx() % 2, 0);
+            vec![
+                self.btile_hclk(die, col, row),
+                self.btile_hclk(die, col + 1, row),
+            ]
+        } else if kind.starts_with("HCLK") {
+            vec![self.btile_hclk(die, col, row)]
+        } else if self.kind == ChipKind::Virtex4 && kind.starts_with("CLK_DCM") {
+            Vec::from_iter((0..8).map(|idx| self.btile_spine(die, row + idx)))
+        } else if self.kind == ChipKind::Virtex4 && kind.starts_with("CLK_IOB") {
+            Vec::from_iter((0..16).map(|idx| self.btile_spine(die, row + idx)))
+        } else if kind == "CLK_TERM" {
+            vec![self.btile_spine(die, row)]
+        } else if self.kind == ChipKind::Virtex5
+            && (kind.starts_with("CLK_CMT")
+                || kind.starts_with("CLK_IOB")
+                || kind.starts_with("CLK_MGT"))
+        {
+            Vec::from_iter((0..10).map(|idx| self.btile_spine(die, row + idx)))
+        } else if self.kind == ChipKind::Virtex4 && kind == "CFG" {
+            let mut res = vec![];
+            for i in 0..16 {
+                res.push(self.btile_main(die, col, row + i));
+            }
+            for i in 0..16 {
+                res.push(self.btile_spine(die, row + i));
+            }
+            res
+        } else if self.kind == ChipKind::Virtex5 && kind == "CFG" {
+            let mut res = vec![];
+            for i in 0..20 {
+                res.push(self.btile_main(die, col, row + i));
+            }
+            for i in 0..20 {
+                res.push(self.btile_spine(die, row + i));
+            }
+            res
+        } else if kind == "CLK_HROW" {
+            match self.kind {
+                ChipKind::Virtex4 | ChipKind::Virtex5 => {
+                    vec![
+                        self.btile_spine(die, row - 1),
+                        self.btile_spine(die, row),
+                        self.btile_spine_hclk(die, row),
+                    ]
+                }
+                ChipKind::Virtex6 => unreachable!(),
+                ChipKind::Virtex7 => {
+                    let mut res = vec![];
+                    for i in 0..8 {
+                        res.push(self.btile_main(die, col, row - 4 + i));
+                    }
+                    res.push(self.btile_hclk(die, col, row));
+                    res
+                }
+            }
+        } else if self.kind == ChipKind::Virtex6 && kind == "PCIE" {
+            Vec::from_iter((0..20).map(|idx| self.btile_main(die, col + 3, row + idx)))
+        } else if kind == "PCIE3" {
+            Vec::from_iter((0..50).map(|idx| self.btile_main(die, col + 4, row + idx)))
+        } else if matches!(self.kind, ChipKind::Virtex6 | ChipKind::Virtex7) && kind == "CMT" {
+            let mut res = vec![];
+            for i in 0..self.chips[die].rows_per_reg() {
+                res.push(self.btile_main(
+                    die,
+                    col,
+                    self.chips[die].row_hclk(row) - self.chips[die].rows_per_reg() / 2 + i,
+                ));
+            }
+            res.push(self.btile_hclk(die, col, row));
+            res
+        } else if self.kind == ChipKind::Virtex5 && matches!(kind, "GTP" | "GTX") {
+            let mut res = vec![];
+            for i in 0..20 {
+                res.push(self.btile_main(die, col, row + i));
+            }
+            res.push(self.btile_hclk(die, col, row + 10));
+            res
+        } else if kind == "GTP_COMMON_MID" {
+            let col = if col.to_idx() % 2 == 0 {
+                col - 1
+            } else {
+                col + 1
+            };
+            vec![
+                self.btile_main(die, col, row - 3),
+                self.btile_main(die, col, row - 2),
+                self.btile_main(die, col, row - 1),
+                self.btile_main(die, col, row),
+                self.btile_main(die, col, row + 1),
+                self.btile_main(die, col, row + 2),
+                self.btile_hclk(die, col, row),
+            ]
+        } else if kind == "GTP_CHANNEL_MID" {
+            let col = if col.to_idx() % 2 == 0 {
+                col - 1
+            } else {
+                col + 1
+            };
+            Vec::from_iter((0..11).map(|i| self.btile_main(die, col, row + i)))
+        } else if kind == "CMT_BUFG_BOT" {
+            vec![
+                self.btile_main(die, col, row - 2),
+                self.btile_main(die, col, row - 1),
+            ]
+        } else if kind == "CMT_BUFG_TOP" {
+            vec![
+                self.btile_main(die, col, row),
+                self.btile_main(die, col, row + 1),
+            ]
+        } else {
+            Vec::from_iter(
+                node.tiles
+                    .values()
+                    .map(|&(col, row)| self.btile_main(die, col, row)),
+            )
+        }
+    }
+
+    pub fn node_cfg(&self, die: DieId) -> NodeLoc {
+        let chip = self.chips[die];
+        match self.kind {
+            ChipKind::Virtex4 => {
+                self.egrid
+                    .get_node_by_kind(die, (self.col_cfg, chip.row_bufg() - 8), |kind| {
+                        kind == "CFG"
+                    })
+            }
+            ChipKind::Virtex5 => {
+                self.egrid
+                    .get_node_by_kind(die, (self.col_cfg, chip.row_bufg() - 10), |kind| {
+                        kind == "CFG"
+                    })
+            }
+            ChipKind::Virtex6 => {
+                self.egrid
+                    .get_node_by_kind(die, (self.col_cfg, chip.row_bufg()), |kind| kind == "CFG")
+            }
+            ChipKind::Virtex7 => self.egrid.get_node_by_kind(
+                die,
+                (self.col_cfg, chip.row_reg_bot(chip.reg_cfg - 1)),
+                |kind| kind == "CFG",
+            ),
+        }
     }
 }

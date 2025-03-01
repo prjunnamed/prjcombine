@@ -1,4 +1,4 @@
-use prjcombine_re_collector::xlat_enum;
+use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem};
 
@@ -10,11 +10,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        for bel in node.bels.keys() {
-            if !bel.contains("IOB") {
+        for slot in node.bels.ids() {
+            let slot_name = &backend.egrid.db.bel_slots[slot];
+            if !slot_name.starts_with("IO") {
                 continue;
             }
-            let mut bctx = ctx.bel(bel);
+            let mut bctx = ctx.bel(slot);
             bctx.mode("IO").test_enum("I", &["PAD", "Q"]);
             bctx.mode("IO").test_enum("BUF", &["ON"]);
         }
@@ -36,8 +37,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if !tile.starts_with("CLB") {
             continue;
         }
-        for bel in node.bels.keys() {
-            if !bel.contains("IOB") {
+        for slot in node.bels.ids() {
+            let bel = &ctx.edev.egrid.db.bel_slots[slot];
+            if !bel.starts_with("IO") {
                 continue;
             }
             ctx.collect_enum(tile, bel, "I", &["PAD", "Q"]);

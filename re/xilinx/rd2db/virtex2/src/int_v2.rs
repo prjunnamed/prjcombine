@@ -6,9 +6,14 @@ use prjcombine_re_xilinx_rawdump::{Coord, Part};
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
+use prjcombine_virtex2::bels;
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
+
+    for &slot in bels::SLOTS {
+        builder.db.bel_slots.insert(slot.into());
+    }
 
     builder.wire(
         "PULLUP",
@@ -764,9 +769,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     builder.extract_main_passes();
 
-    let bels_int = [builder.bel_xy("RLL", "RLL", 0, 0)];
+    let bels_int = [builder.bel_xy(bels::RLL, "RLL", 0, 0)];
     let bels_int_sigh = [builder
-        .bel_xy("RLL", "RLL", 0, 0)
+        .bel_xy(bels::RLL, "RLL", 0, 0)
         .pins_name_only(&["LH0", "LH6", "LH12", "LH18", "LV0", "LV6", "LV12", "LV18"])];
     builder.extract_node("CENTER", "INT.CLB", "INT.CLB", &bels_int);
     builder.extract_node("LR_IOIS", "INT.IOI", "INT.IOI.LR", &bels_int);
@@ -850,35 +855,35 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     let bels_clb = [
         builder
-            .bel_xy("SLICE0", "SLICE", 0, 0)
+            .bel_xy(bels::SLICE0, "SLICE", 0, 0)
             .pins_name_only(&slice_name_only)
             .extra_wire("BYINVOUT_LOCAL", &["BYINVOUT_LOCAL0"]),
         builder
-            .bel_xy("SLICE1", "SLICE", 0, 1)
+            .bel_xy(bels::SLICE1, "SLICE", 0, 1)
             .pins_name_only(&slice_name_only)
             .extra_wire("FX_S", &["FX_S1"])
             .extra_wire("COUT_N", &["COUT_N3"])
             .extra_wire("BYOUT_LOCAL", &["BYOUT_LOCAL1"])
             .extra_wire("BYINVOUT_LOCAL", &["BYINVOUT_LOCAL1"]),
         builder
-            .bel_xy("SLICE2", "SLICE", 1, 0)
+            .bel_xy(bels::SLICE2, "SLICE", 1, 0)
             .pins_name_only(&slice_name_only)
             .extra_wire("SOPOUT_W", &["SOPOUT_W2"]),
         builder
-            .bel_xy("SLICE3", "SLICE", 1, 1)
+            .bel_xy(bels::SLICE3, "SLICE", 1, 1)
             .pins_name_only(&slice_name_only)
             .extra_wire("COUT_N", &["COUT_N1"])
             .extra_wire("DIG_LOCAL", &["DIG_LOCAL3"])
             .extra_wire("DIG_S", &["DIG_S3"])
             .extra_wire("SOPOUT_W", &["SOPOUT_W3"]),
         builder
-            .bel_indexed("TBUF0", "TBUF", 0)
+            .bel_indexed(bels::TBUF0, "TBUF", 0)
             .pins_name_only(&["O"]),
         builder
-            .bel_indexed("TBUF1", "TBUF", 1)
+            .bel_indexed(bels::TBUF1, "TBUF", 1)
             .pins_name_only(&["O"]),
         builder
-            .bel_virtual("TBUS")
+            .bel_virtual(bels::TBUS)
             .extra_wire("BUS0", &["TBUF0"])
             .extra_wire("BUS1", &["TBUF1"])
             .extra_wire("BUS2", &["TBUF2"])
@@ -891,19 +896,19 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let ioi_name_only = ["DIFFI_IN", "PADOUT", "DIFFO_IN", "DIFFO_OUT"];
     let bels_ioi = [
         builder
-            .bel_indexed("IOI0", "IOB", 0)
+            .bel_indexed(bels::IO0, "IOB", 0)
             .pins_name_only(&ioi_name_only)
             .extra_wire_force("IBUF", "IOIS_IBUF0"),
         builder
-            .bel_indexed("IOI1", "IOB", 1)
+            .bel_indexed(bels::IO1, "IOB", 1)
             .pins_name_only(&ioi_name_only)
             .extra_wire_force("IBUF", "IOIS_IBUF1"),
         builder
-            .bel_indexed("IOI2", "IOB", 2)
+            .bel_indexed(bels::IO2, "IOB", 2)
             .pins_name_only(&ioi_name_only)
             .extra_wire_force("IBUF", "IOIS_IBUF2"),
         builder
-            .bel_indexed("IOI3", "IOB", 3)
+            .bel_indexed(bels::IO3, "IOB", 3)
             .pins_name_only(&ioi_name_only)
             .extra_wire_force("IBUF", "IOIS_IBUF3"),
     ];
@@ -918,26 +923,26 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bels_ioi[0].clone(),
             bels_ioi[1].clone(),
             builder
-                .bel_single("CLK_P", "CLKPPAD2")
+                .bel_single(bels::IO[2], "CLKPPAD2")
                 .pin_name_only("I", 1),
             builder
-                .bel_single("CLK_N", "CLKNPAD2")
+                .bel_single(bels::IO[3], "CLKNPAD2")
                 .pin_name_only("I", 1),
             builder
-                .bel_virtual("BREFCLK_INT")
+                .bel_virtual(bels::BREFCLK_INT)
                 .extra_int_out("BREFCLK", &["IOIS_BREFCLK_SE"]),
         ];
         let bels_ioi_clk_t = [
             builder
-                .bel_single("CLK_P", "CLKPPAD1")
+                .bel_single(bels::IO[0], "CLKPPAD1")
                 .pin_name_only("I", 1),
             builder
-                .bel_single("CLK_N", "CLKNPAD1")
+                .bel_single(bels::IO[1], "CLKNPAD1")
                 .pin_name_only("I", 1),
             bels_ioi[2].clone(),
             bels_ioi[3].clone(),
             builder
-                .bel_virtual("BREFCLK_INT")
+                .bel_virtual(bels::BREFCLK_INT)
                 .extra_int_out("BREFCLK", &["IOIS_BREFCLK_SE"]),
         ];
         builder.extract_node_bels("MK_B_IOIS", "IOI.CLK_B", "IOI.CLK_B", &bels_ioi_clk_b);
@@ -982,7 +987,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
 
-    let bels_dcm = [builder.bel_xy("DCM", "DCM", 0, 0)];
+    let bels_dcm = [builder.bel_xy(bels::DCM, "DCM", 0, 0)];
     builder.extract_node_bels("BRAM_IOIS", "DCM.V2", "DCM.V2", &bels_dcm);
     builder.extract_node_bels("ML_BRAM_IOIS", "DCM.V2P", "DCM.V2P", &bels_dcm);
 
@@ -996,8 +1001,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ll,
         ll,
         &[
-            builder.bel_indexed("DCI0", "DCI", 6),
-            builder.bel_indexed("DCI1", "DCI", 5),
+            builder.bel_indexed(bels::DCI0, "DCI", 6),
+            builder.bel_indexed(bels::DCI1, "DCI", 5),
         ],
     );
 
@@ -1006,11 +1011,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         lr,
         lr,
         &[
-            builder.bel_indexed("DCI0", "DCI", 3),
-            builder.bel_indexed("DCI1", "DCI", 4),
-            builder.bel_single("STARTUP", "STARTUP"),
-            builder.bel_single("CAPTURE", "CAPTURE"),
-            builder.bel_single("ICAP", "ICAP"),
+            builder.bel_indexed(bels::DCI0, "DCI", 3),
+            builder.bel_indexed(bels::DCI1, "DCI", 4),
+            builder.bel_single(bels::STARTUP, "STARTUP"),
+            builder.bel_single(bels::CAPTURE, "CAPTURE"),
+            builder.bel_single(bels::ICAP, "ICAP"),
         ],
     );
     builder.extract_node_bels(
@@ -1018,9 +1023,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ul,
         ul,
         &[
-            builder.bel_indexed("DCI0", "DCI", 7),
-            builder.bel_indexed("DCI1", "DCI", 0),
-            builder.bel_single("PMV", "PMV"),
+            builder.bel_indexed(bels::DCI0, "DCI", 7),
+            builder.bel_indexed(bels::DCI1, "DCI", 0),
+            builder.bel_single(bels::PMV, "PMV"),
         ],
     );
     if rd.family == "virtex2p" {
@@ -1029,10 +1034,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ur,
             ur,
             &[
-                builder.bel_indexed("DCI0", "DCI", 2),
-                builder.bel_indexed("DCI1", "DCI", 1),
-                builder.bel_single("BSCAN", "BSCAN"),
-                builder.bel_single("JTAGPPC", "JTAGPPC"),
+                builder.bel_indexed(bels::DCI0, "DCI", 2),
+                builder.bel_indexed(bels::DCI1, "DCI", 1),
+                builder.bel_single(bels::BSCAN, "BSCAN"),
+                builder.bel_single(bels::JTAGPPC, "JTAGPPC"),
             ],
         );
     } else {
@@ -1041,9 +1046,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ur,
             ur,
             &[
-                builder.bel_indexed("DCI0", "DCI", 2),
-                builder.bel_indexed("DCI1", "DCI", 1),
-                builder.bel_single("BSCAN", "BSCAN"),
+                builder.bel_indexed(bels::DCI0, "DCI", 2),
+                builder.bel_indexed(bels::DCI1, "DCI", 1),
+                builder.bel_single(bels::BSCAN, "BSCAN"),
             ],
         );
     }
@@ -1235,7 +1240,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let xy_r = xy.delta(1, 0);
             let mut bels = vec![
                 builder
-                    .bel_indexed("BUFGMUX0", "BUFGMUX", 0)
+                    .bel_indexed(bels::BUFGMUX0, "BUFGMUX", 0)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIR0", "ML_CLKB_CKIR0"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL4"])
@@ -1244,7 +1249,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR0"])
                     .extra_int_in("CLK", &["CLKB_GCLK00"]),
                 builder
-                    .bel_indexed("BUFGMUX1", "BUFGMUX", 1)
+                    .bel_indexed(bels::BUFGMUX1, "BUFGMUX", 1)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIR1"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL5"])
@@ -1253,7 +1258,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR1"])
                     .extra_int_in("CLK", &["CLKB_GCLK01"]),
                 builder
-                    .bel_indexed("BUFGMUX2", "BUFGMUX", 2)
+                    .bel_indexed(bels::BUFGMUX2, "BUFGMUX", 2)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIR2"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL6"])
@@ -1262,7 +1267,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR2"])
                     .extra_int_in("CLK", &["CLKB_GCLK02"]),
                 builder
-                    .bel_indexed("BUFGMUX3", "BUFGMUX", 3)
+                    .bel_indexed(bels::BUFGMUX3, "BUFGMUX", 3)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIR3"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL7"])
@@ -1271,7 +1276,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR3"])
                     .extra_int_in("CLK", &["CLKB_GCLK03"]),
                 builder
-                    .bel_indexed("BUFGMUX4", "BUFGMUX", 4)
+                    .bel_indexed(bels::BUFGMUX4, "BUFGMUX", 4)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIL0"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL0"])
@@ -1280,7 +1285,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR4"])
                     .extra_int_in("CLK", &["CLKB_GCLK04"]),
                 builder
-                    .bel_indexed("BUFGMUX5", "BUFGMUX", 5)
+                    .bel_indexed(bels::BUFGMUX5, "BUFGMUX", 5)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIL1"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL1"])
@@ -1289,7 +1294,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR5"])
                     .extra_int_in("CLK", &["CLKB_GCLK05"]),
                 builder
-                    .bel_indexed("BUFGMUX6", "BUFGMUX", 6)
+                    .bel_indexed(bels::BUFGMUX6, "BUFGMUX", 6)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIL2", "ML_CLKB_CKIL2"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL2"])
@@ -1298,7 +1303,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR6"])
                     .extra_int_in("CLK", &["CLKB_GCLK06"]),
                 builder
-                    .bel_indexed("BUFGMUX7", "BUFGMUX", 7)
+                    .bel_indexed(bels::BUFGMUX7, "BUFGMUX", 7)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIL3"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL3"])
@@ -1306,13 +1311,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL7"])
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR7"])
                     .extra_int_in("CLK", &["CLKB_GCLK07"]),
-                builder.bel_virtual("GLOBALSIG.B0"),
-                builder.bel_virtual("GLOBALSIG.B1"),
+                builder.bel_virtual(bels::GLOBALSIG_S0),
+                builder.bel_virtual(bels::GLOBALSIG_S1),
             ];
             if tkn == "ML_CLKB" {
                 bels.push(
                     builder
-                        .bel_virtual("BREFCLK")
+                        .bel_virtual(bels::BREFCLK)
                         .extra_wire("BREFCLK", &["ML_CLKB_BREFCLK"])
                         .extra_wire("BREFCLK2", &["ML_CLKB_BREFCLK2"]),
                 );
@@ -1330,7 +1335,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let xy_r = xy.delta(1, 0);
             let mut bels = vec![
                 builder
-                    .bel_indexed("BUFGMUX0", "BUFGMUX", 0)
+                    .bel_indexed(bels::BUFGMUX0, "BUFGMUX", 0)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIR0"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL4"])
@@ -1339,7 +1344,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR0"])
                     .extra_int_in("CLK", &["CLKT_GCLK00"]),
                 builder
-                    .bel_indexed("BUFGMUX1", "BUFGMUX", 1)
+                    .bel_indexed(bels::BUFGMUX1, "BUFGMUX", 1)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIR1"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL5"])
@@ -1348,7 +1353,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR1"])
                     .extra_int_in("CLK", &["CLKT_GCLK01"]),
                 builder
-                    .bel_indexed("BUFGMUX2", "BUFGMUX", 2)
+                    .bel_indexed(bels::BUFGMUX2, "BUFGMUX", 2)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIR2", "ML_CLKT_CKIR2"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL6"])
@@ -1357,7 +1362,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR2"])
                     .extra_int_in("CLK", &["CLKT_GCLK02"]),
                 builder
-                    .bel_indexed("BUFGMUX3", "BUFGMUX", 3)
+                    .bel_indexed(bels::BUFGMUX3, "BUFGMUX", 3)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIR3"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL7"])
@@ -1366,7 +1371,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR3"])
                     .extra_int_in("CLK", &["CLKT_GCLK03"]),
                 builder
-                    .bel_indexed("BUFGMUX4", "BUFGMUX", 4)
+                    .bel_indexed(bels::BUFGMUX4, "BUFGMUX", 4)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIL0", "ML_CLKT_CKIL0"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL0"])
@@ -1375,7 +1380,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR4"])
                     .extra_int_in("CLK", &["CLKT_GCLK04"]),
                 builder
-                    .bel_indexed("BUFGMUX5", "BUFGMUX", 5)
+                    .bel_indexed(bels::BUFGMUX5, "BUFGMUX", 5)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIL1"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL1"])
@@ -1384,7 +1389,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR5"])
                     .extra_int_in("CLK", &["CLKT_GCLK05"]),
                 builder
-                    .bel_indexed("BUFGMUX6", "BUFGMUX", 6)
+                    .bel_indexed(bels::BUFGMUX6, "BUFGMUX", 6)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIL2"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL2"])
@@ -1393,7 +1398,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR6"])
                     .extra_int_in("CLK", &["CLKT_GCLK06"]),
                 builder
-                    .bel_indexed("BUFGMUX7", "BUFGMUX", 7)
+                    .bel_indexed(bels::BUFGMUX7, "BUFGMUX", 7)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIL3"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL3"])
@@ -1401,13 +1406,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL7"])
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR7"])
                     .extra_int_in("CLK", &["CLKT_GCLK07"]),
-                builder.bel_virtual("GLOBALSIG.T0"),
-                builder.bel_virtual("GLOBALSIG.T1"),
+                builder.bel_virtual(bels::GLOBALSIG_N0),
+                builder.bel_virtual(bels::GLOBALSIG_N1),
             ];
             if tkn == "ML_CLKT" {
                 bels.push(
                     builder
-                        .bel_virtual("BREFCLK")
+                        .bel_virtual(bels::BREFCLK)
                         .extra_wire("BREFCLK", &["ML_CLKT_BREFCLK"])
                         .extra_wire("BREFCLK2", &["ML_CLKT_BREFCLK2"]),
                 );
@@ -1417,7 +1422,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     for &xy in rd.tiles_by_kind_name("CLKC") {
-        let mut bel = builder.bel_virtual("CLKC");
+        let mut bel = builder.bel_virtual(bels::CLKC);
         for i in 0..8 {
             bel = bel
                 .extra_wire(format!("IN_B{i}"), &[format!("CLKC_GCLKB_IN{i}")])
@@ -1430,7 +1435,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for &xy in rd.tiles_by_kind_name("GCLKC") {
         for nn in ["GCLKC", "GCLKC.B", "GCLKC.T"] {
-            let mut bel = builder.bel_virtual("GCLKC");
+            let mut bel = builder.bel_virtual(bels::GCLKC);
             for i in 0..8 {
                 bel = bel
                     .extra_wire(format!("IN_B{i}"), &[format!("GCLKC_GCLKB{i}")])
@@ -1446,7 +1451,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_s_xy = builder.walk_to_int(xy, Dir::S, false).unwrap();
             let int_n_xy = builder.walk_to_int(xy, Dir::N, false).unwrap();
-            let mut bel = builder.bel_virtual("GCLKH");
+            let mut bel = builder.bel_virtual(bels::GCLKH);
             for i in 0..8 {
                 bel = bel
                     .extra_wire(format!("IN{i}"), &[format!("GCLKH_GCLK_B{i}")])
@@ -1459,7 +1464,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &[],
                 &[int_s_xy, int_n_xy],
                 "GCLKH",
-                &[builder.bel_virtual("GLOBALSIG"), bel],
+                &[builder.bel_virtual(bels::GLOBALSIG), bel],
             );
         }
     }
@@ -1476,8 +1481,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             &int_xy,
             "BRAM",
             &[
-                builder.bel_xy("BRAM", "RAMB16", 0, 0),
-                builder.bel_xy("MULT", "MULT18X18", 0, 0),
+                builder.bel_xy(bels::BRAM, "RAMB16", 0, 0),
+                builder.bel_xy(bels::MULT, "MULT18X18", 0, 0),
             ],
         );
     }
@@ -1492,7 +1497,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &int_xy,
                 kind,
                 &[builder
-                    .bel_virtual("DCMCONN")
+                    .bel_virtual(bels::DCMCONN)
                     .extra_wire("OUTBUS0", &["BBTERM_CKMUX0", "TTERM_CKMUX0"])
                     .extra_wire("OUTBUS1", &["BBTERM_CKMUX1", "TTERM_CKMUX1"])
                     .extra_wire("OUTBUS2", &["BBTERM_CKMUX2", "TTERM_CKMUX2"])
@@ -1539,21 +1544,21 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             "GIGABIT.B",
             &[
                 builder
-                    .bel_xy("GT", "GT", 0, 0)
+                    .bel_xy(bels::GT, "GT", 0, 0)
                     .pins_name_only(&["RXP", "RXN", "TXP", "TXN", "TST10B8BICRD0", "TST10B8BICRD1"])
                     .pin_name_only("BREFCLK", 1)
                     .pin_name_only("BREFCLK2", 1),
                 builder
-                    .bel_indexed("IPAD.RXP", "GTIPAD", 0)
+                    .bel_indexed(bels::IPAD_RXP, "GTIPAD", 0)
                     .pin_name_only("I", 0),
                 builder
-                    .bel_indexed("IPAD.RXN", "GTIPAD", 1)
+                    .bel_indexed(bels::IPAD_RXN, "GTIPAD", 1)
                     .pin_name_only("I", 0),
                 builder
-                    .bel_indexed("OPAD.TXP", "GTOPAD", 0)
+                    .bel_indexed(bels::OPAD_TXP, "GTOPAD", 0)
                     .pin_name_only("O", 0),
                 builder
-                    .bel_indexed("OPAD.TXN", "GTOPAD", 1)
+                    .bel_indexed(bels::OPAD_TXN, "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
         );
@@ -1573,21 +1578,21 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             "GIGABIT.T",
             &[
                 builder
-                    .bel_xy("GT", "GT", 0, 0)
+                    .bel_xy(bels::GT, "GT", 0, 0)
                     .pins_name_only(&["RXP", "RXN", "TXP", "TXN", "TST10B8BICRD0", "TST10B8BICRD1"])
                     .pin_name_only("BREFCLK", 1)
                     .pin_name_only("BREFCLK2", 1),
                 builder
-                    .bel_indexed("IPAD.RXP", "GTIPAD", 0)
+                    .bel_indexed(bels::IPAD_RXP, "GTIPAD", 0)
                     .pin_name_only("I", 0),
                 builder
-                    .bel_indexed("IPAD.RXN", "GTIPAD", 1)
+                    .bel_indexed(bels::IPAD_RXN, "GTIPAD", 1)
                     .pin_name_only("I", 0),
                 builder
-                    .bel_indexed("OPAD.TXP", "GTOPAD", 0)
+                    .bel_indexed(bels::OPAD_TXP, "GTOPAD", 0)
                     .pin_name_only("O", 0),
                 builder
-                    .bel_indexed("OPAD.TXN", "GTOPAD", 1)
+                    .bel_indexed(bels::OPAD_TXN, "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
         );
@@ -1607,21 +1612,21 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             "GIGABIT10.B",
             &[
                 builder
-                    .bel_xy("GT10", "GT10", 0, 0)
+                    .bel_xy(bels::GT10, "GT10", 0, 0)
                     .pins_name_only(&["RXP", "RXN", "TXP", "TXN"])
                     .pin_name_only("BREFCLKPIN", 1)
                     .pin_name_only("BREFCLKNIN", 1),
                 builder
-                    .bel_indexed("IPAD.RXP", "GTIPAD", 0)
+                    .bel_indexed(bels::IPAD_RXP, "GTIPAD", 0)
                     .pin_name_only("I", 0),
                 builder
-                    .bel_indexed("IPAD.RXN", "GTIPAD", 1)
+                    .bel_indexed(bels::IPAD_RXN, "GTIPAD", 1)
                     .pin_name_only("I", 0),
                 builder
-                    .bel_indexed("OPAD.TXP", "GTOPAD", 0)
+                    .bel_indexed(bels::OPAD_TXP, "GTOPAD", 0)
                     .pin_name_only("O", 0),
                 builder
-                    .bel_indexed("OPAD.TXN", "GTOPAD", 1)
+                    .bel_indexed(bels::OPAD_TXN, "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
         );
@@ -1641,21 +1646,21 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             "GIGABIT10.T",
             &[
                 builder
-                    .bel_xy("GT10", "GT10", 0, 0)
+                    .bel_xy(bels::GT10, "GT10", 0, 0)
                     .pins_name_only(&["RXP", "RXN", "TXP", "TXN"])
                     .pin_name_only("BREFCLKPIN", 1)
                     .pin_name_only("BREFCLKNIN", 1),
                 builder
-                    .bel_indexed("IPAD.RXP", "GTIPAD", 0)
+                    .bel_indexed(bels::IPAD_RXP, "GTIPAD", 0)
                     .pin_name_only("I", 0),
                 builder
-                    .bel_indexed("IPAD.RXN", "GTIPAD", 1)
+                    .bel_indexed(bels::IPAD_RXN, "GTIPAD", 1)
                     .pin_name_only("I", 0),
                 builder
-                    .bel_indexed("OPAD.TXP", "GTOPAD", 0)
+                    .bel_indexed(bels::OPAD_TXP, "GTOPAD", 0)
                     .pin_name_only("O", 0),
                 builder
-                    .bel_indexed("OPAD.TXN", "GTOPAD", 1)
+                    .bel_indexed(bels::OPAD_TXN, "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
         );
@@ -1682,7 +1687,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &[],
                 &int_xy,
                 tkn,
-                &[builder.bel_xy("PPC405", "PPC405", 0, 0)],
+                &[builder.bel_xy(bels::PPC405, "PPC405", 0, 0)],
             );
         }
     }
@@ -1714,7 +1719,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &buf_xy,
                 &int_xy,
                 tkn,
-                &[builder.bel_xy("PCILOGIC", "PCILOGIC", 0, 0)],
+                &[builder.bel_xy(bels::PCILOGIC, "PCILOGIC", 0, 0)],
             );
         }
     }

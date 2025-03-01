@@ -385,12 +385,12 @@ impl<B: Backend> Batch<B> {
     }
 }
 
-impl<'a, B: Backend> Session<'a, B> {
+impl<'b, B: Backend> Session<'b, B> {
     fn install_fuzzer(
         &mut self,
         state: &mut B::State,
-        fgen: &(dyn FuzzerGen<B> + 'a),
-    ) -> (FuzzerId, Option<Box<dyn FuzzerGen<B> + 'a>>) {
+        fgen: &(dyn FuzzerGen<'b, B> + 'b),
+    ) -> (FuzzerId, Option<Box<dyn FuzzerGen<'b, B> + 'b>>) {
         for (bid, batch) in &mut self.batches {
             if let Some((fuzzer, chain)) = fgen.generate(self.backend, state, &batch.kv) {
                 if let Some(fid) = batch.install_fuzzer(fuzzer) {

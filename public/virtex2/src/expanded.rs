@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, Rect, RowId};
+use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, NodeLoc, Rect, RowId};
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -68,9 +68,9 @@ impl ExpandedDevice<'_> {
             (2, 64)
         };
         let bit = 16 + height * row.to_idx();
-        let frame = if col == self.chip.col_left() {
+        let frame = if col == self.chip.col_w() {
             self.lterm_frame
-        } else if col == self.chip.col_right() {
+        } else if col == self.chip.col_e() {
             self.rterm_frame
         } else {
             unreachable!()
@@ -84,7 +84,7 @@ impl ExpandedDevice<'_> {
         } else {
             (19, 64)
         };
-        let bit = if row == self.chip.row_bot() {
+        let bit = if row == self.chip.row_s() {
             if self.chip.kind.is_virtex2() {
                 4
             } else if !self.chip.kind.is_spartan3a() {
@@ -92,7 +92,7 @@ impl ExpandedDevice<'_> {
             } else {
                 0
             }
-        } else if row == self.chip.row_top() {
+        } else if row == self.chip.row_n() {
             16 + height * self.chip.rows.len()
         } else {
             unreachable!()
@@ -153,9 +153,9 @@ impl ExpandedDevice<'_> {
         } else {
             (1, 64)
         };
-        let bit = if row == self.chip.row_bot() {
+        let bit = if row == self.chip.row_s() {
             0
-        } else if row == self.chip.row_top() {
+        } else if row == self.chip.row_n() {
             16 + height * self.chip.rows.len()
         } else {
             unreachable!()
@@ -218,5 +218,157 @@ impl ExpandedDevice<'_> {
             1,
             false,
         )
+    }
+
+    pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+        let (_, col, row, _) = nloc;
+        let node = self.egrid.node(nloc);
+        let kind = self.egrid.db.nodes.key(node.kind).as_str();
+        if kind.starts_with("BRAM") {
+            vec![
+                self.btile_main(col, row),
+                self.btile_main(col, row + 1),
+                self.btile_main(col, row + 2),
+                self.btile_main(col, row + 3),
+                self.btile_bram(col, row),
+            ]
+        } else if kind.starts_with("CLKB") || kind.starts_with("CLKT") {
+            vec![self.btile_spine(row), self.btile_btspine(row)]
+        } else if kind.starts_with("CLKL") || kind.starts_with("CLKR") {
+            vec![
+                self.btile_main(col, row - 1),
+                self.btile_main(col, row),
+                self.btile_lrterm(col, row - 2),
+                self.btile_lrterm(col, row - 1),
+                self.btile_lrterm(col, row),
+                self.btile_lrterm(col, row + 1),
+            ]
+        } else if kind == "CLKC_50A" {
+            vec![self.btile_spine(row - 1)]
+        } else if kind.starts_with("GCLKVM") {
+            vec![self.btile_clkv(col, row - 1), self.btile_clkv(col, row)]
+        } else if kind.starts_with("GCLKC") {
+            if row == self.chip.row_s() + 1 {
+                vec![
+                    self.btile_btspine(row - 1),
+                    self.btile_spine(row - 1),
+                    self.btile_spine(row),
+                    self.btile_spine(row + 1),
+                ]
+            } else if row == self.chip.row_n() {
+                vec![
+                    self.btile_spine(row - 2),
+                    self.btile_spine(row - 1),
+                    self.btile_spine(row),
+                    self.btile_btspine(row),
+                ]
+            } else {
+                vec![
+                    self.btile_spine(row - 2),
+                    self.btile_spine(row - 1),
+                    self.btile_spine(row),
+                    self.btile_spine(row + 1),
+                ]
+            }
+        } else if kind.starts_with("GCLKH") {
+            vec![self.btile_hclk(col, row)]
+        } else if kind.starts_with("IOBS") {
+            if col == self.chip.col_w() || col == self.chip.col_e() {
+                Vec::from_iter(
+                    node.tiles
+                        .values()
+                        .map(|&(col, row)| self.btile_lrterm(col, row)),
+                )
+            } else {
+                Vec::from_iter(
+                    node.tiles
+                        .values()
+                        .map(|&(col, row)| self.btile_btterm(col, row)),
+                )
+            }
+        } else if matches!(kind, "TERM.W" | "TERM.E") {
+            vec![self.btile_lrterm(col, row)]
+        } else if kind.starts_with("DCMCONN") || matches!(kind, "TERM.S" | "TERM.N") {
+            vec![self.btile_btterm(col, row)]
+        } else if kind.starts_with("DCM") {
+            if self.chip.kind.is_virtex2() {
+                vec![self.btile_main(col, row), self.btile_btterm(col, row)]
+            } else if self.chip.kind == ChipKind::Spartan3 {
+                vec![self.btile_main(col, row)]
+            } else {
+                match kind {
+                    "DCM.S3E.BL" | "DCM.S3E.RT" => vec![
+                        self.btile_main(col, row),
+                        self.btile_main(col, row + 1),
+                        self.btile_main(col, row + 2),
+                        self.btile_main(col, row + 3),
+                        self.btile_main(col - 3, row),
+                        self.btile_main(col - 3, row + 1),
+                        self.btile_main(col - 3, row + 2),
+                        self.btile_main(col - 3, row + 3),
+                    ],
+                    "DCM.S3E.BR" | "DCM.S3E.LT" => vec![
+                        self.btile_main(col, row),
+                        self.btile_main(col, row + 1),
+                        self.btile_main(col, row + 2),
+                        self.btile_main(col, row + 3),
+                        self.btile_main(col + 3, row),
+                        self.btile_main(col + 3, row + 1),
+                        self.btile_main(col + 3, row + 2),
+                        self.btile_main(col + 3, row + 3),
+                    ],
+                    "DCM.S3E.TL" | "DCM.S3E.RB" => vec![
+                        self.btile_main(col, row),
+                        self.btile_main(col, row - 3),
+                        self.btile_main(col, row - 2),
+                        self.btile_main(col, row - 1),
+                        self.btile_main(col - 3, row - 3),
+                        self.btile_main(col - 3, row - 2),
+                        self.btile_main(col - 3, row - 1),
+                        self.btile_main(col - 3, row),
+                    ],
+                    "DCM.S3E.TR" | "DCM.S3E.LB" => vec![
+                        self.btile_main(col, row),
+                        self.btile_main(col, row - 3),
+                        self.btile_main(col, row - 2),
+                        self.btile_main(col, row - 1),
+                        self.btile_main(col + 3, row - 3),
+                        self.btile_main(col + 3, row - 2),
+                        self.btile_main(col + 3, row - 1),
+                        self.btile_main(col + 3, row),
+                    ],
+                    _ => unreachable!(),
+                }
+            }
+        } else if kind.starts_with("LL.")
+            || kind.starts_with("LR.")
+            || kind.starts_with("UL.") | kind.starts_with("UR.")
+        {
+            if self.chip.kind.is_virtex2() {
+                vec![self.btile_lrterm(col, row), self.btile_btterm(col, row)]
+            } else {
+                vec![self.btile_lrterm(col, row)]
+            }
+        } else if matches!(kind, "RANDOR" | "RANDOR_INIT") {
+            vec![self.btile_main(col, row)]
+        } else if kind == "PPC.N" {
+            vec![self.btile_main(col, row + 1)]
+        } else if kind == "PPC.S" {
+            vec![self.btile_main(col, row - 1)]
+        } else if kind.starts_with("LLV") {
+            if self.chip.kind == ChipKind::Spartan3E {
+                vec![self.btile_llv_b(col), self.btile_llv_t(col)]
+            } else {
+                vec![self.btile_llv(col)]
+            }
+        } else if kind.starts_with("LLH") {
+            vec![self.btile_spine(row)]
+        } else {
+            Vec::from_iter(
+                node.tiles
+                    .values()
+                    .map(|&(col, row)| self.btile_main(col, row)),
+            )
+        }
     }
 }

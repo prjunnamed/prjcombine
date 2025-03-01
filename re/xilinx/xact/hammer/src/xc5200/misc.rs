@@ -1,6 +1,7 @@
 use prjcombine_interconnect::grid::{DieId, LayerId};
-use prjcombine_re_collector::xlat_enum;
+use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
+use prjcombine_xc2000::bels::xc5200 as bels;
 use unnamed_entity::EntityId;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
@@ -16,7 +17,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
     ctx.test_global("MISC", "BSRECONFIG", &["DISABLE", "ENABLE"]);
     ctx.test_global("MISC", "BSREADBACK", &["DISABLE", "ENABLE"]);
     ctx.test_global("MISC", "INPUT", &["TTL", "CMOS"]);
-    let mut bctx = ctx.bel("BSCAN");
+    let mut bctx = ctx.bel(bels::BSCAN);
     bctx.mode("BSCAN").test_cfg("BSCAN", "USED");
 
     let mut ctx = FuzzCtx::new(session, backend, "CNR.BR");
@@ -106,18 +107,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         }
     }
 
-    let mut bctx = ctx.bel("STARTUP");
+    let mut bctx = ctx.bel(bels::STARTUP);
     bctx.mode("STARTUP").test_cfg("GCLR", "NOT");
     bctx.mode("STARTUP").test_cfg("GTS", "NOT");
 
     let mut ctx = FuzzCtx::new(session, backend, "CNR.TR");
     ctx.test_cfg5200("MISC", "TLC", &["ON", "OFF"]);
     ctx.test_cfg5200("MISC", "TAC", &["ON", "OFF"]);
-    let mut bctx = ctx.bel("OSC");
+    let mut bctx = ctx.bel(bels::OSC);
     let cnr_br = (
         DieId::from_idx(0),
-        backend.edev.chip.col_rio(),
-        backend.edev.chip.row_bio(),
+        backend.edev.chip.col_e(),
+        backend.edev.chip.row_s(),
         LayerId::from_idx(0),
     );
     for val in ["D2", "D4", "D6", "D8"] {

@@ -1,17 +1,17 @@
 use bitvec::vec::BitVec;
 use prjcombine_interconnect::{
-    db::{BelId, NodeKindId},
+    db::{BelSlotId, NodeKindId},
     grid::NodeLoc,
 };
-use prjcombine_re_collector::FeatureId;
+use prjcombine_re_fpga_hammer::{FeatureId, FpgaFuzzerGen, FuzzerProp};
 use prjcombine_re_hammer::Session;
 
 use crate::{
     backend::{Key, Value, XactBackend},
-    fgen::{
-        BaseBelConfig, BaseBelMode, BaseBelMutex, BaseRaw, BondedIo, ExtraTile, FuzzBelConfig,
-        FuzzBelConfigDiff, FuzzBelMode, FuzzBelPipBufg, FuzzBelPipPin, FuzzEquate, FuzzEquateFixed,
-        FuzzRaw, PinMutexExclusive, Prop, XactFuzzerGen,
+    props::{
+        BaseBelConfig, BaseBelMode, BaseBelMutex, BaseRaw, BondedIo, DynProp, ExtraTile,
+        FuzzBelConfig, FuzzBelConfigDiff, FuzzBelMode, FuzzBelPipBufg, FuzzBelPipPin, FuzzEquate,
+        FuzzEquateFixed, FuzzRaw, PinMutexExclusive,
     },
 };
 
@@ -53,13 +53,7 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
         })
     }
 
-    pub fn bel<'c>(&'c mut self, bel: impl Into<String>) -> FuzzCtxBel<'c, 'a> {
-        let bel_name = bel.into();
-        let bel = self.backend.egrid.db.nodes[self.node_kind]
-            .bels
-            .get(&bel_name)
-            .unwrap()
-            .0;
+    pub fn bel<'c>(&'c mut self, bel: BelSlotId) -> FuzzCtxBel<'c, 'a> {
         FuzzCtxBel {
             session: &mut *self.session,
             backend: self.backend,
@@ -90,15 +84,15 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
     }
 }
 
-pub struct FuzzBuilder<'sm, 'a> {
-    pub session: &'sm mut Session<'a, XactBackend<'a>>,
-    pub backend: &'a XactBackend<'a>,
+pub struct FuzzBuilder<'sm, 'b> {
+    pub session: &'sm mut Session<'b, XactBackend<'b>>,
+    pub backend: &'b XactBackend<'b>,
     pub node_kind: NodeKindId,
-    pub props: Vec<Box<dyn Prop>>,
+    pub props: Vec<Box<DynProp<'b>>>,
 }
 
-impl<'sm, 'a> FuzzBuilder<'sm, 'a> {
-    pub fn prop(mut self, prop: impl Prop + 'static) -> Self {
+impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
+    pub fn prop(mut self, prop: impl FuzzerProp<'b, XactBackend<'b>> + 'static) -> Self {
         self.props.push(Box::new(prop));
         self
     }
@@ -129,8 +123,8 @@ impl<'sm, 'a> FuzzBuilder<'sm, 'a> {
                 None.into(),
                 val.into(),
             )));
-            let fgen = XactFuzzerGen {
-                node: self.node_kind,
+            let fgen = FpgaFuzzerGen {
+                node_kind: Some(self.node_kind),
                 feature,
                 props,
             };
@@ -156,8 +150,8 @@ impl<'sm, 'a> FuzzBuilder<'sm, 'a> {
                 false.into(),
                 true.into(),
             )));
-            let fgen = XactFuzzerGen {
-                node: self.node_kind,
+            let fgen = FpgaFuzzerGen {
+                node_kind: Some(self.node_kind),
                 feature,
                 props,
             };
@@ -183,8 +177,8 @@ impl<'sm, 'a> FuzzBuilder<'sm, 'a> {
                 false.into(),
                 true.into(),
             )));
-            let fgen = XactFuzzerGen {
-                node: self.node_kind,
+            let fgen = FpgaFuzzerGen {
+                node_kind: Some(self.node_kind),
                 feature,
                 props,
             };
@@ -197,7 +191,7 @@ impl<'sm, 'a> FuzzBuilder<'sm, 'a> {
         bel: &'static str,
         attr: impl AsRef<str>,
         val: impl AsRef<str>,
-    ) -> FuzzBuilderTestManual<'sm, 'a> {
+    ) -> FuzzBuilderTestManual<'sm, 'b> {
         let attr = attr.as_ref();
         let val = val.as_ref();
         let feature = FeatureId {
@@ -215,15 +209,15 @@ impl<'sm, 'a> FuzzBuilder<'sm, 'a> {
     }
 }
 
-pub struct FuzzBuilderTestManual<'sm, 'a> {
-    pub session: &'sm mut Session<'a, XactBackend<'a>>,
+pub struct FuzzBuilderTestManual<'sm, 'b> {
+    pub session: &'sm mut Session<'b, XactBackend<'b>>,
     pub node_kind: NodeKindId,
-    pub props: Vec<Box<dyn Prop>>,
+    pub props: Vec<Box<DynProp<'b>>>,
     pub feature: FeatureId,
 }
 
-impl FuzzBuilderTestManual<'_, '_> {
-    pub fn prop(mut self, prop: impl Prop + 'static) -> Self {
+impl<'b> FuzzBuilderTestManual<'_, 'b> {
+    pub fn prop(mut self, prop: impl FuzzerProp<'b, XactBackend<'b>> + 'static) -> Self {
         self.props.push(Box::new(prop));
         self
     }
@@ -250,8 +244,8 @@ impl FuzzBuilderTestManual<'_, '_> {
     }
 
     pub fn commit(self) {
-        let fgen = XactFuzzerGen {
-            node: self.node_kind,
+        let fgen = FpgaFuzzerGen {
+            node_kind: Some(self.node_kind),
             feature: self.feature,
             props: self.props,
         };
@@ -263,7 +257,7 @@ pub struct FuzzCtxBel<'sm, 'a> {
     pub session: &'sm mut Session<'a, XactBackend<'a>>,
     pub backend: &'a XactBackend<'a>,
     pub node_kind: NodeKindId,
-    pub bel: BelId,
+    pub bel: BelSlotId,
 }
 
 impl<'a> FuzzCtxBel<'_, 'a> {
@@ -286,16 +280,16 @@ impl<'a> FuzzCtxBel<'_, 'a> {
     }
 }
 
-pub struct FuzzBuilderBel<'sm, 'a> {
-    pub session: &'sm mut Session<'a, XactBackend<'a>>,
-    pub backend: &'a XactBackend<'a>,
+pub struct FuzzBuilderBel<'sm, 'b> {
+    pub session: &'sm mut Session<'b, XactBackend<'b>>,
+    pub backend: &'b XactBackend<'b>,
     pub node_kind: NodeKindId,
-    pub bel: BelId,
-    pub props: Vec<Box<dyn Prop>>,
+    pub bel: BelSlotId,
+    pub props: Vec<Box<DynProp<'b>>>,
 }
 
-impl<'sm, 'a> FuzzBuilderBel<'sm, 'a> {
-    pub fn prop(mut self, prop: impl Prop + 'static) -> Self {
+impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
+    pub fn prop(mut self, prop: impl FuzzerProp<'b, XactBackend<'b>> + 'static) -> Self {
         self.props.push(Box::new(prop));
         self
     }
@@ -351,10 +345,7 @@ impl<'sm, 'a> FuzzBuilderBel<'sm, 'a> {
             let val = val.as_ref();
             let feature = FeatureId {
                 tile: self.backend.egrid.db.nodes.key(self.node_kind).clone(),
-                bel: self.backend.egrid.db.nodes[self.node_kind]
-                    .bels
-                    .key(self.bel)
-                    .clone(),
+                bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
                 attr: attr.into(),
                 val: val.into(),
             };
@@ -369,8 +360,8 @@ impl<'sm, 'a> FuzzBuilderBel<'sm, 'a> {
                 attr.into(),
                 val.into(),
             )));
-            let fgen = XactFuzzerGen {
-                node: self.node_kind,
+            let fgen = FpgaFuzzerGen {
+                node_kind: Some(self.node_kind),
                 feature,
                 props,
             };
@@ -408,15 +399,12 @@ impl<'sm, 'a> FuzzBuilderBel<'sm, 'a> {
         self,
         attr: impl AsRef<str>,
         val: impl AsRef<str>,
-    ) -> FuzzBuilderBelTestManual<'sm, 'a> {
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
         let attr = attr.as_ref();
         let val = val.as_ref();
         let feature = FeatureId {
             tile: self.backend.egrid.db.nodes.key(self.node_kind).clone(),
-            bel: self.backend.egrid.db.nodes[self.node_kind]
-                .bels
-                .key(self.bel)
-                .clone(),
+            bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
             attr: attr.into(),
             val: val.into(),
         };
@@ -430,16 +418,16 @@ impl<'sm, 'a> FuzzBuilderBel<'sm, 'a> {
     }
 }
 
-pub struct FuzzBuilderBelTestManual<'sm, 'a> {
-    pub session: &'sm mut Session<'a, XactBackend<'a>>,
+pub struct FuzzBuilderBelTestManual<'sm, 'b> {
+    pub session: &'sm mut Session<'b, XactBackend<'b>>,
     pub node_kind: NodeKindId,
-    pub bel: BelId,
-    pub props: Vec<Box<dyn Prop>>,
+    pub bel: BelSlotId,
+    pub props: Vec<Box<DynProp<'b>>>,
     pub feature: FeatureId,
 }
 
-impl FuzzBuilderBelTestManual<'_, '_> {
-    pub fn prop(mut self, prop: impl Prop + 'static) -> Self {
+impl<'b> FuzzBuilderBelTestManual<'_, 'b> {
+    pub fn prop(mut self, prop: impl FuzzerProp<'b, XactBackend<'b>> + 'static) -> Self {
         self.props.push(Box::new(prop));
         self
     }
@@ -470,8 +458,8 @@ impl FuzzBuilderBelTestManual<'_, '_> {
     }
 
     pub fn commit(self) {
-        let fgen = XactFuzzerGen {
-            node: self.node_kind,
+        let fgen = FpgaFuzzerGen {
+            node_kind: Some(self.node_kind),
             feature: self.feature,
             props: self.props,
         };

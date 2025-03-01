@@ -1,3 +1,5 @@
+#![recursion_limit = "1024"]
+
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::{
@@ -6,6 +8,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_ultrascale::{
+    bels,
     chip::{
         BramKind, ChipKind, CleMKind, ColumnKind, DisabledPart, DspKind, HardKind, HardRowKind,
         IoRowKind, PsIntfKind, RegId,
@@ -455,16 +458,15 @@ impl ExpandedNamedDevice<'_> {
                     (chip.row_reg_bot(hpio.reg) + 30, hpio.iob.to_idx() - 26)
                 };
                 self.ngrid
-                    .get_bel_name(
+                    .get_bel_name((
                         hpio.die,
-                        hpio.col,
-                        row,
-                        &if kind == IoRowKind::Hpio {
-                            format!("HPIOB{idx}")
+                        (hpio.col, row),
+                        if kind == IoRowKind::Hpio {
+                            bels::HPIOB[idx]
                         } else {
-                            format!("HRIOB{idx}")
+                            bels::HRIOB[idx]
                         },
-                    )
+                    ))
                     .unwrap()
             }
             IoCoord::Hdio(hdio) => {
@@ -474,13 +476,8 @@ impl ExpandedNamedDevice<'_> {
                 } else {
                     (chip.row_reg_bot(hdio.reg) + 30, hdio.iob.to_idx() - 12)
                 };
-                let bel = if idx % 2 == 0 {
-                    format!("HDIOB_M{}", idx / 2)
-                } else {
-                    format!("HDIOB_S{}", idx / 2)
-                };
                 self.ngrid
-                    .get_bel_name(hdio.die, hdio.col, row, &bel)
+                    .get_bel_name((hdio.die, (hdio.col, row), bels::HDIOB[idx]))
                     .unwrap()
             }
             IoCoord::HdioLc(hdio) => {
@@ -490,13 +487,8 @@ impl ExpandedNamedDevice<'_> {
                 } else {
                     (chip.row_reg_bot(hdio.reg) + 30, hdio.iob.to_idx() - 42)
                 };
-                let bel = if idx % 2 == 0 {
-                    format!("HDIOB_M{}", idx / 2)
-                } else {
-                    format!("HDIOB_S{}", idx / 2)
-                };
                 self.ngrid
-                    .get_bel_name(hdio.die, hdio.col, row, &bel)
+                    .get_bel_name((hdio.die, (hdio.col, row), bels::HDIOB[idx]))
                     .unwrap()
             }
         }
@@ -511,92 +503,92 @@ impl ExpandedNamedDevice<'_> {
             let (name_common, name_channel) = match gt_info.kind {
                 IoRowKind::Gth => (
                     self.ngrid
-                        .get_bel_name(crd.die, crd.col, row, "GTH_COMMON")
+                        .get_bel_name((crd.die, (crd.col, row), bels::GTH_COMMON))
                         .unwrap(),
                     vec![
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTH_CHANNEL0")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTH_CHANNEL0))
                             .unwrap(),
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTH_CHANNEL1")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTH_CHANNEL1))
                             .unwrap(),
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTH_CHANNEL2")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTH_CHANNEL2))
                             .unwrap(),
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTH_CHANNEL3")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTH_CHANNEL3))
                             .unwrap(),
                     ],
                 ),
                 IoRowKind::Gty => (
                     self.ngrid
-                        .get_bel_name(crd.die, crd.col, row, "GTY_COMMON")
+                        .get_bel_name((crd.die, (crd.col, row), bels::GTY_COMMON))
                         .unwrap(),
                     vec![
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTY_CHANNEL0")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTY_CHANNEL0))
                             .unwrap(),
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTY_CHANNEL1")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTY_CHANNEL1))
                             .unwrap(),
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTY_CHANNEL2")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTY_CHANNEL2))
                             .unwrap(),
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTY_CHANNEL3")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTY_CHANNEL3))
                             .unwrap(),
                     ],
                 ),
                 IoRowKind::Gtm => (
                     self.ngrid
-                        .get_bel_name(crd.die, crd.col, row, "GTM_REFCLK")
+                        .get_bel_name((crd.die, (crd.col, row), bels::GTM_REFCLK))
                         .unwrap(),
                     vec![
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTM_DUAL")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTM_DUAL))
                             .unwrap(),
                     ],
                 ),
                 IoRowKind::Gtf => (
                     self.ngrid
-                        .get_bel_name(crd.die, crd.col, row, "GTF_COMMON")
+                        .get_bel_name((crd.die, (crd.col, row), bels::GTF_COMMON))
                         .unwrap(),
                     vec![
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTF_CHANNEL0")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTF_CHANNEL0))
                             .unwrap(),
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTF_CHANNEL1")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTF_CHANNEL1))
                             .unwrap(),
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTF_CHANNEL2")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTF_CHANNEL2))
                             .unwrap(),
                         self.ngrid
-                            .get_bel_name(crd.die, crd.col, row, "GTF_CHANNEL3")
+                            .get_bel_name((crd.die, (crd.col, row), bels::GTF_CHANNEL3))
                             .unwrap(),
                     ],
                 ),
                 IoRowKind::HsAdc => (
                     self.ngrid
-                        .get_bel_name(crd.die, crd.col, row, "HSADC")
+                        .get_bel_name((crd.die, (crd.col, row), bels::HSADC))
                         .unwrap(),
                     vec![],
                 ),
                 IoRowKind::HsDac => (
                     self.ngrid
-                        .get_bel_name(crd.die, crd.col, row, "HSDAC")
+                        .get_bel_name((crd.die, (crd.col, row), bels::HSDAC))
                         .unwrap(),
                     vec![],
                 ),
                 IoRowKind::RfAdc => (
                     self.ngrid
-                        .get_bel_name(crd.die, crd.col, row, "RFADC")
+                        .get_bel_name((crd.die, (crd.col, row), bels::RFADC))
                         .unwrap(),
                     vec![],
                 ),
                 IoRowKind::RfDac => (
                     self.ngrid
-                        .get_bel_name(crd.die, crd.col, row, "RFDAC")
+                        .get_bel_name((crd.die, (crd.col, row), bels::RFDAC))
                         .unwrap(),
                     vec![],
                 ),
@@ -936,18 +928,18 @@ pub fn name_device<'a>(
                             match chip.kind {
                                 ChipKind::Ultrascale => {
                                     nnode.add_bel(
-                                        0,
+                                        bels::BUFCE_LEAF_X16_S,
                                         format!("BUFCE_LEAF_X16_X{rx}Y{y}", y = ry * 2),
                                     );
                                     nnode.add_bel(
-                                        1,
+                                        bels::BUFCE_LEAF_X16_N,
                                         format!("BUFCE_LEAF_X16_X{rx}Y{y}", y = ry * 2 + 1),
                                     );
                                 }
                                 ChipKind::UltrascalePlus => {
                                     for i in 0..16 {
                                         nnode.add_bel(
-                                            i,
+                                            bels::BUFCE_LEAF_S[i],
                                             format!(
                                                 "BUFCE_LEAF_X{x}Y{y}",
                                                 x = rx * 8 + (i & 7),
@@ -955,7 +947,7 @@ pub fn name_device<'a>(
                                             ),
                                         );
                                         nnode.add_bel(
-                                            i + 16,
+                                            bels::BUFCE_LEAF_N[i],
                                             format!(
                                                 "BUFCE_LEAF_X{x}Y{y}",
                                                 x = rx * 8 + (i & 7),
@@ -981,7 +973,7 @@ pub fn name_device<'a>(
                             {
                                 let sx = cle_grid.xlut[col];
                                 let sy = cle_grid.ylut[die.die][row];
-                                nnode.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
+                                nnode.add_bel(bels::SLICE, format!("SLICE_X{sx}Y{sy}"));
                             }
                         }
                         "CLEM" => {
@@ -999,7 +991,7 @@ pub fn name_device<'a>(
                             {
                                 let sx = cle_grid.xlut[col];
                                 let sy = cle_grid.ylut[die.die][row];
-                                nnode.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
+                                nnode.add_bel(bels::SLICE, format!("SLICE_X{sx}Y{sy}"));
                             }
                         }
                         "LAGUNA" => {
@@ -1012,18 +1004,21 @@ pub fn name_device<'a>(
                             let lx1 = lx0 + 1;
                             let ly0 = laguna_grid.ylut[die.die][row] * 2;
                             let ly1 = ly0 + 1;
-                            nnode.add_bel(0, format!("LAGUNA_X{lx0}Y{ly0}"));
-                            nnode.add_bel(1, format!("LAGUNA_X{lx0}Y{ly1}"));
-                            nnode.add_bel(2, format!("LAGUNA_X{lx1}Y{ly0}"));
-                            nnode.add_bel(3, format!("LAGUNA_X{lx1}Y{ly1}"));
+                            nnode.add_bel(bels::LAGUNA0, format!("LAGUNA_X{lx0}Y{ly0}"));
+                            nnode.add_bel(bels::LAGUNA1, format!("LAGUNA_X{lx0}Y{ly1}"));
+                            nnode.add_bel(bels::LAGUNA2, format!("LAGUNA_X{lx1}Y{ly0}"));
+                            nnode.add_bel(bels::LAGUNA3, format!("LAGUNA_X{lx1}Y{ly1}"));
                         }
                         "BRAM" => {
                             let nnode = ngrid.name_node(nloc, "BRAM", [format!("BRAM_X{x}Y{y}")]);
                             let bx = bram_grid.xlut[col];
                             let by = bram_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("RAMB36_X{bx}Y{by}"));
-                            nnode.add_bel(1, format!("RAMB18_X{bx}Y{y}", y = by * 2));
-                            nnode.add_bel(2, format!("RAMB18_X{bx}Y{y}", y = by * 2 + 1));
+                            nnode.add_bel(bels::BRAM_F, format!("RAMB36_X{bx}Y{by}"));
+                            nnode.add_bel(bels::BRAM_H0, format!("RAMB18_X{bx}Y{y}", y = by * 2));
+                            nnode.add_bel(
+                                bels::BRAM_H1,
+                                format!("RAMB18_X{bx}Y{y}", y = by * 2 + 1),
+                            );
                         }
                         "HARD_SYNC" => {
                             let tk = get_bram_tk(edev, has_laguna, die.die, col, row);
@@ -1036,23 +1031,23 @@ pub fn name_device<'a>(
                             let hx1 = hx0 + 1;
                             let hy0 = hard_sync_grid.ylut[die.die][row] * 2;
                             let hy1 = hy0 + 1;
-                            nnode.add_bel(0, format!("HARD_SYNC_X{hx0}Y{hy0}"));
-                            nnode.add_bel(1, format!("HARD_SYNC_X{hx0}Y{hy1}"));
-                            nnode.add_bel(2, format!("HARD_SYNC_X{hx1}Y{hy0}"));
-                            nnode.add_bel(3, format!("HARD_SYNC_X{hx1}Y{hy1}"));
+                            nnode.add_bel(bels::HARD_SYNC0, format!("HARD_SYNC_X{hx0}Y{hy0}"));
+                            nnode.add_bel(bels::HARD_SYNC1, format!("HARD_SYNC_X{hx0}Y{hy1}"));
+                            nnode.add_bel(bels::HARD_SYNC2, format!("HARD_SYNC_X{hx1}Y{hy0}"));
+                            nnode.add_bel(bels::HARD_SYNC3, format!("HARD_SYNC_X{hx1}Y{hy1}"));
                         }
                         "DSP" => {
                             let nnode = ngrid.name_node(nloc, "DSP", [format!("DSP_X{x}Y{y}")]);
                             let dx = dsp_grid.xlut[col];
                             let dy0 = dsp_grid.ylut[die.die][row] * 2;
                             let dy1 = dy0 + 1;
-                            nnode.add_bel(0, format!("DSP48E2_X{dx}Y{dy0}"));
+                            nnode.add_bel(bels::DSP0, format!("DSP48E2_X{dx}Y{dy0}"));
                             if !(row.to_idx() % 60 == 55
                                 && edev
                                     .disabled
                                     .contains(&DisabledPart::TopRow(die.die, chip.row_to_reg(row))))
                             {
-                                nnode.add_bel(1, format!("DSP48E2_X{dx}Y{dy1}"));
+                                nnode.add_bel(bels::DSP1, format!("DSP48E2_X{dx}Y{dy1}"));
                             }
                         }
                         "URAM" => {
@@ -1067,10 +1062,10 @@ pub fn name_device<'a>(
                             let uy1 = uy0 + 1;
                             let uy2 = uy0 + 2;
                             let uy3 = uy0 + 3;
-                            nnode.add_bel(0, format!("URAM288_X{ux}Y{uy0}"));
-                            nnode.add_bel(1, format!("URAM288_X{ux}Y{uy1}"));
-                            nnode.add_bel(2, format!("URAM288_X{ux}Y{uy2}"));
-                            nnode.add_bel(3, format!("URAM288_X{ux}Y{uy3}"));
+                            nnode.add_bel(bels::URAM0, format!("URAM288_X{ux}Y{uy0}"));
+                            nnode.add_bel(bels::URAM1, format!("URAM288_X{ux}Y{uy1}"));
+                            nnode.add_bel(bels::URAM2, format!("URAM288_X{ux}Y{uy2}"));
+                            nnode.add_bel(bels::URAM3, format!("URAM288_X{ux}Y{uy3}"));
                         }
                         "CFG" | "CFG_CSEC" => {
                             let ColumnKind::Hard(_, idx) = chip.columns[col].kind else {
@@ -1094,13 +1089,16 @@ pub fn name_device<'a>(
                             let sx = cfg_grid.xlut[col];
                             let sy = cfg_grid.ylut[die.die][row];
                             if chip.has_csec {
-                                nnode.add_bel(0, format!("CSEC_SITE_X{sx}Y{sy}"));
+                                nnode.add_bel(bels::CFG, format!("CSEC_SITE_X{sx}Y{sy}"));
                             } else {
-                                nnode.add_bel(0, format!("CONFIG_SITE_X{sx}Y{sy}"));
+                                nnode.add_bel(bels::CFG, format!("CONFIG_SITE_X{sx}Y{sy}"));
                             }
                             let asx = aswitch_grid.xlut[col].cfg;
                             let asy = aswitch_grid.ylut[die.die][reg].cfg;
-                            nnode.add_bel(1, format!("ABUS_SWITCH_X{asx}Y{asy}"));
+                            nnode.add_bel(
+                                bels::ABUS_SWITCH_CFG,
+                                format!("ABUS_SWITCH_X{asx}Y{asy}"),
+                            );
                         }
                         "CFGIO" => {
                             let ColumnKind::Hard(_, idx) = chip.columns[col].kind else {
@@ -1124,12 +1122,12 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = cfgio_grid.xlut[col];
                             let sy = cfgio_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("PMV_X{sx}Y{sy}"));
-                            nnode.add_bel(1, format!("PMV2_X{sx}Y{sy}"));
-                            nnode.add_bel(2, format!("PMVIOB_X{sx}Y{sy}"));
-                            nnode.add_bel(3, format!("MTBF3_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::PMV, format!("PMV_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::PMV2, format!("PMV2_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::PMVIOB, format!("PMVIOB_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::MTBF3, format!("MTBF3_X{sx}Y{sy}"));
                             if chip.kind == ChipKind::UltrascalePlus {
-                                nnode.add_bel(4, format!("CFGIO_SITE_X{sx}Y{sy}"));
+                                nnode.add_bel(bels::CFGIO, format!("CFGIO_SITE_X{sx}Y{sy}"));
                             }
                         }
                         "AMS" => {
@@ -1152,14 +1150,14 @@ pub fn name_device<'a>(
                             } else {
                                 "SYSMONE4"
                             };
-                            nnode.add_bel(0, format!("{bk}_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::SYSMON, format!("{bk}_X{sx}Y{sy}"));
                         }
                         "PCIE" => {
                             let name = format!("PCIE_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = pcie_grid.xlut[col];
                             let sy = pcie_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("PCIE_3_1_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::PCIE3, format!("PCIE_3_1_X{sx}Y{sy}"));
                         }
                         "PCIE4" => {
                             let name = format!("PCIE4_PCIE4_FT_X{x}Y{y}");
@@ -1167,7 +1165,7 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, naming, [name]);
                             let sx = pcie4_grid.xlut[col];
                             let sy = pcie4_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("PCIE40E4_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::PCIE4, format!("PCIE40E4_X{sx}Y{sy}"));
                         }
                         "PCIE4C" => {
                             let name = format!("PCIE4C_PCIE4C_FT_X{x}Y{y}");
@@ -1175,7 +1173,7 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, naming, [name]);
                             let sx = pcie4c_grid.xlut[col];
                             let sy = pcie4c_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("PCIE4CE4_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::PCIE4C, format!("PCIE4CE4_X{sx}Y{sy}"));
                         }
                         "CMAC" => {
                             let name = if chip.kind == ChipKind::Ultrascale {
@@ -1188,9 +1186,9 @@ pub fn name_device<'a>(
                             let sx = cmac_grid.xlut[col];
                             let sy = cmac_grid.ylut[die.die][row];
                             if chip.kind == ChipKind::Ultrascale {
-                                nnode.add_bel(0, format!("CMAC_SITE_X{sx}Y{sy}"));
+                                nnode.add_bel(bels::CMAC, format!("CMAC_SITE_X{sx}Y{sy}"));
                             } else {
-                                nnode.add_bel(0, format!("CMACE4_X{sx}Y{sy}"));
+                                nnode.add_bel(bels::CMAC, format!("CMACE4_X{sx}Y{sy}"));
                             }
                         }
                         "ILKN" => {
@@ -1203,9 +1201,9 @@ pub fn name_device<'a>(
                             let sx = ilkn_grid.xlut[col];
                             let sy = ilkn_grid.ylut[die.die][row];
                             if chip.kind == ChipKind::Ultrascale {
-                                nnode.add_bel(0, format!("ILKN_SITE_X{sx}Y{sy}"));
+                                nnode.add_bel(bels::ILKN, format!("ILKN_SITE_X{sx}Y{sy}"));
                             } else {
-                                nnode.add_bel(0, format!("ILKNE4_X{sx}Y{sy}"));
+                                nnode.add_bel(bels::ILKN, format!("ILKNE4_X{sx}Y{sy}"));
                             }
                         }
                         "FE" => {
@@ -1213,56 +1211,56 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, "FE", [name]);
                             let sx = fe_grid.xlut[col];
                             let sy = fe_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("FE_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::FE, format!("FE_X{sx}Y{sy}"));
                         }
                         "DFE_A" => {
                             let name = format!("DFE_DFE_TILEA_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_a_grid.xlut[col];
                             let sy = dfe_a_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("DFE_A_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::DFE_A, format!("DFE_A_X{sx}Y{sy}"));
                         }
                         "DFE_B" => {
                             let name = format!("DFE_DFE_TILEB_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_b_grid.xlut[col];
                             let sy = dfe_b_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("DFE_B_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::DFE_B, format!("DFE_B_X{sx}Y{sy}"));
                         }
                         "DFE_C" => {
                             let name = format!("DFE_DFE_TILEC_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_c_grid.xlut[col];
                             let sy = dfe_c_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("DFE_C_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::DFE_C, format!("DFE_C_X{sx}Y{sy}"));
                         }
                         "DFE_D" => {
                             let name = format!("DFE_DFE_TILED_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_d_grid.xlut[col];
                             let sy = dfe_d_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("DFE_D_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::DFE_D, format!("DFE_D_X{sx}Y{sy}"));
                         }
                         "DFE_E" => {
                             let name = format!("DFE_DFE_TILEE_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_e_grid.xlut[col];
                             let sy = dfe_e_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("DFE_E_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::DFE_E, format!("DFE_E_X{sx}Y{sy}"));
                         }
                         "DFE_F" => {
                             let name = format!("DFE_DFE_TILEF_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_f_grid.xlut[col];
                             let sy = dfe_f_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("DFE_F_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::DFE_F, format!("DFE_F_X{sx}Y{sy}"));
                         }
                         "DFE_G" => {
                             let name = format!("DFE_DFE_TILEG_FT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = dfe_g_grid.xlut[col];
                             let sy = dfe_g_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("DFE_G_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::DFE_G, format!("DFE_G_X{sx}Y{sy}"));
                         }
                         "HDIO_S" | "HDIO_N" => {
                             let ColumnKind::Hard(_, idx) = chip.columns[col].kind else {
@@ -1285,27 +1283,37 @@ pub fn name_device<'a>(
                             let sx = hdio_grid.xlut[col];
                             let sy = hdio_grid.ylut[die.die][row];
                             for j in 0..12 {
-                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy + j));
+                                nnode.add_bel(
+                                    bels::HDIOB[j],
+                                    format!("IOB_X{iox}Y{y}", y = ioy + j),
+                                );
                             }
                             for j in 0..6 {
                                 nnode.add_bel(
-                                    12 + j,
+                                    bels::HDIOB_DIFF_IN[j],
                                     format!("HDIOBDIFFINBUF_X{sx}Y{y}", y = sy * 6 + j),
                                 );
                                 nnode.add_bel(
-                                    18 + 2 * j,
+                                    bels::HDIOLOGIC[2 * j],
                                     format!("HDIOLOGIC_M_X{sx}Y{y}", y = sy * 6 + j),
                                 );
                                 nnode.add_bel(
-                                    18 + 2 * j + 1,
+                                    bels::HDIOLOGIC[2 * j + 1],
                                     format!("HDIOLOGIC_S_X{sx}Y{y}", y = sy * 6 + j),
                                 );
                             }
-                            nnode.add_bel(30, format!("HDLOGIC_CSSD_X{sx}Y{sy}"));
+                            nnode
+                                .add_bel(bels::HDLOGIC_CSSD[0], format!("HDLOGIC_CSSD_X{sx}Y{sy}"));
                             if kind == "HDIO_S" {
-                                nnode.add_bel(31, format!("HDIO_VREF_X{sx}Y{y}", y = sy / 2));
+                                nnode.add_bel(
+                                    bels::HDIO_VREF0,
+                                    format!("HDIO_VREF_X{sx}Y{y}", y = sy / 2),
+                                );
                             } else {
-                                nnode.add_bel(31, format!("HDIO_BIAS_X{sx}Y{y}", y = sy / 2));
+                                nnode.add_bel(
+                                    bels::HDIO_BIAS,
+                                    format!("HDIO_BIAS_X{sx}Y{y}", y = sy / 2),
+                                );
                             }
                         }
                         "HDIOLC_S" | "HDIOLC_N" => {
@@ -1341,35 +1349,38 @@ pub fn name_device<'a>(
                             let sx = hdiolc_grid.xlut[col];
                             let sy = hdiolc_grid.ylut[die.die][row];
                             for j in 0..42 {
-                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy + j));
+                                nnode.add_bel(
+                                    bels::HDIOB[j],
+                                    format!("IOB_X{iox}Y{y}", y = ioy + j),
+                                );
                             }
                             for j in 0..21 {
                                 nnode.add_bel(
-                                    42 + j,
+                                    bels::HDIOB_DIFF_IN[j],
                                     format!("HDIOBDIFFINBUF_X{sx}Y{y}", y = sy * 21 + j),
                                 );
                                 nnode.add_bel(
-                                    63 + 2 * j,
+                                    bels::HDIOLOGIC[2 * j],
                                     format!("HDIOLOGIC_M_X{sx}Y{y}", y = sy * 21 + j),
                                 );
                                 nnode.add_bel(
-                                    63 + 2 * j + 1,
+                                    bels::HDIOLOGIC[2 * j + 1],
                                     format!("HDIOLOGIC_S_X{sx}Y{y}", y = sy * 21 + j),
                                 );
                             }
                             for j in 0..3 {
                                 nnode.add_bel(
-                                    105 + j,
+                                    bels::HDLOGIC_CSSD[j],
                                     format!("HDLOGIC_CSSD_X{sx}Y{y}", y = sy * 3 + j),
                                 );
                             }
                             for j in 0..2 {
                                 nnode.add_bel(
-                                    108 + j,
+                                    bels::HDIO_VREF[j],
                                     format!("HDIO_VREF_X{sx}Y{y}", y = sy * 2 + j),
                                 );
                             }
-                            nnode.add_bel(110, format!("HDIO_BIAS_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::HDIO_BIAS, format!("HDIO_BIAS_X{sx}Y{sy}"));
                         }
                         "RCLK_HDIO" => {
                             let ColumnKind::Hard(hk, idx) = chip.columns[col].kind else {
@@ -1386,19 +1397,19 @@ pub fn name_device<'a>(
                             let sx = rclk_hdio_grid.xlut[col];
                             let sy = rclk_hdio_grid.ylut[die.die][row];
                             nnode.add_bel(
-                                0,
+                                bels::BUFGCE_HDIO[0],
                                 format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2, y = sy * 2),
                             );
                             nnode.add_bel(
-                                1,
+                                bels::BUFGCE_HDIO[1],
                                 format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2, y = sy * 2 + 1),
                             );
                             nnode.add_bel(
-                                2,
+                                bels::BUFGCE_HDIO[2],
                                 format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2 + 1, y = sy * 2),
                             );
                             nnode.add_bel(
-                                3,
+                                bels::BUFGCE_HDIO[3],
                                 format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2 + 1, y = sy * 2 + 1),
                             );
                             for (i, x, y) in [
@@ -1411,7 +1422,7 @@ pub fn name_device<'a>(
                                 (6, 3, 0),
                             ] {
                                 nnode.add_bel(
-                                    4 + i,
+                                    bels::ABUS_SWITCH_HDIO[i],
                                     format!(
                                         "ABUS_SWITCH_X{x}Y{y}",
                                         x = aswitch_grid.xlut[col].hdio + x,
@@ -1431,19 +1442,19 @@ pub fn name_device<'a>(
                             let sx = rclk_hdio_grid.xlut[col];
                             let sy = rclk_hdio_grid.ylut[die.die][row];
                             nnode.add_bel(
-                                0,
+                                bels::BUFGCE_HDIO[0],
                                 format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2, y = sy * 2),
                             );
                             nnode.add_bel(
-                                1,
+                                bels::BUFGCE_HDIO[1],
                                 format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2, y = sy * 2 + 1),
                             );
                             nnode.add_bel(
-                                2,
+                                bels::BUFGCE_HDIO[2],
                                 format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2 + 1, y = sy * 2),
                             );
                             nnode.add_bel(
-                                3,
+                                bels::BUFGCE_HDIO[3],
                                 format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2 + 1, y = sy * 2 + 1),
                             );
                             for (i, x, y) in [
@@ -1461,7 +1472,7 @@ pub fn name_device<'a>(
                                 (11, 5, 1),
                             ] {
                                 nnode.add_bel(
-                                    4 + i,
+                                    bels::ABUS_SWITCH_HDIO[i],
                                     format!(
                                         "ABUS_SWITCH_X{x}Y{y}",
                                         x = aswitch_grid.xlut[col].hdio + x,
@@ -1498,11 +1509,11 @@ pub fn name_device<'a>(
                             let gtbx = clk_grid.gtbxlut[col];
                             for i in 0..24 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::BUFCE_ROW[i],
                                     format!("BUFCE_ROW_X{cmtx}Y{y}", y = cmty * 24 + i),
                                 );
                                 nnode.add_bel(
-                                    24 + i,
+                                    bels::GCLK_TEST_BUF[i],
                                     format!(
                                         "GCLK_TEST_BUFE3_X{gtbx}Y{y}",
                                         y = clk_grid.gtbylut[die.die][reg].0
@@ -1510,41 +1521,44 @@ pub fn name_device<'a>(
                                     ),
                                 );
                                 nnode.add_bel(
-                                    48 + i,
+                                    bels::BUFGCE[i],
                                     format!("BUFGCE_X{cmtx}Y{y}", y = cmty * 24 + i),
                                 );
                             }
                             for i in 0..8 {
                                 nnode.add_bel(
-                                    72 + i,
+                                    bels::BUFGCTRL[i],
                                     format!("BUFGCTRL_X{cmtx}Y{y}", y = cmty * 8 + i),
                                 );
                             }
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    80 + i,
+                                    bels::BUFGCE_DIV[i],
                                     format!("BUFGCE_DIV_X{cmtx}Y{y}", y = cmty * 4 + i),
                                 );
                             }
                             for i in 0..2 {
-                                nnode.add_bel(84 + i, format!("PLL_X{cmtx}Y{y}", y = cmty * 2 + i));
+                                nnode.add_bel(
+                                    bels::PLL[i],
+                                    format!("PLL_X{cmtx}Y{y}", y = cmty * 2 + i),
+                                );
                             }
-                            nnode.add_bel(86, format!("MMCM_X{cmtx}Y{cmty}"));
+                            nnode.add_bel(bels::MMCM, format!("MMCM_X{cmtx}Y{cmty}"));
                             let asx = if chip.col_side(col) == Dir::W {
                                 aswitch_grid.xlut[col].io + 7
                             } else {
                                 aswitch_grid.xlut[col].io
                             };
                             nnode.add_bel(
-                                87,
+                                bels::ABUS_SWITCH_CMT,
                                 format!(
                                     "ABUS_SWITCH_X{asx}Y{y}",
                                     y = aswitch_grid.ylut[die.die][reg].cmt
                                 ),
                             );
                             if kind == "CMT_HBM" {
-                                nnode.add_bel(88, "HBM_REF_CLK_X0Y0".to_string());
-                                nnode.add_bel(89, "HBM_REF_CLK_X0Y1".to_string());
+                                nnode.add_bel(bels::HBM_REF_CLK0, "HBM_REF_CLK_X0Y0".to_string());
+                                nnode.add_bel(bels::HBM_REF_CLK1, "HBM_REF_CLK_X0Y1".to_string());
                             }
                         }
                         "XIPHY" if edev.kind == ChipKind::Ultrascale => {
@@ -1557,7 +1571,7 @@ pub fn name_device<'a>(
                             let cmty = cmt_grid.ylut[die.die][row];
                             for i in 0..24 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::BUFCE_ROW[i],
                                     format!(
                                         "BUFCE_ROW_X{x}Y{y}",
                                         x = clk_grid.brxlut[col],
@@ -1565,7 +1579,7 @@ pub fn name_device<'a>(
                                     ),
                                 );
                                 nnode.add_bel(
-                                    24 + i,
+                                    bels::GCLK_TEST_BUF[i],
                                     format!(
                                         "GCLK_TEST_BUFE3_X{x}Y{y}",
                                         x = clk_grid.gtbxlut[col],
@@ -1573,31 +1587,31 @@ pub fn name_device<'a>(
                                     ),
                                 );
                                 nnode.add_bel(
-                                    48 + i,
+                                    bels::BUFGCE[i],
                                     format!("BUFGCE_X{cmtx}Y{y}", y = cmty * 24 + i),
                                 );
                             }
                             for i in 0..8 {
                                 nnode.add_bel(
-                                    72 + i,
+                                    bels::BUFGCTRL[i],
                                     format!("BUFGCTRL_X{cmtx}Y{y}", y = cmty * 8 + i),
                                 );
                             }
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    80 + i,
+                                    bels::BUFGCE_DIV[i],
                                     format!("BUFGCE_DIV_X{cmtx}Y{y}", y = cmty * 4 + i),
                                 );
                             }
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    84 + i,
+                                    bels::PLL[i],
                                     format!("PLLE3_ADV_X{cmtx}Y{y}", y = cmty * 2 + i),
                                 );
                             }
-                            nnode.add_bel(86, format!("MMCME3_ADV_X{cmtx}Y{cmty}"));
+                            nnode.add_bel(bels::MMCM, format!("MMCME3_ADV_X{cmtx}Y{cmty}"));
                             nnode.add_bel(
-                                87,
+                                bels::ABUS_SWITCH_CMT,
                                 format!(
                                     "ABUS_SWITCH_X{x}Y{y}",
                                     x = aswitch_grid.xlut[col].io,
@@ -1606,37 +1620,37 @@ pub fn name_device<'a>(
                             );
                             for i in 0..52 {
                                 nnode.add_bel(
-                                    88 + i,
+                                    bels::BITSLICE[i],
                                     format!("BITSLICE_RX_TX_X{cmtx}Y{y}", y = cmty * 52 + i),
                                 );
                             }
                             for i in 0..8 {
                                 nnode.add_bel(
-                                    140 + i,
+                                    bels::BITSLICE_T[i],
                                     format!("BITSLICE_TX_X{cmtx}Y{y}", y = cmty * 8 + i),
                                 );
                             }
                             for i in 0..8 {
                                 nnode.add_bel(
-                                    148 + i,
+                                    bels::BITSLICE_CONTROL[i],
                                     format!("BITSLICE_CONTROL_X{cmtx}Y{y}", y = cmty * 8 + i),
                                 );
                             }
                             for i in 0..8 {
                                 nnode.add_bel(
-                                    156 + i,
+                                    bels::PLL_SELECT[i],
                                     format!("PLL_SELECT_SITE_X{cmtx}Y{y}", y = cmty * 8 + (i ^ 1)),
                                 );
                             }
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    164 + i,
+                                    bels::RIU_OR[i],
                                     format!("RIU_OR_X{cmtx}Y{y}", y = cmty * 4 + i),
                                 );
                             }
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    168 + i,
+                                    bels::XIPHY_FEEDTHROUGH[i],
                                     format!("XIPHY_FEEDTHROUGH_X{x}Y{cmty}", x = cmtx * 4 + i),
                                 );
                             }
@@ -1652,30 +1666,33 @@ pub fn name_device<'a>(
                             let phyy = xiphy_grid.ylut[die.die][row];
                             for i in 0..13 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::BITSLICE[i],
                                     format!("BITSLICE_RX_TX_X{phyx}Y{y}", y = phyy * 13 + i),
                                 );
                             }
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    13 + i,
+                                    bels::BITSLICE_T[i],
                                     format!("BITSLICE_TX_X{phyx}Y{y}", y = phyy * 2 + i),
                                 );
                             }
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    15 + i,
+                                    bels::BITSLICE_CONTROL[i],
                                     format!("BITSLICE_CONTROL_X{phyx}Y{y}", y = phyy * 2 + i),
                                 );
                             }
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    17 + i,
+                                    bels::PLL_SELECT[i],
                                     format!("PLL_SELECT_SITE_X{phyx}Y{y}", y = phyy * 2 + i),
                                 );
                             }
-                            nnode.add_bel(19, format!("RIU_OR_X{phyx}Y{phyy}"));
-                            nnode.add_bel(20, format!("XIPHY_FEEDTHROUGH_X{phyx}Y{phyy}"));
+                            nnode.add_bel(bels::RIU_OR0, format!("RIU_OR_X{phyx}Y{phyy}"));
+                            nnode.add_bel(
+                                bels::XIPHY_FEEDTHROUGH0,
+                                format!("XIPHY_FEEDTHROUGH_X{phyx}Y{phyy}"),
+                            );
                         }
                         "RCLK_XIPHY" => {
                             let (naming, tk) = match chip.col_side(col) {
@@ -1711,24 +1728,30 @@ pub fn name_device<'a>(
                             let sx = hpio_grid.xlut[col];
                             let sy = hpio_grid.ylut[die.die][row];
                             for j in 0..13 {
-                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy_b + j));
+                                nnode.add_bel(
+                                    bels::HPIOB[j],
+                                    format!("IOB_X{iox}Y{y}", y = ioy_b + j),
+                                );
                             }
                             for j in 0..13 {
-                                nnode.add_bel(13 + j, format!("IOB_X{iox}Y{y}", y = ioy_t + j));
+                                nnode.add_bel(
+                                    bels::HPIOB[13 + j],
+                                    format!("IOB_X{iox}Y{y}", y = ioy_t + j),
+                                );
                             }
                             for j in 0..12 {
                                 nnode.add_bel(
-                                    26 + j,
+                                    bels::HPIOB_DIFF_IN[j],
                                     format!("HPIOBDIFFINBUF_X{sx}Y{y}", y = sy * 12 + j),
                                 );
                             }
                             for j in 0..12 {
                                 nnode.add_bel(
-                                    38 + j,
+                                    bels::HPIOB_DIFF_OUT[j],
                                     format!("HPIOBDIFFOUTBUF_X{sx}Y{y}", y = sy * 12 + j),
                                 );
                             }
-                            nnode.add_bel(50, format!("HPIO_VREF_SITE_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::HPIO_VREF, format!("HPIO_VREF_SITE_X{sx}Y{sy}"));
                         }
                         "RCLK_HPIO" if chip.kind == ChipKind::Ultrascale => {
                             let name = format!(
@@ -1741,7 +1764,7 @@ pub fn name_device<'a>(
                             let sy = rclk_hpio_grid.ylut[die.die][row];
                             for i in 0..5 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::ABUS_SWITCH_HPIO[i],
                                     format!(
                                         "ABUS_SWITCH_X{x}Y{y}",
                                         x = aswitch_grid.xlut[col].io + i,
@@ -1749,7 +1772,10 @@ pub fn name_device<'a>(
                                     ),
                                 );
                             }
-                            nnode.add_bel(5, format!("HPIO_ZMATCH_BLK_HCLK_X{sx}Y{sy}"));
+                            nnode.add_bel(
+                                bels::HPIO_ZMATCH,
+                                format!("HPIO_ZMATCH_BLK_HCLK_X{sx}Y{sy}"),
+                            );
                         }
                         "HRIO" => {
                             let name =
@@ -1775,20 +1801,26 @@ pub fn name_device<'a>(
                             let sx = hrio_grid.xlut[col];
                             let sy = hrio_grid.ylut[die.die][row];
                             for j in 0..13 {
-                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy_b + j));
+                                nnode.add_bel(
+                                    bels::HRIOB[j],
+                                    format!("IOB_X{iox}Y{y}", y = ioy_b + j),
+                                );
                             }
                             for j in 0..13 {
-                                nnode.add_bel(13 + j, format!("IOB_X{iox}Y{y}", y = ioy_t + j));
+                                nnode.add_bel(
+                                    bels::HRIOB[13 + j],
+                                    format!("IOB_X{iox}Y{y}", y = ioy_t + j),
+                                );
                             }
                             for j in 0..12 {
                                 nnode.add_bel(
-                                    26 + j,
+                                    bels::HRIOB_DIFF_IN[j],
                                     format!("HRIODIFFINBUF_X{sx}Y{y}", y = sy * 12 + j),
                                 );
                             }
                             for j in 0..12 {
                                 nnode.add_bel(
-                                    38 + j,
+                                    bels::HRIOB_DIFF_OUT[j],
                                     format!("HRIODIFFOUTBUF_X{sx}Y{y}", y = sy * 12 + j),
                                 );
                             }
@@ -1802,7 +1834,7 @@ pub fn name_device<'a>(
                             let nnode = ngrid.name_node(nloc, kind, [name]);
                             for i in 0..8 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::ABUS_SWITCH_HRIO[i],
                                     format!(
                                         "ABUS_SWITCH_X{x}Y{y}",
                                         x = aswitch_grid.xlut[col].io + i,
@@ -1852,31 +1884,37 @@ pub fn name_device<'a>(
                             let sx = hpio_grid.xlut[col];
                             let sy = hpio_grid.ylut[die.die][row];
                             for j in 0..13 {
-                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy_b + j));
+                                nnode.add_bel(
+                                    bels::HPIOB[j],
+                                    format!("IOB_X{iox}Y{y}", y = ioy_b + j),
+                                );
                             }
                             for j in 0..13 {
-                                nnode.add_bel(13 + j, format!("IOB_X{iox}Y{y}", y = ioy_t + j));
+                                nnode.add_bel(
+                                    bels::HPIOB[13 + j],
+                                    format!("IOB_X{iox}Y{y}", y = ioy_t + j),
+                                );
                             }
                             for j in 0..12 {
                                 nnode.add_bel(
-                                    26 + j,
+                                    bels::HPIOB_DIFF_IN[j],
                                     format!("HPIOBDIFFINBUF_X{sx}Y{y}", y = sy * 12 + j),
                                 );
                             }
                             for j in 0..12 {
                                 nnode.add_bel(
-                                    38 + j,
+                                    bels::HPIOB_DIFF_OUT[j],
                                     format!("HPIOBDIFFOUTBUF_X{sx}Y{y}", y = sy * 12 + j),
                                 );
                             }
                             for j in 0..2 {
                                 nnode.add_bel(
-                                    50 + j,
+                                    bels::HPIOB_DCI[j],
                                     format!("HPIOB_DCI_SNGL_X{sx}Y{y}", y = sy * 2 + j),
                                 );
                             }
-                            nnode.add_bel(52, format!("HPIO_VREF_SITE_X{sx}Y{sy}"));
-                            nnode.add_bel(53, format!("BIAS_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::HPIO_VREF, format!("HPIO_VREF_SITE_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::HPIO_BIAS, format!("BIAS_X{sx}Y{sy}"));
                         }
                         "RCLK_HPIO" => {
                             let name = format!(
@@ -1908,7 +1946,7 @@ pub fn name_device<'a>(
                                     [0, 6, 1, 3, 2, 4, 5][i]
                                 };
                                 nnode.add_bel(
-                                    i,
+                                    bels::ABUS_SWITCH_HPIO[i],
                                     format!(
                                         "ABUS_SWITCH_X{x}Y{y}",
                                         x = asx + idx,
@@ -1916,8 +1954,11 @@ pub fn name_device<'a>(
                                     ),
                                 );
                             }
-                            nnode.add_bel(7, format!("HPIO_ZMATCH_BLK_HCLK_X{sx}Y{sy}"));
-                            nnode.add_bel(8, format!("HPIO_RCLK_PRBS_X{sx}Y{sy}"));
+                            nnode.add_bel(
+                                bels::HPIO_ZMATCH,
+                                format!("HPIO_ZMATCH_BLK_HCLK_X{sx}Y{sy}"),
+                            );
+                            nnode.add_bel(bels::HPIO_PRBS, format!("HPIO_RCLK_PRBS_X{sx}Y{sy}"));
                         }
 
                         "GTH" | "GTY" | "GTF" | "GTM" | "HSADC" | "HSDAC" | "RFADC" | "RFDAC" => {
@@ -1975,18 +2016,21 @@ pub fn name_device<'a>(
                             let gtx = gt_grid.xlut[col];
                             let gty = gt_grid.ylut[die.die][row];
                             for i in 0..24 {
-                                nnode.add_bel(i, format!("BUFG_GT_X{gtx}Y{y}", y = gty * 24 + i));
+                                nnode.add_bel(
+                                    bels::BUFG_GT[i],
+                                    format!("BUFG_GT_X{gtx}Y{y}", y = gty * 24 + i),
+                                );
                             }
                             if chip.kind == ChipKind::Ultrascale {
                                 for i in 0..11 {
                                     nnode.add_bel(
-                                        24 + i,
+                                        bels::BUFG_GT_SYNC[i],
                                         format!("BUFG_GT_SYNC_X{gtx}Y{y}", y = gty * 11 + i),
                                     );
                                 }
                                 for i in 0..4 {
                                     nnode.add_bel(
-                                        35 + i,
+                                        bels::ABUS_SWITCH_GT[i],
                                         format!(
                                             "ABUS_SWITCH_X{x}Y{y}",
                                             x = aswitch_grid.xlut[col].gt,
@@ -1996,23 +2040,28 @@ pub fn name_device<'a>(
                                 }
                                 let gtkx = gtk_grid.xlut[col];
                                 let gtky = gtk_grid.ylut[die.die][row];
+                                let (common, channel) = match kind.as_str() {
+                                    "GTH" => (bels::GTH_COMMON, bels::GTH_CHANNEL),
+                                    "GTY" => (bels::GTY_COMMON, bels::GTY_CHANNEL),
+                                    _ => unreachable!(),
+                                };
                                 for i in 0..4 {
                                     nnode.add_bel(
-                                        39 + i,
+                                        channel[i],
                                         format!("{kind}E3_CHANNEL_X{gtkx}Y{y}", y = gtky * 4 + i),
                                     );
                                 }
-                                nnode.add_bel(43, format!("{kind}E3_COMMON_X{gtkx}Y{gtky}"));
+                                nnode.add_bel(common, format!("{kind}E3_COMMON_X{gtkx}Y{gtky}"));
                             } else {
                                 for i in 0..15 {
                                     nnode.add_bel(
-                                        24 + i,
+                                        bels::BUFG_GT_SYNC[i],
                                         format!("BUFG_GT_SYNC_X{gtx}Y{y}", y = gty * 15 + i),
                                     );
                                 }
                                 for i in 0..5 {
                                     nnode.add_bel(
-                                        39 + i,
+                                        bels::ABUS_SWITCH_GT[i],
                                         format!(
                                             "ABUS_SWITCH_X{x}Y{y}",
                                             x = aswitch_grid.xlut[col].gt,
@@ -2023,36 +2072,54 @@ pub fn name_device<'a>(
                                 let gtkx = gtk_grid.xlut[col];
                                 let gtky = gtk_grid.ylut[die.die][row];
                                 if kind == "GTM" {
-                                    nnode.add_bel(44, format!("GTM_DUAL_X{gtkx}Y{gtky}"));
-                                    nnode.add_bel(45, format!("GTM_REFCLK_X{gtkx}Y{gtky}"));
+                                    nnode.add_bel(
+                                        bels::GTM_DUAL,
+                                        format!("GTM_DUAL_X{gtkx}Y{gtky}"),
+                                    );
+                                    nnode.add_bel(
+                                        bels::GTM_REFCLK,
+                                        format!("GTM_REFCLK_X{gtkx}Y{gtky}"),
+                                    );
                                 } else if kind.starts_with("GT") {
+                                    let (common, channel) = match kind.as_str() {
+                                        "GTH" => (bels::GTH_COMMON, bels::GTH_CHANNEL),
+                                        "GTY" => (bels::GTY_COMMON, bels::GTY_CHANNEL),
+                                        "GTF" => (bels::GTF_COMMON, bels::GTF_CHANNEL),
+                                        _ => unreachable!(),
+                                    };
                                     let pref = if kind == "GTF" {
                                         "GTF".to_string()
                                     } else {
                                         format!("{kind}E4")
                                     };
-
                                     for i in 0..4 {
                                         nnode.add_bel(
-                                            44 + i,
+                                            channel[i],
                                             format!("{pref}_CHANNEL_X{gtkx}Y{y}", y = gtky * 4 + i),
                                         );
                                     }
-                                    nnode.add_bel(48, format!("{pref}_COMMON_X{gtkx}Y{gtky}"));
+                                    nnode.add_bel(common, format!("{pref}_COMMON_X{gtkx}Y{gtky}"));
                                 } else {
-                                    nnode.add_bel(44, format!("{kind}_X{gtkx}Y{gtky}"));
+                                    let slot = match kind.as_str() {
+                                        "HSDAC" => bels::HSDAC,
+                                        "HSADC" => bels::HSADC,
+                                        "RFDAC" => bels::RFDAC,
+                                        "RFADC" => bels::RFADC,
+                                        _ => unreachable!(),
+                                    };
+                                    nnode.add_bel(slot, format!("{kind}_X{gtkx}Y{gtky}"));
                                 }
                             }
                         }
 
                         "PS" => {
                             let nnode = ngrid.name_node(nloc, "PS", [format!("PSS_ALTO_X0Y{y}")]);
-                            nnode.add_bel(0, "PS8_X0Y0".to_string());
+                            nnode.add_bel(bels::PS, "PS8_X0Y0".to_string());
                         }
                         "VCU" => {
                             let nnode =
                                 ngrid.name_node(nloc, "VCU", [format!("VCU_VCU_FT_X0Y{y}")]);
-                            nnode.add_bel(0, "VCU_X0Y0".to_string());
+                            nnode.add_bel(bels::VCU, "VCU_X0Y0".to_string());
                         }
                         "RCLK_PS" => {
                             let tk = match chip.ps.as_ref().unwrap().intf_kind {
@@ -2070,15 +2137,24 @@ pub fn name_device<'a>(
                             );
                             let by = rclk_ps_grid.ylut[die.die][row];
                             for i in 0..24 {
-                                nnode.add_bel(i, format!("BUFG_PS_X0Y{y}", y = by * 24 + i));
+                                nnode.add_bel(
+                                    bels::BUFG_PS[i],
+                                    format!("BUFG_PS_X0Y{y}", y = by * 24 + i),
+                                );
                             }
                         }
                         "BLI" => {
                             let nnode =
                                 ngrid.name_node(nloc, "BLI", [format!("BLI_BLI_FT_X{x}Y{y}")]);
                             let dx = dsp_grid.xlut[col];
-                            nnode.add_bel(0, format!("BLI_HBM_APB_INTF_X{dx}Y0"));
-                            nnode.add_bel(1, format!("BLI_HBM_AXI_INTF_X{dx}Y0"));
+                            nnode.add_bel(
+                                bels::BLI_HBM_APB_INTF,
+                                format!("BLI_HBM_APB_INTF_X{dx}Y0"),
+                            );
+                            nnode.add_bel(
+                                bels::BLI_HBM_AXI_INTF,
+                                format!("BLI_HBM_AXI_INTF_X{dx}Y0"),
+                            );
                         }
 
                         "RCLK_V_SINGLE.CLE" => {
@@ -2139,14 +2215,18 @@ pub fn name_device<'a>(
                                 }
                                 match chip.kind {
                                     ChipKind::Ultrascale => nnode.add_bel(
-                                        0,
+                                        bels::BUFCE_ROW[0],
                                         format!("BUFCE_ROW_X{brx}Y{y}", y = bry * 25 + 24),
                                     ),
-                                    ChipKind::UltrascalePlus => {
-                                        nnode.add_bel(0, format!("BUFCE_ROW_FSR_X{brx}Y{bry}"))
-                                    }
+                                    ChipKind::UltrascalePlus => nnode.add_bel(
+                                        bels::BUFCE_ROW[0],
+                                        format!("BUFCE_ROW_FSR_X{brx}Y{bry}"),
+                                    ),
                                 }
-                                nnode.add_bel(1, format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"));
+                                nnode.add_bel(
+                                    bels::GCLK_TEST_BUF[0],
+                                    format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"),
+                                );
                             } else {
                                 let tk = if is_l {
                                     "RCLK_CLEL_R_L"
@@ -2166,11 +2246,16 @@ pub fn name_device<'a>(
                                 );
                                 let brx = clk_grid.brxlut[col];
                                 let bry = clk_grid.brylut[die.die][reg];
-                                nnode
-                                    .add_bel(0, format!("BUFCE_ROW_X{brx}Y{y}", y = bry * 25 + 24));
+                                nnode.add_bel(
+                                    bels::BUFCE_ROW[0],
+                                    format!("BUFCE_ROW_X{brx}Y{y}", y = bry * 25 + 24),
+                                );
                                 let gtbx = clk_grid.gtbxlut[col];
                                 let gtby = clk_grid.gtbylut[die.die][reg].1;
-                                nnode.add_bel(1, format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"));
+                                nnode.add_bel(
+                                    bels::GCLK_TEST_BUF[0],
+                                    format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"),
+                                );
                             }
                         }
                         "RCLK_V_SINGLE.LAG" => {
@@ -2197,10 +2282,14 @@ pub fn name_device<'a>(
                             );
                             let brx = clk_grid.brxlut[col];
                             let bry = clk_grid.brylut[die.die][reg];
-                            nnode.add_bel(0, format!("BUFCE_ROW_FSR_X{brx}Y{bry}"));
+                            nnode
+                                .add_bel(bels::BUFCE_ROW[0], format!("BUFCE_ROW_FSR_X{brx}Y{bry}"));
                             let gtbx = clk_grid.gtbxlut[col];
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
-                            nnode.add_bel(1, format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"));
+                            nnode.add_bel(
+                                bels::GCLK_TEST_BUF[0],
+                                format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"),
+                            );
                         }
 
                         "RCLK_V_DOUBLE.BRAM" => {
@@ -2220,7 +2309,7 @@ pub fn name_device<'a>(
                             let bry = clk_grid.brylut[die.die][reg];
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::BUFCE_ROW[i],
                                     format!("BUFCE_ROW_X{x}Y{y}", x = brx + i, y = bry * 25 + 24),
                                 );
                             }
@@ -2228,7 +2317,7 @@ pub fn name_device<'a>(
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    2 + i,
+                                    bels::GCLK_TEST_BUF[i],
                                     format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i),
                                 );
                             }
@@ -2296,7 +2385,7 @@ pub fn name_device<'a>(
                             for i in 0..2 {
                                 match chip.kind {
                                     ChipKind::Ultrascale => nnode.add_bel(
-                                        i,
+                                        bels::BUFCE_ROW[i],
                                         format!(
                                             "BUFCE_ROW_X{x}Y{y}",
                                             x = brx + i,
@@ -2304,7 +2393,7 @@ pub fn name_device<'a>(
                                         ),
                                     ),
                                     ChipKind::UltrascalePlus => nnode.add_bel(
-                                        i,
+                                        bels::BUFCE_ROW[i],
                                         format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,),
                                     ),
                                 }
@@ -2312,7 +2401,7 @@ pub fn name_device<'a>(
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    2 + i,
+                                    bels::GCLK_TEST_BUF[i],
                                     format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i),
                                 );
                             }
@@ -2333,13 +2422,16 @@ pub fn name_device<'a>(
                             let brx = clk_grid.brxlut[col];
                             let bry = clk_grid.brylut[die.die][reg];
                             for i in 0..4 {
-                                nnode.add_bel(i, format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,));
+                                nnode.add_bel(
+                                    bels::BUFCE_ROW[i],
+                                    format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,),
+                                );
                             }
                             let gtbx = clk_grid.gtbxlut[col];
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    4 + i,
+                                    bels::GCLK_TEST_BUF[i],
                                     format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i),
                                 );
                             }
@@ -2348,7 +2440,7 @@ pub fn name_device<'a>(
                             let vsy = clk_grid.brylut[die.die][reg] * 2;
                             for i in 0..3 {
                                 nnode.add_bel(
-                                    8 + i,
+                                    bels::VBUS_SWITCH[i],
                                     format!(
                                         "VBUS_SWITCH_X{x}Y{y}",
                                         x = vsx + i / 2,
@@ -2373,13 +2465,16 @@ pub fn name_device<'a>(
                             let brx = clk_grid.brxlut[col];
                             let bry = clk_grid.brylut[die.die][reg];
                             for i in 0..4 {
-                                nnode.add_bel(i, format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,));
+                                nnode.add_bel(
+                                    bels::BUFCE_ROW[i],
+                                    format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,),
+                                );
                             }
                             let gtbx = clk_grid.gtbxlut[col];
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    4 + i,
+                                    bels::GCLK_TEST_BUF[i],
                                     format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i),
                                 );
                             }
@@ -2388,7 +2483,7 @@ pub fn name_device<'a>(
                             let vsy = clk_grid.brylut[die.die][reg] * 2;
                             for i in 0..3 {
                                 nnode.add_bel(
-                                    8 + i,
+                                    bels::VBUS_SWITCH[i],
                                     format!(
                                         "VBUS_SWITCH_X{x}Y{y}",
                                         x = vsx + i / 2,
@@ -2492,7 +2587,7 @@ pub fn name_device<'a>(
                             let asx = aswitch_grid.xlut[col].hbm;
                             for i in 0..8 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::ABUS_SWITCH_HBM[i],
                                     format!("ABUS_SWITCH_X{x}Y{y}", x = asx + i / 2, y = i % 2),
                                 );
                             }

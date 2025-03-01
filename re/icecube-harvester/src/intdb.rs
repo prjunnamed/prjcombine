@@ -2,13 +2,16 @@ use std::collections::{BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, TermSlotId,
-        TermSlotInfo, WireKind,
+        BelInfo, BelPin, BelSlotId, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind,
+        TermSlotId, TermSlotInfo, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{ColId, EdgeIoCoord, RowId},
 };
-use prjcombine_siliconblue::chip::{ChipKind, ExtraNode};
+use prjcombine_siliconblue::{
+    bels,
+    chip::{ChipKind, ExtraNode},
+};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::sites::BelPins;
@@ -41,6 +44,10 @@ fn add_output(db: &IntDb, bel: &mut BelInfo, name: &str, tile: usize, wires: &[&
 
 pub fn make_intdb(kind: ChipKind) -> IntDb {
     let mut db = IntDb::default();
+
+    for &slot_name in bels::SLOTS {
+        db.bel_slots.insert(slot_name.into());
+    }
 
     let slot_w = db
         .term_slots
@@ -218,7 +225,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             }
         }
     }
-    if !kind.has_lrio() {
+    if !kind.has_io_we() {
         for i in 0..8 {
             db.wires
                 .insert(format!("OUT.CASCADE{i}"), WireKind::LogicOut);
@@ -229,11 +236,11 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         db.terms.insert(format!("MAIN.{dir}"), term);
     }
 
-    for name in ["PLB", "INT", "INT.BRAM", "IO.L", "IO.R", "IO.B", "IO.T"] {
-        if (name == "IO.L" || name == "IO.R") && !kind.has_lrio() {
+    for name in ["PLB", "INT", "INT.BRAM", "IO.W", "IO.E", "IO.S", "IO.N"] {
+        if (name == "IO.W" || name == "IO.E") && !kind.has_io_we() {
             continue;
         }
-        if name == "INT" && kind.has_lrio() {
+        if name == "INT" && kind.has_io_we() {
             continue;
         }
         let mut node = NodeKind {
@@ -262,7 +269,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                     add_input(&db, &mut bel, "CASCADE", 0, &format!("OUT.CASCADE{i}"));
                 }
                 add_output(&db, &mut bel, "O", 0, &[&format!("OUT.LC{i}")]);
-                node.bels.insert(format!("LC{i}"), bel);
+                node.bels.insert(bels::LC[i], bel);
             }
         }
         if name.starts_with("IO") {
@@ -295,7 +302,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                         &format!("OUT.LC{}", 2 * i + 5)[..],
                     ],
                 );
-                node.bels.insert(format!("IO{i}"), bel);
+                node.bels.insert(bels::IO[i], bel);
             }
         }
         db.nodes.insert(name.into(), node);
@@ -374,7 +381,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 &[&format!("OUT.LC{lc}")],
             );
         }
-        node.bels.insert("BRAM".into(), bel);
+        node.bels.insert(bels::BRAM, bel);
         db.nodes.insert("BRAM".into(), node);
     }
 
@@ -388,7 +395,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         };
         let mut bel = BelInfo::default();
         add_input(&db, &mut bel, "LATCH", 0, "IMUX.IO.EXTRA");
-        node.bels.insert("IO_LATCH".into(), bel);
+        node.bels.insert(bels::IO_LATCH, bel);
         db.nodes.insert("IO_LATCH".into(), node);
     }
 
@@ -402,7 +409,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         };
         let mut bel = BelInfo::default();
         add_input(&db, &mut bel, "I", 0, "IMUX.IO.EXTRA");
-        node.bels.insert("GB_FABRIC".into(), bel);
+        node.bels.insert(bels::GB_FABRIC, bel);
         db.nodes.insert("GB_FABRIC".into(), node);
     }
 
@@ -424,8 +431,8 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 &[&format!("GLOBAL.{i}")],
             );
         }
-        node.bels.insert("GBOUT".into(), bel);
-        db.nodes.insert("GBOUT".into(), node);
+        node.bels.insert(bels::GB_OUT, bel);
+        db.nodes.insert("GB_OUT".into(), node);
     }
 
     db
@@ -474,7 +481,7 @@ impl MiscNodeBuilder {
         }
     }
 
-    pub fn add_bel(&mut self, name: &str, pins: &BelPins) {
+    pub fn add_bel(&mut self, slot: BelSlotId, pins: &BelPins) {
         let mut bel = BelInfo::default();
         for (pin, &(_, crd, wire)) in &pins.ins {
             let tile = self.get_tile(crd);
@@ -502,7 +509,7 @@ impl MiscNodeBuilder {
                 },
             );
         }
-        self.node.bels.insert(name.into(), bel);
+        self.node.bels.insert(slot, bel);
     }
 
     pub fn finish(mut self) -> (NodeKind, ExtraNode) {

@@ -1,6 +1,6 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
-use prjcombine_xc2000::{chip::Chip, expanded::ExpandedDevice};
+use prjcombine_xc2000::{bels::xc5200 as bels, chip::Chip, expanded::ExpandedDevice};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::ExpandedNamedDevice;
@@ -47,9 +47,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             clk_x = ox..x;
         }
         let ox = x;
-        x += if col == grid.col_lio() {
+        x += if col == grid.col_w() {
             ndb.tile_widths["L"]
-        } else if col == grid.col_rio() {
+        } else if col == grid.col_e() {
             ndb.tile_widths["R"]
         } else {
             ndb.tile_widths["C"]
@@ -64,9 +64,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             clk_y = oy..y;
         }
         let oy = y;
-        y += if row == grid.row_bio() {
+        y += if row == grid.row_s() {
             ndb.tile_heights["B"]
-        } else if row == grid.row_tio() {
+        } else if row == grid.row_n() {
             ndb.tile_heights["T"]
         } else {
             ndb.tile_heights["C"]
@@ -87,35 +87,35 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 [(col_x[col].clone(), row_y[row].clone())],
                             );
                             nnode.add_bel(
-                                0,
+                                bels::LC0,
                                 vec![
                                     name_a(grid, "", "", col, row),
                                     name_b(grid, "CLB_", "", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                4,
+                                bels::TBUF0,
                                 vec![
                                     name_a(grid, "TBUF.", ".0", col, row),
                                     name_b(grid, "TBUF_", ".0", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                5,
+                                bels::TBUF1,
                                 vec![
                                     name_a(grid, "TBUF.", ".1", col, row),
                                     name_b(grid, "TBUF_", ".1", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                6,
+                                bels::TBUF2,
                                 vec![
                                     name_a(grid, "TBUF.", ".2", col, row),
                                     name_b(grid, "TBUF_", ".2", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                7,
+                                bels::TBUF3,
                                 vec![
                                     name_a(grid, "TBUF.", ".3", col, row),
                                     name_b(grid, "TBUF_", ".3", col, row),
@@ -132,9 +132,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 name_a(grid, "src0.", ".1", col, row),
                                 name_a(grid, "dummy.", ".1", col, row),
                             ];
-                            nnode.add_bel(0, vec!["bufgs_bl".to_string()]);
-                            nnode.add_bel(1, vec!["i_bufgs_bl".to_string()]);
-                            nnode.add_bel(2, vec!["rdbk".to_string()]);
+                            nnode.add_bel(bels::BUFG, vec!["bufgs_bl".to_string()]);
+                            nnode.add_bel(bels::CLKIOB, vec!["i_bufgs_bl".to_string()]);
+                            nnode.add_bel(bels::RDBK, vec!["rdbk".to_string()]);
                         }
                         "CNR.BR" => {
                             let nnode = ngrid.name_node(
@@ -146,9 +146,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 name_a(grid, "src0.", ".1", col, row),
                                 name_a(grid, "dummy.", ".1", col, row),
                             ];
-                            nnode.add_bel(0, vec!["bufgs_br".to_string()]);
-                            nnode.add_bel(1, vec!["i_bufgs_br".to_string()]);
-                            nnode.add_bel(2, vec!["startup".to_string()]);
+                            nnode.add_bel(bels::BUFG, vec!["bufgs_br".to_string()]);
+                            nnode.add_bel(bels::CLKIOB, vec!["i_bufgs_br".to_string()]);
+                            nnode.add_bel(bels::STARTUP, vec!["startup".to_string()]);
                         }
                         "CNR.TL" => {
                             let nnode = ngrid.name_node(
@@ -160,9 +160,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 name_a(grid, "src0.", ".1", col, row),
                                 name_a(grid, "dummy.", ".1", col, row),
                             ];
-                            nnode.add_bel(0, vec!["bufgs_tl".to_string()]);
-                            nnode.add_bel(1, vec!["i_bufgs_tl".to_string()]);
-                            nnode.add_bel(2, vec!["bscan".to_string()]);
+                            nnode.add_bel(bels::BUFG, vec!["bufgs_tl".to_string()]);
+                            nnode.add_bel(bels::CLKIOB, vec!["i_bufgs_tl".to_string()]);
+                            nnode.add_bel(bels::BSCAN, vec!["bscan".to_string()]);
                         }
                         "CNR.TR" => {
                             let nnode = ngrid.name_node(
@@ -174,9 +174,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 name_a(grid, "src0.", ".1", col, row),
                                 name_a(grid, "dummy.", ".1", col, row),
                             ];
-                            nnode.add_bel(0, vec!["bufgs_tr".to_string()]);
-                            nnode.add_bel(1, vec!["i_bufgs_tr".to_string()]);
-                            nnode.add_bel(2, vec!["osc".to_string()]);
+                            nnode.add_bel(bels::BUFG, vec!["bufgs_tr".to_string()]);
+                            nnode.add_bel(bels::CLKIOB, vec!["i_bufgs_tr".to_string()]);
+                            nnode.add_bel(bels::OSC, vec!["osc".to_string()]);
                         }
                         "IO.L" => {
                             let nnode = ngrid.name_node(
@@ -192,33 +192,33 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 + (edev.chip.rows - 2) * 4
                                 + (row.to_idx() - 1) * 4
                                 + 1;
-                            nnode.add_bel(0, vec![format!("PAD{p}")]);
-                            nnode.add_bel(1, vec![format!("PAD{}", p + 1)]);
-                            nnode.add_bel(2, vec![format!("PAD{}", p + 2)]);
-                            nnode.add_bel(3, vec![format!("PAD{}", p + 3)]);
+                            nnode.add_bel(bels::IO0, vec![format!("PAD{p}")]);
+                            nnode.add_bel(bels::IO1, vec![format!("PAD{}", p + 1)]);
+                            nnode.add_bel(bels::IO2, vec![format!("PAD{}", p + 2)]);
+                            nnode.add_bel(bels::IO3, vec![format!("PAD{}", p + 3)]);
                             nnode.add_bel(
-                                4,
+                                bels::TBUF0,
                                 vec![
                                     name_a(grid, "TBUF.", ".0", col, row),
                                     name_b(grid, "TBUF_", ".0", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                5,
+                                bels::TBUF1,
                                 vec![
                                     name_a(grid, "TBUF.", ".1", col, row),
                                     name_b(grid, "TBUF_", ".1", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                6,
+                                bels::TBUF2,
                                 vec![
                                     name_a(grid, "TBUF.", ".2", col, row),
                                     name_b(grid, "TBUF_", ".2", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                7,
+                                bels::TBUF3,
                                 vec![
                                     name_a(grid, "TBUF.", ".3", col, row),
                                     name_b(grid, "TBUF_", ".3", col, row),
@@ -236,35 +236,35 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 name_a(grid, "dummy.", ".1", col, row),
                             ];
                             let p = (edev.chip.columns - 2) * 4
-                                + (edev.chip.row_tio().to_idx() - row.to_idx() - 1) * 4
+                                + (edev.chip.row_n().to_idx() - row.to_idx() - 1) * 4
                                 + 1;
-                            nnode.add_bel(0, vec![format!("PAD{}", p + 3)]);
-                            nnode.add_bel(1, vec![format!("PAD{}", p + 2)]);
-                            nnode.add_bel(2, vec![format!("PAD{}", p + 1)]);
-                            nnode.add_bel(3, vec![format!("PAD{p}")]);
+                            nnode.add_bel(bels::IO0, vec![format!("PAD{}", p + 3)]);
+                            nnode.add_bel(bels::IO1, vec![format!("PAD{}", p + 2)]);
+                            nnode.add_bel(bels::IO2, vec![format!("PAD{}", p + 1)]);
+                            nnode.add_bel(bels::IO3, vec![format!("PAD{p}")]);
                             nnode.add_bel(
-                                4,
+                                bels::TBUF0,
                                 vec![
                                     name_a(grid, "TBUF.", ".0", col, row),
                                     name_b(grid, "TBUF_", ".0", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                5,
+                                bels::TBUF1,
                                 vec![
                                     name_a(grid, "TBUF.", ".1", col, row),
                                     name_b(grid, "TBUF_", ".1", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                6,
+                                bels::TBUF2,
                                 vec![
                                     name_a(grid, "TBUF.", ".2", col, row),
                                     name_b(grid, "TBUF_", ".2", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                7,
+                                bels::TBUF3,
                                 vec![
                                     name_a(grid, "TBUF.", ".3", col, row),
                                     name_b(grid, "TBUF_", ".3", col, row),
@@ -283,42 +283,42 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             ];
                             let p = (edev.chip.columns - 2) * 4
                                 + (edev.chip.rows - 2) * 4
-                                + (edev.chip.col_rio().to_idx() - col.to_idx() - 1) * 4
+                                + (edev.chip.col_e().to_idx() - col.to_idx() - 1) * 4
                                 + 1;
-                            nnode.add_bel(0, vec![format!("PAD{p}")]);
-                            nnode.add_bel(1, vec![format!("PAD{}", p + 1)]);
-                            nnode.add_bel(2, vec![format!("PAD{}", p + 2)]);
-                            nnode.add_bel(3, vec![format!("PAD{}", p + 3)]);
+                            nnode.add_bel(bels::IO0, vec![format!("PAD{p}")]);
+                            nnode.add_bel(bels::IO1, vec![format!("PAD{}", p + 1)]);
+                            nnode.add_bel(bels::IO2, vec![format!("PAD{}", p + 2)]);
+                            nnode.add_bel(bels::IO3, vec![format!("PAD{}", p + 3)]);
                             nnode.add_bel(
-                                4,
+                                bels::TBUF0,
                                 vec![
                                     name_a(grid, "TBUF.", ".0", col, row),
                                     name_b(grid, "TBUF_", ".0", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                5,
+                                bels::TBUF1,
                                 vec![
                                     name_a(grid, "TBUF.", ".1", col, row),
                                     name_b(grid, "TBUF_", ".1", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                6,
+                                bels::TBUF2,
                                 vec![
                                     name_a(grid, "TBUF.", ".2", col, row),
                                     name_b(grid, "TBUF_", ".2", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                7,
+                                bels::TBUF3,
                                 vec![
                                     name_a(grid, "TBUF.", ".3", col, row),
                                     name_b(grid, "TBUF_", ".3", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                10,
+                                bels::SCANTEST,
                                 vec![
                                     name_a(grid, "SCANTEST.", ".1", col, row),
                                     name_b(grid, "SCANTEST_", ".1", col, row),
@@ -336,33 +336,33 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 name_a(grid, "dummy.", ".1", col, row),
                             ];
                             let p = (col.to_idx() - 1) * 4 + 1;
-                            nnode.add_bel(0, vec![format!("PAD{}", p + 3)]);
-                            nnode.add_bel(1, vec![format!("PAD{}", p + 2)]);
-                            nnode.add_bel(2, vec![format!("PAD{}", p + 1)]);
-                            nnode.add_bel(3, vec![format!("PAD{p}")]);
+                            nnode.add_bel(bels::IO0, vec![format!("PAD{}", p + 3)]);
+                            nnode.add_bel(bels::IO1, vec![format!("PAD{}", p + 2)]);
+                            nnode.add_bel(bels::IO2, vec![format!("PAD{}", p + 1)]);
+                            nnode.add_bel(bels::IO3, vec![format!("PAD{p}")]);
                             nnode.add_bel(
-                                4,
+                                bels::TBUF0,
                                 vec![
                                     name_a(grid, "TBUF.", ".0", col, row),
                                     name_b(grid, "TBUF_", ".0", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                5,
+                                bels::TBUF1,
                                 vec![
                                     name_a(grid, "TBUF.", ".1", col, row),
                                     name_b(grid, "TBUF_", ".1", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                6,
+                                bels::TBUF2,
                                 vec![
                                     name_a(grid, "TBUF.", ".2", col, row),
                                     name_b(grid, "TBUF_", ".2", col, row),
                                 ],
                             );
                             nnode.add_bel(
-                                7,
+                                bels::TBUF3,
                                 vec![
                                     name_a(grid, "TBUF.", ".3", col, row),
                                     name_b(grid, "TBUF_", ".3", col, row),

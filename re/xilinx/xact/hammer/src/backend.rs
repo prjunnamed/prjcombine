@@ -7,11 +7,8 @@ use std::{
 };
 
 use bitvec::prelude::*;
-use prjcombine_interconnect::{
-    db::BelId,
-    grid::{ExpandedGrid, IntWire, NodeLoc},
-};
-use prjcombine_re_collector::{Diff, FeatureData, FeatureId, State};
+use prjcombine_interconnect::grid::{ExpandedGrid, IntBel, IntWire, NodeLoc};
+use prjcombine_re_fpga_hammer::{Diff, FeatureData, FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_xilinx_xact_geom::Device;
 use prjcombine_re_xilinx_xact_naming::grid::{ExpandedGridNaming, PipCoords};
@@ -47,7 +44,7 @@ pub enum Key<'a> {
     BlockPin(&'a str, String),
     Pip(PipCoords),
     GlobalOpt(String),
-    BelMutex(NodeLoc, BelId, String),
+    BelMutex(IntBel, String),
     NodeMutex(IntWire),
     GlobalMutex(String),
 }
@@ -106,29 +103,12 @@ pub enum MultiValue {
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum PostProc {}
 
-#[derive(Clone, Debug)]
-pub struct FuzzerFeature {
-    pub id: FeatureId,
-    pub tiles: Vec<BitTile>,
-}
-
-#[derive(Clone)]
-pub struct FuzzerInfo {
-    pub features: Vec<FuzzerFeature>,
-}
-
-impl std::fmt::Debug for FuzzerInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.features[0].id)
-    }
-}
-
 impl<'a> Backend for XactBackend<'a> {
     type Key = Key<'a>;
     type Value = Value<'a>;
     type MultiValue = MultiValue;
     type Bitstream = Bitstream;
-    type FuzzerInfo = FuzzerInfo;
+    type FuzzerInfo = FuzzerInfo<BitTile>;
     type PostProc = PostProc;
     type BitPos = BitPos;
     type State = State;
@@ -367,7 +347,7 @@ impl<'a> Backend for XactBackend<'a> {
     fn return_fuzzer(
         &self,
         state: &mut State,
-        f: &FuzzerInfo,
+        f: &Self::FuzzerInfo,
         fid: FuzzerId,
         bits: Vec<HashMap<BitPos, bool>>,
     ) -> Option<Vec<FuzzerId>> {
@@ -446,5 +426,17 @@ impl<'a> Backend for XactBackend<'a> {
         _kv: &HashMap<Key, Value>,
     ) -> bool {
         match *pp {}
+    }
+}
+
+impl FpgaBackend for XactBackend<'_> {
+    type BitTile = BitTile;
+
+    fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+        self.edev.node_bits(nloc)
+    }
+
+    fn egrid(&self) -> &ExpandedGrid {
+        self.egrid
     }
 }

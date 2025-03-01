@@ -1,12 +1,10 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_interconnect::{
-    db::BelId,
-    grid::{ColId, RowId},
-};
+use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
-use prjcombine_virtex2::chip::{
-    Chip, ChipKind, Column, ColumnIoKind, ColumnKind, Dcms, RowIoKind, SharedCfgPin,
+use prjcombine_virtex2::{
+    bels,
+    chip::{Chip, ChipKind, Column, ColumnIoKind, ColumnKind, Dcms, RowIoKind, SharedCfgPin},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -412,8 +410,8 @@ fn get_has_small_int(rd: &Part) -> bool {
     !find_columns(rd, &["CENTER_SMALL"]).is_empty()
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
-    if grid.kind == ChipKind::FpgaCore {
+fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
+    if chip.kind == ChipKind::FpgaCore {
         return;
     }
     let mut io_lookup = HashMap::new();
@@ -422,14 +420,11 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
         for (k, v) in &tile.sites {
             if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
                 if rd.slot_kinds[sn] == "IOB" {
-                    io_lookup.insert(
-                        v.clone(),
-                        grid.get_io_crd(
-                            int.lookup_column(crd.x.into()),
-                            int.lookup_row(crd.y.into()),
-                            BelId::from_idx(idx as usize),
-                        ),
-                    );
+                    let col = int.lookup_column(crd.x.into());
+                    let row = int.lookup_row(crd.y.into());
+                    let io =
+                        chip.get_io_crd((DieId::from_idx(0), (col, row), bels::IO[idx as usize]));
+                    io_lookup.insert(v.clone(), io);
                 }
             }
         }
@@ -502,7 +497,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                                 }
                             }
                         };
-                        let old = grid.cfg_io.insert(cfg, coord);
+                        let old = chip.cfg_io.insert(cfg, coord);
                         assert!(old.is_none() || old == Some(coord));
                     }
                 }
@@ -512,12 +507,12 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
         assert_eq!(alt_vrp.len(), alt_vrn.len());
         for (k, p) in vrp {
             let n = vrn[&k];
-            let old = grid.dci_io.insert(k, (p, n));
+            let old = chip.dci_io.insert(k, (p, n));
             assert!(old.is_none() || old == Some((p, n)));
         }
         for (k, p) in alt_vrp {
             let n = alt_vrn[&k];
-            let old = grid.dci_io_alt.insert(k, (p, n));
+            let old = chip.dci_io_alt.insert(k, (p, n));
             assert!(old.is_none() || old == Some((p, n)));
         }
     }

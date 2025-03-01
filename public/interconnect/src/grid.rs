@@ -69,6 +69,7 @@ impl std::fmt::Display for EdgeIoCoord {
 pub type Coord = (ColId, RowId);
 pub type NodeLoc = (DieId, ColId, RowId, LayerId);
 pub type IntWire = (DieId, Coord, WireId);
+pub type IntBel = (DieId, Coord, BelSlotId);
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Rect {
@@ -206,18 +207,51 @@ impl<'a> ExpandedGrid<'a> {
         None
     }
 
-    pub fn find_bel(
+    pub fn find_node_by_kind(
         &self,
         die: DieId,
         coord: Coord,
-        key: &str,
-    ) -> Option<(LayerId, &ExpandedTileNode, BelId, &BelInfo)> {
+        f: impl Fn(&str) -> bool,
+    ) -> Option<NodeLoc> {
+        let gdie = self.die(die);
+        let tile = gdie.tile(coord);
+        for (layer, val) in &tile.nodes {
+            if f(self.db.nodes.key(val.kind)) {
+                return Some((die, coord.0, coord.1, layer));
+            }
+        }
+        None
+    }
+
+    pub fn get_node_by_kind(&self, die: DieId, coord: Coord, f: impl Fn(&str) -> bool) -> NodeLoc {
+        self.find_node_by_kind(die, coord, f).unwrap()
+    }
+
+    pub fn find_node_by_bel(&self, bel: IntBel) -> Option<NodeLoc> {
+        let (die, coord, slot) = bel;
+        let gdie = self.die(die);
+        let tile = gdie.tile(coord);
+        for (layer, node) in &tile.nodes {
+            let nk = &self.db.nodes[node.kind];
+            if nk.bels.contains_id(slot) {
+                return Some((die, coord.0, coord.1, layer));
+            }
+        }
+        None
+    }
+
+    pub fn get_node_by_bel(&self, bel: IntBel) -> NodeLoc {
+        self.find_node_by_bel(bel).unwrap()
+    }
+
+    pub fn find_bel_layer(&self, bel: IntBel) -> Option<LayerId> {
+        let (die, coord, slot) = bel;
         let die = self.die(die);
         let tile = die.tile(coord);
         for (layer, node) in &tile.nodes {
             let nk = &self.db.nodes[node.kind];
-            if let Some((id, bel)) = nk.bels.get(key) {
-                return Some((layer, node, id, bel));
+            if nk.bels.contains_id(slot) {
+                return Some(layer);
             }
         }
         None

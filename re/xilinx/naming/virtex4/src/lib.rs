@@ -1,9 +1,12 @@
+#![recursion_limit = "1024"]
+
 use prjcombine_interconnect::{
     dir::DirPartMap,
     grid::{ColId, DieId, RowId},
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{
+    bels,
     bond::PsPin,
     chip::{CfgRowKind, ChipKind, GtKind, RegId},
     expanded::{ExpandedDevice, IoCoord},
@@ -58,23 +61,9 @@ pub struct ExpandedNamedDevice<'a> {
 
 impl ExpandedNamedDevice<'_> {
     pub fn get_io_name(&self, io: IoCoord) -> &str {
-        match self.edev.kind {
-            ChipKind::Virtex4 | ChipKind::Virtex5 | ChipKind::Virtex6 => self
-                .ngrid
-                .get_bel_name(io.die, io.col, io.row, &format!("IOB{}", io.iob))
-                .unwrap(),
-            ChipKind::Virtex7 => {
-                if matches!(io.row.to_idx() % 50, 0 | 49) {
-                    self.ngrid
-                        .get_bel_name(io.die, io.col, io.row, "IOB")
-                        .unwrap()
-                } else {
-                    self.ngrid
-                        .get_bel_name(io.die, io.col, io.row, &format!("IOB{}", io.iob))
-                        .unwrap()
-                }
-            }
-        }
+        self.ngrid
+            .get_bel_name((io.die, (io.col, io.row), bels::IOB[io.iob.to_idx()]))
+            .unwrap()
     }
 
     pub fn get_sysmons(&self) -> Vec<SysMon<'_>> {
@@ -93,8 +82,14 @@ impl ExpandedNamedDevice<'_> {
                             col,
                             row,
                             bank: idx,
-                            pad_vp: self.ngrid.get_bel_name(die, col, row, "IPAD.VP").unwrap(),
-                            pad_vn: self.ngrid.get_bel_name(die, col, row, "IPAD.VN").unwrap(),
+                            pad_vp: self
+                                .ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_VP))
+                                .unwrap(),
+                            pad_vn: self
+                                .ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_VN))
+                                .unwrap(),
                             vaux: (0..8)
                                 .map(|idx| self.edev.get_sysmon_vaux(die, col, row, idx))
                                 .collect(),
@@ -110,8 +105,14 @@ impl ExpandedNamedDevice<'_> {
                         col,
                         row,
                         bank: 0,
-                        pad_vp: self.ngrid.get_bel_name(die, col, row, "IPAD.VP").unwrap(),
-                        pad_vn: self.ngrid.get_bel_name(die, col, row, "IPAD.VN").unwrap(),
+                        pad_vp: self
+                            .ngrid
+                            .get_bel_name((die, (col, row), bels::IPAD_VP))
+                            .unwrap(),
+                        pad_vn: self
+                            .ngrid
+                            .get_bel_name((die, (col, row), bels::IPAD_VN))
+                            .unwrap(),
                         vaux: (0..16)
                             .map(|idx| self.edev.get_sysmon_vaux(die, col, row, idx))
                             .collect(),
@@ -125,8 +126,14 @@ impl ExpandedNamedDevice<'_> {
                         col,
                         row,
                         bank: 0,
-                        pad_vp: self.ngrid.get_bel_name(die, col, row, "IPAD.VP").unwrap(),
-                        pad_vn: self.ngrid.get_bel_name(die, col, row, "IPAD.VN").unwrap(),
+                        pad_vp: self
+                            .ngrid
+                            .get_bel_name((die, (col, row), bels::IPAD_VP))
+                            .unwrap(),
+                        pad_vn: self
+                            .ngrid
+                            .get_bel_name((die, (col, row), bels::IPAD_VN))
+                            .unwrap(),
                         vaux: (0..16)
                             .map(|idx| self.edev.get_sysmon_vaux(die, col, row, idx))
                             .collect(),
@@ -141,8 +148,14 @@ impl ExpandedNamedDevice<'_> {
                             col,
                             row,
                             bank: 0,
-                            pad_vp: self.ngrid.get_bel_name(die, col, row, "IPAD.VP").unwrap(),
-                            pad_vn: self.ngrid.get_bel_name(die, col, row, "IPAD.VN").unwrap(),
+                            pad_vp: self
+                                .ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_VP))
+                                .unwrap(),
+                            pad_vn: self
+                                .ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_VN))
+                                .unwrap(),
                             vaux: (0..16)
                                 .map(|idx| self.edev.get_sysmon_vaux(die, col, row, idx))
                                 .collect(),
@@ -166,27 +179,47 @@ impl ExpandedNamedDevice<'_> {
                     bank: gt_info.bank,
                     kind: gt_info.kind,
                     pads_clk: vec![(
-                        self.ngrid.get_bel_name(die, col, row, "IPAD.CLKP").unwrap(),
-                        self.ngrid.get_bel_name(die, col, row, "IPAD.CLKN").unwrap(),
+                        self.ngrid
+                            .get_bel_name((die, (col, row), bels::IPAD_CLKP0))
+                            .unwrap(),
+                        self.ngrid
+                            .get_bel_name((die, (col, row), bels::IPAD_CLKN0))
+                            .unwrap(),
                     )],
                     pads_rx: vec![
                         (
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXP0").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXN0").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXP0))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXN0))
+                                .unwrap(),
                         ),
                         (
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXP1").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXN1").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXP1))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXN1))
+                                .unwrap(),
                         ),
                     ],
                     pads_tx: vec![
                         (
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXP0").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXN0").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXP0))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXN0))
+                                .unwrap(),
                         ),
                         (
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXP1").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXN1").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXP1))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXN1))
+                                .unwrap(),
                         ),
                     ],
                 },
@@ -200,61 +233,97 @@ impl ExpandedNamedDevice<'_> {
                         GtKind::Gtx => vec![
                             (
                                 self.ngrid
-                                    .get_bel_name(die, col, row, "IPAD.CLKP0")
+                                    .get_bel_name((die, (col, row), bels::IPAD_CLKP0))
                                     .unwrap(),
                                 self.ngrid
-                                    .get_bel_name(die, col, row, "IPAD.CLKN0")
+                                    .get_bel_name((die, (col, row), bels::IPAD_CLKN0))
                                     .unwrap(),
                             ),
                             (
                                 self.ngrid
-                                    .get_bel_name(die, col, row, "IPAD.CLKP1")
+                                    .get_bel_name((die, (col, row), bels::IPAD_CLKP1))
                                     .unwrap(),
                                 self.ngrid
-                                    .get_bel_name(die, col, row, "IPAD.CLKN1")
+                                    .get_bel_name((die, (col, row), bels::IPAD_CLKN1))
                                     .unwrap(),
                             ),
                         ],
                         GtKind::Gth => vec![(
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.CLKP").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.CLKN").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_CLKP0))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_CLKN0))
+                                .unwrap(),
                         )],
                         _ => unreachable!(),
                     },
                     pads_rx: vec![
                         (
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXP0").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXN0").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXP0))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXN0))
+                                .unwrap(),
                         ),
                         (
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXP1").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXN1").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXP1))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXN1))
+                                .unwrap(),
                         ),
                         (
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXP2").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXN2").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXP2))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXN2))
+                                .unwrap(),
                         ),
                         (
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXP3").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "IPAD.RXN3").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXP3))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::IPAD_RXN3))
+                                .unwrap(),
                         ),
                     ],
                     pads_tx: vec![
                         (
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXP0").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXN0").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXP0))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXN0))
+                                .unwrap(),
                         ),
                         (
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXP1").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXN1").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXP1))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXN1))
+                                .unwrap(),
                         ),
                         (
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXP2").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXN2").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXP2))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXN2))
+                                .unwrap(),
                         ),
                         (
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXP3").unwrap(),
-                            self.ngrid.get_bel_name(die, col, row, "OPAD.TXN3").unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXP3))
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name((die, (col, row), bels::OPAD_TXN3))
+                                .unwrap(),
                         ),
                     ],
                 },
@@ -269,18 +338,18 @@ impl ExpandedNamedDevice<'_> {
                         pads_clk: vec![
                             (
                                 self.ngrid
-                                    .get_bel_name(die, col, row, "IPAD.CLKP0")
+                                    .get_bel_name((die, (col, row), bels::IPAD_CLKP0))
                                     .unwrap(),
                                 self.ngrid
-                                    .get_bel_name(die, col, row, "IPAD.CLKN0")
+                                    .get_bel_name((die, (col, row), bels::IPAD_CLKN0))
                                     .unwrap(),
                             ),
                             (
                                 self.ngrid
-                                    .get_bel_name(die, col, row, "IPAD.CLKP1")
+                                    .get_bel_name((die, (col, row), bels::IPAD_CLKP1))
                                     .unwrap(),
                                 self.ngrid
-                                    .get_bel_name(die, col, row, "IPAD.CLKN1")
+                                    .get_bel_name((die, (col, row), bels::IPAD_CLKN1))
                                     .unwrap(),
                             ),
                         ],
@@ -288,8 +357,12 @@ impl ExpandedNamedDevice<'_> {
                             .into_iter()
                             .map(|crow| {
                                 (
-                                    self.ngrid.get_bel_name(die, col, crow, "OPAD.TXP").unwrap(),
-                                    self.ngrid.get_bel_name(die, col, crow, "OPAD.TXN").unwrap(),
+                                    self.ngrid
+                                        .get_bel_name((die, (col, crow), bels::OPAD_TXP0))
+                                        .unwrap(),
+                                    self.ngrid
+                                        .get_bel_name((die, (col, crow), bels::OPAD_TXN0))
+                                        .unwrap(),
                                 )
                             })
                             .collect(),
@@ -297,8 +370,12 @@ impl ExpandedNamedDevice<'_> {
                             .into_iter()
                             .map(|crow| {
                                 (
-                                    self.ngrid.get_bel_name(die, col, crow, "IPAD.RXP").unwrap(),
-                                    self.ngrid.get_bel_name(die, col, crow, "IPAD.RXN").unwrap(),
+                                    self.ngrid
+                                        .get_bel_name((die, (col, crow), bels::IPAD_RXP0))
+                                        .unwrap(),
+                                    self.ngrid
+                                        .get_bel_name((die, (col, crow), bels::IPAD_RXN0))
+                                        .unwrap(),
                                 )
                             })
                             .collect(),
@@ -311,34 +388,34 @@ impl ExpandedNamedDevice<'_> {
     }
 
     pub fn get_ps_pin_name(&self, io: PsPin) -> &str {
-        let key = match io {
-            PsPin::Mio(i) => format!("IOPAD.MIO{i}"),
-            PsPin::Clk => "IOPAD.PSCLK".to_string(),
-            PsPin::PorB => "IOPAD.PSPORB".to_string(),
-            PsPin::SrstB => "IOPAD.PSSRSTB".to_string(),
-            PsPin::DdrDq(i) => format!("IOPAD.DDRDQ{i}"),
-            PsPin::DdrDm(i) => format!("IOPAD.DDRDM{i}"),
-            PsPin::DdrDqsP(i) => format!("IOPAD.DDRDQSP{i}"),
-            PsPin::DdrDqsN(i) => format!("IOPAD.DDRDQSN{i}"),
-            PsPin::DdrA(i) => format!("IOPAD.DDRA{i}"),
-            PsPin::DdrBa(i) => format!("IOPAD.DDRBA{i}"),
-            PsPin::DdrVrP => "IOPAD.DDRVRP".to_string(),
-            PsPin::DdrVrN => "IOPAD.DDRVRN".to_string(),
-            PsPin::DdrCkP => "IOPAD.DDRCKP".to_string(),
-            PsPin::DdrCkN => "IOPAD.DDRCKN".to_string(),
-            PsPin::DdrCke => "IOPAD.DDRCKE".to_string(),
-            PsPin::DdrOdt => "IOPAD.DDRODT".to_string(),
-            PsPin::DdrDrstB => "IOPAD.DDRDRSTB".to_string(),
-            PsPin::DdrCsB => "IOPAD.DDRCSB".to_string(),
-            PsPin::DdrRasB => "IOPAD.DDRRASB".to_string(),
-            PsPin::DdrCasB => "IOPAD.DDRCASB".to_string(),
-            PsPin::DdrWeB => "IOPAD.DDRWEB".to_string(),
+        let slot = match io {
+            PsPin::Mio(i) => bels::IOPAD_MIO[i as usize],
+            PsPin::Clk => bels::IOPAD_PSCLK,
+            PsPin::PorB => bels::IOPAD_PSPORB,
+            PsPin::SrstB => bels::IOPAD_PSSRSTB,
+            PsPin::DdrDq(i) => bels::IOPAD_DDRDQ[i as usize],
+            PsPin::DdrDm(i) => bels::IOPAD_DDRDM[i as usize],
+            PsPin::DdrDqsP(i) => bels::IOPAD_DDRDQSP[i as usize],
+            PsPin::DdrDqsN(i) => bels::IOPAD_DDRDQSN[i as usize],
+            PsPin::DdrA(i) => bels::IOPAD_DDRA[i as usize],
+            PsPin::DdrBa(i) => bels::IOPAD_DDRBA[i as usize],
+            PsPin::DdrVrP => bels::IOPAD_DDRVRP,
+            PsPin::DdrVrN => bels::IOPAD_DDRVRN,
+            PsPin::DdrCkP => bels::IOPAD_DDRCKP,
+            PsPin::DdrCkN => bels::IOPAD_DDRCKN,
+            PsPin::DdrCke => bels::IOPAD_DDRCKE,
+            PsPin::DdrOdt => bels::IOPAD_DDRODT,
+            PsPin::DdrDrstB => bels::IOPAD_DDRDRSTB,
+            PsPin::DdrCsB => bels::IOPAD_DDRCSB,
+            PsPin::DdrRasB => bels::IOPAD_DDRRASB,
+            PsPin::DdrCasB => bels::IOPAD_DDRCASB,
+            PsPin::DdrWeB => bels::IOPAD_DDRWEB,
         };
         let die = DieId::from_idx(0);
         let chip = self.edev.chips[die];
         let col = chip.col_ps();
         let row = chip.row_reg_bot(RegId::from_idx(chip.regs - 1));
-        self.ngrid.get_bel_name(die, col, row, &key).unwrap()
+        self.ngrid.get_bel_name((die, (col, row), slot)).unwrap()
     }
 }
 

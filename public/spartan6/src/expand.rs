@@ -436,10 +436,10 @@ impl Expander<'_, '_> {
 
         for (br, kind) in self.chip.get_dcms() {
             let buf_kind = match kind {
-                DcmKind::Bot => "DCM_BUFPLL_BUF_BOT",
-                DcmKind::BotMid => "DCM_BUFPLL_BUF_BOT_MID",
-                DcmKind::Top => "DCM_BUFPLL_BUF_TOP",
-                DcmKind::TopMid => "DCM_BUFPLL_BUF_TOP_MID",
+                DcmKind::Bot => "DCM_BUFPLL_BUF_S",
+                DcmKind::BotMid => "DCM_BUFPLL_BUF_S_MID",
+                DcmKind::Top => "DCM_BUFPLL_BUF_N",
+                DcmKind::TopMid => "DCM_BUFPLL_BUF_N_MID",
             };
             self.site_holes.push(Rect {
                 col_l: col,

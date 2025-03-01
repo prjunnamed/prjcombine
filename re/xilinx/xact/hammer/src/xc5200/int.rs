@@ -1,17 +1,20 @@
 use prjcombine_interconnect::{
-    db::{BelId, NodeTileId, NodeWireId, WireKind},
+    db::{NodeTileId, NodeWireId, WireKind},
     grid::{IntWire, LayerId, NodeLoc},
 };
-use prjcombine_re_collector::{Diff, OcdMode, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_fpga_hammer::{
+    Diff, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd,
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
+use prjcombine_xc2000::bels::xc5200 as bels;
 use prjcombine_xilinx_bitstream::BitTile;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FuzzerFeature, Key, Value, XactBackend},
+    backend::{Key, Value, XactBackend},
     collector::CollectorCtx,
     fbuild::FuzzCtx,
-    fgen::Prop,
+    props::DynProp,
 };
 
 fn apply_int_pip<'a>(
@@ -46,59 +49,56 @@ fn drive_wire<'a>(
     let (die, (mut col, mut row), wt) = wire_target;
     let wtn = &backend.egrid.db.wires.key(wt)[..];
     let (ploc, pwt, pwf) = if wtn.starts_with("OUT") {
-        let (bel, pin) = match wtn {
-            "OUT.LC0.X" => ("LC0", "LC0.X"),
-            "OUT.LC0.Q" => ("LC0", "LC0.Q"),
-            "OUT.LC0.DO" => ("LC0", "LC0.DO"),
-            "OUT.LC1.X" => ("LC0", "LC1.X"),
-            "OUT.LC1.Q" => ("LC0", "LC1.Q"),
-            "OUT.LC1.DO" => ("LC0", "LC1.DO"),
-            "OUT.LC2.X" => ("LC0", "LC2.X"),
-            "OUT.LC2.Q" => ("LC0", "LC2.Q"),
-            "OUT.LC2.DO" => ("LC0", "LC2.DO"),
-            "OUT.LC3.X" => ("LC0", "LC3.X"),
-            "OUT.LC3.Q" => ("LC0", "LC3.Q"),
-            "OUT.LC3.DO" => ("LC0", "LC3.DO"),
-            "OUT.PWRGND" => ("LC0", "CV"),
-            "OUT.TBUF0" => ("TBUF0", "O"),
-            "OUT.TBUF1" => ("TBUF1", "O"),
-            "OUT.TBUF2" => ("TBUF2", "O"),
-            "OUT.TBUF3" => ("TBUF3", "O"),
-            "OUT.IO0.I" => ("IOB0", "I"),
-            "OUT.IO1.I" => ("IOB1", "I"),
-            "OUT.IO2.I" => ("IOB2", "I"),
-            "OUT.IO3.I" => ("IOB3", "I"),
-            "OUT.CLKIOB" => ("CLKIOB", "I"),
-            "OUT.RDBK.RIP" => ("RDBK", "RIP"),
-            "OUT.RDBK.DATA" => ("RDBK", "DATA"),
-            "OUT.STARTUP.DONEIN" => ("STARTUP", "DONEIN"),
-            "OUT.STARTUP.Q1Q4" => ("STARTUP", "Q1Q4"),
-            "OUT.STARTUP.Q2" => ("STARTUP", "Q2"),
-            "OUT.STARTUP.Q3" => ("STARTUP", "Q3"),
-            "OUT.BSCAN.DRCK" => ("BSCAN", "DRCK"),
-            "OUT.BSCAN.IDLE" => ("BSCAN", "IDLE"),
-            "OUT.BSCAN.RESET" => ("BSCAN", "RESET"),
-            "OUT.BSCAN.SEL1" => ("BSCAN", "SEL1"),
-            "OUT.BSCAN.SEL2" => ("BSCAN", "SEL2"),
-            "OUT.BSCAN.SHIFT" => ("BSCAN", "SHIFT"),
-            "OUT.BSCAN.UPDATE" => ("BSCAN", "UPDATE"),
-            "OUT.BSUPD" => ("OSC", "BSUPD"),
-            "OUT.OSC.OSC1" => ("OSC", "OSC1"),
-            "OUT.OSC.OSC2" => ("OSC", "OSC2"),
+        let (slot, pin) = match wtn {
+            "OUT.LC0.X" => (bels::LC0, "LC0.X"),
+            "OUT.LC0.Q" => (bels::LC0, "LC0.Q"),
+            "OUT.LC0.DO" => (bels::LC0, "LC0.DO"),
+            "OUT.LC1.X" => (bels::LC0, "LC1.X"),
+            "OUT.LC1.Q" => (bels::LC0, "LC1.Q"),
+            "OUT.LC1.DO" => (bels::LC0, "LC1.DO"),
+            "OUT.LC2.X" => (bels::LC0, "LC2.X"),
+            "OUT.LC2.Q" => (bels::LC0, "LC2.Q"),
+            "OUT.LC2.DO" => (bels::LC0, "LC2.DO"),
+            "OUT.LC3.X" => (bels::LC0, "LC3.X"),
+            "OUT.LC3.Q" => (bels::LC0, "LC3.Q"),
+            "OUT.LC3.DO" => (bels::LC0, "LC3.DO"),
+            "OUT.PWRGND" => (bels::LC0, "CV"),
+            "OUT.TBUF0" => (bels::TBUF0, "O"),
+            "OUT.TBUF1" => (bels::TBUF1, "O"),
+            "OUT.TBUF2" => (bels::TBUF2, "O"),
+            "OUT.TBUF3" => (bels::TBUF3, "O"),
+            "OUT.IO0.I" => (bels::IO0, "I"),
+            "OUT.IO1.I" => (bels::IO1, "I"),
+            "OUT.IO2.I" => (bels::IO2, "I"),
+            "OUT.IO3.I" => (bels::IO3, "I"),
+            "OUT.CLKIOB" => (bels::CLKIOB, "I"),
+            "OUT.RDBK.RIP" => (bels::RDBK, "RIP"),
+            "OUT.RDBK.DATA" => (bels::RDBK, "DATA"),
+            "OUT.STARTUP.DONEIN" => (bels::STARTUP, "DONEIN"),
+            "OUT.STARTUP.Q1Q4" => (bels::STARTUP, "Q1Q4"),
+            "OUT.STARTUP.Q2" => (bels::STARTUP, "Q2"),
+            "OUT.STARTUP.Q3" => (bels::STARTUP, "Q3"),
+            "OUT.BSCAN.DRCK" => (bels::BSCAN, "DRCK"),
+            "OUT.BSCAN.IDLE" => (bels::BSCAN, "IDLE"),
+            "OUT.BSCAN.RESET" => (bels::BSCAN, "RESET"),
+            "OUT.BSCAN.SEL1" => (bels::BSCAN, "SEL1"),
+            "OUT.BSCAN.SEL2" => (bels::BSCAN, "SEL2"),
+            "OUT.BSCAN.SHIFT" => (bels::BSCAN, "SHIFT"),
+            "OUT.BSCAN.UPDATE" => (bels::BSCAN, "UPDATE"),
+            "OUT.BSUPD" => (bels::OSC, "BSUPD"),
+            "OUT.OSC.OSC1" => (bels::OSC, "OSC1"),
+            "OUT.OSC.OSC2" => (bels::OSC, "OSC2"),
             "OUT.TOP.COUT" => {
                 row -= 1;
-                ("LC0", "CO")
+                (bels::LC0, "CO")
             }
             _ => panic!("umm {wtn}"),
         };
         let nloc = (die, col, row, LayerId::from_idx(0));
-        let node = backend.egrid.node(nloc);
-        let node_kind = &backend.egrid.db.nodes[node.kind];
         let nnode = &backend.ngrid.nodes[&nloc];
-        let bel = node_kind.bels.get(bel).unwrap().0;
         return (
             fuzzer.base(Key::NodeMutex(wire_target), "SHARED_ROOT"),
-            &nnode.bels[bel][0],
+            &nnode.bels[slot][0],
             pin,
         );
     } else if wtn == "GND" {
@@ -123,18 +123,15 @@ fn drive_wire<'a>(
             .unwrap();
         let (fuzzer, block, pin) = drive_wire(backend, fuzzer, nwt, wire_avoid);
         let fuzzer = fuzzer.base(Key::NodeMutex(wire_target), nwt);
-        let crd = backend.ngrid.bel_pip(nloc, BelId::from_idx(8), "BUF");
+        let crd = backend.ngrid.bel_pip((die, (col, row), bels::BUFR), "BUF");
         let fuzzer = fuzzer.base(Key::Pip(crd), Value::FromPin(block, pin.into()));
         return (fuzzer, block, pin);
     } else if matches!(wtn, "GLOBAL.BL" | "GLOBAL.TL" | "GLOBAL.BR" | "GLOBAL.TR") {
         let nloc = (die, col, row, LayerId::from_idx(0));
-        let node = backend.egrid.node(nloc);
-        let node_kind = &backend.egrid.db.nodes[node.kind];
         let nnode = &backend.ngrid.nodes[&nloc];
-        let bel = node_kind.bels.get("BUFG").unwrap().0;
         return (
             fuzzer.base(Key::NodeMutex(wire_target), "SHARED_ROOT"),
-            &nnode.bels[bel][0],
+            &nnode.bels[bels::BUFG][0],
             "O",
         );
     } else if wtn == "IMUX.GIN" {
@@ -150,10 +147,10 @@ fn drive_wire<'a>(
             (NodeTileId::from_idx(0), backend.egrid.db.get_wire(nwt)),
         )
     } else if wtn.starts_with("OMUX") {
-        let nwt = if col == grid.col_lio()
-            || col == grid.col_rio()
-            || row == grid.row_bio()
-            || row == grid.row_tio()
+        let nwt = if col == grid.col_w()
+            || col == grid.col_e()
+            || row == grid.row_s()
+            || row == grid.row_n()
         {
             "OUT.IO0.I"
         } else {
@@ -166,15 +163,15 @@ fn drive_wire<'a>(
         )
     } else if wtn.starts_with("LONG") {
         if wtn.starts_with("LONG.H") {
-            if col == grid.col_lio() {
+            if col == grid.col_w() {
                 col += 1;
-            } else if col == grid.col_rio() {
+            } else if col == grid.col_e() {
                 col -= 1;
             }
         } else {
-            if row == grid.row_bio() {
+            if row == grid.row_s() {
                 row += 1;
-            } else if row == grid.row_tio() {
+            } else if row == grid.row_n() {
                 row -= 1;
             }
         }
@@ -244,60 +241,57 @@ fn apply_imux_finish<'a>(
     if !wn.starts_with("IMUX") || wn == "IMUX.GIN" || wn == "IMUX.TS" {
         return fuzzer;
     }
-    let (bel, pin) = match wn {
-        "IMUX.LC0.F1" => ("LC0", "LC0.F1"),
-        "IMUX.LC0.F2" => ("LC0", "LC0.F2"),
-        "IMUX.LC0.F3" => ("LC0", "LC0.F3"),
-        "IMUX.LC0.F4" => ("LC0", "LC0.F4"),
-        "IMUX.LC0.DI" => ("LC0", "LC0.DI"),
-        "IMUX.LC1.F1" => ("LC0", "LC1.F1"),
-        "IMUX.LC1.F2" => ("LC0", "LC1.F2"),
-        "IMUX.LC1.F3" => ("LC0", "LC1.F3"),
-        "IMUX.LC1.F4" => ("LC0", "LC1.F4"),
-        "IMUX.LC1.DI" => ("LC0", "LC1.DI"),
-        "IMUX.LC2.F1" => ("LC0", "LC2.F1"),
-        "IMUX.LC2.F2" => ("LC0", "LC2.F2"),
-        "IMUX.LC2.F3" => ("LC0", "LC2.F3"),
-        "IMUX.LC2.F4" => ("LC0", "LC2.F4"),
-        "IMUX.LC2.DI" => ("LC0", "LC2.DI"),
-        "IMUX.LC3.F1" => ("LC0", "LC3.F1"),
-        "IMUX.LC3.F2" => ("LC0", "LC3.F2"),
-        "IMUX.LC3.F3" => ("LC0", "LC3.F3"),
-        "IMUX.LC3.F4" => ("LC0", "LC3.F4"),
-        "IMUX.LC3.DI" => ("LC0", "LC3.DI"),
-        "IMUX.CLB.RST" => ("LC0", "CLR"),
-        "IMUX.CLB.CE" => ("LC0", "CE"),
-        "IMUX.CLB.CLK" => ("LC0", "CK"),
-        "IMUX.IO0.T" => ("IOB0", "T"),
-        "IMUX.IO1.T" => ("IOB1", "T"),
-        "IMUX.IO2.T" => ("IOB2", "T"),
-        "IMUX.IO3.T" => ("IOB3", "T"),
-        "IMUX.IO0.O" => ("IOB0", "O"),
-        "IMUX.IO1.O" => ("IOB1", "O"),
-        "IMUX.IO2.O" => ("IOB2", "O"),
-        "IMUX.IO3.O" => ("IOB3", "O"),
-        "IMUX.RDBK.RCLK" => ("RDBK", "CK"),
-        "IMUX.RDBK.TRIG" => ("RDBK", "TRIG"),
-        "IMUX.STARTUP.SCLK" => ("STARTUP", "CK"),
-        "IMUX.STARTUP.GRST" => ("STARTUP", "GCLR"),
-        "IMUX.STARTUP.GTS" => ("STARTUP", "GTS"),
-        "IMUX.BSCAN.TDO1" => ("BSCAN", "TDO1"),
-        "IMUX.BSCAN.TDO2" => ("BSCAN", "TDO2"),
-        "IMUX.OSC.OCLK" => ("OSC", "CK"),
-        "IMUX.BUFG" => ("BUFG", "I"),
+    let (slot, pin) = match wn {
+        "IMUX.LC0.F1" => (bels::LC0, "LC0.F1"),
+        "IMUX.LC0.F2" => (bels::LC0, "LC0.F2"),
+        "IMUX.LC0.F3" => (bels::LC0, "LC0.F3"),
+        "IMUX.LC0.F4" => (bels::LC0, "LC0.F4"),
+        "IMUX.LC0.DI" => (bels::LC0, "LC0.DI"),
+        "IMUX.LC1.F1" => (bels::LC0, "LC1.F1"),
+        "IMUX.LC1.F2" => (bels::LC0, "LC1.F2"),
+        "IMUX.LC1.F3" => (bels::LC0, "LC1.F3"),
+        "IMUX.LC1.F4" => (bels::LC0, "LC1.F4"),
+        "IMUX.LC1.DI" => (bels::LC0, "LC1.DI"),
+        "IMUX.LC2.F1" => (bels::LC0, "LC2.F1"),
+        "IMUX.LC2.F2" => (bels::LC0, "LC2.F2"),
+        "IMUX.LC2.F3" => (bels::LC0, "LC2.F3"),
+        "IMUX.LC2.F4" => (bels::LC0, "LC2.F4"),
+        "IMUX.LC2.DI" => (bels::LC0, "LC2.DI"),
+        "IMUX.LC3.F1" => (bels::LC0, "LC3.F1"),
+        "IMUX.LC3.F2" => (bels::LC0, "LC3.F2"),
+        "IMUX.LC3.F3" => (bels::LC0, "LC3.F3"),
+        "IMUX.LC3.F4" => (bels::LC0, "LC3.F4"),
+        "IMUX.LC3.DI" => (bels::LC0, "LC3.DI"),
+        "IMUX.CLB.RST" => (bels::LC0, "CLR"),
+        "IMUX.CLB.CE" => (bels::LC0, "CE"),
+        "IMUX.CLB.CLK" => (bels::LC0, "CK"),
+        "IMUX.IO0.T" => (bels::IO0, "T"),
+        "IMUX.IO1.T" => (bels::IO1, "T"),
+        "IMUX.IO2.T" => (bels::IO2, "T"),
+        "IMUX.IO3.T" => (bels::IO3, "T"),
+        "IMUX.IO0.O" => (bels::IO0, "O"),
+        "IMUX.IO1.O" => (bels::IO1, "O"),
+        "IMUX.IO2.O" => (bels::IO2, "O"),
+        "IMUX.IO3.O" => (bels::IO3, "O"),
+        "IMUX.RDBK.RCLK" => (bels::RDBK, "CK"),
+        "IMUX.RDBK.TRIG" => (bels::RDBK, "TRIG"),
+        "IMUX.STARTUP.SCLK" => (bels::STARTUP, "CK"),
+        "IMUX.STARTUP.GRST" => (bels::STARTUP, "GCLR"),
+        "IMUX.STARTUP.GTS" => (bels::STARTUP, "GTS"),
+        "IMUX.BSCAN.TDO1" => (bels::BSCAN, "TDO1"),
+        "IMUX.BSCAN.TDO2" => (bels::BSCAN, "TDO2"),
+        "IMUX.OSC.OCLK" => (bels::OSC, "CK"),
+        "IMUX.BUFG" => (bels::BUFG, "I"),
         "IMUX.BOT.CIN" => {
             row += 1;
-            ("LC0", "CI")
+            (bels::LC0, "CI")
         }
         _ => panic!("umm {wn}?"),
     };
     let nloc = (die, col, row, LayerId::from_idx(0));
-    let node = backend.egrid.node(nloc);
-    let node_kind = &backend.egrid.db.nodes[node.kind];
     let nnode = &backend.ngrid.nodes[&nloc];
-    let block = node_kind.bels.get(bel).unwrap().0;
-    let block = &nnode.bels[block][0];
-    if bel.starts_with("IOB") && pin == "O" {
+    let block = &nnode.bels[slot][0];
+    if wn.starts_with("IMUX.IO") && pin == "O" {
         fuzzer = fuzzer
             .base(Key::BlockBase(block), "IO")
             .base(Key::BlockConfig(block, "IN".into(), "I".into()), true)
@@ -310,10 +304,10 @@ fn apply_imux_finish<'a>(
             );
         }
     }
-    if bel == "STARTUP" && pin == "CK" {
+    if slot == bels::STARTUP && pin == "CK" {
         fuzzer = fuzzer.base(Key::GlobalOpt("STARTUPCLK".into()), "CCLK");
     }
-    if bel == "OSC" && pin == "CK" {
+    if slot == bels::OSC && pin == "CK" {
         fuzzer = fuzzer.base(Key::GlobalOpt("OSCCLK".into()), "CCLK");
     }
     fuzzer.fuzz(
@@ -340,8 +334,8 @@ impl IntPip {
     }
 }
 
-impl Prop for IntPip {
-    fn dyn_clone(&self) -> Box<dyn Prop> {
+impl<'b> FuzzerProp<'b, XactBackend<'b>> for IntPip {
+    fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
 
@@ -371,8 +365,8 @@ impl Prop for IntPip {
 #[derive(Clone, Debug)]
 pub struct AllColumnIo;
 
-impl Prop for AllColumnIo {
-    fn dyn_clone(&self) -> Box<dyn Prop> {
+impl<'b> FuzzerProp<'b, XactBackend<'b>> for AllColumnIo {
+    fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
 
@@ -385,7 +379,7 @@ impl Prop for AllColumnIo {
         let id = fuzzer.info.features.pop().unwrap().id;
         let (die, col, _, _) = nloc;
         for row in backend.egrid.die(die).rows() {
-            if row == backend.edev.chip.row_bio() || row == backend.edev.chip.row_tio() {
+            if row == backend.edev.chip.row_s() || row == backend.edev.chip.row_n() {
                 continue;
             }
             fuzzer.info.features.push(FuzzerFeature {
@@ -438,7 +432,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         }
         if tile == "CLB" || tile.starts_with("IO") {
             for i in 0..4 {
-                let mut bctx = ctx.bel(format!("TBUF{i}"));
+                let mut bctx = ctx.bel(bels::TBUF[i]);
                 bctx.build()
                     .pin_mutex_exclusive("T")
                     .test_manual("TMUX", "T")
@@ -533,10 +527,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                     ctx.tiledb.insert(tile, "INT", mux_name, item);
                     let bel = match &out_name[..] {
-                        "IMUX.IO0.O" => "IOB0",
-                        "IMUX.IO1.O" => "IOB1",
-                        "IMUX.IO2.O" => "IOB2",
-                        "IMUX.IO3.O" => "IOB3",
+                        "IMUX.IO0.O" => "IO0",
+                        "IMUX.IO1.O" => "IO1",
+                        "IMUX.IO2.O" => "IO2",
+                        "IMUX.IO3.O" => "IO3",
                         _ => unreachable!(),
                     };
                     let item = xlat_enum_ocd(omux, OcdMode::Mux);

@@ -1,21 +1,22 @@
 use jzon::JsonValue;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
-use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
+use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntitySet, EntityVec, entity_id};
 
 entity_id! {
     pub id WireId u16, reserve 1;
     pub id NodeKindId u16, reserve 1;
+    pub id BelSlotId u16, reserve 1;
     pub id TermSlotId u8, reserve 1;
     pub id TermKindId u16, reserve 1;
     pub id NodeTileId u16, reserve 1;
     pub id NodeIriId u16, reserve 1;
-    pub id BelId u16, reserve 1;
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct IntDb {
     pub wires: EntityMap<WireId, String, WireKind>,
+    pub bel_slots: EntitySet<BelSlotId, String>,
     pub nodes: EntityMap<NodeKindId, String, NodeKind>,
     pub term_slots: EntityMap<TermSlotId, String, TermSlotInfo>,
     pub terms: EntityMap<TermKindId, String, TermKind>,
@@ -28,6 +29,12 @@ impl IntDb {
             .get(name)
             .unwrap_or_else(|| panic!("no wire {name}"))
             .0
+    }
+    #[track_caller]
+    pub fn get_bel_slot(&self, name: &str) -> BelSlotId {
+        self.bel_slots
+            .get(name)
+            .unwrap_or_else(|| panic!("no bel slot {name}"))
     }
     #[track_caller]
     pub fn get_node(&self, name: &str) -> NodeKindId {
@@ -105,7 +112,7 @@ pub struct NodeKind {
     pub muxes: BTreeMap<NodeWireId, MuxInfo>,
     pub iris: EntityVec<NodeIriId, ()>,
     pub intfs: BTreeMap<NodeWireId, IntfInfo>,
-    pub bels: EntityMap<BelId, String, BelInfo>,
+    pub bels: EntityPartVec<BelSlotId, BelInfo>,
 }
 
 pub type NodeWireId = (NodeTileId, WireId);
@@ -359,10 +366,12 @@ impl NodeKind {
                 format!("{}:{}", wt.0, db.wires.key(wt.1)),
                 intf.to_json(db),
             ))),
-            bels: Vec::from_iter(self.bels.iter().map(|(_, name, bel)| jzon::object! {
-                name: name.as_str(),
-                pins: jzon::object::Object::from_iter(bel.pins.iter().map(|(pname, pin)| (pname.as_str(), pin.to_json(db)))),
-            })),
+            bels: jzon::object::Object::from_iter(self.bels.iter().map(|(slot, bel)| (
+                db.bel_slots[slot].as_str(),
+                jzon::object! {
+                    pins: jzon::object::Object::from_iter(bel.pins.iter().map(|(pname, pin)| (pname.as_str(), pin.to_json(db)))),
+                },
+            ))),
         }
     }
 }
@@ -414,6 +423,7 @@ impl From<&IntDb> for JsonValue {
                     kind: wire.to_string(db),
                 }
             })),
+            bel_slots: Vec::from_iter(db.bel_slots.values().map(|name| name.as_str())),
             nodes: jzon::object::Object::from_iter(db.nodes.iter().map(|(_, name, node)| {
                 (name.as_str(), node.to_json(db))
             })),

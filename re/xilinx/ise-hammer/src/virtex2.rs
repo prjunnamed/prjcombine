@@ -1,0 +1,12 @@
+pub mod bram;
+pub mod clb;
+pub mod clk;
+pub mod dcm_s3e;
+pub mod dcm_v2;
+pub mod dsp;
+pub mod gt;
+pub mod gt10;
+pub mod io;
+pub mod io_fpgacore;
+pub mod misc;
+pub mod ppc;

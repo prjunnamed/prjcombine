@@ -1,9 +1,5 @@
 use std::{
-    error::Error,
-    ffi::OsStr,
-    fs::create_dir_all,
-    io::Write,
-    os::unix::prelude::OsStrExt,
+    error::Error, ffi::OsStr, fs::create_dir_all, io::Write, os::unix::prelude::OsStrExt,
     process::Stdio,
 };
 

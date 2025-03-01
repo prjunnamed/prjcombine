@@ -2,9 +2,8 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
-    db::BelId,
     dir::Dir,
-    grid::{ColId, EdgeIoCoord, RowId},
+    grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_siliconblue::{
     bond::{Bond, BondPin},
@@ -128,17 +127,12 @@ impl Generator<'_> {
         if self.rng.random() {
             global_idx = None;
         }
-        let (col, row, bel) = self.cfg.edev.chip.get_io_loc(crd);
         let mut lvds = self.cfg.allow_global
             && self.rng.random()
             && !is_od
             && self.cfg.edev.chip.io_has_lvds(crd);
         if lvds {
-            let other = self
-                .cfg
-                .edev
-                .chip
-                .get_io_crd(col, row, BelId::from_idx(bel.to_idx() ^ 1));
+            let other = crd.with_iob(TileIobId::from_idx(crd.iob().to_idx() ^ 1));
             let other_idx = self.unused_io.iter().position(|x| *x == other);
             if let Some(other_idx) = other_idx {
                 self.unused_io.swap_remove(other_idx);
@@ -234,7 +228,7 @@ impl Generator<'_> {
                 pin_type.set(5, true);
             }
         }
-        let (col, row, _) = self.cfg.edev.chip.get_io_loc(crd);
+        let (_, (col, row), _) = self.cfg.edev.chip.get_io_loc(crd);
         if self.rng.random_bool(0.5) && !self.io_cs_used.contains(&(col, row)) {
             self.io_cs_used.insert((col, row));
             let shared_in_pins = if is_od {

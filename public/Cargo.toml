@@ -32,7 +32,7 @@ prjcombine-jed = { path = "jed" }
 prjcombine-xilinx-bitstream = { path = "xilinx-bitstream" }
 jzon = "0.12"
 bincode = "1.3"
-unnamed_entity = { version = "0.1.5", features = ["bitvec", "map", "serde"] }
+unnamed_entity = { version = "0.1.7", features = ["bitvec", "map", "serde"] }
 bitvec = { version = "1.0", features = ["serde"] }
 itertools = "0.14"
 arrayvec = "0.7.6"

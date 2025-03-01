@@ -575,7 +575,7 @@ pub fn find_bel_pins(
     site: &SiteInfo,
 ) -> BelPins {
     let mut result = BelPins::default();
-    if edev.chip.kind.has_actual_lrio() {
+    if edev.chip.kind.has_actual_io_we() {
         for (k, &v) in &site.fabout_wires {
             let iw = (
                 DieId::from_idx(0),
@@ -597,11 +597,11 @@ pub fn find_bel_pins(
         }
         if kind.starts_with("SB_PLL") {
             let row = if site.loc.y == 0 {
-                edev.chip.row_bio()
+                edev.chip.row_s()
             } else {
-                edev.chip.row_tio()
+                edev.chip.row_n()
             };
-            for (pin, col) in [("LOCK", edev.chip.col_lio()), ("SDO", edev.chip.col_rio())] {
+            for (pin, col) in [("LOCK", edev.chip.col_w()), ("SDO", edev.chip.col_e())] {
                 let iws = Vec::from_iter((0..8).map(|idx| {
                     (
                         DieId::from_idx(0),
@@ -879,20 +879,20 @@ pub fn find_bel_pins(
         let tiledb = tiledb.unwrap();
         for col in edev.chip.columns() {
             for row in edev.chip.rows() {
-                let tile_kind = if row == edev.chip.row_bio() {
-                    if col == edev.chip.col_lio() || col == edev.chip.col_rio() {
+                let tile_kind = if row == edev.chip.row_s() {
+                    if col == edev.chip.col_w() || col == edev.chip.col_e() {
                         continue;
                     }
-                    "IO.B"
-                } else if row == edev.chip.row_tio() {
-                    if col == edev.chip.col_lio() || col == edev.chip.col_rio() {
+                    "IO.S"
+                } else if row == edev.chip.row_n() {
+                    if col == edev.chip.col_w() || col == edev.chip.col_e() {
                         continue;
                     }
-                    "IO.T"
-                } else if col == edev.chip.col_lio() && edev.chip.kind.has_lrio() {
-                    "IO.L"
-                } else if col == edev.chip.col_rio() && edev.chip.kind.has_lrio() {
-                    "IO.R"
+                    "IO.N"
+                } else if col == edev.chip.col_w() && edev.chip.kind.has_io_we() {
+                    "IO.W"
+                } else if col == edev.chip.col_e() && edev.chip.kind.has_io_we() {
+                    "IO.E"
                 } else if edev.chip.cols_bram.contains(&col) {
                     "INT.BRAM"
                 } else {
@@ -957,15 +957,13 @@ pub fn find_bel_pins(
                         if let Some(pin) = iwmap_out.get(&wt) {
                             let wf = (DieId::from_idx(0), (col, row), edev.egrid.db.get_wire(wfn));
                             let wf = edev.egrid.resolve_wire(wf).unwrap();
-                            let is_lr =
-                                wf.1.0 == edev.chip.col_lio() || wf.1.0 == edev.chip.col_rio();
-                            let is_bt =
-                                wf.1.1 == edev.chip.row_bio() || wf.1.1 == edev.chip.row_tio();
+                            let is_lr = wf.1.0 == edev.chip.col_w() || wf.1.0 == edev.chip.col_e();
+                            let is_bt = wf.1.1 == edev.chip.row_s() || wf.1.1 == edev.chip.row_n();
                             let wfs = if is_lr && is_bt {
                                 Vec::from_iter((0..8).map(|idx| {
                                     (wf.0, wf.1, edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))
                                 }))
-                            } else if (is_lr && edev.chip.kind.has_lrio()) || is_bt {
+                            } else if (is_lr && edev.chip.kind.has_io_we()) || is_bt {
                                 let wfn = edev.egrid.db.wires.key(wf.2);
                                 let idx: usize =
                                     wfn.strip_prefix("OUT.LC").unwrap().parse().unwrap();

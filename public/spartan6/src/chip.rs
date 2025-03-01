@@ -1,11 +1,10 @@
 use jzon::JsonValue;
-use prjcombine_interconnect::{
-    db::BelId,
-    grid::{ColId, EdgeIoCoord, RowId, TileIobId},
-};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, IntBel, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
+
+use crate::bels;
 
 entity_id! {
     pub id RegId u32, delta;
@@ -311,42 +310,53 @@ impl Chip {
         }
     }
 
-    pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
+    pub fn get_io_crd(&self, bel: IntBel) -> EdgeIoCoord {
+        let (_, (col, row), slot) = bel;
+        let iob = bels::IOB.iter().position(|&x| x == slot).unwrap();
         if col == self.col_lio() {
-            EdgeIoCoord::W(row, TileIobId::from_idx(bel.to_idx()))
+            EdgeIoCoord::W(row, TileIobId::from_idx(iob))
         } else if col == self.col_rio() {
-            EdgeIoCoord::E(row, TileIobId::from_idx(bel.to_idx()))
+            EdgeIoCoord::E(row, TileIobId::from_idx(iob))
         } else if row == self.row_bio_inner() {
-            EdgeIoCoord::S(col, TileIobId::from_idx(bel.to_idx()))
+            EdgeIoCoord::S(col, TileIobId::from_idx(iob))
         } else if row == self.row_bio_outer() {
-            EdgeIoCoord::S(col, TileIobId::from_idx(bel.to_idx() + 2))
+            EdgeIoCoord::S(col, TileIobId::from_idx(iob + 2))
         } else if row == self.row_tio_inner() {
-            EdgeIoCoord::N(col, TileIobId::from_idx(bel.to_idx()))
+            EdgeIoCoord::N(col, TileIobId::from_idx(iob))
         } else if row == self.row_tio_outer() {
-            EdgeIoCoord::N(col, TileIobId::from_idx(bel.to_idx() + 2))
+            EdgeIoCoord::N(col, TileIobId::from_idx(iob + 2))
         } else {
             unreachable!()
         }
     }
 
-    pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> IntBel {
+        let die = DieId::from_idx(0);
         match io {
             EdgeIoCoord::N(col, iob) => {
                 if iob.to_idx() < 2 {
-                    (col, self.row_tio_inner(), BelId::from_idx(iob.to_idx()))
+                    (die, (col, self.row_tio_inner()), bels::IOB[iob.to_idx()])
                 } else {
-                    (col, self.row_tio_outer(), BelId::from_idx(iob.to_idx() - 2))
+                    (
+                        die,
+                        (col, self.row_tio_outer()),
+                        bels::IOB[iob.to_idx() - 2],
+                    )
                 }
             }
-            EdgeIoCoord::E(row, iob) => (self.col_rio(), row, BelId::from_idx(iob.to_idx())),
+            EdgeIoCoord::E(row, iob) => (die, (self.col_rio(), row), bels::IOB[iob.to_idx()]),
             EdgeIoCoord::S(col, iob) => {
                 if iob.to_idx() < 2 {
-                    (col, self.row_bio_inner(), BelId::from_idx(iob.to_idx()))
+                    (die, (col, self.row_bio_inner()), bels::IOB[iob.to_idx()])
                 } else {
-                    (col, self.row_bio_outer(), BelId::from_idx(iob.to_idx() - 2))
+                    (
+                        die,
+                        (col, self.row_bio_outer()),
+                        bels::IOB[iob.to_idx() - 2],
+                    )
                 }
             }
-            EdgeIoCoord::W(row, iob) => (self.col_lio(), row, BelId::from_idx(iob.to_idx())),
+            EdgeIoCoord::W(row, iob) => (die, (self.col_lio(), row), bels::IOB[iob.to_idx()]),
         }
     }
 

@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, NodeIriId, NodeKind,
+        BelInfo, BelPin, BelSlotId, IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, NodeIriId, NodeKind,
         NodeKindId, NodeTileId, NodeWireId, PinDir, TermInfo, TermKind, TermSlotId, TermSlotInfo,
         WireId, WireKind,
     },
@@ -16,7 +16,7 @@ use prjcombine_re_xilinx_naming::db::{
     TermWireOutNaming,
 };
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
-use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use assert_matches::assert_matches;
 
@@ -24,7 +24,7 @@ use rawdump::TileKindId;
 
 #[derive(Clone, Debug)]
 pub struct ExtrBelInfo {
-    pub name: String,
+    pub bel: BelSlotId,
     pub slot: Option<rawdump::TkSiteSlot>,
     pub pins: HashMap<String, BelPinInfo>,
     pub raw_tile: usize,
@@ -287,13 +287,13 @@ impl XNodeInfo<'_, '_> {
         self
     }
 
-    pub fn iris(mut self, iris: &[(&str, u8, u8)]) -> Self {
+    pub fn iris(mut self, iris: &[(&str, usize, usize)]) -> Self {
         assert!(self.iris.is_empty());
         for &(sn, sx, sy) in iris {
             self.iris.push(rawdump::TkSiteSlot::Xy(
                 self.builder.rd.slot_kinds.get(sn).unwrap(),
-                sx,
-                sy,
+                sx as u8,
+                sy as u8,
             ));
         }
         self
@@ -1004,11 +1004,14 @@ impl XNodeExtractor<'_, '_, '_> {
                 _ => (),
             }
         }
-        self.node.bels.insert(bel.name.clone(), BelInfo { pins });
-        self.node_naming.bels.push(BelNaming {
-            tile: NodeRawTileId::from_idx(bel.raw_tile),
-            pins: naming_pins,
-        });
+        self.node.bels.insert(bel.bel, BelInfo { pins });
+        self.node_naming.bels.insert(
+            bel.bel,
+            BelNaming {
+                tile: NodeRawTileId::from_idx(bel.raw_tile),
+                pins: naming_pins,
+            },
+        );
     }
 
     fn get_wire_by_name(&self, rti: usize, name: rawdump::WireId) -> Option<NodeWireId> {
@@ -1422,18 +1425,18 @@ impl<'a> IntBuilder<'a> {
         self.is_mirror_square = true;
     }
 
-    pub fn bel_virtual(&self, name: impl Into<String>) -> ExtrBelInfo {
+    pub fn bel_virtual(&self, bel: BelSlotId) -> ExtrBelInfo {
         ExtrBelInfo {
-            name: name.into(),
+            bel,
             slot: None,
             pins: Default::default(),
             raw_tile: 0,
         }
     }
 
-    pub fn bel_single(&self, name: impl Into<String>, slot: &str) -> ExtrBelInfo {
+    pub fn bel_single(&self, bel: BelSlotId, slot: &str) -> ExtrBelInfo {
         ExtrBelInfo {
-            name: name.into(),
+            bel,
             slot: Some(rawdump::TkSiteSlot::Single(
                 self.rd.slot_kinds.get(slot).unwrap(),
             )),
@@ -1442,25 +1445,25 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn bel_indexed(&self, name: impl Into<String>, slot: &str, idx: u8) -> ExtrBelInfo {
+    pub fn bel_indexed(&self, bel: BelSlotId, slot: &str, idx: usize) -> ExtrBelInfo {
         ExtrBelInfo {
-            name: name.into(),
+            bel,
             slot: Some(rawdump::TkSiteSlot::Indexed(
                 self.rd.slot_kinds.get(slot).unwrap(),
-                idx,
+                idx as u8,
             )),
             pins: Default::default(),
             raw_tile: 0,
         }
     }
 
-    pub fn bel_xy(&self, name: impl Into<String>, slot: &str, x: u8, y: u8) -> ExtrBelInfo {
+    pub fn bel_xy(&self, bel: BelSlotId, slot: &str, x: usize, y: usize) -> ExtrBelInfo {
         ExtrBelInfo {
-            name: name.into(),
+            bel,
             slot: Some(rawdump::TkSiteSlot::Xy(
                 self.rd.slot_kinds.get(slot).expect("missing slot kind"),
-                x,
-                y,
+                x as u8,
+                y as u8,
             )),
             pins: Default::default(),
             raw_tile: 0,
@@ -2133,11 +2136,14 @@ impl<'a> IntBuilder<'a> {
                     _ => (),
                 }
             }
-            node.bels.insert(bel.name.clone(), BelInfo { pins });
-            naming.bels.push(BelNaming {
-                tile: NodeRawTileId::from_idx(0),
-                pins: naming_pins,
-            });
+            node.bels.insert(bel.bel, BelInfo { pins });
+            naming.bels.insert(
+                bel.bel,
+                BelNaming {
+                    tile: NodeRawTileId::from_idx(0),
+                    pins: naming_pins,
+                },
+            );
         }
     }
 
@@ -3474,19 +3480,22 @@ impl<'a> IntBuilder<'a> {
         x.extract();
     }
 
-    pub fn make_marker_bel(&mut self, name: &str, naming: &str, bel: &str, ntiles: usize) {
-        let mut bels = EntityMap::new();
+    pub fn make_marker_bel(&mut self, name: &str, naming: &str, bel: BelSlotId, ntiles: usize) {
+        let mut bels = EntityPartVec::new();
         bels.insert(
-            bel.to_string(),
+            bel,
             BelInfo {
                 pins: Default::default(),
             },
         );
-        let mut naming_bels = EntityVec::new();
-        naming_bels.push(BelNaming {
-            tile: NodeRawTileId::from_idx(0),
-            pins: Default::default(),
-        });
+        let mut naming_bels = EntityPartVec::new();
+        naming_bels.insert(
+            bel,
+            BelNaming {
+                tile: NodeRawTileId::from_idx(0),
+                pins: Default::default(),
+            },
+        );
         let node = NodeKind {
             tiles: (0..ntiles).map(|_| ()).collect(),
             muxes: Default::default(),

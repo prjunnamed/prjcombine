@@ -37,7 +37,7 @@ impl Chip {
         }
         // top edge, right-to-left
         for col in self.columns() {
-            if col == self.col_lio() || col == self.col_rio() {
+            if col == self.col_w() || col == self.col_e() {
                 continue;
             }
             for iob in iobs.iter().copied() {
@@ -50,7 +50,7 @@ impl Chip {
         }
         // left edge, top-to-bottom
         for row in self.rows().rev() {
-            if row == self.row_bio() || row == self.row_tio() {
+            if row == self.row_s() || row == self.row_n() {
                 continue;
             }
             for iob in iobs.iter().copied() {
@@ -70,7 +70,7 @@ impl Chip {
         }
         // bottom edge, left-to-right
         for col in self.columns().rev() {
-            if col == self.col_lio() || col == self.col_rio() {
+            if col == self.col_w() || col == self.col_e() {
                 continue;
             }
             for iob in iobs.iter().copied().rev() {
@@ -83,7 +83,7 @@ impl Chip {
         }
         // right edge, bottom-to-top
         for row in self.rows() {
-            if row == self.row_bio() || row == self.row_tio() {
+            if row == self.row_s() || row == self.row_n() {
                 continue;
             }
             for iob in iobs.iter().copied().rev() {

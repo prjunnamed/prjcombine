@@ -6,6 +6,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_naming::db::{NamingDb, NodeNamingId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
+use prjcombine_xc2000::bels::xc4000 as bels;
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
@@ -1195,7 +1196,7 @@ fn extract_clb(
             }
         }
 
-        let mut bel = builder.bel_single("CLB", "CLB").pin_name_only("CIN", 0);
+        let mut bel = builder.bel_single(bels::CLB, "CLB").pin_name_only("CIN", 0);
         if builder.rd.family == "xc4000e" {
             bel = bel
                 .pin_name_only("COUT", 0)
@@ -1206,7 +1207,7 @@ fn extract_clb(
         }
         let mut bels = vec![bel];
         for i in 0..2 {
-            bels.push(builder.bel_indexed(format!("TBUF{i}"), "TBUF", [2, 1][i]));
+            bels.push(builder.bel_indexed(bels::TBUF[i], "TBUF", [2, 1][i]));
         }
 
         let mut xn = builder
@@ -1274,18 +1275,18 @@ fn extract_bot(
             let naming = format!("{tkn}.{kind_e}");
             let mut bels = vec![];
             for i in 0..2 {
-                bels.push(builder.bel_indexed(format!("IOB{i}"), "IOB", i + 1))
+                bels.push(builder.bel_indexed(bels::IO[i], "IOB", i + 1))
             }
             if builder.rd.family != "spartanxl" {
                 for i in 0..3 {
-                    bels.push(builder.bel_indexed(format!("DEC{i}"), "DEC", i + 1))
+                    bels.push(builder.bel_indexed(bels::DEC[i], "DEC", i + 1))
                 }
             }
             let cout_names: Vec<_> = BOT_KINDS.into_iter().map(|k| format!("{k}_COUT")).collect();
             if builder.rd.family != "xc4000e" {
                 bels.push(
                     builder
-                        .bel_virtual("BOT_CIN")
+                        .bel_virtual(bels::CIN)
                         .extra_int_in("CIN", &cout_names),
                 );
             }
@@ -1354,11 +1355,11 @@ fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeW
 
             let mut bels = vec![];
             for i in 0..2 {
-                bels.push(builder.bel_indexed(format!("IOB{i}"), "IOB", i + 1))
+                bels.push(builder.bel_indexed(bels::IO[i], "IOB", i + 1))
             }
             if builder.rd.family != "spartanxl" {
                 for i in 0..3 {
-                    bels.push(builder.bel_indexed(format!("DEC{i}"), "DEC", i + 1))
+                    bels.push(builder.bel_indexed(bels::DEC[i], "DEC", i + 1))
                 }
             }
             let cout_names: Vec<_> = TOP_KINDS
@@ -1368,7 +1369,7 @@ fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeW
             if builder.rd.family != "xc4000e" {
                 bels.push(
                     builder
-                        .bel_virtual("TOP_COUT")
+                        .bel_virtual(bels::COUT)
                         .extra_int_out("COUT", &cout_names),
                 );
             }
@@ -1433,7 +1434,7 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
 
             let mut bels = vec![];
             for i in 0..2 {
-                let mut bel = builder.bel_indexed(format!("IOB{i}"), "IOB", i + 1);
+                let mut bel = builder.bel_indexed(bels::IO[i], "IOB", i + 1);
                 if matches!(&*builder.rd.family, "xc4000xla" | "xc4000xv")
                     && (tkn.ends_with('F') || tkn.ends_with("F1"))
                 {
@@ -1442,14 +1443,14 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
                 bels.push(bel)
             }
             for i in 0..2 {
-                bels.push(builder.bel_indexed(format!("TBUF{i}"), "TBUF", [2, 1][i]));
+                bels.push(builder.bel_indexed(bels::TBUF[i], "TBUF", [2, 1][i]));
             }
             for i in 0..2 {
-                bels.push(builder.bel_indexed(format!("PULLUP.TBUF{i}"), "PULLUP", [2, 1][i]));
+                bels.push(builder.bel_indexed(bels::PULLUP_TBUF[i], "PULLUP", [2, 1][i]));
             }
             if builder.rd.family != "spartanxl" {
                 for i in 0..3 {
-                    bels.push(builder.bel_indexed(format!("DEC{i}"), "DEC", i + 1))
+                    bels.push(builder.bel_indexed(bels::DEC[i], "DEC", i + 1))
                 }
             }
 
@@ -1530,7 +1531,7 @@ fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[Node
 
             let mut bels = vec![];
             for i in 0..2 {
-                let mut bel = builder.bel_indexed(format!("IOB{i}"), "IOB", i + 1);
+                let mut bel = builder.bel_indexed(bels::IO[i], "IOB", i + 1);
                 if matches!(&*builder.rd.family, "xc4000xla" | "xc4000xv")
                     && (tkn.ends_with('F') || tkn.ends_with("F1"))
                 {
@@ -1539,14 +1540,14 @@ fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[Node
                 bels.push(bel)
             }
             for i in 0..2 {
-                bels.push(builder.bel_indexed(format!("TBUF{i}"), "TBUF", [2, 1][i]));
+                bels.push(builder.bel_indexed(bels::TBUF[i], "TBUF", [2, 1][i]));
             }
             for i in 0..2 {
-                bels.push(builder.bel_indexed(format!("PULLUP.TBUF{i}"), "PULLUP", [2, 1][i]));
+                bels.push(builder.bel_indexed(bels::PULLUP_TBUF[i], "PULLUP", [2, 1][i]));
             }
             if builder.rd.family != "spartanxl" {
                 for i in 0..3 {
-                    bels.push(builder.bel_indexed(format!("DEC{i}"), "DEC", i + 1))
+                    bels.push(builder.bel_indexed(bels::DEC[i], "DEC", i + 1))
                 }
             }
 
@@ -1589,80 +1590,66 @@ fn extract_lr(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
             "spartanxl" => {
                 bels.extend([
                     builder
-                        .bel_indexed("BUFGLS.H", "BUFGLS", 3)
+                        .bel_indexed(bels::BUFGLS_H, "BUFGLS", 3)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFGLS.V", "BUFGLS", 4)
+                        .bel_indexed(bels::BUFGLS_V, "BUFGLS", 4)
                         .pins_name_only(&["O"]),
                 ]);
             }
             "xc4000e" => {
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(
-                        format!("PULLUP.DEC.H{i}"),
-                        "PULLUP",
-                        (i ^ 7) + 1,
-                    ));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_H[i], "PULLUP", (i ^ 7) + 1));
                 }
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(
-                        format!("PULLUP.DEC.V{i}"),
-                        "PULLUP",
-                        (i ^ 3) + 1,
-                    ));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_V[i], "PULLUP", (i ^ 3) + 1));
                 }
                 bels.extend([
                     builder
-                        .bel_single("BUFGLS.H", "BUFGS")
+                        .bel_single(bels::BUFGLS_H, "BUFGS")
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_single("BUFGLS.V", "BUFGP")
+                        .bel_single(bels::BUFGLS_V, "BUFGP")
                         .pins_name_only(&["O"]),
-                    builder.bel_single("COUT.LR", "COUT").pins_name_only(&["I"]),
+                    builder
+                        .bel_single(bels::COUT, "COUT")
+                        .pins_name_only(&["I"]),
                 ]);
             }
             _ => {
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(
-                        format!("PULLUP.DEC.H{i}"),
-                        "PULLUP",
-                        (i ^ 7) + 1,
-                    ));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_H[i], "PULLUP", (i ^ 7) + 1));
                 }
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(
-                        format!("PULLUP.DEC.V{i}"),
-                        "PULLUP",
-                        (i ^ 3) + 1,
-                    ));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_V[i], "PULLUP", (i ^ 3) + 1));
                 }
                 bels.extend([
                     builder
-                        .bel_indexed("BUFG.H", "BUFG", 3)
+                        .bel_indexed(bels::BUFG_H, "BUFG", 3)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFG.V", "BUFG", 4)
+                        .bel_indexed(bels::BUFG_V, "BUFG", 4)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFGE.H", "BUFGE", 3)
+                        .bel_indexed(bels::BUFGE_H, "BUFGE", 3)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_indexed("BUFGE.V", "BUFGE", 4)
+                        .bel_indexed(bels::BUFGE_V, "BUFGE", 4)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_indexed("BUFGLS.H", "BUFGLS", 3)
+                        .bel_indexed(bels::BUFGLS_H, "BUFGLS", 3)
                         .pins_name_only(&["I"])
                         .pin_name_only("O", 1),
                     builder
-                        .bel_indexed("BUFGLS.V", "BUFGLS", 4)
+                        .bel_indexed(bels::BUFGLS_V, "BUFGLS", 4)
                         .pins_name_only(&["I"])
                         .pin_name_only("O", 1),
                 ]);
             }
         }
         bels.extend([
-            builder.bel_single("STARTUP", "STARTUP"),
-            builder.bel_single("READCLK", "RDCLK"),
+            builder.bel_single(bels::STARTUP, "STARTUP"),
+            builder.bel_single(bels::READCLK, "RDCLK"),
         ]);
 
         builder
@@ -1683,69 +1670,71 @@ fn extract_ur(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
             "spartanxl" => {
                 bels.extend([
                     builder
-                        .bel_indexed("BUFGLS.H", "BUFGLS", 2)
+                        .bel_indexed(bels::BUFGLS_H, "BUFGLS", 2)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFGLS.V", "BUFGLS", 1)
+                        .bel_indexed(bels::BUFGLS_V, "BUFGLS", 1)
                         .pins_name_only(&["O"]),
                 ]);
             }
             "xc4000e" => {
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(format!("PULLUP.DEC.H{i}"), "PULLUP", i + 1));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_H[i], "PULLUP", i + 1));
                 }
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(format!("PULLUP.DEC.V{i}"), "PULLUP", i + 5));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_V[i], "PULLUP", i + 5));
                 }
                 bels.extend([
                     builder
-                        .bel_single("BUFGLS.H", "BUFGP")
+                        .bel_single(bels::BUFGLS_H, "BUFGP")
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_single("BUFGLS.V", "BUFGS")
+                        .bel_single(bels::BUFGLS_V, "BUFGS")
                         .pins_name_only(&["O"]),
-                    builder.bel_single("COUT.UR", "COUT").pins_name_only(&["I"]),
+                    builder
+                        .bel_single(bels::COUT, "COUT")
+                        .pins_name_only(&["I"]),
                 ]);
             }
             _ => {
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(format!("PULLUP.DEC.H{i}"), "PULLUP", i + 1));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_H[i], "PULLUP", i + 1));
                 }
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(format!("PULLUP.DEC.V{i}"), "PULLUP", i + 5));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_V[i], "PULLUP", i + 5));
                 }
                 bels.extend([
                     builder
-                        .bel_indexed("BUFG.H", "BUFG", 2)
+                        .bel_indexed(bels::BUFG_H, "BUFG", 2)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFG.V", "BUFG", 1)
+                        .bel_indexed(bels::BUFG_V, "BUFG", 1)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFGE.H", "BUFGE", 2)
+                        .bel_indexed(bels::BUFGE_H, "BUFGE", 2)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_indexed("BUFGE.V", "BUFGE", 1)
+                        .bel_indexed(bels::BUFGE_V, "BUFGE", 1)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_indexed("BUFGLS.H", "BUFGLS", 2)
+                        .bel_indexed(bels::BUFGLS_H, "BUFGLS", 2)
                         .pins_name_only(&["I"])
                         .pin_name_only("O", 1),
                     builder
-                        .bel_indexed("BUFGLS.V", "BUFGLS", 1)
+                        .bel_indexed(bels::BUFGLS_V, "BUFGLS", 1)
                         .pins_name_only(&["I"])
                         .pin_name_only("O", 1),
                 ]);
             }
         }
         bels.extend([
-            builder.bel_single("UPDATE", "UPDATE"),
+            builder.bel_single(bels::UPDATE, "UPDATE"),
             builder
-                .bel_single("OSC", "OSC")
+                .bel_single(bels::OSC, "OSC")
                 .pins_name_only(&["F15", "F490", "F16K", "F500K"])
                 .extra_int_out("OUT0", &["UR_SEG_4", "UR_OSC_OUT"])
                 .extra_int_out("OUT1", &["UR_SEG_44", "UR_OSC_IN"]),
-            builder.bel_single("TDO", "TDO"),
+            builder.bel_single(bels::TDO, "TDO"),
         ]);
         let xy_s = builder.walk_to_int(crd, Dir::S, true).unwrap();
 
@@ -1772,88 +1761,72 @@ fn extract_ll(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
             "spartanxl" => {
                 bels.extend([
                     builder
-                        .bel_indexed("BUFGLS.H", "BUFGLS", 6)
+                        .bel_indexed(bels::BUFGLS_H, "BUFGLS", 6)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFGLS.V", "BUFGLS", 5)
+                        .bel_indexed(bels::BUFGLS_V, "BUFGLS", 5)
                         .pins_name_only(&["O"]),
                 ]);
             }
             "xc4000e" => {
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(
-                        format!("PULLUP.DEC.H{i}"),
-                        "PULLUP",
-                        (i ^ 7) + 1,
-                    ));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_H[i], "PULLUP", (i ^ 7) + 1));
                 }
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(
-                        format!("PULLUP.DEC.V{i}"),
-                        "PULLUP",
-                        (i ^ 3) + 1,
-                    ));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_V[i], "PULLUP", (i ^ 3) + 1));
                 }
                 bels.extend([
                     builder
-                        .bel_single("BUFGLS.H", "BUFGP")
+                        .bel_single(bels::BUFGLS_H, "BUFGP")
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_single("BUFGLS.V", "BUFGS")
+                        .bel_single(bels::BUFGLS_V, "BUFGS")
                         .pins_name_only(&["O"]),
-                    builder.bel_single("CIN.LL", "CIN").pin_name_only("O", 1),
-                    builder.bel_single("MD0", "MD0"),
-                    builder.bel_single("MD1", "MD1"),
-                    builder.bel_single("MD2", "MD2"),
+                    builder.bel_single(bels::CIN, "CIN").pin_name_only("O", 1),
+                    builder.bel_single(bels::MD0, "MD0"),
+                    builder.bel_single(bels::MD1, "MD1"),
+                    builder.bel_single(bels::MD2, "MD2"),
                 ]);
             }
             _ => {
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(
-                        format!("PULLUP.DEC.H{i}"),
-                        "PULLUP",
-                        (i ^ 3) + 5,
-                    ));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_H[i], "PULLUP", (i ^ 3) + 5));
                 }
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(
-                        format!("PULLUP.DEC.V{i}"),
-                        "PULLUP",
-                        (i ^ 3) + 1,
-                    ));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_V[i], "PULLUP", (i ^ 3) + 1));
                 }
 
                 bels.extend([
                     builder
-                        .bel_indexed("BUFG.H", "BUFG", 6)
+                        .bel_indexed(bels::BUFG_H, "BUFG", 6)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFG.V", "BUFG", 5)
+                        .bel_indexed(bels::BUFG_V, "BUFG", 5)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFGE.H", "BUFGE", 6)
+                        .bel_indexed(bels::BUFGE_H, "BUFGE", 6)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_indexed("BUFGE.V", "BUFGE", 5)
+                        .bel_indexed(bels::BUFGE_V, "BUFGE", 5)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_indexed("BUFGLS.H", "BUFGLS", 6)
+                        .bel_indexed(bels::BUFGLS_H, "BUFGLS", 6)
                         .pins_name_only(&["I"])
                         .pin_name_only("O", 1),
                     builder
-                        .bel_indexed("BUFGLS.V", "BUFGLS", 5)
+                        .bel_indexed(bels::BUFGLS_V, "BUFGLS", 5)
                         .pins_name_only(&["I"])
                         .pin_name_only("O", 1),
                 ]);
 
                 bels.extend([
-                    builder.bel_single("MD0", "MD0"),
-                    builder.bel_single("MD1", "MD1"),
-                    builder.bel_single("MD2", "MD2"),
+                    builder.bel_single(bels::MD0, "MD0"),
+                    builder.bel_single(bels::MD1, "MD1"),
+                    builder.bel_single(bels::MD2, "MD2"),
                 ]);
             }
         }
-        bels.extend([builder.bel_single("RDBK", "RDBK")]);
+        bels.extend([builder.bel_single(bels::RDBK, "RDBK")]);
 
         let mut xn = builder
             .xnode("CNR.BL", "CNR.BL", crd)
@@ -1882,62 +1855,62 @@ fn extract_ul(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
             "spartanxl" => {
                 bels.extend([
                     builder
-                        .bel_indexed("BUFGLS.H", "BUFGLS", 7)
+                        .bel_indexed(bels::BUFGLS_H, "BUFGLS", 7)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFGLS.V", "BUFGLS", 0)
+                        .bel_indexed(bels::BUFGLS_V, "BUFGLS", 0)
                         .pins_name_only(&["O"]),
                 ]);
             }
             "xc4000e" => {
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(format!("PULLUP.DEC.H{i}"), "PULLUP", i + 1));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_H[i], "PULLUP", i + 1));
                 }
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(format!("PULLUP.DEC.V{i}"), "PULLUP", i + 5));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_V[i], "PULLUP", i + 5));
                 }
                 bels.extend([
                     builder
-                        .bel_single("BUFGLS.H", "BUFGS")
+                        .bel_single(bels::BUFGLS_H, "BUFGS")
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_single("BUFGLS.V", "BUFGP")
+                        .bel_single(bels::BUFGLS_V, "BUFGP")
                         .pins_name_only(&["O"]),
-                    builder.bel_single("CIN.UL", "CIN").pin_name_only("O", 1),
+                    builder.bel_single(bels::CIN, "CIN").pin_name_only("O", 1),
                 ]);
             }
             _ => {
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(format!("PULLUP.DEC.H{i}"), "PULLUP", i + 1));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_H[i], "PULLUP", i + 1));
                 }
                 for i in 0..4 {
-                    bels.push(builder.bel_indexed(format!("PULLUP.DEC.V{i}"), "PULLUP", i + 5));
+                    bels.push(builder.bel_indexed(bels::PULLUP_DEC_V[i], "PULLUP", i + 5));
                 }
                 bels.extend([
                     builder
-                        .bel_indexed("BUFG.H", "BUFG", 7)
+                        .bel_indexed(bels::BUFG_H, "BUFG", 7)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFG.V", "BUFG", 0)
+                        .bel_indexed(bels::BUFG_V, "BUFG", 0)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_indexed("BUFGE.H", "BUFGE", 7)
+                        .bel_indexed(bels::BUFGE_H, "BUFGE", 7)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_indexed("BUFGE.V", "BUFGE", 0)
+                        .bel_indexed(bels::BUFGE_V, "BUFGE", 0)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_indexed("BUFGLS.H", "BUFGLS", 7)
+                        .bel_indexed(bels::BUFGLS_H, "BUFGLS", 7)
                         .pins_name_only(&["I"])
                         .pin_name_only("O", 1),
                     builder
-                        .bel_indexed("BUFGLS.V", "BUFGLS", 0)
+                        .bel_indexed(bels::BUFGLS_V, "BUFGLS", 0)
                         .pins_name_only(&["I"])
                         .pin_name_only("O", 1),
                 ]);
             }
         }
-        bels.extend([builder.bel_single("BSCAN", "BSCAN")]);
+        bels.extend([builder.bel_single(bels::BSCAN, "BSCAN")]);
 
         let mut xn = builder
             .xnode("CNR.TL", "CNR.TL", crd)
@@ -2027,13 +2000,13 @@ fn extract_llh(builder: &mut IntBuilder) {
             if has_splitter {
                 bels.extend([
                     builder
-                        .bel_virtual("TBUF_SPLITTER0")
+                        .bel_virtual(bels::TBUF_SPLITTER0)
                         .extra_int_inout("L", &["CLKV_HLL3", "CLKVC_HLL3"])
                         .extra_int_inout("R", &["CLKV_HLL3R", "CLKVC_HLL3R"])
                         .extra_wire("L.EXCL", &["CLKV_HLL3_EXCL", "CLKVC_HLL3_EXCL"])
                         .extra_wire("R.EXCL", &["CLKV_HLL3R_EXCL", "CLKVC_HLL3R_EXCL"]),
                     builder
-                        .bel_virtual("TBUF_SPLITTER1")
+                        .bel_virtual(bels::TBUF_SPLITTER1)
                         .extra_int_inout("L", &["CLKV_HLL4", "CLKVC_HLL4"])
                         .extra_int_inout("R", &["CLKV_HLL4R", "CLKVC_HLL4R"])
                         .extra_wire("L.EXCL", &["CLKV_HLL4_EXCL", "CLKVC_HLL4_EXCL"])
@@ -2074,7 +2047,7 @@ fn extract_llv(builder: &mut IntBuilder) {
             let naming_s = get_tile_naming(builder, xy_s);
             let naming_n = get_tile_naming(builder, xy_n);
             let bel = builder
-                .bel_virtual("CLKH")
+                .bel_virtual(bels::CLKH)
                 .extra_int_out(
                     "O0",
                     &[
@@ -2240,10 +2213,10 @@ fn extract_llhq(builder: &mut IntBuilder) {
             let mut bels = vec![];
             if kind.starts_with("LLHQ.CLB") {
                 bels.extend([
-                    builder.bel_indexed("PULLUP.TBUF0.L", "PULLUP", 4),
-                    builder.bel_indexed("PULLUP.TBUF0.R", "PULLUP", 2),
-                    builder.bel_indexed("PULLUP.TBUF1.L", "PULLUP", 3),
-                    builder.bel_indexed("PULLUP.TBUF1.R", "PULLUP", 1),
+                    builder.bel_indexed(bels::PULLUP_TBUF0_W, "PULLUP", 4),
+                    builder.bel_indexed(bels::PULLUP_TBUF0_E, "PULLUP", 2),
+                    builder.bel_indexed(bels::PULLUP_TBUF1_W, "PULLUP", 3),
+                    builder.bel_indexed(bels::PULLUP_TBUF1_E, "PULLUP", 1),
                 ]);
             }
             builder
@@ -2280,18 +2253,18 @@ fn extract_llhc(builder: &mut IntBuilder) {
             match kind {
                 "LLHC.CLB" | "LLHC.CLB.B" => {
                     bels.extend([
-                        builder.bel_indexed("PULLUP.TBUF0.L", "PULLUP", 2),
-                        builder.bel_indexed("PULLUP.TBUF0.R", "PULLUP", 4),
-                        builder.bel_indexed("PULLUP.TBUF1.L", "PULLUP", 1),
-                        builder.bel_indexed("PULLUP.TBUF1.R", "PULLUP", 3),
+                        builder.bel_indexed(bels::PULLUP_TBUF0_W, "PULLUP", 2),
+                        builder.bel_indexed(bels::PULLUP_TBUF0_E, "PULLUP", 4),
+                        builder.bel_indexed(bels::PULLUP_TBUF1_W, "PULLUP", 1),
+                        builder.bel_indexed(bels::PULLUP_TBUF1_E, "PULLUP", 3),
                         builder
-                            .bel_virtual("TBUF_SPLITTER0")
+                            .bel_virtual(bels::TBUF_SPLITTER0)
                             .extra_int_inout("L", &["CLKV_HLL3", "CLKVC_HLL3"])
                             .extra_int_inout("R", &["CLKV_HLL3R", "CLKVC_HLL3R"])
                             .extra_wire("L.EXCL", &["CLKV_HLL3_EXCL", "CLKVC_HLL3_EXCL"])
                             .extra_wire("R.EXCL", &["CLKV_HLL3R_EXCL", "CLKVC_HLL3R_EXCL"]),
                         builder
-                            .bel_virtual("TBUF_SPLITTER1")
+                            .bel_virtual(bels::TBUF_SPLITTER1)
                             .extra_int_inout("L", &["CLKV_HLL4", "CLKVC_HLL4"])
                             .extra_int_inout("R", &["CLKV_HLL4R", "CLKVC_HLL4R"])
                             .extra_wire("L.EXCL", &["CLKV_HLL4_EXCL", "CLKVC_HLL4_EXCL"])
@@ -2300,26 +2273,26 @@ fn extract_llhc(builder: &mut IntBuilder) {
                 }
                 "LLHC.IO.B" => {
                     bels.extend([
-                        builder.bel_indexed("PULLUP.DEC.L0", "PULLUP", 4),
-                        builder.bel_indexed("PULLUP.DEC.R0", "PULLUP", 5),
-                        builder.bel_indexed("PULLUP.DEC.L1", "PULLUP", 3),
-                        builder.bel_indexed("PULLUP.DEC.R1", "PULLUP", 6),
-                        builder.bel_indexed("PULLUP.DEC.L2", "PULLUP", 2),
-                        builder.bel_indexed("PULLUP.DEC.R2", "PULLUP", 7),
-                        builder.bel_indexed("PULLUP.DEC.L3", "PULLUP", 1),
-                        builder.bel_indexed("PULLUP.DEC.R3", "PULLUP", 8),
+                        builder.bel_indexed(bels::PULLUP_DEC0_W, "PULLUP", 4),
+                        builder.bel_indexed(bels::PULLUP_DEC0_E, "PULLUP", 5),
+                        builder.bel_indexed(bels::PULLUP_DEC1_W, "PULLUP", 3),
+                        builder.bel_indexed(bels::PULLUP_DEC1_E, "PULLUP", 6),
+                        builder.bel_indexed(bels::PULLUP_DEC2_W, "PULLUP", 2),
+                        builder.bel_indexed(bels::PULLUP_DEC2_E, "PULLUP", 7),
+                        builder.bel_indexed(bels::PULLUP_DEC3_W, "PULLUP", 1),
+                        builder.bel_indexed(bels::PULLUP_DEC3_E, "PULLUP", 8),
                     ]);
                 }
                 "LLHC.IO.T" => {
                     bels.extend([
-                        builder.bel_indexed("PULLUP.DEC.L0", "PULLUP", 1),
-                        builder.bel_indexed("PULLUP.DEC.R0", "PULLUP", 8),
-                        builder.bel_indexed("PULLUP.DEC.L1", "PULLUP", 2),
-                        builder.bel_indexed("PULLUP.DEC.R1", "PULLUP", 7),
-                        builder.bel_indexed("PULLUP.DEC.L2", "PULLUP", 3),
-                        builder.bel_indexed("PULLUP.DEC.R2", "PULLUP", 6),
-                        builder.bel_indexed("PULLUP.DEC.L3", "PULLUP", 4),
-                        builder.bel_indexed("PULLUP.DEC.R3", "PULLUP", 5),
+                        builder.bel_indexed(bels::PULLUP_DEC0_W, "PULLUP", 1),
+                        builder.bel_indexed(bels::PULLUP_DEC0_E, "PULLUP", 8),
+                        builder.bel_indexed(bels::PULLUP_DEC1_W, "PULLUP", 2),
+                        builder.bel_indexed(bels::PULLUP_DEC1_E, "PULLUP", 7),
+                        builder.bel_indexed(bels::PULLUP_DEC2_W, "PULLUP", 3),
+                        builder.bel_indexed(bels::PULLUP_DEC2_E, "PULLUP", 6),
+                        builder.bel_indexed(bels::PULLUP_DEC3_W, "PULLUP", 4),
+                        builder.bel_indexed(bels::PULLUP_DEC3_E, "PULLUP", 5),
                     ]);
                 }
                 _ => unreachable!(),
@@ -2354,14 +2327,14 @@ fn extract_llvc(builder: &mut IntBuilder) {
             match kind {
                 "LLVC.IO.L" | "LLVC.IO.R" => {
                     bels.extend([
-                        builder.bel_indexed("PULLUP.DEC.B0", "PULLUP", 10),
-                        builder.bel_indexed("PULLUP.DEC.T0", "PULLUP", 3),
-                        builder.bel_indexed("PULLUP.DEC.B1", "PULLUP", 9),
-                        builder.bel_indexed("PULLUP.DEC.T1", "PULLUP", 4),
-                        builder.bel_indexed("PULLUP.DEC.B2", "PULLUP", 8),
-                        builder.bel_indexed("PULLUP.DEC.T2", "PULLUP", 5),
-                        builder.bel_indexed("PULLUP.DEC.B3", "PULLUP", 7),
-                        builder.bel_indexed("PULLUP.DEC.T3", "PULLUP", 6),
+                        builder.bel_indexed(bels::PULLUP_DEC0_S, "PULLUP", 10),
+                        builder.bel_indexed(bels::PULLUP_DEC0_N, "PULLUP", 3),
+                        builder.bel_indexed(bels::PULLUP_DEC1_S, "PULLUP", 9),
+                        builder.bel_indexed(bels::PULLUP_DEC1_N, "PULLUP", 4),
+                        builder.bel_indexed(bels::PULLUP_DEC2_S, "PULLUP", 8),
+                        builder.bel_indexed(bels::PULLUP_DEC2_N, "PULLUP", 5),
+                        builder.bel_indexed(bels::PULLUP_DEC3_S, "PULLUP", 7),
+                        builder.bel_indexed(bels::PULLUP_DEC3_N, "PULLUP", 6),
                     ]);
                 }
                 _ => (),
@@ -2395,7 +2368,7 @@ fn extract_llvq(builder: &mut IntBuilder) {
             let naming_n = get_tile_naming(builder, xy_n);
             let mut bels = vec![];
             if kind != "LLVQ.CLB" {
-                bels.push(builder.bel_single("BUFF", "BUFF").pin_name_only("I", 1));
+                bels.push(builder.bel_single(bels::BUFF, "BUFF").pin_name_only("I", 1));
             }
             builder
                 .xnode(kind, naming, crd)
@@ -2412,7 +2385,7 @@ fn extract_llvq(builder: &mut IntBuilder) {
 fn extract_clkc(builder: &mut IntBuilder) {
     if let Some(&crd) = builder.rd.tiles_by_kind_name("CLKC").first() {
         let bel = builder
-            .bel_virtual("CLKC")
+            .bel_virtual(bels::CLKC)
             .extra_wire("I.LL.V", &["CLKC_BUFGLS_2_H"])
             .extra_wire("I.UL.V", &["CLKC_BUFGLS_1_H"])
             .extra_wire("I.LR.V", &["CLKC_BUFGLS_5_H"])
@@ -2434,7 +2407,7 @@ fn extract_clkqc(builder: &mut IntBuilder) {
     for (naming, tkn) in [("CLKQC.B", "HVBRKC"), ("CLKQC.T", "TVBRKC")] {
         if let Some(&crd) = builder.rd.tiles_by_kind_name(tkn).first() {
             let bel = builder
-                .bel_virtual("CLKQC")
+                .bel_virtual(bels::CLKQC)
                 .extra_wire("I.LL.H", &["HVBRKC_BUFGLS_3", "TVBRKC_BUFGLS_3"])
                 .extra_wire("I.LL.V", &["HVBRKC_BUFGLS_2", "TVBRKC_BUFGLS_2_B"])
                 .extra_wire("I.UL.H", &["HVBRKC_BUFGLS_8", "TVBRKC_BUFGLS_8"])
@@ -2465,7 +2438,7 @@ fn extract_clkq(builder: &mut IntBuilder) {
     for (naming, tkn) in [("CLKQ.B", "BCCBRK"), ("CLKQ.T", "TCCBRK")] {
         if let Some(&crd) = builder.rd.tiles_by_kind_name(tkn).first() {
             let bel = builder
-                .bel_virtual("CLKQ")
+                .bel_virtual(bels::CLKQ)
                 .extra_wire("I.LL.H", &["BCCBRK_BUFGLS_3", "TCCBRK_BUFGLS_3"])
                 .extra_wire("I.LL.V", &["BCCBRK_BUFGLS_2T", "TCCBRK_BUFGLS_2B"])
                 .extra_wire("I.UL.H", &["BCCBRK_BUFGLS_8", "TCCBRK_BUFGLS_8"])
@@ -2503,6 +2476,10 @@ fn extract_clkq(builder: &mut IntBuilder) {
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
+
+    for &slot in bels::SLOTS {
+        builder.db.bel_slots.insert(slot.into());
+    }
 
     let mut cnr_terms = CnrTerms {
         term_ll_w: vec![],

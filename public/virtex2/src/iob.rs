@@ -1,7 +1,14 @@
-use prjcombine_interconnect::{db::BelId, dir::Dir};
+use prjcombine_interconnect::{
+    db::{BelSlotId, NodeTileId},
+    dir::Dir,
+    grid::TileIobId,
+};
 use unnamed_entity::EntityId;
 
-use crate::chip::{ChipKind, ColumnIoKind, RowIoKind};
+use crate::{
+    bels,
+    chip::{ChipKind, ColumnIoKind, RowIoKind},
+};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum IobDiff {
@@ -20,8 +27,10 @@ pub enum IobKind {
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct IobData {
-    pub tile: usize,
-    pub bel: BelId,
+    pub index: usize,
+    pub tile: NodeTileId,
+    pub iob: TileIobId,
+    pub bel: BelSlotId,
     pub diff: IobDiff,
     pub kind: IobKind,
 }
@@ -34,208 +43,302 @@ pub struct IobTileData {
     pub iobs: Vec<IobData>,
 }
 
-fn iob(tile: usize, bel: usize) -> IobData {
+fn iob(tile: usize, iob: usize) -> IobData {
     IobData {
+        index: 0,
         kind: IobKind::Iob,
         diff: IobDiff::None,
-        tile,
-        bel: BelId::from_idx(bel),
+        tile: NodeTileId::from_idx(tile),
+        iob: TileIobId::from_idx(iob),
+        bel: bels::IO[iob],
     }
 }
-fn iobt(tile: usize, bel: usize, other: usize) -> IobData {
+fn iobt(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
+        index: 0,
         kind: IobKind::Iob,
         diff: IobDiff::True(other),
-        tile,
-        bel: BelId::from_idx(bel),
+        tile: NodeTileId::from_idx(tile),
+        iob: TileIobId::from_idx(iob),
+        bel: bels::IO[iob],
     }
 }
-fn iobc(tile: usize, bel: usize, other: usize) -> IobData {
+fn iobc(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
+        index: 0,
         kind: IobKind::Iob,
         diff: IobDiff::Comp(other),
-        tile,
-        bel: BelId::from_idx(bel),
+        tile: NodeTileId::from_idx(tile),
+        iob: TileIobId::from_idx(iob),
+        bel: bels::IO[iob],
     }
 }
-fn ibuf(tile: usize, bel: usize) -> IobData {
+fn ibuf(tile: usize, iob: usize) -> IobData {
     IobData {
+        index: 0,
         kind: IobKind::Ibuf,
         diff: IobDiff::None,
-        tile,
-        bel: BelId::from_idx(bel),
+        tile: NodeTileId::from_idx(tile),
+        iob: TileIobId::from_idx(iob),
+        bel: bels::IO[iob],
     }
 }
-fn ibuft(tile: usize, bel: usize, other: usize) -> IobData {
+fn ibuft(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
+        index: 0,
         kind: IobKind::Ibuf,
         diff: IobDiff::True(other),
-        tile,
-        bel: BelId::from_idx(bel),
+        tile: NodeTileId::from_idx(tile),
+        iob: TileIobId::from_idx(iob),
+        bel: bels::IO[iob],
     }
 }
-fn ibufc(tile: usize, bel: usize, other: usize) -> IobData {
+fn ibufc(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
+        index: 0,
         kind: IobKind::Ibuf,
         diff: IobDiff::Comp(other),
-        tile,
-        bel: BelId::from_idx(bel),
+        tile: NodeTileId::from_idx(tile),
+        iob: TileIobId::from_idx(iob),
+        bel: bels::IO[iob],
     }
 }
-fn obuf(tile: usize, bel: usize) -> IobData {
+fn fc_ibuf(tile: usize, iob: usize) -> IobData {
     IobData {
+        index: 0,
+        kind: IobKind::Ibuf,
+        diff: IobDiff::None,
+        tile: NodeTileId::from_idx(tile),
+        iob: TileIobId::from_idx(iob),
+        bel: bels::IBUF[iob],
+    }
+}
+fn fc_obuf(tile: usize, iob: usize) -> IobData {
+    IobData {
+        index: 0,
         kind: IobKind::Obuf,
         diff: IobDiff::None,
-        tile,
-        bel: BelId::from_idx(bel),
+        tile: NodeTileId::from_idx(tile),
+        iob: TileIobId::from_idx(iob),
+        bel: bels::OBUF[iob - 4],
     }
 }
-fn clkt(tile: usize, bel: usize, other: usize) -> IobData {
+fn clkt(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
+        index: 0,
         kind: IobKind::Clk,
         diff: IobDiff::True(other),
-        tile,
-        bel: BelId::from_idx(bel),
+        tile: NodeTileId::from_idx(tile),
+        iob: TileIobId::from_idx(iob),
+        bel: bels::IO[iob],
     }
 }
-fn clkc(tile: usize, bel: usize, other: usize) -> IobData {
+fn clkc(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
+        index: 0,
         kind: IobKind::Clk,
         diff: IobDiff::Comp(other),
-        tile,
-        bel: BelId::from_idx(bel),
+        tile: NodeTileId::from_idx(tile),
+        iob: TileIobId::from_idx(iob),
+        bel: bels::IO[iob],
     }
 }
 
-pub fn get_iob_data_b(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_s(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, NodeTileId) {
     match kind {
         ChipKind::Virtex2 => match col {
-            ColumnIoKind::DoubleLeft(i) => (get_iob_data("IOBS.V2.B.L2"), i.into()),
-            ColumnIoKind::DoubleRight(i) => (get_iob_data("IOBS.V2.B.R2"), i.into()),
+            ColumnIoKind::DoubleLeft(i) => {
+                (get_iob_data("IOBS.V2.B.L2"), NodeTileId::from_idx(i.into()))
+            }
+            ColumnIoKind::DoubleRight(i) => {
+                (get_iob_data("IOBS.V2.B.R2"), NodeTileId::from_idx(i.into()))
+            }
             _ => unreachable!(),
         },
         ChipKind::Virtex2P | ChipKind::Virtex2PX => match col {
-            ColumnIoKind::DoubleLeft(i) => (get_iob_data("IOBS.V2P.B.L2"), i.into()),
-            ColumnIoKind::DoubleRight(i) => (get_iob_data("IOBS.V2P.B.R2"), i.into()),
-            ColumnIoKind::DoubleRightClk(i) => (get_iob_data("IOBS.V2P.B.R2.CLK"), i.into()),
-            ColumnIoKind::SingleLeft => (get_iob_data("IOBS.V2P.B.L1"), 0),
-            ColumnIoKind::SingleLeftAlt => (get_iob_data("IOBS.V2P.B.L1.ALT"), 0),
-            ColumnIoKind::SingleRight => (get_iob_data("IOBS.V2P.B.R1"), 0),
-            ColumnIoKind::SingleRightAlt => (get_iob_data("IOBS.V2P.B.R1.ALT"), 0),
+            ColumnIoKind::DoubleLeft(i) => (
+                get_iob_data("IOBS.V2P.B.L2"),
+                NodeTileId::from_idx(i.into()),
+            ),
+            ColumnIoKind::DoubleRight(i) => (
+                get_iob_data("IOBS.V2P.B.R2"),
+                NodeTileId::from_idx(i.into()),
+            ),
+            ColumnIoKind::DoubleRightClk(i) => (
+                get_iob_data("IOBS.V2P.B.R2.CLK"),
+                NodeTileId::from_idx(i.into()),
+            ),
+            ColumnIoKind::SingleLeft => (get_iob_data("IOBS.V2P.B.L1"), NodeTileId::from_idx(0)),
+            ColumnIoKind::SingleLeftAlt => {
+                (get_iob_data("IOBS.V2P.B.L1.ALT"), NodeTileId::from_idx(0))
+            }
+            ColumnIoKind::SingleRight => (get_iob_data("IOBS.V2P.B.R1"), NodeTileId::from_idx(0)),
+            ColumnIoKind::SingleRightAlt => {
+                (get_iob_data("IOBS.V2P.B.R1.ALT"), NodeTileId::from_idx(0))
+            }
             _ => unreachable!(),
         },
         ChipKind::Spartan3 => match col {
-            ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3.B2"), i.into()),
+            ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3.B2"), NodeTileId::from_idx(i.into())),
             _ => unreachable!(),
         },
-        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.B"), 0),
+        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.B"), NodeTileId::from_idx(0)),
         ChipKind::Spartan3E => match col {
-            ColumnIoKind::Single => (get_iob_data("IOBS.S3E.B1"), 0),
-            ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3E.B2"), i.into()),
-            ColumnIoKind::Triple(i) => (get_iob_data("IOBS.S3E.B3"), i.into()),
-            ColumnIoKind::Quad(i) => (get_iob_data("IOBS.S3E.B4"), i.into()),
+            ColumnIoKind::Single => (get_iob_data("IOBS.S3E.B1"), NodeTileId::from_idx(0)),
+            ColumnIoKind::Double(i) => {
+                (get_iob_data("IOBS.S3E.B2"), NodeTileId::from_idx(i.into()))
+            }
+            ColumnIoKind::Triple(i) => {
+                (get_iob_data("IOBS.S3E.B3"), NodeTileId::from_idx(i.into()))
+            }
+            ColumnIoKind::Quad(i) => (get_iob_data("IOBS.S3E.B4"), NodeTileId::from_idx(i.into())),
             _ => unreachable!(),
         },
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match col {
-            ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3A.B2"), i.into()),
+            ColumnIoKind::Double(i) => {
+                (get_iob_data("IOBS.S3A.B2"), NodeTileId::from_idx(i.into()))
+            }
             _ => unreachable!(),
         },
     }
 }
 
-pub fn get_iob_data_t(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_n(kind: ChipKind, col: ColumnIoKind) -> (IobTileData, NodeTileId) {
     match kind {
         ChipKind::Virtex2 => match col {
-            ColumnIoKind::DoubleLeft(i) => (get_iob_data("IOBS.V2.T.L2"), i.into()),
-            ColumnIoKind::DoubleRight(i) => (get_iob_data("IOBS.V2.T.R2"), i.into()),
+            ColumnIoKind::DoubleLeft(i) => {
+                (get_iob_data("IOBS.V2.T.L2"), NodeTileId::from_idx(i.into()))
+            }
+            ColumnIoKind::DoubleRight(i) => {
+                (get_iob_data("IOBS.V2.T.R2"), NodeTileId::from_idx(i.into()))
+            }
             _ => unreachable!(),
         },
         ChipKind::Virtex2P | ChipKind::Virtex2PX => match col {
-            ColumnIoKind::DoubleLeft(i) => (get_iob_data("IOBS.V2P.T.L2"), i.into()),
-            ColumnIoKind::DoubleRight(i) => (get_iob_data("IOBS.V2P.T.R2"), i.into()),
-            ColumnIoKind::DoubleRightClk(i) => (get_iob_data("IOBS.V2P.T.R2.CLK"), i.into()),
-            ColumnIoKind::SingleLeft => (get_iob_data("IOBS.V2P.T.L1"), 0),
-            ColumnIoKind::SingleLeftAlt => (get_iob_data("IOBS.V2P.T.L1.ALT"), 0),
-            ColumnIoKind::SingleRight => (get_iob_data("IOBS.V2P.T.R1"), 0),
-            ColumnIoKind::SingleRightAlt => (get_iob_data("IOBS.V2P.T.R1.ALT"), 0),
+            ColumnIoKind::DoubleLeft(i) => (
+                get_iob_data("IOBS.V2P.T.L2"),
+                NodeTileId::from_idx(i.into()),
+            ),
+            ColumnIoKind::DoubleRight(i) => (
+                get_iob_data("IOBS.V2P.T.R2"),
+                NodeTileId::from_idx(i.into()),
+            ),
+            ColumnIoKind::DoubleRightClk(i) => (
+                get_iob_data("IOBS.V2P.T.R2.CLK"),
+                NodeTileId::from_idx(i.into()),
+            ),
+            ColumnIoKind::SingleLeft => (get_iob_data("IOBS.V2P.T.L1"), NodeTileId::from_idx(0)),
+            ColumnIoKind::SingleLeftAlt => {
+                (get_iob_data("IOBS.V2P.T.L1.ALT"), NodeTileId::from_idx(0))
+            }
+            ColumnIoKind::SingleRight => (get_iob_data("IOBS.V2P.T.R1"), NodeTileId::from_idx(0)),
+            ColumnIoKind::SingleRightAlt => {
+                (get_iob_data("IOBS.V2P.T.R1.ALT"), NodeTileId::from_idx(0))
+            }
             _ => unreachable!(),
         },
         ChipKind::Spartan3 => match col {
-            ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3.T2"), i.into()),
+            ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3.T2"), NodeTileId::from_idx(i.into())),
             _ => unreachable!(),
         },
-        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.T"), 0),
+        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.T"), NodeTileId::from_idx(0)),
         ChipKind::Spartan3E => match col {
-            ColumnIoKind::Single => (get_iob_data("IOBS.S3E.T1"), 0),
-            ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3E.T2"), i.into()),
-            ColumnIoKind::Triple(i) => (get_iob_data("IOBS.S3E.T3"), i.into()),
-            ColumnIoKind::Quad(i) => (get_iob_data("IOBS.S3E.T4"), i.into()),
+            ColumnIoKind::Single => (get_iob_data("IOBS.S3E.T1"), NodeTileId::from_idx(0)),
+            ColumnIoKind::Double(i) => {
+                (get_iob_data("IOBS.S3E.T2"), NodeTileId::from_idx(i.into()))
+            }
+            ColumnIoKind::Triple(i) => {
+                (get_iob_data("IOBS.S3E.T3"), NodeTileId::from_idx(i.into()))
+            }
+            ColumnIoKind::Quad(i) => (get_iob_data("IOBS.S3E.T4"), NodeTileId::from_idx(i.into())),
             _ => unreachable!(),
         },
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match col {
-            ColumnIoKind::Double(i) => (get_iob_data("IOBS.S3A.T2"), i.into()),
+            ColumnIoKind::Double(i) => {
+                (get_iob_data("IOBS.S3A.T2"), NodeTileId::from_idx(i.into()))
+            }
             _ => unreachable!(),
         },
     }
 }
 
-pub fn get_iob_data_l(kind: ChipKind, row: RowIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_w(kind: ChipKind, row: RowIoKind) -> (IobTileData, NodeTileId) {
     match kind {
         ChipKind::Virtex2 => match row {
-            RowIoKind::DoubleBot(i) => (get_iob_data("IOBS.V2.L.B2"), i.into()),
-            RowIoKind::DoubleTop(i) => (get_iob_data("IOBS.V2.L.T2"), i.into()),
+            RowIoKind::DoubleBot(i) => {
+                (get_iob_data("IOBS.V2.L.B2"), NodeTileId::from_idx(i.into()))
+            }
+            RowIoKind::DoubleTop(i) => {
+                (get_iob_data("IOBS.V2.L.T2"), NodeTileId::from_idx(i.into()))
+            }
             _ => unreachable!(),
         },
         ChipKind::Virtex2P | ChipKind::Virtex2PX => match row {
-            RowIoKind::DoubleBot(i) => (get_iob_data("IOBS.V2P.L.B2"), i.into()),
-            RowIoKind::DoubleTop(i) => (get_iob_data("IOBS.V2P.L.T2"), i.into()),
+            RowIoKind::DoubleBot(i) => (
+                get_iob_data("IOBS.V2P.L.B2"),
+                NodeTileId::from_idx(i.into()),
+            ),
+            RowIoKind::DoubleTop(i) => (
+                get_iob_data("IOBS.V2P.L.T2"),
+                NodeTileId::from_idx(i.into()),
+            ),
             _ => unreachable!(),
         },
         ChipKind::Spartan3 => match row {
-            RowIoKind::Single => (get_iob_data("IOBS.S3.L1"), 0),
+            RowIoKind::Single => (get_iob_data("IOBS.S3.L1"), NodeTileId::from_idx(0)),
             _ => unreachable!(),
         },
-        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.L"), 0),
+        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.L"), NodeTileId::from_idx(0)),
         ChipKind::Spartan3E => match row {
-            RowIoKind::Single => (get_iob_data("IOBS.S3E.L1"), 0),
-            RowIoKind::Double(i) => (get_iob_data("IOBS.S3E.L2"), i.into()),
-            RowIoKind::Triple(i) => (get_iob_data("IOBS.S3E.L3"), i.into()),
-            RowIoKind::Quad(i) => (get_iob_data("IOBS.S3E.L4"), i.into()),
+            RowIoKind::Single => (get_iob_data("IOBS.S3E.L1"), NodeTileId::from_idx(0)),
+            RowIoKind::Double(i) => (get_iob_data("IOBS.S3E.L2"), NodeTileId::from_idx(i.into())),
+            RowIoKind::Triple(i) => (get_iob_data("IOBS.S3E.L3"), NodeTileId::from_idx(i.into())),
+            RowIoKind::Quad(i) => (get_iob_data("IOBS.S3E.L4"), NodeTileId::from_idx(i.into())),
             _ => unreachable!(),
         },
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match row {
-            RowIoKind::Quad(i) => (get_iob_data("IOBS.S3A.L4"), i.into()),
+            RowIoKind::Quad(i) => (get_iob_data("IOBS.S3A.L4"), NodeTileId::from_idx(i.into())),
             _ => unreachable!(),
         },
     }
 }
 
-pub fn get_iob_data_r(kind: ChipKind, row: RowIoKind) -> (IobTileData, usize) {
+pub fn get_iob_data_e(kind: ChipKind, row: RowIoKind) -> (IobTileData, NodeTileId) {
     match kind {
         ChipKind::Virtex2 => match row {
-            RowIoKind::DoubleBot(i) => (get_iob_data("IOBS.V2.R.B2"), i.into()),
-            RowIoKind::DoubleTop(i) => (get_iob_data("IOBS.V2.R.T2"), i.into()),
+            RowIoKind::DoubleBot(i) => {
+                (get_iob_data("IOBS.V2.R.B2"), NodeTileId::from_idx(i.into()))
+            }
+            RowIoKind::DoubleTop(i) => {
+                (get_iob_data("IOBS.V2.R.T2"), NodeTileId::from_idx(i.into()))
+            }
             _ => unreachable!(),
         },
         ChipKind::Virtex2P | ChipKind::Virtex2PX => match row {
-            RowIoKind::DoubleBot(i) => (get_iob_data("IOBS.V2P.R.B2"), i.into()),
-            RowIoKind::DoubleTop(i) => (get_iob_data("IOBS.V2P.R.T2"), i.into()),
+            RowIoKind::DoubleBot(i) => (
+                get_iob_data("IOBS.V2P.R.B2"),
+                NodeTileId::from_idx(i.into()),
+            ),
+            RowIoKind::DoubleTop(i) => (
+                get_iob_data("IOBS.V2P.R.T2"),
+                NodeTileId::from_idx(i.into()),
+            ),
             _ => unreachable!(),
         },
         ChipKind::Spartan3 => match row {
-            RowIoKind::Single => (get_iob_data("IOBS.S3.R1"), 0),
+            RowIoKind::Single => (get_iob_data("IOBS.S3.R1"), NodeTileId::from_idx(0)),
             _ => unreachable!(),
         },
-        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.R"), 0),
+        ChipKind::FpgaCore => (get_iob_data("IOBS.FC.R"), NodeTileId::from_idx(0)),
         ChipKind::Spartan3E => match row {
-            RowIoKind::Single => (get_iob_data("IOBS.S3E.R1"), 0),
-            RowIoKind::Double(i) => (get_iob_data("IOBS.S3E.R2"), i.into()),
-            RowIoKind::Triple(i) => (get_iob_data("IOBS.S3E.R3"), i.into()),
-            RowIoKind::Quad(i) => (get_iob_data("IOBS.S3E.R4"), i.into()),
+            RowIoKind::Single => (get_iob_data("IOBS.S3E.R1"), NodeTileId::from_idx(0)),
+            RowIoKind::Double(i) => (get_iob_data("IOBS.S3E.R2"), NodeTileId::from_idx(i.into())),
+            RowIoKind::Triple(i) => (get_iob_data("IOBS.S3E.R3"), NodeTileId::from_idx(i.into())),
+            RowIoKind::Quad(i) => (get_iob_data("IOBS.S3E.R4"), NodeTileId::from_idx(i.into())),
             _ => unreachable!(),
         },
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match row {
-            RowIoKind::Quad(i) => (get_iob_data("IOBS.S3A.R4"), i.into()),
+            RowIoKind::Quad(i) => (get_iob_data("IOBS.S3A.R4"), NodeTileId::from_idx(i.into())),
             _ => unreachable!(),
         },
     }
@@ -313,7 +416,7 @@ pub fn get_iob_tiles(kind: ChipKind) -> Vec<IobTileData> {
 }
 
 pub fn get_iob_data(node: &str) -> IobTileData {
-    match node {
+    let mut data = match node {
         // Virtex 2
         "IOBS.V2.T.L2" => IobTileData {
             node: "IOBS.V2.T.L2",
@@ -644,14 +747,14 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             edge: Dir::N,
             tiles: 1,
             iobs: vec![
-                ibuf(0, 3),
-                obuf(0, 7),
-                ibuf(0, 2),
-                obuf(0, 6),
-                ibuf(0, 1),
-                obuf(0, 5),
-                ibuf(0, 0),
-                obuf(0, 4),
+                fc_ibuf(0, 3),
+                fc_obuf(0, 7),
+                fc_ibuf(0, 2),
+                fc_obuf(0, 6),
+                fc_ibuf(0, 1),
+                fc_obuf(0, 5),
+                fc_ibuf(0, 0),
+                fc_obuf(0, 4),
             ],
         },
         "IOBS.FC.R" => IobTileData {
@@ -659,14 +762,14 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             edge: Dir::E,
             tiles: 1,
             iobs: vec![
-                ibuf(0, 3),
-                obuf(0, 7),
-                ibuf(0, 2),
-                obuf(0, 6),
-                ibuf(0, 1),
-                obuf(0, 5),
-                ibuf(0, 0),
-                obuf(0, 4),
+                fc_ibuf(0, 3),
+                fc_obuf(0, 7),
+                fc_ibuf(0, 2),
+                fc_obuf(0, 6),
+                fc_ibuf(0, 1),
+                fc_obuf(0, 5),
+                fc_ibuf(0, 0),
+                fc_obuf(0, 4),
             ],
         },
         "IOBS.FC.B" => IobTileData {
@@ -675,13 +778,13 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             tiles: 1,
             iobs: vec![
                 ibuf(0, 3),
-                obuf(0, 7),
+                fc_obuf(0, 7),
                 ibuf(0, 2),
-                obuf(0, 6),
+                fc_obuf(0, 6),
                 ibuf(0, 1),
-                obuf(0, 5),
+                fc_obuf(0, 5),
                 ibuf(0, 0),
-                obuf(0, 4),
+                fc_obuf(0, 4),
             ],
         },
         "IOBS.FC.L" => IobTileData {
@@ -690,13 +793,13 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             tiles: 1,
             iobs: vec![
                 ibuf(0, 0),
-                obuf(0, 4),
+                fc_obuf(0, 4),
                 ibuf(0, 1),
-                obuf(0, 5),
+                fc_obuf(0, 5),
                 ibuf(0, 2),
-                obuf(0, 6),
+                fc_obuf(0, 6),
                 ibuf(0, 3),
-                obuf(0, 7),
+                fc_obuf(0, 7),
             ],
         },
 
@@ -895,5 +998,9 @@ pub fn get_iob_data(node: &str) -> IobTileData {
         },
 
         _ => unreachable!(),
+    };
+    for (i, iob) in data.iobs.iter_mut().enumerate() {
+        iob.index = i;
     }
+    data
 }

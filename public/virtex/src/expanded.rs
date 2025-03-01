@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, RowId};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, NodeLoc, RowId};
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -25,7 +25,7 @@ pub struct ExpandedDevice<'a> {
 
 impl ExpandedDevice<'_> {
     pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
-        let width = if col == self.chip.col_lio() || col == self.chip.col_rio() {
+        let width = if col == self.chip.col_w() || col == self.chip.col_e() {
             54
         } else if self.chip.cols_bram.contains(&col) {
             27
@@ -87,5 +87,36 @@ impl ExpandedDevice<'_> {
             height * 4,
             false,
         )
+    }
+
+    pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+        let (_, col, row, _) = nloc;
+        let node = self.egrid.node(nloc);
+        let kind = self.egrid.db.nodes.key(node.kind).as_str();
+        if matches!(kind, "LBRAM" | "RBRAM" | "MBRAM") {
+            vec![
+                self.btile_main(col, row),
+                self.btile_main(col, row + 1),
+                self.btile_main(col, row + 2),
+                self.btile_main(col, row + 3),
+                self.btile_bram(col, row),
+            ]
+        } else if kind.starts_with("CLKB") || kind.starts_with("CLKT") {
+            if row == self.chip.row_s() {
+                vec![self.btile_spine(row), self.btile_spine(row + 1)]
+            } else {
+                vec![self.btile_spine(row), self.btile_spine(row - 1)]
+            }
+        } else if matches!(kind, "CLKV.CLKV" | "CLKV.GCLKV") {
+            vec![self.btile_clkv(col, row)]
+        } else if kind.starts_with("DLL") || matches!(kind, "BRAM_BOT" | "BRAM_TOP") {
+            vec![self.btile_main(col, row)]
+        } else {
+            Vec::from_iter(
+                node.tiles
+                    .values()
+                    .map(|&(col, row)| self.btile_main(col, row)),
+            )
+        }
     }
 }

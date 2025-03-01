@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     dir::{Dir, DirMap},
-    grid::{ColId, DieId, ExpandedGrid, Rect, RowId},
+    grid::{ColId, DieId, ExpandedGrid, NodeLoc, Rect, RowId},
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
@@ -77,5 +77,51 @@ impl ExpandedDevice<'_> {
 
     pub fn btile_iob(&self, col: ColId, row: RowId) -> BitTile {
         BitTile::Iob(DieId::from_idx(0), self.iob_frame[&(col, row)], 128)
+    }
+
+    pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+        let (_, col, row, _) = nloc;
+        let node = self.egrid.node(nloc);
+        let kind = self.egrid.db.nodes.key(node.kind).as_str();
+        if kind == "BRAM" {
+            vec![
+                self.btile_main(col, row),
+                self.btile_main(col, row + 1),
+                self.btile_main(col, row + 2),
+                self.btile_main(col, row + 3),
+                self.btile_bram(col, row),
+            ]
+        } else if kind == "HCLK" {
+            vec![self.btile_hclk(col, row)]
+        } else if kind == "REG_L" {
+            vec![self.btile_reg(Dir::W)]
+        } else if kind == "REG_R" {
+            vec![self.btile_reg(Dir::E)]
+        } else if kind == "REG_B" {
+            vec![self.btile_reg(Dir::S)]
+        } else if kind == "REG_T" {
+            vec![self.btile_reg(Dir::N)]
+        } else if kind == "HCLK_ROW" {
+            vec![self.btile_spine(row - 1)]
+        } else if kind.starts_with("PLL_BUFPLL") || kind.starts_with("DCM_BUFPLL") {
+            vec![self.btile_spine(row - 7)]
+        } else if kind == "IOB" {
+            vec![self.btile_iob(col, row)]
+        } else if matches!(kind, "CMT_DCM" | "CMT_PLL") {
+            let mut res = vec![];
+            for i in 0..16 {
+                res.push(self.btile_main(col, row - 8 + i));
+            }
+            for i in 0..16 {
+                res.push(self.btile_spine(row - 8 + i));
+            }
+            res
+        } else {
+            Vec::from_iter(
+                node.tiles
+                    .values()
+                    .map(|&(col, row)| self.btile_main(col, row)),
+            )
+        }
     }
 }

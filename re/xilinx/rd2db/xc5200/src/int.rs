@@ -6,9 +6,14 @@ use prjcombine_re_xilinx_rawdump::Part;
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
+use prjcombine_xc2000::bels::xc5200 as bels;
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
+
+    for &slot in bels::SLOTS {
+        builder.db.bel_slots.insert(slot.into());
+    }
 
     builder.wire(
         "GND",
@@ -475,45 +480,45 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "CLB",
         &[
             builder
-                .bel_indexed("LC0", "CLB", 0)
+                .bel_indexed(bels::LC0, "CLB", 0)
                 .pins_name_only(&["CO", "F5I"])
                 .pin_name_only("CI", 1),
             builder
-                .bel_indexed("LC1", "CLB", 1)
+                .bel_indexed(bels::LC1, "CLB", 1)
                 .pins_name_only(&["CI", "CO"]),
             builder
-                .bel_indexed("LC2", "CLB", 2)
+                .bel_indexed(bels::LC2, "CLB", 2)
                 .pins_name_only(&["CI", "CO", "F5I"]),
             builder
-                .bel_indexed("LC3", "CLB", 3)
+                .bel_indexed(bels::LC3, "CLB", 3)
                 .pins_name_only(&["CI"])
                 .pin_name_only("CO", 1),
-            builder.bel_indexed("TBUF0", "TBUF", 0),
-            builder.bel_indexed("TBUF1", "TBUF", 1),
-            builder.bel_indexed("TBUF2", "TBUF", 2),
-            builder.bel_indexed("TBUF3", "TBUF", 3),
-            builder.bel_single("VCC_GND", "VCC_GND"),
+            builder.bel_indexed(bels::TBUF0, "TBUF", 0),
+            builder.bel_indexed(bels::TBUF1, "TBUF", 1),
+            builder.bel_indexed(bels::TBUF2, "TBUF", 2),
+            builder.bel_indexed(bels::TBUF3, "TBUF", 3),
+            builder.bel_single(bels::VCC_GND, "VCC_GND"),
         ],
     );
     let bels_io = [
         builder
-            .bel_indexed("IOB0", "IOB", 0)
+            .bel_indexed(bels::IO0, "IOB", 0)
             .pins_name_only(&["CLKIN"]),
         builder
-            .bel_indexed("IOB1", "IOB", 1)
+            .bel_indexed(bels::IO1, "IOB", 1)
             .pins_name_only(&["CLKIN"]),
         builder
-            .bel_indexed("IOB2", "IOB", 2)
+            .bel_indexed(bels::IO2, "IOB", 2)
             .pins_name_only(&["CLKIN"]),
         builder
-            .bel_indexed("IOB3", "IOB", 3)
+            .bel_indexed(bels::IO3, "IOB", 3)
             .pins_name_only(&["CLKIN"]),
-        builder.bel_indexed("TBUF0", "TBUF", 0),
-        builder.bel_indexed("TBUF1", "TBUF", 1),
-        builder.bel_indexed("TBUF2", "TBUF", 2),
-        builder.bel_indexed("TBUF3", "TBUF", 3),
+        builder.bel_indexed(bels::TBUF0, "TBUF", 0),
+        builder.bel_indexed(bels::TBUF1, "TBUF", 1),
+        builder.bel_indexed(bels::TBUF2, "TBUF", 2),
+        builder.bel_indexed(bels::TBUF3, "TBUF", 3),
         builder
-            .bel_virtual("BUFR")
+            .bel_virtual(bels::BUFR)
             .extra_int_in(
                 "IN",
                 &[
@@ -536,13 +541,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut bels_io_b = bels_io.to_vec();
     bels_io_b.push(
         builder
-            .bel_virtual("BOT_CIN")
+            .bel_virtual(bels::CIN)
             .extra_int_in("IN", &["WIRE_COUT_BOT"]),
     );
     let mut bels_io_t = bels_io.to_vec();
     bels_io_t.push(
         builder
-            .bel_virtual("TOP_COUT")
+            .bel_virtual(bels::COUT)
             .extra_int_out("OUT", &["WIRE_COUT_TOP"]),
     );
     builder.extract_node("LEFT", "IO.L", "IO.L", &bels_io);
@@ -558,11 +563,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "CNR.BL",
         "CNR.BL",
         &[
-            builder.bel_single("BUFG", "BUFG_BL"),
+            builder.bel_single(bels::BUFG, "BUFG_BL"),
             builder
-                .bel_virtual("CLKIOB")
+                .bel_virtual(bels::CLKIOB)
                 .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_BL"]),
-            builder.bel_single("RDBK", "RDBK"),
+            builder.bel_single(bels::RDBK, "RDBK"),
         ],
     );
     builder.extract_node(
@@ -570,11 +575,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "CNR.BR",
         "CNR.BR",
         &[
-            builder.bel_single("BUFG", "BUFG_BR"),
+            builder.bel_single(bels::BUFG, "BUFG_BR"),
             builder
-                .bel_virtual("CLKIOB")
+                .bel_virtual(bels::CLKIOB)
                 .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_BR"]),
-            builder.bel_single("STARTUP", "STARTUP"),
+            builder.bel_single(bels::STARTUP, "STARTUP"),
         ],
     );
     builder.extract_node(
@@ -582,11 +587,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "CNR.TL",
         "CNR.TL",
         &[
-            builder.bel_single("BUFG", "BUFG_TL"),
+            builder.bel_single(bels::BUFG, "BUFG_TL"),
             builder
-                .bel_virtual("CLKIOB")
+                .bel_virtual(bels::CLKIOB)
                 .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_TL"]),
-            builder.bel_single("BSCAN", "BSCAN"),
+            builder.bel_single(bels::BSCAN, "BSCAN"),
         ],
     );
     builder.extract_node(
@@ -594,13 +599,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "CNR.TR",
         "CNR.TR",
         &[
-            builder.bel_single("BUFG", "BUFG_TR"),
+            builder.bel_single(bels::BUFG, "BUFG_TR"),
             builder
-                .bel_virtual("CLKIOB")
+                .bel_virtual(bels::CLKIOB)
                 .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_TR"]),
-            builder.bel_single("OSC", "OSC"),
-            builder.bel_single("BYPOSC", "BYPOSC"),
-            builder.bel_single("BSUPD", "BSUPD"),
+            builder.bel_single(bels::OSC, "OSC"),
+            builder.bel_single(bels::BYPOSC, "BYPOSC"),
+            builder.bel_single(bels::BSUPD, "BSUPD"),
         ],
     );
 

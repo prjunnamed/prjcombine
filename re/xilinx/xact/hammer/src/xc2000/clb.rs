@@ -1,7 +1,8 @@
 use bitvec::prelude::*;
-use prjcombine_re_collector::{Diff, xlat_bit, xlat_enum};
+use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_xc2000::bels::xc2000 as bels;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
@@ -11,7 +12,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        let mut bctx = ctx.bel("CLB");
+        let mut bctx = ctx.bel(bels::CLB);
         bctx.test_mode("F");
         bctx.test_mode("FG");
         bctx.test_mode("FGM");
@@ -409,43 +410,43 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for (tile, frame, bit, bel) in [
         ("CLB", 3, 2, "CLB"),
         ("CLB.L", 3, 2, "CLB"),
-        ("CLB.L", 18, 5, "LIOB0"),
-        ("CLB.L", 20, 0, "LIOB1"),
+        ("CLB.L", 18, 5, "IO_W0"),
+        ("CLB.L", 20, 0, "IO_W1"),
         ("CLB.R", 12, 2, "CLB"),
-        ("CLB.R", 0, 3, "RIOB0"),
-        ("CLB.R", 8, 2, "RIOB1"),
+        ("CLB.R", 0, 3, "IO_E0"),
+        ("CLB.R", 8, 2, "IO_E1"),
         ("CLB.ML", 3, 2, "CLB"),
-        ("CLB.ML", 20, 0, "LIOB1"),
+        ("CLB.ML", 20, 0, "IO_W1"),
         ("CLB.MR", 12, 2, "CLB"),
-        ("CLB.MR", 8, 2, "RIOB1"),
+        ("CLB.MR", 8, 2, "IO_E1"),
         ("CLB.B", 3, 6, "CLB"),
-        ("CLB.B", 4, 1, "BIOB0"),
-        ("CLB.B", 8, 0, "BIOB1"),
+        ("CLB.B", 4, 1, "IO_S0"),
+        ("CLB.B", 8, 0, "IO_S1"),
         ("CLB.BR1", 3, 6, "CLB"),
-        ("CLB.BR1", 4, 1, "BIOB0"),
-        ("CLB.BR1", 8, 0, "BIOB1"),
+        ("CLB.BR1", 4, 1, "IO_S0"),
+        ("CLB.BR1", 8, 0, "IO_S1"),
         ("CLB.BL", 3, 6, "CLB"),
-        ("CLB.BL", 4, 1, "BIOB0"),
-        ("CLB.BL", 8, 0, "BIOB1"),
-        ("CLB.BL", 18, 9, "LIOB0"),
+        ("CLB.BL", 4, 1, "IO_S0"),
+        ("CLB.BL", 8, 0, "IO_S1"),
+        ("CLB.BL", 18, 9, "IO_W0"),
         ("CLB.BR", 12, 6, "CLB"),
-        ("CLB.BR", 13, 1, "BIOB0"),
-        ("CLB.BR", 17, 0, "BIOB1"),
-        ("CLB.BR", 0, 7, "RIOB0"),
+        ("CLB.BR", 13, 1, "IO_S0"),
+        ("CLB.BR", 17, 0, "IO_S1"),
+        ("CLB.BR", 0, 7, "IO_E0"),
         ("CLB.T", 3, 2, "CLB"),
-        ("CLB.T", 4, 7, "TIOB0"),
-        ("CLB.T", 8, 8, "TIOB1"),
+        ("CLB.T", 4, 7, "IO_N0"),
+        ("CLB.T", 8, 8, "IO_N1"),
         ("CLB.TR1", 3, 2, "CLB"),
-        ("CLB.TR1", 4, 7, "TIOB0"),
-        ("CLB.TR1", 8, 8, "TIOB1"),
+        ("CLB.TR1", 4, 7, "IO_N0"),
+        ("CLB.TR1", 8, 8, "IO_N1"),
         ("CLB.TL", 3, 2, "CLB"),
-        ("CLB.TL", 4, 7, "TIOB0"),
-        ("CLB.TL", 8, 8, "TIOB1"),
-        ("CLB.TL", 20, 0, "LIOB1"),
+        ("CLB.TL", 4, 7, "IO_N0"),
+        ("CLB.TL", 8, 8, "IO_N1"),
+        ("CLB.TL", 20, 0, "IO_W1"),
         ("CLB.TR", 12, 2, "CLB"),
-        ("CLB.TR", 13, 7, "TIOB0"),
-        ("CLB.TR", 17, 8, "TIOB1"),
-        ("CLB.TR", 8, 2, "RIOB1"),
+        ("CLB.TR", 13, 7, "IO_N0"),
+        ("CLB.TR", 17, 8, "IO_N1"),
+        ("CLB.TR", 8, 2, "IO_E1"),
     ] {
         ctx.tiledb.insert(
             tile,

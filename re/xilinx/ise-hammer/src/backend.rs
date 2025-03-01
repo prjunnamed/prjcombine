@@ -1,7 +1,6 @@
 use bitvec::vec::BitVec;
-use prjcombine_interconnect::db::{BelId, WireId};
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, LayerId, NodeLoc, RowId};
-use prjcombine_re_collector::{Diff, FeatureData, FeatureId, State};
+use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, IntBel, IntWire, NodeLoc, RowId};
+use prjcombine_re_fpga_hammer::{Diff, FeatureData, FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_geom::{
@@ -55,8 +54,8 @@ pub enum Key<'a> {
     VccoSenseMode(u32),
     GlobalMutex(String),
     RowMutex(String, RowId),
-    BelMutex((DieId, ColId, RowId, LayerId, BelId), String),
-    NodeMutex((DieId, (ColId, RowId), WireId)),
+    BelMutex(IntBel, String),
+    NodeMutex(IntWire),
     TileMutex(NodeLoc, String),
     IntMutex(DieId, ColId, RowId),
 }
@@ -75,7 +74,7 @@ pub enum Value<'a> {
     U32(u32),
     PinFrom(PinFromKind),
     FromPin(&'a str, String),
-    Bel(DieId, ColId, RowId, LayerId, BelId),
+    Bel(IntBel),
 }
 
 impl From<Option<core::convert::Infallible>> for Value<'_> {
@@ -128,23 +127,6 @@ pub enum MultiValue {
     HexPrefix,
     Bin,
     Dec(i32),
-}
-
-#[derive(Clone, Debug)]
-pub struct FuzzerFeature {
-    pub id: FeatureId,
-    pub tiles: Vec<BitTile>,
-}
-
-#[derive(Clone)]
-pub struct FuzzerInfo {
-    pub features: Vec<FuzzerFeature>,
-}
-
-impl Debug for FuzzerInfo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.features[0].id)
-    }
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -206,7 +188,7 @@ impl<'a> Backend for IseBackend<'a> {
     type Value = Value<'a>;
     type MultiValue = MultiValue;
     type Bitstream = Bitstream;
-    type FuzzerInfo = FuzzerInfo;
+    type FuzzerInfo = FuzzerInfo<BitTile>;
     type PostProc = PostProc;
     type BitPos = BitPos;
     type State = State;
@@ -682,7 +664,7 @@ impl<'a> Backend for IseBackend<'a> {
     fn return_fuzzer(
         &self,
         state: &mut State,
-        f: &FuzzerInfo,
+        f: &FuzzerInfo<BitTile>,
         fid: FuzzerId,
         bits: Vec<HashMap<BitPos, bool>>,
     ) -> Option<Vec<FuzzerId>> {
@@ -860,5 +842,17 @@ impl<'a> Backend for IseBackend<'a> {
                 Value::String(format!("{}", val))
             }
         }
+    }
+}
+
+impl FpgaBackend for IseBackend<'_> {
+    type BitTile = BitTile;
+
+    fn node_bits(&self, nloc: NodeLoc) -> Vec<Self::BitTile> {
+        self.edev.node_bits(nloc)
+    }
+
+    fn egrid(&self) -> &ExpandedGrid {
+        self.egrid
     }
 }

@@ -1,7 +1,8 @@
 use bitvec::prelude::*;
-use prjcombine_re_collector::{Diff, xlat_bitvec, xlat_enum};
+use prjcombine_re_fpga_hammer::{Diff, xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_xc2000::bels::xc2000 as bels;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
@@ -13,7 +14,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
-        let mut bctx = ctx.bel("CLB");
+        let mut bctx = ctx.bel(bels::CLB);
         for lut in ["F", "G"] {
             bctx.mode("FG")
                 .test_manual(lut, "ABCD")

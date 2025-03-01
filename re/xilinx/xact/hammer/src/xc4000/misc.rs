@@ -1,7 +1,7 @@
 use prjcombine_interconnect::grid::{DieId, LayerId};
-use prjcombine_re_collector::{Diff, xlat_bit, xlat_enum};
+use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::chip::ChipKind;
+use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind};
 use unnamed_entity::EntityId;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
@@ -11,9 +11,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
     let num_dec = if grid.kind == ChipKind::Xc4000A { 2 } else { 4 };
     for tile in ["CNR.BL", "CNR.TL", "CNR.BR", "CNR.TR"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        for hv in ['H', 'V'] {
+        for slots in [bels::PULLUP_DEC_H, bels::PULLUP_DEC_V] {
             for i in 0..num_dec {
-                let mut bctx = ctx.bel(format!("PULLUP.DEC.{hv}{i}"));
+                let mut bctx = ctx.bel(slots[i]);
                 bctx.build()
                     .pin_mutex_exclusive("O")
                     .test_manual("ENABLE", "1")
@@ -31,13 +31,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             ctx.test_cfg4000("MISC", "TMLEFT", &["OFF", "ON"]);
             ctx.test_cfg4000("MISC", "TMTOP", &["OFF", "ON"]);
             ctx.test_cfg4000("MISC", "TTLBAR", &["OFF", "ON"]);
-            let mut bctx = ctx.bel("BSCAN");
+            let mut bctx = ctx.bel(bels::BSCAN);
             bctx.mode("BSCAN")
                 .extra_tile(
                     (
                         DieId::from_idx(0),
-                        grid.col_rio(),
-                        grid.row_tio(),
+                        grid.col_e(),
+                        grid.row_n(),
                         LayerId::from_idx(0),
                     ),
                     "BSCAN",
@@ -128,7 +128,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 }
             }
 
-            let mut bctx = ctx.bel("STARTUP");
+            let mut bctx = ctx.bel(bels::STARTUP);
             bctx.mode("STARTUP").test_cfg("GTS", "NOT");
             bctx.mode("STARTUP").test_cfg("GSR", "NOT");
         }
@@ -137,15 +137,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             ctx.test_cfg4000("MISC", "TAC", &["OFF", "ON"]);
             ctx.test_global("TDO", "TDOPIN", &["PULLDOWN", "PULLUP"]);
             ctx.test_global("READCLK", "READCLK", &["CCLK", "RDBK"]);
-            let mut bctx = ctx.bel("OSC");
+            let mut bctx = ctx.bel(bels::OSC);
             for out in ["OUT0", "OUT1"] {
                 for pin in ["F500K", "F16K", "F490", "F15"] {
                     bctx.build()
                         .extra_tile(
                             (
                                 DieId::from_idx(0),
-                                grid.col_rio(),
-                                grid.row_bio(),
+                                grid.col_e(),
+                                grid.row_s(),
                                 LayerId::from_idx(0),
                             ),
                             "OSC",
@@ -174,7 +174,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for tile in ["CNR.BL", "CNR.TL", "CNR.BR", "CNR.TR"] {
         for hv in ['H', 'V'] {
             for i in 0..num_dec {
-                let bel = &format!("PULLUP.DEC.{hv}{i}");
+                let bel = &format!("PULLUP_DEC{i}_{hv}");
                 ctx.collect_bit(tile, bel, "ENABLE", "1");
             }
         }

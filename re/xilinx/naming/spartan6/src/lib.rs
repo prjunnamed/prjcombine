@@ -1,14 +1,14 @@
+#![recursion_limit = "1024"]
+
 use std::cmp::Ordering;
 
-use prjcombine_interconnect::{
-    db::BelId,
-    grid::{ColId, DieId, EdgeIoCoord, RowId},
-};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, RowId};
 use prjcombine_re_xilinx_naming::{
     db::NamingDb,
     grid::{BelGrid, ExpandedGridNaming},
 };
 use prjcombine_spartan6::{
+    bels,
     chip::{Chip, ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Gts, PllKind},
     expanded::ExpandedDevice,
 };
@@ -31,31 +31,13 @@ pub struct Gt<'a> {
 
 impl<'a> ExpandedNamedDevice<'a> {
     pub fn get_io_name(&'a self, io: EdgeIoCoord) -> &'a str {
-        let die = DieId::from_idx(0);
-        let (col, row, bel) = self.chip.get_io_loc(io);
-        let layer = self
-            .edev
-            .egrid
-            .find_node_loc(die, (col, row), |node| {
-                self.edev.egrid.db.nodes.key(node.kind) == "IOB"
-            })
-            .unwrap()
-            .0;
-        let nnode = &self.ngrid.nodes[&(die, col, row, layer)];
-        &nnode.bels[bel]
+        let bel = self.chip.get_io_loc(io);
+        self.ngrid.get_bel_name(bel).unwrap()
     }
 
     pub fn get_gt(&'a self, col: ColId, row: RowId) -> Gt<'a> {
         let die = DieId::from_idx(0);
-        let layer = self
-            .edev
-            .egrid
-            .find_node_loc(die, (col, row), |node| {
-                self.edev.egrid.db.nodes.key(node.kind) == "GTP"
-            })
-            .unwrap()
-            .0;
-        let nnode = &self.ngrid.nodes[&(die, col, row, layer)];
+        let get_name = |slot| self.ngrid.get_bel_name((die, (col, row), slot)).unwrap();
         Gt {
             col,
             row,
@@ -65,34 +47,16 @@ impl<'a> ExpandedNamedDevice<'a> {
                 if col < self.chip.col_clk { 101 } else { 123 }
             },
             pads_clk: vec![
-                (
-                    &nnode.bels[BelId::from_idx(4)],
-                    &nnode.bels[BelId::from_idx(5)],
-                ),
-                (
-                    &nnode.bels[BelId::from_idx(6)],
-                    &nnode.bels[BelId::from_idx(7)],
-                ),
+                (get_name(bels::IPAD_CLKP0), get_name(bels::IPAD_CLKN0)),
+                (get_name(bels::IPAD_CLKP1), get_name(bels::IPAD_CLKN1)),
             ],
             pads_tx: vec![
-                (
-                    &nnode.bels[BelId::from_idx(8)],
-                    &nnode.bels[BelId::from_idx(9)],
-                ),
-                (
-                    &nnode.bels[BelId::from_idx(10)],
-                    &nnode.bels[BelId::from_idx(11)],
-                ),
+                (get_name(bels::OPAD_TXP0), get_name(bels::OPAD_TXN0)),
+                (get_name(bels::OPAD_TXP1), get_name(bels::OPAD_TXN1)),
             ],
             pads_rx: vec![
-                (
-                    &nnode.bels[BelId::from_idx(0)],
-                    &nnode.bels[BelId::from_idx(1)],
-                ),
-                (
-                    &nnode.bels[BelId::from_idx(2)],
-                    &nnode.bels[BelId::from_idx(3)],
-                ),
+                (get_name(bels::IPAD_RXP0), get_name(bels::IPAD_RXN0)),
+                (get_name(bels::IPAD_RXP1), get_name(bels::IPAD_RXN1)),
             ],
         }
     }
@@ -548,8 +512,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     .name_node(nloc, kind, [format!("{kind}_X{x}Y{y}")]);
                             let sx = namer.slice_grid.xlut[col] * 2;
                             let sy = namer.slice_grid.ylut[row];
-                            nnode.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
-                            nnode.add_bel(1, format!("SLICE_X{sx1}Y{sy}", sx1 = sx + 1));
+                            nnode.add_bel(bels::SLICE0, format!("SLICE_X{sx}Y{sy}"));
+                            nnode.add_bel(bels::SLICE1, format!("SLICE_X{sx1}Y{sy}", sx1 = sx + 1));
                         }
                         "BRAM" => {
                             let x = col.to_idx();
@@ -561,9 +525,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                             let bx = namer.bram_grid.xlut[col];
                             let by = namer.bram_grid.ylut[row] * 2;
-                            nnode.add_bel(0, format!("RAMB16_X{bx}Y{by}"));
-                            nnode.add_bel(1, format!("RAMB8_X{bx}Y{by}"));
-                            nnode.add_bel(2, format!("RAMB8_X{bx}Y{by}", by = by + 1));
+                            nnode.add_bel(bels::BRAM_F, format!("RAMB16_X{bx}Y{by}"));
+                            nnode.add_bel(bels::BRAM_H0, format!("RAMB8_X{bx}Y{by}"));
+                            nnode.add_bel(bels::BRAM_H1, format!("RAMB8_X{bx}Y{by}", by = by + 1));
                         }
                         "DSP" => {
                             let x = col.to_idx();
@@ -574,7 +538,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     .name_node(nloc, "DSP", [format!("MACCSITE2_X{x}Y{y}")]);
                             let dx = namer.dsp_grid.xlut[col];
                             let dy = namer.dsp_grid.ylut[row];
-                            nnode.add_bel(0, format!("DSP48_X{dx}Y{dy}"));
+                            nnode.add_bel(bels::DSP, format!("DSP48_X{dx}Y{dy}"));
                         }
                         "PCIE" => {
                             let x = col.to_idx() + 2;
@@ -583,7 +547,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 namer
                                     .ngrid
                                     .name_node(nloc, "PCIE", [format!("PCIE_TOP_X{x}Y{y}")]);
-                            nnode.add_bel(0, "PCIE_X0Y0".to_string());
+                            nnode.add_bel(bels::PCIE, "PCIE_X0Y0".to_string());
                         }
                         "IOI.LR" | "IOI.BT" => {
                             let (naming, name) = namer.get_ioi_name(col, row);
@@ -592,13 +556,25 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let ioy = namer.ioylut[row];
                             let tiex = namer.tiexlut[col] + 1;
                             let tiey = row.to_idx() * 2;
-                            nnode.add_bel(0, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2));
-                            nnode.add_bel(1, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2 + 1));
-                            nnode.add_bel(2, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2));
-                            nnode.add_bel(3, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2 + 1));
-                            nnode.add_bel(4, format!("IODELAY_X{iox}Y{y}", y = ioy * 2));
-                            nnode.add_bel(5, format!("IODELAY_X{iox}Y{y}", y = ioy * 2 + 1));
-                            nnode.add_bel(6, format!("TIEOFF_X{tiex}Y{tiey}"));
+                            nnode.add_bel(bels::ILOGIC0, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2));
+                            nnode.add_bel(
+                                bels::ILOGIC1,
+                                format!("ILOGIC_X{iox}Y{y}", y = ioy * 2 + 1),
+                            );
+                            nnode.add_bel(bels::OLOGIC0, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2));
+                            nnode.add_bel(
+                                bels::OLOGIC1,
+                                format!("OLOGIC_X{iox}Y{y}", y = ioy * 2 + 1),
+                            );
+                            nnode.add_bel(
+                                bels::IODELAY0,
+                                format!("IODELAY_X{iox}Y{y}", y = ioy * 2),
+                            );
+                            nnode.add_bel(
+                                bels::IODELAY1,
+                                format!("IODELAY_X{iox}Y{y}", y = ioy * 2 + 1),
+                            );
+                            nnode.add_bel(bels::TIEOFF_IOI, format!("TIEOFF_X{tiex}Y{tiey}"));
                         }
                         "IOB" => {
                             let cd = grid.columns[col];
@@ -685,20 +661,20 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             };
                             let name = format!("{naming}_X{x}Y{y}");
                             let nnode = namer.ngrid.name_node(nloc, naming, [name]);
-                            nnode.add_bel(0, format!("DCM_X0Y{y}", y = dy * 2));
-                            nnode.add_bel(1, format!("DCM_X0Y{y}", y = dy * 2 + 1));
+                            nnode.add_bel(bels::DCM0, format!("DCM_X0Y{y}", y = dy * 2));
+                            nnode.add_bel(bels::DCM1, format!("DCM_X0Y{y}", y = dy * 2 + 1));
                         }
-                        "DCM_BUFPLL_BUF_BOT"
-                        | "DCM_BUFPLL_BUF_BOT_MID"
-                        | "DCM_BUFPLL_BUF_TOP"
-                        | "DCM_BUFPLL_BUF_TOP_MID" => {
+                        "DCM_BUFPLL_BUF_S"
+                        | "DCM_BUFPLL_BUF_S_MID"
+                        | "DCM_BUFPLL_BUF_N"
+                        | "DCM_BUFPLL_BUF_N_MID" => {
                             let x = col.to_idx();
                             let y = row.to_idx();
                             let naming = match &kind[..] {
-                                "DCM_BUFPLL_BUF_BOT" => "CMT_DCM_BOT",
-                                "DCM_BUFPLL_BUF_BOT_MID" => "CMT_DCM2_BOT",
-                                "DCM_BUFPLL_BUF_TOP" => "CMT_DCM_TOP",
-                                "DCM_BUFPLL_BUF_TOP_MID" => "CMT_DCM2_TOP",
+                                "DCM_BUFPLL_BUF_S" => "CMT_DCM_BOT",
+                                "DCM_BUFPLL_BUF_S_MID" => "CMT_DCM2_BOT",
+                                "DCM_BUFPLL_BUF_N" => "CMT_DCM_TOP",
+                                "DCM_BUFPLL_BUF_N_MID" => "CMT_DCM2_TOP",
                                 _ => unreachable!(),
                             };
                             let name = format!("{naming}_X{x}Y{y}");
@@ -729,9 +705,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             };
                             let name = format!("{naming}_X{x}Y{y}");
                             let nnode = namer.ngrid.name_node(nloc, naming, [name]);
-                            nnode.add_bel(0, format!("PLL_ADV_X0Y{py}"));
+                            nnode.add_bel(bels::PLL, format!("PLL_ADV_X0Y{py}"));
                             nnode.add_bel(
-                                1,
+                                bels::TIEOFF_PLL,
                                 format!(
                                     "TIEOFF_X{x}Y{y}",
                                     x = namer.tiexlut[col] + 2,
@@ -768,17 +744,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let x = col.to_idx();
                             let y = row.to_idx();
                             let nnode = namer.ngrid.name_node(nloc, "LL", [format!("LL_X{x}Y{y}")]);
-                            nnode.add_bel(0, "OCT_CAL_X0Y0".to_string());
-                            nnode.add_bel(1, "OCT_CAL_X0Y1".to_string());
+                            nnode.add_bel(bels::OCT_CAL2, "OCT_CAL_X0Y0".to_string());
+                            nnode.add_bel(bels::OCT_CAL3, "OCT_CAL_X0Y1".to_string());
                         }
                         "UL" => {
                             let x = col.to_idx();
                             let y = row.to_idx();
                             let nnode = namer.ngrid.name_node(nloc, "UL", [format!("UL_X{x}Y{y}")]);
-                            nnode.add_bel(0, "OCT_CAL_X0Y2".to_string());
-                            nnode.add_bel(1, "OCT_CAL_X0Y3".to_string());
-                            nnode.add_bel(2, "PMV".to_string());
-                            nnode.add_bel(3, "DNA_PORT".to_string());
+                            nnode.add_bel(bels::OCT_CAL0, "OCT_CAL_X0Y2".to_string());
+                            nnode.add_bel(bels::OCT_CAL4, "OCT_CAL_X0Y3".to_string());
+                            nnode.add_bel(bels::PMV, "PMV".to_string());
+                            nnode.add_bel(bels::DNA_PORT, "DNA_PORT".to_string());
                         }
                         "LR" => {
                             let x = col.to_idx();
@@ -789,13 +765,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 "LR",
                                 [format!("LR_LOWER_X{x}Y{y0}"), format!("LR_UPPER_X{x}Y{y1}")],
                             );
-                            nnode.add_bel(0, "OCT_CAL_X1Y0".to_string());
-                            nnode.add_bel(1, "ICAP_X0Y0".to_string());
-                            nnode.add_bel(2, "SPI_ACCESS".to_string());
-                            nnode.add_bel(3, "SUSPEND_SYNC".to_string());
-                            nnode.add_bel(4, "POST_CRC_INTERNAL".to_string());
-                            nnode.add_bel(5, "STARTUP".to_string());
-                            nnode.add_bel(6, "SLAVE_SPI".to_string());
+                            nnode.add_bel(bels::OCT_CAL1, "OCT_CAL_X1Y0".to_string());
+                            nnode.add_bel(bels::ICAP, "ICAP_X0Y0".to_string());
+                            nnode.add_bel(bels::SPI_ACCESS, "SPI_ACCESS".to_string());
+                            nnode.add_bel(bels::SUSPEND_SYNC, "SUSPEND_SYNC".to_string());
+                            nnode.add_bel(bels::POST_CRC_INTERNAL, "POST_CRC_INTERNAL".to_string());
+                            nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
+                            nnode.add_bel(bels::SLAVE_SPI, "SLAVE_SPI".to_string());
                         }
                         "UR" => {
                             let x = col.to_idx();
@@ -806,11 +782,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 "UR",
                                 [format!("UR_LOWER_X{x}Y{y0}"), format!("UR_UPPER_X{x}Y{y1}")],
                             );
-                            nnode.add_bel(0, "OCT_CAL_X1Y1".to_string());
-                            nnode.add_bel(1, "BSCAN_X0Y0".to_string());
-                            nnode.add_bel(2, "BSCAN_X0Y1".to_string());
-                            nnode.add_bel(3, "BSCAN_X0Y2".to_string());
-                            nnode.add_bel(4, "BSCAN_X0Y3".to_string());
+                            nnode.add_bel(bels::OCT_CAL5, "OCT_CAL_X1Y1".to_string());
+                            nnode.add_bel(bels::BSCAN0, "BSCAN_X0Y0".to_string());
+                            nnode.add_bel(bels::BSCAN1, "BSCAN_X0Y1".to_string());
+                            nnode.add_bel(bels::BSCAN2, "BSCAN_X0Y2".to_string());
+                            nnode.add_bel(bels::BSCAN3, "BSCAN_X0Y3".to_string());
                         }
                         "GTP" => {
                             let (naming, name, name_buf) = if row < grid.row_clk() {
@@ -877,25 +853,57 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode = namer.ngrid.name_node(nloc, naming, [name, name_buf]);
                             let gx = namer.gtp_grid.xlut[col];
                             let gy = namer.gtp_grid.ylut[row];
-                            nnode.add_bel(0, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 2));
-                            nnode.add_bel(1, format!("IPAD_X{gx}Y{y}", y = gy * 8));
-                            nnode.add_bel(2, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 3));
-                            nnode.add_bel(3, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 1));
-                            nnode.add_bel(4, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 5));
-                            nnode.add_bel(5, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 4));
-                            nnode.add_bel(6, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 7));
-                            nnode.add_bel(7, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 6));
-                            nnode.add_bel(8, format!("OPAD_X{gx}Y{y}", y = gy * 4 + 1));
-                            nnode.add_bel(9, format!("OPAD_X{gx}Y{y}", y = gy * 4 + 3));
-                            nnode.add_bel(10, format!("OPAD_X{gx}Y{y}", y = gy * 4));
-                            nnode.add_bel(11, format!("OPAD_X{gx}Y{y}", y = gy * 4 + 2));
-                            nnode
-                                .add_bel(12, format!("BUFDS_X{x}Y{y}", x = gx + 1, y = 2 + gy * 2));
                             nnode.add_bel(
-                                13,
+                                bels::IPAD_RXP0,
+                                format!("IPAD_X{gx}Y{y}", y = gy * 8 + 2),
+                            );
+                            nnode.add_bel(bels::IPAD_RXN0, format!("IPAD_X{gx}Y{y}", y = gy * 8));
+                            nnode.add_bel(
+                                bels::IPAD_RXP1,
+                                format!("IPAD_X{gx}Y{y}", y = gy * 8 + 3),
+                            );
+                            nnode.add_bel(
+                                bels::IPAD_RXN1,
+                                format!("IPAD_X{gx}Y{y}", y = gy * 8 + 1),
+                            );
+                            nnode.add_bel(
+                                bels::IPAD_CLKP0,
+                                format!("IPAD_X{gx}Y{y}", y = gy * 8 + 5),
+                            );
+                            nnode.add_bel(
+                                bels::IPAD_CLKN0,
+                                format!("IPAD_X{gx}Y{y}", y = gy * 8 + 4),
+                            );
+                            nnode.add_bel(
+                                bels::IPAD_CLKP1,
+                                format!("IPAD_X{gx}Y{y}", y = gy * 8 + 7),
+                            );
+                            nnode.add_bel(
+                                bels::IPAD_CLKN1,
+                                format!("IPAD_X{gx}Y{y}", y = gy * 8 + 6),
+                            );
+                            nnode.add_bel(
+                                bels::OPAD_TXP0,
+                                format!("OPAD_X{gx}Y{y}", y = gy * 4 + 1),
+                            );
+                            nnode.add_bel(
+                                bels::OPAD_TXN0,
+                                format!("OPAD_X{gx}Y{y}", y = gy * 4 + 3),
+                            );
+                            nnode.add_bel(bels::OPAD_TXP1, format!("OPAD_X{gx}Y{y}", y = gy * 4));
+                            nnode.add_bel(
+                                bels::OPAD_TXN1,
+                                format!("OPAD_X{gx}Y{y}", y = gy * 4 + 2),
+                            );
+                            nnode.add_bel(
+                                bels::BUFDS0,
+                                format!("BUFDS_X{x}Y{y}", x = gx + 1, y = 2 + gy * 2),
+                            );
+                            nnode.add_bel(
+                                bels::BUFDS1,
                                 format!("BUFDS_X{x}Y{y}", x = gx + 1, y = 2 + gy * 2 + 1),
                             );
-                            nnode.add_bel(14, format!("GTPA1_DUAL_X{gx}Y{gy}"));
+                            nnode.add_bel(bels::GTP, format!("GTPA1_DUAL_X{gx}Y{gy}"));
                         }
                         "MCB" => {
                             let x = col.to_idx();
@@ -926,9 +934,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     format!("MCB_MUI5_X{x}Y{y}", y = mcb.row_mui[7].to_idx()),
                                 ],
                             );
-                            nnode.add_bel(0, format!("MCB_X{mx}Y{my}", my = my * 2 + 1));
+                            nnode.add_bel(bels::MCB, format!("MCB_X{mx}Y{my}", my = my * 2 + 1));
                             nnode.add_bel(
-                                1,
+                                bels::TIEOFF_CLK,
                                 format!(
                                     "TIEOFF_X{x}Y{y}",
                                     x = namer.tiexlut[col] + 1,
@@ -936,7 +944,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 ),
                             );
                             nnode.add_bel(
-                                2,
+                                bels::TIEOFF_DQS0,
                                 format!(
                                     "TIEOFF_X{x}Y{y}",
                                     x = namer.tiexlut[col] + 1,
@@ -944,7 +952,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 ),
                             );
                             nnode.add_bel(
-                                3,
+                                bels::TIEOFF_DQS1,
                                 format!(
                                     "TIEOFF_X{x}Y{y}",
                                     x = namer.tiexlut[col] + 1,
@@ -976,7 +984,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                         format!("INT_X{x}Y{y}"),
                                     ],
                                 );
-                                nnode.add_bel(0, "PCILOGIC_X0Y0".to_string());
+                                nnode.add_bel(bels::PCILOGICSE, "PCILOGIC_X0Y0".to_string());
                             } else {
                                 let rx = namer.rxlut[col] + 3;
                                 let nnode = namer.ngrid.name_node(
@@ -992,7 +1000,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                         format!("INT_X{x}Y{y}"),
                                     ],
                                 );
-                                nnode.add_bel(0, "PCILOGIC_X1Y0".to_string());
+                                nnode.add_bel(bels::PCILOGICSE, "PCILOGIC_X1Y0".to_string());
                             }
                         }
                         "CLKC" => {
@@ -1014,7 +1022,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                             for i in 0..16 {
                                 nnode.add_bel(
-                                    i,
+                                    bels::BUFGMUX[i],
                                     format!(
                                         "BUFGMUX_X{x}Y{y}",
                                         x = if (i & 4) != 0 { 3 } else { 2 },
@@ -1043,10 +1051,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                             let hy = row.to_idx() / 16;
                             for i in 0..16 {
-                                nnode.add_bel(i, format!("BUFH_X0Y{y}", y = 16 + 32 * hy + i));
+                                nnode.add_bel(
+                                    bels::BUFH_W[i],
+                                    format!("BUFH_X0Y{y}", y = 16 + 32 * hy + i),
+                                );
                             }
                             for i in 0..16 {
-                                nnode.add_bel(16 + i, format!("BUFH_X3Y{y}", y = 32 * hy + i));
+                                nnode.add_bel(
+                                    bels::BUFH_E[i],
+                                    format!("BUFH_X3Y{y}", y = 32 * hy + i),
+                                );
                             }
                         }
                         "REG_B" => {
@@ -1076,27 +1090,27 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     ),
                                 ],
                             );
-                            nnode.add_bel(0, "BUFIO2_X3Y0".to_string());
-                            nnode.add_bel(1, "BUFIO2_X3Y1".to_string());
-                            nnode.add_bel(2, "BUFIO2_X3Y6".to_string());
-                            nnode.add_bel(3, "BUFIO2_X3Y7".to_string());
-                            nnode.add_bel(4, "BUFIO2_X1Y0".to_string());
-                            nnode.add_bel(5, "BUFIO2_X1Y1".to_string());
-                            nnode.add_bel(6, "BUFIO2_X1Y6".to_string());
-                            nnode.add_bel(7, "BUFIO2_X1Y7".to_string());
-                            nnode.add_bel(8, "BUFIO2FB_X3Y0".to_string());
-                            nnode.add_bel(9, "BUFIO2FB_X3Y1".to_string());
-                            nnode.add_bel(10, "BUFIO2FB_X3Y6".to_string());
-                            nnode.add_bel(11, "BUFIO2FB_X3Y7".to_string());
-                            nnode.add_bel(12, "BUFIO2FB_X1Y0".to_string());
-                            nnode.add_bel(13, "BUFIO2FB_X1Y1".to_string());
-                            nnode.add_bel(14, "BUFIO2FB_X1Y6".to_string());
-                            nnode.add_bel(15, "BUFIO2FB_X1Y7".to_string());
-                            nnode.add_bel(16, "BUFPLL_X1Y0".to_string());
-                            nnode.add_bel(17, "BUFPLL_X1Y1".to_string());
-                            nnode.add_bel(18, "BUFPLL_MCB_X1Y5".to_string());
+                            nnode.add_bel(bels::BUFIO2_0, "BUFIO2_X3Y0".to_string());
+                            nnode.add_bel(bels::BUFIO2_1, "BUFIO2_X3Y1".to_string());
+                            nnode.add_bel(bels::BUFIO2_2, "BUFIO2_X3Y6".to_string());
+                            nnode.add_bel(bels::BUFIO2_3, "BUFIO2_X3Y7".to_string());
+                            nnode.add_bel(bels::BUFIO2_4, "BUFIO2_X1Y0".to_string());
+                            nnode.add_bel(bels::BUFIO2_5, "BUFIO2_X1Y1".to_string());
+                            nnode.add_bel(bels::BUFIO2_6, "BUFIO2_X1Y6".to_string());
+                            nnode.add_bel(bels::BUFIO2_7, "BUFIO2_X1Y7".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_0, "BUFIO2FB_X3Y0".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_1, "BUFIO2FB_X3Y1".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_2, "BUFIO2FB_X3Y6".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_3, "BUFIO2FB_X3Y7".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_4, "BUFIO2FB_X1Y0".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_5, "BUFIO2FB_X1Y1".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_6, "BUFIO2FB_X1Y6".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_7, "BUFIO2FB_X1Y7".to_string());
+                            nnode.add_bel(bels::BUFPLL0, "BUFPLL_X1Y0".to_string());
+                            nnode.add_bel(bels::BUFPLL1, "BUFPLL_X1Y1".to_string());
+                            nnode.add_bel(bels::BUFPLL_MCB, "BUFPLL_MCB_X1Y5".to_string());
                             nnode.add_bel(
-                                19,
+                                bels::TIEOFF_REG,
                                 format!(
                                     "TIEOFF_X{x}Y{y}",
                                     x = namer.tiexlut[col] + 4,
@@ -1131,27 +1145,27 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     ),
                                 ],
                             );
-                            nnode.add_bel(0, "BUFIO2_X2Y28".to_string());
-                            nnode.add_bel(1, "BUFIO2_X2Y29".to_string());
-                            nnode.add_bel(2, "BUFIO2_X2Y26".to_string());
-                            nnode.add_bel(3, "BUFIO2_X2Y27".to_string());
-                            nnode.add_bel(4, "BUFIO2_X4Y28".to_string());
-                            nnode.add_bel(5, "BUFIO2_X4Y29".to_string());
-                            nnode.add_bel(6, "BUFIO2_X4Y26".to_string());
-                            nnode.add_bel(7, "BUFIO2_X4Y27".to_string());
-                            nnode.add_bel(8, "BUFIO2FB_X2Y28".to_string());
-                            nnode.add_bel(9, "BUFIO2FB_X2Y29".to_string());
-                            nnode.add_bel(10, "BUFIO2FB_X2Y26".to_string());
-                            nnode.add_bel(11, "BUFIO2FB_X2Y27".to_string());
-                            nnode.add_bel(12, "BUFIO2FB_X4Y28".to_string());
-                            nnode.add_bel(13, "BUFIO2FB_X4Y29".to_string());
-                            nnode.add_bel(14, "BUFIO2FB_X4Y26".to_string());
-                            nnode.add_bel(15, "BUFIO2FB_X4Y27".to_string());
-                            nnode.add_bel(16, "BUFPLL_X1Y5".to_string());
-                            nnode.add_bel(17, "BUFPLL_X1Y4".to_string());
-                            nnode.add_bel(18, "BUFPLL_MCB_X1Y9".to_string());
+                            nnode.add_bel(bels::BUFIO2_0, "BUFIO2_X2Y28".to_string());
+                            nnode.add_bel(bels::BUFIO2_1, "BUFIO2_X2Y29".to_string());
+                            nnode.add_bel(bels::BUFIO2_2, "BUFIO2_X2Y26".to_string());
+                            nnode.add_bel(bels::BUFIO2_3, "BUFIO2_X2Y27".to_string());
+                            nnode.add_bel(bels::BUFIO2_4, "BUFIO2_X4Y28".to_string());
+                            nnode.add_bel(bels::BUFIO2_5, "BUFIO2_X4Y29".to_string());
+                            nnode.add_bel(bels::BUFIO2_6, "BUFIO2_X4Y26".to_string());
+                            nnode.add_bel(bels::BUFIO2_7, "BUFIO2_X4Y27".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_0, "BUFIO2FB_X2Y28".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_1, "BUFIO2FB_X2Y29".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_2, "BUFIO2FB_X2Y26".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_3, "BUFIO2FB_X2Y27".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_4, "BUFIO2FB_X4Y28".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_5, "BUFIO2FB_X4Y29".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_6, "BUFIO2FB_X4Y26".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_7, "BUFIO2FB_X4Y27".to_string());
+                            nnode.add_bel(bels::BUFPLL0, "BUFPLL_X1Y5".to_string());
+                            nnode.add_bel(bels::BUFPLL1, "BUFPLL_X1Y4".to_string());
+                            nnode.add_bel(bels::BUFPLL_MCB, "BUFPLL_MCB_X1Y9".to_string());
                             nnode.add_bel(
-                                19,
+                                bels::TIEOFF_REG,
                                 format!(
                                     "TIEOFF_X{x}Y{y}",
                                     x = namer.tiexlut[col] + 1,
@@ -1178,27 +1192,27 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() + 1),
                                 ],
                             );
-                            nnode.add_bel(0, "BUFIO2_X1Y8".to_string());
-                            nnode.add_bel(1, "BUFIO2_X1Y9".to_string());
-                            nnode.add_bel(2, "BUFIO2_X1Y14".to_string());
-                            nnode.add_bel(3, "BUFIO2_X1Y15".to_string());
-                            nnode.add_bel(4, "BUFIO2_X0Y16".to_string());
-                            nnode.add_bel(5, "BUFIO2_X0Y17".to_string());
-                            nnode.add_bel(6, "BUFIO2_X0Y22".to_string());
-                            nnode.add_bel(7, "BUFIO2_X0Y23".to_string());
-                            nnode.add_bel(8, "BUFIO2FB_X1Y8".to_string());
-                            nnode.add_bel(9, "BUFIO2FB_X1Y9".to_string());
-                            nnode.add_bel(10, "BUFIO2FB_X1Y14".to_string());
-                            nnode.add_bel(11, "BUFIO2FB_X1Y15".to_string());
-                            nnode.add_bel(12, "BUFIO2FB_X0Y16".to_string());
-                            nnode.add_bel(13, "BUFIO2FB_X0Y17".to_string());
-                            nnode.add_bel(14, "BUFIO2FB_X0Y22".to_string());
-                            nnode.add_bel(15, "BUFIO2FB_X0Y23".to_string());
-                            nnode.add_bel(16, "BUFPLL_X0Y3".to_string());
-                            nnode.add_bel(17, "BUFPLL_X0Y2".to_string());
-                            nnode.add_bel(18, "BUFPLL_MCB_X0Y5".to_string());
+                            nnode.add_bel(bels::BUFIO2_0, "BUFIO2_X1Y8".to_string());
+                            nnode.add_bel(bels::BUFIO2_1, "BUFIO2_X1Y9".to_string());
+                            nnode.add_bel(bels::BUFIO2_2, "BUFIO2_X1Y14".to_string());
+                            nnode.add_bel(bels::BUFIO2_3, "BUFIO2_X1Y15".to_string());
+                            nnode.add_bel(bels::BUFIO2_4, "BUFIO2_X0Y16".to_string());
+                            nnode.add_bel(bels::BUFIO2_5, "BUFIO2_X0Y17".to_string());
+                            nnode.add_bel(bels::BUFIO2_6, "BUFIO2_X0Y22".to_string());
+                            nnode.add_bel(bels::BUFIO2_7, "BUFIO2_X0Y23".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_0, "BUFIO2FB_X1Y8".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_1, "BUFIO2FB_X1Y9".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_2, "BUFIO2FB_X1Y14".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_3, "BUFIO2FB_X1Y15".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_4, "BUFIO2FB_X0Y16".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_5, "BUFIO2FB_X0Y17".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_6, "BUFIO2FB_X0Y22".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_7, "BUFIO2FB_X0Y23".to_string());
+                            nnode.add_bel(bels::BUFPLL0, "BUFPLL_X0Y3".to_string());
+                            nnode.add_bel(bels::BUFPLL1, "BUFPLL_X0Y2".to_string());
+                            nnode.add_bel(bels::BUFPLL_MCB, "BUFPLL_MCB_X0Y5".to_string());
                             nnode.add_bel(
-                                19,
+                                bels::TIEOFF_REG,
                                 format!(
                                     "TIEOFF_X{x}Y{y}",
                                     x = namer.tiexlut[col] + 1,
@@ -1225,27 +1239,27 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() + 1),
                                 ],
                             );
-                            nnode.add_bel(0, "BUFIO2_X4Y20".to_string());
-                            nnode.add_bel(1, "BUFIO2_X4Y21".to_string());
-                            nnode.add_bel(2, "BUFIO2_X4Y18".to_string());
-                            nnode.add_bel(3, "BUFIO2_X4Y19".to_string());
-                            nnode.add_bel(4, "BUFIO2_X3Y12".to_string());
-                            nnode.add_bel(5, "BUFIO2_X3Y13".to_string());
-                            nnode.add_bel(6, "BUFIO2_X3Y10".to_string());
-                            nnode.add_bel(7, "BUFIO2_X3Y11".to_string());
-                            nnode.add_bel(8, "BUFIO2FB_X4Y20".to_string());
-                            nnode.add_bel(9, "BUFIO2FB_X4Y21".to_string());
-                            nnode.add_bel(10, "BUFIO2FB_X4Y18".to_string());
-                            nnode.add_bel(11, "BUFIO2FB_X4Y19".to_string());
-                            nnode.add_bel(12, "BUFIO2FB_X3Y12".to_string());
-                            nnode.add_bel(13, "BUFIO2FB_X3Y13".to_string());
-                            nnode.add_bel(14, "BUFIO2FB_X3Y10".to_string());
-                            nnode.add_bel(15, "BUFIO2FB_X3Y11".to_string());
-                            nnode.add_bel(16, "BUFPLL_X2Y3".to_string());
-                            nnode.add_bel(17, "BUFPLL_X2Y2".to_string());
-                            nnode.add_bel(18, "BUFPLL_MCB_X2Y5".to_string());
+                            nnode.add_bel(bels::BUFIO2_0, "BUFIO2_X4Y20".to_string());
+                            nnode.add_bel(bels::BUFIO2_1, "BUFIO2_X4Y21".to_string());
+                            nnode.add_bel(bels::BUFIO2_2, "BUFIO2_X4Y18".to_string());
+                            nnode.add_bel(bels::BUFIO2_3, "BUFIO2_X4Y19".to_string());
+                            nnode.add_bel(bels::BUFIO2_4, "BUFIO2_X3Y12".to_string());
+                            nnode.add_bel(bels::BUFIO2_5, "BUFIO2_X3Y13".to_string());
+                            nnode.add_bel(bels::BUFIO2_6, "BUFIO2_X3Y10".to_string());
+                            nnode.add_bel(bels::BUFIO2_7, "BUFIO2_X3Y11".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_0, "BUFIO2FB_X4Y20".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_1, "BUFIO2FB_X4Y21".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_2, "BUFIO2FB_X4Y18".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_3, "BUFIO2FB_X4Y19".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_4, "BUFIO2FB_X3Y12".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_5, "BUFIO2FB_X3Y13".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_6, "BUFIO2FB_X3Y10".to_string());
+                            nnode.add_bel(bels::BUFIO2FB_7, "BUFIO2FB_X3Y11".to_string());
+                            nnode.add_bel(bels::BUFPLL0, "BUFPLL_X2Y3".to_string());
+                            nnode.add_bel(bels::BUFPLL1, "BUFPLL_X2Y2".to_string());
+                            nnode.add_bel(bels::BUFPLL_MCB, "BUFPLL_MCB_X2Y5".to_string());
                             nnode.add_bel(
-                                19,
+                                bels::TIEOFF_REG,
                                 format!(
                                     "TIEOFF_X{x}Y{y}",
                                     x = namer.tiexlut[col] + 1,
@@ -1646,20 +1660,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
     let mut pad_cnt = 1;
     for io in edev.chip.get_bonded_ios() {
-        let (col, row, bel) = grid.get_io_loc(io);
-        let layer = edev
-            .egrid
-            .find_node_loc(DieId::from_idx(0), (col, row), |node| {
-                edev.egrid.db.nodes.key(node.kind) == "IOB"
-            })
-            .unwrap()
-            .0;
-        let nnode = namer
-            .ngrid
-            .nodes
-            .get_mut(&(DieId::from_idx(0), col, row, layer))
-            .unwrap();
-        nnode.add_bel(bel.to_idx(), format!("PAD{pad_cnt}"));
+        let bel = grid.get_io_loc(io);
+        let (die, (col, row), slot) = bel;
+        let layer = edev.egrid.find_bel_layer(bel).unwrap();
+        let nnode = namer.ngrid.nodes.get_mut(&(die, col, row, layer)).unwrap();
+        nnode.add_bel(slot, format!("PAD{pad_cnt}"));
         pad_cnt += 1;
     }
 

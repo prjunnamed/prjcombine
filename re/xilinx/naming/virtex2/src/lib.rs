@@ -6,9 +6,10 @@ use prjcombine_re_xilinx_naming::{
     grid::{BelGrid, ExpandedGridNaming},
 };
 use prjcombine_virtex2::{
+    bels,
     chip::{Chip, ChipKind, ColumnIoKind, ColumnKind, DcmPairKind, RowIoKind},
     expanded::ExpandedDevice,
-    iob::{IobKind, get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t},
+    iob::{IobKind, get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w},
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -20,10 +21,8 @@ pub struct ExpandedNamedDevice<'a> {
 
 impl<'a> ExpandedNamedDevice<'a> {
     pub fn get_io_name(&'a self, io: EdgeIoCoord) -> &'a str {
-        let die = DieId::from_idx(0);
-        let (col, row, bel) = self.chip.get_io_loc(io);
-        let nnode = &self.ngrid.nodes[&(die, col, row, LayerId::from_idx(1))];
-        &nnode.bels[bel]
+        let bel = self.chip.get_io_loc(io);
+        self.ngrid.get_bel_name(bel).unwrap()
     }
 }
 
@@ -105,7 +104,7 @@ impl Namer<'_> {
         for &(_, _, r) in &self.chip.rows_hclk {
             self.rows_brk.insert(r - 1);
         }
-        self.rows_brk.remove(&self.chip.row_top());
+        self.rows_brk.remove(&self.chip.row_n());
         if self.chip.kind != ChipKind::Spartan3ADsp {
             self.rows_brk.remove(&(self.chip.row_mid() - 1));
         }
@@ -245,35 +244,27 @@ impl Namer<'_> {
             }
         }
 
-        if (col == self.chip.col_left() || col == self.chip.col_right())
-            && (row == self.chip.row_bot() || row == self.chip.row_top())
+        if (col == self.chip.col_w() || col == self.chip.col_e())
+            && (row == self.chip.row_s() || row == self.chip.row_n())
         {
             if self.chip.kind.is_spartan3ea() {
-                let ul = if row == self.chip.row_bot() { 'L' } else { 'U' };
-                let lr = if col == self.chip.col_left() {
-                    'L'
-                } else {
-                    'R'
-                };
+                let ul = if row == self.chip.row_s() { 'L' } else { 'U' };
+                let lr = if col == self.chip.col_w() { 'L' } else { 'R' };
                 ("INT.CNR", format!("{ul}{lr}_X{x}Y{y}"))
             } else {
-                let bt = if row == self.chip.row_bot() { 'B' } else { 'T' };
-                let lr = if col == self.chip.col_left() {
-                    'L'
-                } else {
-                    'R'
-                };
+                let bt = if row == self.chip.row_s() { 'B' } else { 'T' };
+                let lr = if col == self.chip.col_w() { 'L' } else { 'R' };
                 if self.chip.kind.is_virtex2p() {
                     ("INT.CNR", format!("{lr}IOI{bt}IOI"))
                 } else {
                     ("INT.CNR", format!("{bt}{lr}"))
                 }
             }
-        } else if (row == self.chip.row_bot() || row == self.chip.row_top())
+        } else if (row == self.chip.row_s() || row == self.chip.row_n())
             && !self.chip.kind.is_spartan3ea()
             && matches!(self.chip.columns[col].kind, ColumnKind::Bram)
         {
-            let bt = if row == self.chip.row_bot() { 'B' } else { 'T' };
+            let bt = if row == self.chip.row_s() { 'B' } else { 'T' };
             let c = self.bramclut[col];
             let naming = match self.chip.kind {
                 ChipKind::Virtex2 => "INT.BRAM_IOIS",
@@ -285,7 +276,7 @@ impl Namer<'_> {
                     }
                 }
                 ChipKind::Spartan3 => {
-                    if col == self.chip.col_left() + 3 || col == self.chip.col_right() - 3 {
+                    if col == self.chip.col_w() + 3 || col == self.chip.col_e() - 3 {
                         "INT.DCM.S3"
                     } else {
                         "INT.DCM.S3.DUMMY"
@@ -304,10 +295,10 @@ impl Namer<'_> {
 
                 let is_gt = self.chip.cols_gt.contains_key(&col)
                     && self.chip.kind == ChipKind::Virtex2P
-                    && (row < self.chip.row_bot() + 5 || row >= self.chip.row_top() - 4);
+                    && (row < self.chip.row_s() + 5 || row >= self.chip.row_n() - 4);
                 let is_gt10 = self.chip.cols_gt.contains_key(&col)
                     && self.chip.kind == ChipKind::Virtex2PX
-                    && (row < self.chip.row_bot() + 9 || row >= self.chip.row_top() - 8);
+                    && (row < self.chip.row_s() + 9 || row >= self.chip.row_n() - 8);
                 (
                     if is_gt || is_gt10 {
                         "INT.GT"
@@ -336,13 +327,13 @@ impl Namer<'_> {
                     md = "_BRK";
                 }
                 if self.chip.kind != ChipKind::Spartan3E {
-                    if row == self.chip.row_bot() + 1 {
+                    if row == self.chip.row_s() + 1 {
                         md = "_BOT";
                     }
-                    if row == self.chip.row_top() - 1 {
+                    if row == self.chip.row_n() - 1 {
                         md = "_TOP";
                     }
-                    if self.chip.cols_clkv.is_none() && row == self.chip.row_top() - 5 {
+                    if self.chip.cols_clkv.is_none() && row == self.chip.row_n() - 5 {
                         md = "_TOP";
                     }
                 }
@@ -363,29 +354,29 @@ impl Namer<'_> {
                 md = "_BRK";
             }
             if self.chip.kind != ChipKind::Spartan3E {
-                if row == self.chip.row_bot() + 1 {
+                if row == self.chip.row_s() + 1 {
                     md = "_BOT";
                 }
-                if row == self.chip.row_top() - 1 {
+                if row == self.chip.row_n() - 1 {
                     md = "_TOP";
                 }
-                if self.chip.cols_clkv.is_none() && row == self.chip.row_top() - 5 {
+                if self.chip.cols_clkv.is_none() && row == self.chip.row_n() - 5 {
                     md = "_TOP";
                 }
             }
             (naming, format!("MACC{idx}_SMALL{md}_X{x}Y{y}"))
-        } else if row == self.chip.row_bot() || row == self.chip.row_top() {
+        } else if row == self.chip.row_s() || row == self.chip.row_n() {
             match self.chip.kind {
                 ChipKind::Virtex2
                 | ChipKind::Virtex2P
                 | ChipKind::Virtex2PX
                 | ChipKind::Spartan3
                 | ChipKind::FpgaCore => {
-                    let bt = if row == self.chip.row_bot() { 'B' } else { 'T' };
+                    let bt = if row == self.chip.row_s() { 'B' } else { 'T' };
                     let c = self.clut[col];
                     let naming = if self.chip.kind.is_virtex2() {
                         if self.chip.kind == ChipKind::Virtex2PX && col == self.chip.col_clk - 1 {
-                            if row == self.chip.row_bot() {
+                            if row == self.chip.row_s() {
                                 "INT.IOI.CLK_B"
                             } else {
                                 "INT.IOI.CLK_T"
@@ -406,10 +397,10 @@ impl Namer<'_> {
                     } else {
                         "INT.IOI"
                     };
-                    let (data, tidx) = if row == self.chip.row_bot() {
-                        get_iob_data_b(self.chip.kind, self.chip.columns[col].io)
+                    let (data, tidx) = if row == self.chip.row_s() {
+                        get_iob_data_s(self.chip.kind, self.chip.columns[col].io)
                     } else {
-                        get_iob_data_t(self.chip.kind, self.chip.columns[col].io)
+                        get_iob_data_n(self.chip.kind, self.chip.columns[col].io)
                     };
                     let has_iobs = data
                         .iobs
@@ -420,19 +411,19 @@ impl Namer<'_> {
                         .iter()
                         .any(|iob| iob.tile == tidx && iob.kind == IobKind::Ibuf);
                     let kind = if !has_ibufs {
-                        if row == self.chip.row_bot() {
+                        if row == self.chip.row_s() {
                             "BIOIS"
                         } else {
                             "TIOIS"
                         }
                     } else if !has_iobs {
-                        if row == self.chip.row_bot() {
+                        if row == self.chip.row_s() {
                             "BIBUFS"
                         } else {
                             "TIBUFS"
                         }
                     } else {
-                        if row == self.chip.row_bot() {
+                        if row == self.chip.row_s() {
                             "BIOIB"
                         } else {
                             "TIOIB"
@@ -442,18 +433,14 @@ impl Namer<'_> {
                     (naming, name)
                 }
             }
-        } else if col == self.chip.col_left() || col == self.chip.col_right() {
+        } else if col == self.chip.col_w() || col == self.chip.col_e() {
             match self.chip.kind {
                 ChipKind::Virtex2
                 | ChipKind::Virtex2P
                 | ChipKind::Virtex2PX
                 | ChipKind::Spartan3
                 | ChipKind::FpgaCore => {
-                    let lr = if col == self.chip.col_left() {
-                        'L'
-                    } else {
-                        'R'
-                    };
+                    let lr = if col == self.chip.col_w() { 'L' } else { 'R' };
                     let r = self.rlut[row];
                     let naming = if self.chip.kind.is_virtex2() {
                         "INT.IOI.LR"
@@ -478,23 +465,23 @@ impl Namer<'_> {
                             "INT.IOI"
                         }
                     };
-                    let (data, tidx) = if col == self.chip.col_left() {
-                        get_iob_data_l(self.chip.kind, self.chip.rows[row])
+                    let (data, tidx) = if col == self.chip.col_w() {
+                        get_iob_data_w(self.chip.kind, self.chip.rows[row])
                     } else {
-                        get_iob_data_r(self.chip.kind, self.chip.rows[row])
+                        get_iob_data_e(self.chip.kind, self.chip.rows[row])
                     };
                     let has_ibufs = data
                         .iobs
                         .iter()
                         .any(|iob| iob.tile == tidx && iob.kind == IobKind::Ibuf);
                     let kind = if !has_ibufs {
-                        if col == self.chip.col_left() {
+                        if col == self.chip.col_w() {
                             "LIOIS"
                         } else {
                             "RIOIS"
                         }
                     } else {
-                        if col == self.chip.col_left() {
+                        if col == self.chip.col_w() {
                             "LIBUFS"
                         } else {
                             "RIBUFS"
@@ -539,9 +526,9 @@ impl Namer<'_> {
     }
 
     fn get_lterm_name(&self, row: RowId) -> (&'static str, String) {
-        let x = self.xlut[self.chip.col_left()];
+        let x = self.xlut[self.chip.col_w()];
         let y = row.to_idx();
-        if row == self.chip.row_bot() {
+        if row == self.chip.row_s() {
             if !self.chip.kind.is_spartan3ea() {
                 if !self.chip.kind.is_virtex2p() {
                     ("TERM.W", "LBTERM".into())
@@ -551,7 +538,7 @@ impl Namer<'_> {
             } else {
                 ("TERM.W", format!("CNR_LBTERM_X{x}Y{y}"))
             }
-        } else if row == self.chip.row_top() {
+        } else if row == self.chip.row_n() {
             if !self.chip.kind.is_spartan3ea() {
                 if !self.chip.kind.is_virtex2p() {
                     ("TERM.W", "LTTERM".into())
@@ -627,9 +614,9 @@ impl Namer<'_> {
     }
 
     fn get_rterm_name(&self, row: RowId) -> (&'static str, String) {
-        let x = self.xlut[self.chip.col_right()];
+        let x = self.xlut[self.chip.col_e()];
         let y = row.to_idx();
-        if row == self.chip.row_bot() {
+        if row == self.chip.row_s() {
             if !self.chip.kind.is_spartan3ea() {
                 if !self.chip.kind.is_virtex2p() {
                     ("TERM.E", "RBTERM".into())
@@ -639,7 +626,7 @@ impl Namer<'_> {
             } else {
                 ("TERM.E", format!("CNR_RBTERM_X{x}Y{y}"))
             }
-        } else if row == self.chip.row_top() {
+        } else if row == self.chip.row_n() {
             if !self.chip.kind.is_spartan3ea() {
                 if !self.chip.kind.is_virtex2p() {
                     ("TERM.E", "RTTERM".into())
@@ -707,8 +694,8 @@ impl Namer<'_> {
 
     fn get_bterm_name(&self, col: ColId) -> (&'static str, String) {
         let x = self.xlut[col];
-        let y = self.chip.row_bot().to_idx();
-        if col == self.chip.col_left() {
+        let y = self.chip.row_s().to_idx();
+        if col == self.chip.col_w() {
             if !self.chip.kind.is_spartan3ea() {
                 if !self.chip.kind.is_virtex2p() {
                     ("TERM.S.CNR", "BLTERM".into())
@@ -718,7 +705,7 @@ impl Namer<'_> {
             } else {
                 ("TERM.S.CNR", format!("CNR_BTERM_X{x}Y{y}"))
             }
-        } else if col == self.chip.col_right() {
+        } else if col == self.chip.col_e() {
             if !self.chip.kind.is_spartan3ea() {
                 if !self.chip.kind.is_virtex2p() {
                     ("TERM.S.CNR", "BRTERM".into())
@@ -793,8 +780,8 @@ impl Namer<'_> {
 
     fn get_tterm_name(&self, col: ColId) -> (&'static str, String) {
         let x = self.xlut[col];
-        let y = self.chip.row_top().to_idx();
-        if col == self.chip.col_left() {
+        let y = self.chip.row_n().to_idx();
+        if col == self.chip.col_w() {
             if !self.chip.kind.is_spartan3ea() {
                 if !self.chip.kind.is_virtex2p() {
                     ("TERM.N.CNR", "TLTERM".into())
@@ -804,7 +791,7 @@ impl Namer<'_> {
             } else {
                 ("TERM.N.CNR", format!("CNR_TTERM_X{x}Y{y}"))
             }
-        } else if col == self.chip.col_right() {
+        } else if col == self.chip.col_e() {
             if !self.chip.kind.is_spartan3ea() {
                 if !self.chip.kind.is_virtex2p() {
                     ("TERM.N.CNR", "TRTERM".into())
@@ -879,10 +866,10 @@ impl Namer<'_> {
 
     fn get_bram_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
         let is_bot = matches!(self.chip.kind, ChipKind::Spartan3A | ChipKind::Spartan3ADsp)
-            && row == self.chip.row_bot() + 1;
+            && row == self.chip.row_s() + 1;
         let is_top = matches!(self.chip.kind, ChipKind::Spartan3A | ChipKind::Spartan3ADsp)
-            && (row == self.chip.row_top() - 4
-                || row == self.chip.row_top() - 8 && col == self.chip.col_clk);
+            && (row == self.chip.row_n() - 4
+                || row == self.chip.row_n() - 8 && col == self.chip.col_clk);
         let is_brk = self.rows_brk.contains(&(row + 3));
         let naming = match self.chip.kind {
             ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => "BRAM",
@@ -926,8 +913,8 @@ impl Namer<'_> {
     }
 
     fn get_dsp_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
-        let is_bot = row == self.chip.row_bot() + 1;
-        let is_top = row == self.chip.row_top() - 4;
+        let is_bot = row == self.chip.row_s() + 1;
+        let is_top = row == self.chip.row_n() - 4;
         let is_brk = self.rows_brk.contains(&(row + 3));
         let naming = if is_top { "DSP.TOP" } else { "DSP" };
         let x = self.xlut[col] + 1;
@@ -957,7 +944,7 @@ impl Namer<'_> {
                 }
                 let c = self.clut[col];
                 if self.chip.columns[col].kind == ColumnKind::Io && self.chip.kind.is_virtex2p() {
-                    if col == self.chip.col_left() {
+                    if col == self.chip.col_w() {
                         ("GCLKH", format!("LIOICLKR{r}"))
                     } else {
                         ("GCLKH", format!("RIOICLKR{r}"))
@@ -1067,41 +1054,41 @@ impl Namer<'_> {
     }
 
     fn get_llv_name(&self, col: ColId) -> (&'static str, String) {
-        let naming = if col == self.chip.col_left() {
+        let naming = if col == self.chip.col_w() {
             "LLV.CLKL"
-        } else if col == self.chip.col_right() {
+        } else if col == self.chip.col_e() {
             "LLV.CLKR"
         } else {
             "LLV"
         };
         let x = self.xlut[col];
         let y = self.chip.row_mid().to_idx() - 1;
-        let mut name = if col == self.chip.col_left() {
+        let mut name = if col == self.chip.col_w() {
             format!("CLKL_IOIS_LL_X{x}Y{y}")
-        } else if col == self.chip.col_right() {
+        } else if col == self.chip.col_e() {
             format!("CLKR_IOIS_LL_X{x}Y{y}")
         } else {
             format!("CLKH_LL_X{x}Y{y}")
         };
         if self.chip.kind == ChipKind::Spartan3E {
-            if col == self.chip.col_left() + 9 {
+            if col == self.chip.col_w() + 9 {
                 name = format!("CLKLH_DCM_LL_X{x}Y{y}");
             }
-            if col == self.chip.col_right() - 9 {
+            if col == self.chip.col_e() - 9 {
                 name = format!("CLKRH_DCM_LL_X{x}Y{y}");
             }
         } else {
-            if col == self.chip.col_left() + 3 {
+            if col == self.chip.col_w() + 3 {
                 name = format!("CLKLH_DCM_LL_X{x}Y{y}");
             }
-            if col == self.chip.col_right() - 6 {
+            if col == self.chip.col_e() - 6 {
                 name = format!("CLKRH_DCM_LL_X{x}Y{y}");
             }
             if [
-                self.chip.col_left() + 1,
-                self.chip.col_left() + 2,
-                self.chip.col_right() - 2,
-                self.chip.col_right() - 1,
+                self.chip.col_w() + 1,
+                self.chip.col_w() + 2,
+                self.chip.col_e() - 2,
+                self.chip.col_e() - 1,
             ]
             .into_iter()
             .any(|x| x == col)
@@ -1115,18 +1102,18 @@ impl Namer<'_> {
     fn get_llh_name(&self, row: RowId) -> String {
         let x = self.xlut[self.chip.col_clk - 1];
         let y = row.to_idx();
-        if row == self.chip.row_bot() {
+        if row == self.chip.row_s() {
             format!("CLKB_LL_X{x}Y{y}")
-        } else if row == self.chip.row_top() {
+        } else if row == self.chip.row_n() {
             format!("CLKT_LL_X{x}Y{y}")
         } else if self.chip.kind != ChipKind::Spartan3E
             && [
-                self.chip.row_bot() + 2,
-                self.chip.row_bot() + 3,
-                self.chip.row_bot() + 4,
-                self.chip.row_top() - 4,
-                self.chip.row_top() - 3,
-                self.chip.row_top() - 2,
+                self.chip.row_s() + 2,
+                self.chip.row_s() + 3,
+                self.chip.row_s() + 4,
+                self.chip.row_n() - 4,
+                self.chip.row_n() - 3,
+                self.chip.row_n() - 2,
             ]
             .into_iter()
             .any(|x| x == row)
@@ -1138,7 +1125,7 @@ impl Namer<'_> {
     }
 
     fn fill_io_t(&mut self) {
-        let row = self.chip.row_top();
+        let row = self.chip.row_n();
         for (col, &cd) in &self.chip.columns {
             if self.chip.kind.is_spartan3ea() {
                 if cd.kind == ColumnKind::Io {
@@ -1153,16 +1140,16 @@ impl Namer<'_> {
             let mut pads = vec![];
             let mut ipads = vec![];
             if cd.io != ColumnIoKind::None {
-                let (data, tidx) = get_iob_data_t(self.chip.kind, cd.io);
+                let (data, tidx) = get_iob_data_n(self.chip.kind, cd.io);
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
                         if iob.kind == IobKind::Clk {
-                            clks.push(iob.bel.to_idx());
+                            clks.push(iob.iob.to_idx());
                         } else if iob.kind == IobKind::Ibuf && self.chip.kind != ChipKind::FpgaCore
                         {
-                            ipads.push(iob.bel.to_idx());
+                            ipads.push(iob.iob.to_idx());
                         } else {
-                            pads.push(iob.bel.to_idx());
+                            pads.push(iob.iob.to_idx());
                         }
                     }
                 }
@@ -1180,22 +1167,31 @@ impl Namer<'_> {
                 .get_mut(&(self.die.die, col, row, LayerId::from_idx(1)))
                 .unwrap();
             for &i in iobs {
+                let slot = if self.chip.kind == ChipKind::FpgaCore {
+                    if i < 4 {
+                        bels::IBUF[i]
+                    } else {
+                        bels::OBUF[i - 4]
+                    }
+                } else {
+                    bels::IO[i]
+                };
                 if clks.contains(&i) {
                     let name = match i {
                         0 => "CLKPPAD1",
                         1 => "CLKNPAD1",
                         _ => unreachable!(),
                     };
-                    nnode.add_bel(i, name.into());
+                    nnode.add_bel(slot, name.into());
                     self.ctr_pad += 1;
                 } else if pads.contains(&i) {
-                    nnode.add_bel(i, format!("PAD{idx}", idx = self.ctr_pad));
+                    nnode.add_bel(slot, format!("PAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else if ipads.contains(&i) {
-                    nnode.add_bel(i, format!("IPAD{idx}", idx = self.ctr_pad));
+                    nnode.add_bel(slot, format!("IPAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else {
-                    nnode.add_bel(i, format!("NOPAD{idx}", idx = self.ctr_nopad));
+                    nnode.add_bel(slot, format!("NOPAD{idx}", idx = self.ctr_nopad));
                     self.ctr_nopad += 1;
                 }
             }
@@ -1203,20 +1199,20 @@ impl Namer<'_> {
     }
 
     fn fill_io_r(&mut self) {
-        let col = self.chip.col_right();
+        let col = self.chip.col_e();
         for row in self.chip.rows.ids().rev() {
-            if row == self.chip.row_bot() || row == self.chip.row_top() {
+            if row == self.chip.row_s() || row == self.chip.row_n() {
                 continue;
             }
-            let (data, tidx) = get_iob_data_r(self.chip.kind, self.chip.rows[row]);
+            let (data, tidx) = get_iob_data_e(self.chip.kind, self.chip.rows[row]);
             let mut pads = vec![];
             let mut ipads = vec![];
             for &iob in &data.iobs {
                 if iob.tile == tidx {
                     if iob.kind == IobKind::Ibuf && self.chip.kind != ChipKind::FpgaCore {
-                        ipads.push(iob.bel.to_idx());
+                        ipads.push(iob.iob.to_idx());
                     } else {
-                        pads.push(iob.bel.to_idx());
+                        pads.push(iob.iob.to_idx());
                     }
                 }
             }
@@ -1233,14 +1229,23 @@ impl Namer<'_> {
                 .get_mut(&(self.die.die, col, row, LayerId::from_idx(1)))
                 .unwrap();
             for &i in iobs {
+                let slot = if self.chip.kind == ChipKind::FpgaCore {
+                    if i < 4 {
+                        bels::IBUF[i]
+                    } else {
+                        bels::OBUF[i - 4]
+                    }
+                } else {
+                    bels::IO[i]
+                };
                 if pads.contains(&i) {
-                    nnode.add_bel(i, format!("PAD{idx}", idx = self.ctr_pad));
+                    nnode.add_bel(slot, format!("PAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else if ipads.contains(&i) {
-                    nnode.add_bel(i, format!("IPAD{idx}", idx = self.ctr_pad));
+                    nnode.add_bel(slot, format!("IPAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else {
-                    nnode.add_bel(i, format!("NOPAD{idx}", idx = self.ctr_nopad));
+                    nnode.add_bel(slot, format!("NOPAD{idx}", idx = self.ctr_nopad));
                     self.ctr_nopad += 1;
                 }
             }
@@ -1248,7 +1253,7 @@ impl Namer<'_> {
     }
 
     fn fill_io_b(&mut self) {
-        let row = self.chip.row_bot();
+        let row = self.chip.row_s();
         for (col, &cd) in self.chip.columns.iter().rev() {
             if self.chip.kind.is_spartan3ea() {
                 if cd.kind == ColumnKind::Io {
@@ -1263,16 +1268,16 @@ impl Namer<'_> {
             let mut pads = vec![];
             let mut ipads = vec![];
             if cd.io != ColumnIoKind::None {
-                let (data, tidx) = get_iob_data_b(self.chip.kind, cd.io);
+                let (data, tidx) = get_iob_data_s(self.chip.kind, cd.io);
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
                         if iob.kind == IobKind::Clk {
-                            clks.push(iob.bel.to_idx());
+                            clks.push(iob.iob.to_idx());
                         } else if iob.kind == IobKind::Ibuf && self.chip.kind != ChipKind::FpgaCore
                         {
-                            ipads.push(iob.bel.to_idx());
+                            ipads.push(iob.iob.to_idx());
                         } else {
-                            pads.push(iob.bel.to_idx());
+                            pads.push(iob.iob.to_idx());
                         }
                     }
                 }
@@ -1290,13 +1295,22 @@ impl Namer<'_> {
                 .get_mut(&(self.die.die, col, row, LayerId::from_idx(1)))
                 .unwrap();
             for &i in iobs {
+                let slot = if self.chip.kind == ChipKind::FpgaCore {
+                    if i < 4 {
+                        bels::IBUF[i]
+                    } else {
+                        bels::OBUF[i - 4]
+                    }
+                } else {
+                    bels::IO[i]
+                };
                 if clks.contains(&i) {
                     let name = match i {
                         2 => "CLKPPAD2",
                         3 => "CLKNPAD2",
                         _ => unreachable!(),
                     };
-                    nnode.add_bel(i, name.into());
+                    nnode.add_bel(slot, name.into());
                     self.ctr_pad += 1;
                 } else if pads.contains(&i) {
                     let mut name = format!("PAD{idx}", idx = self.ctr_pad);
@@ -1309,7 +1323,7 @@ impl Namer<'_> {
                             _ => (),
                         }
                     }
-                    nnode.add_bel(i, name);
+                    nnode.add_bel(slot, name);
                     self.ctr_pad += 1;
                 } else if ipads.contains(&i) {
                     let mut name = format!("IPAD{idx}", idx = self.ctr_pad);
@@ -1319,10 +1333,10 @@ impl Namer<'_> {
                     {
                         name = "IPAD94".to_string();
                     }
-                    nnode.add_bel(i, name);
+                    nnode.add_bel(slot, name);
                     self.ctr_pad += 1;
                 } else {
-                    nnode.add_bel(i, format!("NOPAD{idx}", idx = self.ctr_nopad));
+                    nnode.add_bel(slot, format!("NOPAD{idx}", idx = self.ctr_nopad));
                     self.ctr_nopad += 1;
                 }
             }
@@ -1330,20 +1344,20 @@ impl Namer<'_> {
     }
 
     fn fill_io_l(&mut self) {
-        let col = self.chip.col_left();
+        let col = self.chip.col_w();
         for row in self.chip.rows.ids() {
-            if row == self.chip.row_bot() || row == self.chip.row_top() {
+            if row == self.chip.row_s() || row == self.chip.row_n() {
                 continue;
             }
-            let (data, tidx) = get_iob_data_l(self.chip.kind, self.chip.rows[row]);
+            let (data, tidx) = get_iob_data_w(self.chip.kind, self.chip.rows[row]);
             let mut pads = vec![];
             let mut ipads = vec![];
             for &iob in &data.iobs {
                 if iob.tile == tidx {
                     if iob.kind == IobKind::Ibuf && self.chip.kind != ChipKind::FpgaCore {
-                        ipads.push(iob.bel.to_idx());
+                        ipads.push(iob.iob.to_idx());
                     } else {
-                        pads.push(iob.bel.to_idx());
+                        pads.push(iob.iob.to_idx());
                     }
                 }
             }
@@ -1360,14 +1374,23 @@ impl Namer<'_> {
                 .get_mut(&(self.die.die, col, row, LayerId::from_idx(1)))
                 .unwrap();
             for &i in iobs {
+                let slot = if self.chip.kind == ChipKind::FpgaCore {
+                    if i < 4 {
+                        bels::IBUF[i]
+                    } else {
+                        bels::OBUF[i - 4]
+                    }
+                } else {
+                    bels::IO[i]
+                };
                 if pads.contains(&i) {
-                    nnode.add_bel(i, format!("PAD{idx}", idx = self.ctr_pad));
+                    nnode.add_bel(slot, format!("PAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else if ipads.contains(&i) {
-                    nnode.add_bel(i, format!("IPAD{idx}", idx = self.ctr_pad));
+                    nnode.add_bel(slot, format!("IPAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else {
-                    nnode.add_bel(i, format!("NOPAD{idx}", idx = self.ctr_nopad));
+                    nnode.add_bel(slot, format!("NOPAD{idx}", idx = self.ctr_nopad));
                     self.ctr_nopad += 1;
                 }
             }
@@ -1425,43 +1448,43 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode = namer.ngrid.name_node(nloc, naming, [name]);
                             let x = col.to_idx();
                             let y = row.to_idx();
-                            nnode.add_bel(0, format!("RLL_X{x}Y{y}"));
+                            nnode.add_bel(bels::RLL, format!("RLL_X{x}Y{y}"));
                             if kind != "INT.DCM.S3E.DUMMY" {
                                 let mut x = namer.vcc_xlut[col];
                                 let mut y = namer.vcc_ylut[row];
                                 if chip.kind == ChipKind::Virtex2 {
                                     // Look, just..... don't ask me.
                                     x = col.to_idx();
-                                    if col == chip.col_left() {
-                                        if row == chip.row_bot() {
+                                    if col == chip.col_w() {
+                                        if row == chip.row_s() {
                                             y = chip.rows.len() - 2;
-                                        } else if row == chip.row_top() {
+                                        } else if row == chip.row_n() {
                                             y = chip.rows.len() - 1;
                                         } else {
                                             y -= 1;
                                         }
-                                    } else if col == chip.col_right() {
-                                        if row == chip.row_bot() {
+                                    } else if col == chip.col_e() {
+                                        if row == chip.row_s() {
                                             y = 0;
                                             x += 1;
-                                        } else if row == chip.row_top() {
+                                        } else if row == chip.row_n() {
                                             y = 1;
                                             x += 1;
                                         } else {
                                             y += 1;
                                         }
                                     } else if col < chip.col_clk {
-                                        if row == chip.row_bot() {
+                                        if row == chip.row_s() {
                                             y = 0;
-                                        } else if row == chip.row_top() {
+                                        } else if row == chip.row_n() {
                                             y = 1;
                                         } else {
                                             y += 1;
                                         }
                                     } else {
-                                        if row == chip.row_bot() {
+                                        if row == chip.row_s() {
                                             y = 2;
-                                        } else if row == chip.row_top() {
+                                        } else if row == chip.row_n() {
                                             y = 3;
                                         } else {
                                             y += 3;
@@ -1494,29 +1517,53 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let sx = namer.sxlut[col];
                             let sy = 2 * (row.to_idx() - 1);
                             if chip.kind.is_virtex2() {
-                                nnode.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
-                                nnode.add_bel(1, format!("SLICE_X{x}Y{y}", x = sx, y = sy + 1));
-                                nnode.add_bel(2, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy));
-                                nnode.add_bel(3, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy + 1));
+                                nnode.add_bel(bels::SLICE0, format!("SLICE_X{sx}Y{sy}"));
+                                nnode.add_bel(
+                                    bels::SLICE1,
+                                    format!("SLICE_X{x}Y{y}", x = sx, y = sy + 1),
+                                );
+                                nnode.add_bel(
+                                    bels::SLICE2,
+                                    format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy),
+                                );
+                                nnode.add_bel(
+                                    bels::SLICE3,
+                                    format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy + 1),
+                                );
                                 if sx % 4 == 0 {
-                                    nnode.add_bel(4, format!("TBUF_X{sx}Y{sy}"));
-                                    nnode.add_bel(5, format!("TBUF_X{x}Y{y}", x = sx, y = sy + 1));
+                                    nnode.add_bel(bels::TBUF0, format!("TBUF_X{sx}Y{sy}"));
+                                    nnode.add_bel(
+                                        bels::TBUF1,
+                                        format!("TBUF_X{x}Y{y}", x = sx, y = sy + 1),
+                                    );
                                 } else {
-                                    nnode.add_bel(4, format!("TBUF_X{x}Y{y}", x = sx, y = sy + 1));
-                                    nnode.add_bel(5, format!("TBUF_X{sx}Y{sy}"));
+                                    nnode.add_bel(
+                                        bels::TBUF0,
+                                        format!("TBUF_X{x}Y{y}", x = sx, y = sy + 1),
+                                    );
+                                    nnode.add_bel(bels::TBUF1, format!("TBUF_X{sx}Y{sy}"));
                                 }
                             } else {
-                                nnode.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
-                                nnode.add_bel(1, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy));
-                                nnode.add_bel(2, format!("SLICE_X{x}Y{y}", x = sx, y = sy + 1));
-                                nnode.add_bel(3, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy + 1));
+                                nnode.add_bel(bels::SLICE0, format!("SLICE_X{sx}Y{sy}"));
+                                nnode.add_bel(
+                                    bels::SLICE1,
+                                    format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy),
+                                );
+                                nnode.add_bel(
+                                    bels::SLICE2,
+                                    format!("SLICE_X{x}Y{y}", x = sx, y = sy + 1),
+                                );
+                                nnode.add_bel(
+                                    bels::SLICE3,
+                                    format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy + 1),
+                                );
                             }
                         }
                         "RANDOR" => {
                             let (_, name) = namer.get_int_name(col, row);
-                            let naming = if row == chip.row_bot() {
+                            let naming = if row == chip.row_s() {
                                 "RANDOR.B"
-                            } else if row == chip.row_top() {
+                            } else if row == chip.row_n() {
                                 "RANDOR.T"
                             } else {
                                 unreachable!()
@@ -1532,16 +1579,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 0
                             };
-                            nnode.add_bel(0, format!("RANDOR_X{x}Y{y}"));
+                            nnode.add_bel(bels::RANDOR, format!("RANDOR_X{x}Y{y}"));
                         }
+                        "RANDOR_INIT" => {}
                         "BRAM" | "BRAM.S3" | "BRAM.S3E" | "BRAM.S3A" | "BRAM.S3ADSP" => {
                             let (naming, name) = namer.get_bram_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, naming, [name]);
                             let x = namer.bram_grid.xlut[col];
                             let y = namer.bram_grid.ylut[row];
-                            nnode.add_bel(0, format!("RAMB16_X{x}Y{y}"));
+                            nnode.add_bel(bels::BRAM, format!("RAMB16_X{x}Y{y}"));
                             if chip.kind != ChipKind::Spartan3ADsp {
-                                nnode.add_bel(1, format!("MULT18X18_X{x}Y{y}"));
+                                nnode.add_bel(bels::MULT, format!("MULT18X18_X{x}Y{y}"));
                             }
                         }
                         "DSP" => {
@@ -1549,7 +1597,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode = namer.ngrid.name_node(nloc, naming, [name]);
                             let x = namer.bram_grid.xlut[col - 3];
                             let y = namer.bram_grid.ylut[row];
-                            nnode.add_bel(0, format!("DSP48A_X{x}Y{y}"));
+                            nnode.add_bel(bels::DSP, format!("DSP48A_X{x}Y{y}"));
                         }
                         "INTF.DSP" => {
                             let (_, name) = namer.get_dsp_name(col, row);
@@ -1564,11 +1612,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     .name_node(nloc, "GIGABIT.B", [format!("BMR{r}C{c}")]);
                             let gx = namer.gtxlut[col];
                             let (bank, _) = chip.cols_gt[&col];
-                            nnode.add_bel(0, format!("GT_X{gx}Y0"));
-                            nnode.add_bel(1, format!("RXPPAD{bank}"));
-                            nnode.add_bel(2, format!("RXNPAD{bank}"));
-                            nnode.add_bel(3, format!("TXPPAD{bank}"));
-                            nnode.add_bel(4, format!("TXNPAD{bank}"));
+                            nnode.add_bel(bels::GT, format!("GT_X{gx}Y0"));
+                            nnode.add_bel(bels::IPAD_RXP, format!("RXPPAD{bank}"));
+                            nnode.add_bel(bels::IPAD_RXN, format!("RXNPAD{bank}"));
+                            nnode.add_bel(bels::OPAD_TXP, format!("TXPPAD{bank}"));
+                            nnode.add_bel(bels::OPAD_TXN, format!("TXNPAD{bank}"));
                         }
                         "GIGABIT10.B" => {
                             let c = namer.bramclut[col];
@@ -1579,11 +1627,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     .name_node(nloc, "GIGABIT10.B", [format!("BMR{r}C{c}")]);
                             let gx = namer.gtxlut[col];
                             let (bank, _) = chip.cols_gt[&col];
-                            nnode.add_bel(0, format!("GT10_X{gx}Y0"));
-                            nnode.add_bel(1, format!("RXPPAD{bank}"));
-                            nnode.add_bel(2, format!("RXNPAD{bank}"));
-                            nnode.add_bel(3, format!("TXPPAD{bank}"));
-                            nnode.add_bel(4, format!("TXNPAD{bank}"));
+                            nnode.add_bel(bels::GT10, format!("GT10_X{gx}Y0"));
+                            nnode.add_bel(bels::IPAD_RXP, format!("RXPPAD{bank}"));
+                            nnode.add_bel(bels::IPAD_RXN, format!("RXNPAD{bank}"));
+                            nnode.add_bel(bels::OPAD_TXP, format!("TXPPAD{bank}"));
+                            nnode.add_bel(bels::OPAD_TXN, format!("TXNPAD{bank}"));
                         }
                         "GIGABIT.T" => {
                             let c = namer.bramclut[col];
@@ -1594,11 +1642,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     .name_node(nloc, "GIGABIT.T", [format!("BMR{r}C{c}")]);
                             let gx = namer.gtxlut[col];
                             let (_, bank) = chip.cols_gt[&col];
-                            nnode.add_bel(0, format!("GT_X{gx}Y1"));
-                            nnode.add_bel(1, format!("RXPPAD{bank}"));
-                            nnode.add_bel(2, format!("RXNPAD{bank}"));
-                            nnode.add_bel(3, format!("TXPPAD{bank}"));
-                            nnode.add_bel(4, format!("TXNPAD{bank}"));
+                            nnode.add_bel(bels::GT, format!("GT_X{gx}Y1"));
+                            nnode.add_bel(bels::IPAD_RXP, format!("RXPPAD{bank}"));
+                            nnode.add_bel(bels::IPAD_RXN, format!("RXNPAD{bank}"));
+                            nnode.add_bel(bels::OPAD_TXP, format!("TXPPAD{bank}"));
+                            nnode.add_bel(bels::OPAD_TXN, format!("TXNPAD{bank}"));
                         }
                         "GIGABIT10.T" => {
                             let c = namer.bramclut[col];
@@ -1609,11 +1657,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     .name_node(nloc, "GIGABIT10.T", [format!("BMR{r}C{c}")]);
                             let gx = namer.gtxlut[col];
                             let (_, bank) = chip.cols_gt[&col];
-                            nnode.add_bel(0, format!("GT10_X{gx}Y1"));
-                            nnode.add_bel(1, format!("RXPPAD{bank}"));
-                            nnode.add_bel(2, format!("RXNPAD{bank}"));
-                            nnode.add_bel(3, format!("TXPPAD{bank}"));
-                            nnode.add_bel(4, format!("TXNPAD{bank}"));
+                            nnode.add_bel(bels::GT10, format!("GT10_X{gx}Y1"));
+                            nnode.add_bel(bels::IPAD_RXP, format!("RXPPAD{bank}"));
+                            nnode.add_bel(bels::IPAD_RXN, format!("RXNPAD{bank}"));
+                            nnode.add_bel(bels::OPAD_TXP, format!("TXPPAD{bank}"));
+                            nnode.add_bel(bels::OPAD_TXN, format!("TXNPAD{bank}"));
                         }
                         "LBPPC" | "RBPPC" => {
                             let x = if kind == "LBPPC" || chip.holes_ppc.len() == 1 {
@@ -1622,7 +1670,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 1
                             };
                             let nnode = namer.ngrid.name_node(nloc, kind, [format!("PPC_X{x}Y0")]);
-                            nnode.add_bel(0, format!("PPC405_X{x}Y0"));
+                            nnode.add_bel(bels::PPC405, format!("PPC405_X{x}Y0"));
                         }
                         "TERM.W" => {
                             let (naming, name) = namer.get_lterm_name(row);
@@ -1673,18 +1721,24 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             };
                             let nnode = namer.ngrid.name_node(nloc, kind, [name.into()]);
                             let vx = namer.vcc_xlut[chip.col_clk] - 1;
-                            let vy = chip.row_bot().to_idx();
+                            let vy = chip.row_s().to_idx();
                             nnode.tie_name = Some(format!("VCC_X{vx}Y{vy}"));
-                            nnode.add_bel(0, "BUFGMUX0P".to_string());
-                            nnode.add_bel(1, "BUFGMUX1S".to_string());
-                            nnode.add_bel(2, "BUFGMUX2P".to_string());
-                            nnode.add_bel(3, "BUFGMUX3S".to_string());
-                            nnode.add_bel(4, "BUFGMUX4P".to_string());
-                            nnode.add_bel(5, "BUFGMUX5S".to_string());
-                            nnode.add_bel(6, "BUFGMUX6P".to_string());
-                            nnode.add_bel(7, "BUFGMUX7S".to_string());
-                            nnode.add_bel(8, format!("GSIG_X{x}Y0", x = chip.col_clk.to_idx()));
-                            nnode.add_bel(9, format!("GSIG_X{x}Y0", x = chip.col_clk.to_idx() + 1));
+                            nnode.add_bel(bels::BUFGMUX0, "BUFGMUX0P".to_string());
+                            nnode.add_bel(bels::BUFGMUX1, "BUFGMUX1S".to_string());
+                            nnode.add_bel(bels::BUFGMUX2, "BUFGMUX2P".to_string());
+                            nnode.add_bel(bels::BUFGMUX3, "BUFGMUX3S".to_string());
+                            nnode.add_bel(bels::BUFGMUX4, "BUFGMUX4P".to_string());
+                            nnode.add_bel(bels::BUFGMUX5, "BUFGMUX5S".to_string());
+                            nnode.add_bel(bels::BUFGMUX6, "BUFGMUX6P".to_string());
+                            nnode.add_bel(bels::BUFGMUX7, "BUFGMUX7S".to_string());
+                            nnode.add_bel(
+                                bels::GLOBALSIG_S0,
+                                format!("GSIG_X{x}Y0", x = chip.col_clk.to_idx()),
+                            );
+                            nnode.add_bel(
+                                bels::GLOBALSIG_S1,
+                                format!("GSIG_X{x}Y0", x = chip.col_clk.to_idx() + 1),
+                            );
                         }
                         "CLKT.V2" | "CLKT.V2P" | "CLKT.V2PX" => {
                             let name = match chip.kind {
@@ -1701,16 +1755,22 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 chip.rows.len() - 1
                             };
                             nnode.tie_name = Some(format!("VCC_X{vx}Y{vy}"));
-                            nnode.add_bel(0, "BUFGMUX0S".to_string());
-                            nnode.add_bel(1, "BUFGMUX1P".to_string());
-                            nnode.add_bel(2, "BUFGMUX2S".to_string());
-                            nnode.add_bel(3, "BUFGMUX3P".to_string());
-                            nnode.add_bel(4, "BUFGMUX4S".to_string());
-                            nnode.add_bel(5, "BUFGMUX5P".to_string());
-                            nnode.add_bel(6, "BUFGMUX6S".to_string());
-                            nnode.add_bel(7, "BUFGMUX7P".to_string());
-                            nnode.add_bel(8, format!("GSIG_X{x}Y1", x = chip.col_clk.to_idx()));
-                            nnode.add_bel(9, format!("GSIG_X{x}Y1", x = chip.col_clk.to_idx() + 1));
+                            nnode.add_bel(bels::BUFGMUX0, "BUFGMUX0S".to_string());
+                            nnode.add_bel(bels::BUFGMUX1, "BUFGMUX1P".to_string());
+                            nnode.add_bel(bels::BUFGMUX2, "BUFGMUX2S".to_string());
+                            nnode.add_bel(bels::BUFGMUX3, "BUFGMUX3P".to_string());
+                            nnode.add_bel(bels::BUFGMUX4, "BUFGMUX4S".to_string());
+                            nnode.add_bel(bels::BUFGMUX5, "BUFGMUX5P".to_string());
+                            nnode.add_bel(bels::BUFGMUX6, "BUFGMUX6S".to_string());
+                            nnode.add_bel(bels::BUFGMUX7, "BUFGMUX7P".to_string());
+                            nnode.add_bel(
+                                bels::GLOBALSIG_N0,
+                                format!("GSIG_X{x}Y1", x = chip.col_clk.to_idx()),
+                            );
+                            nnode.add_bel(
+                                bels::GLOBALSIG_N1,
+                                format!("GSIG_X{x}Y1", x = chip.col_clk.to_idx() + 1),
+                            );
                         }
                         "CLKB.S3" | "CLKB.FC" => {
                             let bufg = if chip.kind == ChipKind::FpgaCore {
@@ -1722,11 +1782,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let vx = namer.vcc_xlut[chip.col_clk] - 1;
                             let vy = 0;
                             nnode.tie_name = Some(format!("VCC_X{vx}Y{vy}"));
-                            nnode.add_bel(0, format!("{bufg}0"));
-                            nnode.add_bel(1, format!("{bufg}1"));
-                            nnode.add_bel(2, format!("{bufg}2"));
-                            nnode.add_bel(3, format!("{bufg}3"));
-                            nnode.add_bel(4, format!("GSIG_X{x}Y0", x = chip.col_clk.to_idx()));
+                            nnode.add_bel(bels::BUFGMUX0, format!("{bufg}0"));
+                            nnode.add_bel(bels::BUFGMUX1, format!("{bufg}1"));
+                            nnode.add_bel(bels::BUFGMUX2, format!("{bufg}2"));
+                            nnode.add_bel(bels::BUFGMUX3, format!("{bufg}3"));
+                            nnode.add_bel(
+                                bels::GLOBALSIG_S,
+                                format!("GSIG_X{x}Y0", x = chip.col_clk.to_idx()),
+                            );
                         }
                         "CLKT.S3" | "CLKT.FC" => {
                             let bufg = if chip.kind == ChipKind::FpgaCore {
@@ -1736,13 +1799,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             };
                             let nnode = namer.ngrid.name_node(nloc, kind, ["CLKT".into()]);
                             let vx = namer.vcc_xlut[chip.col_clk] - 1;
-                            let vy = namer.vcc_ylut[chip.row_top()];
+                            let vy = namer.vcc_ylut[chip.row_n()];
                             nnode.tie_name = Some(format!("VCC_X{vx}Y{vy}"));
-                            nnode.add_bel(0, format!("{bufg}4"));
-                            nnode.add_bel(1, format!("{bufg}5"));
-                            nnode.add_bel(2, format!("{bufg}6"));
-                            nnode.add_bel(3, format!("{bufg}7"));
-                            nnode.add_bel(4, format!("GSIG_X{x}Y1", x = chip.col_clk.to_idx()));
+                            nnode.add_bel(bels::BUFGMUX0, format!("{bufg}4"));
+                            nnode.add_bel(bels::BUFGMUX1, format!("{bufg}5"));
+                            nnode.add_bel(bels::BUFGMUX2, format!("{bufg}6"));
+                            nnode.add_bel(bels::BUFGMUX3, format!("{bufg}7"));
+                            nnode.add_bel(
+                                bels::GLOBALSIG_N,
+                                format!("GSIG_X{x}Y1", x = chip.col_clk.to_idx()),
+                            );
                         }
                         "CLKB.S3E" | "CLKB.S3A" => {
                             let x = namer.xlut[chip.col_clk - 1];
@@ -1757,12 +1823,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let vx = namer.vcc_xlut[chip.col_clk] - 1;
                             let vy = 0;
                             nnode.tie_name = Some(format!("VCC_X{vx}Y{vy}"));
-                            nnode.add_bel(0, "BUFGMUX_X2Y1".to_string());
-                            nnode.add_bel(1, "BUFGMUX_X2Y0".to_string());
-                            nnode.add_bel(2, "BUFGMUX_X1Y1".to_string());
-                            nnode.add_bel(3, "BUFGMUX_X1Y0".to_string());
+                            nnode.add_bel(bels::BUFGMUX0, "BUFGMUX_X2Y1".to_string());
+                            nnode.add_bel(bels::BUFGMUX1, "BUFGMUX_X2Y0".to_string());
+                            nnode.add_bel(bels::BUFGMUX2, "BUFGMUX_X1Y1".to_string());
+                            nnode.add_bel(bels::BUFGMUX3, "BUFGMUX_X1Y0".to_string());
                             nnode.add_bel(
-                                4,
+                                bels::GLOBALSIG_S,
                                 format!("GLOBALSIG_X{x}Y0", x = namer.xlut[chip.col_clk] + 1),
                             );
                         }
@@ -1777,14 +1843,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             };
                             let nnode = namer.ngrid.name_node(nloc, kind, [name, name_buf]);
                             let vx = namer.vcc_xlut[chip.col_clk] - 1;
-                            let vy = namer.vcc_ylut[chip.row_top()];
+                            let vy = namer.vcc_ylut[chip.row_n()];
                             nnode.tie_name = Some(format!("VCC_X{vx}Y{vy}"));
-                            nnode.add_bel(0, "BUFGMUX_X2Y11".to_string());
-                            nnode.add_bel(1, "BUFGMUX_X2Y10".to_string());
-                            nnode.add_bel(2, "BUFGMUX_X1Y11".to_string());
-                            nnode.add_bel(3, "BUFGMUX_X1Y10".to_string());
+                            nnode.add_bel(bels::BUFGMUX0, "BUFGMUX_X2Y11".to_string());
+                            nnode.add_bel(bels::BUFGMUX1, "BUFGMUX_X2Y10".to_string());
+                            nnode.add_bel(bels::BUFGMUX2, "BUFGMUX_X1Y11".to_string());
+                            nnode.add_bel(bels::BUFGMUX3, "BUFGMUX_X1Y10".to_string());
                             nnode.add_bel(
-                                4,
+                                bels::GLOBALSIG_N,
                                 format!(
                                     "GLOBALSIG_X{x}Y{y}",
                                     x = namer.xlut[chip.col_clk] + 1,
@@ -1809,17 +1875,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let vy = namer.vcc_ylut[chip.row_mid()] - 1;
                             let vx = 0;
                             let gsy = chip.rows_hclk.len().div_ceil(2) + 1;
-                            nnode.add_bel(0, "BUFGMUX_X0Y2".to_string());
-                            nnode.add_bel(1, "BUFGMUX_X0Y3".to_string());
-                            nnode.add_bel(2, "BUFGMUX_X0Y4".to_string());
-                            nnode.add_bel(3, "BUFGMUX_X0Y5".to_string());
-                            nnode.add_bel(4, "BUFGMUX_X0Y6".to_string());
-                            nnode.add_bel(5, "BUFGMUX_X0Y7".to_string());
-                            nnode.add_bel(6, "BUFGMUX_X0Y8".to_string());
-                            nnode.add_bel(7, "BUFGMUX_X0Y9".to_string());
-                            nnode.add_bel(8, "PCILOGIC_X0Y0".to_string());
-                            nnode.add_bel(9, format!("VCC_X{vx}Y{vy}"));
-                            nnode.add_bel(10, format!("GLOBALSIG_X0Y{gsy}"));
+                            nnode.add_bel(bels::BUFGMUX0, "BUFGMUX_X0Y2".to_string());
+                            nnode.add_bel(bels::BUFGMUX1, "BUFGMUX_X0Y3".to_string());
+                            nnode.add_bel(bels::BUFGMUX2, "BUFGMUX_X0Y4".to_string());
+                            nnode.add_bel(bels::BUFGMUX3, "BUFGMUX_X0Y5".to_string());
+                            nnode.add_bel(bels::BUFGMUX4, "BUFGMUX_X0Y6".to_string());
+                            nnode.add_bel(bels::BUFGMUX5, "BUFGMUX_X0Y7".to_string());
+                            nnode.add_bel(bels::BUFGMUX6, "BUFGMUX_X0Y8".to_string());
+                            nnode.add_bel(bels::BUFGMUX7, "BUFGMUX_X0Y9".to_string());
+                            nnode.add_bel(bels::PCILOGICSE, "PCILOGIC_X0Y0".to_string());
+                            nnode.add_bel(bels::VCC, format!("VCC_X{vx}Y{vy}"));
+                            nnode.add_bel(bels::GLOBALSIG_WE, format!("GLOBALSIG_X0Y{gsy}"));
                         }
                         "CLKR.S3E" | "CLKR.S3A" => {
                             let x = namer.xlut[col];
@@ -1836,24 +1902,21 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                             let nnode = namer.ngrid.name_node(nloc, kind, names);
                             let vy = namer.vcc_ylut[chip.row_mid()] - 1;
-                            let vx = namer.vcc_xlut[chip.col_right()] + 1;
+                            let vx = namer.vcc_xlut[chip.col_e()] + 1;
                             let gsy = chip.rows_hclk.len().div_ceil(2) + 1;
-                            nnode.add_bel(0, "BUFGMUX_X3Y2".to_string());
-                            nnode.add_bel(1, "BUFGMUX_X3Y3".to_string());
-                            nnode.add_bel(2, "BUFGMUX_X3Y4".to_string());
-                            nnode.add_bel(3, "BUFGMUX_X3Y5".to_string());
-                            nnode.add_bel(4, "BUFGMUX_X3Y6".to_string());
-                            nnode.add_bel(5, "BUFGMUX_X3Y7".to_string());
-                            nnode.add_bel(6, "BUFGMUX_X3Y8".to_string());
-                            nnode.add_bel(7, "BUFGMUX_X3Y9".to_string());
-                            nnode.add_bel(8, "PCILOGIC_X1Y0".to_string());
-                            nnode.add_bel(9, format!("VCC_X{vx}Y{vy}"));
+                            nnode.add_bel(bels::BUFGMUX0, "BUFGMUX_X3Y2".to_string());
+                            nnode.add_bel(bels::BUFGMUX1, "BUFGMUX_X3Y3".to_string());
+                            nnode.add_bel(bels::BUFGMUX2, "BUFGMUX_X3Y4".to_string());
+                            nnode.add_bel(bels::BUFGMUX3, "BUFGMUX_X3Y5".to_string());
+                            nnode.add_bel(bels::BUFGMUX4, "BUFGMUX_X3Y6".to_string());
+                            nnode.add_bel(bels::BUFGMUX5, "BUFGMUX_X3Y7".to_string());
+                            nnode.add_bel(bels::BUFGMUX6, "BUFGMUX_X3Y8".to_string());
+                            nnode.add_bel(bels::BUFGMUX7, "BUFGMUX_X3Y9".to_string());
+                            nnode.add_bel(bels::PCILOGICSE, "PCILOGIC_X1Y0".to_string());
+                            nnode.add_bel(bels::VCC, format!("VCC_X{vx}Y{vy}"));
                             nnode.add_bel(
-                                10,
-                                format!(
-                                    "GLOBALSIG_X{x}Y{gsy}",
-                                    x = namer.xlut[chip.col_right()] + 3
-                                ),
+                                bels::GLOBALSIG_WE,
+                                format!("GLOBALSIG_X{x}Y{gsy}", x = namer.xlut[chip.col_e()] + 3),
                             );
                         }
 
@@ -1874,7 +1937,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     format!("LTERMR{rt}"),
                                 ],
                             );
-                            nnode.add_bel(0, "PCILOGIC_X0Y0".into());
+                            nnode.add_bel(bels::PCILOGIC, "PCILOGIC_X0Y0".into());
                         }
                         "REG_R" => {
                             let rb = namer.rlut[row - 1];
@@ -1893,7 +1956,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     format!("RTERMR{rt}"),
                                 ],
                             );
-                            nnode.add_bel(0, "PCILOGIC_X1Y0".into());
+                            nnode.add_bel(bels::PCILOGIC, "PCILOGIC_X1Y0".into());
                         }
                         "GCLKH" | "GCLKH.UNI" | "GCLKH.S" | "GCLKH.UNI.S" | "GCLKH.N"
                         | "GCLKH.UNI.N" | "GCLKH.0" => {
@@ -1908,7 +1971,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     col.to_idx() + 2
                                 };
                                 let gsy = namer.hclklut[row];
-                                nnode.add_bel(0, format!("GSIG_X{gsx}Y{gsy}"));
+                                nnode.add_bel(bels::GLOBALSIG, format!("GSIG_X{gsx}Y{gsy}"));
                             } else {
                                 let gsx = if col < chip.col_clk {
                                     namer.xlut[col] + 1
@@ -1920,7 +1983,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 } else {
                                     namer.hclklut[row] + 2
                                 };
-                                nnode.add_bel(0, format!("GLOBALSIG_X{gsx}Y{gsy}"));
+                                nnode.add_bel(bels::GLOBALSIG, format!("GLOBALSIG_X{gsx}Y{gsy}"));
                             }
                         }
                         "GCLKH.DSP" => {
@@ -1940,7 +2003,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 namer.hclklut[row] + 2
                             };
-                            nnode.add_bel(0, format!("GLOBALSIG_X{gsx}Y{gsy}"));
+                            nnode.add_bel(bels::GLOBALSIG_DSP, format!("GLOBALSIG_X{gsx}Y{gsy}"));
                         }
                         "PCI_CE_CNR" => {
                             let (_, name) = namer.get_int_name(col, row);
@@ -2034,13 +2097,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IOI.S3" => {
                             let (_, name) = namer.get_int_name(col, row);
-                            let naming = if col == chip.col_left() {
+                            let naming = if col == chip.col_w() {
                                 "IOI.S3.L"
-                            } else if col == chip.col_right() {
+                            } else if col == chip.col_e() {
                                 "IOI.S3.R"
-                            } else if row == chip.row_bot() {
+                            } else if row == chip.row_s() {
                                 "IOI.S3.B"
-                            } else if row == chip.row_top() {
+                            } else if row == chip.row_n() {
                                 "IOI.S3.T"
                             } else {
                                 unreachable!()
@@ -2049,13 +2112,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IOI.FC" => {
                             let (_, name) = namer.get_int_name(col, row);
-                            let naming = if col == chip.col_left() {
+                            let naming = if col == chip.col_w() {
                                 "IOI.FC.L"
-                            } else if col == chip.col_right() {
+                            } else if col == chip.col_e() {
                                 "IOI.FC.R"
-                            } else if row == chip.row_bot() {
+                            } else if row == chip.row_s() {
                                 "IOI.FC.B"
-                            } else if row == chip.row_top() {
+                            } else if row == chip.row_n() {
                                 "IOI.FC.T"
                             } else {
                                 unreachable!()
@@ -2064,7 +2127,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IOI.S3E" => {
                             let (_, name) = namer.get_int_name(col, row);
-                            let naming = if col == chip.col_left() {
+                            let naming = if col == chip.col_w() {
                                 if row >= chip.row_mid() - 4 && row < chip.row_mid() + 4 {
                                     if row == chip.row_mid() - 4 || row == chip.row_mid() {
                                         "IOI.S3E.L.PCI"
@@ -2074,7 +2137,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 } else {
                                     "IOI.S3E.L"
                                 }
-                            } else if col == chip.col_right() {
+                            } else if col == chip.col_e() {
                                 if row >= chip.row_mid() - 4 && row < chip.row_mid() + 4 {
                                     if row == chip.row_mid() - 1 || row == chip.row_mid() + 3 {
                                         "IOI.S3E.R.PCI"
@@ -2084,9 +2147,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 } else {
                                     "IOI.S3E.R"
                                 }
-                            } else if row == chip.row_bot() {
+                            } else if row == chip.row_s() {
                                 "IOI.S3E.B"
-                            } else if row == chip.row_top() {
+                            } else if row == chip.row_n() {
                                 "IOI.S3E.T"
                             } else {
                                 unreachable!()
@@ -2113,7 +2176,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IOI.S3A.LR" => {
                             let (_, name) = namer.get_int_name(col, row);
-                            let naming = if col == chip.col_left() {
+                            let naming = if col == chip.col_w() {
                                 if row >= chip.row_mid() - 4
                                     && row < chip.row_mid() + 4
                                     && row != chip.row_mid() - 4
@@ -2131,7 +2194,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                         "IOI.S3A.L"
                                     }
                                 }
-                            } else if col == chip.col_right() {
+                            } else if col == chip.col_e() {
                                 if row >= chip.row_mid() - 4
                                     && row < chip.row_mid() + 4
                                     && row != chip.row_mid() - 1
@@ -2172,7 +2235,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode = namer.ngrid.name_node(nloc, naming, [name]);
                             let x = namer.dcm_grid.xlut[col];
                             let y = namer.dcm_grid.ylut[row];
-                            nnode.add_bel(0, format!("DCM_X{x}Y{y}"));
+                            nnode.add_bel(bels::DCM, format!("DCM_X{x}Y{y}"));
                         }
                         "DCMCONN.BOT" => {
                             let (_, name) = namer.get_bterm_name(col);
@@ -2186,16 +2249,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         "LL.V2" | "LL.V2P" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "DCI6".to_string());
-                            nnode.add_bel(1, "DCI5".to_string());
+                            nnode.add_bel(bels::DCI0, "DCI6".to_string());
+                            nnode.add_bel(bels::DCI1, "DCI5".to_string());
                         }
                         "LL.S3" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "DCI6".to_string());
-                            nnode.add_bel(1, "DCI5".to_string());
-                            nnode.add_bel(2, "DCIRESET6".to_string());
-                            nnode.add_bel(3, "DCIRESET5".to_string());
+                            nnode.add_bel(bels::DCI0, "DCI6".to_string());
+                            nnode.add_bel(bels::DCI1, "DCI5".to_string());
+                            nnode.add_bel(bels::DCIRESET0, "DCIRESET6".to_string());
+                            nnode.add_bel(bels::DCIRESET1, "DCIRESET5".to_string());
                         }
                         "LL.FC" | "LL.S3E" | "LL.S3A" => {
                             let (_, name) = namer.get_int_name(col, row);
@@ -2204,96 +2267,96 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         "LR.V2" | "LR.V2P" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "DCI3".to_string());
-                            nnode.add_bel(1, "DCI4".to_string());
-                            nnode.add_bel(2, "STARTUP".to_string());
-                            nnode.add_bel(3, "CAPTURE".to_string());
-                            nnode.add_bel(4, "ICAP".to_string());
+                            nnode.add_bel(bels::DCI0, "DCI3".to_string());
+                            nnode.add_bel(bels::DCI1, "DCI4".to_string());
+                            nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
+                            nnode.add_bel(bels::CAPTURE, "CAPTURE".to_string());
+                            nnode.add_bel(bels::ICAP, "ICAP".to_string());
                         }
                         "LR.S3" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "DCI3".to_string());
-                            nnode.add_bel(1, "DCI4".to_string());
-                            nnode.add_bel(2, "DCIRESET3".to_string());
-                            nnode.add_bel(3, "DCIRESET4".to_string());
-                            nnode.add_bel(4, "STARTUP".to_string());
-                            nnode.add_bel(5, "CAPTURE".to_string());
-                            nnode.add_bel(6, "ICAP".to_string());
+                            nnode.add_bel(bels::DCI0, "DCI3".to_string());
+                            nnode.add_bel(bels::DCI1, "DCI4".to_string());
+                            nnode.add_bel(bels::DCIRESET0, "DCIRESET3".to_string());
+                            nnode.add_bel(bels::DCIRESET1, "DCIRESET4".to_string());
+                            nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
+                            nnode.add_bel(bels::CAPTURE, "CAPTURE".to_string());
+                            nnode.add_bel(bels::ICAP, "ICAP".to_string());
                         }
                         "LR.FC" | "LR.S3E" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "STARTUP".to_string());
-                            nnode.add_bel(1, "CAPTURE".to_string());
-                            nnode.add_bel(2, "ICAP".to_string());
+                            nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
+                            nnode.add_bel(bels::CAPTURE, "CAPTURE".to_string());
+                            nnode.add_bel(bels::ICAP, "ICAP".to_string());
                         }
                         "LR.S3A" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "STARTUP".to_string());
-                            nnode.add_bel(1, "CAPTURE".to_string());
-                            nnode.add_bel(2, "ICAP".to_string());
-                            nnode.add_bel(3, "SPI_ACCESS".to_string());
+                            nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
+                            nnode.add_bel(bels::CAPTURE, "CAPTURE".to_string());
+                            nnode.add_bel(bels::ICAP, "ICAP".to_string());
+                            nnode.add_bel(bels::SPI_ACCESS, "SPI_ACCESS".to_string());
                         }
                         "UL.V2" | "UL.V2P" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "DCI7".to_string());
-                            nnode.add_bel(1, "DCI0".to_string());
-                            nnode.add_bel(2, "PMV".to_string());
+                            nnode.add_bel(bels::DCI0, "DCI7".to_string());
+                            nnode.add_bel(bels::DCI1, "DCI0".to_string());
+                            nnode.add_bel(bels::PMV, "PMV".to_string());
                         }
                         "UL.S3" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "DCI7".to_string());
-                            nnode.add_bel(1, "DCI0".to_string());
-                            nnode.add_bel(2, "DCIRESET7".to_string());
-                            nnode.add_bel(3, "DCIRESET0".to_string());
-                            nnode.add_bel(4, "PMV".to_string());
+                            nnode.add_bel(bels::DCI0, "DCI7".to_string());
+                            nnode.add_bel(bels::DCI1, "DCI0".to_string());
+                            nnode.add_bel(bels::DCIRESET0, "DCIRESET7".to_string());
+                            nnode.add_bel(bels::DCIRESET1, "DCIRESET0".to_string());
+                            nnode.add_bel(bels::PMV, "PMV".to_string());
                         }
                         "UL.FC" | "UL.S3E" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "PMV".to_string());
+                            nnode.add_bel(bels::PMV, "PMV".to_string());
                         }
                         "UL.S3A" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "PMV".to_string());
-                            nnode.add_bel(1, "DNA_PORT".to_string());
+                            nnode.add_bel(bels::PMV, "PMV".to_string());
+                            nnode.add_bel(bels::DNA_PORT, "DNA_PORT".to_string());
                         }
                         "UR.V2" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "DCI2".to_string());
-                            nnode.add_bel(1, "DCI1".to_string());
-                            nnode.add_bel(2, "BSCAN".to_string());
+                            nnode.add_bel(bels::DCI0, "DCI2".to_string());
+                            nnode.add_bel(bels::DCI1, "DCI1".to_string());
+                            nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
                         }
                         "UR.V2P" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "DCI2".to_string());
-                            nnode.add_bel(1, "DCI1".to_string());
-                            nnode.add_bel(2, "BSCAN".to_string());
-                            nnode.add_bel(3, "JTAGPPC".to_string());
+                            nnode.add_bel(bels::DCI0, "DCI2".to_string());
+                            nnode.add_bel(bels::DCI1, "DCI1".to_string());
+                            nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
+                            nnode.add_bel(bels::JTAGPPC, "JTAGPPC".to_string());
                         }
                         "UR.S3" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "DCI2".to_string());
-                            nnode.add_bel(1, "DCI1".to_string());
-                            nnode.add_bel(2, "DCIRESET2".to_string());
-                            nnode.add_bel(3, "DCIRESET1".to_string());
-                            nnode.add_bel(4, "BSCAN".to_string());
+                            nnode.add_bel(bels::DCI0, "DCI2".to_string());
+                            nnode.add_bel(bels::DCI1, "DCI1".to_string());
+                            nnode.add_bel(bels::DCIRESET0, "DCIRESET2".to_string());
+                            nnode.add_bel(bels::DCIRESET1, "DCIRESET1".to_string());
+                            nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
                         }
                         "UR.FC" | "UR.S3E" | "UR.S3A" => {
                             let (_, name) = namer.get_int_name(col, row);
                             let nnode = namer.ngrid.name_node(nloc, kind, [name]);
-                            nnode.add_bel(0, "BSCAN".to_string());
+                            nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
                         }
 
-                        _ => unreachable!(),
+                        _ => panic!("ummm {kind}?"),
                     }
                 }
                 for (slot, term) in &die[(col, row)].terms {

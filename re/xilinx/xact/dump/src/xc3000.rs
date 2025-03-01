@@ -13,6 +13,7 @@ use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
 use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
 use prjcombine_xc2000::chip::{Chip, ChipKind};
 use prjcombine_xc2000::{
+    bels::xc2000 as bels,
     bond::{Bond, BondPin, CfgPin},
     chip::SharedCfgPin,
 };
@@ -42,6 +43,10 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
 
 pub fn make_intdb() -> IntDb {
     let mut db = IntDb::default();
+
+    for &slot in bels::SLOTS {
+        db.bel_slots.insert(slot.into());
+    }
 
     let slot_w = db
         .term_slots
@@ -317,7 +322,7 @@ pub fn make_intdb() -> IntDb {
             bels: Default::default(),
         };
         node.bels.insert(
-            "CLB".into(),
+            bels::CLB,
             bel_from_pins(
                 &db,
                 &[
@@ -338,9 +343,14 @@ pub fn make_intdb() -> IntDb {
 
         if name.starts_with("CLB.B") || name.starts_with("CLB.T") {
             let bt = if name.starts_with("CLB.B") { 'B' } else { 'T' };
+            let io = if name.starts_with("CLB.B") {
+                bels::IO_S
+            } else {
+                bels::IO_N
+            };
             for i in 0..2 {
                 node.bels.insert(
-                    format!("{bt}IOB{i}"),
+                    io[i],
                     bel_from_pins(
                         &db,
                         &[
@@ -358,9 +368,14 @@ pub fn make_intdb() -> IntDb {
 
         if name.ends_with('L') || name.ends_with('R') {
             let lr = if name.ends_with('L') { 'L' } else { 'R' };
+            let io = if name.ends_with('L') {
+                bels::IO_W
+            } else {
+                bels::IO_E
+            };
             for i in 0..2 {
                 node.bels.insert(
-                    format!("{lr}IOB{i}"),
+                    io[i],
                     bel_from_pins(
                         &db,
                         &[
@@ -376,12 +391,15 @@ pub fn make_intdb() -> IntDb {
             }
         }
 
-        for i in 0..4 {
+        for (i, slot) in [bels::TBUF0, bels::TBUF1, bels::TBUF0_E, bels::TBUF1_E]
+            .into_iter()
+            .enumerate()
+        {
             if i >= 2 && !name.ends_with('R') {
                 continue;
             }
             node.bels.insert(
-                format!("TBUF{i}"),
+                slot,
                 bel_from_pins(
                     &db,
                     &[
@@ -395,7 +413,7 @@ pub fn make_intdb() -> IntDb {
         if name.ends_with('L') || name.ends_with('R') {
             for i in 0..2 {
                 node.bels.insert(
-                    format!("PULLUP.TBUF{i}"),
+                    [bels::PULLUP_TBUF0, bels::PULLUP_TBUF1][i],
                     bel_from_pins(&db, &[("O", format!("LONG.H{}", i % 2))]),
                 );
             }
@@ -403,9 +421,9 @@ pub fn make_intdb() -> IntDb {
 
         if name == "CLB.TL" || name == "CLB.BR" {
             node.bels
-                .insert("CLKIOB".into(), bel_from_pins(&db, &[("I", "OUT.CLKIOB")]));
+                .insert(bels::CLKIOB, bel_from_pins(&db, &[("I", "OUT.CLKIOB")]));
             node.bels.insert(
-                "BUFG".into(),
+                bels::BUFG,
                 bel_from_pins(
                     &db,
                     &[
@@ -417,7 +435,7 @@ pub fn make_intdb() -> IntDb {
         }
         if name == "CLB.BR" {
             node.bels
-                .insert("OSC".into(), bel_from_pins(&db, &[("O", "OUT.OSC")]));
+                .insert(bels::OSC, bel_from_pins(&db, &[("O", "OUT.OSC")]));
         }
 
         for subkind in 0..4 {
@@ -537,49 +555,50 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 let nloc = (die.die, col, row, layer);
                 let node_kind = &intdb.nodes[node.kind];
                 let nnode = &endev.ngrid.nodes[&nloc];
-                for (bel, key, bel_info) in &node_kind.bels {
-                    match &key[..] {
-                        "CLB" | "OSC" | "CLKIOB" | "BUFG" => {
-                            let mut prim = extractor.grab_prim_a(&nnode.bels[bel][0]);
+                for (slot, bel_info) in &node_kind.bels {
+                    let bel = (die.die, (col, row), slot);
+                    let slot_name = &intdb.bel_slots[slot];
+                    match slot {
+                        bels::CLB | bels::OSC | bels::CLKIOB | bels::BUFG => {
+                            let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);
                             for pin in bel_info.pins.keys() {
-                                extractor.net_bel_int(prim.get_pin(pin), nloc, bel, pin);
+                                extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                             }
                         }
-                        "BIOB0" | "BIOB1" | "TIOB0" | "TIOB1" | "LIOB0" | "LIOB1" | "RIOB0"
-                        | "RIOB1" => {
-                            let mut prim = extractor.grab_prim_i(&nnode.bels[bel][0]);
+                        _ if slot_name.starts_with("IO") => {
+                            let mut prim = extractor.grab_prim_i(&nnode.bels[slot][0]);
                             for pin in bel_info.pins.keys() {
-                                extractor.net_bel_int(prim.get_pin(pin), nloc, bel, pin);
+                                extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                             }
                         }
-                        "TBUF0" | "TBUF1" | "TBUF2" | "TBUF3" => {
-                            let mut prim = extractor.grab_prim_a(&nnode.bels[bel][0]);
+                        _ if slot_name.starts_with("TBUF") => {
+                            let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);
                             for pin in ["I", "T"] {
-                                extractor.net_bel_int(prim.get_pin(pin), nloc, bel, pin);
+                                extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                             }
                             let o = prim.get_pin("O");
-                            extractor.net_bel(o, nloc, bel, "O");
+                            extractor.net_bel(o, bel, "O");
                             let (line, pip) = extractor.consume_one_fwd(o, nloc);
-                            extractor.net_bel_int(line, nloc, bel, "O");
-                            extractor.bel_pip(nnode.naming, bel, "O", pip);
+                            extractor.net_bel_int(line, bel, "O");
+                            extractor.bel_pip(nnode.naming, slot, "O", pip);
 
-                            let net_i = extractor.get_bel_int_net(nloc, bel, "I");
-                            let net_o = extractor.get_bel_int_net(nloc, bel, "O");
+                            let net_i = extractor.get_bel_int_net(bel, "I");
+                            let net_o = extractor.get_bel_int_net(bel, "O");
                             let src_nets =
                                 Vec::from_iter(extractor.nets[net_i].pips_bwd.keys().copied());
                             for net in src_nets {
                                 extractor.mark_tbuf_pseudo(net_o, net);
                             }
                         }
-                        "PULLUP.TBUF0" | "PULLUP.TBUF1" => {
-                            let mut prim = extractor.grab_prim_a(&nnode.bels[bel][0]);
+                        _ if slot_name.starts_with("PULLUP") => {
+                            let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);
                             let o = prim.get_pin("O");
-                            extractor.net_bel(o, nloc, bel, "O");
+                            extractor.net_bel(o, bel, "O");
                             let (line, pip) = extractor.consume_one_fwd(o, nloc);
-                            extractor.net_bel_int(line, nloc, bel, "O");
-                            extractor.bel_pip(nnode.naming, bel, "O", pip);
+                            extractor.net_bel_int(line, bel, "O");
+                            extractor.bel_pip(nnode.naming, slot, "O", pip);
                         }
-                        _ => panic!("umm bel {key}?"),
+                        _ => panic!("umm bel {slot_name}?"),
                     }
                 }
             }
@@ -594,7 +613,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     // long verticals + GCLK
     for col in die.cols() {
         let mut queue = vec![];
-        for row in [chip.row_bio() + 1, chip.row_tio() - 1] {
+        for row in [chip.row_s() + 1, chip.row_n() - 1] {
             let by = endev.row_y[row].start;
             let ty = endev.row_y[row].end;
             let mut nets = vec![];
@@ -610,7 +629,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if col == chip.col_lio() {
+            let wires = if col == chip.col_w() {
                 &[
                     "IOCLK.L0",
                     "IOCLK.L1",
@@ -621,7 +640,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                     "ACLK.V",
                     "GCLK.V",
                 ][..]
-            } else if col == chip.col_rio() {
+            } else if col == chip.col_e() {
                 &[
                     "GCLK.V",
                     "LONG.V0",
@@ -648,7 +667,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     // long horizontals
     for row in die.rows() {
         let mut queue = vec![];
-        for col in [chip.col_lio() + 1, chip.col_rio() - 1] {
+        for col in [chip.col_w() + 1, chip.col_e() - 1] {
             let lx = endev.col_x[col].start;
             let rx = endev.col_x[col].end;
             let mut nets = vec![];
@@ -664,9 +683,9 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if row == chip.row_bio() {
+            let wires = if row == chip.row_s() {
                 &["IOCLK.B0", "IOCLK.B1", "LONG.IO.B0", "LONG.IO.B1"][..]
-            } else if row == chip.row_tio() {
+            } else if row == chip.row_n() {
                 &["LONG.IO.T1", "LONG.IO.T0", "IOCLK.T1", "IOCLK.T0"][..]
             } else {
                 &[][..]
@@ -726,7 +745,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     let mut queue = vec![];
     for col in die.cols() {
         let mut x = endev.col_x[col].end;
-        if col == chip.col_rio() {
+        if col == chip.col_e() {
             x = endev.col_x[col].start + 8;
         }
         for row in die.rows() {
@@ -740,7 +759,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if row == chip.row_bio() {
+            let wires = if row == chip.row_s() {
                 &[
                     "SINGLE.H.B4",
                     "SINGLE.H.B3",
@@ -753,7 +772,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                     "SINGLE.H1",
                     "SINGLE.H0",
                 ][..]
-            } else if row == chip.row_tio() {
+            } else if row == chip.row_n() {
                 &[
                     "SINGLE.H.T4",
                     "SINGLE.H.T3",
@@ -780,7 +799,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     // vertical singles
     for row in die.rows() {
         let mut y = endev.row_y[row].start;
-        if row == chip.row_bio() {
+        if row == chip.row_s() {
             y = endev.row_y[row + 1].start - 8;
         }
         for col in die.cols() {
@@ -794,7 +813,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 }
                 nets.push(net);
             }
-            let wires = if col == chip.col_lio() {
+            let wires = if col == chip.col_w() {
                 &[
                     "SINGLE.V.L0",
                     "SINGLE.V.L1",
@@ -802,7 +821,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                     "SINGLE.V.L3",
                     "SINGLE.V.L4",
                 ][..]
-            } else if col == chip.col_rio() {
+            } else if col == chip.col_e() {
                 &[
                     "SINGLE.V0",
                     "SINGLE.V1",
@@ -844,7 +863,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 let net_u = extractor.matrix_nets[(x, y + 1)].net_b.unwrap();
                 let net_d = extractor.matrix_nets[(x, y)].net_b.unwrap();
                 if let NetBinding::Int(rw) = extractor.nets[net_u].binding {
-                    if rw.1.1 == chip.row_bio() {
+                    if rw.1.1 == chip.row_s() {
                         if extractor.nets[net_d].binding == NetBinding::None {
                             let sw =
                                 intdb.get_wire(&format!("{wn}.STUB", wn = intdb.wires.key(rw.2)));
@@ -900,8 +919,8 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
         };
         let col = xlut.binary_search(&pip.0).unwrap_err();
         let row = ylut.binary_search(&pip.1).unwrap_err();
-        assert!(col == chip.col_lio() || col == chip.col_rio());
-        assert!(row == chip.row_bio() || row == chip.row_tio());
+        assert!(col == chip.col_w() || col == chip.col_e());
+        assert!(row == chip.row_s() || row == chip.row_n());
         queue.push((net, (die.die, (col, row), intdb.get_wire(nwn))));
     }
     for (net, wire) in queue {

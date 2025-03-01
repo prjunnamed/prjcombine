@@ -1,11 +1,12 @@
-use prjcombine_re_collector::xlat_enum;
+use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
+use prjcombine_xc2000::bels::xc5200 as bels;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, "CLB");
-    let mut bctx = ctx.bel("LC0");
+    let mut bctx = ctx.bel(bels::LC0);
     bctx.mode("CLB").test_cfg("CO", "USED");
     bctx.mode("CLB").test_enum("CV", &["GND", "VCC"]);
     bctx.mode("CLB")

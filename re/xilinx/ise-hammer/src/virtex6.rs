@@ -1,0 +1,10 @@
+pub mod bram;
+pub mod clk;
+pub mod cmt;
+pub mod dsp;
+pub mod emac;
+pub mod gth;
+pub mod gtx;
+pub mod io;
+pub mod misc;
+pub mod pcie;

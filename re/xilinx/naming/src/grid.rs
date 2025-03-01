@@ -1,8 +1,10 @@
 use std::collections::{BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
-    db::{BelId, NodeIriId, NodeKind, NodeKindId, NodeTileId, TermInfo, TermSlotId, WireKind},
-    grid::{ColId, DieId, ExpandedGrid, IntWire, LayerId, NodeLoc, NodePip, RowId, TracePip},
+    db::{BelSlotId, NodeIriId, NodeKind, NodeKindId, NodeTileId, TermInfo, TermSlotId, WireKind},
+    grid::{
+        ColId, DieId, ExpandedGrid, IntBel, IntWire, LayerId, NodeLoc, NodePip, RowId, TracePip,
+    },
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -29,12 +31,12 @@ pub struct GridNodeNaming {
     pub tie_rt: NodeRawTileId,
     pub iri_names: EntityVec<NodeIriId, String>,
     pub naming: NodeNamingId,
-    pub bels: EntityPartVec<BelId, String>,
+    pub bels: EntityPartVec<BelSlotId, String>,
 }
 
 impl GridNodeNaming {
-    pub fn add_bel(&mut self, idx: usize, name: String) {
-        self.bels.insert(BelId::from_idx(idx), name);
+    pub fn add_bel(&mut self, slot: BelSlotId, name: String) {
+        self.bels.insert(slot, name);
     }
 }
 
@@ -386,10 +388,11 @@ impl<'a> ExpandedGridNaming<'a> {
         BelMultiGrid { xlut, ylut }
     }
 
-    pub fn get_bel_name(&self, die: DieId, col: ColId, row: RowId, key: &str) -> Option<&str> {
-        if let Some((layer, _, bel, _)) = self.egrid.find_bel(die, (col, row), key) {
+    pub fn get_bel_name(&self, bel: IntBel) -> Option<&str> {
+        let (die, (col, row), slot) = bel;
+        if let Some(layer) = self.egrid.find_bel_layer(bel) {
             let nnode = &self.nodes[&(die, col, row, layer)];
-            Some(&nnode.bels[bel])
+            Some(&nnode.bels[slot])
         } else {
             None
         }

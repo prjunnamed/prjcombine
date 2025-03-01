@@ -1,9 +1,4 @@
-use std::{
-    collections::BTreeMap,
-    error::Error,
-    fs::read_to_string,
-    path::PathBuf,
-};
+use std::{collections::BTreeMap, error::Error, fs::read_to_string, path::PathBuf};
 
 use bitvec::vec::BitVec;
 use clap::{Arg, Command, value_parser};

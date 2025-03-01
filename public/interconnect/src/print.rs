@@ -7,6 +7,9 @@ impl IntDb {
         for (_, k, &w) in &self.wires {
             writeln!(o, "\tWIRE {k:14} {w}", w = w.to_string(self))?;
         }
+        for slot in self.bel_slots.values() {
+            writeln!(o, "\tBEL SLOT {slot}")?;
+        }
         for (_, name, node) in &self.nodes {
             writeln!(o, "\tNODE {name} {nt}", nt = node.tiles.len())?;
             for (&wo, mux) in &node.muxes {
@@ -108,8 +111,8 @@ impl IntDb {
                 }
             }
             let mut wires: BTreeMap<_, Vec<_>> = BTreeMap::new();
-            for (bid, name, bel) in &node.bels {
-                writeln!(o, "\t\tBEL {bid}: {name}", bid = bid.to_idx())?;
+            for (slot, bel) in &node.bels {
+                writeln!(o, "\t\tBEL {slot}:", slot = self.bel_slots[slot])?;
                 for (pn, pin) in &bel.pins {
                     write!(
                         o,
@@ -122,7 +125,7 @@ impl IntDb {
                         intf = if pin.is_intf_in { ".INTF" } else { "     " }
                     )?;
                     for &wi in &pin.wires {
-                        wires.entry(wi).or_default().push((name, pn));
+                        wires.entry(wi).or_default().push((slot, pn));
                         write!(
                             o,
                             " {wit}.{win}",
@@ -141,7 +144,7 @@ impl IntDb {
                     wn = self.wires.key(wire.1)
                 )?;
                 for (bel, pin) in bels {
-                    write!(o, " {bel}.{pin}")?;
+                    write!(o, " {bel}.{pin}", bel = self.bel_slots[bel])?;
                 }
                 writeln!(o)?;
             }

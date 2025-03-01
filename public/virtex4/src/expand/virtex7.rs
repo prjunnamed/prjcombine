@@ -231,7 +231,7 @@ impl DieExpander<'_, '_, '_> {
         if self.chip.regs != 1 {
             let row_m = row_cm + 25;
             let crds: [_; 25] = core::array::from_fn(|dy| (self.col_cfg, row_m + dy));
-            self.die.add_xnode((self.col_cfg, row_m), "XADC", &crds);
+            self.die.add_xnode((self.col_cfg, row_m), "SYSMON", &crds);
         }
     }
 
@@ -649,18 +649,22 @@ impl DieExpander<'_, '_, '_> {
         for reg in self.chip.regs() {
             let row_h = self.chip.row_reg_hclk(reg);
             if self.chip.has_slr && reg.to_idx() == 0 {
-                self.die.add_xnode((col, row_h - 21), "CLK_BALI_REBUF", &[]);
+                let crds: [_; 16] = core::array::from_fn(|dy| (col, row_h - 21 + dy));
+                self.die.add_xnode(crds[0], "CLK_BALI_REBUF", &crds);
             } else {
-                self.die.add_xnode((col, row_h - 13), "CLK_BUFG_REBUF", &[]);
+                let crds: [_; 2] = core::array::from_fn(|dy| (col, row_h - 13 + dy));
+                self.die.add_xnode(crds[0], "CLK_BUFG_REBUF", &crds);
             }
 
             self.die
                 .add_xnode((col, row_h), "CLK_HROW", &[(col, row_h - 1), (col, row_h)]);
 
             if self.chip.has_slr && reg.to_idx() == self.chip.regs - 1 {
-                self.die.add_xnode((col, row_h + 5), "CLK_BALI_REBUF", &[]);
+                let crds: [_; 16] = core::array::from_fn(|dy| (col, row_h + 5 + dy));
+                self.die.add_xnode(crds[0], "CLK_BALI_REBUF", &crds);
             } else {
-                self.die.add_xnode((col, row_h + 11), "CLK_BUFG_REBUF", &[]);
+                let crds: [_; 2] = core::array::from_fn(|dy| (col, row_h + 11 + dy));
+                self.die.add_xnode(crds[0], "CLK_BUFG_REBUF", &crds);
             }
         }
 

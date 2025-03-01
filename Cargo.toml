@@ -7,7 +7,7 @@ resolver = "3"
 members = [
 	"re/toolchain",
 	"re/hammer",
-	"re/collector",
+	"re/fpga-hammer",
 	"re/harvester",
 	"re/sdf",
 	"re/xilinx/rawdump",
@@ -95,7 +95,7 @@ prjcombine-coolrunner2 = { path = "public/coolrunner2" }
 serde = { version = "1.0", features = ["derive"] }
 zstd = "0.13"
 bincode = "1.3"
-unnamed_entity = { version = "0.1.5", features = ["bitvec", "map", "serde"] }
+unnamed_entity = { version = "0.1.7", features = ["bitvec", "map", "serde"] }
 bitvec = { version = "1.0", features = ["serde"] }
 itertools = "0.14"
 arrayvec = "0.7.6"
@@ -108,7 +108,7 @@ jzon = "0.12"
 # RE-only crates and their dependencies
 prjcombine-re-toolchain = { path = "re/toolchain" }
 prjcombine-re-hammer = { path = "re/hammer" }
-prjcombine-re-collector = { path = "re/collector" }
+prjcombine-re-fpga-hammer = { path = "re/fpga-hammer" }
 prjcombine-re-harvester = { path = "re/harvester" }
 prjcombine-re-sdf = { path = "re/sdf" }
 prjcombine-re-xilinx-rawdump = { path = "re/xilinx/rawdump" }

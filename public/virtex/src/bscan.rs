@@ -24,7 +24,7 @@ impl Chip {
             if self.cols_bram.contains(&col) {
                 continue;
             }
-            if col == self.col_lio() || col == self.col_rio() {
+            if col == self.col_w() || col == self.col_e() {
                 continue;
             }
             for iob in [1, 2] {
@@ -37,7 +37,7 @@ impl Chip {
             }
         }
         for row in self.rows().rev() {
-            if row == self.row_bio() || row == self.row_tio() {
+            if row == self.row_s() || row == self.row_n() {
                 continue;
             }
             for iob in [1, 2, 3] {
@@ -52,7 +52,7 @@ impl Chip {
             if self.cols_bram.contains(&col) {
                 continue;
             }
-            if col == self.col_lio() || col == self.col_rio() {
+            if col == self.col_w() || col == self.col_e() {
                 continue;
             }
             if col == self.col_clk() {
@@ -67,7 +67,7 @@ impl Chip {
         cfg.insert(CfgPin::Done, builder.get_toi());
         cfg.insert(CfgPin::ProgB, builder.get_i());
         for row in self.rows() {
-            if row == self.row_bio() || row == self.row_tio() {
+            if row == self.row_s() || row == self.row_n() {
                 continue;
             }
             for iob in [3, 2, 1] {

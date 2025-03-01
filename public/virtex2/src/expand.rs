@@ -7,7 +7,7 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind, ColumnIoKind, ColumnKind, DcmPairKind, RowIoKind};
 use crate::expanded::ExpandedDevice;
-use crate::iob::{get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t};
+use crate::iob::{get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w};
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
@@ -48,10 +48,10 @@ impl Expander<'_, '_> {
                 ("LL.S3A", "LR.S3A", "UL.S3A", "UR.S3A")
             }
         };
-        let col_l = self.chip.col_left();
-        let col_r = self.chip.col_right();
-        let row_b = self.chip.row_bot();
-        let row_t = self.chip.row_top();
+        let col_l = self.chip.col_w();
+        let col_r = self.chip.col_e();
+        let row_b = self.chip.row_s();
+        let row_t = self.chip.row_n();
 
         self.die.fill_tile((col_l, row_b), cnr_kind);
         self.die.fill_tile((col_r, row_b), cnr_kind);
@@ -61,25 +61,29 @@ impl Expander<'_, '_> {
         self.die.add_xnode((col_r, row_b), lr, &[(col_r, row_b)]);
         self.die.add_xnode((col_l, row_t), ul, &[(col_l, row_t)]);
         self.die.add_xnode((col_r, row_t), ur, &[(col_r, row_t)]);
+
+        if !self.chip.kind.is_virtex2() {
+            self.die.add_xnode((col_l, row_t), "RANDOR_INIT", &[]);
+        }
     }
 
     fn fill_term(&mut self) {
         for col in self.chip.columns.ids() {
             self.chip
-                .fill_term(&mut self.die, (col, self.chip.row_bot()), "TERM.S");
+                .fill_term(&mut self.die, (col, self.chip.row_s()), "TERM.S");
             self.chip
-                .fill_term(&mut self.die, (col, self.chip.row_top()), "TERM.N");
+                .fill_term(&mut self.die, (col, self.chip.row_n()), "TERM.N");
         }
         for row in self.chip.rows.ids() {
             self.chip
-                .fill_term(&mut self.die, (self.chip.col_left(), row), "TERM.W");
+                .fill_term(&mut self.die, (self.chip.col_w(), row), "TERM.W");
             self.chip
-                .fill_term(&mut self.die, (self.chip.col_right(), row), "TERM.E");
+                .fill_term(&mut self.die, (self.chip.col_e(), row), "TERM.E");
         }
     }
 
     fn fill_io_t(&mut self) {
-        let row = self.chip.row_top();
+        let row = self.chip.row_n();
         for (col, &cd) in &self.chip.columns {
             if self.chip.kind.is_spartan3ea() {
                 if cd.kind == ColumnKind::Io {
@@ -107,8 +111,8 @@ impl Expander<'_, '_> {
             self.die.fill_tile((col, row), int_kind);
             self.die.add_xnode((col, row), ioi_kind, &[(col, row)]);
             if cd.io != ColumnIoKind::None {
-                let (data, tidx) = get_iob_data_t(self.chip.kind, cd.io);
-                if tidx == 0 {
+                let (data, tidx) = get_iob_data_n(self.chip.kind, cd.io);
+                if tidx.to_idx() == 0 {
                     let coords: Vec<_> = (0..data.tiles).map(|dx| (col + dx, row)).collect();
                     self.die.add_xnode((col, row), data.node, &coords);
                 }
@@ -121,8 +125,8 @@ impl Expander<'_, '_> {
 
     fn fill_io_r(&mut self) {
         for row in self.chip.rows.ids() {
-            let col = self.chip.col_right();
-            if row == self.chip.row_bot() || row == self.chip.row_top() {
+            let col = self.chip.col_e();
+            if row == self.chip.row_s() || row == self.chip.row_n() {
                 continue;
             }
             let (int_kind, ioi_kind) = match self.chip.kind {
@@ -134,8 +138,8 @@ impl Expander<'_, '_> {
             };
             self.die.fill_tile((col, row), int_kind);
             self.die.add_xnode((col, row), ioi_kind, &[(col, row)]);
-            let (data, tidx) = get_iob_data_r(self.chip.kind, self.chip.rows[row]);
-            if tidx == 0 {
+            let (data, tidx) = get_iob_data_e(self.chip.kind, self.chip.rows[row]);
+            if tidx.to_idx() == 0 {
                 let coords: Vec<_> = (0..data.tiles).map(|dx| (col, row + dx)).collect();
                 self.die.add_xnode((col, row), data.node, &coords);
             }
@@ -144,7 +148,7 @@ impl Expander<'_, '_> {
 
     fn fill_io_b(&mut self) {
         for (col, &cd) in &self.chip.columns {
-            let row = self.chip.row_bot();
+            let row = self.chip.row_s();
             if self.chip.kind.is_spartan3ea() {
                 if cd.kind == ColumnKind::Io {
                     continue;
@@ -171,8 +175,8 @@ impl Expander<'_, '_> {
             self.die.fill_tile((col, row), int_kind);
             self.die.add_xnode((col, row), ioi_kind, &[(col, row)]);
             if cd.io != ColumnIoKind::None {
-                let (data, tidx) = get_iob_data_b(self.chip.kind, cd.io);
-                if tidx == 0 {
+                let (data, tidx) = get_iob_data_s(self.chip.kind, cd.io);
+                if tidx.to_idx() == 0 {
                     let coords: Vec<_> = (0..data.tiles).map(|dx| (col + dx, row)).collect();
                     self.die.add_xnode((col, row), data.node, &coords);
                 }
@@ -185,8 +189,8 @@ impl Expander<'_, '_> {
 
     fn fill_io_l(&mut self) {
         for row in self.chip.rows.ids() {
-            let col = self.chip.col_left();
-            if row == self.chip.row_bot() || row == self.chip.row_top() {
+            let col = self.chip.col_w();
+            if row == self.chip.row_s() || row == self.chip.row_n() {
                 continue;
             }
             let int_kind;
@@ -215,8 +219,8 @@ impl Expander<'_, '_> {
             }
             self.die.fill_tile((col, row), int_kind);
             self.die.add_xnode((col, row), ioi_kind, &[(col, row)]);
-            let (data, tidx) = get_iob_data_l(self.chip.kind, self.chip.rows[row]);
-            if tidx == 0 {
+            let (data, tidx) = get_iob_data_w(self.chip.kind, self.chip.rows[row]);
+            if tidx.to_idx() == 0 {
                 let coords: Vec<_> = (0..data.tiles).map(|dx| (col, row + dx)).collect();
                 self.die.add_xnode((col, row), data.node, &coords);
             }
@@ -436,8 +440,8 @@ impl Expander<'_, '_> {
                 }
             }
         } else {
-            let row_b = self.chip.row_bot();
-            let row_t = self.chip.row_top();
+            let row_b = self.chip.row_s();
+            let row_t = self.chip.row_n();
             for (col, &cd) in self.chip.columns.iter() {
                 if cd.kind != ColumnKind::Bram {
                     continue;
@@ -447,7 +451,7 @@ impl Expander<'_, '_> {
                         ChipKind::Virtex2 => ("INT.DCM.V2", "DCM.V2"),
                         ChipKind::Virtex2P | ChipKind::Virtex2PX => ("INT.DCM.V2P", "DCM.V2P"),
                         ChipKind::Spartan3 => {
-                            if col == self.chip.col_left() + 3 || col == self.chip.col_right() - 3 {
+                            if col == self.chip.col_w() + 3 || col == self.chip.col_e() - 3 {
                                 ("INT.DCM", "DCM.S3")
                             } else {
                                 ("INT.DCM.S3.DUMMY", "")
@@ -535,8 +539,8 @@ impl Expander<'_, '_> {
     }
 
     fn fill_gt(&mut self) {
-        let row_b = self.chip.row_bot();
-        let row_t = self.chip.row_top();
+        let row_b = self.chip.row_s();
+        let row_t = self.chip.row_n();
         for col in self.chip.cols_gt.keys().copied() {
             if self.chip.kind == ChipKind::Virtex2PX {
                 self.holes.push(Rect {
@@ -678,7 +682,7 @@ impl Expander<'_, '_> {
             }
             let mut term_s = "LLV.S";
             let mut term_n = "LLV.N";
-            if (col == self.chip.col_left() || col == self.chip.col_right())
+            if (col == self.chip.col_w() || col == self.chip.col_e())
                 && self.chip.kind != ChipKind::Spartan3A
             {
                 term_s = "LLV.CLKLR.S3E.S";
@@ -699,8 +703,8 @@ impl Expander<'_, '_> {
     }
 
     fn fill_llh(&mut self) {
-        let row_b = self.chip.row_bot();
-        let row_t = self.chip.row_top();
+        let row_b = self.chip.row_s();
+        let row_t = self.chip.row_n();
         for row in self.chip.rows.ids() {
             let mut col_l = self.chip.col_clk - 1;
             let mut col_r = self.chip.col_clk;
@@ -731,9 +735,9 @@ impl Expander<'_, '_> {
                 .fill_term_pair((col_l, row), (col_r, row), term_e, term_w);
             self.die.add_xnode(
                 (col_r, row),
-                if self.chip.kind.is_spartan3a() && row == self.chip.row_bot() {
+                if self.chip.kind.is_spartan3a() && row == self.chip.row_s() {
                     "LLH.CLKB.S3A"
-                } else if self.chip.kind.is_spartan3a() && row == self.chip.row_top() {
+                } else if self.chip.kind.is_spartan3a() && row == self.chip.row_n() {
                     "LLH.CLKT.S3A"
                 } else {
                     "LLH"
@@ -745,7 +749,7 @@ impl Expander<'_, '_> {
 
     fn fill_misc_passes(&mut self) {
         if self.chip.kind == ChipKind::Spartan3E && !self.chip.has_ll {
-            for col in [self.chip.col_left(), self.chip.col_right()] {
+            for col in [self.chip.col_w(), self.chip.col_e()] {
                 self.die.fill_term_pair(
                     (col, self.chip.row_mid() - 1),
                     (col, self.chip.row_mid()),
@@ -760,7 +764,7 @@ impl Expander<'_, '_> {
                 if row_n == self.chip.row_mid() {
                     continue;
                 }
-                if row_s == self.chip.row_top() {
+                if row_s == self.chip.row_n() {
                     continue;
                 }
                 for col in self.die.cols() {
@@ -772,7 +776,7 @@ impl Expander<'_, '_> {
         if self.chip.kind == ChipKind::Spartan3ADsp {
             for (col, cd) in &self.chip.columns {
                 if cd.kind == ColumnKind::Dsp {
-                    for row in [self.chip.row_bot(), self.chip.row_top()] {
+                    for row in [self.chip.row_s(), self.chip.row_n()] {
                         self.die.fill_term_pair(
                             (col, row),
                             (col + 1, row),
@@ -782,7 +786,7 @@ impl Expander<'_, '_> {
                     }
                 }
             }
-            for col in [self.chip.col_left() + 3, self.chip.col_right() - 6] {
+            for col in [self.chip.col_w() + 3, self.chip.col_e() - 6] {
                 for row in [self.chip.row_mid() - 1, self.chip.row_mid()] {
                     self.die
                         .fill_term_pair((col, row), (col + 4, row), "DSPHOLE.E", "DSPHOLE.W");
@@ -808,16 +812,16 @@ impl Expander<'_, '_> {
             let slot_s = self.die.grid.db.get_term_slot("S");
             for (col, cd) in &self.chip.columns {
                 if matches!(cd.kind, ColumnKind::BramCont(_)) {
-                    self.die[(col, self.chip.row_bot())].terms.remove(slot_n);
-                    self.die[(col, self.chip.row_top())].terms.remove(slot_s);
+                    self.die[(col, self.chip.row_s())].terms.remove(slot_n);
+                    self.die[(col, self.chip.row_n())].terms.remove(slot_s);
                 }
             }
         }
     }
 
     fn fill_clkbt_v2(&mut self) {
-        let row_b = self.chip.row_bot();
-        let row_t = self.chip.row_top();
+        let row_b = self.chip.row_s();
+        let row_t = self.chip.row_n();
         let (kind_b, kind_t) = match self.chip.kind {
             ChipKind::Virtex2 => ("CLKB.V2", "CLKT.V2"),
             ChipKind::Virtex2P => ("CLKB.V2P", "CLKT.V2P"),
@@ -835,7 +839,7 @@ impl Expander<'_, '_> {
             &[(self.chip.col_clk - 1, row_t), (self.chip.col_clk, row_t)],
         );
 
-        let col_l = self.chip.col_left();
+        let col_l = self.chip.col_w();
         self.die.add_xnode(
             (col_l, self.chip.row_pci.unwrap()),
             "REG_L",
@@ -846,7 +850,7 @@ impl Expander<'_, '_> {
                 (col_l, self.chip.row_pci.unwrap() + 1),
             ],
         );
-        let col_r = self.chip.col_right();
+        let col_r = self.chip.col_e();
         self.die.add_xnode(
             (col_r, self.chip.row_pci.unwrap()),
             "REG_R",
@@ -865,8 +869,8 @@ impl Expander<'_, '_> {
             ChipKind::FpgaCore => ("CLKB.FC", "CLKT.FC"),
             _ => unreachable!(),
         };
-        let row_b = self.chip.row_bot();
-        let row_t = self.chip.row_top();
+        let row_b = self.chip.row_s();
+        let row_t = self.chip.row_n();
         self.die.add_xnode(
             (self.chip.col_clk, row_b),
             clkb,
@@ -881,48 +885,48 @@ impl Expander<'_, '_> {
 
     fn fill_clkbt_s3e(&mut self) {
         self.die.add_xnode(
-            (self.chip.col_clk, self.chip.row_bot()),
+            (self.chip.col_clk, self.chip.row_s()),
             if self.chip.kind == ChipKind::Spartan3E {
                 "CLKB.S3E"
             } else {
                 "CLKB.S3A"
             },
-            &[(self.chip.col_clk - 1, self.chip.row_bot())],
+            &[(self.chip.col_clk - 1, self.chip.row_s())],
         );
         self.die.add_xnode(
-            (self.chip.col_clk, self.chip.row_top()),
+            (self.chip.col_clk, self.chip.row_n()),
             if self.chip.kind == ChipKind::Spartan3E {
                 "CLKT.S3E"
             } else {
                 "CLKT.S3A"
             },
-            &[(self.chip.col_clk - 1, self.chip.row_top())],
+            &[(self.chip.col_clk - 1, self.chip.row_n())],
         );
     }
 
     fn fill_clklr_s3e(&mut self) {
         self.die.add_xnode(
-            (self.chip.col_left(), self.chip.row_mid()),
+            (self.chip.col_w(), self.chip.row_mid()),
             if self.chip.kind == ChipKind::Spartan3E {
                 "CLKL.S3E"
             } else {
                 "CLKL.S3A"
             },
             &[
-                (self.chip.col_left(), self.chip.row_mid() - 1),
-                (self.chip.col_left(), self.chip.row_mid()),
+                (self.chip.col_w(), self.chip.row_mid() - 1),
+                (self.chip.col_w(), self.chip.row_mid()),
             ],
         );
         self.die.add_xnode(
-            (self.chip.col_right(), self.chip.row_mid()),
+            (self.chip.col_e(), self.chip.row_mid()),
             if self.chip.kind == ChipKind::Spartan3E {
                 "CLKR.S3E"
             } else {
                 "CLKR.S3A"
             },
             &[
-                (self.chip.col_right(), self.chip.row_mid() - 1),
-                (self.chip.col_right(), self.chip.row_mid()),
+                (self.chip.col_e(), self.chip.row_mid() - 1),
+                (self.chip.col_e(), self.chip.row_mid()),
             ],
         );
     }
@@ -930,10 +934,10 @@ impl Expander<'_, '_> {
     fn fill_pci_ce(&mut self) {
         if self.chip.kind.is_spartan3ea() {
             for c in [
-                (self.chip.col_left(), self.chip.row_bot()),
-                (self.chip.col_right(), self.chip.row_bot()),
-                (self.chip.col_left(), self.chip.row_top()),
-                (self.chip.col_right(), self.chip.row_top()),
+                (self.chip.col_w(), self.chip.row_s()),
+                (self.chip.col_e(), self.chip.row_s()),
+                (self.chip.col_w(), self.chip.row_n()),
+                (self.chip.col_e(), self.chip.row_n()),
             ] {
                 self.die.add_xnode(c, "PCI_CE_CNR", &[]);
             }
@@ -944,13 +948,13 @@ impl Expander<'_, '_> {
                 } else {
                     "PCI_CE_S"
                 };
-                for col in [self.chip.col_left(), self.chip.col_right()] {
+                for col in [self.chip.col_w(), self.chip.col_e()] {
                     self.die.add_xnode((col, row), kind, &[]);
                 }
             }
             if self.chip.kind == ChipKind::Spartan3A {
                 if let Some((col_l, col_r)) = self.chip.cols_clkv {
-                    for row in [self.chip.row_bot(), self.chip.row_top()] {
+                    for row in [self.chip.row_s(), self.chip.row_n()] {
                         self.die.add_xnode((col_l, row), "PCI_CE_E", &[]);
                         self.die.add_xnode((col_r, row), "PCI_CE_W", &[]);
                     }
@@ -1003,9 +1007,9 @@ impl Expander<'_, '_> {
     fn fill_gclkc(&mut self) {
         for &(row_m, _, _) in &self.chip.rows_hclk {
             if self.chip.kind.is_virtex2() {
-                let node_kind = if row_m == self.chip.row_bot() + 1 {
+                let node_kind = if row_m == self.chip.row_s() + 1 {
                     "GCLKC.B"
-                } else if row_m == self.chip.row_top() {
+                } else if row_m == self.chip.row_n() {
                     "GCLKC.T"
                 } else {
                     "GCLKC"

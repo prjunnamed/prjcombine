@@ -1,3 +1,4 @@
+pub mod bels;
 pub mod db;
 pub mod dir;
 pub mod grid;

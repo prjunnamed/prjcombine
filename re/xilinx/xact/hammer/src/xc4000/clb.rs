@@ -1,5 +1,6 @@
-use prjcombine_re_collector::{Diff, xlat_bit, xlat_enum};
+use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
+use prjcombine_xc2000::bels::xc4000 as bels;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
@@ -8,7 +9,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         "CLB", "CLB.L", "CLB.R", "CLB.B", "CLB.LB", "CLB.RB", "CLB.T", "CLB.LT", "CLB.RT",
     ] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        let mut bctx = ctx.bel("CLB");
+        let mut bctx = ctx.bel(bels::CLB);
         bctx.mode("FG")
             .mutex("RAM", "")
             .test_equate("F", &["F1", "F2", "F3", "F4"]);

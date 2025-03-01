@@ -1,0 +1,16 @@
+[package]
+name = "prjcombine-re-fpga-hammer"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+bitvec.workspace = true
+itertools.workspace = true
+rand.workspace = true
+unnamed_entity.workspace = true
+prjcombine-types.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-re-hammer.workspace = true
+
+[lints]
+workspace = true

@@ -249,6 +249,14 @@ impl Expander<'_, '_> {
             let row: RowId = self.row_iobdcm.unwrap() - 16;
             self.die.add_xnode((col, row), "CLK_IOB_T", &[]);
         }
+        {
+            let row = self.die.rows().next().unwrap();
+            self.die.add_xnode((col, row), "CLK_TERM", &[]);
+        }
+        {
+            let row = self.die.rows().next_back().unwrap();
+            self.die.add_xnode((col, row), "CLK_TERM", &[]);
+        }
     }
 
     fn fill_ppc(&mut self) {
@@ -389,6 +397,8 @@ impl Expander<'_, '_> {
                     self.die.add_xnode((col, row), "INTF", &[(col, row)]);
                 }
                 self.die.add_xnode((col, row), "MGT", &crds);
+                self.die.add_xnode((col, row + 8), "HCLK_MGT", &[]);
+                self.die.add_xnode((col, row + 24), "HCLK_MGT", &[]);
                 self.gt.push((self.die.die, col, row));
             }
         }
@@ -404,6 +414,15 @@ impl Expander<'_, '_> {
                         continue;
                     }
                     self.die.add_xnode((col, row), "HCLK", &[(col, row)]);
+                    if col == self.chip.columns.first_id().unwrap()
+                        || col == self.chip.columns.last_id().unwrap()
+                    {
+                        self.die.add_xnode((col, row), "HCLK_TERM", &[]);
+                    }
+                    if self.chip.cols_vbrk.contains(&col) {
+                        let rcol = if col < self.col_cfg { col } else { col - 1 };
+                        self.die.add_xnode((rcol, row), "HCLK_MGT_REPEATER", &[]);
+                    }
                 }
             }
         }

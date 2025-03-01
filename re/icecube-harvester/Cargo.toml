@@ -19,7 +19,7 @@ prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-siliconblue.workspace = true
 prjcombine-re-harvester.workspace = true
-prjcombine-re-collector.workspace = true
+prjcombine-re-fpga-hammer.workspace = true
 
 [lints]
 workspace = true

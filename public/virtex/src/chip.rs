@@ -1,11 +1,10 @@
 use jzon::JsonValue;
-use prjcombine_interconnect::{
-    db::BelId,
-    grid::{ColId, EdgeIoCoord, RowId, TileIobId},
-};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, IntBel, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityIds};
+
+use crate::bels;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum ChipKind {
@@ -79,19 +78,19 @@ impl Chip {
         ColId::from_idx(self.columns / 2)
     }
 
-    pub fn col_lio(&self) -> ColId {
+    pub fn col_w(&self) -> ColId {
         ColId::from_idx(0)
     }
 
-    pub fn col_rio(&self) -> ColId {
+    pub fn col_e(&self) -> ColId {
         ColId::from_idx(self.columns - 1)
     }
 
-    pub fn row_bio(&self) -> RowId {
+    pub fn row_s(&self) -> RowId {
         RowId::from_idx(0)
     }
 
-    pub fn row_tio(&self) -> RowId {
+    pub fn row_n(&self) -> RowId {
         RowId::from_idx(self.rows - 1)
     }
 
@@ -136,26 +135,27 @@ impl Chip {
         }
     }
 
-    pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> IntBel {
         let (col, row, iob) = match io {
-            EdgeIoCoord::N(col, iob) => (col, self.row_tio(), iob),
-            EdgeIoCoord::E(row, iob) => (self.col_rio(), row, iob),
-            EdgeIoCoord::S(col, iob) => (col, self.row_bio(), iob),
-            EdgeIoCoord::W(row, iob) => (self.col_lio(), row, iob),
+            EdgeIoCoord::N(col, iob) => (col, self.row_n(), iob),
+            EdgeIoCoord::E(row, iob) => (self.col_e(), row, iob),
+            EdgeIoCoord::S(col, iob) => (col, self.row_s(), iob),
+            EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
         };
-        let bel = BelId::from_idx(iob.to_idx());
-        (col, row, bel)
+        let slot = bels::IO[iob.to_idx()];
+        (DieId::from_idx(0), (col, row), slot)
     }
 
-    pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
-        let iob = TileIobId::from_idx(bel.to_idx());
-        if col == self.col_lio() {
+    pub fn get_io_crd(&self, bel: IntBel) -> EdgeIoCoord {
+        let (_, (col, row), slot) = bel;
+        let iob = TileIobId::from_idx(bels::IO.iter().position(|&x| x == slot).unwrap());
+        if col == self.col_w() {
             EdgeIoCoord::W(row, iob)
-        } else if col == self.col_rio() {
+        } else if col == self.col_e() {
             EdgeIoCoord::E(row, iob)
-        } else if row == self.row_bio() {
+        } else if row == self.row_s() {
             EdgeIoCoord::S(col, iob)
-        } else if row == self.row_tio() {
+        } else if row == self.row_n() {
             EdgeIoCoord::N(col, iob)
         } else {
             unreachable!()
@@ -168,7 +168,7 @@ impl Chip {
             if self.cols_bram.contains(&col) {
                 continue;
             }
-            if col == self.col_lio() || col == self.col_rio() {
+            if col == self.col_w() || col == self.col_e() {
                 continue;
             }
             for iob in [2, 1] {
@@ -176,7 +176,7 @@ impl Chip {
             }
         }
         for row in self.rows().rev() {
-            if row == self.row_bio() || row == self.row_tio() {
+            if row == self.row_s() || row == self.row_n() {
                 continue;
             }
             for iob in [1, 2, 3] {
@@ -187,7 +187,7 @@ impl Chip {
             if self.cols_bram.contains(&col) {
                 continue;
             }
-            if col == self.col_lio() || col == self.col_rio() {
+            if col == self.col_w() || col == self.col_e() {
                 continue;
             }
             for iob in [1, 2] {
@@ -195,7 +195,7 @@ impl Chip {
             }
         }
         for row in self.rows() {
-            if row == self.row_bio() || row == self.row_tio() {
+            if row == self.row_s() || row == self.row_n() {
                 continue;
             }
             for iob in [3, 2, 1] {
@@ -247,9 +247,9 @@ impl std::fmt::Display for Chip {
                 c = col.to_idx(),
                 kind = if self.cols_bram.contains(&col) {
                     "BRAM"
-                } else if col == self.col_lio() {
+                } else if col == self.col_w() {
                     "LIO"
-                } else if col == self.col_rio() {
+                } else if col == self.col_e() {
                     "RIO"
                 } else {
                     "CLB"

@@ -1,7 +1,9 @@
+#![recursion_limit = "1024"]
+
 use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_interconnect::dir::Dir;
-use prjcombine_re_collector::Collector;
+use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_hammer::{Backend, Session};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
@@ -12,32 +14,21 @@ use std::error::Error;
 use std::path::PathBuf;
 
 mod backend;
-mod bram;
-mod ccm;
-mod clb;
-mod clk;
-mod cmt;
-mod dcm;
-mod diff;
-mod dsp;
-mod emac;
-mod fgen;
-mod fuzz;
-mod gt;
-mod gtz;
-mod int;
-mod intf;
-mod io;
-mod mcb;
-mod misc;
-mod pcie;
-mod pll;
-mod ppc;
-mod tbus;
+mod collector;
+mod generic;
+mod spartan6;
+mod virtex;
+mod virtex2;
+mod virtex4;
+mod virtex5;
+mod virtex6;
+mod virtex7;
+mod xc4000;
+mod xc5200;
 
 use backend::IseBackend;
 
-use crate::diff::CollectorCtx;
+use crate::collector::CollectorCtx;
 
 #[derive(Debug, Parser)]
 #[command(name = "ise_hammer", about = "Swing the Massive Hammer on ISE parts.")]
@@ -140,9 +131,6 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
     if opts.no_dup {
         hammer.dup_factor = 1;
     }
-    if !opts.skip_core {
-        int::add_fuzzers(&mut hammer, &backend);
-    }
     // sigh. Spartan 3AN cannot do VCCAUX == 2.5 and this causes a *ridiculously annoying*
     // problem in the I/O fuzzers, which cannot easily identify IBUF_MODE == CMOS_VCCO
     // without that. it could be fixed, but it's easier to just rely on the fuzzers being
@@ -165,167 +153,174 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
         ExpandedDevice::Xc2000(ref edev) => {
             if !opts.skip_core {
                 if edev.chip.kind.is_xc4000() {
-                    clb::xc4000::add_fuzzers(&mut hammer, &backend);
-                    io::xc4000::add_fuzzers(&mut hammer, &backend);
-                    misc::xc4000::add_fuzzers(&mut hammer, &backend);
+                    xc4000::int::add_fuzzers(&mut hammer, &backend);
+                    xc4000::clb::add_fuzzers(&mut hammer, &backend);
+                    xc4000::io::add_fuzzers(&mut hammer, &backend);
+                    xc4000::misc::add_fuzzers(&mut hammer, &backend);
                 } else {
-                    clb::xc5200::add_fuzzers(&mut hammer, &backend);
-                    io::xc5200::add_fuzzers(&mut hammer, &backend);
-                    misc::xc5200::add_fuzzers(&mut hammer, &backend);
+                    xc5200::int::add_fuzzers(&mut hammer, &backend);
+                    xc5200::clb::add_fuzzers(&mut hammer, &backend);
+                    xc5200::io::add_fuzzers(&mut hammer, &backend);
+                    xc5200::misc::add_fuzzers(&mut hammer, &backend);
                 }
             }
         }
         ExpandedDevice::Virtex(_) => {
             if !opts.skip_core {
-                clb::virtex::add_fuzzers(&mut hammer, &backend);
-                tbus::add_fuzzers(&mut hammer, &backend);
-                clk::virtex::add_fuzzers(&mut hammer, &backend);
-                bram::virtex::add_fuzzers(&mut hammer, &backend);
-                misc::virtex::add_fuzzers(&mut hammer, &backend);
-                io::virtex::add_fuzzers(&mut hammer, &backend);
-                dcm::virtex::add_fuzzers(&mut hammer, &backend);
+                virtex::int::add_fuzzers(&mut hammer, &backend);
+                virtex::clb::add_fuzzers(&mut hammer, &backend);
+                virtex::tbus::add_fuzzers(&mut hammer, &backend);
+                virtex::clk::add_fuzzers(&mut hammer, &backend);
+                virtex::bram::add_fuzzers(&mut hammer, &backend);
+                virtex::misc::add_fuzzers(&mut hammer, &backend);
+                virtex::io::add_fuzzers(&mut hammer, &backend);
+                virtex::dll::add_fuzzers(&mut hammer, &backend);
             }
         }
         ExpandedDevice::Virtex2(ref edev) => {
             if !opts.skip_core {
+                generic::int::add_fuzzers(&mut hammer, &backend);
                 if edev.chip.kind.is_virtex2() {
-                    tbus::add_fuzzers(&mut hammer, &backend);
+                    virtex::tbus::add_fuzzers(&mut hammer, &backend);
                 }
-                clb::virtex2::add_fuzzers(&mut hammer, &backend);
+                virtex2::clb::add_fuzzers(&mut hammer, &backend);
                 if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
-                    bram::virtex2::add_fuzzers(&mut hammer, &backend, false);
+                    virtex2::bram::add_fuzzers(&mut hammer, &backend, false);
                 }
                 if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp {
-                    dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
+                    virtex2::dsp::add_fuzzers(&mut hammer, &backend);
                 }
             } else if !edev.chip.kind.is_virtex2()
                 && edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore
             {
-                bram::virtex2::add_fuzzers(&mut hammer, &backend, true);
+                virtex2::bram::add_fuzzers(&mut hammer, &backend, true);
             }
             if !opts.skip_clk {
-                clk::virtex2::add_fuzzers(&mut hammer, &backend, false);
+                virtex2::clk::add_fuzzers(&mut hammer, &backend, false);
             } else if opts.devdata_only {
-                clk::virtex2::add_fuzzers(&mut hammer, &backend, true);
+                virtex2::clk::add_fuzzers(&mut hammer, &backend, true);
             }
             if !opts.skip_misc {
-                misc::virtex2::add_fuzzers(&mut hammer, &backend, opts.skip_io, false);
+                virtex2::misc::add_fuzzers(&mut hammer, &backend, opts.skip_io, false);
             } else if opts.devdata_only {
-                misc::virtex2::add_fuzzers(&mut hammer, &backend, true, true);
+                virtex2::misc::add_fuzzers(&mut hammer, &backend, true, true);
             }
             if !opts.skip_io {
                 if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
-                    io::virtex2::add_fuzzers(&mut hammer, &backend);
+                    virtex2::io::add_fuzzers(&mut hammer, &backend);
                 } else {
-                    io::fpgacore::add_fuzzers(&mut hammer, &backend);
+                    virtex2::io_fpgacore::add_fuzzers(&mut hammer, &backend);
                 }
             }
             if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
                 if !opts.skip_dcm {
                     if !edev.chip.kind.is_spartan3ea() {
-                        dcm::virtex2::add_fuzzers(&mut hammer, &backend, false);
+                        virtex2::dcm_v2::add_fuzzers(&mut hammer, &backend, false);
                     } else {
-                        dcm::spartan3e::add_fuzzers(&mut hammer, &backend, false);
+                        virtex2::dcm_s3e::add_fuzzers(&mut hammer, &backend, false);
                     }
                 } else if opts.devdata_only {
                     if !edev.chip.kind.is_spartan3ea() {
-                        dcm::virtex2::add_fuzzers(&mut hammer, &backend, true);
+                        virtex2::dcm_v2::add_fuzzers(&mut hammer, &backend, true);
                     } else {
-                        dcm::spartan3e::add_fuzzers(&mut hammer, &backend, true);
+                        virtex2::dcm_s3e::add_fuzzers(&mut hammer, &backend, true);
                     }
                 }
             }
             if !opts.skip_hard && edev.chip.kind.is_virtex2p() {
-                ppc::virtex2::add_fuzzers(&mut hammer, &backend);
+                virtex2::ppc::add_fuzzers(&mut hammer, &backend);
             }
             if !opts.skip_gt {
                 if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Virtex2P {
-                    gt::virtex2p::add_fuzzers(&mut hammer, &backend);
+                    virtex2::gt::add_fuzzers(&mut hammer, &backend);
                 }
                 if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Virtex2PX {
-                    gt::virtex2px::add_fuzzers(&mut hammer, &backend);
+                    virtex2::gt10::add_fuzzers(&mut hammer, &backend);
                 }
             }
         }
         ExpandedDevice::Spartan6(_) => {
             if !opts.skip_core {
-                clb::virtex5::add_fuzzers(&mut hammer, &backend);
-                bram::spartan6::add_fuzzers(&mut hammer, &backend);
-                dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
+                generic::int::add_fuzzers(&mut hammer, &backend);
+                virtex5::clb::add_fuzzers(&mut hammer, &backend);
+                spartan6::bram::add_fuzzers(&mut hammer, &backend);
+                virtex2::dsp::add_fuzzers(&mut hammer, &backend);
             }
             if !opts.skip_clk {
-                clk::spartan6::add_fuzzers(&mut hammer, &backend, false);
+                spartan6::clk::add_fuzzers(&mut hammer, &backend, false);
             } else if opts.devdata_only {
-                clk::spartan6::add_fuzzers(&mut hammer, &backend, true);
+                spartan6::clk::add_fuzzers(&mut hammer, &backend, true);
             }
             if !opts.skip_misc {
-                misc::spartan6::add_fuzzers(&mut hammer, &backend);
+                spartan6::misc::add_fuzzers(&mut hammer, &backend);
             }
             if !opts.skip_io {
-                io::spartan6::add_fuzzers(&mut hammer, &backend);
+                spartan6::io::add_fuzzers(&mut hammer, &backend);
             }
             if !opts.skip_dcm {
-                dcm::spartan6::add_fuzzers(&mut hammer, &backend);
+                spartan6::dcm::add_fuzzers(&mut hammer, &backend);
             }
             if !opts.skip_pll {
-                pll::spartan6::add_fuzzers(&mut hammer, &backend);
+                spartan6::pll::add_fuzzers(&mut hammer, &backend);
             }
             if !opts.skip_hard {
-                mcb::add_fuzzers(&mut hammer, &backend);
-                pcie::spartan6::add_fuzzers(&mut hammer, &backend);
+                spartan6::mcb::add_fuzzers(&mut hammer, &backend);
+                spartan6::pcie::add_fuzzers(&mut hammer, &backend);
             }
             if !opts.skip_gt {
-                gt::spartan6::add_fuzzers(&mut hammer, &backend);
+                spartan6::gt::add_fuzzers(&mut hammer, &backend);
             }
         }
         ExpandedDevice::Virtex4(ref edev) => match edev.kind {
             prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                 if !opts.skip_core {
-                    clb::virtex2::add_fuzzers(&mut hammer, &backend);
-                    bram::virtex4::add_fuzzers(&mut hammer, &backend);
-                    dsp::virtex4::add_fuzzers(&mut hammer, &backend);
+                    generic::int::add_fuzzers(&mut hammer, &backend);
+                    virtex2::clb::add_fuzzers(&mut hammer, &backend);
+                    virtex4::bram::add_fuzzers(&mut hammer, &backend);
+                    virtex4::dsp::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_clk {
-                    clk::virtex4::add_fuzzers(&mut hammer, &backend);
+                    virtex4::clk::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_misc {
-                    misc::virtex4::add_fuzzers(&mut hammer, &backend);
+                    virtex4::misc::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_io {
-                    io::virtex4::add_fuzzers(&mut hammer, &backend);
+                    virtex4::io::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_dcm {
-                    dcm::virtex4::add_fuzzers(&mut hammer, &backend);
+                    virtex4::dcm::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_ccm {
-                    ccm::virtex4::add_fuzzers(&mut hammer, &backend);
+                    virtex4::ccm::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_hard {
-                    ppc::virtex4::add_fuzzers(&mut hammer, &backend);
+                    virtex4::ppc::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_gt {
-                    gt::virtex4::add_fuzzers(&mut hammer, &backend);
+                    virtex4::gt::add_fuzzers(&mut hammer, &backend);
                 }
             }
             prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                 if !opts.skip_core {
-                    clb::virtex5::add_fuzzers(&mut hammer, &backend);
-                    bram::virtex5::add_fuzzers(&mut hammer, &backend);
-                    dsp::virtex5::add_fuzzers(&mut hammer, &backend);
+                    generic::int::add_fuzzers(&mut hammer, &backend);
+                    virtex5::clb::add_fuzzers(&mut hammer, &backend);
+                    virtex5::bram::add_fuzzers(&mut hammer, &backend);
+                    virtex5::dsp::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_clk {
-                    clk::virtex5::add_fuzzers(&mut hammer, &backend);
+                    virtex5::clk::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_misc {
-                    misc::virtex5::add_fuzzers(&mut hammer, &backend);
+                    virtex5::misc::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_io {
-                    io::virtex5::add_fuzzers(&mut hammer, &backend, false);
+                    virtex5::io::add_fuzzers(&mut hammer, &backend, false);
                 } else if opts.devdata_only {
-                    io::virtex5::add_fuzzers(&mut hammer, &backend, true);
+                    virtex5::io::add_fuzzers(&mut hammer, &backend, true);
                 }
                 if !opts.skip_dcm || !opts.skip_pll {
-                    cmt::virtex5::add_fuzzers(
+                    virtex5::cmt::add_fuzzers(
                         &mut hammer,
                         &backend,
                         opts.skip_dcm,
@@ -333,85 +328,87 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                         false,
                     );
                 } else if opts.devdata_only {
-                    cmt::virtex5::add_fuzzers(&mut hammer, &backend, false, false, true);
+                    virtex5::cmt::add_fuzzers(&mut hammer, &backend, false, false, true);
                 }
                 if !opts.skip_hard {
-                    ppc::virtex5::add_fuzzers(&mut hammer, &backend, false);
-                    emac::virtex5::add_fuzzers(&mut hammer, &backend);
-                    pcie::virtex5::add_fuzzers(&mut hammer, &backend);
+                    virtex5::ppc::add_fuzzers(&mut hammer, &backend, false);
+                    virtex5::emac::add_fuzzers(&mut hammer, &backend);
+                    virtex5::pcie::add_fuzzers(&mut hammer, &backend);
                 } else if opts.devdata_only {
-                    ppc::virtex5::add_fuzzers(&mut hammer, &backend, true);
+                    virtex5::ppc::add_fuzzers(&mut hammer, &backend, true);
                 }
                 if !opts.skip_gt {
-                    gt::virtex5::add_fuzzers(&mut hammer, &backend);
+                    virtex5::gt::add_fuzzers(&mut hammer, &backend);
                 }
             }
             prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                 if !opts.skip_core {
-                    clb::virtex5::add_fuzzers(&mut hammer, &backend);
-                    bram::virtex6::add_fuzzers(&mut hammer, &backend);
-                    dsp::virtex6::add_fuzzers(&mut hammer, &backend);
+                    generic::int::add_fuzzers(&mut hammer, &backend);
+                    virtex5::clb::add_fuzzers(&mut hammer, &backend);
+                    virtex6::bram::add_fuzzers(&mut hammer, &backend);
+                    virtex6::dsp::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_clk {
-                    clk::virtex6::add_fuzzers(&mut hammer, &backend);
+                    virtex6::clk::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_misc {
-                    misc::virtex6::add_fuzzers(&mut hammer, &backend);
+                    virtex6::misc::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_io {
-                    io::virtex6::add_fuzzers(&mut hammer, &backend, false);
+                    virtex6::io::add_fuzzers(&mut hammer, &backend, false);
                 } else if opts.devdata_only {
-                    io::virtex6::add_fuzzers(&mut hammer, &backend, true);
+                    virtex6::io::add_fuzzers(&mut hammer, &backend, true);
                 }
                 if !opts.skip_pll {
-                    cmt::virtex6::add_fuzzers(&mut hammer, &backend, false);
+                    virtex6::cmt::add_fuzzers(&mut hammer, &backend, false);
                 } else if opts.devdata_only {
-                    cmt::virtex6::add_fuzzers(&mut hammer, &backend, true);
+                    virtex6::cmt::add_fuzzers(&mut hammer, &backend, true);
                 }
                 if !opts.skip_hard {
-                    emac::virtex6::add_fuzzers(&mut hammer, &backend);
-                    pcie::virtex6::add_fuzzers(&mut hammer, &backend);
+                    virtex6::emac::add_fuzzers(&mut hammer, &backend);
+                    virtex6::pcie::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_gt {
-                    gt::virtex6_gtx::add_fuzzers(&mut hammer, &backend);
-                    gt::virtex6_gth::add_fuzzers(&mut hammer, &backend);
+                    virtex6::gtx::add_fuzzers(&mut hammer, &backend);
+                    virtex6::gth::add_fuzzers(&mut hammer, &backend);
                 }
             }
             prjcombine_virtex4::chip::ChipKind::Virtex7 => {
                 if !opts.skip_core {
-                    clb::virtex5::add_fuzzers(&mut hammer, &backend);
-                    bram::virtex6::add_fuzzers(&mut hammer, &backend);
-                    dsp::virtex6::add_fuzzers(&mut hammer, &backend);
+                    generic::int::add_fuzzers(&mut hammer, &backend);
+                    virtex5::clb::add_fuzzers(&mut hammer, &backend);
+                    virtex6::bram::add_fuzzers(&mut hammer, &backend);
+                    virtex6::dsp::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_clk {
-                    clk::virtex7::add_fuzzers(&mut hammer, &backend, false);
+                    virtex7::clk::add_fuzzers(&mut hammer, &backend, false);
                 } else if opts.bali_only {
-                    clk::virtex7::add_fuzzers(&mut hammer, &backend, true);
+                    virtex7::clk::add_fuzzers(&mut hammer, &backend, true);
                 }
                 if !opts.skip_misc {
-                    misc::virtex7::add_fuzzers(&mut hammer, &backend);
+                    virtex7::misc::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_io {
-                    io::virtex7::add_fuzzers(&mut hammer, &backend);
+                    virtex7::io::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_pll {
-                    cmt::virtex7::add_fuzzers(&mut hammer, &backend);
+                    virtex7::cmt::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_hard {
-                    pcie::virtex7::add_fuzzers(&mut hammer, &backend);
+                    virtex7::pcie::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_gt {
-                    gt::virtex7::add_fuzzers(&mut hammer, &backend);
+                    virtex7::gt::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_gtz {
-                    gtz::add_fuzzers(&mut hammer, &backend);
+                    virtex7::gtz::add_fuzzers(&mut hammer, &backend);
                 }
             }
         },
         _ => panic!("unsupported device kind"),
     }
     if !opts.skip_core {
-        intf::add_fuzzers(&mut hammer, &backend);
+        generic::intf::add_fuzzers(&mut hammer, &backend);
     }
     let (empty_bs, mut state) = std::thread::scope(|s| {
         let empty_bs_t = s.spawn(|| backend.bitgen(&HashMap::new()));
@@ -429,254 +426,260 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
         },
         empty_bs: &empty_bs,
     };
-    if !opts.skip_core {
-        int::collect_fuzzers(&mut ctx);
-    }
     match gedev {
         ExpandedDevice::Xc2000(ref edev) => {
             if !opts.skip_core {
                 if edev.chip.kind.is_xc4000() {
-                    clb::xc4000::collect_fuzzers(&mut ctx);
-                    io::xc4000::collect_fuzzers(&mut ctx);
-                    misc::xc4000::collect_fuzzers(&mut ctx);
+                    xc4000::int::collect_fuzzers(&mut ctx);
+                    xc4000::clb::collect_fuzzers(&mut ctx);
+                    xc4000::io::collect_fuzzers(&mut ctx);
+                    xc4000::misc::collect_fuzzers(&mut ctx);
                 } else {
-                    clb::xc5200::collect_fuzzers(&mut ctx);
-                    io::xc5200::collect_fuzzers(&mut ctx);
-                    misc::xc5200::collect_fuzzers(&mut ctx);
+                    xc5200::int::collect_fuzzers(&mut ctx);
+                    xc5200::clb::collect_fuzzers(&mut ctx);
+                    xc5200::io::collect_fuzzers(&mut ctx);
+                    xc5200::misc::collect_fuzzers(&mut ctx);
                 }
             }
         }
         ExpandedDevice::Virtex(_) => {
             if !opts.skip_core {
-                clb::virtex::collect_fuzzers(&mut ctx);
-                tbus::collect_fuzzers(&mut ctx);
-                clk::virtex::collect_fuzzers(&mut ctx);
-                bram::virtex::collect_fuzzers(&mut ctx);
-                misc::virtex::collect_fuzzers(&mut ctx);
-                io::virtex::collect_fuzzers(&mut ctx);
-                dcm::virtex::collect_fuzzers(&mut ctx);
+                virtex::int::collect_fuzzers(&mut ctx);
+                virtex::clb::collect_fuzzers(&mut ctx);
+                virtex::tbus::collect_fuzzers(&mut ctx);
+                virtex::clk::collect_fuzzers(&mut ctx);
+                virtex::bram::collect_fuzzers(&mut ctx);
+                virtex::misc::collect_fuzzers(&mut ctx);
+                virtex::io::collect_fuzzers(&mut ctx);
+                virtex::dll::collect_fuzzers(&mut ctx);
             }
         }
         ExpandedDevice::Virtex2(ref edev) => {
             if !opts.skip_core {
+                generic::int::collect_fuzzers(&mut ctx);
                 if edev.chip.kind.is_virtex2() {
-                    tbus::collect_fuzzers(&mut ctx);
+                    virtex::tbus::collect_fuzzers(&mut ctx);
                 }
-                clb::virtex2::collect_fuzzers(&mut ctx);
+                virtex2::clb::collect_fuzzers(&mut ctx);
                 if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
-                    bram::virtex2::collect_fuzzers(&mut ctx, false);
+                    virtex2::bram::collect_fuzzers(&mut ctx, false);
                 }
                 if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp {
-                    dsp::spartan3adsp::collect_fuzzers(&mut ctx);
+                    virtex2::dsp::collect_fuzzers(&mut ctx);
                 }
             } else if !edev.chip.kind.is_virtex2()
                 && edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore
             {
-                bram::virtex2::collect_fuzzers(&mut ctx, true);
+                virtex2::bram::collect_fuzzers(&mut ctx, true);
             }
             if !opts.skip_clk {
-                clk::virtex2::collect_fuzzers(&mut ctx, false);
+                virtex2::clk::collect_fuzzers(&mut ctx, false);
             } else if opts.devdata_only {
-                clk::virtex2::collect_fuzzers(&mut ctx, true);
+                virtex2::clk::collect_fuzzers(&mut ctx, true);
             }
             if !opts.skip_misc {
-                misc::virtex2::collect_fuzzers(&mut ctx, opts.skip_io, false);
+                virtex2::misc::collect_fuzzers(&mut ctx, opts.skip_io, false);
             } else if opts.devdata_only {
-                misc::virtex2::collect_fuzzers(&mut ctx, true, true);
+                virtex2::misc::collect_fuzzers(&mut ctx, true, true);
             }
             if !opts.skip_io {
                 if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
-                    io::virtex2::collect_fuzzers(&mut ctx);
+                    virtex2::io::collect_fuzzers(&mut ctx);
                 } else {
-                    io::fpgacore::collect_fuzzers(&mut ctx);
+                    virtex2::io_fpgacore::collect_fuzzers(&mut ctx);
                 }
             }
             if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
                 if !opts.skip_dcm {
                     if !edev.chip.kind.is_spartan3ea() {
-                        dcm::virtex2::collect_fuzzers(&mut ctx, false);
+                        virtex2::dcm_v2::collect_fuzzers(&mut ctx, false);
                     } else {
-                        dcm::spartan3e::collect_fuzzers(&mut ctx, false);
+                        virtex2::dcm_s3e::collect_fuzzers(&mut ctx, false);
                     }
                 } else if opts.devdata_only {
                     if !edev.chip.kind.is_spartan3ea() {
-                        dcm::virtex2::collect_fuzzers(&mut ctx, true);
+                        virtex2::dcm_v2::collect_fuzzers(&mut ctx, true);
                     } else {
-                        dcm::spartan3e::collect_fuzzers(&mut ctx, true);
+                        virtex2::dcm_s3e::collect_fuzzers(&mut ctx, true);
                     }
                 }
             }
             if !opts.skip_hard && edev.chip.kind.is_virtex2p() {
-                ppc::virtex2::collect_fuzzers(&mut ctx);
+                virtex2::ppc::collect_fuzzers(&mut ctx);
             }
             if !opts.skip_gt {
                 if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Virtex2P {
-                    gt::virtex2p::collect_fuzzers(&mut ctx);
+                    virtex2::gt::collect_fuzzers(&mut ctx);
                 }
                 if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Virtex2PX {
-                    gt::virtex2px::collect_fuzzers(&mut ctx);
+                    virtex2::gt10::collect_fuzzers(&mut ctx);
                 }
             }
         }
         ExpandedDevice::Spartan6(_) => {
             if !opts.skip_core {
-                clb::virtex5::collect_fuzzers(&mut ctx);
-                bram::spartan6::collect_fuzzers(&mut ctx);
-                dsp::spartan3adsp::collect_fuzzers(&mut ctx);
+                generic::int::collect_fuzzers(&mut ctx);
+                virtex5::clb::collect_fuzzers(&mut ctx);
+                spartan6::bram::collect_fuzzers(&mut ctx);
+                virtex2::dsp::collect_fuzzers(&mut ctx);
             }
             if !opts.skip_clk {
-                clk::spartan6::collect_fuzzers(&mut ctx, false);
+                spartan6::clk::collect_fuzzers(&mut ctx, false);
             } else if opts.devdata_only {
-                clk::spartan6::collect_fuzzers(&mut ctx, true);
+                spartan6::clk::collect_fuzzers(&mut ctx, true);
             }
             if !opts.skip_misc {
-                misc::spartan6::collect_fuzzers(&mut ctx);
+                spartan6::misc::collect_fuzzers(&mut ctx);
             }
             if !opts.skip_io {
-                io::spartan6::collect_fuzzers(&mut ctx);
+                spartan6::io::collect_fuzzers(&mut ctx);
             }
             if !opts.skip_dcm {
-                dcm::spartan6::collect_fuzzers(&mut ctx);
+                spartan6::dcm::collect_fuzzers(&mut ctx);
             }
             if !opts.skip_pll {
-                pll::spartan6::collect_fuzzers(&mut ctx, opts.skip_dcm);
+                spartan6::pll::collect_fuzzers(&mut ctx, opts.skip_dcm);
             }
             if !opts.skip_hard {
-                mcb::collect_fuzzers(&mut ctx);
-                pcie::spartan6::collect_fuzzers(&mut ctx);
+                spartan6::mcb::collect_fuzzers(&mut ctx);
+                spartan6::pcie::collect_fuzzers(&mut ctx);
             }
             if !opts.skip_gt {
-                gt::spartan6::collect_fuzzers(&mut ctx);
+                spartan6::gt::collect_fuzzers(&mut ctx);
             }
         }
         ExpandedDevice::Virtex4(ref edev) => match edev.kind {
             prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                 if !opts.skip_core {
-                    clb::virtex2::collect_fuzzers(&mut ctx);
-                    bram::virtex4::collect_fuzzers(&mut ctx);
-                    dsp::virtex4::collect_fuzzers(&mut ctx);
+                    generic::int::collect_fuzzers(&mut ctx);
+                    virtex2::clb::collect_fuzzers(&mut ctx);
+                    virtex4::bram::collect_fuzzers(&mut ctx);
+                    virtex4::dsp::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_clk {
-                    clk::virtex4::collect_fuzzers(&mut ctx);
+                    virtex4::clk::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_misc {
-                    misc::virtex4::collect_fuzzers(&mut ctx);
+                    virtex4::misc::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_io {
-                    io::virtex4::collect_fuzzers(&mut ctx);
+                    virtex4::io::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_dcm {
-                    dcm::virtex4::collect_fuzzers(&mut ctx);
+                    virtex4::dcm::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_ccm {
-                    ccm::virtex4::collect_fuzzers(&mut ctx);
+                    virtex4::ccm::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_hard {
-                    ppc::virtex4::collect_fuzzers(&mut ctx);
+                    virtex4::ppc::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_gt {
-                    gt::virtex4::collect_fuzzers(&mut ctx);
+                    virtex4::gt::collect_fuzzers(&mut ctx);
                 }
             }
             prjcombine_virtex4::chip::ChipKind::Virtex5 => {
                 if !opts.skip_core {
-                    clb::virtex5::collect_fuzzers(&mut ctx);
-                    bram::virtex5::collect_fuzzers(&mut ctx);
-                    dsp::virtex5::collect_fuzzers(&mut ctx);
+                    generic::int::collect_fuzzers(&mut ctx);
+                    virtex5::clb::collect_fuzzers(&mut ctx);
+                    virtex5::bram::collect_fuzzers(&mut ctx);
+                    virtex5::dsp::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_clk {
-                    clk::virtex5::collect_fuzzers(&mut ctx);
+                    virtex5::clk::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_misc {
-                    misc::virtex5::collect_fuzzers(&mut ctx);
+                    virtex5::misc::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_io {
-                    io::virtex5::collect_fuzzers(&mut ctx, false);
+                    virtex5::io::collect_fuzzers(&mut ctx, false);
                 } else if opts.devdata_only {
-                    io::virtex5::collect_fuzzers(&mut ctx, true);
+                    virtex5::io::collect_fuzzers(&mut ctx, true);
                 }
                 if !opts.skip_dcm || !opts.skip_pll {
-                    cmt::virtex5::collect_fuzzers(&mut ctx, opts.skip_dcm, opts.skip_pll, false);
+                    virtex5::cmt::collect_fuzzers(&mut ctx, opts.skip_dcm, opts.skip_pll, false);
                 } else if opts.devdata_only {
-                    cmt::virtex5::collect_fuzzers(&mut ctx, true, true, true);
+                    virtex5::cmt::collect_fuzzers(&mut ctx, true, true, true);
                 }
                 if !opts.skip_hard {
-                    ppc::virtex5::collect_fuzzers(&mut ctx, false);
-                    emac::virtex5::collect_fuzzers(&mut ctx);
-                    pcie::virtex5::collect_fuzzers(&mut ctx);
+                    virtex5::ppc::collect_fuzzers(&mut ctx, false);
+                    virtex5::emac::collect_fuzzers(&mut ctx);
+                    virtex5::pcie::collect_fuzzers(&mut ctx);
                 } else if opts.devdata_only {
-                    ppc::virtex5::collect_fuzzers(&mut ctx, true);
+                    virtex5::ppc::collect_fuzzers(&mut ctx, true);
                 }
                 if !opts.skip_gt {
-                    gt::virtex5::collect_fuzzers(&mut ctx);
+                    virtex5::gt::collect_fuzzers(&mut ctx);
                 }
             }
             prjcombine_virtex4::chip::ChipKind::Virtex6 => {
                 if !opts.skip_core {
-                    clb::virtex5::collect_fuzzers(&mut ctx);
-                    bram::virtex6::collect_fuzzers(&mut ctx);
-                    dsp::virtex6::collect_fuzzers(&mut ctx);
+                    generic::int::collect_fuzzers(&mut ctx);
+                    virtex5::clb::collect_fuzzers(&mut ctx);
+                    virtex6::bram::collect_fuzzers(&mut ctx);
+                    virtex6::dsp::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_clk {
-                    clk::virtex6::collect_fuzzers(&mut ctx);
+                    virtex6::clk::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_misc {
-                    misc::virtex6::collect_fuzzers(&mut ctx);
+                    virtex6::misc::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_io {
-                    io::virtex6::collect_fuzzers(&mut ctx, false);
+                    virtex6::io::collect_fuzzers(&mut ctx, false);
                 } else if opts.devdata_only {
-                    io::virtex6::collect_fuzzers(&mut ctx, true);
+                    virtex6::io::collect_fuzzers(&mut ctx, true);
                 }
                 if !opts.skip_pll {
-                    cmt::virtex6::collect_fuzzers(&mut ctx, false);
+                    virtex6::cmt::collect_fuzzers(&mut ctx, false);
                 } else if opts.devdata_only {
-                    cmt::virtex6::collect_fuzzers(&mut ctx, true);
+                    virtex6::cmt::collect_fuzzers(&mut ctx, true);
                 }
                 if !opts.skip_hard {
-                    emac::virtex6::collect_fuzzers(&mut ctx);
-                    pcie::virtex6::collect_fuzzers(&mut ctx);
+                    virtex6::emac::collect_fuzzers(&mut ctx);
+                    virtex6::pcie::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_gt {
-                    gt::virtex6_gtx::collect_fuzzers(&mut ctx);
-                    gt::virtex6_gth::collect_fuzzers(&mut ctx);
+                    virtex6::gtx::collect_fuzzers(&mut ctx);
+                    virtex6::gth::collect_fuzzers(&mut ctx);
                 }
             }
             prjcombine_virtex4::chip::ChipKind::Virtex7 => {
                 if !opts.skip_core {
-                    clb::virtex5::collect_fuzzers(&mut ctx);
-                    bram::virtex6::collect_fuzzers(&mut ctx);
-                    dsp::virtex6::collect_fuzzers(&mut ctx);
+                    generic::int::collect_fuzzers(&mut ctx);
+                    virtex5::clb::collect_fuzzers(&mut ctx);
+                    virtex6::bram::collect_fuzzers(&mut ctx);
+                    virtex6::dsp::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_clk {
-                    clk::virtex7::collect_fuzzers(&mut ctx, false);
+                    virtex7::clk::collect_fuzzers(&mut ctx, false);
                 } else if opts.bali_only {
-                    clk::virtex7::collect_fuzzers(&mut ctx, true);
+                    virtex7::clk::collect_fuzzers(&mut ctx, true);
                 }
                 if !opts.skip_misc {
-                    misc::virtex7::collect_fuzzers(&mut ctx);
+                    virtex7::misc::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_io {
-                    io::virtex7::collect_fuzzers(&mut ctx);
+                    virtex7::io::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_pll {
-                    cmt::virtex7::collect_fuzzers(&mut ctx);
+                    virtex7::cmt::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_hard {
-                    pcie::virtex7::collect_fuzzers(&mut ctx);
+                    virtex7::pcie::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_gt {
-                    gt::virtex7::collect_fuzzers(&mut ctx);
+                    virtex7::gt::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_gtz {
-                    gtz::collect_fuzzers(&mut ctx);
+                    virtex7::gtz::collect_fuzzers(&mut ctx);
                 }
             }
         },
         _ => panic!("unsupported device kind"),
     }
     if !opts.skip_core {
-        intf::collect_fuzzers(&mut ctx);
+        generic::intf::collect_fuzzers(&mut ctx);
     }
     for (die, dbs) in &ctx.empty_bs.die {
         if let Some(&val) = dbs.regs.get(&Reg::Idcode) {

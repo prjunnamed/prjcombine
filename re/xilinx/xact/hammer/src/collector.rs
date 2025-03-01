@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use prjcombine_re_collector::Collector;
+use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_xilinx_xact_geom::Device;
 use prjcombine_xc2000::expanded::ExpandedDevice;
 

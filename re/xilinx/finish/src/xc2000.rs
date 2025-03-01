@@ -7,6 +7,7 @@ use itertools::Itertools;
 use prjcombine_interconnect::db::{BelInfo, NodeTileId};
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_xc2000::{
+    bels,
     bond::Bond,
     chip::Chip,
     db::{Database, DeviceCombo, Part},
@@ -258,7 +259,7 @@ pub fn finish(
             assert_eq!(key_i, "xc5200");
             let io_b = int_i.get_node("IO.B");
             let io_b = &mut int_i.nodes[io_b];
-            io_b.bels.insert("SCANTEST".into(), BelInfo::default());
+            io_b.bels.insert(bels::xc5200::SCANTEST, BelInfo::default());
             let key = (NodeTileId::from_idx(0), int_i.get_wire("IMUX.BYPOSC.PUMP"));
             let imux_byposc_pump = int_i.nodes.get("CNR.TR").unwrap().1.muxes[&key].clone();
             int_x

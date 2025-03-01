@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use prjcombine_interconnect::db::{BelId, IntDb, NodeIriId, NodeWireId, WireId};
+use prjcombine_interconnect::db::{BelSlotId, IntDb, NodeIriId, NodeWireId, WireId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
 
@@ -38,7 +38,7 @@ pub struct NodeNaming {
     pub wires: BTreeMap<NodeWireId, String>,
     pub wire_bufs: BTreeMap<NodeWireId, NodeExtPipNaming>,
     pub ext_pips: BTreeMap<(NodeWireId, NodeWireId), NodeExtPipNaming>,
-    pub bels: EntityVec<BelId, BelNaming>,
+    pub bels: EntityPartVec<BelSlotId, BelNaming>,
     pub iris: EntityVec<NodeIriId, IriNaming>,
     pub intf_wires_out: BTreeMap<NodeWireId, IntfWireOutNaming>,
     pub intf_wires_in: BTreeMap<NodeWireId, IntfWireInNaming>,
@@ -177,12 +177,12 @@ impl NamingDb {
                     vf = v.wire_from,
                 )?;
             }
-            for (bid, bn) in &naming.bels {
+            for (slot, bn) in &naming.bels {
                 writeln!(
                     o,
-                    "\t\tBEL {bid} RT.{rt}:",
-                    bid = bid.to_idx(),
-                    rt = bn.tile.to_idx()
+                    "\t\tBEL {slot} RT.{rt}:",
+                    slot = intdb.bel_slots[slot],
+                    rt = bn.tile,
                 )?;
                 for (k, v) in &bn.pins {
                     write!(o, "\t\t\tPIN {k}: ")?;

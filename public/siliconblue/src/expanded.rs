@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::{ColId, ExpandedGrid, RowId};
+use prjcombine_interconnect::grid::{ColId, ExpandedGrid, NodeLoc, RowId};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::{
@@ -83,9 +83,9 @@ impl ExpandedDevice<'_> {
             BitPos::Main(bank, frame, bit) => {
                 let row = frame / 0x10;
                 let row = if (bank & 1) == 0 {
-                    self.chip.row_bio() + row
+                    self.chip.row_s() + row
                 } else {
-                    self.chip.row_tio() - row
+                    self.chip.row_n() - row
                 };
                 if let Some(col) = self.chip.columns().find(|&col| {
                     bit >= self.col_bit[col]
@@ -129,6 +129,25 @@ impl ExpandedDevice<'_> {
             }
             BitPos::Speed(_) => Some((BitTile::Speed, BitOwner::Speed)),
             BitPos::CReg(_) => Some((BitTile::CReg, BitOwner::CReg)),
+        }
+    }
+
+    pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+        let (_, col, row, _) = nloc;
+        let node = self.egrid.node(nloc);
+        let kind = self.egrid.db.nodes.key(node.kind).as_str();
+        if kind == "BRAM" {
+            vec![
+                self.btile_main(col, row),
+                self.btile_main(col, row + 1),
+                self.btile_bram(col, row),
+            ]
+        } else {
+            Vec::from_iter(
+                node.tiles
+                    .values()
+                    .map(|&(col, row)| self.btile_main(col, row)),
+            )
         }
     }
 }

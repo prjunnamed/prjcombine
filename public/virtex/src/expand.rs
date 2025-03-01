@@ -26,21 +26,21 @@ struct Expander<'a, 'b> {
 impl Expander<'_, '_> {
     fn fill_int(&mut self) {
         for col in self.die.cols() {
-            if col == self.chip.col_lio() {
+            if col == self.chip.col_w() {
                 for row in self.die.rows() {
-                    if row == self.chip.row_bio() {
+                    if row == self.chip.row_s() {
                         self.die.fill_tile((col, row), "CNR.BL");
-                    } else if row == self.chip.row_tio() {
+                    } else if row == self.chip.row_n() {
                         self.die.fill_tile((col, row), "CNR.TL");
                     } else {
                         self.die.fill_tile((col, row), "IO.L");
                     }
                 }
-            } else if col == self.chip.col_rio() {
+            } else if col == self.chip.col_e() {
                 for row in self.die.rows() {
-                    if row == self.chip.row_bio() {
+                    if row == self.chip.row_s() {
                         self.die.fill_tile((col, row), "CNR.BR");
-                    } else if row == self.chip.row_tio() {
+                    } else if row == self.chip.row_n() {
                         self.die.fill_tile((col, row), "CNR.TR");
                     } else {
                         self.die.fill_tile((col, row), "IO.R");
@@ -50,9 +50,9 @@ impl Expander<'_, '_> {
                 // skip for now
             } else {
                 for row in self.die.rows() {
-                    if row == self.chip.row_bio() {
+                    if row == self.chip.row_s() {
                         self.die.fill_tile((col, row), "IO.B");
-                    } else if row == self.chip.row_tio() {
+                    } else if row == self.chip.row_n() {
                         self.die.fill_tile((col, row), "IO.T");
                     } else {
                         self.die.fill_tile((col, row), "CLB");
@@ -68,19 +68,19 @@ impl Expander<'_, '_> {
                 continue;
             }
 
-            let row = self.chip.row_bio();
+            let row = self.chip.row_s();
             self.die
                 .add_xnode((col, row), "BRAM_BOT", &[(col, row), (col - 1, row)]);
 
             let mut prev_crd = (col, row);
             for row in self.die.rows() {
-                if row == self.chip.row_tio() || row.to_idx() % 4 != 1 {
+                if row == self.chip.row_n() || row.to_idx() % 4 != 1 {
                     continue;
                 }
                 let kind;
-                if col == self.chip.col_lio() + 1 {
+                if col == self.chip.col_w() + 1 {
                     kind = "LBRAM";
-                } else if col == self.chip.col_rio() - 1 {
+                } else if col == self.chip.col_e() - 1 {
                     kind = "RBRAM";
                 } else {
                     kind = "MBRAM";
@@ -108,7 +108,7 @@ impl Expander<'_, '_> {
                 prev_crd = (col, row);
             }
 
-            let row = self.chip.row_tio();
+            let row = self.chip.row_n();
             self.die
                 .add_xnode((col, row), "BRAM_TOP", &[(col, row), (col - 1, row)]);
             self.die
@@ -118,20 +118,20 @@ impl Expander<'_, '_> {
             for (wire, wname, _) in &self.db.wires {
                 if wname.starts_with("BRAM.QUAD") {
                     self.blackhole_wires
-                        .insert((self.die.die, (col, self.chip.row_tio()), wire));
+                        .insert((self.die.die, (col, self.chip.row_n()), wire));
                 }
             }
         }
     }
 
     fn fill_clkbt(&mut self) {
-        let row_b = self.chip.row_bio();
-        let row_t = self.chip.row_tio();
+        let row_b = self.chip.row_s();
+        let row_t = self.chip.row_n();
         // CLKB/CLKT and DLLs
         if self.chip.kind == ChipKind::Virtex {
             let col_c = self.chip.col_clk();
-            let col_pl = self.chip.col_lio() + 1;
-            let col_pr = self.chip.col_rio() - 1;
+            let col_pl = self.chip.col_w() + 1;
+            let col_pr = self.chip.col_e() - 1;
             self.die.add_xnode(
                 (col_c, row_b),
                 "CLKB",
@@ -272,8 +272,8 @@ impl Expander<'_, '_> {
 
     fn fill_pcilogic(&mut self) {
         // CLKL/CLKR
-        let pci_l = (self.chip.col_lio(), self.chip.row_clk());
-        let pci_r = (self.chip.col_rio(), self.chip.row_clk());
+        let pci_l = (self.chip.col_w(), self.chip.row_clk());
+        let pci_r = (self.chip.col_e(), self.chip.row_clk());
         self.die.add_xnode(pci_l, "CLKL", &[pci_l]);
         self.die.add_xnode(pci_r, "CLKR", &[pci_r]);
     }
@@ -285,25 +285,25 @@ impl Expander<'_, '_> {
                     let col = ColId::from_idx(c);
                     self.die[(col, row)].clkroot = (col_m - 1, row);
                 }
-                if col_m == self.chip.col_lio() + 1 || col_m == self.chip.col_rio() - 1 {
-                    if row == self.chip.row_bio() {
+                if col_m == self.chip.col_w() + 1 || col_m == self.chip.col_e() - 1 {
+                    if row == self.chip.row_s() {
                         for c in col_m.to_idx()..col_r.to_idx() {
                             let col = ColId::from_idx(c);
                             self.die[(col, row)].clkroot = (col_m, row);
                         }
                         self.die.add_xnode(
                             (col_m, row),
-                            "CLKV_BRAM_BOT",
+                            "CLKV_BRAM_S",
                             &[(col_m, row), (col_m - 1, row), (col_m, row + 1)],
                         );
-                    } else if row == self.chip.row_tio() {
+                    } else if row == self.chip.row_n() {
                         for c in col_m.to_idx()..col_r.to_idx() {
                             let col = ColId::from_idx(c);
                             self.die[(col, row)].clkroot = (col_m, row);
                         }
                         self.die.add_xnode(
                             (col_m, row),
-                            "CLKV_BRAM_TOP",
+                            "CLKV_BRAM_N",
                             &[(col_m, row), (col_m - 1, row), (col_m, row - 4)],
                         );
                     } else {
@@ -318,7 +318,7 @@ impl Expander<'_, '_> {
                         let col = ColId::from_idx(c);
                         self.die[(col, row)].clkroot = (col_m, row);
                     }
-                    let kind = if row == self.chip.row_bio() || row == self.chip.row_tio() {
+                    let kind = if row == self.chip.row_s() || row == self.chip.row_n() {
                         "CLKV.NULL"
                     } else if col_m == self.chip.col_clk() {
                         "CLKV.CLKV"
@@ -329,7 +329,7 @@ impl Expander<'_, '_> {
                         .add_xnode((col_m, row), kind, &[(col_m - 1, row), (col_m, row)]);
                 }
             }
-            if col_m == self.chip.col_lio() + 1 || col_m == self.chip.col_rio() - 1 {
+            if col_m == self.chip.col_w() + 1 || col_m == self.chip.col_e() - 1 {
                 self.die.add_xnode(
                     (col_m, self.chip.row_clk()),
                     "BRAM_CLKH",
@@ -392,7 +392,7 @@ impl Expander<'_, '_> {
                     clkv_frame += 1;
                 }
                 self.col_frame[col] = self.frame_info.len();
-                let width = if col == self.chip.col_lio() || col == self.chip.col_rio() {
+                let width = if col == self.chip.col_w() || col == self.chip.col_e() {
                     54
                 } else if self.chip.cols_bram.contains(&col) {
                     27

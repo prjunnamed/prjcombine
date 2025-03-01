@@ -184,25 +184,25 @@ impl<B: Backend> Fuzzer<B> {
 }
 
 #[allow(clippy::type_complexity)]
-pub trait FuzzerGen<B: Backend>: Debug {
-    fn generate<'a>(
+pub trait FuzzerGen<'b, B: Backend>: Debug {
+    fn generate(
         &self,
-        backend: &'a B,
+        backend: &'b B,
         state: &mut B::State,
         kv: &HashMap<B::Key, BatchValue<B>>,
-    ) -> Option<(Fuzzer<B>, Option<Box<dyn FuzzerGen<B> + 'a>>)>;
+    ) -> Option<(Fuzzer<B>, Option<Box<dyn FuzzerGen<'b, B> + 'b>>)>;
 }
 
 #[derive(Debug)]
 struct SimpleFuzzerGen<B: Backend>(Fuzzer<B>);
 
-impl<B: Backend> FuzzerGen<B> for SimpleFuzzerGen<B> {
-    fn generate<'a>(
+impl<'b, B: Backend> FuzzerGen<'b, B> for SimpleFuzzerGen<B> {
+    fn generate(
         &self,
-        _backend: &'a B,
+        _backend: &'b B,
         _state: &mut B::State,
         kv: &HashMap<<B as Backend>::Key, BatchValue<B>>,
-    ) -> Option<(Fuzzer<B>, Option<Box<dyn FuzzerGen<B> + 'a>>)> {
+    ) -> Option<(Fuzzer<B>, Option<Box<dyn FuzzerGen<'b, B> + 'b>>)> {
         if self.0.is_ok(kv) {
             Some((self.0.clone(), None))
         } else {
@@ -212,8 +212,8 @@ impl<B: Backend> FuzzerGen<B> for SimpleFuzzerGen<B> {
 }
 
 #[derive(Debug)]
-struct FuzzerGenWrapper<'a, B: Backend> {
-    fgen: Box<dyn FuzzerGen<B> + 'a>,
+struct FuzzerGenWrapper<'b, B: Backend> {
+    fgen: Box<dyn FuzzerGen<'b, B> + 'b>,
     dup: u32,
 }
 
@@ -244,8 +244,8 @@ impl<B: Backend> FuzzerGenHandle<'_, '_, B> {
     }
 }
 
-impl<'a, B: Backend> Session<'a, B> {
-    pub fn new(backend: &'a B) -> Self {
+impl<'b, B: Backend> Session<'b, B> {
+    pub fn new(backend: &'b B) -> Self {
         Session {
             backend,
             debug: 0,
@@ -256,7 +256,10 @@ impl<'a, B: Backend> Session<'a, B> {
         }
     }
 
-    pub fn add_fuzzer(&mut self, fgen: Box<dyn FuzzerGen<B> + 'a>) -> FuzzerGenHandle<'_, 'a, B> {
+    pub fn add_fuzzer(
+        &mut self,
+        fgen: Box<dyn FuzzerGen<'b, B> + 'b>,
+    ) -> FuzzerGenHandle<'_, 'b, B> {
         let i = self.fgens.len();
         self.fgens.push(FuzzerGenWrapper {
             fgen,
@@ -268,7 +271,7 @@ impl<'a, B: Backend> Session<'a, B> {
         }
     }
 
-    pub fn add_fuzzer_simple(&mut self, fuzzer: Fuzzer<B>) -> FuzzerGenHandle<'_, 'a, B> {
+    pub fn add_fuzzer_simple(&mut self, fuzzer: Fuzzer<B>) -> FuzzerGenHandle<'_, 'b, B> {
         self.add_fuzzer(Box::new(SimpleFuzzerGen(fuzzer))).dup(1)
     }
 

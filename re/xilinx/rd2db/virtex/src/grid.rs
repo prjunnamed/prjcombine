@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_interconnect::{
-    db::BelId,
-    grid::{ColId, EdgeIoCoord},
-};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord};
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
-use prjcombine_virtex::chip::{Chip, ChipKind, DisabledPart, SharedCfgPin};
+use prjcombine_virtex::{
+    bels,
+    chip::{Chip, ChipKind, DisabledPart, SharedCfgPin},
+};
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int, find_columns};
@@ -72,17 +72,17 @@ fn add_disabled_brams(disabled: &mut BTreeSet<DisabledPart>, rd: &Part, int: &In
     }
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
+fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
     let mut io_lookup = HashMap::new();
     for (&crd, tile) in &rd.tiles {
         let tk = &rd.tile_kinds[tile.kind];
         for (k, v) in &tile.sites {
             if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
                 if rd.slot_kinds[sn] == "IOB" {
-                    let bel = BelId::from_idx(idx as usize);
                     let col = int.lookup_column(crd.x.into());
                     let row = int.lookup_row(crd.y.into());
-                    let io = grid.get_io_crd(col, row, bel);
+                    let io =
+                        chip.get_io_crd((DieId::from_idx(0), (col, row), bels::IO[idx as usize]));
                     io_lookup.insert(v.clone(), io);
                 }
             }
@@ -120,7 +120,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                             match coord {
                                 EdgeIoCoord::W(row, iob) | EdgeIoCoord::E(row, iob) => {
                                     assert_eq!(iob.to_idx(), 3);
-                                    assert_eq!(row, grid.row_mid());
+                                    assert_eq!(row, chip.row_mid());
                                 }
                                 _ => unreachable!(),
                             }
@@ -130,7 +130,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                             match coord {
                                 EdgeIoCoord::W(row, iob) | EdgeIoCoord::E(row, iob) => {
                                     assert_eq!(iob.to_idx(), 1);
-                                    assert_eq!(row, grid.row_mid() - 1);
+                                    assert_eq!(row, chip.row_mid() - 1);
                                 }
                                 _ => unreachable!(),
                             }
@@ -138,7 +138,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                         }
                         _ => panic!("UNK FUNC {func} {coord:?}"),
                     };
-                    let old = grid.cfg_io.insert(cfg, coord);
+                    let old = chip.cfg_io.insert(cfg, coord);
                     assert!(old.is_none() || old == Some(coord));
                 }
             }

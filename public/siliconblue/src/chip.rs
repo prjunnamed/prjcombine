@@ -2,12 +2,14 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use jzon::JsonValue;
 use prjcombine_interconnect::{
-    db::{BelId, NodeTileId},
+    db::NodeTileId,
     dir::Dir,
-    grid::{ColId, EdgeIoCoord, RowId, TileIobId},
+    grid::{ColId, DieId, EdgeIoCoord, IntBel, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityIds, EntityVec};
+
+use crate::bels;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ChipKind {
@@ -59,7 +61,7 @@ impl ChipKind {
         )
     }
 
-    pub fn has_lrio(self) -> bool {
+    pub fn has_io_we(self) -> bool {
         matches!(
             self,
             Self::Ice65L01
@@ -74,7 +76,7 @@ impl ChipKind {
         )
     }
 
-    pub fn has_actual_lrio(self) -> bool {
+    pub fn has_actual_io_we(self) -> bool {
         matches!(
             self,
             Self::Ice65L01
@@ -223,19 +225,19 @@ pub struct Chip {
 }
 
 impl Chip {
-    pub fn col_lio(&self) -> ColId {
+    pub fn col_w(&self) -> ColId {
         ColId::from_idx(0)
     }
 
-    pub fn col_rio(&self) -> ColId {
+    pub fn col_e(&self) -> ColId {
         ColId::from_idx(self.columns - 1)
     }
 
-    pub fn row_bio(&self) -> RowId {
+    pub fn row_s(&self) -> RowId {
         RowId::from_idx(0)
     }
 
-    pub fn row_tio(&self) -> RowId {
+    pub fn row_n(&self) -> RowId {
         RowId::from_idx(self.rows - 1)
     }
 
@@ -258,7 +260,7 @@ impl Chip {
             EdgeIoCoord::S(col, _) => {
                 if col < self.col_bio_split {
                     2
-                } else if self.kind.has_lrio() {
+                } else if self.kind.has_io_we() {
                     4
                 } else {
                     1
@@ -268,26 +270,27 @@ impl Chip {
         }
     }
 
-    pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> IntBel {
         let (col, row, iob) = match io {
-            EdgeIoCoord::N(col, iob) => (col, self.row_tio(), iob),
-            EdgeIoCoord::E(row, iob) => (self.col_rio(), row, iob),
-            EdgeIoCoord::S(col, iob) => (col, self.row_bio(), iob),
-            EdgeIoCoord::W(row, iob) => (self.col_lio(), row, iob),
+            EdgeIoCoord::N(col, iob) => (col, self.row_n(), iob),
+            EdgeIoCoord::E(row, iob) => (self.col_e(), row, iob),
+            EdgeIoCoord::S(col, iob) => (col, self.row_s(), iob),
+            EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
         };
-        let bel = BelId::from_idx(iob.to_idx());
-        (col, row, bel)
+        let slot = bels::IO[iob.to_idx()];
+        (DieId::from_idx(0), (col, row), slot)
     }
 
-    pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
-        let iob = TileIobId::from_idx(bel.to_idx());
-        if col == self.col_lio() {
+    pub fn get_io_crd(&self, bel: IntBel) -> EdgeIoCoord {
+        let (_, (col, row), slot) = bel;
+        let iob = TileIobId::from_idx(bels::IO.iter().position(|&x| x == slot).unwrap());
+        if col == self.col_w() {
             EdgeIoCoord::W(row, iob)
-        } else if col == self.col_rio() {
+        } else if col == self.col_e() {
             EdgeIoCoord::E(row, iob)
-        } else if row == self.row_bio() {
+        } else if row == self.row_s() {
             EdgeIoCoord::S(col, iob)
-        } else if row == self.row_tio() {
+        } else if row == self.row_n() {
             EdgeIoCoord::N(col, iob)
         } else {
             unreachable!()
@@ -306,7 +309,7 @@ impl Chip {
         }
         if self.kind == ChipKind::Ice65L01 {
             false
-        } else if self.kind.has_actual_lrio() {
+        } else if self.kind.has_actual_io_we() {
             crd.edge() == Dir::W
         } else if self.kind == ChipKind::Ice40R04 {
             crd.edge() == Dir::N
@@ -316,11 +319,11 @@ impl Chip {
     }
 
     pub fn has_int_at(&self, col: ColId, row: RowId) -> bool {
-        if col != self.col_lio() && col != self.col_rio() {
+        if col != self.col_w() && col != self.col_e() {
             return false;
         }
         if self.kind == ChipKind::Ice40T01 {
-            row - self.row_bio() <= 3 || self.row_tio() - row <= 3
+            row - self.row_s() <= 3 || self.row_n() - row <= 3
         } else {
             true
         }
@@ -329,7 +332,7 @@ impl Chip {
     pub fn btile_width(&self, col: ColId) -> usize {
         if self.cols_bram.contains(&col) {
             42
-        } else if self.kind.has_lrio() && (col == self.col_lio() || col == self.col_rio()) {
+        } else if self.kind.has_io_we() && (col == self.col_w() || col == self.col_e()) {
             18
         } else {
             54
