@@ -10,16 +10,23 @@ and then there is a common multiplexing and framing protocol used to
 communicate with one of the device's "subsystems", such as JTAG, SPI, GPIO,
 or board management.
 
-The protocol is implemented by a variety of devices on the board side — some
-of them are ATmega based, and come up directly implementing the protocol,
-with upgradeability provided only by programming pins on the board.
-Others are FX2 based, requiring firmware upload from the host before they
-start speaking the protocol.
+There ar two kinds of devices implementing this protocol:
 
-Note that Digilent has phased out this protocol — newer boards are FTDI
-based instead.
+- AT90USB162-based, which have pre-flashed firmware and can be used immediately
+- FX2-based, which may require firmware upload first
+
+.. todo:: there are also FX3-based devices, but it is unclear whether they reuse
+   the protocol or not
+
+Note that Digilent has phased out this protocol — newer boards are FTDI based instead.
+On FTDI-based boards, the Adept runtime libraries will emulate this protocol in software, even
+assembling command structures in one part of the stack, then destructuring them in the FTDI-specific
+code.  The code doing this (a normal host ``.so`` or ``.dll``) is, hilariously, called "firmware".
 
 The protocol is implemented on devices with USB ID of ``0x1443:0x0007``.
+
+.. todo:: ``0x1443:0x0003`` and ``0x1443:0x0005`` allegedly also exist, on
+   the oldest FX2-based devices
 
 The device exposes a single configuration and single interface.  The class,
 subclass, and protocol are all-0, as would be expected.  The device has
@@ -27,12 +34,99 @@ the following endpoints:
 
 - control endpoint 0: in addition to the usual core USB stuff, used to send
   various custom control requests
-- endpoint 1 OUT (bulk, 16 bytes max packet size): used to send subsystem commands
-- endpoint 2 IN (bulk, 16 bytes max packet size): used to receive subsystem command responses
-- endpoint 3 OUT (bulk, 64 bytes max packet size): used to send large data payloads for subsystem commands
-- endpoint 4 IN (bulk, 64 bytes max packet size): used to receive large data payloads for subsystem commands
+- command endpoint (bulk OUT): used to send subsystem commands
+- response endpoint (bulk IN): used to receive subsystem command responses
+- data out endpoint (bulk OUT): used to send large data payloads for subsystem commands
+- data in endpoint (bulk IN): used to receive large data payloads for subsystem commands
+
+The actual endpoint numbers (and their max packet size) involved depend on the device kind:
+
+======== ====================== ==================
+Endpoint FX2                    AT90USB
+======== ====================== ==================
+command  EP1 OUT (64 bytes)     EP1 OUT (16 bytes)
+response EP1 OUT (64 bytes)     EP2 IN (16 bytes)
+data out EP2 OUT (64/512 bytes) EP3 OUT (64 bytes)
+data in  EP6 IN (64/512 bytes)  EP4 IN (64 bytes)
+======== ====================== ==================
 
 All numbers in the protocol are encoded as little-endian unless stated otherwise.
+
+
+Identification
+==============
+
+All Adept devices will present useless data (something akin to ``"Digilent Adept USB"``) in their
+USB identifier strings.  To identify the actual devboard, the "product id" should be obtained
+instead (via ``GET_PRODUCT_ID`` control request, or by reading from user EEPROM area on FTDI
+devices).  The product id is a 32-bit word with the following structure:
+
+- bits 0-7: firmware id
+- bits 8-19: variant id
+- bits 20-31: board id
+
+The "board id" identifies a particular devboard model.  The "variant id" identifies a variant of
+that devboard (eg. what FPGA size is fitted).  The "firmware id" identifies which firmware should
+be loaded for this board.
+
+The "firmware id" can be thought of as identifying an "equivalence class" of the board from
+the firmware's port of view:
+
+- two completely different boards that both use the same set of subsystems (eg. both use DJTG+DEPP)
+  and have the exact same control connections to the FX2/AT90USB are equivalent, and will have
+  the same firmware id
+- two minor revisions of the same board will get distinct firmware id if the connections to
+  the AT90USB/FX2 were changed (eg. hooked up a "link activity" LED on the newer revision)
+
+The known firmware ids are:
+
+- ``0x00-0x1f``: FX2-based; ``0x01`` and ``0x02`` are based on the original FX2, all others are
+  based on FX2LP
+- ``0x01``: DJTG or DSPI; old JTAG-USB cable based on the original FX2, requires firmware swapping
+  to switch between DJTG and DSPI
+- ``0x02``: DJTG or DEPP: old USB2 module based on the original FX2, requires firmware swapping
+  to switch between DJTG and DEPP
+- ``0x03``: DJTG + DSPI; new FX2LP-based JTAG-USB cable
+- ``0x04``: DJTG + DEPP; new FX2LP-based USB2 module
+- ``0x05``: DJTG+DEPP+DSTM (used on Nexys 2)
+- ``0x06``: DJTG+DEPP+DSTM+DSPI (X-board?)
+- ``0x08``: DJTG+DEPP+DSTM
+- ``0x09``: DJTG+DEPP+DSTM
+- ``0x0a``: DJTG+DEPP+DSTM+DSPI (X-board?)
+- ``0x0b``: ~DJTG+DEPP+DSTM
+- ``0x0c``: DJTG+DEPP+DSTM (used on Atlys)
+- ``0x0d``: DJTG+DEPP+DSTM (used on Nexys 3, FMC Carrier S6)
+- ``0x0e``: DJTG+DEPP+DSTM
+- ``0x0f``: ~DJTG+DEPP+DSTM
+- ``0x20-0x3f``: AT90USB-based
+- ``0x21``: DJTG? (JTAG-USB-FS cable)
+- ``0x22``: DJTG+DEPP + prog + done (used on Basys 2)
+- ``0x23``: DJTG+DEPP + ??? (used on other Basys 2 revisions?)
+- ``0x26``: DJTG+DEPP+DSPI (used on Coolrunner 2 starter board)
+- ``0x29``: DPIO+DSPI+DTWI+DACI+DAIO+DEMC+DGIO (IO explorer)
+- ``0x2d``: DJTG+???
+- ``0x2e``: DPIO+DEPP+DSPI; power control shared with DPIO (used on iCE40blink)
+- ``0x50-0x6f``: FTDI-based
+- ``0x50``: FT2232H DJTG+DSPI (JTAG-HS1)
+- ``0x51``: FT2232H DJTG (used on JTAG-SMT1; Basys 3, Arty, USB104-A7, USRP onboard)
+- ``0x52``: FT232H DJTG+DSPI (JTAG-HS2)
+- ``0x53``: DJTG+SRST (JTAG-HS3; ZEDBOARD)
+- ``0x54``: FT232H DJTG+DSPI+DPIO (JTAG-SMT2)
+- ``0x55``: DJTG+DSPI+DPTI
+- ``0x56``: DJTG+DSPI+DPTI
+- ``0x57``: DJTG (ZYBO-Z7; TE07* onboard)
+- ``0x58``: DJTG+DSPI
+- ``0x59``: DPTI
+- ``0x60``: ~DJTG+DPTI (analog discovery)
+- ``0x61``: DJTG
+- ``0x62``: DSPI+DPTI
+- ``0x80-0x8f``: FX3-based
+- ``0x80``: ???
+- ``0x81``: ???
+
+In addition to the binary product id, the boards also have a product name, which is hopefully in
+some correspondence with the product id.  However, it is probably more reliable to recognize
+the board by the binary id.
 
 
 Control requests
@@ -167,22 +261,13 @@ Sets a 16-bit number used in the secret handshake.
 ``GET_PRODUCT_ID``
 ------------------
 
-Returns the binary product ID of this board.  It is a little-endian 32-bit word.
+Returns the binary product ID of this board.  It is a little-endian 32-bit word, explained above.
 
 - ``bmRequestType``: ``0xc0``
 - ``bRequest``: ``0xe9``
 - ``wValue``: 0
 - ``wIndex``: 0
 - ``wLength``: 4
-
-This word has the following bitfields:
-
-- bits 0-7: firmware identifier
-- bits 8-19: variant identifier
-- bits 20-31: product identifier
-
-The product identifier describes the particular board.  The variant identifier
-describes its variant, such as what FPGA size has been fitted to it.
 
 
 ``GET_SECRET_HANDSHAKE``
@@ -275,8 +360,8 @@ Responses to commands are received on endpoint 2, and have the following general
 - bytes 2 and up (if any): several packed fields, in order:
 
   - if status code is non-0: error payload specific to status code
-  - if bit 7 of byte 1 set: a 32-bit word containing "transmitted byte count" (the number of bytes sent over OUT EP3 for a long command)
-  - if bit 6 of byte 1 set: a 32-bit word containing "received byte count" (the number of bytes sent over IN EP4 for a long command)
+  - if bit 7 of byte 1 set: a 32-bit word containing "transmitted byte count" (the number of bytes sent over data out endpoint for a long command)
+  - if bit 6 of byte 1 set: a 32-bit word containing "received byte count" (the number of bytes sent over data in endpoint for a long command)
   - if status code is 0: short response payload, determined by subsystem and command type
 
 Commands and responses are short and fit in one USB packet, which can be at most 16 bytes for the relevant endpoints.
@@ -285,17 +370,17 @@ Commands come in two kinds: short and long.  Whether a command is short
 or long depends only on its subsystem and command type.  A short command
 simply consists of two USB transfers:
 
-- OUT EP1: command to device
-- IN EP2: response from device
+- command endpoint: command to device
+- response endpoint: response from device
 
 A long command is one that possibly takes a long time and can be aborted (via the ``SYS_ABORT`` command).
 Long commands can also involve large data transfers over endpoints 3 and 4.  A long consists of the following transfers:
 
-- OUT EP1: start command to device (bit 7 of byte 2 set to 0; short payload contains command arguments, if any)
-- IN EP2: response from device (if not successful, the command is aborted now)
-- OUT EP3 and/or IN EP4 (if needed): large payload to/from device (if both are needed, the two transfers may have to be overlapped)
-- OUT EP1: end command to device (bit 7 of byte 2 set to 1; no short payload present)
-- IN EP2: response from device (contains actual transmitted and received byte counts, as appropriate)
+- command endpoint: start command to device (bit 7 of byte 2 set to 0; short payload contains command arguments, if any)
+- response endpoint: response from device (if not successful, the command is aborted now)
+- data out endpoint and/or data in endpoint (if needed): large payload to/from device (if both are needed, the two transfers may have to be overlapped)
+- command endpoint: end command to device (bit 7 of byte 2 set to 1; no short payload present)
+- response endpoint: response from device (contains actual transmitted and received byte counts, as appropriate)
 
 
 System management commands
