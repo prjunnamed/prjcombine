@@ -79,32 +79,32 @@ Bitstream — ``CLKC``
    :file: ../gen/tile-xc6s-CLKC.html
 
 
-Bitstream — ``DCM_BUFPLL_S``
-============================
-
-.. raw:: html
-   :file: ../gen/tile-xc6s-DCM_BUFPLL_S.html
-
-
-Bitstream — ``DCM_BUFPLL_S_MID``
+Bitstream — ``DCM_BUFPLL_BUF_S``
 ================================
 
 .. raw:: html
-   :file: ../gen/tile-xc6s-DCM_BUFPLL_S_MID.html
+   :file: ../gen/tile-xc6s-DCM_BUFPLL_BUF_S.html
 
 
-Bitstream — ``DCM_BUFPLL_N``
-============================
+Bitstream — ``DCM_BUFPLL_BUF_S_MID``
+====================================
 
 .. raw:: html
-   :file: ../gen/tile-xc6s-DCM_BUFPLL_N.html
+   :file: ../gen/tile-xc6s-DCM_BUFPLL_BUF_S_MID.html
 
 
-Bitstream — ``DCM_BUFPLL_N_MID``
+Bitstream — ``DCM_BUFPLL_BUF_N``
 ================================
 
 .. raw:: html
-   :file: ../gen/tile-xc6s-DCM_BUFPLL_N_MID.html
+   :file: ../gen/tile-xc6s-DCM_BUFPLL_BUF_N.html
+
+
+Bitstream — ``DCM_BUFPLL_BUF_N_MID``
+====================================
+
+.. raw:: html
+   :file: ../gen/tile-xc6s-DCM_BUFPLL_BUF_N_MID.html
 
 
 Bitstream — ``PLL_BUFPLL_OUT0``
