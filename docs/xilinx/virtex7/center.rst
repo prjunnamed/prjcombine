@@ -13,8 +13,8 @@ Bitstream
    :file: ../gen/tile-xc7v-CFG.html
 
 
-XADC
-====
+SYSMON
+======
 
 .. raw:: html
-   :file: ../gen/tile-xc7v-XADC.html
+   :file: ../gen/tile-xc7v-SYSMON.html

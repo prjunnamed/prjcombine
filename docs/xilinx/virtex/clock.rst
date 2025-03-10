@@ -58,15 +58,15 @@ Clock interconnect
    :file: ../gen/tile-xcv-CLKV.GCLKV.html
 
 
-``CLKV_BRAM_BOT``
-=================
+``CLKV_BRAM_S``
+===============
 
 .. raw:: html
-   :file: ../gen/tile-xcv-CLKV_BRAM_BOT.html
+   :file: ../gen/tile-xcv-CLKV_BRAM_S.html
 
 
-``CLKV_BRAM_TOP``
-=================
+``CLKV_BRAM_N``
+===============
 
 .. raw:: html
-   :file: ../gen/tile-xcv-CLKV_BRAM_TOP.html
+   :file: ../gen/tile-xcv-CLKV_BRAM_N.html

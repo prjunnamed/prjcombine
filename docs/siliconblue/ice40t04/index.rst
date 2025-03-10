@@ -23,18 +23,18 @@ iCE5LP4K
    :file: ../gen/tile-ice40t04-BRAM.html
 
 
-``IO.B``
+``IO.S``
 ========
 
 .. raw:: html
-   :file: ../gen/tile-ice40t04-IO.B.html
+   :file: ../gen/tile-ice40t04-IO.S.html
 
 
-``IO.T``
+``IO.N``
 ========
 
 .. raw:: html
-   :file: ../gen/tile-ice40t04-IO.T.html
+   :file: ../gen/tile-ice40t04-IO.N.html
 
 
 ``GBOUT``

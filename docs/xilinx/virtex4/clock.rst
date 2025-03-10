@@ -24,18 +24,11 @@ Spine clock terminators
 =======================
 
 
-``CLK_TERM_B``
---------------
+``CLK_TERM``
+------------
 
 .. raw:: html
-   :file: ../gen/tile-xc4v-CLK_TERM_B.html
-
-
-``CLK_TERM_T``
---------------
-
-.. raw:: html
-   :file: ../gen/tile-xc4v-CLK_TERM_T.html
+   :file: ../gen/tile-xc4v-CLK_TERM.html
 
 
 Spine muxes — IOB
@@ -85,18 +78,11 @@ Row clock terminators
 =====================
 
 
-``HCLK_TERM_L``
----------------
+``HCLK_TERM``
+-------------
 
 .. raw:: html
-   :file: ../gen/tile-xc4v-HCLK_TERM_L.html
-
-
-``HCLK_TERM_R``
----------------
-
-.. raw:: html
-   :file: ../gen/tile-xc4v-HCLK_TERM_R.html
+   :file: ../gen/tile-xc4v-HCLK_TERM.html
 
 
 IO clock nodes

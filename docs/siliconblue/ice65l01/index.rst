@@ -23,32 +23,32 @@ iCE65L01
    :file: ../gen/tile-ice65l01-BRAM.html
 
 
-``IO.B``
+``IO.S``
 ========
 
 .. raw:: html
-   :file: ../gen/tile-ice65l01-IO.B.html
+   :file: ../gen/tile-ice65l01-IO.S.html
 
 
-``IO.T``
+``IO.N``
 ========
 
 .. raw:: html
-   :file: ../gen/tile-ice65l01-IO.T.html
+   :file: ../gen/tile-ice65l01-IO.N.html
 
 
-``IO.L``
+``IO.W``
 ========
 
 .. raw:: html
-   :file: ../gen/tile-ice65l01-IO.L.html
+   :file: ../gen/tile-ice65l01-IO.W.html
 
 
-``IO.R``
+``IO.E``
 ========
 
 .. raw:: html
-   :file: ../gen/tile-ice65l01-IO.R.html
+   :file: ../gen/tile-ice65l01-IO.E.html
 
 
 ``GBOUT``

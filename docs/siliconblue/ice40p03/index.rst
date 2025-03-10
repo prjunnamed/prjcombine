@@ -9,32 +9,32 @@ iCE40LP384
    :file: ../gen/tile-ice40p03-PLB.html
 
 
-``IO.B``
+``IO.S``
 ========
 
 .. raw:: html
-   :file: ../gen/tile-ice40p03-IO.B.html
+   :file: ../gen/tile-ice40p03-IO.S.html
 
 
-``IO.T``
+``IO.N``
 ========
 
 .. raw:: html
-   :file: ../gen/tile-ice40p03-IO.T.html
+   :file: ../gen/tile-ice40p03-IO.N.html
 
 
-``IO.L``
+``IO.W``
 ========
 
 .. raw:: html
-   :file: ../gen/tile-ice40p03-IO.L.html
+   :file: ../gen/tile-ice40p03-IO.W.html
 
 
-``IO.R``
+``IO.E``
 ========
 
 .. raw:: html
-   :file: ../gen/tile-ice40p03-IO.R.html
+   :file: ../gen/tile-ice40p03-IO.E.html
 
 
 ``GBOUT``
