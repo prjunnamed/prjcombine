@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use jzon::JsonValue;
-use prjcombine_interconnect::{db::PinDir, dir::Dir};
+use prjcombine_interconnect::{db::PinDir, dir::DirV};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityMap, entity_id};
 
@@ -13,7 +13,7 @@ entity_id! {
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct GtzBel {
-    pub side: Dir,
+    pub side: DirV,
     pub pins: BTreeMap<String, GtzIntPin>,
     pub clk_pins: BTreeMap<String, GtzClkPin>,
 }

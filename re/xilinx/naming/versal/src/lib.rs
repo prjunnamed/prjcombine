@@ -2,7 +2,7 @@
 
 use prjcombine_interconnect::{
     db::{NodeKind, NodeKindId},
-    dir::Dir,
+    dir::DirH,
     grid::{ColId, DieId, NodeLoc, RowId},
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
@@ -228,7 +228,7 @@ pub fn name_device<'a>(
     let mut int_grid = make_grid(edev, |_, node, _| node == "INT", (1, 1));
     for (die, &chip) in &edev.chips {
         for col in chip.columns.ids() {
-            if chip.col_side(col) == Dir::E {
+            if chip.col_side(col) == DirH::E {
                 let x = int_grid.xlut[die][col - 1];
                 int_grid.xlut[die].insert(col, x);
             }

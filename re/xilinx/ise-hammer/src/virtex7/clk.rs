@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    dir::Dir,
+    dir::{DirH, DirV},
     grid::{NodeLoc, RowId},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
@@ -38,7 +38,7 @@ impl NodeRelation for ColPair {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct CmtDir(Dir);
+struct CmtDir(DirH);
 
 impl NodeRelation for CmtDir {
     fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
@@ -46,9 +46,8 @@ impl NodeRelation for CmtDir {
             unreachable!()
         };
         let scol = match self.0 {
-            Dir::W => edev.col_lio.unwrap() + 1,
-            Dir::E => edev.col_rio.unwrap() - 1,
-            _ => unreachable!(),
+            DirH::W => edev.col_lio.unwrap() + 1,
+            DirH::E => edev.col_rio.unwrap() - 1,
         };
         backend
             .egrid
@@ -57,13 +56,13 @@ impl NodeRelation for CmtDir {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct ClkRebuf(Dir);
+struct ClkRebuf(DirV);
 
 impl NodeRelation for ClkRebuf {
     fn resolve(&self, backend: &IseBackend, mut nloc: NodeLoc) -> Option<NodeLoc> {
         loop {
             match self.0 {
-                Dir::S => {
+                DirV::S => {
                     if nloc.2.to_idx() == 0 {
                         if nloc.0.to_idx() == 0 {
                             return None;
@@ -74,7 +73,7 @@ impl NodeRelation for ClkRebuf {
                         nloc.2 -= 1;
                     }
                 }
-                Dir::N => {
+                DirV::N => {
                     if nloc.2 == backend.egrid.die(nloc.0).rows().next_back().unwrap() {
                         nloc.2 = RowId::from_idx(0);
                         nloc.0 += 1;
@@ -85,7 +84,6 @@ impl NodeRelation for ClkRebuf {
                         nloc.2 += 1;
                     }
                 }
-                _ => unreachable!(),
             }
             if let Some(nnloc) = backend
                 .egrid
@@ -100,7 +98,7 @@ impl NodeRelation for ClkRebuf {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct HclkSide(Dir);
+struct HclkSide(DirV);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkSide {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -118,17 +116,16 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkSide {
         };
 
         match self.0 {
-            Dir::S => {
+            DirV::S => {
                 if nloc.2 >= edev.chips[nloc.0].row_hclk(nloc.2) {
                     return None;
                 }
             }
-            Dir::N => {
+            DirV::N => {
                 if nloc.2 < edev.chips[nloc.0].row_hclk(nloc.2) {
                     return None;
                 }
             }
-            _ => unreachable!(),
         }
 
         Some((fuzzer, false))
@@ -322,7 +319,7 @@ pub fn add_fuzzers<'a>(
                 bctx.build()
                     .global_mutex("GCLK", "TEST")
                     .extra_tile_attr(
-                        ClkRebuf(Dir::S),
+                        ClkRebuf(DirV::S),
                         "CLK_REBUF",
                         format!("ENABLE.GCLK{i}_U"),
                         "1",
@@ -334,36 +331,36 @@ pub fn add_fuzzers<'a>(
                 bctx.build()
                     .global_mutex("GCLK", "TEST")
                     .extra_tile_attr(
-                        ClkRebuf(Dir::S),
+                        ClkRebuf(DirV::S),
                         "CLK_REBUF",
                         format!("ENABLE.GCLK{i}_U"),
                         "1",
                     )
                     .extra_tile_attr(
-                        ClkRebuf(Dir::N),
+                        ClkRebuf(DirV::N),
                         "CLK_REBUF",
                         format!("ENABLE.GCLK{i}_D"),
                         "1",
                     )
-                    .prop(HclkSide(Dir::N))
+                    .prop(HclkSide(DirV::N))
                     .test_manual("ENABLE.GCLK", "1")
                     .pip("GCLK", "O")
                     .commit();
                 bctx.build()
                     .global_mutex("GCLK", "TEST")
                     .extra_tile_attr(
-                        ClkRebuf(Dir::S),
+                        ClkRebuf(DirV::S),
                         "CLK_REBUF",
                         format!("ENABLE.GCLK{ii}_U", ii = i + 16),
                         "1",
                     )
                     .extra_tile_attr(
-                        ClkRebuf(Dir::N),
+                        ClkRebuf(DirV::N),
                         "CLK_REBUF",
                         format!("ENABLE.GCLK{ii}_D", ii = i + 16),
                         "1",
                     )
-                    .prop(HclkSide(Dir::S))
+                    .prop(HclkSide(DirV::S))
                     .test_manual("ENABLE.GCLK", "1")
                     .pip("GCLK", "O")
                     .commit();
@@ -576,7 +573,7 @@ pub fn add_fuzzers<'a>(
                     if lr == 'L' {
                         if has_lio {
                             builder = builder.extra_tile_attr(
-                                CmtDir(Dir::W),
+                                CmtDir(DirH::W),
                                 "HCLK_CMT",
                                 format!("ENABLE.RCLK{j}"),
                                 "HROW",
@@ -585,7 +582,7 @@ pub fn add_fuzzers<'a>(
                     } else {
                         if has_rio {
                             builder = builder.extra_tile_attr(
-                                CmtDir(Dir::E),
+                                CmtDir(DirH::E),
                                 "HCLK_CMT",
                                 format!("ENABLE.RCLK{j}"),
                                 "HROW",
@@ -622,9 +619,9 @@ pub fn add_fuzzers<'a>(
                         .commit();
                     bctx.build()
                         .global_mutex("GCLK", "REBUF_U0")
-                        .prop(HclkSide(Dir::S))
-                        .related_pip(ClkRebuf(Dir::S), format!("GCLK{i}_U"), (bel_u, "CLKOUT"))
-                        .related_pip(ClkRebuf(Dir::N), (bel_d, "CLKIN"), format!("GCLK{i}_D"))
+                        .prop(HclkSide(DirV::S))
+                        .related_pip(ClkRebuf(DirV::S), format!("GCLK{i}_U"), (bel_u, "CLKOUT"))
+                        .related_pip(ClkRebuf(DirV::N), (bel_d, "CLKIN"), format!("GCLK{i}_D"))
                         .test_manual(format!("BUF.GCLK{i}_U"), "1")
                         .pip(format!("GCLK{i}_U"), format!("GCLK{i}_D"))
                         .commit();
@@ -632,9 +629,9 @@ pub fn add_fuzzers<'a>(
                 if tile == "CLK_BALI_REBUF" {
                     bctx.build()
                         .global_mutex("GCLK", "REBUF_BALI")
-                        .prop(HclkSide(Dir::S))
+                        .prop(HclkSide(DirV::S))
                         .extra_tile_attr(
-                            ClkRebuf(Dir::S),
+                            ClkRebuf(DirV::S),
                             "CLK_REBUF",
                             format!("ENABLE.GCLK{i}_U"),
                             "1",
@@ -654,9 +651,9 @@ pub fn add_fuzzers<'a>(
                         .commit();
                     bctx.build()
                         .global_mutex("GCLK", "REBUF_D1")
-                        .prop(HclkSide(Dir::N))
-                        .related_pip(ClkRebuf(Dir::N), format!("GCLK{i}_D"), (bel_d, "CLKOUT"))
-                        .related_pip(ClkRebuf(Dir::S), (bel_u, "CLKIN"), format!("GCLK{i}_U"))
+                        .prop(HclkSide(DirV::N))
+                        .related_pip(ClkRebuf(DirV::N), format!("GCLK{i}_D"), (bel_d, "CLKOUT"))
+                        .related_pip(ClkRebuf(DirV::S), (bel_u, "CLKIN"), format!("GCLK{i}_U"))
                         .test_manual(format!("BUF.GCLK{i}_D"), "1")
                         .pip(format!("GCLK{i}_D"), format!("GCLK{i}_U"))
                         .commit();
@@ -664,9 +661,9 @@ pub fn add_fuzzers<'a>(
                 if tile == "CLK_BALI_REBUF" {
                     bctx.build()
                         .global_mutex("GCLK", "REBUF_BALI")
-                        .prop(HclkSide(Dir::S))
+                        .prop(HclkSide(DirV::S))
                         .extra_tile_attr(
-                            ClkRebuf(Dir::S),
+                            ClkRebuf(DirV::S),
                             "CLK_REBUF",
                             format!("ENABLE.GCLK{i}_U"),
                             "1",

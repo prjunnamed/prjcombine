@@ -1,15 +1,76 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum Dir {
+pub enum DirH {
     W,
     E,
+}
+
+impl core::ops::Not for DirH {
+    type Output = DirH;
+    fn not(self) -> DirH {
+        match self {
+            DirH::W => DirH::E,
+            DirH::E => DirH::W,
+        }
+    }
+}
+
+impl std::fmt::Display for DirH {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                DirH::W => "W",
+                DirH::E => "E",
+            }
+        )
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum DirV {
     S,
     N,
 }
 
+impl core::ops::Not for DirV {
+    type Output = DirV;
+    fn not(self) -> DirV {
+        match self {
+            DirV::S => DirV::N,
+            DirV::N => DirV::S,
+        }
+    }
+}
+
+impl std::fmt::Display for DirV {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                DirV::S => "S",
+                DirV::N => "N",
+            }
+        )
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum Dir {
+    H(DirH),
+    V(DirV),
+}
+
 impl Dir {
     pub const DIRS: [Dir; 4] = [Dir::W, Dir::E, Dir::S, Dir::N];
+
+    pub const W: Dir = Dir::H(DirH::W);
+    pub const E: Dir = Dir::H(DirH::E);
+    pub const S: Dir = Dir::V(DirV::S);
+    pub const N: Dir = Dir::V(DirV::N);
 }
 
 impl core::ops::Not for Dir {
@@ -29,11 +90,51 @@ impl std::fmt::Display for Dir {
         write!(
             f,
             "{}",
-            match self {
+            match *self {
                 Dir::W => "W",
                 Dir::E => "E",
                 Dir::S => "S",
                 Dir::N => "N",
+            }
+        )
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub struct DirHV {
+    pub h: DirH,
+    pub v: DirV,
+}
+
+impl DirHV {
+    pub const SW: DirHV = DirHV {
+        h: DirH::W,
+        v: DirV::S,
+    };
+    pub const SE: DirHV = DirHV {
+        h: DirH::E,
+        v: DirV::S,
+    };
+    pub const NW: DirHV = DirHV {
+        h: DirH::W,
+        v: DirV::N,
+    };
+    pub const NE: DirHV = DirHV {
+        h: DirH::E,
+        v: DirV::N,
+    };
+}
+
+impl std::fmt::Display for DirHV {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                DirHV::SW => "SW",
+                DirHV::SE => "SE",
+                DirHV::NW => "NW",
+                DirHV::NE => "NE",
             }
         )
     }

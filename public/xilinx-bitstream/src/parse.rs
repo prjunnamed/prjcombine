@@ -5,7 +5,7 @@ use crate::{
 };
 use arrayref::array_ref;
 use bitvec::prelude::*;
-use prjcombine_interconnect::dir::Dir;
+use prjcombine_interconnect::dir::DirV;
 use std::collections::HashMap;
 
 fn parse_xc2000_bitstream(bs: &mut Bitstream, data: &[u8]) {
@@ -2066,10 +2066,10 @@ fn parse_virtex4_bitstream(
         let pkt = packets.next().unwrap();
         if let Packet::Axss(data) = pkt {
             let gtz = parse_gtz_bitstream(&data);
-            if geom.has_gtz_bot && !bs.gtz.contains_key(&Dir::S) {
-                bs.gtz.insert(Dir::S, gtz);
-            } else if geom.has_gtz_top && !bs.gtz.contains_key(&Dir::N) {
-                bs.gtz.insert(Dir::N, gtz);
+            if geom.has_gtz_bot && !bs.gtz.contains_key(&DirV::S) {
+                bs.gtz.insert(DirV::S, gtz);
+            } else if geom.has_gtz_top && !bs.gtz.contains_key(&DirV::N) {
+                bs.gtz.insert(DirV::N, gtz);
             } else {
                 panic!("ummm too many GTZ?");
             }

@@ -1,5 +1,5 @@
 use bitvec::prelude::*;
-use prjcombine_interconnect::{dir::Dir, grid::NodeLoc};
+use prjcombine_interconnect::{dir::DirH, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -16,7 +16,7 @@ use crate::{
 };
 
 #[derive(Clone, Copy, Debug)]
-struct HclkIoiInnerSide(Dir);
+struct HclkIoiInnerSide(DirH);
 
 impl NodeRelation for HclkIoiInnerSide {
     fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
@@ -24,9 +24,8 @@ impl NodeRelation for HclkIoiInnerSide {
             unreachable!()
         };
         let col = match self.0 {
-            Dir::W => edev.col_lcio.unwrap(),
-            Dir::E => edev.col_rcio.unwrap(),
-            _ => unreachable!(),
+            DirH::W => edev.col_lcio.unwrap(),
+            DirH::E => edev.col_rcio.unwrap(),
         };
         let row = edev.chips[nloc.0].row_hclk(nloc.2);
         Some(edev.egrid.get_node_by_bel((nloc.0, (col, row), bels::DCI)))
@@ -626,7 +625,7 @@ pub fn add_fuzzers<'a>(
                     .row_mutex("BUFH_TEST", "NOPE")
                     .mutex(format!("MUX.BUFH_TEST_{lr}"), format!("RCLK{i}_{lr}"))
                     .extra_tile_attr(
-                        HclkIoiInnerSide(if lr == 'L' { Dir::W } else { Dir::E }),
+                        HclkIoiInnerSide(if lr == 'L' { DirH::W } else { DirH::E }),
                         "HCLK_IOI",
                         format!("ENABLE.RCLK{i}"),
                         "1",
@@ -731,7 +730,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         return;
     }
     for i in 0..12 {
-        for (lr, dir) in [('L', Dir::W), ('R', Dir::E)] {
+        for (lr, dir) in [('L', DirH::W), ('R', DirH::E)] {
             let bel = &format!("BUFHCE_{dir}{i}");
             ctx.collect_bit(tile, bel, "ENABLE", "1");
             ctx.collect_inv(tile, bel, "CE");

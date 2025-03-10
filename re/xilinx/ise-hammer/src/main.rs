@@ -2,7 +2,7 @@
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_interconnect::dir::Dir;
+use prjcombine_interconnect::dir::DirV;
 use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_hammer::{Backend, Session};
 use prjcombine_re_toolchain::Toolchain;
@@ -693,9 +693,8 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
     }
     for (&dir, gtzbs) in &ctx.empty_bs.gtz {
         let which = match dir {
-            Dir::S => "GTZ_BOT",
-            Dir::N => "GTZ_TOP",
-            _ => unreachable!(),
+            DirV::S => "GTZ_BOT",
+            DirV::N => "GTZ_TOP",
         };
         let mut idcode = BitVec::new();
         for i in 0..32 {

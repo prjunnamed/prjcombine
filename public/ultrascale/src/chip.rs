@@ -1,6 +1,6 @@
 use jzon::JsonValue;
 use prjcombine_interconnect::{
-    dir::Dir,
+    dir::DirH,
     grid::{ColId, DieId, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};
@@ -331,11 +331,11 @@ impl Chip {
             .any(|x| matches!(x.regs[reg_cfg], IoRowKind::Hpio | IoRowKind::Hrio))
     }
 
-    pub fn col_side(&self, col: ColId) -> Dir {
+    pub fn col_side(&self, col: ColId) -> DirH {
         if col.to_idx() % 2 == 0 {
-            Dir::W
+            DirH::W
         } else {
-            Dir::E
+            DirH::E
         }
     }
 

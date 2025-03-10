@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::dir::Dir;
+use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId};
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
@@ -55,7 +55,7 @@ impl Expander<'_> {
                     if col < di.col_cfrm && row.to_idx() < di.ps_height {
                         continue;
                     }
-                    if chip.col_side(col) == Dir::W {
+                    if chip.col_side(col) == DirH::W {
                         die.add_xnode((col, row), "INT", &[(col, row), (col + 1, row)]);
                         if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_n(reg) {
                             die.add_xnode((col, row), "RCLK", &[(col, row), (col + 1, row)]);
@@ -76,7 +76,7 @@ impl Expander<'_> {
                     if col == chip.columns.last_id().unwrap() - 1 {
                         continue;
                     }
-                    if chip.col_side(col) == Dir::W {
+                    if chip.col_side(col) == DirH::W {
                         die.fill_term_pair((col, row), (col + 2, row), "MAIN.LE", "MAIN.LW");
                     }
                 }
@@ -131,7 +131,7 @@ impl Expander<'_> {
             let row_b = die.rows().next().unwrap();
             let row_t = die.rows().next_back().unwrap();
             for (col, &cd) in &chip.columns {
-                if matches!(cd.kind, ColumnKind::Cle(_)) && chip.col_side(col) == Dir::E {
+                if matches!(cd.kind, ColumnKind::Cle(_)) && chip.col_side(col) == DirH::E {
                     for row in die.rows() {
                         if chip.in_int_hole(col, row) {
                             continue;
@@ -253,7 +253,7 @@ impl Expander<'_> {
                     if row.to_idx() % Chip::ROWS_PER_REG == 0
                         && chip.is_reg_n(reg)
                         && !matches!(cd.kind, ColumnKind::Cle(_) | ColumnKind::None)
-                        && !(chip.col_side(col) == Dir::E
+                        && !(chip.col_side(col) == DirH::E
                             && matches!(cd.kind, ColumnKind::Gt)
                             && matches!(chip.right, RightKind::Cidb))
                     {
@@ -309,7 +309,7 @@ impl Expander<'_> {
                         continue;
                     }
 
-                    if chip.col_side(col) == Dir::W {
+                    if chip.col_side(col) == DirH::W {
                         die.add_xnode(
                             (col, row),
                             if chip.is_vr { "CLE_W.VR" } else { "CLE_W" },
@@ -384,7 +384,7 @@ impl Expander<'_> {
                     }
                     die.add_xnode(
                         (col, row),
-                        if chip.col_side(col) == Dir::W {
+                        if chip.col_side(col) == DirH::W {
                             "BRAM_W"
                         } else {
                             "BRAM_E"

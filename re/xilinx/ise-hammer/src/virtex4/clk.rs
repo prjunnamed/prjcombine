@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    dir::Dir,
+    dir::{DirH, DirV},
     grid::{DieId, NodeLoc},
 };
 use prjcombine_re_fpga_hammer::{
@@ -58,7 +58,7 @@ impl NodeRelation for ClkHrow {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct HclkTerm(Dir);
+struct HclkTerm(DirH);
 
 impl NodeRelation for HclkTerm {
     fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
@@ -66,9 +66,8 @@ impl NodeRelation for HclkTerm {
             unreachable!()
         };
         let col = match self.0 {
-            Dir::W => edev.chips[nloc.0].columns.first_id().unwrap(),
-            Dir::E => edev.chips[nloc.0].columns.last_id().unwrap(),
-            _ => unreachable!(),
+            DirH::W => edev.chips[nloc.0].columns.first_id().unwrap(),
+            DirH::E => edev.chips[nloc.0].columns.last_id().unwrap(),
         };
         Some(
             edev.egrid
@@ -98,7 +97,7 @@ impl NodeRelation for Rclk {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct Ioclk(Dir);
+struct Ioclk(DirV);
 
 impl NodeRelation for Ioclk {
     fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
@@ -106,7 +105,7 @@ impl NodeRelation for Ioclk {
             unreachable!()
         };
         let row = match self.0 {
-            Dir::S => {
+            DirV::S => {
                 if nloc.1 == edev.col_cfg && nloc.2 == edev.chips[nloc.0].row_bufg() + 8 {
                     return None;
                 }
@@ -115,7 +114,7 @@ impl NodeRelation for Ioclk {
                 }
                 nloc.2 - 16
             }
-            Dir::N => {
+            DirV::N => {
                 if nloc.1 == edev.col_cfg && nloc.2 == edev.chips[nloc.0].row_bufg() - 8 {
                     return None;
                 }
@@ -124,7 +123,6 @@ impl NodeRelation for Ioclk {
                 }
                 nloc.2 + 16
             }
-            _ => unreachable!(),
         };
         backend
             .egrid
@@ -143,7 +141,7 @@ impl NodeRelation for Ioclk {
 }
 
 #[derive(Clone, Debug)]
-struct ExtraHclkDcmAttr(Dir, &'static str, String, &'static str);
+struct ExtraHclkDcmAttr(DirV, &'static str, String, &'static str);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -160,9 +158,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
             unreachable!()
         };
         let rows = match self.0 {
-            Dir::N => [nloc.2, nloc.2 + 4],
-            Dir::S => [nloc.2 - 8, nloc.2 - 4],
-            _ => unreachable!(),
+            DirV::N => [nloc.2, nloc.2 + 4],
+            DirV::S => [nloc.2 - 8, nloc.2 - 4],
         };
         let mut sad = true;
         for row in rows {
@@ -187,7 +184,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
 }
 
 #[derive(Clone, Debug)]
-struct ExtraMgtRepeaterAttr(Dir, String, &'static str);
+struct ExtraMgtRepeaterAttr(DirH, String, &'static str);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraMgtRepeaterAttr {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -204,8 +201,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraMgtRepeaterAttr {
             unreachable!()
         };
         for &col in &edev.chips[DieId::from_idx(0)].cols_vbrk {
-            if (col < edev.col_cfg) == (self.0 == Dir::W) {
-                let rcol = if self.0 == Dir::W { col } else { col - 1 };
+            if (col < edev.col_cfg) == (self.0 == DirH::W) {
+                let rcol = if self.0 == DirH::W { col } else { col - 1 };
                 let nnloc = edev
                     .egrid
                     .get_node_by_kind(nloc.0, (rcol, nloc.2), |kind| kind == "HCLK_MGT_REPEATER");
@@ -320,7 +317,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut ctx = FuzzCtx::new(session, backend, "CLK_HROW");
         let mut bctx = ctx.bel(bels::CLK_HROW);
         let gclk: Vec<_> = (0..32).map(|i| format!("GCLK{i}")).collect();
-        for (dir, lr) in [(Dir::W, 'L'), (Dir::E, 'R')] {
+        for (dir, lr) in [(DirH::W, 'L'), (DirH::E, 'R')] {
             for i in 0..8 {
                 let hclk = format!("HCLK_{lr}{i}");
                 for j in 0..32 {
@@ -481,8 +478,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     ("IOCLK_N1", "VIOCLK_N1", "VIOCLK1", "IOCLK1"),
                 ] {
                     bctx.build()
-                        .related_tile_mutex(Ioclk(Dir::S), "VIOCLK", "USE")
-                        .related_pip(Ioclk(Dir::S), oo, oi)
+                        .related_tile_mutex(Ioclk(DirV::S), "VIOCLK", "USE")
+                        .related_pip(Ioclk(DirV::S), oo, oi)
                         .test_manual(format!("BUF.{o}"), "1")
                         .pip(o, i)
                         .commit();
@@ -494,8 +491,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     ("IOCLK_S1", "VIOCLK_S1", "VIOCLK1", "IOCLK1"),
                 ] {
                     bctx.build()
-                        .related_tile_mutex(Ioclk(Dir::N), "VIOCLK", "USE")
-                        .related_pip(Ioclk(Dir::N), oo, oi)
+                        .related_tile_mutex(Ioclk(DirV::N), "VIOCLK", "USE")
+                        .related_pip(Ioclk(DirV::N), oo, oi)
                         .test_manual(format!("BUF.{o}"), "1")
                         .pip(o, i)
                         .commit();
@@ -534,23 +531,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(bel);
         let rel_dcm_ccm = |dir| {
             let dy = match dir {
-                Dir::N => 0,
-                Dir::S => -8,
-                _ => unreachable!(),
+                DirV::N => 0,
+                DirV::S => -8,
             };
             Delta::new_any(0, dy, &["CCM", "DCM"])
         };
-        for dir in [Dir::S, Dir::N] {
-            if dir == Dir::S && bel == bels::HCLK_DCM_N {
+        for dir in [DirV::S, DirV::N] {
+            if dir == DirV::S && bel == bels::HCLK_DCM_N {
                 continue;
             }
-            if dir == Dir::N && bel == bels::HCLK_DCM_S {
+            if dir == DirV::N && bel == bels::HCLK_DCM_S {
                 continue;
             }
             let ud = match dir {
-                Dir::S => 'D',
-                Dir::N => 'U',
-                _ => unreachable!(),
+                DirV::S => 'D',
+                DirV::N => 'U',
             };
             for i in 0..16 {
                 let mut builder = bctx
@@ -603,8 +598,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .build()
                             .global_mutex("HCLK_DCM", "TEST")
                             .tile_mutex("HCLK_DCM", format!("MGT_O_{ud}{i}"))
-                            .has_related(rel_dcm_ccm(Dir::S))
-                            .has_related(rel_dcm_ccm(Dir::N));
+                            .has_related(rel_dcm_ccm(DirV::S))
+                            .has_related(rel_dcm_ccm(DirV::N));
                         if tile == "HCLK_DCM" || num_ccms < 4 {
                             builder = builder.prop(ExtraHclkDcmAttr(
                                 dir,
@@ -632,7 +627,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .global_mutex("HCLK_DCM", "TEST")
                             .tile_mutex("HCLK_DCM", format!("MGT_O_{ud}{i}"))
                             .prop(ExtraMgtRepeaterAttr(
-                                if i < 2 { Dir::W } else { Dir::E },
+                                if i < 2 { DirH::W } else { DirH::E },
                                 format!("BUF.MGT{idx}.DCM", idx = i % 2),
                                 "1",
                             ));

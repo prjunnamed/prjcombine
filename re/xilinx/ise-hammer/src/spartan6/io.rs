@@ -1,7 +1,7 @@
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::BelSlotId,
-    dir::Dir,
+    dir::DirV,
     grid::{DieId, NodeLoc},
 };
 use prjcombine_re_fpga_hammer::{
@@ -285,7 +285,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsBank {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct DeviceSide(Dir);
+struct DeviceSide(DirV);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -302,9 +302,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
             unreachable!()
         };
         let dir_match = match self.0 {
-            Dir::S => nloc.2 < edev.chip.row_clk(),
-            Dir::N => nloc.2 >= edev.chip.row_clk(),
-            _ => unreachable!(),
+            DirV::S => nloc.2 < edev.chip.row_clk(),
+            DirV::N => nloc.2 >= edev.chip.row_clk(),
         };
         if dir_match {
             Some((fuzzer, false))
@@ -1412,7 +1411,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     };
                     if std.diff == DiffKind::True {
                         for (dir, corner, corner_name, dx) in
-                            [(Dir::S, cnr_ll, "LL", 1), (Dir::N, cnr_ul, "UL", -1)]
+                            [(DirV::S, cnr_ll, "LL", 1), (DirV::N, cnr_ul, "UL", -1)]
                         {
                             bctx.build()
                                 .global_mutex("IOB", "SHARED")

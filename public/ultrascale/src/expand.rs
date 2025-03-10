@@ -2,7 +2,7 @@
 
 use bimap::BiHashMap;
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::dir::Dir;
+use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::{
     ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId, TileIobId,
 };
@@ -38,7 +38,7 @@ impl DieExpander<'_, '_, '_> {
                 if self.chip.in_int_hole(col, row) {
                     continue;
                 }
-                if self.chip.col_side(col) == Dir::W {
+                if self.chip.col_side(col) == DirH::W {
                     self.die
                         .add_xnode((col, row), "INT", &[(col, row), (col + 1, row)]);
                     if row.to_idx() % 60 == 30 {
@@ -191,7 +191,7 @@ impl DieExpander<'_, '_, '_> {
                 } else {
                     self.die
                         .fill_term_pair((col - 1, row), (col, row), "MAIN.E", "MAIN.W");
-                    if self.chip.col_side(col) == Dir::W {
+                    if self.chip.col_side(col) == DirH::W {
                         self.die
                             .fill_term_pair((col - 2, row), (col, row), "MAIN.LE", "MAIN.LW");
                     }
@@ -271,7 +271,7 @@ impl DieExpander<'_, '_, '_> {
                     }
                     self.die
                         .add_xnode((col, row), "RCLK_V_SINGLE.LAG", &[(col, row)]);
-                } else if self.chip.col_side(col) == Dir::W
+                } else if self.chip.col_side(col) == DirH::W
                     || self.chip.kind != ChipKind::UltrascalePlus
                 {
                     self.die
@@ -819,7 +819,7 @@ pub fn expand_grid<'a>(
     let mut col_cfg_io = None;
     for (col, &cd) in &pchip.columns {
         if let ColumnKind::Io(_) = cd.kind {
-            if col_cfg_io.is_none() || pchip.col_side(col) == Dir::W {
+            if col_cfg_io.is_none() || pchip.col_side(col) == DirH::W {
                 col_cfg_io = Some(col);
             }
         }

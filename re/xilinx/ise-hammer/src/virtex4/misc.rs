@@ -1,6 +1,6 @@
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
-    dir::Dir,
+    dir::{DirH, DirV},
     grid::{DieId, NodeLoc},
 };
 use prjcombine_re_fpga_hammer::{
@@ -42,7 +42,7 @@ impl NodeRelation for HclkDcm {
 }
 
 #[derive(Clone, Debug)]
-struct MgtRepeater(Dir, Dir, String, &'static str);
+struct MgtRepeater(DirH, DirV, String, &'static str);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeater {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -59,13 +59,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeater {
             unreachable!()
         };
         let rrow = match self.1 {
-            Dir::S => edev.chips[nloc.0].row_bufg() - 8,
-            Dir::N => edev.chips[nloc.0].row_bufg() + 8,
-            _ => unreachable!(),
+            DirV::S => edev.chips[nloc.0].row_bufg() - 8,
+            DirV::N => edev.chips[nloc.0].row_bufg() + 8,
         };
         for &col in &edev.chips[DieId::from_idx(0)].cols_vbrk {
-            if (col < edev.col_cfg) == (self.0 == Dir::W) {
-                let rcol = if self.0 == Dir::W { col } else { col - 1 };
+            if (col < edev.col_cfg) == (self.0 == DirH::W) {
+                let rcol = if self.0 == DirH::W { col } else { col - 1 };
                 let nnloc = edev
                     .egrid
                     .get_node_by_kind(nloc.0, (rcol, rrow), |kind| kind == "HCLK_MGT_REPEATER");
@@ -355,8 +354,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
             }
             for (bel, dir_row) in [
-                (bels::BUFG_MGTCLK_S_HCLK, Dir::S),
-                (bels::BUFG_MGTCLK_N_HCLK, Dir::N),
+                (bels::BUFG_MGTCLK_S_HCLK, DirV::S),
+                (bels::BUFG_MGTCLK_N_HCLK, DirV::N),
             ] {
                 let mut bctx = ctx.bel(bel);
                 for (name, o, i) in [
@@ -371,9 +370,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .null_bits()
                         .prop(MgtRepeater(
                             if name.starts_with("MGT_L") {
-                                Dir::W
+                                DirH::W
                             } else {
-                                Dir::E
+                                DirH::E
                             },
                             dir_row,
                             format!("BUF.MGT{idx}.CFG"),

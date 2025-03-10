@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     db::{BelSlotId, NodeKindId},
-    dir::Dir,
+    dir::DirV,
     grid::NodeLoc,
 };
 use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp};
@@ -295,7 +295,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraReg {
 }
 
 #[derive(Clone, Debug)]
-pub struct ExtraGtz(pub Dir);
+pub struct ExtraGtz(pub DirV);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraGtz {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {

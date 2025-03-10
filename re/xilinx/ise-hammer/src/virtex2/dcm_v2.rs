@@ -1,7 +1,10 @@
 use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
-use prjcombine_interconnect::{dir::Dir, grid::NodeLoc};
+use prjcombine_interconnect::{
+    dir::{DirH, DirHV, DirV},
+    grid::NodeLoc,
+};
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, extract_bitvec_val, extract_bitvec_val_part,
     xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_enum,
@@ -24,7 +27,7 @@ use crate::{
 };
 
 #[derive(Copy, Clone, Debug)]
-struct DcmCornerEnable(Dir, Dir, bool);
+struct DcmCornerEnable(DirHV, bool);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for DcmCornerEnable {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -40,24 +43,19 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DcmCornerEnable {
         let ExpandedDevice::Virtex2(edev) = backend.edev else {
             unreachable!()
         };
-        let we = self.0;
-        let sn = self.1;
-        let required = self.2;
-        let we_match = match we {
-            Dir::W => nloc.1 < edev.chip.col_clk,
-            Dir::E => nloc.1 >= edev.chip.col_clk,
-            _ => unreachable!(),
+        let required = self.1;
+        let we_match = match self.0.h {
+            DirH::W => nloc.1 < edev.chip.col_clk,
+            DirH::E => nloc.1 >= edev.chip.col_clk,
         };
-        let sn_match = match sn {
-            Dir::S => nloc.2 < edev.chip.row_mid(),
-            Dir::N => nloc.2 >= edev.chip.row_mid(),
-            _ => unreachable!(),
+        let sn_match = match self.0.v {
+            DirV::S => nloc.2 < edev.chip.row_mid(),
+            DirV::N => nloc.2 >= edev.chip.row_mid(),
         };
         if we_match && sn_match {
-            let col = match we {
-                Dir::W => edev.chip.col_w(),
-                Dir::E => edev.chip.col_e(),
-                _ => unreachable!(),
+            let col = match self.0.h {
+                DirH::W => edev.chip.col_w(),
+                DirH::E => edev.chip.col_e(),
             };
             let nloc = edev.egrid.get_node_by_kind(nloc.0, (col, nloc.2), |kind| {
                 kind.starts_with("LL.")
@@ -105,7 +103,7 @@ pub fn add_fuzzers<'a>(
         let mode = "DCM";
         let mut builder = bctx.build().global_mutex("DCM_OPT", "NO");
         if edev.chip.kind == ChipKind::Spartan3 {
-            builder = builder.prop(DcmCornerEnable(Dir::W, Dir::S, true));
+            builder = builder.prop(DcmCornerEnable(DirHV::SW, true));
         }
         builder.test_manual("ENABLE", "1").mode(mode).commit();
         return;
@@ -126,13 +124,13 @@ pub fn add_fuzzers<'a>(
     let mut props = vec![];
     if edev.chip.kind == ChipKind::Spartan3 {
         props.extend([
-            DcmCornerEnable(Dir::W, Dir::S, false),
-            DcmCornerEnable(Dir::W, Dir::N, false),
+            DcmCornerEnable(DirHV::SW, false),
+            DcmCornerEnable(DirHV::NW, false),
         ]);
         if edev.chip.columns[edev.chip.columns.last_id().unwrap() - 3].kind == ColumnKind::Bram {
             props.extend([
-                DcmCornerEnable(Dir::E, Dir::S, false),
-                DcmCornerEnable(Dir::E, Dir::N, false),
+                DcmCornerEnable(DirHV::SE, false),
+                DcmCornerEnable(DirHV::NE, false),
             ]);
         }
     }

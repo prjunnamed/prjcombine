@@ -2,7 +2,7 @@
 
 use prjcombine_interconnect::{
     db::PinDir,
-    dir::Dir,
+    dir::DirV,
     grid::{ColId, DieId, RowId},
 };
 use prjcombine_re_xilinx_naming_virtex4::{ExpandedNamedDevice, ExpandedNamedGtz};
@@ -3564,46 +3564,43 @@ fn verify_gtz(
     egt: &ExpandedGtz,
     ngt: &ExpandedNamedGtz,
 ) {
-    fn int_wire_name_gtz(side: Dir, col: GtzIntColId, row: GtzIntRowId) -> String {
+    fn int_wire_name_gtz(side: DirV, col: GtzIntColId, row: GtzIntRowId) -> String {
         let x = col.to_idx();
         let y = match side {
-            Dir::N => 48 - row.to_idx(),
-            Dir::S => row.to_idx(),
-            _ => unreachable!(),
+            DirV::N => 48 - row.to_idx(),
+            DirV::S => row.to_idx(),
         };
         format!("GTZ_VBRK_INTF_SLV_{x}_{y}")
     }
     fn int_wire_name_int_l(
-        side: Dir,
+        side: DirV,
         icol: GtzIntColId,
         col: GtzIntColId,
         row: GtzIntRowId,
     ) -> String {
         let x = (86 + icol.to_idx() - col.to_idx() - 1) % 86;
         let y = match side {
-            Dir::S => 48 - row.to_idx(),
-            Dir::N => row.to_idx(),
-            _ => unreachable!(),
+            DirV::S => 48 - row.to_idx(),
+            DirV::N => row.to_idx(),
         };
         format!("GTZ_INT_L_SLV_{x}_{y}")
     }
     fn int_wire_name_int_r(
-        side: Dir,
+        side: DirV,
         icol: GtzIntColId,
         col: GtzIntColId,
         row: GtzIntRowId,
     ) -> String {
         let x = (86 + icol.to_idx() - col.to_idx()) % 86;
         let y = match side {
-            Dir::S => 48 - row.to_idx(),
-            Dir::N => row.to_idx(),
-            _ => unreachable!(),
+            DirV::S => 48 - row.to_idx(),
+            DirV::N => row.to_idx(),
         };
         format!("GTZ_INT_R_SLV_{x}_{y}")
     }
-    fn int_wire_name_int_i(side: Dir, gcol: ColId, row: GtzIntRowId) -> String {
+    fn int_wire_name_int_i(side: DirV, gcol: ColId, row: GtzIntRowId) -> String {
         let lr = if gcol.to_idx() % 2 == 0 { 'L' } else { 'R' };
-        let bt = if side == Dir::S { 'T' } else { 'B' };
+        let bt = if side == DirV::S { 'T' } else { 'B' };
         let y = row.to_idx();
         format!("GTZ_INT_{lr}{bt}_SLV_{y}")
     }
@@ -3701,7 +3698,7 @@ fn verify_gtz(
         }
     }
     let crd_clk = vrf.xlat_tile(&ngt.clk_tile).unwrap();
-    let (sdie, srow) = if gtz.side == Dir::S {
+    let (sdie, srow) = if gtz.side == DirV::S {
         (DieId::from_idx(0), RowId::from_idx(4))
     } else {
         let sdie = endev.edev.chips.last_id().unwrap();
@@ -3714,7 +3711,7 @@ fn verify_gtz(
             (crd_clk, &wire),
             (crd_gtz, &format!("GTZ_VBRK_INTF_GCLK{i}")),
         ]);
-        let owire = if gtz.side == Dir::S {
+        let owire = if gtz.side == DirV::S {
             format!("GTZ_CLK_TOP_IN_GCLK{i}")
         } else {
             format!("GTZ_CLK_BOT_IN_GCLK{i}")
@@ -3724,7 +3721,7 @@ fn verify_gtz(
         } else {
             vrf.claim_pip(crd_clk, &wire, &owire);
         }
-        let dwire = if gtz.side == Dir::S {
+        let dwire = if gtz.side == DirV::S {
             format!("GCLK{i}_D")
         } else {
             format!("GCLK{i}_U")

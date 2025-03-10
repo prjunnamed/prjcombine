@@ -1,6 +1,9 @@
 use arrayvec::ArrayVec;
 use bitvec::prelude::*;
-use prjcombine_interconnect::{dir::Dir, grid::DieId};
+use prjcombine_interconnect::{
+    dir::DirV,
+    grid::DieId,
+};
 use std::collections::{BTreeMap, HashMap};
 use unnamed_entity::EntityVec;
 
@@ -136,7 +139,7 @@ pub struct GtzBitstream {
 pub struct Bitstream {
     pub kind: DeviceKind,
     pub die: EntityVec<DieId, DieBitstream>,
-    pub gtz: BTreeMap<Dir, GtzBitstream>,
+    pub gtz: BTreeMap<DirV, GtzBitstream>,
     pub gtz_loader: Option<Box<Bitstream>>,
 }
 
@@ -358,7 +361,7 @@ pub enum BitPos {
     Fixup(DieId, usize, usize),
     Bram(DieId, usize, usize),
     Iob(DieId, usize),
-    Gtz(Dir, usize, usize),
+    Gtz(DirV, usize, usize),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -373,7 +376,7 @@ pub enum BitTile {
     Bram(DieId, usize),
     // Spartan 6 horrible; bit, width
     Iob(DieId, usize, usize),
-    Gtz(Dir),
+    Gtz(DirV),
 }
 
 impl BitTile {

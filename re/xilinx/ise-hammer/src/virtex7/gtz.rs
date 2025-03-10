@@ -1,3 +1,4 @@
+use prjcombine_interconnect::dir::Dir;
 use prjcombine_re_fpga_hammer::OcdMode;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::{ExpandedDevice, ExpandedNamedDevice};
@@ -2712,6 +2713,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         unreachable!()
     };
     for (dir, ngt) in &endev.gtz {
+        let Dir::V(dir) = dir else { unreachable!() };
         let mut ctx = FuzzCtx::new_null(session, backend);
         ctx.build()
             .test_gtz(dir, "PRESENT", "1")

@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use bitvec::vec::BitVec;
-use prjcombine_interconnect::{dir::Dir, grid::NodeLoc};
+use prjcombine_interconnect::{dir::DirV, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{
     FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum,
     xlat_enum_ocd,
@@ -22,14 +22,13 @@ use crate::{
 };
 
 #[derive(Clone, Copy, Debug)]
-struct HclkInt(Dir);
+struct HclkInt(DirV);
 
 impl NodeRelation for HclkInt {
     fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
         let row = match self.0 {
-            Dir::S => nloc.2 - 1,
-            Dir::N => nloc.2,
-            _ => unreachable!(),
+            DirV::S => nloc.2 - 1,
+            DirV::N => nloc.2,
         };
         backend
             .egrid
@@ -62,7 +61,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkHasCmt {
 }
 
 #[derive(Clone, Debug)]
-struct BufpllPll(Dir, &'static str, &'static str, String, String);
+struct BufpllPll(DirV, &'static str, &'static str, String, String);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -81,19 +80,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
         let mut row = nloc.2;
         loop {
             match self.0 {
-                Dir::S => {
+                DirV::S => {
                     if row.to_idx() == 0 {
                         return Some((fuzzer, true));
                     }
                     row -= 1;
                 }
-                Dir::N => {
+                DirV::N => {
                     row += 1;
                     if row == edev.chip.rows.next_id() {
                         return Some((fuzzer, true));
                     }
                 }
-                _ => unreachable!(),
             }
             if let Some(nnloc) = backend
                 .egrid
@@ -144,12 +142,12 @@ pub fn add_fuzzers<'a>(
             let gclk_o_d = format!("GCLK{i}_O_D");
             let gclk_o_u = format!("GCLK{i}_O_U");
             bctx.build()
-                .has_related(HclkInt(Dir::S))
+                .has_related(HclkInt(DirV::S))
                 .test_manual(&gclk_o_d, "1")
                 .pip(&gclk_o_d, &gclk_i)
                 .commit();
             bctx.build()
-                .has_related(HclkInt(Dir::N))
+                .has_related(HclkInt(DirV::N))
                 .test_manual(&gclk_o_u, "1")
                 .pip(&gclk_o_u, &gclk_i)
                 .commit();
@@ -290,7 +288,7 @@ pub fn add_fuzzers<'a>(
                     };
 
                     builder = builder.prop(BufpllPll(
-                        Dir::S,
+                        DirV::S,
                         tt,
                         "PLL_BUFPLL",
                         format!("CLKC_CLKOUT{i}", i = &out[11..]),
@@ -378,7 +376,7 @@ pub fn add_fuzzers<'a>(
                 };
                 for wire in ["CLKOUT0", "CLKOUT1"] {
                     let mut builder = bctx.build().global_mutex_here("BUFPLL_CLK");
-                    for (dir, bufs) in [(Dir::S, &bufs_d), (Dir::N, &bufs_u)] {
+                    for (dir, bufs) in [(DirV::S, &bufs_d), (DirV::N, &bufs_u)] {
                         for &buf in bufs {
                             if buf == "PLL_BUFPLL_OUT0" && src == "PLL0" {
                                 continue;

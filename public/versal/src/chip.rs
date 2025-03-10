@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    dir::Dir,
+    dir::DirH,
     grid::{ColId, DieId, RowId},
 };
 use serde::{Deserialize, Serialize};
@@ -247,11 +247,11 @@ impl Chip {
         }
     }
 
-    pub fn col_side(&self, col: ColId) -> Dir {
+    pub fn col_side(&self, col: ColId) -> DirH {
         if col.to_idx() % 2 == 0 {
-            Dir::W
+            DirH::W
         } else {
-            Dir::E
+            DirH::E
         }
     }
 

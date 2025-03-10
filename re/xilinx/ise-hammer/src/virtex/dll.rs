@@ -4,7 +4,7 @@ use bitvec::prelude::*;
 
 use prjcombine_interconnect::{
     db::BelSlotId,
-    dir::Dir,
+    dir::DirH,
     grid::{DieId, NodeLoc},
 };
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_bool, xlat_enum};
@@ -25,7 +25,7 @@ use crate::{
 };
 
 #[derive(Copy, Clone, Debug)]
-struct DeviceSide(Dir);
+struct DeviceSide(DirH);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -42,23 +42,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
             unreachable!()
         };
         match self.0 {
-            Dir::W => {
+            DirH::W => {
                 if nloc.1 >= edev.chip.col_clk() {
                     return None;
                 }
             }
-            Dir::E => {
+            DirH::E => {
                 if nloc.1 < edev.chip.col_clk() {
-                    return None;
-                }
-            }
-            Dir::S => {
-                if nloc.2 >= edev.chip.row_mid() {
-                    return None;
-                }
-            }
-            Dir::N => {
-                if nloc.2 < edev.chip.row_mid() {
                     return None;
                 }
             }
@@ -231,7 +221,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             if tile.ends_with("BOT") {
                 bctx.mode("DLL")
                     .global_mutex_here("DLL")
-                    .prop(DeviceSide(Dir::W))
+                    .prop(DeviceSide(DirH::W))
                     .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BL", "1")
                     .null_bits()
                     .test_manual("STARTUP_ATTR", "STARTUP_WAIT")
@@ -240,7 +230,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
                 bctx.mode("DLL")
                     .global_mutex_here("DLL")
-                    .prop(DeviceSide(Dir::E))
+                    .prop(DeviceSide(DirH::E))
                     .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BR", "1")
                     .null_bits()
                     .test_manual("STARTUP_ATTR", "STARTUP_WAIT")
@@ -249,7 +239,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             } else {
                 bctx.mode("DLL")
                     .global_mutex_here("DLL")
-                    .prop(DeviceSide(Dir::W))
+                    .prop(DeviceSide(DirH::W))
                     .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TL", "1")
                     .null_bits()
                     .test_manual("STARTUP_ATTR", "STARTUP_WAIT")
@@ -257,7 +247,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .commit();
                 bctx.mode("DLL")
                     .global_mutex_here("DLL")
-                    .prop(DeviceSide(Dir::E))
+                    .prop(DeviceSide(DirH::E))
                     .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TR", "1")
                     .null_bits()
                     .test_manual("STARTUP_ATTR", "STARTUP_WAIT")

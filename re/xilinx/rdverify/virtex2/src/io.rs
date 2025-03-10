@@ -1,4 +1,4 @@
-use prjcombine_interconnect::dir::Dir;
+use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_naming::db::NodeRawTileId;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
@@ -217,9 +217,9 @@ pub fn verify_pcilogicse(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         &[],
     );
     let edge = if bel.col == endev.chip.col_w() {
-        Dir::W
+        DirH::W
     } else if bel.col == endev.chip.col_e() {
-        Dir::E
+        DirH::E
     } else {
         unreachable!()
     };

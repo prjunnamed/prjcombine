@@ -1,6 +1,6 @@
 use core::ops::Range;
 
-use prjcombine_interconnect::{dir::Dir, grid::NodeLoc};
+use prjcombine_interconnect::{dir::DirH, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -208,7 +208,7 @@ const GTP_HEX_ATTRS: &[(&str, usize)] = &[
 ];
 
 #[derive(Copy, Clone, Debug)]
-struct DeviceSide(Dir);
+struct DeviceSide(DirH);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -225,17 +225,16 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
             unreachable!()
         };
         match self.0 {
-            Dir::W => {
+            DirH::W => {
                 if nloc.1 >= edev.chip.col_clk {
                     return None;
                 }
             }
-            Dir::E => {
+            DirH::E => {
                 if nloc.1 < edev.chip.col_clk {
                     return None;
                 }
             }
-            _ => unreachable!(),
         }
         Some((fuzzer, false))
     }
@@ -329,14 +328,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for pin in ["REFCLKPLL0", "REFCLKPLL1"] {
         bctx.build()
             .mutex("MUX.CLKOUT_EW", pin)
-            .prop(DeviceSide(Dir::W))
+            .prop(DeviceSide(DirH::W))
             .test_manual("MUX.CLKOUT_EAST", pin)
             .pip("CLKOUT_EW", pin)
             .commit();
         if matches!(edev.chip.gts, Gts::Double(..) | Gts::Quad(..)) {
             bctx.build()
                 .mutex("MUX.CLKOUT_EW", pin)
-                .prop(DeviceSide(Dir::E))
+                .prop(DeviceSide(DirH::E))
                 .test_manual("MUX.CLKOUT_WEST", pin)
                 .pip("CLKOUT_EW", pin)
                 .commit();

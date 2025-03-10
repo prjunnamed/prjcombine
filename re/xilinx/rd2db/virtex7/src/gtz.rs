@@ -1,13 +1,13 @@
 use std::collections::{BTreeMap, HashMap};
 
-use prjcombine_interconnect::{db::PinDir, dir::Dir};
+use prjcombine_interconnect::{db::PinDir, dir::DirV};
 use prjcombine_re_xilinx_rawdump::{Part, TkSitePinDir, TkSiteSlot};
 use prjcombine_virtex4::gtz::{GtzBel, GtzClkPin, GtzDb, GtzIntColId, GtzIntPin, GtzIntRowId};
 use unnamed_entity::EntityId;
 
 pub fn extract_gtz(rd: &Part) -> GtzDb {
     let mut gdb = GtzDb::default();
-    for (side, tkn) in [(Dir::N, "GTZ_TOP"), (Dir::S, "GTZ_BOT")] {
+    for (side, tkn) in [(DirV::N, "GTZ_TOP"), (DirV::S, "GTZ_BOT")] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut gtz = GtzBel {
                 side,
@@ -56,7 +56,7 @@ pub fn extract_gtz(rd: &Part) -> GtzDb {
                     let (col, row) = tail.split_once('_').unwrap();
                     let col: usize = col.parse().unwrap();
                     let mut row: usize = row.parse().unwrap();
-                    if side == Dir::N {
+                    if side == DirV::N {
                         row = 48 - row;
                     }
                     gtz.pins.insert(

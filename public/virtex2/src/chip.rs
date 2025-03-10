@@ -1,6 +1,6 @@
 use jzon::JsonValue;
 use prjcombine_interconnect::db::NodeTileId;
-use prjcombine_interconnect::dir::Dir;
+use prjcombine_interconnect::dir::{Dir, DirH};
 use prjcombine_interconnect::grid::{ColId, Coord, DieId, EdgeIoCoord, IntBel, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -709,29 +709,27 @@ impl Chip {
         }
     }
 
-    pub fn get_pci_io(&self, edge: Dir) -> [EdgeIoCoord; 2] {
+    pub fn get_pci_io(&self, edge: DirH) -> [EdgeIoCoord; 2] {
         match self.kind {
             ChipKind::Spartan3E => match edge {
-                Dir::W => [
+                DirH::W => [
                     EdgeIoCoord::W(self.row_mid() + 1, TileIobId::from_idx(1)),
                     EdgeIoCoord::W(self.row_mid() - 1, TileIobId::from_idx(0)),
                 ],
-                Dir::E => [
+                DirH::E => [
                     EdgeIoCoord::E(self.row_mid(), TileIobId::from_idx(0)),
                     EdgeIoCoord::E(self.row_mid() - 2, TileIobId::from_idx(1)),
                 ],
-                _ => unreachable!(),
             },
             ChipKind::Spartan3A | ChipKind::Spartan3ADsp => match edge {
-                Dir::W => [
+                DirH::W => [
                     EdgeIoCoord::W(self.row_mid() + 1, TileIobId::from_idx(0)),
                     EdgeIoCoord::W(self.row_mid() - 2, TileIobId::from_idx(1)),
                 ],
-                Dir::E => [
+                DirH::E => [
                     EdgeIoCoord::E(self.row_mid() + 1, TileIobId::from_idx(0)),
                     EdgeIoCoord::E(self.row_mid() - 2, TileIobId::from_idx(1)),
                 ],
-                _ => unreachable!(),
             },
             _ => unreachable!(),
         }

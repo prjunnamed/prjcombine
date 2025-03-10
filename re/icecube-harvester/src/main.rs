@@ -15,7 +15,7 @@ use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
 use prjcombine_interconnect::{
     db::{IntDb, MuxInfo, MuxKind, NodeKindId, NodeTileId, NodeWireId},
-    dir::Dir,
+    dir::{DirH, DirV},
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };
 use prjcombine_re_harvester::Harvester;
@@ -452,10 +452,10 @@ impl PartContext<'_> {
                     "VPP_PUMP" | "VDDP" => BondPin::VppPump,
                     "VREF" => BondPin::Vref,
                     "VSSIO_LED" => BondPin::GndLed,
-                    "AGND" | "AGND_BOT" => BondPin::GndPll(Dir::S),
-                    "AVDD" | "AVDD_BOT" => BondPin::VccPll(Dir::S),
-                    "AGND_TOP" => BondPin::GndPll(Dir::N),
-                    "AVDD_TOP" => BondPin::VccPll(Dir::N),
+                    "AGND" | "AGND_BOT" => BondPin::GndPll(DirV::S),
+                    "AVDD" | "AVDD_BOT" => BondPin::VccPll(DirV::S),
+                    "AGND_TOP" => BondPin::GndPll(DirV::N),
+                    "AVDD_TOP" => BondPin::VccPll(DirV::N),
                     "CRESET_B" => BondPin::Cfg(CfgPin::CResetB),
                     "CDONE" => BondPin::Cfg(CfgPin::CDone),
                     "TCK" => BondPin::Cfg(CfgPin::Tck),
@@ -780,25 +780,25 @@ impl PartContext<'_> {
                     ),
                     "SB_SPI" => {
                         let (edge, col) = if site.loc.x == 0 {
-                            (Dir::W, self.chip.col_w())
+                            (DirH::W, self.chip.col_w())
                         } else {
-                            (Dir::E, self.chip.col_e())
+                            (DirH::E, self.chip.col_e())
                         };
                         (ExtraNodeLoc::Spi(edge), bels::SPI, (col, self.chip.row_s()))
                     }
                     "SB_I2C" => {
                         let (edge, col) = if site.loc.x == 0 {
-                            (Dir::W, self.chip.col_w())
+                            (DirH::W, self.chip.col_w())
                         } else {
-                            (Dir::E, self.chip.col_e())
+                            (DirH::E, self.chip.col_e())
                         };
                         (ExtraNodeLoc::I2c(edge), bels::I2C, (col, self.chip.row_n()))
                     }
                     "SB_I2C_FIFO" => {
                         let (edge, col) = if site.loc.x == 0 {
-                            (Dir::W, self.chip.col_w())
+                            (DirH::W, self.chip.col_w())
                         } else {
-                            (Dir::E, self.chip.col_e())
+                            (DirH::E, self.chip.col_e())
                         };
                         (
                             ExtraNodeLoc::I2cFifo(edge),
@@ -895,9 +895,9 @@ impl PartContext<'_> {
                 nb.add_bel(bels::PLL, &bel_pins);
                 let (int_node, extra_node) = nb.finish();
                 let loc = ExtraNodeLoc::Pll(if row == self.chip.row_s() {
-                    Dir::S
+                    DirV::S
                 } else {
-                    Dir::N
+                    DirV::N
                 });
                 match self.chip.extra_nodes.entry(loc) {
                     btree_map::Entry::Vacant(entry) => {
@@ -1054,9 +1054,9 @@ impl PartContext<'_> {
         for edge_sites in sites.chunks_exact(2) {
             assert_eq!(edge_sites[0].loc.x, edge_sites[1].loc.x);
             let (edge, fixed_crd) = if edge_sites[0].loc.x == 0 {
-                (Dir::W, (self.chip.col_w(), self.chip.row_s()))
+                (DirH::W, (self.chip.col_w(), self.chip.row_s()))
             } else {
-                (Dir::E, (self.chip.col_e(), self.chip.row_s()))
+                (DirH::E, (self.chip.col_e(), self.chip.row_s()))
             };
             let loc = ExtraNodeLoc::SpramPair(edge);
             let mut nb = MiscNodeBuilder::new(&[fixed_crd]);

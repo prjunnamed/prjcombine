@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     db::{BelSlotId, NodeKindId},
-    dir::Dir,
+    dir::DirV,
     grid::NodeLoc,
 };
 use prjcombine_re_fpga_hammer::{FeatureId, FpgaFuzzerGen, FuzzerProp};
@@ -379,7 +379,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
 
     pub fn test_gtz(
         self,
-        dir: Dir,
+        dir: DirV,
         attr: impl AsRef<str>,
         val: impl AsRef<str>,
     ) -> FuzzBuilderTestManual<'sm, 'b> {

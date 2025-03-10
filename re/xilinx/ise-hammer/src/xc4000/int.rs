@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashSet, btree_map};
 
 use prjcombine_interconnect::{
     db::{BelSlotId, NodeTileId, NodeWireId},
-    dir::Dir,
+    dir::DirH,
     grid::{IntWire, LayerId, NodeLoc},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
@@ -766,12 +766,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000BiPip {
 #[derive(Clone, Debug)]
 struct Xc4000TbufSplitter {
     pub slot: BelSlotId,
-    pub dir: Dir,
+    pub dir: DirH,
     pub buf: bool,
 }
 
 impl Xc4000TbufSplitter {
-    fn new(slot: BelSlotId, dir: Dir, buf: bool) -> Self {
+    fn new(slot: BelSlotId, dir: DirH, buf: bool) -> Self {
         Self { slot, dir, buf }
     }
 }
@@ -795,7 +795,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
         let bel_naming = &node_naming.bels[self.slot];
 
         let (wire_from, wire_to, pin_from, pin_to, ex_from, ex_to) = match self.dir {
-            Dir::E => (
+            DirH::E => (
                 bel_data.pins["L"].wires.iter().copied().next().unwrap(),
                 bel_data.pins["R"].wires.iter().copied().next().unwrap(),
                 &bel_naming.pins["L"].name,
@@ -803,7 +803,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
                 &bel_naming.pins["L.EXCL"].name,
                 &bel_naming.pins["R.EXCL"].name,
             ),
-            Dir::W => (
+            DirH::W => (
                 bel_data.pins["R"].wires.iter().copied().next().unwrap(),
                 bel_data.pins["L"].wires.iter().copied().next().unwrap(),
                 &bel_naming.pins["R"].name,
@@ -811,7 +811,6 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
                 &bel_naming.pins["R.EXCL"].name,
                 &bel_naming.pins["L.EXCL"].name,
             ),
-            _ => unreachable!(),
         };
         let res_from = backend
             .egrid
@@ -1356,10 +1355,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for bel in [bels::TBUF_SPLITTER0, bels::TBUF_SPLITTER1] {
                 let mut bctx = ctx.bel(bel);
                 for (val, dir, buf) in [
-                    ("W", Dir::W, false),
-                    ("E", Dir::E, false),
-                    ("W.BUF", Dir::W, true),
-                    ("E.BUF", Dir::E, true),
+                    ("W", DirH::W, false),
+                    ("E", DirH::E, false),
+                    ("W.BUF", DirH::W, true),
+                    ("E.BUF", DirH::E, true),
                 ] {
                     bctx.test_manual("BUF", val)
                         .prop(Xc4000TbufSplitter::new(bel, dir, buf))

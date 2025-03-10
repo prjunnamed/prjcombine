@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use jzon::JsonValue;
 use prjcombine_interconnect::{
     db::NodeTileId,
-    dir::Dir,
+    dir::{Dir, DirH, DirV},
     grid::{ColId, DieId, EdgeIoCoord, IntBel, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};
@@ -141,10 +141,10 @@ pub enum ExtraNodeLoc {
     GbIo(usize),
     LatchIo(Dir),
     Warmboot,
-    Pll(Dir),
-    Spi(Dir),
-    I2c(Dir),
-    I2cFifo(Dir),
+    Pll(DirV),
+    Spi(DirH),
+    I2c(DirH),
+    I2cFifo(DirH),
     LsOsc,
     HsOsc,
     LfOsc,
@@ -160,7 +160,7 @@ pub enum ExtraNodeLoc {
     LeddaIp,
     IrIp,
     Mac16(ColId, RowId),
-    SpramPair(Dir),
+    SpramPair(DirH),
 }
 
 impl ExtraNodeLoc {
