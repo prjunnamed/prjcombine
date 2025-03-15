@@ -21,7 +21,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: docs
-          path: docs/out
+          path: docs/book
 
   publish:
     needs: document
@@ -36,8 +36,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: docs
-          path: docs/out
+          path: docs/book
       - name: Publish documentation
         uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
-          folder: docs/out/
+          folder: docs/book/
