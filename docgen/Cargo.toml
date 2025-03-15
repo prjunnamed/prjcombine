@@ -1,0 +1,31 @@
+[package]
+name = "prjcombine-docgen"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+prjcombine-types.workspace = true
+prjcombine-interconnect.workspace = true
+prjcombine-siliconblue.workspace = true
+prjcombine-xc2000.workspace = true
+prjcombine-virtex.workspace = true
+prjcombine-virtex2.workspace = true
+prjcombine-spartan6.workspace = true
+prjcombine-virtex4.workspace = true
+prjcombine-xc9500.workspace = true
+prjcombine-xpla3.workspace = true
+prjcombine-coolrunner2.workspace = true
+unnamed_entity.workspace = true
+clap.workspace = true
+indexmap.workspace = true
+itertools.workspace = true
+bitvec.workspace = true
+mdbook = { version = "0.4.47", default-features = false }
+serde_json = "1.0.96"
+semver = "1.0.17"
+
+[lints]
+workspace = true

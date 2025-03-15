@@ -159,7 +159,7 @@ impl TileItem {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum TileItemKind {
     Enum { values: BTreeMap<String, BitVec> },
     BitVec { invert: BitVec },

@@ -8,7 +8,7 @@ use std::{
 use jzon::JsonValue;
 use prjcombine_types::{FbId, FbMcId, tiledb::Tile};
 use serde::{Deserialize, Serialize};
-use unnamed_entity::{EntityId, EntityVec, entity_id};
+use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
 
 entity_id! {
     pub id ChipId u32;
@@ -31,6 +31,12 @@ pub struct Chip {
     pub imux_bits: Tile,
 }
 
+impl Chip {
+    pub fn fbs(&self) -> EntityIds<FbId> {
+        EntityIds::new(self.fb_rows * self.fb_cols.len() * 2)
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct FbColumn {
     pub pt_col: usize,
@@ -38,7 +44,7 @@ pub struct FbColumn {
     pub mc_col: usize,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     Nc,
     Gnd,

@@ -489,7 +489,7 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
                 .map(|&bit| xlat_bit_raw(bit))
                 .collect(),
             kind: TileItemKind::BitVec {
-                invert: BitVec::from_iter([false]),
+                invert: BitVec::repeat(false, fpart.map.ues.as_ref().unwrap().len()),
             },
         },
         |_| true,

@@ -1,0 +1,23 @@
+[book]
+authors = ["Wanda"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Project Combine"
+
+[preprocessor.prjcombine-docgen]
+command = "cargo run -q --bin prjcombine-docgen --"
+after = ["index"]
+
+[output.html]
+additional-css = ["custom.css"]
+
+[output.html.print]
+enable = false
+
+[output.html.search]
+enable = false
+
+[output.html.fold]
+enable = true
+depth = 1

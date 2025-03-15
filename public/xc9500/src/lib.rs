@@ -19,6 +19,16 @@ pub enum ChipKind {
     Xc9500Xv,
 }
 
+impl std::fmt::Display for ChipKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ChipKind::Xc9500 => write!(f, "xc9500"),
+            ChipKind::Xc9500Xl => write!(f, "xc9500xl"),
+            ChipKind::Xc9500Xv => write!(f, "xc9500xv"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Chip {
     pub kind: ChipKind,
@@ -34,7 +44,7 @@ pub struct Chip {
     pub erase_time: u32,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     Nc,
     Gnd,
