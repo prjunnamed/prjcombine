@@ -1,4 +1,6 @@
-use crate::{Cell, Delay, Edge, IoPath, Period, Port, Sdf, SetupHold, Width};
+use rust_decimal::Decimal;
+
+use crate::{Cell, Delay, Edge, IoPath, Period, Port, RecRem, Sdf, SetupHold, Width};
 
 #[derive(Debug, PartialEq)]
 enum Token {
@@ -6,10 +8,11 @@ enum Token {
     RParen,
     Id(String),
     String(String),
-    Float(f64),
+    Decimal(Decimal),
     Integer(i64),
     Slash,
     Colon,
+    Star,
 }
 
 struct Lexer<'a> {
@@ -27,88 +30,103 @@ impl Iterator for Lexer<'_> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
-        if let Some(x) = self.input[self.pos..].find(|x: char| !x.is_whitespace()) {
-            self.pos += x;
-        } else {
-            self.pos = self.input.len();
-        }
-        match self.input[self.pos..].chars().next() {
-            None => None,
-            Some('(') => {
-                self.pos += 1;
-                Some(Token::LParen)
+        loop {
+            if let Some(x) = self.input[self.pos..].find(|x: char| !x.is_whitespace()) {
+                self.pos += x;
+            } else {
+                self.pos = self.input.len();
             }
-            Some(')') => {
-                self.pos += 1;
-                Some(Token::RParen)
-            }
-            Some(':') => {
-                self.pos += 1;
-                Some(Token::Colon)
-            }
-            Some('/') => {
-                self.pos += 1;
-                Some(Token::Slash)
-            }
-            Some('"') => {
-                self.pos += 1;
-                let mut s = String::new();
-                let mut ch = self.input[self.pos..].char_indices();
-                loop {
-                    match ch.next() {
-                        None => panic!("unclosed string"),
-                        Some((_, '\\')) => {
-                            let (_, c) = ch.next().unwrap();
-                            s.push(c);
-                        }
-                        Some((i, '"')) => {
-                            self.pos += i + 1;
-                            break;
-                        }
-                        Some((_, c)) => {
-                            s.push(c);
-                        }
-                    }
+            return match self.input[self.pos..].chars().next() {
+                None => None,
+                Some('(') => {
+                    self.pos += 1;
+                    Some(Token::LParen)
                 }
-                Some(Token::String(s))
-            }
-            Some(x) if x.is_ascii_digit() || x == '-' => {
-                let n = self.input[self.pos..]
-                    .find(|x: char| !matches!(x, '0'..='9' | '.' | 'e' | 'E' | '-' | '+'));
-                let epos = n.map(|x| self.pos + x).unwrap_or(self.input.len());
-                let num = &self.input[self.pos..epos];
-                self.pos = epos;
-                Some(if num.contains(|x: char| !x.is_ascii_digit() && x != '-') {
-                    Token::Float(num.parse().unwrap())
-                } else {
-                    Token::Integer(num.parse().unwrap())
-                })
-            }
-            Some(x) if x.is_ascii_alphabetic() || x == '_' || x == '$' => {
-                let mut s = String::new();
-                let mut ch = self.input[self.pos..].char_indices();
-                loop {
-                    match ch.next() {
-                        None => {
+                Some(')') => {
+                    self.pos += 1;
+                    Some(Token::RParen)
+                }
+                Some(':') => {
+                    self.pos += 1;
+                    Some(Token::Colon)
+                }
+                Some('/') => {
+                    if self.input[self.pos..].starts_with("//") {
+                        if let Some(x) = self.input[self.pos..].find('\n') {
+                            self.pos += x;
+                        } else {
                             self.pos = self.input.len();
-                            break;
                         }
-                        Some((_, '\\')) => {
-                            let (_, c) = ch.next().unwrap();
-                            s.push(c);
-                        }
-                        Some((_, c)) if c.is_ascii_alphanumeric() || c == '_' || c == '$' => {
-                            s.push(c);
-                        }
-                        Some((i, _)) => {
-                            self.pos += i;
-                            break;
-                        }
+                        continue;
+                    } else {
+                        self.pos += 1;
+                        Some(Token::Slash)
                     }
                 }
-                Some(Token::Id(s))
-            }
-            Some(x) => panic!("weird char '{x}'"),
+                Some('*') => {
+                    self.pos += 1;
+                    Some(Token::Star)
+                }
+                Some('"') => {
+                    self.pos += 1;
+                    let mut s = String::new();
+                    let mut ch = self.input[self.pos..].char_indices();
+                    loop {
+                        match ch.next() {
+                            None => panic!("unclosed string"),
+                            Some((_, '\\')) => {
+                                let (_, c) = ch.next().unwrap();
+                                s.push(c);
+                            }
+                            Some((i, '"')) => {
+                                self.pos += i + 1;
+                                break;
+                            }
+                            Some((_, c)) => {
+                                s.push(c);
+                            }
+                        }
+                    }
+                    Some(Token::String(s))
+                }
+                Some(x) if x.is_ascii_digit() || x == '-' => {
+                    let n = self.input[self.pos..]
+                        .find(|x: char| !matches!(x, '0'..='9' | '.' | 'e' | 'E' | '-' | '+'));
+                    let epos = n.map(|x| self.pos + x).unwrap_or(self.input.len());
+                    let num = &self.input[self.pos..epos];
+                    self.pos = epos;
+                    Some(if num.contains(|x: char| !x.is_ascii_digit() && x != '-') {
+                        Token::Decimal(num.parse().unwrap())
+                    } else {
+                        Token::Integer(num.parse().unwrap())
+                    })
+                }
+                Some(x) if x.is_ascii_alphabetic() || x == '_' || x == '$' => {
+                    let mut s = String::new();
+                    let mut ch = self.input[self.pos..].char_indices();
+                    loop {
+                        match ch.next() {
+                            None => {
+                                self.pos = self.input.len();
+                                break;
+                            }
+                            Some((_, '\\')) => {
+                                let (_, c) = ch.next().unwrap();
+                                s.push(c);
+                            }
+                            Some((_, c)) if c.is_ascii_alphanumeric() || c == '_' || c == '$' => {
+                                s.push(c);
+                            }
+                            Some((i, _)) => {
+                                self.pos += i;
+                                break;
+                            }
+                        }
+                    }
+                    Some(Token::Id(s))
+                }
+                Some(x) => panic!("weird char '{x}'"),
+            };
         }
     }
 }
@@ -203,13 +221,18 @@ impl Parser<'_> {
         self.eat_rp();
         self.eat_lp();
         self.eat_id("INSTANCE");
-        let name = self.get_id();
+        let name = match self.lexer.next() {
+            Some(Token::Id(s)) => Some(s),
+            Some(Token::Star) => None,
+            _ => panic!("need id or star"),
+        };
         self.eat_rp();
         let mut cell = Cell {
             typ,
             iopath: vec![],
             ports: vec![],
             setuphold: vec![],
+            recrem: vec![],
             period: vec![],
             width: vec![],
         };
@@ -217,7 +240,16 @@ impl Parser<'_> {
             match self.lexer.next() {
                 Some(Token::LParen) => (),
                 Some(Token::RParen) => {
-                    assert!(self.sdf.cells.insert(name, cell).is_none());
+                    if let Some(name) = name {
+                        assert!(self.sdf.cells_by_name.insert(name, cell).is_none());
+                    } else {
+                        assert!(
+                            self.sdf
+                                .cells_by_type
+                                .insert(cell.typ.clone(), cell)
+                                .is_none()
+                        );
+                    }
                     return;
                 }
                 _ => panic!("weird cell item"),
@@ -263,8 +295,8 @@ impl Parser<'_> {
     }
 
     fn parse_iopath(&mut self, cell: &mut Cell) {
-        let port_from = self.get_id();
-        let port_to = self.get_id();
+        let port_from = self.get_edge();
+        let port_to = self.get_edge();
         let del_rise = self.get_delay();
         let del_fall = self.get_delay();
         cell.iopath.push(IoPath {
@@ -298,6 +330,10 @@ impl Parser<'_> {
             let id = self.get_id();
             match &*id {
                 "SETUPHOLD" => self.parse_setuphold(cell),
+                "SETUP" => self.parse_setup(cell),
+                "HOLD" => self.parse_hold(cell),
+                "RECOVERY" => self.parse_recovery(cell),
+                "REMOVAL" => self.parse_removal(cell),
                 "PERIOD" => self.parse_period(cell),
                 "WIDTH" => self.parse_width(cell),
                 _ => panic!("weird timingcheck item {id}"),
@@ -308,13 +344,70 @@ impl Parser<'_> {
     fn parse_setuphold(&mut self, cell: &mut Cell) {
         let edge_d = self.get_edge();
         let edge_c = self.get_edge();
-        let setup = self.get_delay();
-        let hold = self.get_delay();
+        let setup = Some(self.get_delay());
+        let hold = Some(self.get_delay());
         cell.setuphold.push(SetupHold {
             edge_d,
             edge_c,
             setup,
             hold,
+        });
+        self.eat_rp();
+    }
+
+    fn parse_setup(&mut self, cell: &mut Cell) {
+        let edge_d = self.get_edge();
+        let edge_c = self.get_edge();
+        let setup = Some(self.get_delay());
+        let hold = None;
+        cell.setuphold.push(SetupHold {
+            edge_d,
+            edge_c,
+            setup,
+            hold,
+        });
+        self.eat_rp();
+    }
+
+    fn parse_hold(&mut self, cell: &mut Cell) {
+        let edge_d = self.get_edge();
+        let edge_c = self.get_edge();
+        let setup = None;
+        let hold = Some(self.get_delay());
+        cell.setuphold.push(SetupHold {
+            edge_d,
+            edge_c,
+            setup,
+            hold,
+        });
+        self.eat_rp();
+    }
+
+
+    fn parse_recovery(&mut self, cell: &mut Cell) {
+        let edge_r = self.get_edge();
+        let edge_c = self.get_edge();
+        let recovery = Some(self.get_delay());
+        let removal = None;
+        cell.recrem.push(RecRem {
+            edge_r,
+            edge_c,
+            recovery,
+            removal,
+        });
+        self.eat_rp();
+    }
+
+    fn parse_removal(&mut self, cell: &mut Cell) {
+        let edge_r = self.get_edge();
+        let edge_c = self.get_edge();
+        let recovery = None;
+        let removal = Some(self.get_delay());
+        cell.recrem.push(RecRem {
+            edge_r,
+            edge_c,
+            recovery,
+            removal,
         });
         self.eat_rp();
     }
@@ -373,9 +466,17 @@ impl Parser<'_> {
         }
     }
 
+    fn get_decimal(&mut self) -> Decimal {
+        match self.lexer.next() {
+            Some(Token::Integer(i)) => Decimal::new(i, 0),
+            Some(Token::Decimal(f)) => f,
+            _ => panic!("expected number"),
+        }
+    }
+
     fn get_delay(&mut self) -> Delay {
         self.eat_lp();
-        let min = self.get_int();
+        let min = self.get_decimal();
         match self.lexer.next() {
             Some(Token::RParen) => {
                 return Delay {
@@ -387,9 +488,9 @@ impl Parser<'_> {
             Some(Token::Colon) => (),
             _ => panic!("weird delay token"),
         }
-        let typ = self.get_int();
+        let typ = self.get_decimal();
         self.eat_colon();
-        let max = self.get_int();
+        let max = self.get_decimal();
         self.eat_rp();
         Delay { min, typ, max }
     }

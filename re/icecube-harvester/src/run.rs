@@ -9,6 +9,7 @@ use std::{fs::File, path::Path};
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::db::PinDir;
+use prjcombine_re_sdf::Sdf;
 use prjcombine_siliconblue::bitstream::Bitstream;
 use prjcombine_siliconblue::chip::ChipKind;
 use tempfile::TempDir;
@@ -121,6 +122,8 @@ pub struct RunResult {
     pub io_map: BTreeMap<(InstId, InstPin), IoLocInfo>,
     pub routes: BTreeMap<(InstId, InstPin), Vec<Vec<(u32, u32, String)>>>,
     pub bitstream: Bitstream,
+    #[allow(dead_code)]
+    pub sdf: Sdf,
     #[allow(dead_code)]
     pub dir: Option<TempDir>,
 }
@@ -659,6 +662,8 @@ pub fn run(sbt: &Path, design: &Design) -> Result<RunResult, RunError> {
         let routes = parse_routes(routes);
         let bsdata = std::fs::read(dir.path().join("sbt/outputs/bitmap/top_bitmap.bin")).unwrap();
         let bitstream = Bitstream::parse(&bsdata);
+        let sdf = std::fs::read_to_string(dir.path().join("top_sbt.sdf")).unwrap();
+        let sdf = Sdf::parse(&sdf);
 
         let dir = ManuallyDrop::into_inner(dir);
         Ok(RunResult {
@@ -667,6 +672,7 @@ pub fn run(sbt: &Path, design: &Design) -> Result<RunResult, RunError> {
             io_map,
             routes,
             bitstream,
+            sdf,
             dir: if design.keep_tmp { Some(dir) } else { None },
         })
     }
