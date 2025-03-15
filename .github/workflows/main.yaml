@@ -17,10 +17,6 @@ jobs:
       - name: Build the book
         run: |
           mdbook build docs
-      - name: Build the API docs
-        run: |
-          cargo doc --lib --no-deps
-          cp -r target/doc docs/out/api
       - name: Upload documentation archive
         uses: actions/upload-artifact@v4
         with:
