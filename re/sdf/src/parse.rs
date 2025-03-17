@@ -96,7 +96,11 @@ impl Iterator for Lexer<'_> {
                     let num = &self.input[self.pos..epos];
                     self.pos = epos;
                     Some(if num.contains(|x: char| !x.is_ascii_digit() && x != '-') {
-                        Token::Decimal(num.parse().unwrap())
+                        if num.contains(['e', 'E']) {
+                            Token::Decimal(Decimal::from_scientific(num).unwrap())
+                        } else {
+                            Token::Decimal(num.parse().unwrap())
+                        }
                     } else {
                         Token::Integer(num.parse().unwrap())
                     })
@@ -114,7 +118,10 @@ impl Iterator for Lexer<'_> {
                                 let (_, c) = ch.next().unwrap();
                                 s.push(c);
                             }
-                            Some((_, c)) if c.is_ascii_alphanumeric() || c == '_' || c == '$' => {
+                            Some((_, c)) if c.is_ascii_alphanumeric() => {
+                                s.push(c);
+                            }
+                            Some((_, c @ ('_' | '[' | ']' | '$'))) => {
                                 s.push(c);
                             }
                             Some((i, _)) => {
@@ -382,7 +389,6 @@ impl Parser<'_> {
         });
         self.eat_rp();
     }
-
 
     fn parse_recovery(&mut self, cell: &mut Cell) {
         let edge_r = self.get_edge();
