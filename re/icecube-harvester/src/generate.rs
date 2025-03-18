@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_siliconblue::{
     bond::{Bond, BondPin},
-    chip::{ChipKind, ExtraNodeLoc},
+    chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
     expanded::ExpandedDevice,
 };
 use rand::prelude::*;
@@ -111,7 +111,7 @@ impl Generator<'_> {
         let mut global_idx = None;
         for (&loc, node) in &self.cfg.edev.chip.extra_nodes {
             if let ExtraNodeLoc::GbIo(idx) = loc {
-                if node.io[0] == crd {
+                if node.io[&ExtraNodeIo::GbIn] == crd {
                     global_idx = Some(idx);
                 }
             }

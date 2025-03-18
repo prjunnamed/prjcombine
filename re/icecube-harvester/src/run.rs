@@ -138,6 +138,8 @@ pub struct RawLoc {
 #[derive(Debug, Clone)]
 pub struct LocInfo {
     pub loc: RawLoc,
+    pub ds_rep0: Option<RawLoc>,
+    pub ds_rep1: Option<RawLoc>,
     pub is_io: bool,
 }
 
@@ -438,6 +440,8 @@ fn parse_pin_table(pin_table: &str) -> BTreeMap<String, PinTableEntry> {
 
 fn parse_placer_pcf(placer_pcf: &str) -> EntityPartVec<InstId, LocInfo> {
     let mut res = EntityPartVec::new();
+    let mut ds_rep_0 = EntityPartVec::new();
+    let mut ds_rep_1 = EntityPartVec::new();
     for line in placer_pcf.lines() {
         // println!("{line}");
         let line = line.trim();
@@ -465,22 +469,48 @@ fn parse_placer_pcf(placer_pcf: &str) -> EntityPartVec<InstId, LocInfo> {
             assert_eq!(comment, "INV");
             continue;
         }
-        let inst = InstId::from_idx(
-            line[1]
-                .strip_prefix('i')
-                .unwrap_or_else(|| panic!("umm {}", line[1]))
-                .parse()
-                .unwrap_or_else(|_| panic!("umm {}", line[1])),
-        );
         let loc = LocInfo {
             loc: RawLoc {
                 x: line[2].parse().unwrap(),
                 y: line[3].parse().unwrap(),
                 bel: line[4].parse().unwrap(),
             },
+            ds_rep0: None,
+            ds_rep1: None,
             is_io,
         };
-        res.insert(inst, loc);
+        if let Some(base) = line[1].strip_suffix("_REP_DRIVESTRENGTH_IO_0") {
+            let inst = InstId::from_idx(
+                base.strip_prefix('i')
+                    .unwrap_or_else(|| panic!("umm {}", line[1]))
+                    .parse()
+                    .unwrap_or_else(|_| panic!("umm {}", line[1])),
+            );
+            ds_rep_0.insert(inst, loc.loc);
+        } else if let Some(base) = line[1].strip_suffix("_REP_DRIVESTRENGTH_IO_1") {
+            let inst = InstId::from_idx(
+                base.strip_prefix('i')
+                    .unwrap_or_else(|| panic!("umm {}", line[1]))
+                    .parse()
+                    .unwrap_or_else(|_| panic!("umm {}", line[1])),
+            );
+            ds_rep_1.insert(inst, loc.loc);
+        } else {
+            let inst = InstId::from_idx(
+                line[1]
+                    .strip_prefix('i')
+                    .unwrap_or_else(|| panic!("umm {}", line[1]))
+                    .parse()
+                    .unwrap_or_else(|_| panic!("umm {}", line[1])),
+            );
+            res.insert(inst, loc);
+        }
+    }
+    for (k, v) in ds_rep_0 {
+        res[k].ds_rep0 = Some(v);
+    }
+    for (k, v) in ds_rep_1 {
+        res[k].ds_rep1 = Some(v);
     }
     res
 }

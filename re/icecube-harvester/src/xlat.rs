@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     grid::{ColId, DieId, IntWire, RowId},
 };
 use prjcombine_siliconblue::{
-    chip::{ChipKind, ExtraNodeLoc},
+    chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
     expanded::ExpandedDevice,
 };
 use unnamed_entity::EntityId;
@@ -271,7 +271,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(idx) = name.strip_prefix("padin_") {
                 let idx: usize = idx.parse().unwrap();
                 if let Some(node) = edev.chip.extra_nodes.get(&ExtraNodeLoc::GbIo(idx)) {
-                    let (_, (col, row), _) = edev.chip.get_io_loc(node.io[0]);
+                    let (_, (col, row), _) = edev.chip.get_io_loc(node.io[&ExtraNodeIo::GbIn]);
                     return GenericNet::GlobalPadIn(col, row);
                 } else {
                     return GenericNet::Unknown;

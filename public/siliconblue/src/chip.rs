@@ -131,7 +131,7 @@ impl std::fmt::Display for SharedCfgPin {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ExtraNode {
-    pub io: Vec<EdgeIoCoord>,
+    pub io: BTreeMap<ExtraNodeIo, EdgeIoCoord>,
     pub tiles: EntityVec<NodeTileId, (ColId, RowId)>,
 }
 
@@ -204,6 +204,47 @@ impl std::fmt::Display for ExtraNodeLoc {
             ExtraNodeLoc::IrIp => write!(f, "IR_IP"),
             ExtraNodeLoc::Mac16(col, row) => write!(f, "MAC16_X{col}Y{row}"),
             ExtraNodeLoc::SpramPair(edge) => write!(f, "SPRAM_PAIR_{edge}"),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum ExtraNodeIo {
+    GbIn,
+    PllA,
+    PllB,
+    SpiCopi,
+    SpiCipo,
+    SpiSck,
+    SpiCsB0,
+    SpiCsB1,
+    I2cScl,
+    I2cSda,
+    RgbLed0,
+    RgbLed1,
+    RgbLed2,
+    IrLed,
+    BarcodeLed,
+}
+
+impl std::fmt::Display for ExtraNodeIo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ExtraNodeIo::GbIn => write!(f, "GB_IN"),
+            ExtraNodeIo::PllA => write!(f, "PLL_A"),
+            ExtraNodeIo::PllB => write!(f, "PLL_B"),
+            ExtraNodeIo::SpiCopi => write!(f, "SPI_COPI"),
+            ExtraNodeIo::SpiCipo => write!(f, "SPI_CIPO"),
+            ExtraNodeIo::SpiSck => write!(f, "SPI_SCK"),
+            ExtraNodeIo::SpiCsB0 => write!(f, "SPI_CSB0"),
+            ExtraNodeIo::SpiCsB1 => write!(f, "SPI_CSB1"),
+            ExtraNodeIo::I2cScl => write!(f, "I2C_SCL"),
+            ExtraNodeIo::I2cSda => write!(f, "I2C_SDA"),
+            ExtraNodeIo::RgbLed0 => write!(f, "RGB_LED0"),
+            ExtraNodeIo::RgbLed1 => write!(f, "RGB_LED1"),
+            ExtraNodeIo::RgbLed2 => write!(f, "RGB_LED2"),
+            ExtraNodeIo::IrLed => write!(f, "IR_LED"),
+            ExtraNodeIo::BarcodeLed => write!(f, "BARCODE_LED"),
         }
     }
 }
@@ -343,7 +384,7 @@ impl Chip {
 impl From<&ExtraNode> for JsonValue {
     fn from(node: &ExtraNode) -> Self {
         jzon::object! {
-            io: Vec::from_iter(node.io.iter().map(|io| io.to_string())),
+            io: jzon::object::Object::from_iter(node.io.iter().map(|(slot, io)| (slot.to_string(), io.to_string()))),
             tiles: Vec::from_iter(node.tiles.values().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
         }
     }
@@ -405,8 +446,8 @@ impl std::fmt::Display for Chip {
         }
         for (&loc, node) in &self.extra_nodes {
             writeln!(f, "\tEXTRA {loc}:")?;
-            for (idx, io) in node.io.iter().enumerate() {
-                writeln!(f, "\t\tIO {idx}: {io}")?;
+            for (slot, io) in &node.io {
+                writeln!(f, "\t\tIO {slot}: {io}")?;
             }
             for (tile, (col, row)) in &node.tiles {
                 writeln!(f, "\t\tTILE {tile}: X{col}Y{row}")?;

@@ -27,7 +27,7 @@ pub fn extract_buf(sdf: &Sdf, name: &str, tgt: &mut BTreeMap<String, i64>, tname
     assert_eq!(iop.port_from, Edge::Plain("I".into()));
     assert_eq!(iop.port_to, Edge::Plain("O".into()));
     assert_eq!(iop.del_rise, iop.del_fall);
-    extract_delay(iop.del_rise, tgt, tname);
+    extract_delay(iop.del_rise.unwrap(), tgt, tname);
 }
 
 pub fn extract_tri_i(sdf: &Sdf, name: &str, tgt: &mut BTreeMap<String, i64>, tname: &str) {
@@ -77,7 +77,7 @@ pub fn extract_and2_iopath(sdf: &Sdf, name: &str, tgt: &mut BTreeMap<String, i64
     assert_eq!(iop0.del_rise, iop0.del_fall);
     assert_eq!(iop1.del_rise, iop1.del_fall);
     assert_eq!(iop0.del_rise, iop1.del_rise);
-    extract_delay(iop0.del_rise, tgt, tname);
+    extract_delay(iop0.del_rise.unwrap(), tgt, tname);
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -101,17 +101,17 @@ pub fn extract_ff(
     assert_eq!(iop0.port_from, Edge::Plain("CLK".into()));
     assert_eq!(iop0.port_to, Edge::Plain("O".into()));
     assert_eq!(iop0.del_rise, iop0.del_fall);
-    extract_delay(iop0.del_rise, tgt, tname_del_clk_q);
+    extract_delay(iop0.del_rise.unwrap(), tgt, tname_del_clk_q);
     let iop1 = &cell.iopath[1];
     assert_eq!(iop1.port_from, Edge::Plain("SET".into()));
     assert_eq!(iop1.port_to, Edge::Plain("O".into()));
     assert_eq!(iop1.del_rise, iop1.del_fall);
-    extract_delay(iop1.del_rise, tgt, tname_del_sr_q);
+    extract_delay(iop1.del_rise.unwrap(), tgt, tname_del_sr_q);
     let iop2 = &cell.iopath[2];
     assert_eq!(iop2.port_from, Edge::Plain("RST".into()));
     assert_eq!(iop2.port_to, Edge::Plain("O".into()));
     assert_eq!(iop2.del_rise, iop2.del_fall);
-    extract_delay(iop2.del_rise, tgt, tname_del_sr_q);
+    extract_delay(iop2.del_rise.unwrap(), tgt, tname_del_sr_q);
 
     assert_eq!(cell.setuphold.len(), 3);
     let sh0 = &cell.setuphold[0];
@@ -170,12 +170,12 @@ pub fn extract_latch(
     assert_eq!(iop0.port_from, Edge::Plain("I".into()));
     assert_eq!(iop0.port_to, Edge::Plain("O".into()));
     assert_eq!(iop0.del_rise, iop0.del_fall);
-    extract_delay(iop0.del_rise, tgt, tname_del_d_q);
+    extract_delay(iop0.del_rise.unwrap(), tgt, tname_del_d_q);
     let iop2 = &cell.iopath[2];
     assert_eq!(iop2.port_from, Edge::Plain("CLK".into()));
     assert_eq!(iop2.port_to, Edge::Plain("O".into()));
     assert_eq!(iop2.del_rise, iop2.del_fall);
-    extract_delay(iop2.del_rise, tgt, tname_del_clk_q);
+    extract_delay(iop2.del_rise.unwrap(), tgt, tname_del_clk_q);
     let iop3 = &cell.iopath[3];
     assert_eq!(iop3.port_from, Edge::Plain("SET".into()));
     assert_eq!(iop3.port_to, Edge::Plain("O".into()));
@@ -185,8 +185,8 @@ pub fn extract_latch(
     assert_eq!(iop4.port_to, Edge::Plain("O".into()));
     assert_eq!(iop4.del_rise, iop4.del_fall);
     if let Some(tname) = tname_del_sr_q {
-        extract_delay(iop3.del_rise, tgt, tname);
-        extract_delay(iop4.del_rise, tgt, tname);
+        extract_delay(iop3.del_rise.unwrap(), tgt, tname);
+        extract_delay(iop4.del_rise.unwrap(), tgt, tname);
     }
 
     assert_eq!(cell.setuphold.len(), 3);

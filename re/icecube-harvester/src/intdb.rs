@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, HashMap, hash_map};
+use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
     db::{
@@ -10,7 +10,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_siliconblue::{
     bels,
-    chip::{ChipKind, ExtraNode},
+    chip::{ChipKind, ExtraNode, ExtraNodeIo},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -440,7 +440,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
 
 pub struct MiscNodeBuilder {
     pub node: NodeKind,
-    pub io: Vec<EdgeIoCoord>,
+    pub io: BTreeMap<ExtraNodeIo, EdgeIoCoord>,
     pub fixed_tiles: usize,
     pub tiles: EntityVec<NodeTileId, (ColId, RowId)>,
     pub tiles_map: HashMap<(ColId, RowId), NodeTileId>,
@@ -462,7 +462,7 @@ impl MiscNodeBuilder {
                 intfs: Default::default(),
                 bels: Default::default(),
             },
-            io: vec![],
+            io: Default::default(),
             fixed_tiles: fixed_tiles.len(),
             tiles,
             tiles_map,

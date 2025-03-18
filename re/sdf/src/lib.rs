@@ -31,8 +31,8 @@ pub struct Cell {
 pub struct IoPath {
     pub port_from: Edge,
     pub port_to: Edge,
-    pub del_rise: Delay,
-    pub del_fall: Delay,
+    pub del_rise: Option<Delay>,
+    pub del_fall: Option<Delay>,
 }
 
 #[derive(Debug)]

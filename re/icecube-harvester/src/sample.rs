@@ -9,7 +9,7 @@ use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
     bels,
     bitstream::Bitstream,
-    chip::{ChipKind, ExtraNodeLoc},
+    chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
     expanded::{BitOwner, ExpandedDevice},
 };
 use unnamed_entity::EntityId;
@@ -397,7 +397,7 @@ pub fn make_sample(
                     let mut global_idx = None;
                     for (&loc, node) in &edev.chip.extra_nodes {
                         if let ExtraNodeLoc::GbIo(idx) = loc {
-                            if node.io[0] == io {
+                            if node.io[&ExtraNodeIo::GbIn] == io {
                                 global_idx = Some(idx);
                             }
                         }

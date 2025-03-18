@@ -24,6 +24,7 @@ use crate::{
 pub struct SiteInfo {
     pub loc: RawLoc,
     pub pads: BTreeMap<String, (RawLoc, String)>,
+    pub dedio: BTreeMap<String, RawLoc>,
     pub out_wires: BTreeMap<InstPin, (u32, u32, String)>,
     pub in_wires: BTreeMap<InstPin, (u32, u32, String)>,
     pub fabout_wires: BTreeMap<InstPin, (u32, u32)>,
@@ -102,6 +103,7 @@ pub fn find_sites_plb(sbt: &Path, part: &Part) -> Vec<SiteInfo> {
                     let mut info = SiteInfo {
                         loc: loc.loc,
                         pads: Default::default(),
+                        dedio: Default::default(),
                         out_wires: Default::default(),
                         in_wires: Default::default(),
                         global_nets: Default::default(),
@@ -160,6 +162,7 @@ pub fn find_sites_misc(
         let mut gbs = vec![];
         let mut trace_ins = EntityPartVec::new();
         let mut trace_outs = EntityPartVec::new();
+        let mut trace_dedio = EntityPartVec::new();
         if kind.starts_with("SB_RAM40") {
             for _ in 0..4 {
                 let mut lut = Instance::new("SB_LUT4");
@@ -180,6 +183,7 @@ pub fn find_sites_misc(
             let mut inst = Instance::new(kind);
             let mut cur_trace_ins = vec![];
             let mut cur_trace_outs = vec![];
+            let mut cur_trace_dedio = vec![];
             for (&pname, pin) in &prim.pins {
                 if pin.dir == PinDir::Input && !pin.is_pad {
                     if (kind.starts_with("SB_IO") || kind == "SB_GB_IO")
@@ -196,6 +200,13 @@ pub fn find_sites_misc(
                                 | "OUTPUTCLK"
                                 | "LATCHINPUTVALUE"
                         )
+                    {
+                        continue;
+                    }
+                    if kind == "SB_SPI" && matches!(pname, "MI" | "SI" | "SCKI" | "SCSNI") {
+                        continue;
+                    }
+                    if matches!(kind, "SB_I2C" | "SB_I2C_FIFO") && matches!(pname, "SCLI" | "SDAI")
                     {
                         continue;
                     }
@@ -334,6 +345,27 @@ pub fn find_sites_misc(
                     if kind == "SB_MAC16" && matches!(pname, "ACCUMCO" | "SIGNEXTOUT") {
                         continue;
                     }
+                    if kind == "SB_SPI"
+                        && matches!(
+                            pname,
+                            "MO" | "MOE"
+                                | "SO"
+                                | "SOE"
+                                | "SCKO"
+                                | "SCKOE"
+                                | "MCSNO0"
+                                | "MCSNOE0"
+                                | "MCSNO1"
+                                | "MCSNOE1"
+                        )
+                    {
+                        continue;
+                    }
+                    if matches!(kind, "SB_I2C" | "SB_I2C_FIFO")
+                        && matches!(pname, "SCLO" | "SCLOE" | "SDAO" | "SDAOE")
+                    {
+                        continue;
+                    }
                     if (matches!(
                         kind,
                         "SB_GB" | "SB_GB_IO" | "SB_HSOSC" | "SB_LSOSC" | "SB_HFOSC" | "SB_LFOSC"
@@ -365,8 +397,36 @@ pub fn find_sites_misc(
                     }
                 }
             }
+            let dedio = if kind == "SB_SPI" {
+                &[
+                    ("MOSI", "MO", "MOE", Some("SI")),
+                    ("MISO", "SO", "SOE", Some("MI")),
+                    ("SCK", "SCKO", "SCKOE", Some("SCKI")),
+                    ("CSN0", "MCSNO0", "MCSNOE0", Some("SCSNI")),
+                    ("CSN1", "MCSNO1", "MCSNOE1", None),
+                ][..]
+            } else if matches!(kind, "SB_I2C" | "SB_I2C_FIFO") {
+                &[
+                    ("SCL", "SCLO", "SCLOE", Some("SCLI")),
+                    ("SDA", "SDAO", "SDAOE", Some("SDAI")),
+                ][..]
+            } else {
+                &[]
+            };
+            for &(pad, o, oe, i) in dedio {
+                let mut io = Instance::new("SB_IO");
+                io.prop("PIN_TYPE", "6'b101001");
+                io.connect("D_OUT_0", inst, InstPin::Simple(o.into()));
+                io.connect("OUTPUT_ENABLE", inst, InstPin::Simple(oe.into()));
+                let io = design.insts.push(io);
+                if let Some(i) = i {
+                    design.insts[inst].connect(i, io, InstPin::Simple("D_IN_0".into()));
+                }
+                cur_trace_dedio.push((io, pad));
+            }
             trace_ins.insert(inst, cur_trace_ins);
             trace_outs.insert(inst, cur_trace_outs);
+            trace_dedio.insert(inst, cur_trace_dedio);
         }
         while outps.len() > 1 {
             let mut lut = Instance::new("SB_LUT4");
@@ -426,6 +486,7 @@ pub fn find_sites_misc(
                     let mut info = SiteInfo {
                         loc: loc.loc,
                         pads: Default::default(),
+                        dedio: Default::default(),
                         out_wires: Default::default(),
                         in_wires: Default::default(),
                         global_nets: Default::default(),
@@ -443,6 +504,11 @@ pub fn find_sites_misc(
                                 info.pads
                                     .insert(pname.to_string(), (io_loc.loc, io_loc.pin.clone()));
                             }
+                        }
+                    }
+                    for &(io, pad) in &trace_dedio[iid] {
+                        if let Some(io_loc) = res.loc_map.get(io) {
+                            info.dedio.insert(pad.to_string(), io_loc.loc);
                         }
                     }
                     for pin in &trace_outs[iid] {
@@ -489,6 +555,69 @@ pub fn find_sites_misc(
                             info.fabout_wires.insert(pin.clone(), coord.unwrap());
                         }
                     }
+                    locs.push(info);
+                }
+                locs.sort_by_key(|loc| loc.loc);
+                assert_eq!(locs.len(), num);
+                Some(locs)
+            }
+        }
+    })
+}
+
+pub fn find_sites_iox3(sbt: &Path, part: &Part, pkg: &'static str) -> Vec<SiteInfo> {
+    find_sites(3, |num| {
+        let mut design = Design {
+            kind: part.kind,
+            device: part.name,
+            package: pkg,
+            speed: part.speeds[0],
+            temp: part.temps[0],
+            insts: Default::default(),
+            keep_tmp: false,
+            opts: vec![],
+        };
+        for _ in 0..num {
+            let mut lut = Instance::new("SB_LUT4");
+            lut.prop("LUT_INIT", "16'h0000");
+            let lut = design.insts.push(lut);
+            let mut inst = Instance::new("SB_IO");
+            inst.prop("PIN_TYPE", "6'b010101");
+            inst.prop("DRIVE_STRENGTH", "x3");
+            inst.connect("D_OUT_0", lut, InstPin::Simple("O".into()));
+            design.insts.push(inst);
+        }
+        match run(sbt, &design) {
+            Err(err) => {
+                if !err
+                    .stdout
+                    .contains("does not support property DRIVE_STRENGTH")
+                    && !err
+                        .stdout
+                        .contains("LED PIN placement is infeasible for the design")
+                {
+                    println!("FAIL FOR IOx3:");
+                    println!("{}", err.stdout);
+                }
+                None
+            }
+            Ok(res) => {
+                let mut locs = vec![];
+                for (iid, loc) in &res.loc_map {
+                    if design.insts[iid].kind != "SB_IO" {
+                        continue;
+                    }
+                    let mut info = SiteInfo {
+                        loc: loc.loc,
+                        pads: Default::default(),
+                        dedio: Default::default(),
+                        out_wires: Default::default(),
+                        in_wires: Default::default(),
+                        global_nets: Default::default(),
+                        fabout_wires: Default::default(),
+                    };
+                    info.dedio.insert("REP0".into(), loc.ds_rep0.unwrap());
+                    info.dedio.insert("REP1".into(), loc.ds_rep1.unwrap());
                     locs.push(info);
                 }
                 locs.sort_by_key(|loc| loc.loc);

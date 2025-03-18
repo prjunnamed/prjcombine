@@ -9,6 +9,7 @@ enum Token {
     Id(String),
     String(String),
     Decimal(Decimal),
+    Inf,
     Integer(i64),
     Slash,
     Colon,
@@ -97,7 +98,11 @@ impl Iterator for Lexer<'_> {
                     self.pos = epos;
                     Some(if num.contains(|x: char| !x.is_ascii_digit() && x != '-') {
                         if num.contains(['e', 'E']) {
-                            Token::Decimal(Decimal::from_scientific(num).unwrap())
+                            if num == "1.79769e+308" {
+                                Token::Inf
+                            } else {
+                                Token::Decimal(Decimal::from_scientific(num).unwrap())
+                            }
                         } else {
                             Token::Decimal(num.parse().unwrap())
                         }
@@ -317,8 +322,8 @@ impl Parser<'_> {
 
     fn parse_port(&mut self, cell: &mut Cell) {
         let port = self.get_id();
-        let del_rise = self.get_delay();
-        let del_fall = self.get_delay();
+        let del_rise = self.get_delay().unwrap();
+        let del_fall = self.get_delay().unwrap();
         cell.ports.push(Port {
             port,
             del_rise,
@@ -351,8 +356,8 @@ impl Parser<'_> {
     fn parse_setuphold(&mut self, cell: &mut Cell) {
         let edge_d = self.get_edge();
         let edge_c = self.get_edge();
-        let setup = Some(self.get_delay());
-        let hold = Some(self.get_delay());
+        let setup = Some(self.get_delay().unwrap());
+        let hold = Some(self.get_delay().unwrap());
         cell.setuphold.push(SetupHold {
             edge_d,
             edge_c,
@@ -365,7 +370,7 @@ impl Parser<'_> {
     fn parse_setup(&mut self, cell: &mut Cell) {
         let edge_d = self.get_edge();
         let edge_c = self.get_edge();
-        let setup = Some(self.get_delay());
+        let setup = Some(self.get_delay().unwrap());
         let hold = None;
         cell.setuphold.push(SetupHold {
             edge_d,
@@ -380,7 +385,7 @@ impl Parser<'_> {
         let edge_d = self.get_edge();
         let edge_c = self.get_edge();
         let setup = None;
-        let hold = Some(self.get_delay());
+        let hold = Some(self.get_delay().unwrap());
         cell.setuphold.push(SetupHold {
             edge_d,
             edge_c,
@@ -393,7 +398,7 @@ impl Parser<'_> {
     fn parse_recovery(&mut self, cell: &mut Cell) {
         let edge_r = self.get_edge();
         let edge_c = self.get_edge();
-        let recovery = Some(self.get_delay());
+        let recovery = Some(self.get_delay().unwrap());
         let removal = None;
         cell.recrem.push(RecRem {
             edge_r,
@@ -408,7 +413,7 @@ impl Parser<'_> {
         let edge_r = self.get_edge();
         let edge_c = self.get_edge();
         let recovery = None;
-        let removal = Some(self.get_delay());
+        let removal = Some(self.get_delay().unwrap());
         cell.recrem.push(RecRem {
             edge_r,
             edge_c,
@@ -420,14 +425,14 @@ impl Parser<'_> {
 
     fn parse_period(&mut self, cell: &mut Cell) {
         let edge = self.get_edge();
-        let val = self.get_delay();
+        let val = self.get_delay().unwrap();
         cell.period.push(Period { edge, val });
         self.eat_rp();
     }
 
     fn parse_width(&mut self, cell: &mut Cell) {
         let edge = self.get_edge();
-        let val = self.get_delay();
+        let val = self.get_delay().unwrap();
         cell.width.push(Width { edge, val });
         self.eat_rp();
     }
@@ -472,24 +477,25 @@ impl Parser<'_> {
         }
     }
 
-    fn get_decimal(&mut self) -> Decimal {
+    fn get_decimal(&mut self) -> Option<Decimal> {
         match self.lexer.next() {
-            Some(Token::Integer(i)) => Decimal::new(i, 0),
-            Some(Token::Decimal(f)) => f,
+            Some(Token::Integer(i)) => Some(Decimal::new(i, 0)),
+            Some(Token::Decimal(f)) => Some(f),
+            Some(Token::Inf) => None,
             _ => panic!("expected number"),
         }
     }
 
-    fn get_delay(&mut self) -> Delay {
+    fn get_delay(&mut self) -> Option<Delay> {
         self.eat_lp();
         let min = self.get_decimal();
         match self.lexer.next() {
             Some(Token::RParen) => {
-                return Delay {
-                    min,
-                    typ: min,
-                    max: min,
-                };
+                return min.map(|val| Delay {
+                    min: val,
+                    typ: val,
+                    max: val,
+                });
             }
             Some(Token::Colon) => (),
             _ => panic!("weird delay token"),
@@ -498,7 +504,11 @@ impl Parser<'_> {
         self.eat_colon();
         let max = self.get_decimal();
         self.eat_rp();
-        Delay { min, typ, max }
+        match (min, typ, max) {
+            (Some(min), Some(typ), Some(max)) => Some(Delay { min, typ, max }),
+            (None, None, None) => None,
+            _ => panic!("wtf {min:?} {typ:?} {max:?}"),
+        }
     }
 
     fn get_edge(&mut self) -> Edge {

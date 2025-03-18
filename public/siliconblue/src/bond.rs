@@ -47,6 +47,7 @@ pub enum BondPin {
     GndLed,
     Cfg(CfgPin),
     PorTest,
+    IoTriple([EdgeIoCoord; 3]),
 }
 
 impl std::fmt::Display for BondPin {
@@ -67,6 +68,13 @@ impl std::fmt::Display for BondPin {
             BondPin::Vref => write!(f, "VREF"),
             BondPin::PorTest => write!(f, "POR_TEST"),
             BondPin::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
+            BondPin::IoTriple(ios) => write!(
+                f,
+                "{io0}_{io1}_{io2}",
+                io0 = ios[0],
+                io1 = ios[1],
+                io2 = ios[2]
+            ),
         }
     }
 }
@@ -89,6 +97,11 @@ impl Bond {
             match *pad {
                 BondPin::Io(io) | BondPin::IoCDone(io) => {
                     ios.insert(io, name.clone());
+                }
+                BondPin::IoTriple(iot) => {
+                    for io in iot {
+                        ios.insert(io, name.clone());
+                    }
                 }
                 _ => (),
             }
