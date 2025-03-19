@@ -461,17 +461,43 @@ pub fn make_sample(
                         }
                     }
 
-                    if let Some(pullup) = inst.props.get("PULLUP") {
-                        if pullup.ends_with('0') || is_lvds {
-                            sample
-                                .add_global_pattern(format!("IO:{col}.{row}.{iob}:PULLUP:DISABLE"));
-                        } else if let Some(pullup_kind) = inst.props.get("PULLUP_RESISTOR") {
+                    if inst.kind == "SB_IO_I3C" {
+                        let weak_pullup = &inst.props["WEAK_PULLUP"];
+                        if weak_pullup.ends_with("0") {
                             sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{iob}:PULLUP:{pullup_kind}"
+                                "IO:{col}.{row}.{iob}:I3C_WEAK_PULLUP:DISABLE"
+                            ));
+                        } else {
+                            sample.add_global_pattern(format!(
+                                "IO:{col}.{row}.{iob}:I3C_WEAK_PULLUP:ENABLE"
+                            ));
+                        }
+                        let pullup = &inst.props["PULLUP"];
+                        if pullup.ends_with("1") {
+                            let pullup_kind = &inst.props["PULLUP_RESISTOR"];
+                            sample.add_global_pattern(format!(
+                                "IO:{col}.{row}.{iob}:I3C_PULLUP:{pullup_kind}"
+                            ));
+                        } else {
+                            sample.add_global_pattern(format!(
+                                "IO:{col}.{row}.{iob}:I3C_PULLUP:DISABLE"
                             ));
                         }
                     } else {
-                        sample.add_global_pattern(format!("IO:{col}.{row}.{iob}:PULLUP:DISABLE"));
+                        if let Some(pullup) = inst.props.get("PULLUP") {
+                            if pullup.ends_with('0') || is_lvds {
+                                sample.add_global_pattern(format!(
+                                    "IO:{col}.{row}.{iob}:PULLUP:DISABLE"
+                                ));
+                            } else if let Some(pullup_kind) = inst.props.get("PULLUP_RESISTOR") {
+                                sample.add_global_pattern(format!(
+                                    "IO:{col}.{row}.{iob}:PULLUP:{pullup_kind}"
+                                ));
+                            }
+                        } else {
+                            sample
+                                .add_global_pattern(format!("IO:{col}.{row}.{iob}:PULLUP:DISABLE"));
+                        }
                     }
                     if let Some(iostd) = iostd {
                         if col == edev.chip.col_w() && edev.chip.kind.has_vref() {
@@ -793,6 +819,16 @@ pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
             }
             ExtraNodeLoc::LatchIo(_) => (),
             ExtraNodeLoc::Warmboot => (),
+            ExtraNodeLoc::IoI3c(crd) => {
+                let (_, (col, row), _) = edev.chip.get_io_loc(crd);
+                let iob = crd.iob();
+                result.push(format!("IO:{col}.{row}.{iob}:I3C_WEAK_PULLUP:DISABLE"));
+                result.push(format!("IO:{col}.{row}.{iob}:I3C_WEAK_PULLUP:ENABLE"));
+                result.push(format!("IO:{col}.{row}.{iob}:I3C_PULLUP:DISABLE"));
+                result.push(format!("IO:{col}.{row}.{iob}:I3C_PULLUP:3P3K"));
+                result.push(format!("IO:{col}.{row}.{iob}:I3C_PULLUP:6P8K"));
+                result.push(format!("IO:{col}.{row}.{iob}:I3C_PULLUP:10K"));
+            }
             // TODO from here on
             ExtraNodeLoc::Pll(_) => (),
             ExtraNodeLoc::Spi(_) => (),
@@ -802,7 +838,6 @@ pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
             ExtraNodeLoc::HsOsc => (),
             ExtraNodeLoc::LfOsc => (),
             ExtraNodeLoc::HfOsc => (),
-            ExtraNodeLoc::IoI3c(_) => (),
             ExtraNodeLoc::IrDrv => (),
             ExtraNodeLoc::RgbDrv => (),
             ExtraNodeLoc::BarcodeDrv => (),

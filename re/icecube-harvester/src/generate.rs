@@ -127,9 +127,19 @@ impl Generator<'_> {
         if self.rng.random() {
             global_idx = None;
         }
+        let is_i3c = self
+            .cfg
+            .edev
+            .chip
+            .extra_nodes
+            .contains_key(&ExtraNodeLoc::IoI3c(crd))
+            && global_idx.is_none()
+            && self.cfg.allow_global
+            && self.rng.random();
         let mut lvds = self.cfg.allow_global
             && self.rng.random()
             && !is_od
+            && !is_i3c
             && self.cfg.edev.chip.io_has_lvds(crd);
         if lvds {
             let other = crd.with_iob(TileIobId::from_idx(crd.iob().to_idx() ^ 1));
@@ -144,6 +154,8 @@ impl Generator<'_> {
         let package_pin = if is_od { "PACKAGEPIN" } else { "PACKAGE_PIN" };
         let mut io = Instance::new(if global_idx.is_some() {
             "SB_GB_IO"
+        } else if is_i3c {
+            "SB_IO_I3C"
         } else if is_od {
             "SB_IO_OD"
         } else {
@@ -156,6 +168,20 @@ impl Generator<'_> {
         if !is_od {
             if lvds {
                 io.prop("PULLUP", "1'b0");
+            } else if is_i3c {
+                io.prop(
+                    "WEAK_PULLUP",
+                    if self.rng.random() { "1'b1" } else { "1'b0" },
+                );
+                if self.rng.random() {
+                    io.prop("PULLUP", "1'b1");
+                    io.prop(
+                        "PULLUP_RESISTOR",
+                        ["3P3K", "6P8K", "10K"].choose(&mut self.rng).unwrap(),
+                    );
+                } else {
+                    io.prop("PULLUP", "1'b0");
+                }
             } else if self.cfg.allow_global {
                 if matches!(self.cfg.part.kind, ChipKind::Ice40T01 | ChipKind::Ice40T05)
                     && self.rng.random()
@@ -226,6 +252,14 @@ impl Generator<'_> {
             io.connect(pin, sinst, spin);
             if pin.ends_with("ENABLE") {
                 pin_type.set(5, true);
+            }
+        }
+        if is_i3c {
+            for pin in ["PU_ENB", "WEAK_PU_ENB"] {
+                if self.rng.random() {
+                    let (sinst, spin) = self.get_inps(1).pop().unwrap();
+                    io.connect(pin, sinst, spin);
+                }
             }
         }
         let (_, (col, row), _) = self.cfg.edev.chip.get_io_loc(crd);
