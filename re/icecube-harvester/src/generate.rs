@@ -730,8 +730,7 @@ impl Generator<'_> {
     }
 
     fn emit_osc(&mut self, kind: &str) {
-        // TODO: remove condition
-        if self.rng.random() || self.cfg.edev.chip.kind == ChipKind::Ice40R04 {
+        if self.rng.random() {
             return;
         }
         let prim = &self.cfg.prims[kind];

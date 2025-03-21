@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
-    db::{NodeKindId, NodeWireId, WireId},
+    db::{NodeKindId, NodeWireId, PinDir, WireId},
     dir::{Dir, DirH},
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };
@@ -49,6 +49,36 @@ pub fn make_sample(
     }
     if fucked_bits != 0 {
         panic!("FUCKED: {fucked_bits}");
+    }
+    let mut io_hardip_ins = HashSet::new();
+    let mut io_hardip_outs = HashSet::new();
+    if edev.chip.kind == ChipKind::Ice40R04 {
+        for key in [
+            ExtraNodeLoc::LsOsc,
+            ExtraNodeLoc::HsOsc,
+            ExtraNodeLoc::Spi(DirH::W),
+            ExtraNodeLoc::Spi(DirH::E),
+            ExtraNodeLoc::I2c(DirH::W),
+            ExtraNodeLoc::I2c(DirH::E),
+        ] {
+            let crd = *edev.chip.extra_nodes[&key].tiles.first().unwrap();
+            let nloc = edev
+                .egrid
+                .get_node_by_kind(die.die, crd, |kind| kind == key.node_kind());
+            let node = edev.egrid.node(nloc);
+            let node_info = &edev.egrid.db.nodes[node.kind];
+            for (bel, bel_info) in &node_info.bels {
+                for (pin, pin_info) in &bel_info.pins {
+                    for wire in edev.egrid.get_bel_pin((die.die, crd, bel), pin) {
+                        if pin_info.dir == PinDir::Input {
+                            io_hardip_ins.insert(wire);
+                        } else {
+                            io_hardip_outs.insert(wire);
+                        }
+                    }
+                }
+            }
+        }
     }
     let mut int_source: HashMap<IntWire, (InstId, InstPin)> = HashMap::new();
     let mut ibuf_used = HashSet::new();
@@ -143,6 +173,42 @@ pub fn make_sample(
                                 sample
                                     .add_global_pattern_single(format!("COLBUF:{col}.{row}.{idx}"));
                             };
+                        }
+                        if io_hardip_ins.contains(&iwb) {
+                            let crd = iwb.1;
+                            let wn = edev.egrid.db.wires.key(iwb.2).as_str();
+                            if wn != "IMUX.IO.EXTRA" {
+                                let io = match wn {
+                                    "IMUX.IO0.DOUT0" => 0,
+                                    "IMUX.IO1.DOUT0" => 1,
+                                    _ => unreachable!(),
+                                };
+                                let node = die[crd].nodes.first().unwrap();
+                                let tile_name = edev.egrid.db.nodes.key(node.kind);
+                                sample.add_tiled_pattern(
+                                    &[BitOwner::Main(crd.0, crd.1)],
+                                    format!("{tile_name}:IO{io}:PIN_TYPE:BIT4"),
+                                );
+                                sample.add_tiled_pattern(
+                                    &[BitOwner::Main(crd.0, crd.1)],
+                                    format!("{tile_name}:IO{io}:PIN_TYPE:BIT5"),
+                                );
+                            }
+                        }
+                        if io_hardip_outs.contains(&iwa) {
+                            let crd = iwa.1;
+                            let wn = edev.egrid.db.wires.key(iwa.2).as_str();
+                            let io = match wn {
+                                "OUT.LC0" | "OUT.LC4" => 0,
+                                "OUT.LC2" | "OUT.LC6" => 1,
+                                _ => unreachable!(),
+                            };
+                            let node = die[crd].nodes.first().unwrap();
+                            let tile_name = edev.egrid.db.nodes.key(node.kind);
+                            sample.add_tiled_pattern(
+                                &[BitOwner::Main(crd.0, crd.1)],
+                                format!("{tile_name}:IO{io}:PIN_TYPE:BIT0"),
+                            );
                         }
                     }
                     (GenericNet::Ltout(col, row, lc), GenericNet::Int(iwb)) => {
@@ -867,10 +933,6 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     }
     // misc
     for i in 0..8 {
-        if matches!(i, 4 | 5) && edev.chip.kind == ChipKind::Ice40R04 {
-            // TODO: remove
-            continue;
-        }
         result.push(format!("GBOUT:GBOUT:MUX.GLOBAL.{i}:IO"));
     }
     if edev.chip.kind != ChipKind::Ice40T04 {

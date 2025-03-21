@@ -237,10 +237,6 @@ pub fn collect(
         let tile = "GBOUT";
         let bel = "GBOUT";
         for i in 0..8 {
-            if matches!(i, 4 | 5) && edev.chip.kind == ChipKind::Ice40R04 {
-                // TODO: remove
-                continue;
-            }
             collector.collect_enum_default(
                 tile,
                 bel,

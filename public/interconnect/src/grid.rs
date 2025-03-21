@@ -257,6 +257,17 @@ impl<'a> ExpandedGrid<'a> {
         None
     }
 
+    pub fn get_bel_pin(&self, bel: IntBel, pin: &str) -> Vec<IntWire> {
+        let nloc = self.get_node_by_bel(bel);
+        let node = self.node(nloc);
+        let pin_info = &self.db.nodes[node.kind].bels[bel.2].pins[pin];
+        pin_info
+            .wires
+            .iter()
+            .map(|&(tile, wire)| (nloc.0, node.tiles[tile], wire))
+            .collect()
+    }
+
     pub fn finish(&mut self) {
         for (dieid, die) in &mut self.die {
             let mut clk_root_tiles: HashMap<_, HashSet<_>> = HashMap::new();
