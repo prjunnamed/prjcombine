@@ -2,10 +2,10 @@
 - [Project Combine](README.md)
 # SiliconBlue FPGAs
 - [iCE65 and iCE40](siliconblue/README.md)
-  - [iCE65L01](siliconblue/ice65l01.md)
   - [iCE65L04](siliconblue/ice65l04.md)
-  - [iCE65L08](siliconblue/ice65l08.md)
   - [iCE65P04](siliconblue/ice65p04.md)
+  - [iCE65L08](siliconblue/ice65l08.md)
+  - [iCE65L01](siliconblue/ice65l01.md)
   - [iCE40LP1K](siliconblue/ice40p01.md)
   - [iCE40LP384](siliconblue/ice40p03.md)
   - [iCE40LP8K](siliconblue/ice40p08.md)

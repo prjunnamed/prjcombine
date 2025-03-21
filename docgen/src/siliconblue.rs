@@ -1,5 +1,6 @@
 use crate::{
-    tiledb::{gen_tiles, FrameDirection, TileOrientation}, DocgenContext
+    DocgenContext,
+    tiledb::{FrameDirection, TileOrientation, gen_tiles},
 };
 
 pub fn gen_siliconblue(ctx: &mut DocgenContext) {
@@ -10,6 +11,8 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
     };
     for (kind, dbname) in [
         ("ice65l01", "iCE65L01"),
+        ("ice65l04", "iCE65L04"),
+        ("ice65l08", "iCE65L08"),
         ("ice40p01", "iCE40LP1K"),
         ("ice40p03", "iCE40LP384"),
         ("ice40p08", "iCE40LP8K"),

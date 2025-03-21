@@ -20,6 +20,8 @@ pub enum GenericNet {
     Ltin(ColId, RowId),
     Ltout(ColId, RowId, usize),
     GlobalPadIn(ColId, RowId),
+    GlobalClkh,
+    GlobalClkl,
     DummyHold(ColId, RowId),
     CascAddr(ColId, RowId, usize),
     Unknown,
@@ -137,6 +139,14 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
         | "wire_bram/ram/WE" => wname = "IMUX.RST".into(),
         "fabout" | "wire_gbuf/in" | "wire_gbuf/out" => wname = "IMUX.IO.EXTRA".into(),
         "padin" | "wire_pll/outglobal" => return GenericNet::GlobalPadIn(col, row),
+        "clklf" => {
+            assert_eq!(edev.chip.kind, ChipKind::Ice40T01);
+            return GenericNet::GlobalClkl;
+        }
+        "clkhf" => {
+            assert_eq!(edev.chip.kind, ChipKind::Ice40T01);
+            return GenericNet::GlobalClkh;
+        }
         "wire_pll/outglobalb" => return GenericNet::GlobalPadIn(col + 1, row),
         "hold" | "wire_io_cluster/io_0/hold" | "wire_io_cluster/io_1/hold" => {
             let wire = edev.egrid.db.get_wire("IMUX.IO.EXTRA");
@@ -274,7 +284,11 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                     let (_, (col, row), _) = edev.chip.get_io_loc(node.io[&ExtraNodeIo::GbIn]);
                     return GenericNet::GlobalPadIn(col, row);
                 } else {
-                    return GenericNet::Unknown;
+                    return match idx {
+                        4 => GenericNet::GlobalClkh,
+                        5 => GenericNet::GlobalClkl,
+                        _ => unreachable!(),
+                    };
                 }
             } else if let Some(idx) = name.strip_prefix("glb2local_") {
                 let idx: usize = idx.parse().unwrap();

@@ -172,6 +172,7 @@ impl ExtraNodeLoc {
                 let iob = crd.iob();
                 format!("IO_I3C_{iob}")
             }
+            ExtraNodeLoc::SpramPair(_) => "SPRAM".to_string(),
             _ => self.to_string(),
         }
     }
@@ -203,7 +204,7 @@ impl std::fmt::Display for ExtraNodeLoc {
             ExtraNodeLoc::LeddaIp => write!(f, "LEDDA_IP"),
             ExtraNodeLoc::IrIp => write!(f, "IR_IP"),
             ExtraNodeLoc::Mac16(col, row) => write!(f, "MAC16_X{col}Y{row}"),
-            ExtraNodeLoc::SpramPair(edge) => write!(f, "SPRAM_PAIR_{edge}"),
+            ExtraNodeLoc::SpramPair(edge) => write!(f, "SPRAM_{edge}"),
         }
     }
 }

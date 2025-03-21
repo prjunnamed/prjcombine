@@ -113,6 +113,7 @@ pub struct Design {
     pub insts: EntityVec<InstId, Instance>,
     pub keep_tmp: bool,
     pub opts: Vec<String>,
+    pub props: BTreeMap<String, String>,
 }
 
 #[derive(Debug)]
@@ -299,6 +300,14 @@ fn emit_edif(mut f: impl Write, design: &Design) -> std::io::Result<()> {
                 (technology (numberDefinition))
                 (cell top
                     (cellType generic)
+        "#
+    )?;
+    for (pname, pval) in &design.props {
+        writeln!(f, "(property {pname} (string \"{pval}\"))")?;
+    }
+    write!(
+        f,
+        r#"
                     (view TECH
                         (viewType netlist)
                         (interface

@@ -212,8 +212,24 @@ pub fn collect(
         } else {
             true
         };
-        if has_lvds {
+        if has_lvds && !edev.chip.kind.is_ice65() {
             collector.collect_bit_wide(tile, "IO", "LVDS_INPUT", "");
+        }
+    }
+
+    if edev.chip.kind.is_ultra() {
+        let tile = "LFOSC";
+        let bel = "LFOSC";
+        collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
+        let tile = "HFOSC";
+        let bel = "HFOSC";
+        collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
+        collector.collect_bitvec(tile, bel, "CLKHF_DIV", "");
+    }
+    if edev.chip.kind == ChipKind::Ice40T05 {
+        let tile = "SPRAM";
+        for bel in ["SPRAM0", "SPRAM1"] {
+            collector.collect_bit(tile, bel, "ENABLE", "");
         }
     }
 
@@ -221,7 +237,7 @@ pub fn collect(
         let tile = "GBOUT";
         let bel = "GBOUT";
         for i in 0..8 {
-            if matches!(i, 4 | 5) && !edev.chip.kind.has_io_we() {
+            if matches!(i, 4 | 5) && edev.chip.kind == ChipKind::Ice40R04 {
                 // TODO: remove
                 continue;
             }

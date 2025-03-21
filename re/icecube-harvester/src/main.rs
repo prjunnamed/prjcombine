@@ -135,6 +135,7 @@ impl PartContext<'_> {
                         insts: Default::default(),
                         keep_tmp: false,
                         opts: vec![],
+                        props: Default::default(),
                     };
                     empty_runs_ref
                         .lock()
@@ -789,6 +790,12 @@ impl PartContext<'_> {
     }
 
     fn fill_extra_misc(&mut self) {
+        let kind = self.chip.kind;
+        let osc_bits_location = || match kind {
+            ChipKind::Ice40T04 | ChipKind::Ice40T05 => (ColId::from_idx(0), RowId::from_idx(16)),
+            ChipKind::Ice40T01 => (ColId::from_idx(0), RowId::from_idx(13)),
+            _ => unreachable!(),
+        };
         for kind in [
             "SB_MAC16",
             "SB_WARMBOOT",
@@ -807,7 +814,7 @@ impl PartContext<'_> {
                 continue;
             };
             for site in sites {
-                let (loc, slot, fixed_crd, dedio) = match kind {
+                let (loc, slot, fixed_crd, extra_crd, dedio) = match kind {
                     "SB_MAC16" => {
                         let col = self.xlat_col[self.part.packages[0]][site.loc.x as usize];
                         let row = self.xlat_row[self.part.packages[0]][site.loc.y as usize];
@@ -815,6 +822,7 @@ impl PartContext<'_> {
                             ExtraNodeLoc::Mac16(col, row),
                             bels::MAC16,
                             (col, row),
+                            vec![],
                             [].as_slice(),
                         )
                     }
@@ -822,6 +830,7 @@ impl PartContext<'_> {
                         ExtraNodeLoc::Warmboot,
                         bels::WARMBOOT,
                         (self.chip.col_e(), self.chip.row_s()),
+                        vec![],
                         [].as_slice(),
                     ),
                     "SB_SPI" => {
@@ -834,6 +843,7 @@ impl PartContext<'_> {
                             ExtraNodeLoc::Spi(edge),
                             bels::SPI,
                             (col, self.chip.row_s()),
+                            vec![],
                             [
                                 (ExtraNodeIo::SpiCopi, "MOSI"),
                                 (ExtraNodeIo::SpiCipo, "MISO"),
@@ -854,6 +864,7 @@ impl PartContext<'_> {
                             ExtraNodeLoc::I2c(edge),
                             bels::I2C,
                             (col, self.chip.row_n()),
+                            vec![],
                             [(ExtraNodeIo::I2cScl, "SCL"), (ExtraNodeIo::I2cSda, "SDA")].as_slice(),
                         )
                     }
@@ -867,6 +878,7 @@ impl PartContext<'_> {
                             ExtraNodeLoc::I2cFifo(edge),
                             bels::I2C_FIFO,
                             (col, self.chip.row_s()),
+                            vec![],
                             [(ExtraNodeIo::I2cScl, "SCL"), (ExtraNodeIo::I2cSda, "SDA")].as_slice(),
                         )
                     }
@@ -874,12 +886,14 @@ impl PartContext<'_> {
                         ExtraNodeLoc::HsOsc,
                         bels::HSOSC,
                         (self.chip.col_w(), self.chip.row_n()),
+                        vec![],
                         [].as_slice(),
                     ),
                     "SB_LSOSC" => (
                         ExtraNodeLoc::LsOsc,
                         bels::LSOSC,
                         (self.chip.col_e(), self.chip.row_n()),
+                        vec![],
                         [].as_slice(),
                     ),
                     "SB_HFOSC" => (
@@ -893,6 +907,7 @@ impl PartContext<'_> {
                                 self.chip.row_n()
                             },
                         ),
+                        vec![osc_bits_location()],
                         [].as_slice(),
                     ),
                     "SB_LFOSC" => (
@@ -906,24 +921,28 @@ impl PartContext<'_> {
                                 self.chip.row_n()
                             },
                         ),
+                        vec![osc_bits_location()],
                         [].as_slice(),
                     ),
                     "SB_LEDD_IP" => (
                         ExtraNodeLoc::LeddIp,
                         bels::LEDD_IP,
                         (self.chip.col_w(), self.chip.row_n()),
+                        vec![],
                         [].as_slice(),
                     ),
                     "SB_LEDDA_IP" => (
                         ExtraNodeLoc::LeddaIp,
                         bels::LEDDA_IP,
                         (self.chip.col_w(), self.chip.row_n()),
+                        vec![],
                         [].as_slice(),
                     ),
                     "SB_IR_IP" => (
                         ExtraNodeLoc::IrIp,
                         bels::IR_IP,
                         (self.chip.col_e(), self.chip.row_n()),
+                        vec![],
                         [].as_slice(),
                     ),
                     _ => unreachable!(),
@@ -931,6 +950,9 @@ impl PartContext<'_> {
                 let bel_pins = &self.bel_pins[&(kind, site.loc)];
                 let mut nb = MiscNodeBuilder::new(&[fixed_crd]);
                 nb.add_bel(slot, bel_pins);
+                for crd in extra_crd {
+                    nb.get_tile(crd);
+                }
                 let (int_node, mut extra_node) = nb.finish();
                 for &(slot, pin) in dedio {
                     let loc = site.dedio[pin];
@@ -1141,13 +1163,13 @@ impl PartContext<'_> {
         assert_eq!(sites.len(), 4);
         for edge_sites in sites.chunks_exact(2) {
             assert_eq!(edge_sites[0].loc.x, edge_sites[1].loc.x);
-            let (edge, fixed_crd) = if edge_sites[0].loc.x == 0 {
-                (DirH::W, (self.chip.col_w(), self.chip.row_s()))
+            let edge = if edge_sites[0].loc.x == 0 {
+                DirH::W
             } else {
-                (DirH::E, (self.chip.col_e(), self.chip.row_s()))
+                DirH::E
             };
             let loc = ExtraNodeLoc::SpramPair(edge);
-            let mut nb = MiscNodeBuilder::new(&[fixed_crd]);
+            let mut nb = MiscNodeBuilder::new(&[]);
             for (i, site) in edge_sites.iter().enumerate() {
                 let bel_pins = &self.bel_pins[&("SB_SPRAM256KA", site.loc)];
                 nb.add_bel(bels::SPRAM[i], bel_pins);
@@ -1199,6 +1221,7 @@ impl PartContext<'_> {
         let edev = self.chip.expand_grid(&self.intdb);
         let mut gencfg = GeneratorConfig {
             part: self.part,
+            prims: &self.prims,
             edev: &edev,
             bonds: &self.bonds,
             plb_info: &self.plb_info,
@@ -1206,6 +1229,7 @@ impl PartContext<'_> {
             pkg_bel_info: &self.pkg_bel_info,
             allow_global: false,
             rows_colbuf: vec![],
+            extra_node_locs: &self.extra_node_locs,
         };
         let muxes: Mutex<BTreeMap<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>> =
             Mutex::new(BTreeMap::new());
@@ -1254,6 +1278,7 @@ impl PartContext<'_> {
                     &self.xlat_io[&design.package],
                     &gencfg.rows_colbuf,
                     &self.extra_wire_names,
+                    &self.extra_node_locs,
                 );
                 let mut harvester = harvester.lock().unwrap();
                 let mut muxes = muxes.lock().unwrap();

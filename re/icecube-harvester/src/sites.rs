@@ -70,6 +70,7 @@ pub fn find_sites_plb(sbt: &Path, part: &Part) -> Vec<SiteInfo> {
             insts: Default::default(),
             keep_tmp: false,
             opts: vec![],
+            props: Default::default(),
         };
         let mut inst = Instance::new("SB_IO");
         inst.top_port("PACKAGE_PIN");
@@ -157,6 +158,7 @@ pub fn find_sites_misc(
             insts: Default::default(),
             keep_tmp: false,
             opts: vec![],
+            props: Default::default(),
         };
         let prim = &prims[kind];
         let mut gbs = vec![];
@@ -576,6 +578,7 @@ pub fn find_sites_iox3(sbt: &Path, part: &Part, pkg: &'static str) -> Vec<SiteIn
             insts: Default::default(),
             keep_tmp: false,
             opts: vec![],
+            props: Default::default(),
         };
         for _ in 0..num {
             let mut lut = Instance::new("SB_LUT4");
@@ -643,6 +646,7 @@ pub fn find_io_latch_locs(
         insts: Default::default(),
         keep_tmp: false,
         opts: vec![],
+        props: Default::default(),
     };
     let mut trace_ins = vec![];
     for (&edge, &pkg_pin) in pkg_pins {
@@ -754,6 +758,7 @@ pub fn find_bel_pins(
             insts: Default::default(),
             keep_tmp: false,
             opts: vec![],
+            props: Default::default(),
         };
         let prim = &prims[kind];
         let mut inst = Instance::new(kind);

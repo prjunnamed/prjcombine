@@ -2,7 +2,8 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
-    dir::Dir,
+    db::PinDir,
+    dir::{Dir, DirH},
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_siliconblue::{
@@ -15,6 +16,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     parts::Part,
+    prims::Primitive,
     run::{Design, InstId, InstPin, InstPinSource, Instance, RawLoc},
     sites::SiteInfo,
 };
@@ -28,6 +30,16 @@ pub struct GeneratorConfig<'a> {
     pub pkg_bel_info: &'a BTreeMap<(&'static str, &'static str), Vec<SiteInfo>>,
     pub allow_global: bool,
     pub rows_colbuf: Vec<(RowId, RowId, RowId)>,
+    pub prims: &'a BTreeMap<&'static str, Primitive>,
+    pub extra_node_locs: &'a BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+enum LeftVcc {
+    _1P5,
+    _1P8,
+    _2P5,
+    _3P3,
 }
 
 struct Generator<'a> {
@@ -43,19 +55,23 @@ struct Generator<'a> {
     gb_net: [Option<(InstId, InstPin)>; 8],
     g2l_mask: u8,
     have_fixed_bram: bool,
+    left_vcc: LeftVcc,
+    vpp_2v5_to_1p8v: bool,
 }
 
 impl Generator<'_> {
-    fn add_out(&mut self, iid: InstId, pin: &'static str) {
-        let sig = (iid, InstPin::Simple(pin.into()));
+    fn add_out_raw(&mut self, iid: InstId, pin: InstPin) {
+        let sig = (iid, pin);
         self.signals.push(sig.clone());
         self.unused_signals.insert(sig);
     }
 
+    fn add_out(&mut self, iid: InstId, pin: &'static str) {
+        self.add_out_raw(iid, InstPin::Simple(pin.into()));
+    }
+
     fn add_out_indexed(&mut self, iid: InstId, pin: &'static str, index: usize) {
-        let sig = (iid, InstPin::Indexed(pin.into(), index));
-        self.signals.push(sig.clone());
-        self.unused_signals.insert(sig);
+        self.add_out_raw(iid, InstPin::Indexed(pin.into(), index));
     }
 
     fn get_inps(&mut self, num: usize) -> Vec<(InstId, InstPin)> {
@@ -141,6 +157,12 @@ impl Generator<'_> {
             && !is_od
             && !is_i3c
             && self.cfg.edev.chip.io_has_lvds(crd);
+        if crd.edge() == Dir::W
+            && self.cfg.part.kind.has_vref()
+            && !matches!(self.left_vcc, LeftVcc::_1P8 | LeftVcc::_2P5)
+        {
+            lvds = false;
+        }
         if lvds {
             let other = crd.with_iob(TileIobId::from_idx(crd.iob().to_idx() ^ 1));
             let other_idx = self.unused_io.iter().position(|x| *x == other);
@@ -208,32 +230,43 @@ impl Generator<'_> {
             }
         }
         if lvds {
-            io.prop("IO_STANDARD", "SB_LVDS_INPUT");
+            let iostd = if crd.edge() == Dir::W
+                && self.cfg.part.kind.has_vref()
+                && self.left_vcc == LeftVcc::_1P8
+            {
+                "SB_SUBLVDS_INPUT"
+            } else {
+                "SB_LVDS_INPUT"
+            };
+            io.prop("IO_STANDARD", iostd);
         } else if crd.edge() == Dir::W && self.cfg.part.kind.has_vref() {
-            let iostd = [
-                "SB_LVCMOS33_8",
-                "SB_LVCMOS25_16",
-                "SB_LVCMOS25_12",
-                "SB_LVCMOS25_8",
-                "SB_LVCMOS25_4",
-                "SB_LVCMOS18_10",
-                "SB_LVCMOS18_8",
-                "SB_LVCMOS18_4",
-                "SB_LVCMOS18_2",
-                "SB_LVCMOS15_4",
-                "SB_LVCMOS15_2",
-                //TODO
-                "SB_SSTL2_CLASS_2",
-                "SB_SSTL2_CLASS_1",
-                "SB_SSTL18_FULL",
-                "SB_SSTL18_HALF",
-                "SB_MDDR10",
-                "SB_MDDR8",
-                "SB_MDDR4",
-                "SB_MDDR2",
-            ]
-            .choose(&mut self.rng)
-            .unwrap();
+            let iostds = match self.left_vcc {
+                LeftVcc::_1P5 => ["SB_LVCMOS15_4", "SB_LVCMOS15_2"].as_slice(),
+                LeftVcc::_1P8 => [
+                    "SB_LVCMOS18_10",
+                    "SB_LVCMOS18_8",
+                    "SB_LVCMOS18_4",
+                    "SB_LVCMOS18_2",
+                    "SB_SSTL18_FULL",
+                    "SB_SSTL18_HALF",
+                    "SB_MDDR10",
+                    "SB_MDDR8",
+                    "SB_MDDR4",
+                    "SB_MDDR2",
+                ]
+                .as_slice(),
+                LeftVcc::_2P5 => [
+                    "SB_LVCMOS25_16",
+                    "SB_LVCMOS25_12",
+                    "SB_LVCMOS25_8",
+                    "SB_LVCMOS25_4",
+                    "SB_SSTL2_CLASS_2",
+                    "SB_SSTL2_CLASS_1",
+                ]
+                .as_slice(),
+                LeftVcc::_3P3 => ["SB_LVCMOS33_8"].as_slice(),
+            };
+            let iostd = iostds.choose(&mut self.rng).unwrap();
             io.prop("IO_STANDARD", iostd);
         } else if !is_od {
             io.prop("IO_STANDARD", "SB_LVCMOS");
@@ -656,6 +689,184 @@ impl Generator<'_> {
         self.design.insts.push(inst);
     }
 
+    fn emit_simple_ip(&mut self, kind: &str) {
+        if self.rng.random() {
+            return;
+        }
+        let prim = &self.cfg.prims[kind];
+        let mut inst = Instance::new(kind);
+        let mut outps = vec![];
+        for (&pin, pin_data) in &prim.pins {
+            if pin_data.is_pad || pin == "LEDDRST" || (kind == "SB_IR_IP" && pin == "RST") {
+                continue;
+            }
+            if let Some(width) = pin_data.len {
+                for idx in 0..width {
+                    if pin_data.dir == PinDir::Input {
+                        if self.rng.random() {
+                            let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                            inst.connect_idx(pin, idx, src_site, src_pin);
+                        }
+                    } else {
+                        outps.push(InstPin::Indexed(pin.into(), idx));
+                    }
+                }
+            } else {
+                if pin_data.dir == PinDir::Input {
+                    if self.rng.random() {
+                        let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                        inst.connect(pin, src_site, src_pin);
+                    }
+                } else {
+                    outps.push(InstPin::Simple(pin.into()));
+                }
+            }
+        }
+        let inst = self.design.insts.push(inst);
+        let num_outps = self.rng.random_range(1..=outps.len());
+        for outp in outps.choose_multiple(&mut self.rng, num_outps) {
+            self.add_out_raw(inst, outp.clone());
+        }
+    }
+
+    fn emit_osc(&mut self, kind: &str) {
+        // TODO: remove condition
+        if self.rng.random() || self.cfg.edev.chip.kind == ChipKind::Ice40R04 {
+            return;
+        }
+        let prim = &self.cfg.prims[kind];
+        let mut inst = Instance::new(kind);
+        let mut outp = None;
+        for (&pin, pin_data) in &prim.pins {
+            if let Some(width) = pin_data.len {
+                for idx in 0..width {
+                    if pin_data.dir == PinDir::Input {
+                        if self.rng.random() {
+                            let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                            inst.connect_idx(pin, idx, src_site, src_pin);
+                        }
+                    } else {
+                        unreachable!();
+                    }
+                }
+            } else {
+                if pin_data.dir == PinDir::Input {
+                    if self.rng.random() {
+                        let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                        inst.connect(pin, src_site, src_pin);
+                    }
+                } else {
+                    assert!(outp.is_none());
+                    outp = Some(pin);
+                }
+            }
+        }
+        let outp = outp.unwrap();
+        if kind == "SB_HFOSC" {
+            inst.prop_bin_str(
+                "CLKHF_DIV",
+                &BitVec::from_iter([self.rng.random::<bool>(), self.rng.random()]),
+            );
+        }
+        let global_idx = match kind {
+            "SB_HSOSC" | "SB_HFOSC" => 4,
+            "SB_LSOSC" | "SB_LFOSC" => 5,
+            _ => unreachable!(),
+        };
+        let route_through_fabric = self.rng.random() && self.gb_net[global_idx].is_none();
+        if route_through_fabric {
+            inst.prop("ROUTE_THROUGH_FABRIC", "1");
+        }
+        let inst = self.design.insts.push(inst);
+        if route_through_fabric {
+            self.add_out(inst, outp);
+        } else {
+            self.gb_net[global_idx] = Some((inst, InstPin::Simple(outp.into())));
+        }
+    }
+
+    fn emit_spram(&mut self, side: DirH) {
+        let kind = "SB_SPRAM256KA";
+        let prim = &self.cfg.prims[kind];
+        let mut outps = [vec![], vec![]];
+        let mut insts = [
+            if self.rng.random() {
+                Some(Instance::new(kind))
+            } else {
+                None
+            },
+            if self.rng.random() {
+                Some(Instance::new(kind))
+            } else {
+                None
+            },
+        ];
+        if insts[0].is_none() && insts[1].is_none() {
+            return;
+        }
+        for (&pin, pin_data) in &prim.pins {
+            if pin_data.is_pad || pin == "LEDDRST" || (kind == "SB_IR_IP" && pin == "RST") {
+                continue;
+            }
+            if matches!(pin, "RDMARGIN" | "RDMARGINEN" | "TEST") {
+                if let Some(width) = pin_data.len {
+                    for idx in 0..width {
+                        if self.rng.random() {
+                            let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                            for inst in insts.iter_mut().flatten() {
+                                inst.connect_idx(pin, idx, src_site, src_pin.clone());
+                            }
+                        }
+                    }
+                } else {
+                    if self.rng.random() {
+                        let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                        for inst in insts.iter_mut().flatten() {
+                            inst.connect(pin, src_site, src_pin.clone());
+                        }
+                    }
+                }
+            } else {
+                for ii in 0..2 {
+                    let Some(ref mut inst) = insts[ii] else {
+                        continue;
+                    };
+                    if let Some(width) = pin_data.len {
+                        for idx in 0..width {
+                            if pin_data.dir == PinDir::Input {
+                                if self.rng.random() {
+                                    let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                                    inst.connect_idx(pin, idx, src_site, src_pin);
+                                }
+                            } else {
+                                outps[ii].push(InstPin::Indexed(pin.into(), idx));
+                            }
+                        }
+                    } else {
+                        if pin_data.dir == PinDir::Input {
+                            if self.rng.random() || pin == "POWEROFF" {
+                                let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                                inst.connect(pin, src_site, src_pin);
+                            }
+                        } else {
+                            outps[ii].push(InstPin::Simple(pin.into()));
+                        }
+                    }
+                }
+            }
+        }
+        for (ii, inst) in insts.into_iter().enumerate() {
+            let Some(mut inst) = inst else { continue };
+            inst.loc = Some(self.cfg.extra_node_locs[&ExtraNodeLoc::SpramPair(side)][ii]);
+            let inst = self.design.insts.push(inst);
+            let outps = std::mem::take(&mut outps[ii]);
+            let num_outps = self.rng.random_range(1..=outps.len());
+            for outp in outps.choose_multiple(&mut self.rng, num_outps) {
+                self.add_out_raw(inst, outp.clone());
+            }
+        }
+    }
+
     fn reduce_sigs(&mut self) {
         while self.unused_signals.len() >= 4 {
             let mut inst = Instance::new("SB_LUT4");
@@ -677,7 +888,17 @@ impl Generator<'_> {
             let package_pin = if is_od { "PACKAGEPIN" } else { "PACKAGE_PIN" };
             let mut io = Instance::new(if is_od { "SB_IO_OD" } else { "SB_IO" });
             if !is_od {
-                io.prop("IO_STANDARD", "SB_LVCMOS");
+                if crd.edge() == Dir::W && self.cfg.part.kind.has_vref() {
+                    let iostd = match self.left_vcc {
+                        LeftVcc::_1P5 => "SB_LVCMOS15_4",
+                        LeftVcc::_1P8 => "SB_LVCMOS18_10",
+                        LeftVcc::_2P5 => "SB_LVCMOS25_16",
+                        LeftVcc::_3P3 => "SB_LVCMOS33_8",
+                    };
+                    io.prop("IO_STANDARD", iostd);
+                } else {
+                    io.prop("IO_STANDARD", "SB_LVCMOS");
+                }
             }
             io.io
                 .insert(InstPin::Simple(package_pin.into()), pad.to_string());
@@ -704,6 +925,12 @@ impl Generator<'_> {
     }
 
     fn generate(&mut self) {
+        if self.vpp_2v5_to_1p8v {
+            self.design
+                .props
+                .insert("VPP_2V5_TO_1P8V".into(), "1".into());
+        }
+
         for _ in 0..20 {
             self.emit_dummy_lut();
         }
@@ -733,6 +960,14 @@ impl Generator<'_> {
             Io,
             Lut,
             Bram,
+            LeddIp,
+            LeddaIp,
+            IrIp,
+            Spram(DirH),
+            LsOsc,
+            HsOsc,
+            LfOsc,
+            HfOsc,
         }
         let mut things = vec![];
         for _ in 0..actual_ios {
@@ -743,6 +978,46 @@ impl Generator<'_> {
         }
         for _ in 0..actual_lcs {
             things.push(Thing::Lut);
+        }
+        for &key in self.cfg.edev.chip.extra_nodes.keys() {
+            match key {
+                // ExtraNodeLoc::Pll(dir_v) => todo!(),
+                // ExtraNodeLoc::Spi(dir_h) => todo!(),
+                // ExtraNodeLoc::I2c(dir_h) => todo!(),
+                // ExtraNodeLoc::I2cFifo(dir_h) => todo!(),
+                ExtraNodeLoc::LsOsc => {
+                    things.push(Thing::LsOsc);
+                }
+                ExtraNodeLoc::HsOsc => {
+                    things.push(Thing::HsOsc);
+                }
+                ExtraNodeLoc::LfOsc => {
+                    things.push(Thing::LfOsc);
+                }
+                ExtraNodeLoc::HfOsc => {
+                    things.push(Thing::HfOsc);
+                }
+                // ExtraNodeLoc::IrDrv => todo!(),
+                // ExtraNodeLoc::RgbDrv => todo!(),
+                // ExtraNodeLoc::BarcodeDrv => todo!(),
+                // ExtraNodeLoc::Ir400Drv => todo!(),
+                // ExtraNodeLoc::RgbaDrv => todo!(),
+                // ExtraNodeLoc::LedDrvCur => todo!(),
+                ExtraNodeLoc::LeddIp => {
+                    things.push(Thing::LeddIp);
+                }
+                ExtraNodeLoc::LeddaIp => {
+                    things.push(Thing::LeddaIp);
+                }
+                ExtraNodeLoc::IrIp => {
+                    things.push(Thing::IrIp);
+                }
+                // ExtraNodeLoc::Mac16(col, row) => todo!(),
+                ExtraNodeLoc::SpramPair(side) => {
+                    things.push(Thing::Spram(side));
+                }
+                _ => (),
+            }
         }
         things.shuffle(&mut self.rng);
 
@@ -772,6 +1047,30 @@ impl Generator<'_> {
                             actual_brams -= 1;
                         }
                     }
+                }
+                Thing::LsOsc => {
+                    self.emit_osc("SB_LSOSC");
+                }
+                Thing::HsOsc => {
+                    self.emit_osc("SB_HSOSC");
+                }
+                Thing::LfOsc => {
+                    self.emit_osc("SB_LFOSC");
+                }
+                Thing::HfOsc => {
+                    self.emit_osc("SB_HFOSC");
+                }
+                Thing::LeddIp => {
+                    self.emit_simple_ip("SB_LEDD_IP");
+                }
+                Thing::LeddaIp => {
+                    self.emit_simple_ip("SB_LEDDA_IP");
+                }
+                Thing::IrIp => {
+                    self.emit_simple_ip("SB_IR_IP");
+                }
+                Thing::Spram(side) => {
+                    self.emit_spram(side);
                 }
             }
         }
@@ -803,6 +1102,7 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
         insts: Default::default(),
         keep_tmp: false,
         opts: vec![],
+        props: Default::default(),
     };
     if cfg.part.kind != ChipKind::Ice40T04 {
         design.opts.push(
@@ -837,6 +1137,10 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
     for _ in 0..4 {
         g2l_mask |= 1 << rng.random_range(0..8);
     }
+    let left_vcc = *[LeftVcc::_1P5, LeftVcc::_1P8, LeftVcc::_2P5, LeftVcc::_3P3]
+        .choose(&mut rng)
+        .unwrap();
+    let vpp_2v5_to_1p8v = cfg.edev.chip.kind.is_ultra() && rng.random();
     let mut generator = Generator {
         cfg,
         rng,
@@ -850,6 +1154,8 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
         gb_net: [const { None }; 8],
         g2l_mask,
         have_fixed_bram: false,
+        left_vcc,
+        vpp_2v5_to_1p8v,
     };
     generator.generate();
     generator.design

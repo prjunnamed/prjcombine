@@ -3,6 +3,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::{NodeKindId, NodeWireId, WireId},
+    dir::{Dir, DirH},
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };
 use prjcombine_re_harvester::Sample;
@@ -15,7 +16,7 @@ use prjcombine_siliconblue::{
 use unnamed_entity::EntityId;
 
 use crate::{
-    run::{Design, InstId, InstPin, InstPinSource, RunResult},
+    run::{Design, InstId, InstPin, InstPinSource, RawLoc, RunResult},
     xlat::{GenericNet, xlat_mux_in, xlat_wire},
 };
 
@@ -30,6 +31,7 @@ pub fn make_sample(
     xlat_io: &BTreeMap<(u32, u32, u32), EdgeIoCoord>,
     rows_colbuf: &[(RowId, RowId, RowId)],
     extra_wire_names: &BTreeMap<(u32, u32, String), IntWire>,
+    extra_node_locs: &BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
 ) -> (Sample<BitOwner>, HashSet<(NodeKindId, WireId, WireId)>) {
     let mut sample = Sample::default();
     let mut pips = HashSet::new();
@@ -82,8 +84,16 @@ pub fn make_sample(
                         }
                         let wan = edev.egrid.db.wires.key(wa);
                         let wbn = edev.egrid.db.wires.key(wb);
-                        if wbn.starts_with("GLOBAL") {
-                            assert_eq!(wan, "IMUX.IO.EXTRA");
+                        if let Some(idx) = wbn.strip_prefix("GLOBAL.") {
+                            if wan != "IMUX.IO.EXTRA" {
+                                // SB_*OSC
+                                assert!(wan.starts_with("OUT"));
+                                let idx: usize = idx.parse().unwrap();
+                                sample.add_tiled_pattern(
+                                    &[BitOwner::Clock(0), BitOwner::Clock(1)],
+                                    format!("GBOUT:GBOUT:MUX.GLOBAL.{idx}:IO"),
+                                );
+                            }
                             continue;
                         }
                         pips.insert((node.kind, wb, wa));
@@ -250,7 +260,15 @@ pub fn make_sample(
                     (GenericNet::Gbout(_, _, _), GenericNet::GlobalPadIn(_, _)) => {
                         // handled below
                     }
-                    (GenericNet::GlobalPadIn(_, _), GenericNet::Int(iw)) => {
+                    (GenericNet::Int(_), GenericNet::GlobalClkl | GenericNet::GlobalClkh) => {
+                        // handled below
+                    }
+                    (
+                        GenericNet::GlobalPadIn(_, _)
+                        | GenericNet::GlobalClkl
+                        | GenericNet::GlobalClkh,
+                        GenericNet::Int(iw),
+                    ) => {
                         let idx = edev
                             .egrid
                             .db
@@ -404,8 +422,8 @@ pub fn make_sample(
                     }
 
                     let iostd = inst.props.get("IO_STANDARD").map(|x| x.as_str());
-                    let is_lvds = iostd == Some("SB_LVDS_INPUT");
-                    if is_lvds {
+                    let is_lvds = matches!(iostd, Some("SB_LVDS_INPUT" | "SB_SUBLVDS_INPUT"));
+                    if is_lvds && !edev.chip.kind.has_vref() {
                         sample.add_tiled_pattern_single(
                             &[BitOwner::Main(col, row)],
                             format!("{tile_kind}:IO:LVDS_INPUT:BIT0"),
@@ -506,27 +524,9 @@ pub fn make_sample(
                         }
                     }
 
-                    if ibuf_used.contains(&iid) && !is_lvds {
-                        if col == edev.chip.col_w() && edev.chip.kind.has_vref() {
-                            let iostd = inst.props["IO_STANDARD"].as_str();
-                            let mode = match iostd {
-                                "SB_SSTL2_CLASS_2" | "SB_SSTL2_CLASS_1" | "SB_SSTL18_FULL"
-                                | "SB_SSTL18_HALF" => "VREF",
-                                "SB_LVDS_INPUT" => "DIFF",
-                                _ => "CMOS",
-                            };
-                            sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{iob}:IBUF_ENABLE:{mode}"
-                            ));
-                        } else {
-                            sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{iob}:IBUF_ENABLE:BIT0"
-                            ));
-                        }
+                    if ibuf_used.contains(&iid) && (!is_lvds || edev.chip.kind.has_vref()) {
+                        sample.add_global_pattern(format!("IO:{col}.{row}.{iob}:IBUF_ENABLE:BIT0"));
                     }
-
-                    // TODO: IO_STANDARD (LVDS, VREF, ...)
-                    // TODO: I3C specials
                 }
                 kind if kind.starts_with("SB_DFF") => {
                     let col = xlat_col[loc.loc.x as usize];
@@ -692,6 +692,67 @@ pub fn make_sample(
                         }
                     }
                 }
+                "SB_HFOSC" => {
+                    let tiles = Vec::from_iter(
+                        edev.chip.extra_nodes[&ExtraNodeLoc::HfOsc]
+                            .tiles
+                            .values()
+                            .map(|&(col, row)| BitOwner::Main(col, row)),
+                    );
+                    if let Some(val) = design.props.get("VPP_2V5_TO_1P8V") {
+                        if val == "1" {
+                            sample.add_tiled_pattern(&tiles, "HFOSC:HFOSC:TRIM_FABRIC:BIT0");
+                        }
+                    }
+                    let clkhf_div = &inst.props["CLKHF_DIV"];
+                    for (i, c) in clkhf_div.chars().rev().enumerate() {
+                        if i >= 2 {
+                            break;
+                        }
+                        assert!(c == '0' || c == '1');
+                        if c == '1' {
+                            sample
+                                .add_tiled_pattern(&tiles, format!("HFOSC:HFOSC:CLKHF_DIV:BIT{i}"));
+                        }
+                    }
+                }
+                "SB_LFOSC" => {
+                    let tiles = Vec::from_iter(
+                        edev.chip.extra_nodes[&ExtraNodeLoc::LfOsc]
+                            .tiles
+                            .values()
+                            .map(|&(col, row)| BitOwner::Main(col, row)),
+                    );
+                    if let Some(val) = design.props.get("VPP_2V5_TO_1P8V") {
+                        if val == "1" {
+                            sample.add_tiled_pattern(&tiles, "LFOSC:LFOSC:TRIM_FABRIC:BIT0");
+                        }
+                    }
+                }
+                "SB_SPRAM256KA" => {
+                    for key in [
+                        ExtraNodeLoc::SpramPair(DirH::W),
+                        ExtraNodeLoc::SpramPair(DirH::E),
+                    ] {
+                        let Some(sprams) = extra_node_locs.get(&key) else {
+                            continue;
+                        };
+                        for (i, &sloc) in sprams.iter().enumerate() {
+                            if loc.loc == sloc {
+                                let tiles = Vec::from_iter(
+                                    edev.chip.extra_nodes[&key]
+                                        .tiles
+                                        .values()
+                                        .map(|&(col, row)| BitOwner::Main(col, row)),
+                                );
+                                sample.add_tiled_pattern(
+                                    &tiles,
+                                    format!("SPRAM:SPRAM{i}:ENABLE:BIT0"),
+                                );
+                            }
+                        }
+                    }
+                }
                 _ => (),
             }
         }
@@ -789,13 +850,24 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         } else {
             true
         };
-        if has_lvds {
+        if has_lvds && !edev.chip.kind.has_vref() {
             result.push(format!("{tile}:IO:LVDS_INPUT:BIT0"));
         }
     }
+    // SPRAM
+    if edev.chip.kind == ChipKind::Ice40T05 {
+        result.push("SPRAM:SPRAM0:ENABLE:BIT0".into());
+        result.push("SPRAM:SPRAM1:ENABLE:BIT0".into());
+    }
+    if edev.chip.kind.is_ultra() {
+        result.push("HFOSC:HFOSC:CLKHF_DIV:BIT0".into());
+        result.push("HFOSC:HFOSC:CLKHF_DIV:BIT1".into());
+        result.push("HFOSC:HFOSC:TRIM_FABRIC:BIT0".into());
+        result.push("LFOSC:LFOSC:TRIM_FABRIC:BIT0".into());
+    }
     // misc
     for i in 0..8 {
-        if matches!(i, 4 | 5) && !edev.chip.kind.has_io_we() {
+        if matches!(i, 4 | 5) && edev.chip.kind == ChipKind::Ice40R04 {
             // TODO: remove
             continue;
         }
@@ -819,6 +891,7 @@ pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
             }
             ExtraNodeLoc::LatchIo(_) => (),
             ExtraNodeLoc::Warmboot => (),
+
             ExtraNodeLoc::IoI3c(crd) => {
                 let (_, (col, row), _) = edev.chip.get_io_loc(crd);
                 let iob = crd.iob();
@@ -829,26 +902,27 @@ pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
                 result.push(format!("IO:{col}.{row}.{iob}:I3C_PULLUP:6P8K"));
                 result.push(format!("IO:{col}.{row}.{iob}:I3C_PULLUP:10K"));
             }
+            ExtraNodeLoc::LeddIp => (),
+            ExtraNodeLoc::LeddaIp => (),
+            ExtraNodeLoc::IrIp => (),
+            ExtraNodeLoc::LsOsc => (),
+            ExtraNodeLoc::HsOsc => (),
+            // handled as tiled stuff
+            ExtraNodeLoc::LfOsc => (),
+            ExtraNodeLoc::HfOsc => (),
+            ExtraNodeLoc::SpramPair(_) => (),
             // TODO from here on
             ExtraNodeLoc::Pll(_) => (),
             ExtraNodeLoc::Spi(_) => (),
             ExtraNodeLoc::I2c(_) => (),
             ExtraNodeLoc::I2cFifo(_) => (),
-            ExtraNodeLoc::LsOsc => (),
-            ExtraNodeLoc::HsOsc => (),
-            ExtraNodeLoc::LfOsc => (),
-            ExtraNodeLoc::HfOsc => (),
             ExtraNodeLoc::IrDrv => (),
             ExtraNodeLoc::RgbDrv => (),
             ExtraNodeLoc::BarcodeDrv => (),
             ExtraNodeLoc::Ir400Drv => (),
             ExtraNodeLoc::RgbaDrv => (),
             ExtraNodeLoc::LedDrvCur => (),
-            ExtraNodeLoc::LeddIp => (),
-            ExtraNodeLoc::LeddaIp => (),
-            ExtraNodeLoc::IrIp => (),
             ExtraNodeLoc::Mac16(_, _) => (),
-            ExtraNodeLoc::SpramPair(_) => (),
         }
     }
     for &crd in edev.chip.io_iob.keys() {
@@ -862,6 +936,36 @@ pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
             result.push(format!("IO:{col}.{row}.{iob}:PULLUP:6P8K"));
             result.push(format!("IO:{col}.{row}.{iob}:PULLUP:10K"));
             result.push(format!("IO:{col}.{row}.{iob}:PULLUP:100K"));
+        }
+        if crd.edge() == Dir::W && edev.chip.kind.has_vref() {
+            for iostd in [
+                "SB_LVCMOS15_4",
+                "SB_LVCMOS15_2",
+                "SB_LVCMOS18_10",
+                "SB_LVCMOS18_8",
+                "SB_LVCMOS18_4",
+                "SB_LVCMOS18_2",
+                "SB_SSTL18_FULL",
+                "SB_SSTL18_HALF",
+                "SB_MDDR10",
+                "SB_MDDR8",
+                "SB_MDDR4",
+                "SB_MDDR2",
+                "SB_LVCMOS25_16",
+                "SB_LVCMOS25_12",
+                "SB_LVCMOS25_8",
+                "SB_LVCMOS25_4",
+                "SB_SSTL2_CLASS_2",
+                "SB_SSTL2_CLASS_1",
+                "SB_LVCMOS33_8",
+            ] {
+                result.push(format!("IO:{col}.{row}.{iob}:IOSTD:{iostd}"));
+            }
+            if crd.iob().to_idx() == 0 {
+                for iostd in ["SB_LVDS_INPUT", "SB_SUBLVDS_INPUT"] {
+                    result.push(format!("IO:{col}.{row}.{iob}:IOSTD:{iostd}"));
+                }
+            }
         }
     }
     result
