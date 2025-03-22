@@ -669,7 +669,9 @@ pub fn run(sbt: &Path, design: &Design) -> Result<RunResult, RunError> {
     emit_edif(&mut f_edf, design).unwrap();
     std::mem::drop(f_edf);
 
-    let mut cmd = Command::new("tclsh");
+    let mut cmd = Command::new("timeout");
+    cmd.arg("5m");
+    cmd.arg("tclsh");
     cmd.env("SBT_DIR", sbt);
     cmd.env("UNBLOCK_LEDDIP_THUNDER", "1");
     cmd.env("DISABLE_IOGLITCHFIX_THUNDER", "1");

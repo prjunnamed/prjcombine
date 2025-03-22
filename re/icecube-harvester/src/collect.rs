@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use prjcombine_interconnect::db::{MuxInfo, NodeKindId, NodeWireId};
 use prjcombine_re_fpga_hammer::{
-    Collector, Diff, FeatureData, FeatureId, OcdMode, State, xlat_enum_ocd,
+    Collector, Diff, FeatureData, FeatureId, OcdMode, State, xlat_bit, xlat_bitvec, xlat_enum_ocd,
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
@@ -225,6 +225,26 @@ pub fn collect(
         let bel = "HFOSC";
         collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
         collector.collect_bitvec(tile, bel, "CLKHF_DIV", "");
+    }
+    if edev.chip.kind == ChipKind::Ice40T04 {
+        let tile = "LED_DRV_CUR";
+        let bel = "LED_DRV_CUR";
+        collector.collect_bit(tile, bel, "ENABLE", "");
+        collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
+        let tile = "RGB_DRV";
+        let bel = "RGB_DRV";
+        collector.collect_bit(tile, bel, "ENABLE", "");
+        for attr in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
+            collector.collect_bitvec(tile, bel, attr, "");
+        }
+        let tile = "IR_DRV";
+        let bel = "IR_DRV";
+        let mut diffs = collector.state.get_diffs(tile, bel, "IR_CURRENT", "");
+        let en = diffs[0].split_bits_by(|bit| bit.frame == 5);
+        collector
+            .tiledb
+            .insert(tile, bel, "IR_CURRENT", xlat_bitvec(diffs));
+        collector.tiledb.insert(tile, bel, "ENABLE", xlat_bit(en));
     }
     if edev.chip.kind == ChipKind::Ice40T05 {
         let tile = "SPRAM";

@@ -1044,12 +1044,18 @@ impl PartContext<'_> {
 
     fn fill_drv(&mut self) {
         for &package in self.part.packages {
-            for (loc, kind, slot, fixed_crd, io_pins) in [
+            for (loc, kind, slot, fixed_crd, extra_crd, io_pins) in [
                 (
                     ExtraNodeLoc::RgbDrv,
                     "SB_RGB_DRV",
                     bels::RGB_DRV,
                     (self.chip.col_w(), self.chip.row_n()),
+                    [
+                        (ColId::from_idx(0), RowId::from_idx(18)),
+                        (ColId::from_idx(0), RowId::from_idx(19)),
+                        (ColId::from_idx(0), RowId::from_idx(20)),
+                    ]
+                    .as_slice(),
                     [
                         (ExtraNodeIo::RgbLed0, "RGB0"),
                         (ExtraNodeIo::RgbLed1, "RGB1"),
@@ -1062,6 +1068,11 @@ impl PartContext<'_> {
                     "SB_IR_DRV",
                     bels::IR_DRV,
                     (self.chip.col_e(), self.chip.row_n()),
+                    [
+                        (ColId::from_idx(25), RowId::from_idx(19)),
+                        (ColId::from_idx(25), RowId::from_idx(20)),
+                    ]
+                    .as_slice(),
                     [(ExtraNodeIo::IrLed, "IRLED")].as_slice(),
                 ),
                 (
@@ -1069,6 +1080,7 @@ impl PartContext<'_> {
                     "SB_RGBA_DRV",
                     bels::RGBA_DRV,
                     (self.chip.col_w(), self.chip.row_n()),
+                    [].as_slice(),
                     [
                         (ExtraNodeIo::RgbLed0, "RGB0"),
                         (ExtraNodeIo::RgbLed1, "RGB1"),
@@ -1081,6 +1093,7 @@ impl PartContext<'_> {
                     "SB_IR400_DRV",
                     bels::IR400_DRV,
                     (self.chip.col_e(), self.chip.row_n()),
+                    [].as_slice(),
                     [(ExtraNodeIo::IrLed, "IRLED")].as_slice(),
                 ),
                 (
@@ -1088,6 +1101,7 @@ impl PartContext<'_> {
                     "SB_BARCODE_DRV",
                     bels::BARCODE_DRV,
                     (self.chip.col_e(), self.chip.row_n()),
+                    [].as_slice(),
                     [(ExtraNodeIo::BarcodeLed, "BARCODE")].as_slice(),
                 ),
             ] {
@@ -1112,6 +1126,9 @@ impl PartContext<'_> {
                         }
                     });
                     let mut nb = MiscNodeBuilder::new(&[fixed_crd]);
+                    for &crd in extra_crd {
+                        nb.get_tile(crd);
+                    }
                     for &(slot, pin) in io_pins {
                         let io = site.pads[pin].0;
                         let xy = (io.x, io.y, io.bel);
@@ -1138,6 +1155,9 @@ impl PartContext<'_> {
                     };
                     let mut nb = MiscNodeBuilder::new(&[fixed_crd]);
                     nb.add_bel(bels::LED_DRV_CUR, &bel_pins_drv);
+                    if self.chip.kind == ChipKind::Ice40T04 {
+                        nb.get_tile((ColId::from_idx(0), RowId::from_idx(16)));
+                    }
                     let (int_node, extra_node) = nb.finish();
                     let loc = ExtraNodeLoc::LedDrvCur;
                     match self.chip.extra_nodes.entry(loc) {

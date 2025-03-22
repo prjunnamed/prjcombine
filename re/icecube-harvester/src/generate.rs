@@ -784,6 +784,107 @@ impl Generator<'_> {
         }
     }
 
+    fn emit_led_drv(&mut self) {
+        let mut do_rgb: bool = self.rng.random();
+        let xnode = &self.cfg.edev.chip.extra_nodes[&ExtraNodeLoc::RgbDrv];
+        for io in xnode.io.values() {
+            if !self.unused_io.contains(io) {
+                do_rgb = false;
+            }
+        }
+        if do_rgb {
+            for io in xnode.io.values() {
+                let io_idx = self.unused_io.iter().position(|x| x == io).unwrap();
+                self.unused_io.swap_remove(io_idx);
+            }
+        }
+
+        let mut do_ir: bool = self.rng.random();
+        let xnode = &self.cfg.edev.chip.extra_nodes[&ExtraNodeLoc::IrDrv];
+        for io in xnode.io.values() {
+            if !self.unused_io.contains(io) {
+                do_ir = false;
+            }
+        }
+        if do_ir {
+            for io in xnode.io.values() {
+                let io_idx = self.unused_io.iter().position(|x| x == io).unwrap();
+                self.unused_io.swap_remove(io_idx);
+            }
+        }
+
+        if !do_rgb && !do_ir {
+            return;
+        }
+        let mut inst = Instance::new("SB_LED_DRV_CUR");
+        let prim = &self.cfg.prims["SB_LED_DRV_CUR"];
+        for (&pin, pin_data) in &prim.pins {
+            if pin_data.dir == PinDir::Input && self.rng.random() {
+                let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                inst.connect(pin, src_site, src_pin);
+            }
+        }
+        let led_drv = self.design.insts.push(inst);
+        let ledpu = InstPin::Simple("LEDPU".into());
+        if do_rgb {
+            let prim = &self.cfg.prims["SB_RGB_DRV"];
+            let mut inst = Instance::new("SB_RGB_DRV");
+            inst.connect("RGBPU", led_drv, ledpu.clone());
+            for (&pin, pin_data) in &prim.pins {
+                if !pin_data.is_pad && self.rng.random() && pin != "RGBPU" {
+                    let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                    inst.connect(pin, src_site, src_pin);
+                }
+            }
+            for prop in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
+                inst.prop(
+                    prop,
+                    [
+                        "0b000000", "0b000001", "0b000011", "0b000111", "0b001111", "0b011111",
+                        "0b111111",
+                    ]
+                    .choose(&mut self.rng)
+                    .unwrap(),
+                );
+            }
+            inst.top_port("RGB0");
+            inst.top_port("RGB1");
+            inst.top_port("RGB2");
+            self.design.insts.push(inst);
+        }
+        if do_ir {
+            let prim = &self.cfg.prims["SB_IR_DRV"];
+            let mut inst = Instance::new("SB_IR_DRV");
+            inst.connect("IRPU", led_drv, ledpu.clone());
+            for (&pin, pin_data) in &prim.pins {
+                if !pin_data.is_pad && self.rng.random() && pin != "IRPU" {
+                    let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                    inst.connect(pin, src_site, src_pin);
+                }
+            }
+            inst.prop(
+                "IR_CURRENT",
+                [
+                    "0b0000000000",
+                    "0b0000000001",
+                    "0b0000000011",
+                    "0b0000000111",
+                    "0b0000001111",
+                    "0b0000011111",
+                    "0b0000111111",
+                    "0b0001111111",
+                    "0b0011111111",
+                    "0b0111111111",
+                    "0b1111111111",
+                ]
+                .choose(&mut self.rng)
+                .unwrap(),
+            );
+            inst.top_port("IRLED");
+            self.design.insts.push(inst);
+        }
+    }
+
     fn emit_spram(&mut self, side: DirH) {
         let kind = "SB_SPRAM256KA";
         let prim = &self.cfg.prims[kind];
@@ -996,12 +1097,6 @@ impl Generator<'_> {
                 ExtraNodeLoc::HfOsc => {
                     things.push(Thing::HfOsc);
                 }
-                // ExtraNodeLoc::IrDrv => todo!(),
-                // ExtraNodeLoc::RgbDrv => todo!(),
-                // ExtraNodeLoc::BarcodeDrv => todo!(),
-                // ExtraNodeLoc::Ir400Drv => todo!(),
-                // ExtraNodeLoc::RgbaDrv => todo!(),
-                // ExtraNodeLoc::LedDrvCur => todo!(),
                 ExtraNodeLoc::LeddIp => {
                     things.push(Thing::LeddIp);
                 }
@@ -1083,6 +1178,13 @@ impl Generator<'_> {
             && self.rng.random()
         {
             self.emit_warmboot();
+        }
+        if self.cfg.edev.chip.kind.is_ultra() {
+            if self.cfg.edev.chip.kind == ChipKind::Ice40T04 {
+                self.emit_led_drv();
+            } else {
+                // TODO
+            }
         }
 
         self.reduce_sigs();
