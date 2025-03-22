@@ -365,6 +365,8 @@ pub fn make_sample(
             }
         }
     }
+    let mut has_led_v2 = false;
+    let mut led_v2_current_mode = false;
     for (iid, inst) in &design.insts {
         if let Some(loc) = runres.loc_map.get(iid) {
             match &inst.kind[..] {
@@ -760,14 +762,14 @@ pub fn make_sample(
                 }
                 "SB_HFOSC" => {
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::HfOsc]
+                        edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
                             .tiles
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
                     if let Some(val) = design.props.get("VPP_2V5_TO_1P8V") {
                         if val == "1" {
-                            sample.add_tiled_pattern(&tiles, "HFOSC:HFOSC:TRIM_FABRIC:BIT0");
+                            sample.add_tiled_pattern(&tiles, "TRIM:HFOSC:TRIM_FABRIC:BIT0");
                         }
                     }
                     let clkhf_div = &inst.props["CLKHF_DIV"];
@@ -778,20 +780,20 @@ pub fn make_sample(
                         assert!(c == '0' || c == '1');
                         if c == '1' {
                             sample
-                                .add_tiled_pattern(&tiles, format!("HFOSC:HFOSC:CLKHF_DIV:BIT{i}"));
+                                .add_tiled_pattern(&tiles, format!("TRIM:HFOSC:CLKHF_DIV:BIT{i}"));
                         }
                     }
                 }
                 "SB_LFOSC" => {
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::LfOsc]
+                        edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
                             .tiles
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
                     if let Some(val) = design.props.get("VPP_2V5_TO_1P8V") {
                         if val == "1" {
-                            sample.add_tiled_pattern(&tiles, "LFOSC:LFOSC:TRIM_FABRIC:BIT0");
+                            sample.add_tiled_pattern(&tiles, "TRIM:LFOSC:TRIM_FABRIC:BIT0");
                         }
                     }
                 }
@@ -803,11 +805,17 @@ pub fn make_sample(
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
                     sample.add_tiled_pattern_single(&tiles, "LED_DRV_CUR:LED_DRV_CUR:ENABLE:BIT0");
+                    let tiles = Vec::from_iter(
+                        edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
+                            .tiles
+                            .values()
+                            .map(|&(col, row)| BitOwner::Main(col, row)),
+                    );
                     if let Some(val) = design.props.get("VPP_2V5_TO_1P8V") {
                         if val == "1" {
                             sample.add_tiled_pattern_single(
                                 &tiles,
-                                "LED_DRV_CUR:LED_DRV_CUR:TRIM_FABRIC:BIT0",
+                                "TRIM:LED_DRV_CUR:TRIM_FABRIC:BIT0",
                             );
                         }
                     }
@@ -840,6 +848,46 @@ pub fn make_sample(
                         sample.add_tiled_pattern_single(&tiles, "RGB_DRV:RGB_DRV:ENABLE:BIT0");
                     }
                 }
+                "SB_RGBA_DRV" => {
+                    has_led_v2 = true;
+                    let tiles = Vec::from_iter(
+                        edev.chip.extra_nodes[&ExtraNodeLoc::RgbaDrv]
+                            .tiles
+                            .values()
+                            .map(|&(col, row)| BitOwner::Main(col, row)),
+                    );
+                    for prop in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
+                        let val = &inst.props[prop];
+                        for (i, c) in val.chars().rev().enumerate() {
+                            if i >= 6 {
+                                break;
+                            }
+                            assert!(c == '0' || c == '1');
+                            if c == '1' {
+                                sample.add_tiled_pattern_single(
+                                    &tiles,
+                                    format!("RGBA_DRV:RGBA_DRV:{prop}:BIT{i}"),
+                                );
+                            }
+                        }
+                    }
+                    if inst.props["CURRENT_MODE"] == "0b1" {
+                        sample.add_tiled_pattern_single(
+                            &tiles,
+                            "RGBA_DRV:RGBA_DRV:CURRENT_MODE:BIT0",
+                        );
+                    }
+                    sample.add_tiled_pattern_single(&tiles, "RGBA_DRV:RGBA_DRV:ENABLE:BIT0");
+                    if edev.chip.kind == ChipKind::Ice40T01 {
+                        let tiles = Vec::from_iter(
+                            edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
+                                .tiles
+                                .values()
+                                .map(|&(col, row)| BitOwner::Main(col, row)),
+                        );
+                        sample.add_tiled_pattern_single(&tiles, "IR500_DRV:RGBA_DRV:ENABLE:BIT0");
+                    }
+                }
                 "SB_IR_DRV" => {
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::IrDrv]
@@ -868,6 +916,96 @@ pub fn make_sample(
                         }
                     }
                 }
+                "SB_IR500_DRV" => {
+                    has_led_v2 = true;
+                    let tiles = Vec::from_iter(
+                        edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
+                            .tiles
+                            .values()
+                            .map(|&(col, row)| BitOwner::Main(col, row)),
+                    );
+                    let val = &inst.props["IR500_CURRENT"];
+                    for (i, c) in val.chars().rev().enumerate() {
+                        if i >= 12 {
+                            break;
+                        }
+                        assert!(c == '0' || c == '1');
+                        if c == '1' {
+                            if i < 4 {
+                                sample.add_tiled_pattern_single(
+                                    &tiles,
+                                    format!("IR500_DRV:BARCODE_DRV:BARCODE_CURRENT:BIT{i}"),
+                                );
+                            } else {
+                                sample.add_tiled_pattern_single(
+                                    &tiles,
+                                    format!(
+                                        "IR500_DRV:IR400_DRV:IR400_CURRENT:BIT{ii}",
+                                        ii = i - 4
+                                    ),
+                                );
+                            }
+                        }
+                    }
+                    sample.add_tiled_pattern_single(&tiles, "IR500_DRV:BARCODE_DRV:ENABLE:BIT0");
+                    sample.add_tiled_pattern_single(&tiles, "IR500_DRV:IR400_DRV:ENABLE:BIT0");
+                    sample.add_tiled_pattern_single(&tiles, "IR500_DRV:IR500_DRV:ENABLE:BIT0");
+                    if inst.props["CURRENT_MODE"] == "0b1" {
+                        led_v2_current_mode = true;
+                    }
+                }
+                "SB_IR400_DRV" => {
+                    has_led_v2 = true;
+                    let tiles = Vec::from_iter(
+                        edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
+                            .tiles
+                            .values()
+                            .map(|&(col, row)| BitOwner::Main(col, row)),
+                    );
+                    let val = &inst.props["IR400_CURRENT"];
+                    for (i, c) in val.chars().rev().enumerate() {
+                        if i >= 8 {
+                            break;
+                        }
+                        assert!(c == '0' || c == '1');
+                        if c == '1' {
+                            sample.add_tiled_pattern_single(
+                                &tiles,
+                                format!("IR500_DRV:IR400_DRV:IR400_CURRENT:BIT{i}"),
+                            );
+                        }
+                    }
+                    sample.add_tiled_pattern_single(&tiles, "IR500_DRV:IR400_DRV:ENABLE:BIT0");
+                    if inst.props["CURRENT_MODE"] == "0b1" {
+                        led_v2_current_mode = true;
+                    }
+                }
+                "SB_BARCODE_DRV" => {
+                    has_led_v2 = true;
+                    let tiles = Vec::from_iter(
+                        edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
+                            .tiles
+                            .values()
+                            .map(|&(col, row)| BitOwner::Main(col, row)),
+                    );
+                    let val = &inst.props["BARCODE_CURRENT"];
+                    for (i, c) in val.chars().rev().enumerate() {
+                        if i >= 4 {
+                            break;
+                        }
+                        assert!(c == '0' || c == '1');
+                        if c == '1' {
+                            sample.add_tiled_pattern_single(
+                                &tiles,
+                                format!("IR500_DRV:BARCODE_DRV:BARCODE_CURRENT:BIT{i}"),
+                            );
+                        }
+                    }
+                    sample.add_tiled_pattern_single(&tiles, "IR500_DRV:BARCODE_DRV:ENABLE:BIT0");
+                    if inst.props["CURRENT_MODE"] == "0b1" {
+                        led_v2_current_mode = true;
+                    }
+                }
                 "SB_SPRAM256KA" => {
                     for key in [
                         ExtraNodeLoc::SpramPair(DirH::W),
@@ -893,6 +1031,28 @@ pub fn make_sample(
                     }
                 }
                 _ => (),
+            }
+        }
+    }
+    if has_led_v2 {
+        if led_v2_current_mode {
+            let tiles = Vec::from_iter(
+                edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
+                    .tiles
+                    .values()
+                    .map(|&(col, row)| BitOwner::Main(col, row)),
+            );
+            sample.add_tiled_pattern(&tiles, "IR500_DRV:IR500_DRV:CURRENT_MODE:BIT0");
+        }
+        if let Some(val) = design.props.get("VPP_2V5_TO_1P8V") {
+            if val == "1" {
+                let tiles = Vec::from_iter(
+                    edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
+                        .tiles
+                        .values()
+                        .map(|&(col, row)| BitOwner::Main(col, row)),
+                );
+                sample.add_tiled_pattern_single(&tiles, "TRIM:LED_DRV_CUR:TRIM_FABRIC:BIT0");
             }
         }
     }
@@ -993,25 +1153,46 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             result.push(format!("{tile}:IO:LVDS_INPUT:BIT0"));
         }
     }
-    // OSC
     if edev.chip.kind.is_ultra() {
-        result.push("HFOSC:HFOSC:CLKHF_DIV:BIT0".into());
-        result.push("HFOSC:HFOSC:CLKHF_DIV:BIT1".into());
-        result.push("HFOSC:HFOSC:TRIM_FABRIC:BIT0".into());
-        result.push("LFOSC:LFOSC:TRIM_FABRIC:BIT0".into());
-    }
-    // DRV
-    if edev.chip.kind == ChipKind::Ice40T04 {
-        result.push("LED_DRV_CUR:LED_DRV_CUR:ENABLE:BIT0".into());
-        result.push("LED_DRV_CUR:LED_DRV_CUR:TRIM_FABRIC:BIT0".into());
-        result.push("RGB_DRV:RGB_DRV:ENABLE:BIT0".into());
-        for i in 0..3 {
-            for j in 0..6 {
-                result.push(format!("RGB_DRV:RGB_DRV:RGB{i}_CURRENT:BIT{j}"));
+        // OSC & TRIM
+        result.push("TRIM:HFOSC:CLKHF_DIV:BIT0".into());
+        result.push("TRIM:HFOSC:CLKHF_DIV:BIT1".into());
+        result.push("TRIM:HFOSC:TRIM_FABRIC:BIT0".into());
+        result.push("TRIM:LFOSC:TRIM_FABRIC:BIT0".into());
+        result.push("TRIM:LED_DRV_CUR:TRIM_FABRIC:BIT0".into());
+        // DRV
+        if edev.chip.kind == ChipKind::Ice40T04 {
+            result.push("LED_DRV_CUR:LED_DRV_CUR:ENABLE:BIT0".into());
+            result.push("RGB_DRV:RGB_DRV:ENABLE:BIT0".into());
+            for i in 0..3 {
+                for j in 0..6 {
+                    result.push(format!("RGB_DRV:RGB_DRV:RGB{i}_CURRENT:BIT{j}"));
+                }
             }
-        }
-        for j in 0..10 {
-            result.push(format!("IR_DRV:IR_DRV:IR_CURRENT:BIT{j}"));
+            for j in 0..10 {
+                result.push(format!("IR_DRV:IR_DRV:IR_CURRENT:BIT{j}"));
+            }
+        } else {
+            result.push("RGBA_DRV:RGBA_DRV:ENABLE:BIT0".into());
+            result.push("RGBA_DRV:RGBA_DRV:CURRENT_MODE:BIT0".into());
+            for i in 0..3 {
+                for j in 0..6 {
+                    result.push(format!("RGBA_DRV:RGBA_DRV:RGB{i}_CURRENT:BIT{j}"));
+                }
+            }
+            if edev.chip.kind == ChipKind::Ice40T01 {
+                result.push("IR500_DRV:RGBA_DRV:ENABLE:BIT0".into());
+                result.push("IR500_DRV:IR400_DRV:ENABLE:BIT0".into());
+                result.push("IR500_DRV:IR500_DRV:ENABLE:BIT0".into());
+                result.push("IR500_DRV:IR500_DRV:CURRENT_MODE:BIT0".into());
+                result.push("IR500_DRV:BARCODE_DRV:ENABLE:BIT0".into());
+                for j in 0..8 {
+                    result.push(format!("IR500_DRV:IR400_DRV:IR400_CURRENT:BIT{j}"));
+                }
+                for j in 0..4 {
+                    result.push(format!("IR500_DRV:BARCODE_DRV:BARCODE_CURRENT:BIT{j}"));
+                }
+            }
         }
     }
     // SPRAM
@@ -1060,18 +1241,18 @@ pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
             // handled as tiled stuff
             ExtraNodeLoc::LfOsc => (),
             ExtraNodeLoc::HfOsc => (),
+            ExtraNodeLoc::Trim => (),
             ExtraNodeLoc::IrDrv => (),
             ExtraNodeLoc::RgbDrv => (),
             ExtraNodeLoc::LedDrvCur => (),
+            ExtraNodeLoc::Ir500Drv => (),
+            ExtraNodeLoc::RgbaDrv => (),
             ExtraNodeLoc::SpramPair(_) => (),
             // TODO from here on
             ExtraNodeLoc::Pll(_) => (),
             ExtraNodeLoc::Spi(_) => (),
             ExtraNodeLoc::I2c(_) => (),
             ExtraNodeLoc::I2cFifo(_) => (),
-            ExtraNodeLoc::BarcodeDrv => (),
-            ExtraNodeLoc::Ir400Drv => (),
-            ExtraNodeLoc::RgbaDrv => (),
             ExtraNodeLoc::Mac16(_, _) => (),
         }
     }

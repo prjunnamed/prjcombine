@@ -658,6 +658,20 @@ impl PartContext<'_> {
                 bel_pins.insert((kind, site.loc), pins);
             });
         self.extra_wire_names = extra_wire_names.into_inner().unwrap();
+        if self.chip.kind == ChipKind::Ice40T01 {
+            let wire = self.extra_wire_names[&(13, 15, "wire_ir400_drv/IRLEDEN".into())];
+            self.extra_wire_names
+                .insert((13, 15, "wire_ir500_drv/IRLEDEN".into()), wire);
+            let wire = self.extra_wire_names[&(13, 15, "wire_ir400_drv/IRPWM".into())];
+            self.extra_wire_names
+                .insert((13, 15, "wire_ir500_drv/IRPWM".into()), wire);
+            let wire = self.extra_wire_names[&(13, 15, "wire_bc_drv/BARCODEEN".into())];
+            self.extra_wire_names
+                .insert((13, 15, "wire_ir500_drv/IRLEDEN2".into()), wire);
+            let wire = self.extra_wire_names[&(13, 15, "wire_bc_drv/BARCODEPWM".into())];
+            self.extra_wire_names
+                .insert((13, 15, "wire_ir500_drv/IRPWM2".into()), wire);
+        }
         self.bel_pins = bel_pins.into_inner().unwrap();
     }
 
@@ -789,13 +803,20 @@ impl PartContext<'_> {
         }
     }
 
-    fn fill_extra_misc(&mut self) {
-        let kind = self.chip.kind;
-        let osc_bits_location = || match kind {
-            ChipKind::Ice40T04 | ChipKind::Ice40T05 => (ColId::from_idx(0), RowId::from_idx(16)),
-            ChipKind::Ice40T01 => (ColId::from_idx(0), RowId::from_idx(13)),
-            _ => unreachable!(),
+    fn fill_trim(&mut self) {
+        let loc = ExtraNodeLoc::Trim;
+        let crd = match self.chip.kind {
+            ChipKind::Ice40T04 | ChipKind::Ice40T05 => (self.chip.col_w(), RowId::from_idx(16)),
+            ChipKind::Ice40T01 => (self.chip.col_w(), RowId::from_idx(13)),
+            _ => return,
         };
+        let nb = MiscNodeBuilder::new(&[crd]);
+        let (int_node, extra_node) = nb.finish();
+        self.intdb.nodes.insert(loc.node_kind(), int_node);
+        self.chip.extra_nodes.insert(loc, extra_node);
+    }
+
+    fn fill_extra_misc(&mut self) {
         for kind in [
             "SB_MAC16",
             "SB_WARMBOOT",
@@ -907,7 +928,7 @@ impl PartContext<'_> {
                                 self.chip.row_n()
                             },
                         ),
-                        vec![osc_bits_location()],
+                        vec![],
                         [].as_slice(),
                     ),
                     "SB_LFOSC" => (
@@ -921,7 +942,7 @@ impl PartContext<'_> {
                                 self.chip.row_n()
                             },
                         ),
-                        vec![osc_bits_location()],
+                        vec![],
                         [].as_slice(),
                     ),
                     "SB_LEDD_IP" => (
@@ -1044,71 +1065,109 @@ impl PartContext<'_> {
 
     fn fill_drv(&mut self) {
         for &package in self.part.packages {
-            for (loc, kind, slot, fixed_crd, extra_crd, io_pins) in [
+            for (loc, node_bels, fixed_crd, extra_crd) in [
                 (
                     ExtraNodeLoc::RgbDrv,
-                    "SB_RGB_DRV",
-                    bels::RGB_DRV,
+                    [(
+                        "SB_RGB_DRV",
+                        bels::RGB_DRV,
+                        [
+                            (ExtraNodeIo::RgbLed0, "RGB0"),
+                            (ExtraNodeIo::RgbLed1, "RGB1"),
+                            (ExtraNodeIo::RgbLed2, "RGB2"),
+                        ]
+                        .as_slice(),
+                    )]
+                    .as_slice(),
                     (self.chip.col_w(), self.chip.row_n()),
-                    [
+                    vec![
                         (ColId::from_idx(0), RowId::from_idx(18)),
                         (ColId::from_idx(0), RowId::from_idx(19)),
                         (ColId::from_idx(0), RowId::from_idx(20)),
-                    ]
-                    .as_slice(),
-                    [
-                        (ExtraNodeIo::RgbLed0, "RGB0"),
-                        (ExtraNodeIo::RgbLed1, "RGB1"),
-                        (ExtraNodeIo::RgbLed2, "RGB2"),
-                    ]
-                    .as_slice(),
+                    ],
                 ),
                 (
                     ExtraNodeLoc::IrDrv,
-                    "SB_IR_DRV",
-                    bels::IR_DRV,
+                    [(
+                        "SB_IR_DRV",
+                        bels::IR_DRV,
+                        [(ExtraNodeIo::IrLed, "IRLED")].as_slice(),
+                    )]
+                    .as_slice(),
                     (self.chip.col_e(), self.chip.row_n()),
-                    [
+                    vec![
                         (ColId::from_idx(25), RowId::from_idx(19)),
                         (ColId::from_idx(25), RowId::from_idx(20)),
-                    ]
-                    .as_slice(),
-                    [(ExtraNodeIo::IrLed, "IRLED")].as_slice(),
+                    ],
                 ),
                 (
                     ExtraNodeLoc::RgbaDrv,
-                    "SB_RGBA_DRV",
-                    bels::RGBA_DRV,
+                    [(
+                        "SB_RGBA_DRV",
+                        bels::RGBA_DRV,
+                        [
+                            (ExtraNodeIo::RgbLed0, "RGB0"),
+                            (ExtraNodeIo::RgbLed1, "RGB1"),
+                            (ExtraNodeIo::RgbLed2, "RGB2"),
+                        ]
+                        .as_slice(),
+                    )]
+                    .as_slice(),
                     (self.chip.col_w(), self.chip.row_n()),
-                    [].as_slice(),
+                    match self.chip.kind {
+                        ChipKind::Ice40T05 => vec![
+                            (ColId::from_idx(0), RowId::from_idx(28)),
+                            (ColId::from_idx(0), RowId::from_idx(29)),
+                            (ColId::from_idx(0), RowId::from_idx(30)),
+                        ],
+                        ChipKind::Ice40T01 => vec![
+                            (ColId::from_idx(0), RowId::from_idx(1)),
+                            (ColId::from_idx(0), RowId::from_idx(2)),
+                            (ColId::from_idx(0), RowId::from_idx(3)),
+                        ],
+                        _ => vec![],
+                    },
+                ),
+                (
+                    ExtraNodeLoc::Ir500Drv,
                     [
-                        (ExtraNodeIo::RgbLed0, "RGB0"),
-                        (ExtraNodeIo::RgbLed1, "RGB1"),
-                        (ExtraNodeIo::RgbLed2, "RGB2"),
+                        (
+                            "SB_IR400_DRV",
+                            bels::IR400_DRV,
+                            [(ExtraNodeIo::IrLed, "IRLED")].as_slice(),
+                        ),
+                        (
+                            "SB_BARCODE_DRV",
+                            bels::BARCODE_DRV,
+                            [(ExtraNodeIo::BarcodeLed, "BARCODE")].as_slice(),
+                        ),
                     ]
                     .as_slice(),
-                ),
-                (
-                    ExtraNodeLoc::Ir400Drv,
-                    "SB_IR400_DRV",
-                    bels::IR400_DRV,
                     (self.chip.col_e(), self.chip.row_n()),
-                    [].as_slice(),
-                    [(ExtraNodeIo::IrLed, "IRLED")].as_slice(),
-                ),
-                (
-                    ExtraNodeLoc::BarcodeDrv,
-                    "SB_BARCODE_DRV",
-                    bels::BARCODE_DRV,
-                    (self.chip.col_e(), self.chip.row_n()),
-                    [].as_slice(),
-                    [(ExtraNodeIo::BarcodeLed, "BARCODE")].as_slice(),
+                    vec![
+                        (ColId::from_idx(13), RowId::from_idx(1)),
+                        (ColId::from_idx(13), RowId::from_idx(2)),
+                        (ColId::from_idx(13), RowId::from_idx(3)),
+                    ],
                 ),
             ] {
-                let Some(sites) = self.pkg_bel_info.get(&(package, kind)) else {
+                let Some(sites) = self.pkg_bel_info.get(&(package, node_bels[0].0)) else {
                     continue;
                 };
-                for site in sites {
+                if sites.is_empty() {
+                    continue;
+                }
+                let mut nb = MiscNodeBuilder::new(&[fixed_crd]);
+                for crd in extra_crd {
+                    nb.get_tile(crd);
+                }
+
+                let mut site_locs = vec![];
+                for &(kind, slot, io_pins) in node_bels {
+                    let sites = &self.pkg_bel_info[&(package, kind)];
+                    assert_eq!(sites.len(), 1);
+                    let site = &sites[0];
+                    site_locs.push(site.loc);
                     let mut bel_pins = self.bel_pins[&(kind, site.loc)].clone();
                     let mut bel_pins_drv = BelPins::default();
                     bel_pins.ins.retain(|pin, &mut iw| {
@@ -1125,10 +1184,6 @@ impl PartContext<'_> {
                             true
                         }
                     });
-                    let mut nb = MiscNodeBuilder::new(&[fixed_crd]);
-                    for &crd in extra_crd {
-                        nb.get_tile(crd);
-                    }
                     for &(slot, pin) in io_pins {
                         let io = site.pads[pin].0;
                         let xy = (io.x, io.y, io.bel);
@@ -1136,29 +1191,15 @@ impl PartContext<'_> {
                         nb.io.insert(slot, crd);
                     }
                     nb.add_bel(slot, &bel_pins);
-                    let (int_node, extra_node) = nb.finish();
-                    match self.chip.extra_nodes.entry(loc) {
-                        btree_map::Entry::Vacant(entry) => {
-                            entry.insert(extra_node);
-                            self.intdb.nodes.insert(loc.node_kind(), int_node);
-                            self.extra_node_locs.insert(loc, vec![site.loc]);
-                        }
-                        btree_map::Entry::Occupied(entry) => {
-                            assert_eq!(*entry.get(), extra_node);
-                        }
-                    }
 
                     let fixed_crd = if self.chip.kind == ChipKind::Ice40T01 {
                         (self.chip.col_e(), self.chip.row_s())
                     } else {
                         (self.chip.col_e(), self.chip.row_n())
                     };
-                    let mut nb = MiscNodeBuilder::new(&[fixed_crd]);
-                    nb.add_bel(bels::LED_DRV_CUR, &bel_pins_drv);
-                    if self.chip.kind == ChipKind::Ice40T04 {
-                        nb.get_tile((ColId::from_idx(0), RowId::from_idx(16)));
-                    }
-                    let (int_node, extra_node) = nb.finish();
+                    let mut nb_drv_cur = MiscNodeBuilder::new(&[fixed_crd]);
+                    nb_drv_cur.add_bel(bels::LED_DRV_CUR, &bel_pins_drv);
+                    let (int_node, extra_node) = nb_drv_cur.finish();
                     let loc = ExtraNodeLoc::LedDrvCur;
                     match self.chip.extra_nodes.entry(loc) {
                         btree_map::Entry::Vacant(entry) => {
@@ -1168,6 +1209,17 @@ impl PartContext<'_> {
                         btree_map::Entry::Occupied(entry) => {
                             assert_eq!(*entry.get(), extra_node);
                         }
+                    }
+                }
+                let (int_node, extra_node) = nb.finish();
+                match self.chip.extra_nodes.entry(loc) {
+                    btree_map::Entry::Vacant(entry) => {
+                        entry.insert(extra_node);
+                        self.intdb.nodes.insert(loc.node_kind(), int_node);
+                        self.extra_node_locs.insert(loc, site_locs);
+                    }
+                    btree_map::Entry::Occupied(entry) => {
+                        assert_eq!(*entry.get(), extra_node);
                     }
                 }
             }
@@ -1643,6 +1695,7 @@ fn main() {
         ctx.fill_io_latch();
         ctx.fill_gbin_fabric();
         ctx.fill_gbin_io();
+        ctx.fill_trim();
         ctx.fill_extra_misc();
         ctx.fill_pll();
         ctx.fill_io_i3c();

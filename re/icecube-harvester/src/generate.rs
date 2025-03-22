@@ -885,6 +885,203 @@ impl Generator<'_> {
         }
     }
 
+    fn emit_led_drv_v2(&mut self) {
+        let mut do_rgba: bool = self.rng.random();
+        let xnode = &self.cfg.edev.chip.extra_nodes[&ExtraNodeLoc::RgbaDrv];
+        for io in xnode.io.values() {
+            if !self.unused_io.contains(io) {
+                do_rgba = false;
+            }
+        }
+        if do_rgba {
+            for io in xnode.io.values() {
+                let io_idx = self.unused_io.iter().position(|x| x == io).unwrap();
+                self.unused_io.swap_remove(io_idx);
+            }
+        }
+
+        let mut do_ir500 = self.cfg.edev.chip.kind == ChipKind::Ice40T01 && self.rng.random();
+        let mut do_ir400 =
+            self.cfg.edev.chip.kind == ChipKind::Ice40T01 && !do_ir500 && self.rng.random();
+        let mut do_barcode =
+            self.cfg.edev.chip.kind == ChipKind::Ice40T01 && !do_ir500 && self.rng.random();
+        if self.cfg.edev.chip.kind == ChipKind::Ice40T01 {
+            let xnode = &self.cfg.edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv];
+            let io = xnode.io[&ExtraNodeIo::IrLed];
+            if !self.unused_io.contains(&io) {
+                do_ir500 = false;
+                do_ir400 = false;
+            }
+
+            let io = xnode.io[&ExtraNodeIo::BarcodeLed];
+            if !self.unused_io.contains(&io) {
+                do_ir500 = false;
+                do_barcode = false;
+            }
+
+            if do_ir500 || do_ir400 {
+                let io = xnode.io[&ExtraNodeIo::IrLed];
+                let io_idx = self.unused_io.iter().position(|x| *x == io).unwrap();
+                self.unused_io.swap_remove(io_idx);
+            }
+            if do_ir500 || do_barcode {
+                let io = xnode.io[&ExtraNodeIo::BarcodeLed];
+                let io_idx = self.unused_io.iter().position(|x| *x == io).unwrap();
+                self.unused_io.swap_remove(io_idx);
+            }
+        }
+
+        if !do_rgba && !do_ir500 && !do_ir400 && !do_barcode {
+            return;
+        }
+        let mut rgba_drv = if do_rgba {
+            Some(Instance::new("SB_RGBA_DRV"))
+        } else {
+            None
+        };
+        let mut ir500_drv = if do_ir500 {
+            Some(Instance::new("SB_IR500_DRV"))
+        } else {
+            None
+        };
+        let mut ir400_drv = if do_ir400 {
+            Some(Instance::new("SB_IR400_DRV"))
+        } else {
+            None
+        };
+        let mut barcode_drv = if do_barcode {
+            Some(Instance::new("SB_BARCODE_DRV"))
+        } else {
+            None
+        };
+        for pin in [
+            "TRIM0", "TRIM1", "TRIM2", "TRIM3", "TRIM4", "TRIM5", "TRIM6", "TRIM7", "TRIM8",
+            "TRIM9", "CURREN",
+        ] {
+            if self.rng.random() {
+                let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                for inst in [
+                    &mut rgba_drv,
+                    &mut ir500_drv,
+                    &mut ir400_drv,
+                    &mut barcode_drv,
+                ]
+                .into_iter()
+                .flatten()
+                {
+                    inst.connect(pin, src_site, src_pin.clone());
+                }
+            }
+        }
+        let ir_current_mode = ["0b0", "0b1"].choose(&mut self.rng).unwrap();
+        for inst in [&mut ir500_drv, &mut ir400_drv, &mut barcode_drv]
+            .into_iter()
+            .flatten()
+        {
+            inst.prop("CURRENT_MODE", ir_current_mode);
+        }
+        if let Some(mut rgba_drv) = rgba_drv {
+            for pin in ["RGBLEDEN", "RGB0PWM", "RGB1PWM", "RGB2PWM"] {
+                if self.rng.random() {
+                    let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                    rgba_drv.connect(pin, src_site, src_pin);
+                }
+            }
+            rgba_drv.top_port("RGB0");
+            rgba_drv.top_port("RGB1");
+            rgba_drv.top_port("RGB2");
+            for prop in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
+                rgba_drv.prop(
+                    prop,
+                    [
+                        "0b000000", "0b000001", "0b000011", "0b000111", "0b001111", "0b011111",
+                        "0b111111",
+                    ]
+                    .choose(&mut self.rng)
+                    .unwrap(),
+                );
+            }
+            rgba_drv.prop(
+                "CURRENT_MODE",
+                ["0b0", "0b1"].choose(&mut self.rng).unwrap(),
+            );
+            self.design.insts.push(rgba_drv);
+        }
+        if let Some(mut ir500_drv) = ir500_drv {
+            for pin in ["IRLEDEN", "IRPWM"] {
+                if self.rng.random() {
+                    let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                    ir500_drv.connect(pin, src_site, src_pin);
+                }
+            }
+            ir500_drv.top_port("IRLED1");
+            ir500_drv.top_port("IRLED2");
+            ir500_drv.prop(
+                "IR500_CURRENT",
+                [
+                    "0b000000000000",
+                    "0b000000000111",
+                    "0b000000001111",
+                    "0b000000011111",
+                    "0b000000111111",
+                    "0b000001111111",
+                    "0b000011111111",
+                    "0b000111111111",
+                    "0b001111111111",
+                    "0b011111111111",
+                    "0b111111111111",
+                ]
+                .choose(&mut self.rng)
+                .unwrap(),
+            );
+            self.design.insts.push(ir500_drv);
+        }
+        if let Some(mut ir400_drv) = ir400_drv {
+            for pin in ["IRLEDEN", "IRPWM"] {
+                if self.rng.random() {
+                    let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                    ir400_drv.connect(pin, src_site, src_pin);
+                }
+            }
+            ir400_drv.top_port("IRLED");
+            ir400_drv.prop(
+                "IR400_CURRENT",
+                [
+                    "0b00000000",
+                    "0b00000001",
+                    "0b00000011",
+                    "0b00000111",
+                    "0b00001111",
+                    "0b00011111",
+                    "0b00111111",
+                    "0b01111111",
+                    "0b11111111",
+                ]
+                .choose(&mut self.rng)
+                .unwrap(),
+            );
+            self.design.insts.push(ir400_drv);
+        }
+        if let Some(mut barcode_drv) = barcode_drv {
+            for pin in ["BARCODEEN", "BARCODEPWM"] {
+                if self.rng.random() {
+                    let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                    barcode_drv.connect(pin, src_site, src_pin);
+                }
+            }
+            barcode_drv.top_port("BARCODE");
+            barcode_drv.prop(
+                "BARCODE_CURRENT",
+                [
+                    "0b0000", "0b0001", "0b0011", "0b0111", "0b1001", "0b1010", "0b1111",
+                ]
+                .choose(&mut self.rng)
+                .unwrap(),
+            );
+            self.design.insts.push(barcode_drv);
+        }
+    }
+
     fn emit_spram(&mut self, side: DirH) {
         let kind = "SB_SPRAM256KA";
         let prim = &self.cfg.prims[kind];
@@ -1183,7 +1380,7 @@ impl Generator<'_> {
             if self.cfg.edev.chip.kind == ChipKind::Ice40T04 {
                 self.emit_led_drv();
             } else {
-                // TODO
+                self.emit_led_drv_v2();
             }
         }
 

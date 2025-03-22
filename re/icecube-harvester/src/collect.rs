@@ -218,33 +218,55 @@ pub fn collect(
     }
 
     if edev.chip.kind.is_ultra() {
-        let tile = "LFOSC";
+        let tile = "TRIM";
         let bel = "LFOSC";
         collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
-        let tile = "HFOSC";
         let bel = "HFOSC";
         collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
         collector.collect_bitvec(tile, bel, "CLKHF_DIV", "");
-    }
-    if edev.chip.kind == ChipKind::Ice40T04 {
-        let tile = "LED_DRV_CUR";
         let bel = "LED_DRV_CUR";
-        collector.collect_bit(tile, bel, "ENABLE", "");
         collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
-        let tile = "RGB_DRV";
-        let bel = "RGB_DRV";
-        collector.collect_bit(tile, bel, "ENABLE", "");
-        for attr in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
-            collector.collect_bitvec(tile, bel, attr, "");
+        if edev.chip.kind == ChipKind::Ice40T04 {
+            let tile = "LED_DRV_CUR";
+            let bel = "LED_DRV_CUR";
+            collector.collect_bit(tile, bel, "ENABLE", "");
+            let tile = "RGB_DRV";
+            let bel = "RGB_DRV";
+            collector.collect_bit(tile, bel, "ENABLE", "");
+            for attr in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
+                collector.collect_bitvec(tile, bel, attr, "");
+            }
+            let tile = "IR_DRV";
+            let bel = "IR_DRV";
+            let mut diffs = collector.state.get_diffs(tile, bel, "IR_CURRENT", "");
+            let en = diffs[0].split_bits_by(|bit| bit.frame == 5);
+            collector
+                .tiledb
+                .insert(tile, bel, "IR_CURRENT", xlat_bitvec(diffs));
+            collector.tiledb.insert(tile, bel, "ENABLE", xlat_bit(en));
+        } else {
+            let tile = "RGBA_DRV";
+            let bel = "RGBA_DRV";
+            collector.collect_bit(tile, bel, "ENABLE", "");
+            collector.collect_bit(tile, bel, "CURRENT_MODE", "");
+            for attr in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
+                collector.collect_bitvec(tile, bel, attr, "");
+            }
+            if edev.chip.kind == ChipKind::Ice40T01 {
+                let tile = "IR500_DRV";
+                let bel = "RGBA_DRV";
+                collector.collect_bit(tile, bel, "ENABLE", "");
+                let bel = "IR500_DRV";
+                collector.collect_bit(tile, bel, "ENABLE", "");
+                collector.collect_bit(tile, bel, "CURRENT_MODE", "");
+                let bel = "IR400_DRV";
+                collector.collect_bit(tile, bel, "ENABLE", "");
+                collector.collect_bitvec(tile, bel, "IR400_CURRENT", "");
+                let bel = "BARCODE_DRV";
+                collector.collect_bit(tile, bel, "ENABLE", "");
+                collector.collect_bitvec(tile, bel, "BARCODE_CURRENT", "");
+            }
         }
-        let tile = "IR_DRV";
-        let bel = "IR_DRV";
-        let mut diffs = collector.state.get_diffs(tile, bel, "IR_CURRENT", "");
-        let en = diffs[0].split_bits_by(|bit| bit.frame == 5);
-        collector
-            .tiledb
-            .insert(tile, bel, "IR_CURRENT", xlat_bitvec(diffs));
-        collector.tiledb.insert(tile, bel, "ENABLE", xlat_bit(en));
     }
     if edev.chip.kind == ChipKind::Ice40T05 {
         let tile = "SPRAM";
