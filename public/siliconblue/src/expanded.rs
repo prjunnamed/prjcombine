@@ -18,6 +18,7 @@ pub enum BitOwner {
     Main(ColId, RowId),
     Bram(ColId, RowId),
     Clock(usize),
+    Pll(usize),
     Speed,
     CReg,
 }
@@ -59,6 +60,13 @@ impl ExpandedDevice<'_> {
         BitTile::Bram(bank, bit)
     }
 
+    pub fn btile_pll(&self) -> [BitTile; 2] {
+        [
+            BitTile::Main(0, 0, 16, self.frame_width - 2, 2),
+            BitTile::Main(2, 0, 16, self.frame_width - 2, 2),
+        ]
+    }
+
     pub fn btile_clock(&self) -> [BitTile; 2] {
         [
             BitTile::Main(
@@ -97,10 +105,20 @@ impl ExpandedDevice<'_> {
                         }
                 }) {
                     Some((self.btile_main(col, row), BitOwner::Main(col, row)))
-                } else if bank < 2 {
-                    Some((self.btile_clock()[bank], BitOwner::Clock(bank)))
                 } else {
-                    None
+                    if frame < 16 {
+                        if bank % 2 == 0 {
+                            Some((self.btile_pll()[bank / 2], BitOwner::Pll(bank / 2)))
+                        } else {
+                            None
+                        }
+                    } else {
+                        if bank < 2 {
+                            Some((self.btile_clock()[bank], BitOwner::Clock(bank)))
+                        } else {
+                            None
+                        }
+                    }
                 }
             }
             BitPos::Bram(bank, _, bit) => {
