@@ -225,22 +225,13 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             }
         }
     }
-    if !kind.has_io_we() {
-        for i in 0..8 {
-            db.wires
-                .insert(format!("OUT.CASCADE{i}"), WireKind::LogicOut);
-        }
-    }
 
     for (dir, term) in main_terms {
         db.terms.insert(format!("MAIN.{dir}"), term);
     }
 
-    for name in ["PLB", "INT", "INT.BRAM", "IO.W", "IO.E", "IO.S", "IO.N"] {
+    for name in ["PLB", "INT.BRAM", "IO.W", "IO.E", "IO.S", "IO.N"] {
         if (name == "IO.W" || name == "IO.E") && !kind.has_io_we() {
-            continue;
-        }
-        if name == "INT" && kind.has_io_we() {
             continue;
         }
         let mut node = NodeKind {
@@ -250,7 +241,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             intfs: Default::default(),
             bels: Default::default(),
         };
-        if name == "PLB" || name == "INT" {
+        if name == "PLB" {
             for i in 0..8 {
                 let mut bel = BelInfo::default();
                 for j in 0..4 {
@@ -264,9 +255,6 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 }
                 for pin in ["CLK", "RST", "CE"] {
                     add_input(&db, &mut bel, pin, 0, &format!("IMUX.{pin}"));
-                }
-                if name == "INT" {
-                    add_input(&db, &mut bel, "CASCADE", 0, &format!("OUT.CASCADE{i}"));
                 }
                 add_output(&db, &mut bel, "O", 0, &[&format!("OUT.LC{i}")]);
                 node.bels.insert(bels::LC[i], bel);

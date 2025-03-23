@@ -26,7 +26,7 @@ use prjcombine_siliconblue::{
     db::Database,
     expanded::BitOwner,
 };
-use prjcombine_types::tiledb::TileBit;
+use prjcombine_types::tiledb::{TileBit, TileItemKind};
 use rayon::prelude::*;
 use run::{Design, InstPin, RawLoc, RunResult, run};
 use sample::{get_golden_mux_stats, make_sample, wanted_keys_global, wanted_keys_tiled};
@@ -112,7 +112,6 @@ impl PartContext<'_> {
                 "SB_LEDD_IP",
                 "SB_LEDDA_IP",
                 "SB_IR_IP",
-                // "SB_RGB_IP",
                 "SB_I2C_FIFO",
             ] {
                 if !self.prims.contains_key(kind) {
@@ -534,14 +533,12 @@ impl PartContext<'_> {
             for bpin in bond.pins.values_mut() {
                 if let BondPin::Io(io) = *bpin {
                     if let Some(&(ior0, ior1)) = x3.get(&io) {
-                        *bpin = BondPin::IoTriple([io, ior0, ior1]);
+                        let mut ior = [ior0, ior1];
+                        ior.sort();
+                        *bpin = BondPin::IoTriple([io, ior[0], ior[1]]);
                     }
                 }
             }
-            // TODO: validate SB_IO_DS?
-            // TODO: collect SB_IO_I3C
-            // TODO: something something PLLs?
-            // TODO: VCCIO banks
             if pkg != "DI" {
                 let all_pins = get_pkg_pins(pkg);
                 for pin in &all_pins {
@@ -776,7 +773,7 @@ impl PartContext<'_> {
             }
         }
 
-        if self.chip.kind.has_io_we() && self.chip.kind != ChipKind::Ice40R04 {
+        if self.chip.kind.has_actual_io_we() {
             for i in 0..8 {
                 assert!(gb_io.contains_key(&i));
             }
@@ -1289,7 +1286,159 @@ impl PartContext<'_> {
         Some(result)
     }
 
+    fn inject_io_inv_clk(&mut self, harvester: &mut Harvester<BitOwner>) {
+        for (tile, key, bit) in [
+            (
+                "IO.W",
+                "INT:INV.IMUX.IO.ICLK:BIT0",
+                TileBit {
+                    tile: 0,
+                    frame: 9,
+                    bit: 4,
+                },
+            ),
+            (
+                "IO.W",
+                "INT:INV.IMUX.IO.OCLK:BIT0",
+                TileBit {
+                    tile: 0,
+                    frame: 15,
+                    bit: 4,
+                },
+            ),
+            (
+                "IO.E",
+                "INT:INV.IMUX.IO.ICLK:BIT0",
+                TileBit {
+                    tile: 0,
+                    frame: 9,
+                    bit: 13,
+                },
+            ),
+            (
+                "IO.E",
+                "INT:INV.IMUX.IO.OCLK:BIT0",
+                TileBit {
+                    tile: 0,
+                    frame: 15,
+                    bit: 13,
+                },
+            ),
+            (
+                "IO.S",
+                "INT:INV.IMUX.IO.ICLK:BIT0",
+                TileBit {
+                    tile: 0,
+                    frame: 6,
+                    bit: 35,
+                },
+            ),
+            (
+                "IO.S",
+                "INT:INV.IMUX.IO.OCLK:BIT0",
+                TileBit {
+                    tile: 0,
+                    frame: 1,
+                    bit: 35,
+                },
+            ),
+            (
+                "IO.N",
+                "INT:INV.IMUX.IO.ICLK:BIT0",
+                TileBit {
+                    tile: 0,
+                    frame: 9,
+                    bit: 35,
+                },
+            ),
+            (
+                "IO.N",
+                "INT:INV.IMUX.IO.OCLK:BIT0",
+                TileBit {
+                    tile: 0,
+                    frame: 14,
+                    bit: 35,
+                },
+            ),
+        ] {
+            if self.intdb.nodes.contains_key(tile) {
+                harvester.force_tiled(format!("{tile}:{key}"), BTreeMap::from_iter([(bit, true)]));
+            }
+        }
+    }
+
+    fn transplant_r04(
+        &mut self,
+        harvester: &mut Harvester<BitOwner>,
+        muxes: &mut BTreeMap<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>,
+    ) {
+        let db = Database::from_file("databases/iCE40LP1K.zstd").unwrap();
+        for tile in ["IO.W", "IO.E"] {
+            let node = db.int.nodes.get(tile).unwrap().1;
+            let node_dst = self.intdb.nodes.get(tile).unwrap().0;
+            muxes.insert(node_dst, node.muxes.clone());
+            let tile_data = &db.tiles.tiles[tile];
+            for (name, item) in &tile_data.items {
+                if name.starts_with("COLBUF:")
+                    || name.ends_with(":PIN_TYPE")
+                    || name.starts_with("INT:INV")
+                {
+                    let TileItemKind::BitVec { ref invert } = item.kind else {
+                        unreachable!()
+                    };
+                    for (idx, (&bit, inv)) in item.bits.iter().zip(invert.iter()).enumerate() {
+                        harvester.force_tiled(
+                            format!("{tile}:{name}:BIT{idx}"),
+                            BTreeMap::from_iter([(bit, !*inv)]),
+                        );
+                    }
+                } else if name.starts_with("INT:MUX") {
+                    let TileItemKind::Enum { ref values } = item.kind else {
+                        unreachable!()
+                    };
+                    for (vname, val) in values {
+                        if vname == "NONE" {
+                            continue;
+                        }
+                        harvester.force_tiled(
+                            format!("{tile}:{name}:{vname}"),
+                            BTreeMap::from_iter(
+                                item.bits
+                                    .iter()
+                                    .zip(val.iter())
+                                    .filter(|(_, bval)| **bval)
+                                    .map(|(&bit, _)| (bit, true)),
+                            ),
+                        );
+                    }
+                } else if let Some(suf) = name.strip_prefix("INT:BUF.") {
+                    let (wt, b) = suf.split_once(".OUT.").unwrap();
+                    let TileItemKind::BitVec { ref invert } = item.kind else {
+                        unreachable!()
+                    };
+                    assert_eq!(item.bits.len(), 1);
+                    harvester.force_tiled(
+                        format!("{tile}:INT:MUX.{wt}:OUT.{b}"),
+                        BTreeMap::from_iter(
+                            item.bits
+                                .iter()
+                                .zip(invert.iter())
+                                .map(|(&bit, inv)| (bit, !*inv)),
+                        ),
+                    );
+                }
+            }
+        }
+    }
+
     fn harvest(&mut self) {
+        let mut harvester = Harvester::new();
+        let mut muxes = BTreeMap::new();
+        self.inject_io_inv_clk(&mut harvester);
+        if self.chip.kind == ChipKind::Ice40R04 {
+            self.transplant_r04(&mut harvester, &mut muxes);
+        }
+
         let edev = self.chip.expand_grid(&self.intdb);
         let mut gencfg = GeneratorConfig {
             part: self.part,
@@ -1303,9 +1452,7 @@ impl PartContext<'_> {
             rows_colbuf: vec![],
             extra_node_locs: &self.extra_node_locs,
         };
-        let muxes: Mutex<BTreeMap<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>> =
-            Mutex::new(BTreeMap::new());
-        let mut harvester = Harvester::new();
+        let muxes = Mutex::new(muxes);
         harvester.debug = self.debug;
         for key in wanted_keys_tiled(&edev) {
             harvester.want_tiled(key);
@@ -1512,15 +1659,6 @@ impl PartContext<'_> {
                     }
                 }
                 let golden_stats = get_golden_mux_stats(edev.chip.kind, nkn);
-                // TODO: fix this.
-                if edev.chip.kind == ChipKind::Ice40R04 && matches!(nkn.as_str(), "IO.W" | "IO.E") {
-                    for (bucket, &count) in &stats {
-                        if self.debug >= 1 {
-                            println!("{nkn:10} {bucket:20}: {count}");
-                        }
-                    }
-                    continue;
-                }
                 if stats == golden_stats {
                     nodes_complete += 1;
                 } else {
@@ -1550,7 +1688,7 @@ impl PartContext<'_> {
             }
             let golden_nodes_complete = if edev.chip.kind == ChipKind::Ice40P03 {
                 5 // PLB, 4×IO
-            } else if edev.chip.kind.has_actual_io_we() {
+            } else if edev.chip.kind.has_io_we() {
                 6 // PLB, INT.BRAM, 4×IO
             } else {
                 4 // PLB, INT.BRAM, 2×IO

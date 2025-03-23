@@ -149,8 +149,7 @@ pub fn collect(
         for i in 0..8 {
             collector.collect_bit("PLB", "COLBUF", &format!("GLOBAL.{i}"), "");
             collector.collect_bit("INT.BRAM", "COLBUF", &format!("GLOBAL.{i}"), "");
-            // TODO: adjust [?]
-            if edev.chip.kind.has_actual_io_we() {
+            if edev.chip.kind.has_io_we() {
                 collector.collect_bit("IO.W", "COLBUF", &format!("GLOBAL.{i}"), "");
                 collector.collect_bit("IO.E", "COLBUF", &format!("GLOBAL.{i}"), "");
             }
@@ -191,9 +190,11 @@ pub fn collect(
         }
     }
     for tile in ["IO.W", "IO.E", "IO.S", "IO.N"] {
-        if matches!(tile, "IO.W" | "IO.E") && !edev.chip.kind.has_actual_io_we() {
+        if matches!(tile, "IO.W" | "IO.E") && !edev.chip.kind.has_io_we() {
             continue;
         }
+        collector.collect_bit(tile, "INT", "INV.IMUX.IO.ICLK", "");
+        collector.collect_bit(tile, "INT", "INV.IMUX.IO.OCLK", "");
         for io in 0..2 {
             let bel = &format!("IO{io}");
             collector.collect_bitvec(tile, bel, "PIN_TYPE", "");
@@ -201,8 +202,6 @@ pub fn collect(
                 collector.collect_bit(tile, bel, "OUTPUT_ENABLE", "");
             }
         }
-        // TODO: split.
-        collector.collect_bit_wide(tile, "IO", "NEG_TRIGGER", "");
         let has_lvds = if edev.chip.kind == ChipKind::Ice65L01 {
             false
         } else if edev.chip.kind.has_actual_io_we() {

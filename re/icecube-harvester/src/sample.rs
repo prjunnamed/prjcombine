@@ -108,10 +108,7 @@ pub fn make_sample(
                         let (col, row, wa, wb) =
                             xlat_mux_in(edev, iwa, iwb, (ax, ay, aw), (bx, by, bw));
                         let node = die[(col, row)].nodes.first().unwrap();
-                        let mut tile_name: &str = edev.egrid.db.nodes.key(node.kind);
-                        if tile_name == "INT" {
-                            tile_name = "PLB";
-                        }
+                        let tile_name = edev.egrid.db.nodes.key(node.kind);
                         let wan = edev.egrid.db.wires.key(wa);
                         let wbn = edev.egrid.db.wires.key(wb);
                         if let Some(idx) = wbn.strip_prefix("GLOBAL.") {
@@ -542,7 +539,11 @@ pub fn make_sample(
                         if neg_trigger.ends_with('1') {
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tile_kind}:IO:NEG_TRIGGER:BIT0"),
+                                format!("{tile_kind}:INT:INV.IMUX.IO.ICLK:BIT0"),
+                            );
+                            sample.add_tiled_pattern(
+                                &[BitOwner::Main(col, row)],
+                                format!("{tile_kind}:INT:INV.IMUX.IO.OCLK:BIT0"),
                             );
                         }
                     }
@@ -1128,9 +1129,11 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     }
     // IO
     for tile in ["IO.W", "IO.E", "IO.S", "IO.N"] {
-        if matches!(tile, "IO.W" | "IO.E") && !edev.chip.kind.has_actual_io_we() {
+        if matches!(tile, "IO.W" | "IO.E") && !edev.chip.kind.has_io_we() {
             continue;
         }
+        result.push(format!("{tile}:INT:INV.IMUX.IO.ICLK:BIT0"));
+        result.push(format!("{tile}:INT:INV.IMUX.IO.OCLK:BIT0"));
         for io in 0..2 {
             for i in 0..6 {
                 result.push(format!("{tile}:IO{io}:PIN_TYPE:BIT{i}"));
@@ -1139,7 +1142,6 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                 result.push(format!("{tile}:IO{io}:OUTPUT_ENABLE:BIT0"));
             }
         }
-        result.push(format!("{tile}:IO:NEG_TRIGGER:BIT0"));
         let has_lvds = if edev.chip.kind == ChipKind::Ice65L01 {
             false
         } else if edev.chip.kind.has_actual_io_we() {

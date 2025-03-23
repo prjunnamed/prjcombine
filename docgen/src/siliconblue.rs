@@ -17,7 +17,7 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
         ("ice40p01", "iCE40LP1K"),
         ("ice40p03", "iCE40LP384"),
         ("ice40p08", "iCE40LP8K"),
-        // ("ice40r04", "iCE40LM4K"),
+        ("ice40r04", "iCE40LM4K"),
         ("ice40t04", "iCE5LP4K"),
         ("ice40t05", "iCE40UP5K"),
         ("ice40t01", "iCE40UL1K"),
