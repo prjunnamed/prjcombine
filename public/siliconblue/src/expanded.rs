@@ -160,6 +160,10 @@ impl ExpandedDevice<'_> {
                 self.btile_main(col, row + 1),
                 self.btile_bram(col, row),
             ]
+        } else if kind == "GB_OUT" {
+            self.btile_clock().to_vec()
+        } else if kind == "PLL_S" && self.chip.kind.is_ice65() {
+            self.btile_pll().to_vec()
         } else {
             Vec::from_iter(
                 node.tiles

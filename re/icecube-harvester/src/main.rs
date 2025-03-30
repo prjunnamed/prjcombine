@@ -6,7 +6,7 @@ use std::{
 };
 
 use clap::Parser;
-use collect::collect;
+use collect::{collect, collect_iob};
 use generate::{GeneratorConfig, generate};
 use intdb::{MiscNodeBuilder, make_intdb};
 use jzon::JsonValue;
@@ -14,7 +14,7 @@ use parts::Part;
 use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
 use prjcombine_interconnect::{
-    db::{IntDb, MuxInfo, MuxKind, NodeKindId, NodeTileId, NodeWireId},
+    db::{IntDb, MuxInfo, MuxKind, NodeKind, NodeKindId, NodeTileId, NodeWireId},
     dir::{DirH, DirV},
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };
@@ -489,7 +489,7 @@ impl PartContext<'_> {
                             "SPI_SCK" => SharedCfgPin::SpiSck,
                             "SPI_SI" => SharedCfgPin::SpiSi,
                             "SPI_SO" => SharedCfgPin::SpiSo,
-                            "SPI_SS_B" => SharedCfgPin::SpiSsB,
+                            "SPI_SS_B" => SharedCfgPin::SpiCsB,
                             _ => unreachable!(),
                         };
                         match self.chip.cfg_io.entry(cpin) {
@@ -1008,6 +1008,17 @@ impl PartContext<'_> {
                 bel_pins.ins.remove("LATCHINPUTVALUE");
                 bel_pins.outs.retain(|k, _| !k.starts_with("PLLOUT"));
                 let mut nb = MiscNodeBuilder::new(&[(col, row), (col + 1, row)]);
+                if self.chip.kind.is_ice40() {
+                    if self.chip.kind == ChipKind::Ice40P01 {
+                        for i in 1..=5 {
+                            nb.get_tile((self.chip.col_w(), RowId::from_idx(i)));
+                        }
+                    } else {
+                        for i in 0..5 {
+                            nb.get_tile((col - 2 + i, row));
+                        }
+                    }
+                }
                 nb.io.insert(ExtraNodeIo::PllA, io);
                 nb.io.insert(ExtraNodeIo::PllB, io2);
                 nb.add_bel(bels::PLL, &bel_pins);
@@ -1028,6 +1039,31 @@ impl PartContext<'_> {
                     }
                 }
             }
+        }
+        if matches!(self.chip.kind, ChipKind::Ice40T04 | ChipKind::Ice40T05) {
+            let xnode = ExtraNode {
+                io: BTreeMap::from_iter([
+                    (
+                        ExtraNodeIo::PllA,
+                        self.chip.extra_nodes[&ExtraNodeLoc::GbIo(6)].io[&ExtraNodeIo::GbIn],
+                    ),
+                    (
+                        ExtraNodeIo::PllB,
+                        self.chip.extra_nodes[&ExtraNodeLoc::GbIo(3)].io[&ExtraNodeIo::GbIn],
+                    ),
+                ]),
+                tiles: EntityVec::from_iter([(self.chip.col_mid() + 1, self.chip.row_s())]),
+            };
+            let xloc = ExtraNodeLoc::PllStub(DirV::S);
+            self.chip.extra_nodes.insert(xloc, xnode);
+            let node = NodeKind {
+                tiles: EntityVec::from_iter([()]),
+                muxes: Default::default(),
+                iris: Default::default(),
+                intfs: Default::default(),
+                bels: Default::default(),
+            };
+            self.intdb.nodes.insert(xloc.node_kind(), node);
         }
     }
 
@@ -1699,9 +1735,11 @@ impl PartContext<'_> {
         }
         println!("DONE with {}!", self.part.name);
         let mut muxes = muxes.into_inner().unwrap();
-        let harvester = harvester.into_inner().unwrap();
+        let mut harvester = harvester.into_inner().unwrap();
+        let io_iob = collect_iob(&edev, &mut harvester);
         let tiledb = collect(&edev, &muxes, &harvester);
         self.chip.rows_colbuf = gencfg.rows_colbuf;
+        self.chip.io_iob = io_iob;
 
         for tile_muxes in muxes.values_mut() {
             let mut new_muxes = BTreeMap::new();

@@ -617,7 +617,7 @@ pub fn get_prims(kind: ChipKind) -> BTreeMap<&'static str, Primitive> {
                 ("FIXED_DELAY_ADJUSTMENT", PropKind::BitvecBin(4)),
                 (
                     "PLLOUT_PHASE",
-                    PropKind::String(&["NONE", "0DEG", "90DEG", "180DEG", "270DEG"]),
+                    PropKind::String(&["NONE", "0deg", "90deg", "180deg", "270deg"]),
                 ),
                 ("DIVR", PropKind::BitvecBin(4)),
                 ("DIVF", PropKind::BitvecBin(6)),
@@ -653,7 +653,7 @@ pub fn get_prims(kind: ChipKind) -> BTreeMap<&'static str, Primitive> {
                 ("FIXED_DELAY_ADJUSTMENT", PropKind::BitvecBin(4)),
                 (
                     "PLLOUT_PHASE",
-                    PropKind::String(&["NONE", "0DEG", "90DEG", "180DEG", "270DEG"]),
+                    PropKind::String(&["NONE", "0deg", "90deg", "180deg", "270deg"]),
                 ),
                 ("DIVR", PropKind::BitvecBin(4)),
                 ("DIVF", PropKind::BitvecBin(6)),
@@ -696,7 +696,7 @@ pub fn get_prims(kind: ChipKind) -> BTreeMap<&'static str, Primitive> {
                 ("FIXED_DELAY_ADJUSTMENT", PropKind::BitvecBin(4)),
                 (
                     "PLLOUT_PHASE",
-                    PropKind::String(&["NONE", "0DEG", "90DEG", "180DEG", "270DEG"]),
+                    PropKind::String(&["NONE", "0deg", "90deg", "180deg", "270deg"]),
                 ),
                 ("DIVR", PropKind::BitvecBin(4)),
                 ("DIVF", PropKind::BitvecBin(6)),

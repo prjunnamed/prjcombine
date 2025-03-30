@@ -1,6 +1,8 @@
+use std::collections::HashSet;
+
 use crate::{
     DocgenContext,
-    tiledb::{FrameDirection, TileOrientation, gen_tiles},
+    tiledb::{FrameDirection, TileOrientation, check_misc_data, gen_misc_table, gen_tiles},
 };
 
 pub fn gen_siliconblue(ctx: &mut DocgenContext) {
@@ -27,5 +29,25 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
         )
         .unwrap();
         gen_tiles(ctx, kind, &db.tiles, |_| tile_orientation);
+        let mut misc_used = HashSet::new();
+        if matches!(kind, "ice65l04" | "ice65p04" | "ice65l08") {
+            gen_misc_table(
+                ctx,
+                &db.tiles,
+                &mut misc_used,
+                kind,
+                "iostd-drive",
+                &["IOSTD:DRIVE"],
+            );
+            gen_misc_table(
+                ctx,
+                &db.tiles,
+                &mut misc_used,
+                kind,
+                "iostd-misc",
+                &["IOSTD:IOSTD_MISC"],
+            );
+        }
+        check_misc_data(&db.tiles, kind, &misc_used);
     }
 }

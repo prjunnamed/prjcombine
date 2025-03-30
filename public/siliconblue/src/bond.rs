@@ -34,6 +34,7 @@ impl std::fmt::Display for CfgPin {
 pub enum BondPin {
     Io(EdgeIoCoord),
     IoCDone(EdgeIoCoord),
+    IoTriple([EdgeIoCoord; 3]),
     Nc,
     Gnd,
     VccInt,
@@ -47,7 +48,6 @@ pub enum BondPin {
     GndLed,
     Cfg(CfgPin),
     PorTest,
-    IoTriple([EdgeIoCoord; 3]),
 }
 
 impl std::fmt::Display for BondPin {

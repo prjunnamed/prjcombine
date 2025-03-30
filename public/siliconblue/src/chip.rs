@@ -49,6 +49,10 @@ impl ChipKind {
         )
     }
 
+    pub fn has_latch_global_out(self) -> bool {
+        !matches!(self, Self::Ice65L04 | Self::Ice65L08)
+    }
+
     pub fn has_ice40_bramv2(self) -> bool {
         matches!(
             self,
@@ -104,6 +108,10 @@ impl ChipKind {
     pub fn is_ultra(self) -> bool {
         matches!(self, Self::Ice40T04 | Self::Ice40T01 | Self::Ice40T05)
     }
+
+    pub fn has_multi_pullup(self) -> bool {
+        matches!(self, Self::Ice40T01 | Self::Ice40T05)
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -111,7 +119,7 @@ pub enum SharedCfgPin {
     SpiSo,
     SpiSi,
     SpiSck,
-    SpiSsB,
+    SpiCsB,
     CbSel0,
     CbSel1,
 }
@@ -122,7 +130,7 @@ impl std::fmt::Display for SharedCfgPin {
             SharedCfgPin::SpiSo => write!(f, "SPI_SO"),
             SharedCfgPin::SpiSi => write!(f, "SPI_SI"),
             SharedCfgPin::SpiSck => write!(f, "SPI_SCK"),
-            SharedCfgPin::SpiSsB => write!(f, "SPI_SS_B"),
+            SharedCfgPin::SpiCsB => write!(f, "SPI_CS_B"),
             SharedCfgPin::CbSel0 => write!(f, "CBSEL0"),
             SharedCfgPin::CbSel1 => write!(f, "CBSEL1"),
         }
@@ -142,6 +150,7 @@ pub enum ExtraNodeLoc {
     LatchIo(Dir),
     Warmboot,
     Pll(DirV),
+    PllStub(DirV),
     Spi(DirH),
     I2c(DirH),
     I2cFifo(DirH),
@@ -186,6 +195,7 @@ impl std::fmt::Display for ExtraNodeLoc {
             ExtraNodeLoc::LatchIo(edge) => write!(f, "LATCH_IO_{edge}"),
             ExtraNodeLoc::Warmboot => write!(f, "WARMBOOT"),
             ExtraNodeLoc::Pll(edge) => write!(f, "PLL_{edge}"),
+            ExtraNodeLoc::PllStub(edge) => write!(f, "PLL_STUB_{edge}"),
             ExtraNodeLoc::Spi(edge) => write!(f, "SPI_{edge}"),
             ExtraNodeLoc::I2c(edge) => write!(f, "I2C_{edge}"),
             ExtraNodeLoc::I2cFifo(edge) => write!(f, "I2C_FIFO_{edge}"),
@@ -237,8 +247,8 @@ impl std::fmt::Display for ExtraNodeIo {
             ExtraNodeIo::SpiCopi => write!(f, "SPI_COPI"),
             ExtraNodeIo::SpiCipo => write!(f, "SPI_CIPO"),
             ExtraNodeIo::SpiSck => write!(f, "SPI_SCK"),
-            ExtraNodeIo::SpiCsB0 => write!(f, "SPI_CSB0"),
-            ExtraNodeIo::SpiCsB1 => write!(f, "SPI_CSB1"),
+            ExtraNodeIo::SpiCsB0 => write!(f, "SPI_CS_B0"),
+            ExtraNodeIo::SpiCsB1 => write!(f, "SPI_CS_B1"),
             ExtraNodeIo::I2cScl => write!(f, "I2C_SCL"),
             ExtraNodeIo::I2cSda => write!(f, "I2C_SDA"),
             ExtraNodeIo::RgbLed0 => write!(f, "RGB_LED0"),
@@ -452,6 +462,16 @@ impl std::fmt::Display for Chip {
             }
             for (tile, (col, row)) in &node.tiles {
                 writeln!(f, "\t\tTILE {tile}: X{col}Y{row}")?;
+            }
+        }
+        writeln!(f, "\tIOB:")?;
+        for (&io, &iob) in &self.io_iob {
+            writeln!(f, "\t\t{io}: {iob}")?;
+        }
+        if !self.io_od.is_empty() {
+            writeln!(f, "\tIO_OD:")?;
+            for &io in &self.io_od {
+                writeln!(f, "\t\t{io}")?;
             }
         }
         writeln!(f, "\tCFG PINS:")?;

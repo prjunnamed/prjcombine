@@ -46,10 +46,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         db.int.print(&mut std::io::stdout())?;
     }
     if flag_chips || flag_devices {
-        for (gid, chip) in &db.chips {
-            print!("GRID {gid}:");
+        for (cid, chip) in &db.chips {
+            print!("CHIP {cid}:");
             for dev in &db.parts {
-                if dev.chip == gid {
+                if dev.chip == cid {
                     print!(" {dev}", dev = dev.name);
                 }
             }

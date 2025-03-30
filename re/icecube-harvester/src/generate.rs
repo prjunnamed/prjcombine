@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::PinDir,
-    dir::{Dir, DirH},
+    dir::{Dir, DirH, DirV},
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_siliconblue::{
@@ -16,7 +16,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     parts::Part,
-    prims::Primitive,
+    prims::{Primitive, PropKind},
     run::{Design, InstId, InstPin, InstPinSource, Instance, RawLoc},
     sites::SiteInfo,
 };
@@ -125,10 +125,16 @@ impl Generator<'_> {
         let crd = self.unused_io.pop().unwrap();
         let is_od = self.cfg.edev.chip.io_od.contains(&crd);
         let mut global_idx = None;
+        let mut pll = None;
         for (&loc, node) in &self.cfg.edev.chip.extra_nodes {
             if let ExtraNodeLoc::GbIo(idx) = loc {
                 if node.io[&ExtraNodeIo::GbIn] == crd {
                     global_idx = Some(idx);
+                }
+            }
+            if let ExtraNodeLoc::Pll(side) = loc {
+                if node.io[&ExtraNodeIo::PllA] == crd {
+                    pll = Some(side);
                 }
             }
         }
@@ -138,6 +144,11 @@ impl Generator<'_> {
         if let Some(idx) = global_idx {
             if self.gb_net[idx].is_some() {
                 global_idx = None;
+            }
+        }
+        if let Some(side) = pll {
+            if self.rng.random() {
+                return self.emit_pll(side);
             }
         }
         if self.rng.random() {
@@ -374,6 +385,129 @@ impl Generator<'_> {
             self.gb_net[idx] = Some((iid, InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())));
         }
         if lvds { 2 } else { 1 }
+    }
+
+    fn emit_pll(&mut self, side: DirV) -> usize {
+        let xnode = &self.cfg.edev.chip.extra_nodes[&ExtraNodeLoc::Pll(side)];
+        let mut kind = if self.cfg.edev.chip.kind.is_ice65() {
+            *["SB_PLL_CORE", "SB_PLL_PAD", "SB_PLL_2_PAD"]
+                .choose(&mut self.rng)
+                .unwrap()
+        } else {
+            *[
+                "SB_PLL40_CORE",
+                "SB_PLL40_PAD",
+                "SB_PLL40_2_PAD",
+                "SB_PLL40_2F_CORE",
+                "SB_PLL40_2F_PAD",
+            ]
+            .choose(&mut self.rng)
+            .unwrap()
+        };
+        let io_b = xnode.io[&ExtraNodeIo::PllB];
+        if matches!(
+            kind,
+            "SB_PLL_2_PAD" | "SB_PLL40_2_PAD" | "SB_PLL40_2F_CORE" | "SB_PLL40_2F_PAD"
+        ) {
+            if let Some(io_idx) = self.unused_io.iter().position(|&x| x == io_b) {
+                self.unused_io.swap_remove(io_idx);
+            } else {
+                kind = if self.cfg.edev.chip.kind.is_ice65() {
+                    "SB_PLL_PAD"
+                } else {
+                    "SB_PLL40_PAD"
+                };
+            }
+        }
+        let sites = &self.cfg.pkg_bel_info[&(self.design.package, kind)];
+        let Some(site) = sites
+            .iter()
+            .find(|site| (site.loc.y == 0) == (side == DirV::S))
+        else {
+            return 0;
+        };
+        let mut inst = Instance::new(kind);
+        let prim = &self.cfg.prims[kind];
+        inst.loc = Some(site.loc);
+        let mut outps = vec![];
+        let mut global_outs = vec![];
+        for (&pin, pin_data) in &prim.pins {
+            if pin == "LATCHINPUTVALUE" {
+                continue;
+            }
+            if pin_data.is_pad {
+                inst.top_port(pin);
+            } else if let Some(width) = pin_data.len {
+                for idx in 0..width {
+                    if pin_data.dir == PinDir::Input {
+                        if self.rng.random() {
+                            let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                            inst.connect_idx(pin, idx, src_site, src_pin);
+                        }
+                    } else {
+                        outps.push(InstPin::Indexed(pin.into(), idx));
+                    }
+                }
+            } else {
+                if pin_data.dir == PinDir::Input {
+                    if self.rng.random() {
+                        let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                        inst.connect(pin, src_site, src_pin);
+                    }
+                } else if pin.contains("GLOBAL") {
+                    let global_idx = match (side, pin) {
+                        (DirV::S, "PLLOUTGLOBAL" | "PLLOUTGLOBALA") => 6,
+                        (DirV::S, "PLLOUTGLOBALB") => 3,
+                        (DirV::N, "PLLOUTGLOBAL" | "PLLOUTGLOBALA") => 7,
+                        (DirV::N, "PLLOUTGLOBALB") => 2,
+                        _ => unreachable!(),
+                    };
+                    global_outs.push((global_idx, pin));
+                } else {
+                    outps.push(InstPin::Simple(pin.into()));
+                }
+            }
+        }
+        for (&prop, &kind) in &prim.props {
+            if prop == "DIVQ" {
+                inst.prop(
+                    prop,
+                    ["001", "010", "011", "100", "101", "110"]
+                        .choose(&mut self.rng)
+                        .unwrap(),
+                );
+                continue;
+            }
+            match kind {
+                PropKind::String(items) => {
+                    inst.prop(prop, items.choose(&mut self.rng).unwrap());
+                }
+                PropKind::BitvecBin(width) => {
+                    inst.prop_bin(
+                        prop,
+                        &BitVec::from_iter((0..width).map(|_| self.rng.random::<bool>())),
+                    );
+                }
+                _ => unreachable!(),
+            }
+        }
+        let inst = self.design.insts.push(inst);
+        let num_outps = self.rng.random_range(1..=outps.len());
+        for outp in outps.choose_multiple(&mut self.rng, num_outps) {
+            let mut lut = Instance::new("SB_LUT4");
+            lut.prop("LUT_INIT", "16'h0000");
+            lut.connect("I0", inst, outp.clone());
+            let lut = self.design.insts.push(lut);
+            self.add_out_raw(lut, InstPin::Simple("O".into()));
+        }
+        if matches!(
+            kind,
+            "SB_PLL_2_PAD" | "SB_PLL40_2_PAD" | "SB_PLL40_2F_CORE" | "SB_PLL40_2F_PAD"
+        ) {
+            2
+        } else {
+            1
+        }
     }
 
     fn emit_lut(&mut self) {
@@ -1278,7 +1412,6 @@ impl Generator<'_> {
         }
         for &key in self.cfg.edev.chip.extra_nodes.keys() {
             match key {
-                // ExtraNodeLoc::Pll(dir_v) => todo!(),
                 // ExtraNodeLoc::Spi(dir_h) => todo!(),
                 // ExtraNodeLoc::I2c(dir_h) => todo!(),
                 // ExtraNodeLoc::I2cFifo(dir_h) => todo!(),

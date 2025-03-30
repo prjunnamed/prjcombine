@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::{NodeKindId, NodeWireId, PinDir, WireId},
-    dir::{Dir, DirH},
+    dir::{Dir, DirH, DirV},
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };
 use prjcombine_re_harvester::Sample;
@@ -118,7 +118,7 @@ pub fn make_sample(
                                 let idx: usize = idx.parse().unwrap();
                                 sample.add_tiled_pattern(
                                     &[BitOwner::Clock(0), BitOwner::Clock(1)],
-                                    format!("GBOUT:GBOUT:MUX.GLOBAL.{idx}:IO"),
+                                    format!("GB_OUT:GB_OUT:MUX.GLOBAL.{idx}:IO"),
                                 );
                             }
                             continue;
@@ -342,7 +342,7 @@ pub fn make_sample(
                         let idx: usize = idx.parse().unwrap();
                         sample.add_tiled_pattern(
                             &[BitOwner::Clock(0), BitOwner::Clock(1)],
-                            format!("GBOUT:GBOUT:MUX.GLOBAL.{idx}:IO"),
+                            format!("GB_OUT:GB_OUT:MUX.GLOBAL.{idx}:IO"),
                         );
                     }
                     _ => {
@@ -488,14 +488,6 @@ pub fn make_sample(
 
                     let iostd = inst.props.get("IO_STANDARD").map(|x| x.as_str());
                     let is_lvds = matches!(iostd, Some("SB_LVDS_INPUT" | "SB_SUBLVDS_INPUT"));
-                    if is_lvds && !edev.chip.kind.has_vref() {
-                        sample.add_tiled_pattern_single(
-                            &[BitOwner::Main(col, row)],
-                            format!("{tile_kind}:IO:LVDS_INPUT:BIT0"),
-                        );
-                        let oiob = TileIobId::from_idx(iob.to_idx() ^ 1);
-                        sample.add_global_pattern(format!("IO:{col}.{row}.{oiob}:PULLUP:DISABLE"));
-                    }
 
                     if let Some(pin_type) = inst.props.get("PIN_TYPE") {
                         let mut value = bitvec![];
@@ -530,9 +522,50 @@ pub fn make_sample(
                                 );
                             }
                         }
-                        if value[1] && inst.kind == "SB_GB_IO" {
-                            let key = ExtraNodeLoc::GbIo(global_idx.unwrap());
-                            sample.add_global_pattern(format!("{key}:LATCH_GLOBAL_OUT:BIT0"));
+                        if value[1]
+                            && inst.kind == "SB_GB_IO"
+                            && edev.chip.kind.has_latch_global_out()
+                        {
+                            let global_idx = global_idx.unwrap();
+                            let mut handled = false;
+                            if edev.chip.kind != ChipKind::Ice40P01 {
+                                if let Some((side, ab)) = match global_idx {
+                                    6 => Some((DirV::S, 'A')),
+                                    3 => Some((DirV::S, 'B')),
+                                    7 => Some((DirV::N, 'A')),
+                                    2 => Some((DirV::N, 'B')),
+                                    _ => None,
+                                } {
+                                    for xloc in
+                                        [ExtraNodeLoc::Pll(side), ExtraNodeLoc::PllStub(side)]
+                                    {
+                                        if let Some(xnode) = edev.chip.extra_nodes.get(&xloc) {
+                                            let xnode_kind = xloc.node_kind();
+                                            let tiles =
+                                                if edev.chip.kind.is_ice65() {
+                                                    vec![BitOwner::Pll(0), BitOwner::Pll(1)]
+                                                } else {
+                                                    Vec::from_iter(xnode.tiles.values().map(
+                                                        |&(col, row)| BitOwner::Main(col, row),
+                                                    ))
+                                                };
+                                            sample.add_tiled_pattern(
+                                                &tiles,
+                                                format!(
+                                                    "{xnode_kind}:PLL:LATCH_GLOBAL_OUT_{ab}:BIT0"
+                                                ),
+                                            );
+                                            handled = true;
+                                        }
+                                    }
+                                }
+                            }
+                            if !handled {
+                                sample.add_tiled_pattern(
+                                    &[BitOwner::Main(col, row)],
+                                    format!("{tile_kind}:IOB:LATCH_GLOBAL_OUT:BIT0"),
+                                );
+                            }
                         }
                     }
                     if let Some(neg_trigger) = inst.props.get("NEG_TRIGGER") {
@@ -551,50 +584,107 @@ pub fn make_sample(
                     if inst.kind == "SB_IO_I3C" {
                         let weak_pullup = &inst.props["WEAK_PULLUP"];
                         if weak_pullup.ends_with("0") {
-                            sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{iob}:I3C_WEAK_PULLUP:DISABLE"
-                            ));
-                        } else {
-                            sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{iob}:I3C_WEAK_PULLUP:ENABLE"
-                            ));
+                            sample.add_tiled_pattern_single(
+                                &[BitOwner::Main(col, row)],
+                                format!("{tile_kind}:IOB{iob}:WEAK_PULLUP:DISABLE"),
+                            );
                         }
                         let pullup = &inst.props["PULLUP"];
                         if pullup.ends_with("1") {
                             let pullup_kind = &inst.props["PULLUP_RESISTOR"];
-                            sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{iob}:I3C_PULLUP:{pullup_kind}"
-                            ));
+                            sample.add_tiled_pattern_single(
+                                &[BitOwner::Main(col, row)],
+                                format!("{tile_kind}:IOB{iob}:PULLUP:{pullup_kind}"),
+                            );
                         } else {
-                            sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{iob}:I3C_PULLUP:DISABLE"
-                            ));
+                            sample.add_tiled_pattern_single(
+                                &[BitOwner::Main(col, row)],
+                                format!("{tile_kind}:IOB{iob}:PULLUP:DISABLE"),
+                            );
                         }
                     } else {
-                        if let Some(pullup) = inst.props.get("PULLUP") {
-                            if pullup.ends_with('0') || is_lvds {
-                                sample.add_global_pattern(format!(
-                                    "IO:{col}.{row}.{iob}:PULLUP:DISABLE"
-                                ));
+                        let pullup = match inst.props.get("PULLUP") {
+                            None => false,
+                            Some(val) => val.ends_with('1') && !is_lvds,
+                        };
+                        if edev.chip.kind.has_multi_pullup() {
+                            if !pullup {
+                                sample.add_tiled_pattern_single(
+                                    &[BitOwner::Main(col, row)],
+                                    format!("{tile_kind}:IOB{iob}:PULLUP:DISABLE"),
+                                );
+                                sample.add_tiled_pattern_single(
+                                    &[BitOwner::Main(col, row)],
+                                    format!("{tile_kind}:IOB{iob}:WEAK_PULLUP:DISABLE"),
+                                );
                             } else if let Some(pullup_kind) = inst.props.get("PULLUP_RESISTOR") {
-                                sample.add_global_pattern(format!(
-                                    "IO:{col}.{row}.{iob}:PULLUP:{pullup_kind}"
-                                ));
+                                if pullup_kind != "100K" {
+                                    sample.add_tiled_pattern_single(
+                                        &[BitOwner::Main(col, row)],
+                                        format!("{tile_kind}:IOB{iob}:WEAK_PULLUP:DISABLE"),
+                                    );
+                                    sample.add_tiled_pattern_single(
+                                        &[BitOwner::Main(col, row)],
+                                        format!("{tile_kind}:IOB{iob}:PULLUP:{pullup_kind}"),
+                                    );
+                                }
+                            }
+                        } else if edev.chip.kind != ChipKind::Ice40P01 {
+                            if !pullup && !(io.edge() == Dir::W && edev.chip.kind.has_vref()) {
+                                sample.add_tiled_pattern_single(
+                                    &[BitOwner::Main(col, row)],
+                                    format!("{tile_kind}:IOB{iob}:PULLUP:DISABLE"),
+                                );
                             }
                         } else {
-                            sample
-                                .add_global_pattern(format!("IO:{col}.{row}.{iob}:PULLUP:DISABLE"));
+                            if !pullup {
+                                sample.add_global_pattern(format!("{io}:PULLUP:DISABLE"));
+                            }
                         }
                     }
-                    if let Some(iostd) = iostd {
-                        if col == edev.chip.col_w() && edev.chip.kind.has_vref() {
-                            sample
-                                .add_global_pattern(format!("IO:{col}.{row}.{iob}:IOSTD:{iostd}"));
+                    if is_lvds && !edev.chip.kind.has_vref() {
+                        sample.add_tiled_pattern_single(
+                            &[BitOwner::Main(col, row)],
+                            format!("{tile_kind}:IOB{iob}:LVDS_INPUT:BIT0"),
+                        );
+                        let oiob = TileIobId::from_idx(iob.to_idx() ^ 1);
+                        let oio = io.with_iob(oiob);
+                        if edev.chip.kind == ChipKind::Ice40P01 {
+                            sample.add_global_pattern_single(format!("{oio}:PULLUP:DISABLE"));
+                        } else {
+                            sample.add_tiled_pattern_single(
+                                &[BitOwner::Main(col, row)],
+                                format!("{tile_kind}:IOB{oiob}:PULLUP:DISABLE"),
+                            );
+                            if edev.chip.kind.has_multi_pullup() {
+                                sample.add_tiled_pattern_single(
+                                    &[BitOwner::Main(col, row)],
+                                    format!("{tile_kind}:IOB{oiob}:WEAK_PULLUP:DISABLE"),
+                                );
+                            }
+                        }
+                    }
+                    if col == edev.chip.col_w() && edev.chip.kind.has_vref() {
+                        if let Some(iostd) = iostd {
+                            sample.add_tiled_pattern(
+                                &[BitOwner::Main(col, row)],
+                                format!("{tile_kind}:IOB{iob}:IOSTD:{iostd}"),
+                            );
                         }
                     }
 
-                    if ibuf_used.contains(&iid) && (!is_lvds || edev.chip.kind.has_vref()) {
-                        sample.add_global_pattern(format!("IO:{col}.{row}.{iob}:IBUF_ENABLE:BIT0"));
+                    if ((edev.chip.kind.is_ice40() && !is_lvds)
+                        || (edev.chip.kind.has_vref() && col == edev.chip.col_w()))
+                        && ibuf_used.contains(&iid)
+                    {
+                        if edev.chip.kind == ChipKind::Ice40P01 {
+                            sample.add_global_pattern_single(format!("{io}:IBUF_ENABLE:BIT0"));
+                        } else {
+                            sample.add_tiled_pattern_single(
+                                &[BitOwner::Main(col, row)],
+                                format!("{tile_kind}:IOB{iob}:IBUF_ENABLE:BIT0"),
+                            );
+                        }
                     }
                 }
                 kind if kind.starts_with("SB_DFF") => {
@@ -758,6 +848,150 @@ pub fn make_sample(
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+                kind if kind.starts_with("SB_PLL") => {
+                    let side = if loc.loc.y == 0 { DirV::S } else { DirV::N };
+                    let xnode = &edev.chip.extra_nodes[&ExtraNodeLoc::Pll(side)];
+                    let io_a = xnode.io[&ExtraNodeIo::PllA];
+                    let io_b = xnode.io[&ExtraNodeIo::PllB];
+                    let crd_a = edev.chip.get_io_loc(io_a).1;
+                    let crd_b = edev.chip.get_io_loc(io_b).1;
+                    let tiles = if edev.chip.kind.is_ice65() {
+                        vec![BitOwner::Pll(0), BitOwner::Pll(1)]
+                    } else {
+                        Vec::from_iter(
+                            xnode
+                                .tiles
+                                .values()
+                                .map(|&(col, row)| BitOwner::Main(col, row)),
+                        )
+                    };
+                    let tiles_io_a = [BitOwner::Main(crd_a.0, crd_a.1)];
+                    let tiles_io_b = [BitOwner::Main(crd_b.0, crd_b.1)];
+                    sample.add_tiled_pattern(&tiles, format!("PLL_{side}:PLL:MODE:{kind}"));
+                    sample.add_tiled_pattern(&tiles_io_a, format!("IO.{side}:IO1:PIN_TYPE:BIT0"));
+                    if edev.chip.kind == ChipKind::Ice40P01 {
+                        if kind.ends_with("_PAD") {
+                            sample.add_global_pattern_single(format!("{io_a}:PULLUP:DISABLE"));
+                        }
+                        sample.add_global_pattern(format!("{io_a}:IBUF_ENABLE:BIT0"));
+                    } else if kind.ends_with("_PAD") && edev.chip.kind.is_ice40() {
+                        sample.add_tiled_pattern_single(
+                            &tiles_io_a,
+                            format!("IO.{side}:IOB{iob_a}:PULLUP:DISABLE", iob_a = io_a.iob()),
+                        );
+                        sample.add_tiled_pattern_single(
+                            &tiles_io_a,
+                            format!("IO.{side}:IOB{iob_a}:IBUF_ENABLE:BIT0", iob_a = io_a.iob()),
+                        );
+                    }
+                    if edev.chip.kind.is_ultra() {
+                        sample.add_tiled_pattern(
+                            &tiles_io_a,
+                            format!("IO.{side}:IO1:OUTPUT_ENABLE:BIT0"),
+                        );
+                    }
+                    if matches!(
+                        kind,
+                        "SB_PLL_2_PAD" | "SB_PLL40_2_PAD" | "SB_PLL40_2F_CORE" | "SB_PLL40_2F_PAD"
+                    ) {
+                        sample
+                            .add_tiled_pattern(&tiles_io_b, format!("IO.{side}:IO0:PIN_TYPE:BIT0"));
+                    }
+                    for (prop, val) in &inst.props {
+                        let mut prop = prop.as_str();
+                        if matches!(prop, "ENABLE_ICEGATE" | "ENABLE_ICEGATE_PORTA") {
+                            if val == "1" {
+                                sample.add_tiled_pattern(
+                                    &tiles_io_a,
+                                    format!("IO.{side}:IO1:PIN_TYPE:BIT1"),
+                                );
+                                if edev.chip.kind == ChipKind::Ice40P01 {
+                                    sample.add_tiled_pattern(
+                                        &tiles_io_a,
+                                        format!("IO.{side}:IOB:LATCH_GLOBAL_OUT:BIT0"),
+                                    );
+                                } else {
+                                    sample.add_tiled_pattern(
+                                        &tiles,
+                                        format!("PLL_{side}:PLL:LATCH_GLOBAL_OUT_A:BIT0"),
+                                    );
+                                }
+                            }
+                            continue;
+                        }
+                        if prop == "ENABLE_ICEGATE_PORTB" {
+                            if val == "1" {
+                                sample.add_tiled_pattern(
+                                    &tiles_io_b,
+                                    format!("IO.{side}:IO0:PIN_TYPE:BIT1"),
+                                );
+                                if edev.chip.kind == ChipKind::Ice40P01 {
+                                    sample.add_tiled_pattern(
+                                        &tiles_io_b,
+                                        format!("IO.{side}:IOB:LATCH_GLOBAL_OUT:BIT0"),
+                                    );
+                                } else {
+                                    sample.add_tiled_pattern(
+                                        &tiles,
+                                        format!("PLL_{side}:PLL:LATCH_GLOBAL_OUT_B:BIT0"),
+                                    );
+                                }
+                            }
+                            continue;
+                        }
+                        if prop == "PLLOUT_SELECT" {
+                            prop = "PLLOUT_SELECT_PORTA";
+                        }
+                        if matches!(prop, "PLLOUT_SELECT_PORTA" | "PLLOUT_SELECT_PORTB")
+                            && val == "GENCLK"
+                        {
+                            continue;
+                        }
+                        if (prop == "FDA_FEEDBACK"
+                            && inst.props["DELAY_ADJUSTMENT_MODE_FEEDBACK"] == "DYNAMIC")
+                            || (prop == "FDA_RELATIVE"
+                                && inst.props["DELAY_ADJUSTMENT_MODE_RELATIVE"] == "DYNAMIC")
+                            || (prop == "FIXED_DELAY_ADJUSTMENT"
+                                && inst.props["DELAY_ADJUSTMENT_MODE"] == "DYNAMIC")
+                        {
+                            for i in 0..4 {
+                                sample.add_tiled_pattern_single(
+                                    &tiles,
+                                    format!("PLL_{side}:PLL:{prop}:BIT{i}"),
+                                );
+                            }
+                            continue;
+                        }
+                        if matches!(
+                            prop,
+                            "DIVR"
+                                | "DIVF"
+                                | "DIVQ"
+                                | "FILTER_RANGE"
+                                | "TEST_MODE"
+                                | "SHIFTREG_DIV_MODE"
+                                | "FDA_FEEDBACK"
+                                | "FDA_RELATIVE"
+                                | "FIXED_DELAY_ADJUSTMENT"
+                        ) {
+                            for (i, c) in val.chars().rev().enumerate() {
+                                assert!(c == '0' || c == '1');
+                                if prop == "SHIFTREG_DIV_MODE" && i == 1 {
+                                    continue;
+                                }
+                                if c == '1' {
+                                    sample.add_tiled_pattern_single(
+                                        &tiles,
+                                        format!("PLL_{side}:PLL:{prop}:BIT{i}"),
+                                    );
+                                }
+                            }
+                        } else {
+                            sample
+                                .add_tiled_pattern(&tiles, format!("PLL_{side}:PLL:{prop}:{val}"));
                         }
                     }
                 }
@@ -1098,8 +1332,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         for i in 0..8 {
             result.push(format!("PLB:COLBUF:GLOBAL.{i}:BIT0"));
             result.push(format!("INT.BRAM:COLBUF:GLOBAL.{i}:BIT0"));
-            // TODO: adjust [?]
-            if edev.chip.kind.has_actual_io_we() {
+            if edev.chip.kind.has_io_we() {
                 result.push(format!("IO.W:COLBUF:GLOBAL.{i}:BIT0"));
                 result.push(format!("IO.E:COLBUF:GLOBAL.{i}:BIT0"));
             }
@@ -1151,8 +1384,195 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         } else {
             true
         };
-        if has_lvds && !edev.chip.kind.has_vref() {
-            result.push(format!("{tile}:IO:LVDS_INPUT:BIT0"));
+        if edev.chip.kind == ChipKind::Ice40P01 {
+            continue;
+        }
+        if !edev.chip.kind.has_actual_io_we() && matches!(tile, "IO.W" | "IO.E") {
+            continue;
+        }
+        for iob in 0..2 {
+            if edev.chip.kind.is_ice40() || (tile == "IO.W" && edev.chip.kind.has_vref()) {
+                result.push(format!("{tile}:IOB{iob}:IBUF_ENABLE:BIT0"));
+            }
+            if tile == "IO.W" && edev.chip.kind.has_vref() {
+                for iostd in [
+                    "SB_LVCMOS15_4",
+                    "SB_LVCMOS15_2",
+                    "SB_LVCMOS18_10",
+                    "SB_LVCMOS18_8",
+                    "SB_LVCMOS18_4",
+                    "SB_LVCMOS18_2",
+                    "SB_SSTL18_FULL",
+                    "SB_SSTL18_HALF",
+                    "SB_MDDR10",
+                    "SB_MDDR8",
+                    "SB_MDDR4",
+                    "SB_MDDR2",
+                    "SB_LVCMOS25_16",
+                    "SB_LVCMOS25_12",
+                    "SB_LVCMOS25_8",
+                    "SB_LVCMOS25_4",
+                    "SB_SSTL2_CLASS_2",
+                    "SB_SSTL2_CLASS_1",
+                    "SB_LVCMOS33_8",
+                ] {
+                    result.push(format!("{tile}:IOB{iob}:IOSTD:{iostd}"));
+                }
+                if iob == 0 {
+                    for iostd in ["SB_LVDS_INPUT", "SB_SUBLVDS_INPUT"] {
+                        result.push(format!("{tile}:IOB{iob}:IOSTD:{iostd}"));
+                    }
+                }
+            } else {
+                result.push(format!("{tile}:IOB{iob}:PULLUP:DISABLE"));
+                if edev.chip.kind.has_multi_pullup() {
+                    result.push(format!("{tile}:IOB{iob}:PULLUP:3P3K"));
+                    result.push(format!("{tile}:IOB{iob}:PULLUP:6P8K"));
+                    result.push(format!("{tile}:IOB{iob}:PULLUP:10K"));
+                    result.push(format!("{tile}:IOB{iob}:WEAK_PULLUP:DISABLE"));
+                }
+                if has_lvds && iob == 0 {
+                    result.push(format!("{tile}:IOB{iob}:LVDS_INPUT:BIT0"));
+                }
+            }
+        }
+        let mut has_latch_global_out = edev.chip.kind.has_latch_global_out();
+        if tile == "IO.S"
+            && (edev
+                .chip
+                .extra_nodes
+                .contains_key(&ExtraNodeLoc::Pll(DirV::S))
+                || edev
+                    .chip
+                    .extra_nodes
+                    .contains_key(&ExtraNodeLoc::PllStub(DirV::S)))
+            && edev.chip.kind.has_actual_io_we()
+        {
+            has_latch_global_out = false;
+        }
+        if tile == "IO.N"
+            && (edev
+                .chip
+                .extra_nodes
+                .contains_key(&ExtraNodeLoc::Pll(DirV::N))
+                || edev
+                    .chip
+                    .extra_nodes
+                    .contains_key(&ExtraNodeLoc::PllStub(DirV::N)))
+        {
+            has_latch_global_out = false;
+        }
+        if edev.chip.kind == ChipKind::Ice40P01 {
+            has_latch_global_out = true;
+        }
+        if has_latch_global_out {
+            result.push(format!("{tile}:IOB:LATCH_GLOBAL_OUT:BIT0"));
+        }
+    }
+    for side in [DirV::S, DirV::N] {
+        let xnloc = ExtraNodeLoc::Pll(side);
+        let tile = xnloc.node_kind();
+        if edev.chip.extra_nodes.contains_key(&xnloc) {
+            if edev.chip.kind.is_ice65() {
+                for (attr, vals) in [
+                    (
+                        "MODE",
+                        ["SB_PLL_CORE", "SB_PLL_PAD", "SB_PLL_2_PAD"].as_slice(),
+                    ),
+                    (
+                        "FEEDBACK_PATH",
+                        ["SIMPLE", "DELAY", "PHASE_AND_DELAY", "EXTERNAL"].as_slice(),
+                    ),
+                    ("DELAY_ADJUSTMENT_MODE", ["DYNAMIC", "FIXED"].as_slice()),
+                    (
+                        "PLLOUT_PHASE",
+                        ["NONE", "0deg", "90deg", "180deg", "270deg"].as_slice(),
+                    ),
+                ] {
+                    for &val in vals {
+                        result.push(format!("{tile}:PLL:{attr}:{val}"));
+                    }
+                }
+                for (attr, width) in [
+                    ("FIXED_DELAY_ADJUSTMENT", 4),
+                    ("DIVR", 4),
+                    ("DIVF", 6),
+                    ("DIVQ", 3),
+                    ("FILTER_RANGE", 3),
+                    ("TEST_MODE", 1),
+                    ("LATCH_GLOBAL_OUT_A", 1),
+                    ("LATCH_GLOBAL_OUT_B", 1),
+                ] {
+                    for i in 0..width {
+                        result.push(format!("{tile}:PLL:{attr}:BIT{i}"));
+                    }
+                }
+            } else {
+                for (attr, vals) in [
+                    (
+                        "MODE",
+                        [
+                            "SB_PLL40_CORE",
+                            "SB_PLL40_PAD",
+                            "SB_PLL40_2_PAD",
+                            "SB_PLL40_2F_CORE",
+                            "SB_PLL40_2F_PAD",
+                        ]
+                        .as_slice(),
+                    ),
+                    (
+                        "FEEDBACK_PATH",
+                        ["SIMPLE", "DELAY", "PHASE_AND_DELAY", "EXTERNAL"].as_slice(),
+                    ),
+                    (
+                        "DELAY_ADJUSTMENT_MODE_FEEDBACK",
+                        ["DYNAMIC", "FIXED"].as_slice(),
+                    ),
+                    (
+                        "DELAY_ADJUSTMENT_MODE_RELATIVE",
+                        ["DYNAMIC", "FIXED"].as_slice(),
+                    ),
+                    (
+                        "PLLOUT_SELECT_PORTA",
+                        ["GENCLK_HALF", "SHIFTREG_0deg", "SHIFTREG_90deg"].as_slice(),
+                    ),
+                    (
+                        "PLLOUT_SELECT_PORTB",
+                        ["GENCLK_HALF", "SHIFTREG_0deg", "SHIFTREG_90deg"].as_slice(),
+                    ),
+                ] {
+                    for &val in vals {
+                        result.push(format!("{tile}:PLL:{attr}:{val}"));
+                    }
+                }
+                for (attr, width) in [
+                    ("SHIFTREG_DIV_MODE", 1),
+                    ("FDA_FEEDBACK", 4),
+                    ("FDA_RELATIVE", 4),
+                    ("DIVR", 4),
+                    ("DIVF", 7),
+                    ("DIVQ", 3),
+                    ("FILTER_RANGE", 3),
+                    ("TEST_MODE", 1),
+                    ("LATCH_GLOBAL_OUT_A", 1),
+                    ("LATCH_GLOBAL_OUT_B", 1),
+                ] {
+                    if attr.starts_with("LATCH_GLOBAL_OUT") && edev.chip.kind == ChipKind::Ice40P01
+                    {
+                        continue;
+                    }
+                    for i in 0..width {
+                        result.push(format!("{tile}:PLL:{attr}:BIT{i}"));
+                    }
+                }
+            }
+        }
+        let xnloc = ExtraNodeLoc::PllStub(side);
+        let tile = xnloc.node_kind();
+        if edev.chip.extra_nodes.contains_key(&xnloc) {
+            for attr in ["LATCH_GLOBAL_OUT_A", "LATCH_GLOBAL_OUT_B"] {
+                result.push(format!("{tile}:PLL:{attr}:BIT0"));
+            }
         }
     }
     if edev.chip.kind.is_ultra() {
@@ -1204,7 +1624,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     }
     // misc
     for i in 0..8 {
-        result.push(format!("GBOUT:GBOUT:MUX.GLOBAL.{i}:IO"));
+        result.push(format!("GB_OUT:GB_OUT:MUX.GLOBAL.{i}:IO"));
     }
     if edev.chip.kind != ChipKind::Ice40T04 {
         result.push("SPEED:SPEED:SPEED:LOW".into());
@@ -1216,89 +1636,10 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
 
 pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
     let mut result = vec![];
-    for &loc in edev.chip.extra_nodes.keys() {
-        match loc {
-            ExtraNodeLoc::GbFabric(_) => (),
-            ExtraNodeLoc::GbIo(_) => {
-                result.push(format!("{loc}:LATCH_GLOBAL_OUT:BIT0"));
-            }
-            ExtraNodeLoc::LatchIo(_) => (),
-            ExtraNodeLoc::Warmboot => (),
-
-            ExtraNodeLoc::IoI3c(crd) => {
-                let (_, (col, row), _) = edev.chip.get_io_loc(crd);
-                let iob = crd.iob();
-                result.push(format!("IO:{col}.{row}.{iob}:I3C_WEAK_PULLUP:DISABLE"));
-                result.push(format!("IO:{col}.{row}.{iob}:I3C_WEAK_PULLUP:ENABLE"));
-                result.push(format!("IO:{col}.{row}.{iob}:I3C_PULLUP:DISABLE"));
-                result.push(format!("IO:{col}.{row}.{iob}:I3C_PULLUP:3P3K"));
-                result.push(format!("IO:{col}.{row}.{iob}:I3C_PULLUP:6P8K"));
-                result.push(format!("IO:{col}.{row}.{iob}:I3C_PULLUP:10K"));
-            }
-            ExtraNodeLoc::LeddIp => (),
-            ExtraNodeLoc::LeddaIp => (),
-            ExtraNodeLoc::IrIp => (),
-            ExtraNodeLoc::LsOsc => (),
-            ExtraNodeLoc::HsOsc => (),
-            // handled as tiled stuff
-            ExtraNodeLoc::LfOsc => (),
-            ExtraNodeLoc::HfOsc => (),
-            ExtraNodeLoc::Trim => (),
-            ExtraNodeLoc::IrDrv => (),
-            ExtraNodeLoc::RgbDrv => (),
-            ExtraNodeLoc::LedDrvCur => (),
-            ExtraNodeLoc::Ir500Drv => (),
-            ExtraNodeLoc::RgbaDrv => (),
-            ExtraNodeLoc::SpramPair(_) => (),
-            // TODO from here on
-            ExtraNodeLoc::Pll(_) => (),
-            ExtraNodeLoc::Spi(_) => (),
-            ExtraNodeLoc::I2c(_) => (),
-            ExtraNodeLoc::I2cFifo(_) => (),
-            ExtraNodeLoc::Mac16(_, _) => (),
-        }
-    }
-    for &crd in edev.chip.io_iob.keys() {
-        let (_, (col, row), _) = edev.chip.get_io_loc(crd);
-        let iob = crd.iob();
-        let is_od = edev.chip.io_od.contains(&crd);
-        result.push(format!("IO:{col}.{row}.{iob}:IBUF_ENABLE:BIT0"));
-        result.push(format!("IO:{col}.{row}.{iob}:PULLUP:DISABLE"));
-        if matches!(edev.chip.kind, ChipKind::Ice40T01 | ChipKind::Ice40T05) && !is_od {
-            result.push(format!("IO:{col}.{row}.{iob}:PULLUP:3P3K"));
-            result.push(format!("IO:{col}.{row}.{iob}:PULLUP:6P8K"));
-            result.push(format!("IO:{col}.{row}.{iob}:PULLUP:10K"));
-            result.push(format!("IO:{col}.{row}.{iob}:PULLUP:100K"));
-        }
-        if crd.edge() == Dir::W && edev.chip.kind.has_vref() {
-            for iostd in [
-                "SB_LVCMOS15_4",
-                "SB_LVCMOS15_2",
-                "SB_LVCMOS18_10",
-                "SB_LVCMOS18_8",
-                "SB_LVCMOS18_4",
-                "SB_LVCMOS18_2",
-                "SB_SSTL18_FULL",
-                "SB_SSTL18_HALF",
-                "SB_MDDR10",
-                "SB_MDDR8",
-                "SB_MDDR4",
-                "SB_MDDR2",
-                "SB_LVCMOS25_16",
-                "SB_LVCMOS25_12",
-                "SB_LVCMOS25_8",
-                "SB_LVCMOS25_4",
-                "SB_SSTL2_CLASS_2",
-                "SB_SSTL2_CLASS_1",
-                "SB_LVCMOS33_8",
-            ] {
-                result.push(format!("IO:{col}.{row}.{iob}:IOSTD:{iostd}"));
-            }
-            if crd.iob().to_idx() == 0 {
-                for iostd in ["SB_LVDS_INPUT", "SB_SUBLVDS_INPUT"] {
-                    result.push(format!("IO:{col}.{row}.{iob}:IOSTD:{iostd}"));
-                }
-            }
+    if edev.chip.kind == ChipKind::Ice40P01 {
+        for &io in edev.chip.io_iob.keys() {
+            result.push(format!("{io}:IBUF_ENABLE:BIT0"));
+            result.push(format!("{io}:PULLUP:DISABLE"));
         }
     }
     result

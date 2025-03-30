@@ -65,7 +65,7 @@ impl Instance {
     }
 
     pub fn prop_bin(&mut self, prop: &str, val: &BitSlice) {
-        let mut value = format!("{}'b", val.len());
+        let mut value = String::new();
         for bit in val.iter().rev() {
             if *bit {
                 write!(value, "1").unwrap();
@@ -190,8 +190,8 @@ fn emit_edif(mut f: impl Write, design: &Design) -> std::io::Result<()> {
             (keywordMap (keywordLevel 0))
             (status (written (timeStamp 1995 1 1 1 1 1) (program "xxx" (version "v1"))))
             (library PrimitivesExt
-            (edifLevel 0)
-            (technology (numberDefinition))
+                (edifLevel 0)
+                (technology (numberDefinition))
         "#
     )?;
     let prims = get_prims(design.kind);
