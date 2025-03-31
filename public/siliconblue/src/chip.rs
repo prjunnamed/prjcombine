@@ -169,6 +169,7 @@ pub enum ExtraNodeLoc {
     LeddaIp,
     IrIp,
     Mac16(ColId, RowId),
+    Mac16Trim(ColId, RowId),
     SpramPair(DirH),
 }
 
@@ -181,6 +182,8 @@ impl ExtraNodeLoc {
                 let iob = crd.iob();
                 format!("IO_I3C_{iob}")
             }
+            ExtraNodeLoc::Mac16(..) => "MAC16".to_string(),
+            ExtraNodeLoc::Mac16Trim(..) => "MAC16_TRIM".to_string(),
             ExtraNodeLoc::SpramPair(_) => "SPRAM".to_string(),
             _ => self.to_string(),
         }
@@ -214,6 +217,7 @@ impl std::fmt::Display for ExtraNodeLoc {
             ExtraNodeLoc::LeddaIp => write!(f, "LEDDA_IP"),
             ExtraNodeLoc::IrIp => write!(f, "IR_IP"),
             ExtraNodeLoc::Mac16(col, row) => write!(f, "MAC16_X{col}Y{row}"),
+            ExtraNodeLoc::Mac16Trim(col, row) => write!(f, "MAC16_TRIM_X{col}Y{row}"),
             ExtraNodeLoc::SpramPair(edge) => write!(f, "SPRAM_{edge}"),
         }
     }

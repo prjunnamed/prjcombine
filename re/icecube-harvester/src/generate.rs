@@ -812,6 +812,57 @@ impl Generator<'_> {
         }
     }
 
+    fn emit_dsp(&mut self) {
+        let mut inst = Instance::new("SB_MAC16");
+        let prim = &self.cfg.prims["SB_MAC16"];
+        let mut outps = vec![];
+        for (&pin, pin_data) in &prim.pins {
+            if matches!(
+                pin,
+                "CI" | "ACCUMCI" | "SIGNEXTIN" | "CO" | "ACCUMCO" | "SIGNEXTOUT"
+            ) {
+                continue;
+            }
+            if let Some(width) = pin_data.len {
+                for idx in 0..width {
+                    if pin_data.dir == PinDir::Input {
+                        if self.rng.random() {
+                            let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                            inst.connect_idx(pin, idx, src_site, src_pin);
+                        }
+                    } else {
+                        outps.push(InstPin::Indexed(pin.into(), idx));
+                    }
+                }
+            } else {
+                if pin_data.dir == PinDir::Input {
+                    if self.rng.random() {
+                        let (src_site, src_pin) = self.get_inps(1).pop().unwrap();
+                        inst.connect(pin, src_site, src_pin);
+                    }
+                } else {
+                    outps.push(InstPin::Simple(pin.into()));
+                }
+            }
+        }
+        for (&prop, &kind) in &prim.props {
+            match kind {
+                PropKind::BitvecBin(width) => {
+                    inst.prop_bin(
+                        prop,
+                        &BitVec::from_iter((0..width).map(|_| self.rng.random::<bool>())),
+                    );
+                }
+                _ => unreachable!(),
+            }
+        }
+        let inst = self.design.insts.push(inst);
+        let num_outps = self.rng.random_range(1..=outps.len());
+        for outp in outps.choose_multiple(&mut self.rng, num_outps) {
+            self.add_out_raw(inst, outp.clone());
+        }
+    }
+
     fn emit_warmboot(&mut self) {
         let mut inst = Instance::new("SB_WARMBOOT");
         for pin in ["S0", "S1", "BOOT"] {
@@ -1391,6 +1442,7 @@ impl Generator<'_> {
             Io,
             Lut,
             Bram,
+            Dsp,
             LeddIp,
             LeddaIp,
             IrIp,
@@ -1436,7 +1488,9 @@ impl Generator<'_> {
                 ExtraNodeLoc::IrIp => {
                     things.push(Thing::IrIp);
                 }
-                // ExtraNodeLoc::Mac16(col, row) => todo!(),
+                ExtraNodeLoc::Mac16(_, _) => {
+                    things.push(Thing::Dsp);
+                }
                 ExtraNodeLoc::SpramPair(side) => {
                     things.push(Thing::Spram(side));
                 }
@@ -1470,6 +1524,11 @@ impl Generator<'_> {
                             self.emit_bram();
                             actual_brams -= 1;
                         }
+                    }
+                }
+                Thing::Dsp => {
+                    if self.rng.random_bool(0.8) {
+                        self.emit_dsp();
                     }
                 }
                 Thing::LsOsc => {

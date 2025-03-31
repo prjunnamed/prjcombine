@@ -995,6 +995,65 @@ pub fn make_sample(
                         }
                     }
                 }
+                "SB_MAC16" => {
+                    let col = xlat_col[loc.loc.x as usize];
+                    let row = xlat_row[loc.loc.y as usize];
+                    let mut xnloc = ExtraNodeLoc::Mac16(col, row);
+                    if !edev.chip.extra_nodes.contains_key(&xnloc) {
+                        xnloc = ExtraNodeLoc::Mac16Trim(col, row);
+                    }
+                    let tiles = Vec::from_iter(
+                        edev.chip.extra_nodes[&xnloc]
+                            .tiles
+                            .values()
+                            .map(|&(col, row)| BitOwner::Main(col, row)),
+                    );
+                    let nk = xnloc.node_kind();
+                    for i in 0..4 {
+                        for j in 0..8 {
+                            for k in [4, 5, 6, 7, 12, 13, 14, 15] {
+                                sample.add_tiled_pattern(
+                                    &tiles[i..i + 1],
+                                    format!("PLB:LC{j}:LUT_INIT:BIT{k}"),
+                                );
+                            }
+                            sample.add_tiled_pattern(
+                                &tiles[i..i + 1],
+                                format!("PLB:LC{j}:MUX.I2:LTIN"),
+                            );
+                        }
+                    }
+                    if matches!(
+                        (edev.chip.kind, col.to_idx(), row.to_idx()),
+                        (ChipKind::Ice40T04, _, 5) | (ChipKind::Ice40T05, 25, 10)
+                    ) {
+                        for k in [4, 5, 6, 7, 12, 13, 14, 15] {
+                            sample.add_tiled_pattern(
+                                &tiles[4..5],
+                                format!("PLB:LC0:LUT_INIT:BIT{k}"),
+                            );
+                        }
+                        sample.add_tiled_pattern(&tiles[4..5], "PLB:LC0:MUX.I2:LTIN");
+                    }
+                    for (prop, val) in &inst.props {
+                        for (i, c) in val.chars().rev().enumerate() {
+                            assert!(c == '0' || c == '1');
+                            if c == '1' {
+                                if prop == "NEG_TRIGGER" {
+                                    sample.add_tiled_pattern_single(
+                                        &tiles[2..3],
+                                        "PLB:INT:INV.IMUX.CLK:BIT0",
+                                    );
+                                } else {
+                                    sample.add_tiled_pattern_single(
+                                        &tiles,
+                                        format!("{nk}:MAC16:{prop}:BIT{i}"),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
                 "SB_HFOSC" => {
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
@@ -1312,7 +1371,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     let mut result = vec![];
     // PLB
     for lc in 0..8 {
-        if lc != 0 && edev.chip.kind.is_ice40() {
+        if edev.chip.kind.is_ice40() {
             result.push(format!("PLB:LC{lc}:MUX.I2:LTIN"));
         }
         result.push(format!("PLB:INT:MUX.IMUX.LC{lc}.I3:CI"));
@@ -1613,6 +1672,39 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                 }
                 for j in 0..4 {
                     result.push(format!("IR500_DRV:BARCODE_DRV:BARCODE_CURRENT:BIT{j}"));
+                }
+            }
+        }
+    }
+    // MAC16
+    if matches!(edev.chip.kind, ChipKind::Ice40T04 | ChipKind::Ice40T05) {
+        for tile in ["MAC16", "MAC16_TRIM"] {
+            if tile == "MAC16_TRIM" && edev.chip.kind != ChipKind::Ice40T05 {
+                continue;
+            }
+            for (attr, width) in [
+                ("A_REG", 1),
+                ("B_REG", 1),
+                ("C_REG", 1),
+                ("D_REG", 1),
+                ("TOP_8x8_MULT_REG", 1),
+                ("BOT_8x8_MULT_REG", 1),
+                ("PIPELINE_16x16_MULT_REG1", 1),
+                ("PIPELINE_16x16_MULT_REG2", 1),
+                ("TOPOUTPUT_SELECT", 2),
+                ("BOTOUTPUT_SELECT", 2),
+                ("TOPADDSUB_LOWERINPUT", 2),
+                ("BOTADDSUB_LOWERINPUT", 2),
+                ("TOPADDSUB_UPPERINPUT", 1),
+                ("BOTADDSUB_UPPERINPUT", 1),
+                ("TOPADDSUB_CARRYSELECT", 2),
+                ("BOTADDSUB_CARRYSELECT", 2),
+                ("MODE_8x8", 1),
+                ("A_SIGNED", 1),
+                ("B_SIGNED", 1),
+            ] {
+                for i in 0..width {
+                    result.push(format!("{tile}:MAC16:{attr}:BIT{i}"));
                 }
             }
         }

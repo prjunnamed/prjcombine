@@ -263,7 +263,7 @@ pub fn collect(
     for lc in 0..8 {
         let tile = "PLB";
         let bel = &format!("LC{lc}");
-        if lc != 0 && edev.chip.kind.is_ice40() {
+        if edev.chip.kind.is_ice40() {
             collector.collect_enum_default(tile, bel, "MUX.I2", &["LTIN"], "INT");
         }
         collector.collect_bitvec(tile, bel, "LUT_INIT", "");
@@ -632,6 +632,37 @@ pub fn collect(
                 let bel = "BARCODE_DRV";
                 collector.collect_bit(tile, bel, "ENABLE", "");
                 collector.collect_bitvec(tile, bel, "BARCODE_CURRENT", "");
+            }
+        }
+    }
+    if matches!(edev.chip.kind, ChipKind::Ice40T04 | ChipKind::Ice40T05) {
+        for tile in ["MAC16", "MAC16_TRIM"] {
+            if tile == "MAC16_TRIM" && edev.chip.kind != ChipKind::Ice40T05 {
+                continue;
+            }
+            let bel = "MAC16";
+            for attr in [
+                "A_REG",
+                "B_REG",
+                "C_REG",
+                "D_REG",
+                "TOP_8x8_MULT_REG",
+                "BOT_8x8_MULT_REG",
+                "PIPELINE_16x16_MULT_REG1",
+                "PIPELINE_16x16_MULT_REG2",
+                "TOPOUTPUT_SELECT",
+                "BOTOUTPUT_SELECT",
+                "TOPADDSUB_LOWERINPUT",
+                "BOTADDSUB_LOWERINPUT",
+                "TOPADDSUB_UPPERINPUT",
+                "BOTADDSUB_UPPERINPUT",
+                "TOPADDSUB_CARRYSELECT",
+                "BOTADDSUB_CARRYSELECT",
+                "MODE_8x8",
+                "A_SIGNED",
+                "B_SIGNED",
+            ] {
+                collector.collect_bitvec(tile, bel, attr, "");
             }
         }
     }

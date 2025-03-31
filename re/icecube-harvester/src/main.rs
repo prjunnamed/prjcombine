@@ -837,7 +837,14 @@ impl PartContext<'_> {
                         let col = self.xlat_col[self.part.packages[0]][site.loc.x as usize];
                         let row = self.xlat_row[self.part.packages[0]][site.loc.y as usize];
                         (
-                            ExtraNodeLoc::Mac16(col, row),
+                            if self.chip.kind == ChipKind::Ice40T05
+                                && col.to_idx() == 0
+                                && row.to_idx() == 15
+                            {
+                                ExtraNodeLoc::Mac16Trim(col, row)
+                            } else {
+                                ExtraNodeLoc::Mac16(col, row)
+                            },
                             bels::MAC16,
                             (col, row),
                             vec![],
@@ -1322,6 +1329,20 @@ impl PartContext<'_> {
         Some(result)
     }
 
+    fn inject_lut0_cascade(&mut self, harvester: &mut Harvester<BitOwner>) {
+        harvester.force_tiled(
+            "PLB:LC0:MUX.I2:LTIN",
+            BTreeMap::from_iter([(
+                TileBit {
+                    tile: 0,
+                    frame: 0,
+                    bit: 50,
+                },
+                true,
+            )]),
+        );
+    }
+
     fn inject_io_inv_clk(&mut self, harvester: &mut Harvester<BitOwner>) {
         for (tile, key, bit) in [
             (
@@ -1470,6 +1491,9 @@ impl PartContext<'_> {
     fn harvest(&mut self) {
         let mut harvester = Harvester::new();
         let mut muxes = BTreeMap::new();
+        if self.chip.kind.is_ice40() {
+            self.inject_lut0_cascade(&mut harvester);
+        }
         self.inject_io_inv_clk(&mut harvester);
         if self.chip.kind == ChipKind::Ice40R04 {
             self.transplant_r04(&mut harvester, &mut muxes);
