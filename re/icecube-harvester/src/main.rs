@@ -104,7 +104,7 @@ impl PartContext<'_> {
                 "SB_WARMBOOT",
                 "SB_SPI",
                 "SB_I2C",
-                "SB_FILTER_50NS", // TODO wtf
+                "SB_FILTER_50NS",
                 "SB_HSOSC",
                 "SB_LSOSC",
                 "SB_HFOSC",
@@ -1294,6 +1294,27 @@ impl PartContext<'_> {
         }
     }
 
+    fn fill_filter(&mut self) {
+        let Some(sites) = self.bel_info.get("SB_FILTER_50NS") else {
+            return;
+        };
+        let mut sites = sites.clone();
+        sites.sort_by_key(|site| site.loc);
+        assert_eq!(sites.len(), 2);
+        let loc = ExtraNodeLoc::FilterPair;
+        let mut nb = MiscNodeBuilder::new(&[]);
+        for (i, site) in sites.iter().enumerate() {
+            let bel_pins = &self.bel_pins[&("SB_FILTER_50NS", site.loc)];
+            nb.add_bel(bels::FILTER[i], bel_pins);
+        }
+        nb.get_tile((ColId::from_idx(25), RowId::from_idx(30)));
+        let (int_node, extra_node) = nb.finish();
+        self.intdb.nodes.insert(loc.node_kind(), int_node);
+        self.chip.extra_nodes.insert(loc, extra_node);
+        self.extra_node_locs
+            .insert(loc, vec![sites[0].loc, sites[1].loc]);
+    }
+
     fn compute_rows_colbuf(
         &self,
         colbuf_map: BTreeMap<RowId, RowId>,
@@ -1901,6 +1922,7 @@ fn main() {
         ctx.fill_io_i3c();
         ctx.fill_drv();
         ctx.fill_spram();
+        ctx.fill_filter();
 
         println!("{}: initial geometry done; starting harvest", ctx.part.name);
 

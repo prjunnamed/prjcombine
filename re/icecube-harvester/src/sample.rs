@@ -1324,6 +1324,21 @@ pub fn make_sample(
                         }
                     }
                 }
+                "SB_FILTER_50NS" => {
+                    let filters = extra_node_locs.get(&ExtraNodeLoc::FilterPair).unwrap();
+                    for (i, &sloc) in filters.iter().enumerate() {
+                        if loc.loc == sloc {
+                            let tiles = Vec::from_iter(
+                                edev.chip.extra_nodes[&ExtraNodeLoc::FilterPair]
+                                    .tiles
+                                    .values()
+                                    .map(|&(col, row)| BitOwner::Main(col, row)),
+                            );
+                            sample
+                                .add_tiled_pattern(&tiles, format!("FILTER:FILTER{i}:ENABLE:BIT0"));
+                        }
+                    }
+                }
                 _ => (),
             }
         }
@@ -1713,6 +1728,8 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     if edev.chip.kind == ChipKind::Ice40T05 {
         result.push("SPRAM:SPRAM0:ENABLE:BIT0".into());
         result.push("SPRAM:SPRAM1:ENABLE:BIT0".into());
+        result.push("FILTER:FILTER0:ENABLE:BIT0".into());
+        result.push("FILTER:FILTER1:ENABLE:BIT0".into());
     }
     // misc
     for i in 0..8 {

@@ -38,9 +38,12 @@ bels![
     LED_DRV_CUR,
     SPRAM0,
     SPRAM1,
+    FILTER0,
+    FILTER1,
 ];
 
 pub const LC: [BelSlotId; 8] = [LC0, LC1, LC2, LC3, LC4, LC5, LC6, LC7];
 pub const IO: [BelSlotId; 2] = [IO0, IO1];
 pub const IO_I3C: [BelSlotId; 2] = [IO0_I3C, IO1_I3C];
 pub const SPRAM: [BelSlotId; 2] = [SPRAM0, SPRAM1];
+pub const FILTER: [BelSlotId; 2] = [FILTER0, FILTER1];

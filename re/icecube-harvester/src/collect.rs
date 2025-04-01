@@ -671,6 +671,10 @@ pub fn collect(
         for bel in ["SPRAM0", "SPRAM1"] {
             collector.collect_bit(tile, bel, "ENABLE", "");
         }
+        let tile = "FILTER";
+        for bel in ["FILTER0", "FILTER1"] {
+            collector.collect_bit_wide(tile, bel, "ENABLE", "");
+        }
     }
 
     {

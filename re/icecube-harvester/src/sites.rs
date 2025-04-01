@@ -761,196 +761,203 @@ pub fn find_bel_pins(
             props: Default::default(),
         };
         let prim = &prims[kind];
-        let mut inst = Instance::new(kind);
-        if kind == "SB_IO_I3C" {
-            inst.io.insert(
-                InstPin::Simple("PACKAGE_PIN".into()),
-                site.pads["PACKAGE_PIN"].1.clone(),
-            );
-        } else {
-            inst.loc = Some(site.loc);
-        }
-        let mut trace_ins = BTreeMap::new();
+        let mut insts = BTreeMap::new();
+        let mut outps = vec![];
+        let num = if kind == "SB_FILTER_50NS" { 2 } else { 1 };
+        for _ in 0..num {
+            let mut inst = Instance::new(kind);
+            if kind == "SB_IO_I3C" {
+                inst.io.insert(
+                    InstPin::Simple("PACKAGE_PIN".into()),
+                    site.pads["PACKAGE_PIN"].1.clone(),
+                );
+            } else {
+                inst.loc = Some(site.loc);
+            }
+            let mut trace_ins = BTreeMap::new();
 
-        for (&pname, pin) in &prim.pins {
-            if pin.dir == PinDir::Input && !pin.is_pad {
-                if (kind.starts_with("SB_IO") || kind == "SB_GB_IO")
-                    && matches!(
-                        pname,
-                        "OUTPUT_ENABLE"
-                            | "CLOCK_ENABLE"
-                            | "INPUT_CLK"
-                            | "OUTPUT_CLK"
-                            | "LATCH_INPUT_VALUE"
-                            | "OUTPUTENABLE"
-                            | "CLOCKENABLE"
-                            | "INPUTCLK"
-                            | "OUTPUTCLK"
-                            | "LATCHINPUTVALUE"
-                    )
-                {
-                    continue;
-                }
-                if kind == "SB_MAC16" && matches!(pname, "ACCUMCI" | "SIGNEXTIN") {
-                    continue;
-                }
-                if (kind == "SB_IR_DRV" && pname == "IRPU")
-                    || (kind == "SB_RGB_DRV" && pname == "RGBPU")
-                {
-                    let mut drv = Instance::new("SB_LED_DRV_CUR");
+            for (&pname, pin) in &prim.pins {
+                if pin.dir == PinDir::Input && !pin.is_pad {
+                    if (kind.starts_with("SB_IO") || kind == "SB_GB_IO")
+                        && matches!(
+                            pname,
+                            "OUTPUT_ENABLE"
+                                | "CLOCK_ENABLE"
+                                | "INPUT_CLK"
+                                | "OUTPUT_CLK"
+                                | "LATCH_INPUT_VALUE"
+                                | "OUTPUTENABLE"
+                                | "CLOCKENABLE"
+                                | "INPUTCLK"
+                                | "OUTPUTCLK"
+                                | "LATCHINPUTVALUE"
+                        )
+                    {
+                        continue;
+                    }
+                    if kind == "SB_MAC16" && matches!(pname, "ACCUMCI" | "SIGNEXTIN") {
+                        continue;
+                    }
+                    if (kind == "SB_IR_DRV" && pname == "IRPU")
+                        || (kind == "SB_RGB_DRV" && pname == "RGBPU")
+                    {
+                        let mut drv = Instance::new("SB_LED_DRV_CUR");
 
-                    let mut lut = Instance::new("SB_LUT4");
-                    lut.prop("LUT_INIT", "16'h0000");
-                    let lut = design.insts.push(lut);
-                    trace_ins.insert(
-                        (lut, InstPin::Simple("O".into())),
-                        InstPin::Simple("LED_DRV_CUR__EN".into()),
-                    );
-                    drv.connect("EN", lut, InstPin::Simple("O".into()));
-
-                    for i in 0..10 {
                         let mut lut = Instance::new("SB_LUT4");
                         lut.prop("LUT_INIT", "16'h0000");
                         let lut = design.insts.push(lut);
                         trace_ins.insert(
                             (lut, InstPin::Simple("O".into())),
-                            InstPin::Simple(format!("LED_DRV_CUR__TRIM{i}")),
+                            InstPin::Simple("LED_DRV_CUR__EN".into()),
                         );
-                        drv.connect(&format!("TRIM{i}"), lut, InstPin::Simple("O".into()));
-                    }
+                        drv.connect("EN", lut, InstPin::Simple("O".into()));
 
-                    let drv = design.insts.push(drv);
-
-                    inst.connect(pname, drv, InstPin::Simple("LEDPU".into()));
-
-                    continue;
-                }
-                match pin.len {
-                    Some(n) => {
-                        for i in 0..n {
+                        for i in 0..10 {
                             let mut lut = Instance::new("SB_LUT4");
                             lut.prop("LUT_INIT", "16'h0000");
                             let lut = design.insts.push(lut);
-                            inst.connect_idx(pname, i, lut, InstPin::Simple("O".into()));
                             trace_ins.insert(
                                 (lut, InstPin::Simple("O".into())),
-                                InstPin::Indexed(pname.into(), i),
+                                InstPin::Simple(format!("LED_DRV_CUR__TRIM{i}")),
+                            );
+                            drv.connect(&format!("TRIM{i}"), lut, InstPin::Simple("O".into()));
+                        }
+
+                        let drv = design.insts.push(drv);
+
+                        inst.connect(pname, drv, InstPin::Simple("LEDPU".into()));
+
+                        continue;
+                    }
+                    match pin.len {
+                        Some(n) => {
+                            for i in 0..n {
+                                let mut lut = Instance::new("SB_LUT4");
+                                lut.prop("LUT_INIT", "16'h0000");
+                                let lut = design.insts.push(lut);
+                                inst.connect_idx(pname, i, lut, InstPin::Simple("O".into()));
+                                trace_ins.insert(
+                                    (lut, InstPin::Simple("O".into())),
+                                    InstPin::Indexed(pname.into(), i),
+                                );
+                            }
+                        }
+                        None => {
+                            let mut lut = Instance::new("SB_LUT4");
+                            lut.prop("LUT_INIT", "16'h0000");
+                            let lut = design.insts.push(lut);
+                            inst.connect(pname, lut, InstPin::Simple("O".into()));
+                            trace_ins.insert(
+                                (lut, InstPin::Simple("O".into())),
+                                InstPin::Simple(pname.into()),
                             );
                         }
                     }
-                    None => {
+                }
+                if pin.is_pad {
+                    inst.top_port(pname);
+                }
+            }
+            for (&pname, pval) in &prim.props {
+                if pname.ends_with("_CURRENT") {
+                    let PropKind::BitvecBinStr(len) = *pval else {
+                        unreachable!()
+                    };
+                    inst.prop_bin_str(pname, &bitvec![1; len]);
+                    continue;
+                }
+                if pname == "BUS_ADDR74" {
+                    let idx = if site.loc.x == 0 { 0 } else { 1 };
+                    match kind {
+                        "SB_I2C" => {
+                            inst.prop(pname, ["0b0001", "0b0011"][idx % 2]);
+                        }
+                        "SB_SPI" => {
+                            inst.prop(pname, ["0b0000", "0b0010"][idx % 2]);
+                        }
+                        _ => unreachable!(),
+                    }
+                    continue;
+                }
+                if pname == "I2C_SLAVE_INIT_ADDR" || pname == "I2C_SLAVE_ADDR" {
+                    let idx = if site.loc.x == 0 { 0 } else { 1 };
+                    inst.prop(pname, ["0b1111100001", "0b1111100010"][idx % 2]);
+                    continue;
+                }
+                if kind == "SB_MAC16" && pname == "MODE_8x8" {
+                    inst.prop_bin(pname, bits![1]);
+                    continue;
+                }
+                if kind == "SB_MAC16"
+                    && (pname == "BOTOUTPUT_SELECT" || pname == "TOPOUTPUT_SELECT")
+                {
+                    inst.prop_bin(pname, bits![0, 1]);
+                    continue;
+                }
+
+                match pval {
+                    PropKind::String(vals) => {
+                        inst.prop(pname, vals[0]);
+                    }
+                    PropKind::BitvecHex(l) => {
+                        inst.prop_bin(pname, &bitvec![0; *l]);
+                    }
+                    PropKind::BitvecBin(l) => {
+                        inst.prop_bin(pname, &bitvec![0; *l]);
+                    }
+                    PropKind::BitvecBinStr(l) => {
+                        inst.prop_bin_str(pname, &bitvec![0; *l]);
+                    }
+                }
+            }
+
+            if kind.ends_with("OSC") {
+                inst.prop("ROUTE_THROUGH_FABRIC", "1");
+            }
+
+            let inst = design.insts.push(inst);
+            for (&pname, pin) in &prim.pins {
+                if pin.dir == PinDir::Output && !pin.is_pad {
+                    if kind == "SB_MAC16" && part.kind == ChipKind::Ice40MX && pname == "CO" {
+                        continue;
+                    }
+                    if (kind.starts_with("SB_IO") || kind == "SB_GB_IO")
+                        && matches!(pname, "D_IN_0" | "D_IN_1" | "DIN0" | "DIN1")
+                    {
+                        continue;
+                    }
+                    if kind == "SB_MAC16" && matches!(pname, "ACCUMCO" | "SIGNEXTOUT") {
+                        continue;
+                    }
+                    if (matches!(
+                        kind,
+                        "SB_GB" | "SB_GB_IO" | "SB_HSOSC" | "SB_LSOSC" | "SB_HFOSC" | "SB_LFOSC"
+                    )) || pname.starts_with("PLLOUTGLOBAL")
+                        || (kind.starts_with("SB_PLL") && pname == "SDO")
+                    {
+                        let pin = InstPin::Simple(pname.into());
                         let mut lut = Instance::new("SB_LUT4");
-                        lut.prop("LUT_INIT", "16'h0000");
+                        lut.connect("I0", inst, pin);
+                        lut.prop("LUT_INIT", "16'haaaa");
                         let lut = design.insts.push(lut);
-                        inst.connect(pname, lut, InstPin::Simple("O".into()));
-                        trace_ins.insert(
-                            (lut, InstPin::Simple("O".into())),
-                            InstPin::Simple(pname.into()),
-                        );
+                        outps.push((lut, InstPin::Simple("O".into())));
+                        continue;
                     }
-                }
-            }
-            if pin.is_pad {
-                inst.top_port(pname);
-            }
-        }
-        for (&pname, pval) in &prim.props {
-            if pname.ends_with("_CURRENT") {
-                let PropKind::BitvecBinStr(len) = *pval else {
-                    unreachable!()
-                };
-                inst.prop_bin_str(pname, &bitvec![1; len]);
-                continue;
-            }
-            if pname == "BUS_ADDR74" {
-                let idx = if site.loc.x == 0 { 0 } else { 1 };
-                match kind {
-                    "SB_I2C" => {
-                        inst.prop(pname, ["0b0001", "0b0011"][idx % 2]);
-                    }
-                    "SB_SPI" => {
-                        inst.prop(pname, ["0b0000", "0b0010"][idx % 2]);
-                    }
-                    _ => unreachable!(),
-                }
-                continue;
-            }
-            if pname == "I2C_SLAVE_INIT_ADDR" || pname == "I2C_SLAVE_ADDR" {
-                let idx = if site.loc.x == 0 { 0 } else { 1 };
-                inst.prop(pname, ["0b1111100001", "0b1111100010"][idx % 2]);
-                continue;
-            }
-            if kind == "SB_MAC16" && pname == "MODE_8x8" {
-                inst.prop_bin(pname, bits![1]);
-                continue;
-            }
-            if kind == "SB_MAC16" && (pname == "BOTOUTPUT_SELECT" || pname == "TOPOUTPUT_SELECT") {
-                inst.prop_bin(pname, bits![0, 1]);
-                continue;
-            }
-
-            match pval {
-                PropKind::String(vals) => {
-                    inst.prop(pname, vals[0]);
-                }
-                PropKind::BitvecHex(l) => {
-                    inst.prop_bin(pname, &bitvec![0; *l]);
-                }
-                PropKind::BitvecBin(l) => {
-                    inst.prop_bin(pname, &bitvec![0; *l]);
-                }
-                PropKind::BitvecBinStr(l) => {
-                    inst.prop_bin_str(pname, &bitvec![0; *l]);
-                }
-            }
-        }
-
-        if kind.ends_with("OSC") {
-            inst.prop("ROUTE_THROUGH_FABRIC", "1");
-        }
-
-        let inst = design.insts.push(inst);
-        let mut outps = vec![];
-        for (&pname, pin) in &prim.pins {
-            if pin.dir == PinDir::Output && !pin.is_pad {
-                if kind == "SB_MAC16" && part.kind == ChipKind::Ice40MX && pname == "CO" {
-                    continue;
-                }
-                if (kind.starts_with("SB_IO") || kind == "SB_GB_IO")
-                    && matches!(pname, "D_IN_0" | "D_IN_1" | "DIN0" | "DIN1")
-                {
-                    continue;
-                }
-                if kind == "SB_MAC16" && matches!(pname, "ACCUMCO" | "SIGNEXTOUT") {
-                    continue;
-                }
-                if (matches!(
-                    kind,
-                    "SB_GB" | "SB_GB_IO" | "SB_HSOSC" | "SB_LSOSC" | "SB_HFOSC" | "SB_LFOSC"
-                )) || pname.starts_with("PLLOUTGLOBAL")
-                    || (kind.starts_with("SB_PLL") && pname == "SDO")
-                {
-                    let pin = InstPin::Simple(pname.into());
-                    let mut lut = Instance::new("SB_LUT4");
-                    lut.connect("I0", inst, pin);
-                    lut.prop("LUT_INIT", "16'haaaa");
-                    let lut = design.insts.push(lut);
-                    outps.push((lut, InstPin::Simple("O".into())));
-                    continue;
-                }
-                match pin.len {
-                    Some(n) => {
-                        for i in 0..n {
-                            let pin = InstPin::Indexed(pname.to_string(), i);
+                    match pin.len {
+                        Some(n) => {
+                            for i in 0..n {
+                                let pin = InstPin::Indexed(pname.to_string(), i);
+                                outps.push((inst, pin.clone()));
+                            }
+                        }
+                        None => {
+                            let pin = InstPin::Simple(pname.to_string());
                             outps.push((inst, pin.clone()));
                         }
                     }
-                    None => {
-                        let pin = InstPin::Simple(pname.to_string());
-                        outps.push((inst, pin.clone()));
-                    }
                 }
             }
+            insts.insert(inst, trace_ins);
         }
 
         while outps.len() > 1 {
@@ -978,6 +985,13 @@ pub fn find_bel_pins(
         let mut iwmap_in = BTreeMap::new();
         let mut iwmap_out = BTreeMap::new();
         let mut wnmap: BTreeMap<_, Vec<_>> = BTreeMap::new();
+        let inst = res
+            .loc_map
+            .iter()
+            .find(|&(_, loc)| loc.loc == site.loc)
+            .unwrap()
+            .0;
+        let trace_ins = insts.remove(&inst).unwrap();
         for (src, paths) in res.routes {
             if src.0 == inst {
                 for path in paths {

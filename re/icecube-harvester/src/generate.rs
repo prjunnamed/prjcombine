@@ -1451,6 +1451,7 @@ impl Generator<'_> {
             HsOsc,
             LfOsc,
             HfOsc,
+            Filter,
         }
         let mut things = vec![];
         for _ in 0..actual_ios {
@@ -1493,6 +1494,12 @@ impl Generator<'_> {
                 }
                 ExtraNodeLoc::SpramPair(side) => {
                     things.push(Thing::Spram(side));
+                }
+                ExtraNodeLoc::FilterPair => {
+                    let num = self.rng.random_range(0..=2);
+                    for _ in 0..num {
+                        things.push(Thing::Filter);
+                    }
                 }
                 _ => (),
             }
@@ -1554,6 +1561,9 @@ impl Generator<'_> {
                 }
                 Thing::Spram(side) => {
                     self.emit_spram(side);
+                }
+                Thing::Filter => {
+                    self.emit_simple_ip("SB_FILTER_50NS");
                 }
             }
         }
