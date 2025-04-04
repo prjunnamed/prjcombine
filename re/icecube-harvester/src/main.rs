@@ -14,7 +14,10 @@ use parts::Part;
 use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
 use prjcombine_interconnect::{
-    db::{IntDb, MuxInfo, MuxKind, NodeKind, NodeKindId, NodeTileId, NodeWireId},
+    db::{
+        BelInfo, BelPin, IntDb, MuxInfo, MuxKind, NodeKind, NodeKindId, NodeTileId, NodeWireId,
+        PinDir,
+    },
     dir::{DirH, DirV},
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };
@@ -1315,6 +1318,40 @@ impl PartContext<'_> {
             .insert(loc, vec![sites[0].loc, sites[1].loc]);
     }
 
+    fn fill_smcclk(&mut self) {
+        let (col, row, wire) = match self.chip.kind {
+            ChipKind::Ice40T04 => (ColId::from_idx(25), RowId::from_idx(3), "OUT.LC5"),
+            ChipKind::Ice40T05 => (ColId::from_idx(25), RowId::from_idx(9), "OUT.LC1"),
+            _ => return,
+        };
+        let wire = self.intdb.get_wire(wire);
+        let mut node = NodeKind {
+            tiles: EntityVec::from_iter([()]),
+            muxes: Default::default(),
+            iris: Default::default(),
+            intfs: Default::default(),
+            bels: Default::default(),
+        };
+        let mut bel = BelInfo::default();
+        bel.pins.insert(
+            "CLK".into(),
+            BelPin {
+                wires: BTreeSet::from_iter([(NodeTileId::from_idx(0), wire)]),
+                dir: PinDir::Output,
+                is_intf_in: false,
+            },
+        );
+        node.bels.insert(bels::SMCCLK, bel);
+        self.intdb.nodes.insert("SMCCLK".into(), node);
+        self.chip.extra_nodes.insert(
+            ExtraNodeLoc::SmcClk,
+            ExtraNode {
+                io: Default::default(),
+                tiles: EntityVec::from_iter([(col, row)]),
+            },
+        );
+    }
+
     fn compute_rows_colbuf(
         &self,
         colbuf_map: BTreeMap<RowId, RowId>,
@@ -1923,6 +1960,7 @@ fn main() {
         ctx.fill_drv();
         ctx.fill_spram();
         ctx.fill_filter();
+        ctx.fill_smcclk();
 
         println!("{}: initial geometry done; starting harvest", ctx.part.name);
 

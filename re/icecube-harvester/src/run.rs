@@ -1,6 +1,6 @@
 #![allow(clippy::type_complexity)]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::io::Write;
 use std::mem::ManuallyDrop;
@@ -123,6 +123,7 @@ pub struct RunResult {
     pub io_map: BTreeMap<(InstId, InstPin), IoLocInfo>,
     pub routes: BTreeMap<(InstId, InstPin), Vec<Vec<(u32, u32, String)>>>,
     pub bitstream: Bitstream,
+    pub dedio: BTreeSet<(InstId, InstPin)>,
     #[allow(dead_code)]
     pub sdf: Sdf,
     #[allow(dead_code)]
@@ -625,6 +626,34 @@ fn parse_routes(routes: String) -> BTreeMap<(InstId, InstPin), Vec<Vec<(u32, u32
     res
 }
 
+fn parse_dedio(placer_log: String) -> BTreeSet<(InstId, InstPin)> {
+    let mut res = BTreeSet::new();
+    for line in placer_log.lines() {
+        let line = line.trim();
+        let Some(line) = line.strip_prefix("I2784: ") else {
+            continue;
+        };
+        let Some(line) = line.strip_suffix(" is using dedicated routing") else {
+            continue;
+        };
+        let (_inst, name) = line.split_once(" signal ").unwrap();
+        let name = name.strip_prefix("net_i").unwrap();
+        let (inst, name) = name.split_once('_').unwrap();
+        let inst = InstId::from_idx(inst.parse().unwrap());
+        let pin = if name == "O_noidx_cascade_" {
+            InstPin::Simple("O__CASCADE".into())
+        } else if let Some(pin) = name.strip_suffix("_noidx") {
+            InstPin::Simple(pin.into())
+        } else {
+            let (pin, idx) = name.rsplit_once('_').unwrap();
+            InstPin::Indexed(pin.into(), idx.parse().unwrap())
+        };
+        let net = (inst, pin);
+        res.insert(net);
+    }
+    res
+}
+
 pub fn run(sbt: &Path, design: &Design) -> Result<RunResult, RunError> {
     let dir = ManuallyDrop::new(TempDir::with_prefix("icecube").unwrap());
 
@@ -705,6 +734,9 @@ pub fn run(sbt: &Path, design: &Design) -> Result<RunResult, RunError> {
         let bitstream = Bitstream::parse(&bsdata);
         let sdf = std::fs::read_to_string(dir.path().join("top_sbt.sdf")).unwrap();
         let sdf = Sdf::parse(&sdf);
+        let placer_log =
+            std::fs::read_to_string(dir.path().join("sbt/outputs/placer/placer.log")).unwrap();
+        let dedio = parse_dedio(placer_log);
 
         let dir = ManuallyDrop::into_inner(dir);
         Ok(RunResult {
@@ -713,6 +745,7 @@ pub fn run(sbt: &Path, design: &Design) -> Result<RunResult, RunError> {
             io_map,
             routes,
             bitstream,
+            dedio,
             sdf,
             dir: if design.keep_tmp { Some(dir) } else { None },
         })

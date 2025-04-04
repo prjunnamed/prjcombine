@@ -20,6 +20,32 @@ use crate::{
     xlat::{GenericNet, xlat_mux_in, xlat_wire},
 };
 
+fn get_main_tile_kind(edev: &ExpandedDevice, col: ColId, row: RowId) -> &'static str {
+    if row == edev.chip.row_s() {
+        if col == edev.chip.col_w() || col == edev.chip.col_e() {
+            "CNR"
+        } else {
+            "IO.S"
+        }
+    } else if row == edev.chip.row_n() {
+        if col == edev.chip.col_w() || col == edev.chip.col_e() {
+            "CNR"
+        } else {
+            "IO.N"
+        }
+    } else {
+        if edev.chip.kind.has_io_we() && col == edev.chip.col_w() {
+            "IO.W"
+        } else if edev.chip.kind.has_io_we() && col == edev.chip.col_e() {
+            "IO.E"
+        } else if edev.chip.cols_bram.contains(&col) {
+            "INT.BRAM"
+        } else {
+            "PLB"
+        }
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn make_sample(
     design: &Design,
@@ -50,17 +76,9 @@ pub fn make_sample(
     if fucked_bits != 0 {
         panic!("FUCKED: {fucked_bits}");
     }
-    let mut io_hardip_ins = HashSet::new();
     let mut io_hardip_outs = HashSet::new();
     if edev.chip.kind == ChipKind::Ice40R04 {
-        for key in [
-            ExtraNodeLoc::LsOsc,
-            ExtraNodeLoc::HsOsc,
-            ExtraNodeLoc::Spi(DirH::W),
-            ExtraNodeLoc::Spi(DirH::E),
-            ExtraNodeLoc::I2c(DirH::W),
-            ExtraNodeLoc::I2c(DirH::E),
-        ] {
+        for key in [ExtraNodeLoc::LsOsc, ExtraNodeLoc::HsOsc] {
             let crd = *edev.chip.extra_nodes[&key].tiles.first().unwrap();
             let nloc = edev
                 .egrid
@@ -70,9 +88,7 @@ pub fn make_sample(
             for (bel, bel_info) in &node_info.bels {
                 for (pin, pin_info) in &bel_info.pins {
                     for wire in edev.egrid.get_bel_pin((die.die, crd, bel), pin) {
-                        if pin_info.dir == PinDir::Input {
-                            io_hardip_ins.insert(wire);
-                        } else {
+                        if pin_info.dir == PinDir::Output {
                             io_hardip_outs.insert(wire);
                         }
                     }
@@ -107,8 +123,8 @@ pub fn make_sample(
                         int_source.insert(iwb, (src_inst, src_pin.clone()));
                         let (col, row, wa, wb) =
                             xlat_mux_in(edev, iwa, iwb, (ax, ay, aw), (bx, by, bw));
+                        let tile_name = get_main_tile_kind(edev, col, row);
                         let node = die[(col, row)].nodes.first().unwrap();
-                        let tile_name = edev.egrid.db.nodes.key(node.kind);
                         let wan = edev.egrid.db.wires.key(wa);
                         let wbn = edev.egrid.db.wires.key(wb);
                         if let Some(idx) = wbn.strip_prefix("GLOBAL.") {
@@ -151,17 +167,7 @@ pub fn make_sample(
                                 } else {
                                     row_colbuf
                                 };
-                                let cb_tile_name = if edev.chip.kind.has_io_we()
-                                    && col == edev.chip.col_w()
-                                {
-                                    "IO.W"
-                                } else if edev.chip.kind.has_io_we() && col == edev.chip.col_e() {
-                                    "IO.E"
-                                } else if edev.chip.cols_bram.contains(&col) {
-                                    "INT.BRAM"
-                                } else {
-                                    "PLB"
-                                };
+                                let cb_tile_name = get_main_tile_kind(edev, col, trow);
                                 sample.add_tiled_pattern(
                                     &[BitOwner::Main(col, trow)],
                                     format!("{cb_tile_name}:COLBUF:GLOBAL.{idx}:BIT0"),
@@ -171,27 +177,6 @@ pub fn make_sample(
                                     .add_global_pattern_single(format!("COLBUF:{col}.{row}.{idx}"));
                             };
                         }
-                        if io_hardip_ins.contains(&iwb) {
-                            let crd = iwb.1;
-                            let wn = edev.egrid.db.wires.key(iwb.2).as_str();
-                            if wn != "IMUX.IO.EXTRA" {
-                                let io = match wn {
-                                    "IMUX.IO0.DOUT0" => 0,
-                                    "IMUX.IO1.DOUT0" => 1,
-                                    _ => unreachable!(),
-                                };
-                                let node = die[crd].nodes.first().unwrap();
-                                let tile_name = edev.egrid.db.nodes.key(node.kind);
-                                sample.add_tiled_pattern(
-                                    &[BitOwner::Main(crd.0, crd.1)],
-                                    format!("{tile_name}:IO{io}:PIN_TYPE:BIT4"),
-                                );
-                                sample.add_tiled_pattern(
-                                    &[BitOwner::Main(crd.0, crd.1)],
-                                    format!("{tile_name}:IO{io}:PIN_TYPE:BIT5"),
-                                );
-                            }
-                        }
                         if io_hardip_outs.contains(&iwa) {
                             let crd = iwa.1;
                             let wn = edev.egrid.db.wires.key(iwa.2).as_str();
@@ -200,8 +185,7 @@ pub fn make_sample(
                                 "OUT.LC2" | "OUT.LC6" => 1,
                                 _ => unreachable!(),
                             };
-                            let node = die[crd].nodes.first().unwrap();
-                            let tile_name = edev.egrid.db.nodes.key(node.kind);
+                            let tile_name = get_main_tile_kind(edev, crd.0, crd.1);
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(crd.0, crd.1)],
                                 format!("{tile_name}:IO{io}:PIN_TYPE:BIT0"),
@@ -471,12 +455,7 @@ pub fn make_sample(
                     let (_, (col, row), slot) = edev.chip.get_io_loc(io);
                     let iob = io.iob();
                     let slot_name = edev.egrid.db.bel_slots[slot].as_str();
-                    let tile_kind = match io {
-                        EdgeIoCoord::W(..) => "IO.W",
-                        EdgeIoCoord::E(..) => "IO.E",
-                        EdgeIoCoord::S(..) => "IO.S",
-                        EdgeIoCoord::N(..) => "IO.N",
-                    };
+                    let tile_kind = get_main_tile_kind(edev, col, row);
                     let mut global_idx = None;
                     for (&loc, node) in &edev.chip.extra_nodes {
                         if let ExtraNodeLoc::GbIo(idx) = loc {
@@ -1339,6 +1318,177 @@ pub fn make_sample(
                         }
                     }
                 }
+                "SB_SPI" | "SB_I2C" | "SB_I2C_FIFO" => {
+                    for xnloc in [
+                        ExtraNodeLoc::Spi(DirH::W),
+                        ExtraNodeLoc::Spi(DirH::E),
+                        ExtraNodeLoc::I2c(DirH::W),
+                        ExtraNodeLoc::I2c(DirH::E),
+                        ExtraNodeLoc::I2cFifo(DirH::W),
+                        ExtraNodeLoc::I2cFifo(DirH::E),
+                    ] {
+                        let Some(slocs) = extra_node_locs.get(&xnloc) else {
+                            continue;
+                        };
+                        if loc.loc == slocs[0] {
+                            let xnode = &edev.chip.extra_nodes[&xnloc];
+                            let dedio = if inst.kind == "SB_SPI" {
+                                [
+                                    (ExtraNodeIo::SpiSck, "SCKO", "SCKOE", Some("SCKI")),
+                                    (ExtraNodeIo::SpiCopi, "MO", "MOE", Some("SI")),
+                                    (ExtraNodeIo::SpiCipo, "SO", "SOE", Some("MI")),
+                                    (ExtraNodeIo::SpiCsB0, "MCSNO0", "MCSNOE0", Some("SCSNI")),
+                                    (ExtraNodeIo::SpiCsB1, "MCSNO1", "MCSNOE1", None),
+                                ]
+                                .as_slice()
+                            } else {
+                                [
+                                    (ExtraNodeIo::I2cScl, "SCLO", "SCLOE", Some("SCLI")),
+                                    (ExtraNodeIo::I2cSda, "SDAO", "SDAOE", Some("SDAI")),
+                                ]
+                                .as_slice()
+                            };
+                            let mut all_ded_ins = true;
+                            let mut all_ded_outs = true;
+                            for &(xnio, o, _oe, i) in dedio {
+                                let crd = xnode.io[&xnio];
+                                let (_, (iocol, iorow), _) = edev.chip.get_io_loc(crd);
+                                let iob = crd.iob();
+                                let io_tile_kind = get_main_tile_kind(edev, iocol, iorow);
+                                let mut ded_in = false;
+                                let mut ded_out =
+                                    runres.dedio.contains(&(iid, InstPin::Simple(o.into())));
+                                if let Some(i) = i {
+                                    if let Some(&InstPinSource::FromInst(ioiid, ref pin)) =
+                                        inst.pins.get(&InstPin::Simple(i.into()))
+                                    {
+                                        ded_in = runres.dedio.contains(&(ioiid, pin.clone()))
+                                    }
+                                }
+                                if ded_in && edev.chip.kind == ChipKind::Ice40T01 {
+                                    ded_out = true;
+                                }
+                                if ded_out {
+                                    if edev.chip.kind == ChipKind::Ice40R04 {
+                                        sample.add_tiled_pattern_single(
+                                            &[BitOwner::Main(iocol, iorow)],
+                                            format!("{io_tile_kind}:IO:HARDIP_DEDICATED_OUT:BIT0"),
+                                        );
+                                    } else {
+                                        sample.add_tiled_pattern_single(
+                                            &[BitOwner::Main(iocol, iorow)],
+                                            format!(
+                                                "{io_tile_kind}:IO{iob}:HARDIP_DEDICATED_OUT:BIT0"
+                                            ),
+                                        );
+                                    }
+                                } else {
+                                    all_ded_outs = false;
+                                }
+                                if i.is_some() && !ded_in {
+                                    if edev.chip.kind == ChipKind::Ice40R04 {
+                                        sample.add_tiled_pattern_single(
+                                            &[BitOwner::Main(iocol, iorow)],
+                                            format!("{io_tile_kind}:IO:HARDIP_FABRIC_IN:BIT0"),
+                                        );
+                                    } else {
+                                        sample.add_tiled_pattern_single(
+                                            &[BitOwner::Main(iocol, iorow)],
+                                            format!("{io_tile_kind}:IO{iob}:HARDIP_FABRIC_IN:BIT0"),
+                                        );
+                                    }
+                                    all_ded_ins = false;
+                                }
+                            }
+                            if edev.chip.kind == ChipKind::Ice40R04 {
+                                let nk = xnloc.node_kind();
+                                let node_info = edev.egrid.db.nodes.get(&nk).unwrap().1;
+                                let bel = match xnloc {
+                                    ExtraNodeLoc::Spi(_) => bels::SPI,
+                                    ExtraNodeLoc::I2c(_) => bels::I2C,
+                                    ExtraNodeLoc::I2cFifo(_) => bels::I2C_FIFO,
+                                    _ => unreachable!(),
+                                };
+                                let bel_info = &node_info.bels[bel];
+                                for (pin, pin_info) in &bel_info.pins {
+                                    let (pin_tile, pin_wire) =
+                                        *pin_info.wires.iter().next().unwrap();
+                                    let (pcol, prow) = xnode.tiles[pin_tile];
+                                    if all_ded_outs
+                                        && matches!(
+                                            pin.as_str(),
+                                            "SCLO"
+                                                | "SCLOE"
+                                                | "SDAO"
+                                                | "SDAOE"
+                                                | "SCKO"
+                                                | "SCKOE"
+                                                | "MO"
+                                                | "MOE"
+                                                | "SO"
+                                                | "SOE"
+                                                | "MCSNO0"
+                                                | "MCSNOE0"
+                                                | "MCSNO1"
+                                                | "MCSNOE1"
+                                        )
+                                    {
+                                        continue;
+                                    }
+                                    if all_ded_ins
+                                        && matches!(
+                                            pin.as_str(),
+                                            "SCLI" | "SDAI" | "SCKI" | "MI" | "SI" | "SCSNI"
+                                        )
+                                    {
+                                        continue;
+                                    }
+                                    if pin_info.dir == PinDir::Input {
+                                        let iob = match edev.egrid.db.wires.key(pin_wire).as_str() {
+                                            "IMUX.IO0.DOUT0" => 0,
+                                            "IMUX.IO1.DOUT0" => 1,
+                                            _ => unreachable!(),
+                                        };
+                                        let io_tile_kind = get_main_tile_kind(edev, pcol, prow);
+                                        sample.add_tiled_pattern_single(
+                                            &[BitOwner::Main(pcol, prow)],
+                                            format!("{io_tile_kind}:IO{iob}:PIN_TYPE:BIT3"),
+                                        );
+                                        sample.add_tiled_pattern_single(
+                                            &[BitOwner::Main(pcol, prow)],
+                                            format!("{io_tile_kind}:IO{iob}:PIN_TYPE:BIT4"),
+                                        );
+                                    } else {
+                                        let iob = match edev.egrid.db.wires.key(pin_wire).as_str() {
+                                            "OUT.LC0" | "OUT.LC4" => 0,
+                                            "OUT.LC2" | "OUT.LC6" => 1,
+                                            _ => unreachable!(),
+                                        };
+                                        let io_tile_kind = get_main_tile_kind(edev, pcol, prow);
+                                        sample.add_tiled_pattern_single(
+                                            &[BitOwner::Main(pcol, prow)],
+                                            format!("{io_tile_kind}:IO{iob}:PIN_TYPE:BIT0"),
+                                        );
+                                    }
+                                }
+                            }
+                            for prop in ["SDA_INPUT_DELAYED", "SDA_OUTPUT_DELAYED"] {
+                                if let Some(val) = inst.props.get(prop) {
+                                    if val == "1" {
+                                        let crd = xnode.io[&ExtraNodeIo::I2cSda];
+                                        let (_, (iocol, iorow), _) = edev.chip.get_io_loc(crd);
+                                        let iob = crd.iob();
+                                        let io_tile_kind = get_main_tile_kind(edev, iocol, iorow);
+                                        sample.add_tiled_pattern_single(
+                                            &[BitOwner::Main(iocol, iorow)],
+                                            format!("{io_tile_kind}:IO{iob}:{prop}:BIT0"),
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 _ => (),
             }
         }
@@ -1447,6 +1597,14 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             }
             if edev.chip.kind.is_ultra() {
                 result.push(format!("{tile}:IO{io}:OUTPUT_ENABLE:BIT0"));
+                if !(tile == "IO.N" && edev.chip.kind == ChipKind::Ice40T01) {
+                    result.push(format!("{tile}:IO{io}:HARDIP_FABRIC_IN:BIT0"));
+                    result.push(format!("{tile}:IO{io}:HARDIP_DEDICATED_OUT:BIT0"));
+                    if (edev.chip.kind == ChipKind::Ice40T01 && io == 0) || tile == "IO.N" {
+                        result.push(format!("{tile}:IO{io}:SDA_INPUT_DELAYED:BIT0"));
+                        result.push(format!("{tile}:IO{io}:SDA_OUTPUT_DELAYED:BIT0"));
+                    }
+                }
             }
         }
         let has_lvds = if edev.chip.kind == ChipKind::Ice65L01 {
@@ -1541,6 +1699,10 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         }
         if has_latch_global_out {
             result.push(format!("{tile}:IOB:LATCH_GLOBAL_OUT:BIT0"));
+        }
+        if edev.chip.kind == ChipKind::Ice40R04 {
+            result.push(format!("{tile}:IO:HARDIP_FABRIC_IN:BIT0"));
+            result.push(format!("{tile}:IO:HARDIP_DEDICATED_OUT:BIT0"));
         }
     }
     for side in [DirV::S, DirV::N] {

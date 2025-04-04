@@ -305,6 +305,14 @@ pub fn collect(
             collector.collect_bitvec(tile, bel, "PIN_TYPE", "");
             if edev.chip.kind.is_ultra() {
                 collector.collect_bit(tile, bel, "OUTPUT_ENABLE", "");
+                if !(tile == "IO.N" && edev.chip.kind == ChipKind::Ice40T01) {
+                    collector.collect_bit(tile, bel, "HARDIP_FABRIC_IN", "");
+                    collector.collect_bit(tile, bel, "HARDIP_DEDICATED_OUT", "");
+                    if (edev.chip.kind == ChipKind::Ice40T01 && io == 0) || tile == "IO.N" {
+                        collector.collect_bit(tile, bel, "SDA_INPUT_DELAYED", "");
+                        collector.collect_bit(tile, bel, "SDA_OUTPUT_DELAYED", "");
+                    }
+                }
             }
         }
         if matches!(tile, "IO.W" | "IO.E") && !edev.chip.kind.has_actual_io_we() {
@@ -460,6 +468,10 @@ pub fn collect(
         }
         if has_latch_global_out {
             collector.collect_bit(tile, "IOB", "LATCH_GLOBAL_OUT", "");
+        }
+        if edev.chip.kind == ChipKind::Ice40R04 {
+            collector.collect_bit(tile, "IO", "HARDIP_FABRIC_IN", "");
+            collector.collect_bit(tile, "IO", "HARDIP_DEDICATED_OUT", "");
         }
     }
     for side in [DirV::S, DirV::N] {

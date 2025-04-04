@@ -1376,6 +1376,14 @@ pub fn get_prims(kind: ChipKind) -> BTreeMap<&'static str, Primitive> {
             &[],
             &[],
         );
+        add_prim(
+            &mut res,
+            "SB_FILTER_50NS",
+            &["FILTERIN"],
+            &["FILTEROUT"],
+            &[],
+            &[],
+        );
     }
 
     add_prim(
@@ -1427,14 +1435,6 @@ pub fn get_prims(kind: ChipKind) -> BTreeMap<&'static str, Primitive> {
             ],
             &[],
             &[("BUS_ADDR74", PropKind::BitvecBinStr(4))],
-        );
-        add_prim(
-            &mut res,
-            "SB_FILTER_50NS",
-            &["FILTERIN"],
-            &["FILTEROUT"],
-            &[],
-            &[],
         );
     }
 

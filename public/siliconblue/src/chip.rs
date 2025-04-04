@@ -172,6 +172,7 @@ pub enum ExtraNodeLoc {
     Mac16Trim(ColId, RowId),
     SpramPair(DirH),
     FilterPair,
+    SmcClk,
 }
 
 impl ExtraNodeLoc {
@@ -221,6 +222,7 @@ impl std::fmt::Display for ExtraNodeLoc {
             ExtraNodeLoc::Mac16Trim(col, row) => write!(f, "MAC16_TRIM_X{col}Y{row}"),
             ExtraNodeLoc::SpramPair(edge) => write!(f, "SPRAM_{edge}"),
             ExtraNodeLoc::FilterPair => write!(f, "FILTER"),
+            ExtraNodeLoc::SmcClk => write!(f, "SMCCLK"),
         }
     }
 }

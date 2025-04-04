@@ -1349,6 +1349,212 @@ impl Generator<'_> {
         }
     }
 
+    fn emit_spi_i2c(&mut self, side: DirH, kind: &str, actual_ios: &mut usize) {
+        if self.rng.random_bool(0.2) {
+            return;
+        }
+        let prim = &self.cfg.prims[kind];
+        let mut inst = Instance::new(kind);
+        let (xnloc, dedio, dedio_pair) = match kind {
+            "SB_SPI" => {
+                inst.prop(
+                    "BUS_ADDR74",
+                    match side {
+                        DirH::W => "0b0000",
+                        DirH::E => "0b0010",
+                    },
+                );
+                if self.cfg.edev.chip.kind == ChipKind::Ice40R04 {
+                    (
+                        ExtraNodeLoc::Spi(side),
+                        [(ExtraNodeIo::SpiCsB1, "MCSNO1", "MCSNOE1", None)].as_slice(),
+                        [
+                            [
+                                (ExtraNodeIo::SpiCopi, "MO", "MOE", "SI"),
+                                (ExtraNodeIo::SpiCipo, "SO", "SOE", "MI"),
+                            ],
+                            [
+                                (ExtraNodeIo::SpiSck, "SCKO", "SCKOE", "SCKI"),
+                                (ExtraNodeIo::SpiCsB0, "MCSNO0", "MCSNOE0", "SCSNI"),
+                            ],
+                        ]
+                        .as_slice(),
+                    )
+                } else {
+                    (
+                        ExtraNodeLoc::Spi(side),
+                        [
+                            (ExtraNodeIo::SpiSck, "SCKO", "SCKOE", Some("SCKI")),
+                            (ExtraNodeIo::SpiCopi, "MO", "MOE", Some("SI")),
+                            (ExtraNodeIo::SpiCipo, "SO", "SOE", Some("MI")),
+                            (ExtraNodeIo::SpiCsB0, "MCSNO0", "MCSNOE0", Some("SCSNI")),
+                            (ExtraNodeIo::SpiCsB1, "MCSNO1", "MCSNOE1", None),
+                        ]
+                        .as_slice(),
+                        [].as_slice(),
+                    )
+                }
+            }
+            "SB_I2C" => {
+                inst.prop(
+                    "BUS_ADDR74",
+                    match side {
+                        DirH::W => "0b0001",
+                        DirH::E => "0b0011",
+                    },
+                );
+                inst.prop(
+                    "I2C_SLAVE_INIT_ADDR",
+                    match side {
+                        DirH::W => "0b1111100001",
+                        DirH::E => "0b1111100010",
+                    },
+                );
+                (
+                    ExtraNodeLoc::I2c(side),
+                    [
+                        (ExtraNodeIo::I2cScl, "SCLO", "SCLOE", Some("SCLI")),
+                        (ExtraNodeIo::I2cSda, "SDAO", "SDAOE", Some("SDAI")),
+                    ]
+                    .as_slice(),
+                    [].as_slice(),
+                )
+            }
+            "SB_I2C_FIFO" => {
+                inst.prop(
+                    "I2C_SLAVE_ADDR",
+                    match side {
+                        DirH::W => "0b1111100001",
+                        DirH::E => "0b1111100010",
+                    },
+                );
+                inst.prop(
+                    "I2C_FIFO_ENB",
+                    ["DISABLED", "ENABLED"].choose(&mut self.rng).unwrap(),
+                );
+                (
+                    ExtraNodeLoc::I2cFifo(side),
+                    [
+                        (ExtraNodeIo::I2cScl, "SCLO", "SCLOE", Some("SCLI")),
+                        (ExtraNodeIo::I2cSda, "SDAO", "SDAOE", Some("SDAI")),
+                    ]
+                    .as_slice(),
+                    [].as_slice(),
+                )
+            }
+            _ => unreachable!(),
+        };
+        if kind != "SB_SPI" && self.cfg.edev.chip.kind != ChipKind::Ice40R04 {
+            inst.prop(
+                "SDA_INPUT_DELAYED",
+                ["0", "1"].choose(&mut self.rng).unwrap(),
+            );
+            inst.prop(
+                "SDA_OUTPUT_DELAYED",
+                ["0", "1"].choose(&mut self.rng).unwrap(),
+            );
+        }
+        let inst = self.design.insts.push(inst);
+        let mut ded_pins = HashSet::new();
+        let xnode = &self.cfg.edev.chip.extra_nodes[&xnloc];
+        for &(key, o, oe, i) in dedio {
+            let crd = xnode.io[&key];
+            if self.rng.random_bool(0.7) && *actual_ios > 6 {
+                if let Some(io_idx) = self.unused_io.iter().position(|&x| x == crd) {
+                    *actual_ios -= 1;
+                    self.unused_io.swap_remove(io_idx);
+                    ded_pins.insert(o);
+                    ded_pins.insert(oe);
+                    let pad = self.io_map[&crd];
+                    let mut io = Instance::new("SB_IO");
+                    io.prop("IO_STANDARD", "SB_LVCMOS");
+                    io.io
+                        .insert(InstPin::Simple("PACKAGE_PIN".into()), pad.to_string());
+                    io.prop("PULLUP", "1");
+                    io.prop("PIN_TYPE", "101001");
+                    io.connect("D_OUT_0", inst, InstPin::Simple(o.into()));
+                    io.connect("OUTPUT_ENABLE", inst, InstPin::Simple(oe.into()));
+                    let io = self.design.insts.push(io);
+                    if let Some(i) = i {
+                        if self.rng.random() {
+                            ded_pins.insert(i);
+                            self.design.insts[inst].connect(
+                                i,
+                                io,
+                                InstPin::Simple("D_IN_0".into()),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        for &pair in dedio_pair {
+            if !self.rng.random_bool(0.7) {
+                continue;
+            }
+            if *actual_ios < 8 {
+                continue;
+            }
+            let crd0 = xnode.io[&pair[0].0];
+            let crd1 = xnode.io[&pair[1].0];
+            if !self.unused_io.contains(&crd0) {
+                continue;
+            }
+            if !self.unused_io.contains(&crd1) {
+                continue;
+            }
+            let io0_idx = self.unused_io.iter().position(|&x| x == crd0).unwrap();
+            self.unused_io.swap_remove(io0_idx);
+            let io1_idx = self.unused_io.iter().position(|&x| x == crd1).unwrap();
+            self.unused_io.swap_remove(io1_idx);
+            *actual_ios -= 2;
+            let do_inp = self.rng.random();
+            for (key, o, oe, i) in pair {
+                let crd = xnode.io[&key];
+                ded_pins.insert(o);
+                ded_pins.insert(oe);
+                let pad = self.io_map[&crd];
+                let mut io = Instance::new("SB_IO");
+                io.prop("IO_STANDARD", "SB_LVCMOS");
+                io.io
+                    .insert(InstPin::Simple("PACKAGE_PIN".into()), pad.to_string());
+                io.prop("PULLUP", "1");
+                io.prop("PIN_TYPE", "101001");
+                io.connect("D_OUT_0", inst, InstPin::Simple(o.into()));
+                io.connect("OUTPUT_ENABLE", inst, InstPin::Simple(oe.into()));
+                let io = self.design.insts.push(io);
+                if do_inp {
+                    ded_pins.insert(i);
+                    self.design.insts[inst].connect(i, io, InstPin::Simple("D_IN_0".into()));
+                }
+            }
+        }
+        let mut outps = vec![];
+        for (&pin, pin_data) in &prim.pins {
+            if ded_pins.contains(&pin) {
+                continue;
+            }
+            if pin_data.dir == PinDir::Input {
+                if self.rng.random() {
+                    let mut lut = Instance::new("SB_LUT4");
+                    lut.prop("LUT_INIT", "16'h0000");
+                    let lut = self.design.insts.push(lut);
+                    self.design.insts[inst].connect(pin, lut, InstPin::Simple("O".into()));
+                }
+            } else {
+                outps.push(InstPin::Simple(pin.into()));
+            }
+        }
+        let num_outps = self.rng.random_range(1..=outps.len());
+        for outp in outps.choose_multiple(&mut self.rng, num_outps) {
+            let mut lut = Instance::new("SB_LUT4");
+            lut.prop("LUT_INIT", "16'h0000");
+            lut.connect("I0", inst, outp.clone());
+            let lut = self.design.insts.push(lut);
+            self.add_out(lut, "O");
+        }
+    }
+
     fn reduce_sigs(&mut self) {
         while self.unused_signals.len() >= 4 {
             let mut inst = Instance::new("SB_LUT4");
@@ -1452,6 +1658,9 @@ impl Generator<'_> {
             LfOsc,
             HfOsc,
             Filter,
+            Spi(DirH),
+            I2c(DirH),
+            I2cFifo(DirH),
         }
         let mut things = vec![];
         for _ in 0..actual_ios {
@@ -1465,9 +1674,15 @@ impl Generator<'_> {
         }
         for &key in self.cfg.edev.chip.extra_nodes.keys() {
             match key {
-                // ExtraNodeLoc::Spi(dir_h) => todo!(),
-                // ExtraNodeLoc::I2c(dir_h) => todo!(),
-                // ExtraNodeLoc::I2cFifo(dir_h) => todo!(),
+                ExtraNodeLoc::Spi(side) => {
+                    things.push(Thing::Spi(side));
+                }
+                ExtraNodeLoc::I2c(side) => {
+                    things.push(Thing::I2c(side));
+                }
+                ExtraNodeLoc::I2cFifo(side) => {
+                    things.push(Thing::I2cFifo(side));
+                }
                 ExtraNodeLoc::LsOsc => {
                     things.push(Thing::LsOsc);
                 }
@@ -1564,6 +1779,15 @@ impl Generator<'_> {
                 }
                 Thing::Filter => {
                     self.emit_simple_ip("SB_FILTER_50NS");
+                }
+                Thing::Spi(side) => {
+                    self.emit_spi_i2c(side, "SB_SPI", &mut actual_ios);
+                }
+                Thing::I2c(side) => {
+                    self.emit_spi_i2c(side, "SB_I2C", &mut actual_ios);
+                }
+                Thing::I2cFifo(side) => {
+                    self.emit_spi_i2c(side, "SB_I2C_FIFO", &mut actual_ios);
                 }
             }
         }

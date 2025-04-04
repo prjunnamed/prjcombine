@@ -40,6 +40,7 @@ bels![
     SPRAM1,
     FILTER0,
     FILTER1,
+    SMCCLK,
 ];
 
 pub const LC: [BelSlotId; 8] = [LC0, LC1, LC2, LC3, LC4, LC5, LC6, LC7];
