@@ -285,7 +285,7 @@ pub fn get_prims(kind: ChipKind) -> BTreeMap<&'static str, Primitive> {
             );
         }
     }
-    if kind == ChipKind::Ice40MX {
+    if kind == ChipKind::Ice40M16 {
         for name in [
             "SB_RAM40_16K",
             "SB_RAM40_16KNR",
@@ -441,7 +441,7 @@ pub fn get_prims(kind: ChipKind) -> BTreeMap<&'static str, Primitive> {
             ),
         ],
     );
-    if kind == ChipKind::Ice40MX {
+    if matches!(kind, ChipKind::Ice40M08 | ChipKind::Ice40M16) {
         add_prim(
             &mut res,
             "SB_IO_DLY",
@@ -1056,7 +1056,7 @@ pub fn get_prims(kind: ChipKind) -> BTreeMap<&'static str, Primitive> {
         );
     }
 
-    if kind == ChipKind::Ice40MX {
+    if matches!(kind, ChipKind::Ice40M08 | ChipKind::Ice40M16) {
         add_prim(
             &mut res,
             "SB_MIPI_RX_2LANE",
@@ -1298,7 +1298,7 @@ pub fn get_prims(kind: ChipKind) -> BTreeMap<&'static str, Primitive> {
 
     if matches!(
         kind,
-        ChipKind::Ice40MX | ChipKind::Ice40T04 | ChipKind::Ice40T05
+        ChipKind::Ice40M16 | ChipKind::Ice40T04 | ChipKind::Ice40T05
     ) {
         add_prim(
             &mut res,

@@ -113,7 +113,7 @@ pub const PARTS: &[Part] = &[
     },
     // // ICE40M08
     // Part {
-    //     kind: GridKind::Ice40MX,
+    //     kind: GridKind::Ice40M08,
     //     name: "iCE40MX8K",
     //     packages: &["CM225", "CT256"],
     //     speeds: &[""],
@@ -121,7 +121,7 @@ pub const PARTS: &[Part] = &[
     // },
     // // ICE40M16
     // Part {
-    //     kind: GridKind::Ice40MX,
+    //     kind: GridKind::Ice40M16,
     //     name: "iCE40MX16K",
     //     packages: &["DI", "CM323"],
     //     speeds: &[""],

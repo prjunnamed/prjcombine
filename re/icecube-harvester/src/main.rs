@@ -175,7 +175,9 @@ impl PartContext<'_> {
                     if !self.prims.contains_key(kind) {
                         continue;
                     }
-                    if kind.starts_with("SB_PLL") && part.kind == ChipKind::Ice40MX {
+                    if kind.starts_with("SB_PLL")
+                        && matches!(part.kind, ChipKind::Ice40M08 | ChipKind::Ice40M16)
+                    {
                         continue;
                     }
                     s.spawn(move |_| {

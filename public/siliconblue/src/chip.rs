@@ -20,7 +20,8 @@ pub enum ChipKind {
     Ice40P01,
     Ice40P08,
     Ice40P03,
-    Ice40MX,
+    Ice40M08,
+    Ice40M16,
     Ice40R04,
     Ice40T04,
     Ice40T01,
@@ -41,7 +42,8 @@ impl ChipKind {
             Self::Ice40P01
                 | Self::Ice40P08
                 | Self::Ice40P03
-                | Self::Ice40MX
+                | Self::Ice40M08
+                | Self::Ice40M16
                 | Self::Ice40R04
                 | Self::Ice40T04
                 | Self::Ice40T01
@@ -57,7 +59,8 @@ impl ChipKind {
         matches!(
             self,
             Self::Ice40P08
-                | Self::Ice40MX
+                | Self::Ice40M08
+                | Self::Ice40M16
                 | Self::Ice40R04
                 | Self::Ice40T04
                 | Self::Ice40T01
@@ -75,7 +78,8 @@ impl ChipKind {
                 | Self::Ice40P01
                 | Self::Ice40P08
                 | Self::Ice40P03
-                | Self::Ice40MX
+                | Self::Ice40M08
+                | Self::Ice40M16
                 | Self::Ice40R04
         )
     }
@@ -90,7 +94,8 @@ impl ChipKind {
                 | Self::Ice40P01
                 | Self::Ice40P08
                 | Self::Ice40P03
-                | Self::Ice40MX
+                | Self::Ice40M08
+                | Self::Ice40M16
         )
     }
 
@@ -420,7 +425,8 @@ impl From<&Chip> for JsonValue {
                 ChipKind::Ice40P01 => "ice40p01",
                 ChipKind::Ice40P08 => "ice40p08",
                 ChipKind::Ice40P03 => "ice40p03",
-                ChipKind::Ice40MX => "ice40mx",
+                ChipKind::Ice40M08 => "ice40m08",
+                ChipKind::Ice40M16 => "ice40m16",
                 ChipKind::Ice40R04 => "ice40r04",
                 ChipKind::Ice40T04 => "ice40t04",
                 ChipKind::Ice40T01 => "ice40t01",

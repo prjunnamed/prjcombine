@@ -220,7 +220,7 @@ pub fn find_sites_misc(
                     if kind == "SB_IO_DLY" && matches!(pname, "SDI" | "SCLK" | "C_R_SEL") {
                         continue;
                     }
-                    if kind == "SB_MAC16" && part.kind == ChipKind::Ice40MX && pname == "CI" {
+                    if kind == "SB_MAC16" && part.kind == ChipKind::Ice40M16 && pname == "CI" {
                         continue;
                     }
                     if kind == "SB_MAC16" && matches!(pname, "ACCUMCI" | "SIGNEXTIN") {
@@ -336,7 +336,7 @@ pub fn find_sites_misc(
                     if kind == "SB_IO_DLY" && matches!(pname, "SDO") {
                         continue;
                     }
-                    if kind == "SB_MAC16" && part.kind == ChipKind::Ice40MX && pname == "CO" {
+                    if kind == "SB_MAC16" && part.kind == ChipKind::Ice40M16 && pname == "CO" {
                         continue;
                     }
                     if (kind.starts_with("SB_IO") || kind == "SB_GB_IO")
@@ -918,7 +918,7 @@ pub fn find_bel_pins(
             let inst = design.insts.push(inst);
             for (&pname, pin) in &prim.pins {
                 if pin.dir == PinDir::Output && !pin.is_pad {
-                    if kind == "SB_MAC16" && part.kind == ChipKind::Ice40MX && pname == "CO" {
+                    if kind == "SB_MAC16" && part.kind == ChipKind::Ice40M16 && pname == "CO" {
                         continue;
                     }
                     if (kind.starts_with("SB_IO") || kind == "SB_GB_IO")
