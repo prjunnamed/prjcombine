@@ -1,12 +1,9 @@
-use std::{
-    collections::{BTreeMap, HashMap},
-    path::Path,
-};
+use std::{collections::BTreeMap, path::Path};
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::PinDir,
-    dir::Dir,
+    dir::DirPartMap,
     grid::{ColId, DieId, IntWire, RowId},
 };
 use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
@@ -61,17 +58,7 @@ pub fn find_sites_plb(sbt: &Path, part: &Part) -> Vec<SiteInfo> {
             // ??????? this hangs sbtplacer.
             return None;
         }
-        let mut design = Design {
-            kind: part.kind,
-            device: part.name,
-            package: part.packages[0],
-            speed: part.speeds[0],
-            temp: part.temps[0],
-            insts: Default::default(),
-            keep_tmp: false,
-            opts: vec![],
-            props: Default::default(),
-        };
+        let mut design = Design::new(part, part.packages[0], part.speeds[0], part.temps[0]);
         let mut inst = Instance::new("SB_IO");
         inst.top_port("PACKAGE_PIN");
         let mut chain_site = design.insts.push(inst);
@@ -92,7 +79,7 @@ pub fn find_sites_plb(sbt: &Path, part: &Part) -> Vec<SiteInfo> {
         inst.connect("D_OUT_0", chain_site, chain_pin);
         design.insts.push(inst);
 
-        match run(sbt, &design) {
+        match run(sbt, &design, &format!("plb-{dev}-{num}", dev = part.name)) {
             Err(_) => None,
             Ok(res) => {
                 let mut locs = vec![];
@@ -149,17 +136,7 @@ pub fn find_sites_misc(
         if kind == "SB_WARMBOOT" && num > 1 {
             return None;
         }
-        let mut design = Design {
-            kind: part.kind,
-            device: part.name,
-            package: pkg,
-            speed: part.speeds[0],
-            temp: part.temps[0],
-            insts: Default::default(),
-            keep_tmp: false,
-            opts: vec![],
-            props: Default::default(),
-        };
+        let mut design = Design::new(part, pkg, part.speeds[0], part.temps[0]);
         let prim = &prims[kind];
         let mut gbs = vec![];
         let mut trace_ins = EntityPartVec::new();
@@ -451,7 +428,11 @@ pub fn find_sites_misc(
             io.connect("D_OUT_0", sinst, spin);
             design.insts.push(io);
         }
-        match run(sbt, &design) {
+        match run(
+            sbt,
+            &design,
+            &format!("sites-{dev}-{pkg}-{kind}-{num}", dev = part.name),
+        ) {
             Err(err) => {
                 if !err.stdout.contains("Error: Design Feasibility Failed")
                     && !err
@@ -569,17 +550,7 @@ pub fn find_sites_misc(
 
 pub fn find_sites_iox3(sbt: &Path, part: &Part, pkg: &'static str) -> Vec<SiteInfo> {
     find_sites(3, |num| {
-        let mut design = Design {
-            kind: part.kind,
-            device: part.name,
-            package: pkg,
-            speed: part.speeds[0],
-            temp: part.temps[0],
-            insts: Default::default(),
-            keep_tmp: false,
-            opts: vec![],
-            props: Default::default(),
-        };
+        let mut design = Design::new(part, pkg, part.speeds[0], part.temps[0]);
         for _ in 0..num {
             let mut lut = Instance::new("SB_LUT4");
             lut.prop("LUT_INIT", "16'h0000");
@@ -590,7 +561,11 @@ pub fn find_sites_iox3(sbt: &Path, part: &Part, pkg: &'static str) -> Vec<SiteIn
             inst.connect("D_OUT_0", lut, InstPin::Simple("O".into()));
             design.insts.push(inst);
         }
-        match run(sbt, &design) {
+        match run(
+            sbt,
+            &design,
+            &format!("iox3-{dev}-{pkg}-{num}", dev = part.name),
+        ) {
             Err(err) => {
                 if !err
                     .stdout
@@ -635,21 +610,11 @@ pub fn find_io_latch_locs(
     sbt: &Path,
     part: &Part,
     pkg: &'static str,
-    pkg_pins: &HashMap<Dir, &str>,
-) -> HashMap<Dir, (u32, u32)> {
-    let mut design = Design {
-        kind: part.kind,
-        device: part.name,
-        package: pkg,
-        speed: part.speeds[0],
-        temp: part.temps[0],
-        insts: Default::default(),
-        keep_tmp: false,
-        opts: vec![],
-        props: Default::default(),
-    };
+    pkg_pins: &DirPartMap<&str>,
+) -> DirPartMap<(u32, u32)> {
+    let mut design = Design::new(part, pkg, part.speeds[0], part.temps[0]);
     let mut trace_ins = vec![];
-    for (&edge, &pkg_pin) in pkg_pins {
+    for (edge, &pkg_pin) in pkg_pins {
         let mut inst = Instance::new("SB_IO");
         inst.io
             .insert(InstPin::Simple("PACKAGE_PIN".into()), pkg_pin.to_string());
@@ -665,12 +630,16 @@ pub fn find_io_latch_locs(
 
         design.insts.push(inst);
     }
-    match run(sbt, &design) {
+    match run(
+        sbt,
+        &design,
+        &format!("iolatch-{dev}-{pkg}", dev = part.name),
+    ) {
         Err(err) => {
             panic!("FAIL TO LOCATE IO LATCH: {err:#?}");
         }
         Ok(res) => {
-            let mut result = HashMap::new();
+            let mut result = DirPartMap::new();
             for (lut, edge) in trace_ins {
                 let paths = &res.routes[&(lut, InstPin::Simple("O".into()))];
                 assert_eq!(paths.len(), 1);
@@ -749,17 +718,7 @@ pub fn find_bel_pins(
             }
         }
     } else {
-        let mut design = Design {
-            kind: part.kind,
-            device: part.name,
-            package: pkg,
-            speed: part.speeds[0],
-            temp: part.temps[0],
-            insts: Default::default(),
-            keep_tmp: false,
-            opts: vec![],
-            props: Default::default(),
-        };
+        let mut design = Design::new(part, pkg, part.speeds[0], part.temps[0]);
         let prim = &prims[kind];
         let mut insts = BTreeMap::new();
         let mut outps = vec![];
@@ -981,7 +940,18 @@ pub fn find_bel_pins(
             io.connect("D_OUT_0", sinst, spin);
             design.insts.push(io);
         }
-        let res = run(sbt, &design).unwrap();
+        let res = run(
+            sbt,
+            &design,
+            &format!(
+                "belpins-{dev}-{pkg}-{kind}-{x}_{y}_{bel}",
+                dev = part.name,
+                x = site.loc.x,
+                y = site.loc.y,
+                bel = site.loc.bel
+            ),
+        )
+        .unwrap();
         let mut iwmap_in = BTreeMap::new();
         let mut iwmap_out = BTreeMap::new();
         let mut wnmap: BTreeMap<_, Vec<_>> = BTreeMap::new();

@@ -419,7 +419,7 @@ impl Generator<'_> {
                 };
             }
         }
-        let sites = &self.cfg.pkg_bel_info[&(self.design.package, kind)];
+        let sites = &self.cfg.pkg_bel_info[&(self.design.package.as_str(), kind)];
         let Some(site) = sites
             .iter()
             .find(|site| (site.loc.y == 0) == (side == DirV::S))
@@ -1629,9 +1629,9 @@ impl Generator<'_> {
                 }
             }
         }
-        let mut actual_ios = self
-            .rng
-            .random_range(1..=self.cfg.pkg_bel_info[&(self.design.package, "SB_IO")].len() - 4);
+        let mut actual_ios = self.rng.random_range(
+            1..=self.cfg.pkg_bel_info[&(self.design.package.as_str(), "SB_IO")].len() - 4,
+        );
         let mut actual_lcs = self.rng.random_range(4..=self.cfg.plb_info.len());
         let mut actual_brams = 0;
         if self.cfg.part.kind != ChipKind::Ice40P03 {
@@ -1817,17 +1817,12 @@ impl Generator<'_> {
 
 pub fn generate(cfg: &GeneratorConfig) -> Design {
     let mut rng = rand::rng();
-    let mut design = Design {
-        kind: cfg.part.kind,
-        device: cfg.part.name,
-        package: cfg.part.packages.choose(&mut rng).unwrap(),
-        speed: cfg.part.speeds.choose(&mut rng).unwrap(),
-        temp: cfg.part.temps.choose(&mut rng).unwrap(),
-        insts: Default::default(),
-        keep_tmp: false,
-        opts: vec![],
-        props: Default::default(),
-    };
+    let mut design = Design::new(
+        cfg.part,
+        cfg.part.packages.choose(&mut rng).unwrap(),
+        cfg.part.speeds.choose(&mut rng).unwrap(),
+        cfg.part.temps.choose(&mut rng).unwrap(),
+    );
     if cfg.part.kind != ChipKind::Ice40T04 {
         design.opts.push(
             ["--frequency low", "--frequency medium", "--frequency high"]
@@ -1839,7 +1834,7 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
 
     let mut unused_io = vec![];
     let mut io_map = HashMap::new();
-    let bond = &cfg.bonds[design.package];
+    let bond = &cfg.bonds[design.package.as_str()];
     for (pad, &pin) in &bond.pins {
         let (BondPin::Io(crd) | BondPin::IoCDone(crd)) = pin else {
             continue;

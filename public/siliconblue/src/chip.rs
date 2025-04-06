@@ -119,6 +119,26 @@ impl ChipKind {
     }
 }
 
+impl std::fmt::Display for ChipKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ChipKind::Ice65L01 => write!(f, "ice65l01"),
+            ChipKind::Ice65L04 => write!(f, "ice65l04"),
+            ChipKind::Ice65L08 => write!(f, "ice65l08"),
+            ChipKind::Ice65P04 => write!(f, "ice65p04"),
+            ChipKind::Ice40P01 => write!(f, "ice40p01"),
+            ChipKind::Ice40P08 => write!(f, "ice40p08"),
+            ChipKind::Ice40P03 => write!(f, "ice40p03"),
+            ChipKind::Ice40M08 => write!(f, "ice40m08"),
+            ChipKind::Ice40M16 => write!(f, "ice40m16"),
+            ChipKind::Ice40R04 => write!(f, "ice40r04"),
+            ChipKind::Ice40T04 => write!(f, "ice40t04"),
+            ChipKind::Ice40T01 => write!(f, "ice40t01"),
+            ChipKind::Ice40T05 => write!(f, "ice40t05"),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum SharedCfgPin {
     SpiSo,
@@ -417,21 +437,7 @@ impl From<&ExtraNode> for JsonValue {
 impl From<&Chip> for JsonValue {
     fn from(chip: &Chip) -> Self {
         jzon::object! {
-            kind: match chip.kind {
-                ChipKind::Ice65L01 => "ice65l01",
-                ChipKind::Ice65L04 => "ice65l04",
-                ChipKind::Ice65L08 => "ice65l08",
-                ChipKind::Ice65P04 => "ice65p04",
-                ChipKind::Ice40P01 => "ice40p01",
-                ChipKind::Ice40P08 => "ice40p08",
-                ChipKind::Ice40P03 => "ice40p03",
-                ChipKind::Ice40M08 => "ice40m08",
-                ChipKind::Ice40M16 => "ice40m16",
-                ChipKind::Ice40R04 => "ice40r04",
-                ChipKind::Ice40T04 => "ice40t04",
-                ChipKind::Ice40T01 => "ice40t01",
-                ChipKind::Ice40T05 => "ice40t05",
-            },
+            kind: chip.kind.to_string(),
             columns: chip.columns,
             col_bio_split: chip.col_bio_split.to_idx(),
             cols_bram: Vec::from_iter(chip.cols_bram.iter().map(|col| col.to_idx())),

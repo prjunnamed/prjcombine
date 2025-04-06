@@ -2,9 +2,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
-use std::io::Write;
-use std::mem::ManuallyDrop;
-use std::process::{Command, ExitStatus, Stdio};
+use std::fs::OpenOptions;
+use std::io::{Read, Write};
+use std::path::PathBuf;
+use std::process::{Command, Stdio};
 use std::{fs::File, path::Path};
 
 use bitvec::prelude::*;
@@ -12,16 +13,20 @@ use prjcombine_interconnect::db::PinDir;
 use prjcombine_re_sdf::Sdf;
 use prjcombine_siliconblue::bitstream::Bitstream;
 use prjcombine_siliconblue::chip::ChipKind;
-use tempfile::TempDir;
+use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
+use walkdir::WalkDir;
+use zip::write::SimpleFileOptions;
+use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
+use crate::parts::Part;
 use crate::prims::{Primitive, PropKind, get_prims};
 
 entity_id! {
     pub id InstId u32;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Instance {
     pub kind: String,
     pub pins: BTreeMap<InstPin, InstPinSource>,
@@ -89,7 +94,7 @@ impl Instance {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InstPinSource {
     Gnd,
     Vcc,
@@ -97,23 +102,37 @@ pub enum InstPinSource {
     TopPort,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum InstPin {
     Simple(String),
     Indexed(String, usize),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Design {
     pub kind: ChipKind,
-    pub device: &'static str,
-    pub package: &'static str,
-    pub speed: &'static str,
-    pub temp: &'static str,
+    pub device: String,
+    pub package: String,
+    pub speed: String,
+    pub temp: String,
     pub insts: EntityVec<InstId, Instance>,
-    pub keep_tmp: bool,
     pub opts: Vec<String>,
     pub props: BTreeMap<String, String>,
+}
+
+impl Design {
+    pub fn new(part: &Part, pkg: &str, speed: &str, temp: &str) -> Self {
+        Self {
+            kind: part.kind,
+            device: part.name.to_string(),
+            package: pkg.to_string(),
+            speed: speed.to_string(),
+            temp: temp.to_string(),
+            insts: Default::default(),
+            opts: vec![],
+            props: Default::default(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -126,11 +145,9 @@ pub struct RunResult {
     pub dedio: BTreeSet<(InstId, InstPin)>,
     #[allow(dead_code)]
     pub sdf: Sdf,
-    #[allow(dead_code)]
-    pub dir: Option<TempDir>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct RawLoc {
     pub x: u32,
     pub y: u32,
@@ -161,10 +178,8 @@ pub struct PinTableEntry {
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct RunError {
-    pub status: ExitStatus,
     pub stdout: String,
     pub stderr: String,
-    pub dir: Option<TempDir>,
 }
 
 fn top_port_name(inst: InstId, pin: &InstPin) -> String {
@@ -654,10 +669,111 @@ fn parse_dedio(placer_log: String) -> BTreeSet<(InstId, InstPin)> {
     res
 }
 
-pub fn run(sbt: &Path, design: &Design) -> Result<RunResult, RunError> {
-    let dir = ManuallyDrop::new(TempDir::with_prefix("icecube").unwrap());
+/*
 
-    let mut f_tcl = File::create(dir.path().join("top.tcl")).unwrap();
+  cache/icecube/<kind>/...
+
+  - work
+  - ok
+  - fail
+
+  normal run:
+  - start in work, mkdir
+  - serialize design into file
+  - do the usual stuff
+  - dump stdout and stderr into dir
+  - failure: move to fail dir
+  - ok: move to ok dir; overwrite whatever dir currently there
+
+  cached run:
+  - go to ok dir, grab serialized design
+    - if found and match: use the dir
+  - go to fail dir, grab serialized design
+    - if found and match: use the dir
+  - actually do the run
+
+*/
+
+fn get_result<R: std::io::Read + std::io::Seek>(zip: &mut ZipArchive<R>) -> RunResult {
+    let mut read_to_string = |name| {
+        let mut res = String::new();
+        let mut f = zip.by_name(name).unwrap();
+        f.read_to_string(&mut res).unwrap();
+        res
+    };
+
+    let pin_table = read_to_string("sbt/outputs/packer/top_pin_table.CSV");
+    let pin_table = parse_pin_table(&pin_table);
+    let placer_pcf = read_to_string("sbt/outputs/placer/top_sbt.pcf");
+    let loc_map = parse_placer_pcf(&placer_pcf);
+    let io_pcf = read_to_string("sbt/outputs/packer/top_io_pcf.log");
+    let io_map = parse_io_pcf(&io_pcf);
+    let routes = read_to_string("sbt/outputs/router/top.route");
+    let routes = parse_routes(routes);
+    let sdf = read_to_string("top_sbt.sdf");
+    let sdf = Sdf::parse(&sdf);
+    let placer_log = read_to_string("sbt/outputs/placer/placer.log");
+    let dedio = parse_dedio(placer_log);
+    let mut bsdata = vec![];
+    zip.by_name("sbt/outputs/bitmap/top_bitmap.bin")
+        .unwrap()
+        .read_to_end(&mut bsdata)
+        .unwrap();
+    let bitstream = Bitstream::parse(&bsdata);
+
+    RunResult {
+        pin_table,
+        loc_map,
+        io_map,
+        routes,
+        bitstream,
+        dedio,
+        sdf,
+    }
+}
+
+pub fn run(sbt: &Path, design: &Design, key: &str) -> Result<RunResult, RunError> {
+    let cache_dir = PathBuf::from("cache")
+        .join("icecube")
+        .join(design.kind.to_string());
+    let ok_path = cache_dir.join("ok").join(format!("{key}.zip"));
+    if let Ok(ok_zip) = File::open(&ok_path) {
+        if let Ok(mut ok_zip) = ZipArchive::new(ok_zip) {
+            let design_file = ok_zip.by_name("design").unwrap();
+            let cur_design: Design = bincode::deserialize_from(design_file).unwrap();
+            if cur_design == *design {
+                return Ok(get_result(&mut ok_zip));
+            }
+        }
+    }
+    let fail_path = cache_dir.join("fail").join(format!("{key}.zip"));
+    if let Ok(fail_zip) = File::open(&fail_path) {
+        if let Ok(mut fail_zip) = ZipArchive::new(fail_zip) {
+            let design_file = fail_zip.by_name("design").unwrap();
+            let cur_design: Design = bincode::deserialize_from(design_file).unwrap();
+            if cur_design == *design {
+                let mut stdout = String::new();
+                let mut stderr = String::new();
+                fail_zip
+                    .by_name("stdout")
+                    .unwrap()
+                    .read_to_string(&mut stdout)
+                    .unwrap();
+                fail_zip
+                    .by_name("stderr")
+                    .unwrap()
+                    .read_to_string(&mut stderr)
+                    .unwrap();
+                return Err(RunError { stdout, stderr });
+            }
+        }
+    }
+
+    let work_dir = cache_dir.join("work").join(key);
+    let _ = std::fs::remove_dir_all(&work_dir);
+    std::fs::create_dir_all(&work_dir).unwrap();
+
+    let mut f_tcl = File::create(work_dir.join("top.tcl")).unwrap();
     writeln!(f_tcl, "set sbt_root $::env(SBT_DIR)").unwrap();
     writeln!(
         f_tcl,
@@ -670,7 +786,7 @@ pub fn run(sbt: &Path, design: &Design) -> Result<RunResult, RunError> {
     writeln!(f_tcl, "exit [expr {{1 - $res}}]").unwrap();
     std::mem::drop(f_tcl);
 
-    let mut f_pcf = File::create(dir.path().join("top.pcf")).unwrap();
+    let mut f_pcf = File::create(work_dir.join("top.pcf")).unwrap();
     writeln!(f_pcf, "# hi,,,").unwrap();
     for (iid, inst) in &design.insts {
         if let Some(loc) = inst.loc {
@@ -690,11 +806,11 @@ pub fn run(sbt: &Path, design: &Design) -> Result<RunResult, RunError> {
     }
     std::mem::drop(f_pcf);
 
-    let mut f_scf = File::create(dir.path().join("top.scf")).unwrap();
+    let mut f_scf = File::create(work_dir.join("top.scf")).unwrap();
     writeln!(f_scf, "# hi,,,").unwrap();
     std::mem::drop(f_scf);
 
-    let mut f_edf = File::create(dir.path().join("top.edf")).unwrap();
+    let mut f_edf = File::create(work_dir.join("top.edf")).unwrap();
     emit_edif(&mut f_edf, design).unwrap();
     std::mem::drop(f_edf);
 
@@ -704,50 +820,101 @@ pub fn run(sbt: &Path, design: &Design) -> Result<RunResult, RunError> {
     cmd.env("SBT_DIR", sbt);
     cmd.env("UNBLOCK_LEDDIP_THUNDER", "1");
     cmd.env("DISABLE_IOGLITCHFIX_THUNDER", "1");
-    cmd.current_dir(dir.path());
+    cmd.current_dir(&work_dir);
     cmd.arg("top.tcl");
     cmd.stdin(Stdio::null());
     let status = cmd.output().unwrap();
+    {
+        let design_file = File::create(work_dir.join("design")).unwrap();
+        bincode::serialize_into(design_file, design).unwrap();
+    }
+    std::fs::write(work_dir.join("stdout"), &status.stdout).unwrap();
+    std::fs::write(work_dir.join("stderr"), &status.stderr).unwrap();
+    let work_path = cache_dir.join("work").join(format!("{key}.zip"));
+    let mut zip = ZipWriter::new(
+        OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(&work_path)
+            .unwrap(),
+    );
+    let options = SimpleFileOptions::default()
+        .compression_method(CompressionMethod::Zstd)
+        .unix_permissions(0o755);
+    for entry in WalkDir::new(&work_dir) {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        let name = path.strip_prefix(&work_dir).unwrap();
+        if entry.metadata().unwrap().is_dir() {
+            if path != work_dir {
+                zip.add_directory_from_path(name, options).unwrap();
+            }
+        } else {
+            zip.start_file_from_path(name, options).unwrap();
+            zip.write_all(&std::fs::read(path).unwrap()).unwrap();
+        }
+    }
+    let mut zip = zip.finish_into_readable().unwrap();
+    let _ = std::fs::remove_dir_all(&work_dir);
     if !status.status.success() {
-        let dir = ManuallyDrop::into_inner(dir);
+        std::fs::create_dir_all(cache_dir.join("fail")).unwrap();
+        let _ = std::fs::remove_file(&fail_path);
+        std::fs::rename(&work_path, &fail_path).unwrap();
         Err(RunError {
-            status: status.status,
             stdout: String::from_utf8_lossy(&status.stdout).to_string(),
             stderr: String::from_utf8_lossy(&status.stderr).to_string(),
-            dir: if design.keep_tmp { Some(dir) } else { None },
         })
     } else {
-        let pin_table =
-            std::fs::read_to_string(dir.path().join("sbt/outputs/packer/top_pin_table.CSV"))
-                .unwrap();
-        let pin_table = parse_pin_table(&pin_table);
-        let placer_pcf =
-            std::fs::read_to_string(dir.path().join("sbt/outputs/placer/top_sbt.pcf")).unwrap();
-        let loc_map = parse_placer_pcf(&placer_pcf);
-        let io_pcf =
-            std::fs::read_to_string(dir.path().join("sbt/outputs/packer/top_io_pcf.log")).unwrap();
-        let io_map = parse_io_pcf(&io_pcf);
-        let routes =
-            std::fs::read_to_string(dir.path().join("sbt/outputs/router/top.route")).unwrap();
-        let routes = parse_routes(routes);
-        let bsdata = std::fs::read(dir.path().join("sbt/outputs/bitmap/top_bitmap.bin")).unwrap();
-        let bitstream = Bitstream::parse(&bsdata);
-        let sdf = std::fs::read_to_string(dir.path().join("top_sbt.sdf")).unwrap();
-        let sdf = Sdf::parse(&sdf);
-        let placer_log =
-            std::fs::read_to_string(dir.path().join("sbt/outputs/placer/placer.log")).unwrap();
-        let dedio = parse_dedio(placer_log);
-
-        let dir = ManuallyDrop::into_inner(dir);
-        Ok(RunResult {
-            pin_table,
-            loc_map,
-            io_map,
-            routes,
-            bitstream,
-            dedio,
-            sdf,
-            dir: if design.keep_tmp { Some(dir) } else { None },
-        })
+        let result = get_result(&mut zip);
+        std::fs::create_dir_all(cache_dir.join("ok")).unwrap();
+        let _ = std::fs::remove_file(&ok_path);
+        std::fs::rename(&work_path, &ok_path).unwrap();
+        Ok(result)
     }
+}
+
+pub fn get_cached_designs(
+    kind: ChipKind,
+    prefix: &str,
+) -> impl Iterator<Item = (Design, RunResult)> {
+    let ok_dir = PathBuf::from("cache")
+        .join("icecube")
+        .join(kind.to_string())
+        .join("ok");
+    let mut keys = vec![];
+    if let Ok(dirs) = std::fs::read_dir(&ok_dir) {
+        for dir in dirs {
+            let key = dir.unwrap().file_name().into_string().unwrap();
+            let Some(key) = key.strip_suffix(".zip") else {
+                continue;
+            };
+            if key.starts_with(prefix) {
+                keys.push(key.to_string());
+            }
+        }
+    }
+    keys.into_iter().map(move |key| {
+        let zip = ok_dir.join(format!("{key}.zip"));
+        let mut zip = ZipArchive::new(File::open(zip).unwrap()).unwrap();
+        let design_file = zip.by_name("design").unwrap();
+        let design: Design = bincode::deserialize_from(design_file).unwrap();
+        (design, get_result(&mut zip))
+    })
+}
+
+pub fn remove_cache_key(kind: ChipKind, key: &str) {
+    let ok_dir = PathBuf::from("cache")
+        .join("icecube")
+        .join(kind.to_string())
+        .join("ok")
+        .join(format!("{key}.zip"));
+    let _ = std::fs::remove_file(&ok_dir);
+    let fail_dir = PathBuf::from("cache")
+        .join("icecube")
+        .join(kind.to_string())
+        .join("fail")
+        .join(format!("{key}.zip"));
+    let _ = std::fs::remove_file(&fail_dir);
 }

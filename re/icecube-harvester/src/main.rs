@@ -1,6 +1,5 @@
 use std::{
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map},
-    mem::ManuallyDrop,
+    collections::{BTreeMap, BTreeSet, HashSet, btree_map},
     path::{Path, PathBuf},
     sync::Mutex,
 };
@@ -18,7 +17,7 @@ use prjcombine_interconnect::{
         BelInfo, BelPin, IntDb, MuxInfo, MuxKind, NodeKind, NodeKindId, NodeTileId, NodeWireId,
         PinDir,
     },
-    dir::{DirH, DirV},
+    dir::{DirH, DirPartMap, DirV},
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };
 use prjcombine_re_harvester::Harvester;
@@ -27,11 +26,12 @@ use prjcombine_siliconblue::{
     bond::{Bond, BondPin, CfgPin},
     chip::{Chip, ChipKind, ExtraNode, ExtraNodeIo, ExtraNodeLoc, SharedCfgPin},
     db::Database,
-    expanded::BitOwner,
+    expanded::{BitOwner, ExpandedDevice},
 };
 use prjcombine_types::tiledb::{TileBit, TileItemKind};
+use rand::Rng;
 use rayon::prelude::*;
-use run::{Design, InstPin, RawLoc, RunResult, run};
+use run::{Design, InstPin, RawLoc, RunResult, get_cached_designs, remove_cache_key, run};
 use sample::{get_golden_mux_stats, make_sample, wanted_keys_global, wanted_keys_tiled};
 use sites::{
     BelPins, SiteInfo, find_bel_pins, find_io_latch_locs, find_sites_iox3, find_sites_misc,
@@ -77,6 +77,349 @@ struct PartContext<'a> {
     bel_pins: BTreeMap<(&'static str, RawLoc), BelPins>,
     extra_node_locs: BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
     debug: u8,
+}
+
+struct HarvestContext<'a> {
+    ctx: &'a PartContext<'a>,
+    edev: &'a ExpandedDevice<'a>,
+    gencfg: GeneratorConfig<'a>,
+    harvester: Mutex<Harvester<BitOwner>>,
+    muxes: Mutex<BTreeMap<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>>,
+}
+
+impl HarvestContext<'_> {
+    fn compute_rows_colbuf(
+        &self,
+        colbuf_map: BTreeMap<RowId, RowId>,
+    ) -> Option<Vec<(RowId, RowId, RowId)>> {
+        let mut row_c = *colbuf_map.get(&RowId::from_idx(1))?;
+        let mut row_b = RowId::from_idx(0);
+        let mut row_prev = RowId::from_idx(0);
+        let mut in_top = false;
+        let mut result = vec![];
+        for (row, trow) in colbuf_map {
+            if trow != row_c {
+                if row != row_prev + 1 {
+                    return None;
+                }
+                if !in_top {
+                    assert_eq!(trow, row_c + 1);
+                    assert_eq!(trow, row);
+                    in_top = true;
+                } else {
+                    result.push((row_c, row_b, row));
+                    row_b = row;
+                    in_top = false;
+                }
+                row_c = trow;
+            }
+            row_prev = row;
+        }
+        if row_prev != self.ctx.chip.row_n() - 1 {
+            return None;
+        }
+        assert!(in_top);
+        result.push((row_c, row_b, row_prev + 2));
+        Some(result)
+    }
+
+    fn handle_colbufs(&mut self) {
+        if !self.ctx.chip.kind.has_colbuf() {
+            return;
+        }
+        if !self.gencfg.rows_colbuf.is_empty() {
+            return;
+        }
+        let mut plb_bits = [const { None }; 8];
+        let mut colbuf_map = BTreeMap::new();
+        let harvester = self.harvester.get_mut().unwrap();
+        for (key, bits) in &harvester.known_global {
+            let Some(crd) = key.strip_prefix("COLBUF:") else {
+                continue;
+            };
+            let (_, crd) = crd.split_once('.').unwrap();
+            let (srow, idx) = crd.split_once('.').unwrap();
+            let srow = RowId::from_idx(srow.parse().unwrap());
+            let idx: usize = idx.parse().unwrap();
+            assert_eq!(bits.len(), 1);
+            let (&bit, &val) = bits.iter().next().unwrap();
+            plb_bits[idx] = Some(BTreeMap::from_iter([(
+                TileBit {
+                    tile: 0,
+                    frame: bit.1,
+                    bit: bit.2,
+                },
+                val,
+            )]));
+            let BitOwner::Main(_, row) = bit.0 else {
+                unreachable!()
+            };
+            colbuf_map.insert(srow, row);
+        }
+        if self.ctx.debug >= 3 {
+            println!("COLBUF ROWS: {colbuf_map:?}");
+        }
+        if !plb_bits.iter().all(|x| x.is_some()) {
+            return;
+        }
+        let Some(new_rows_colbuf) = self.compute_rows_colbuf(colbuf_map) else {
+            return;
+        };
+        if self.ctx.debug >= 1 {
+            println!("HEEEEEEY WE GOT COLBUFS!");
+        }
+        let harvester = self.harvester.get_mut().unwrap();
+        self.gencfg.rows_colbuf = new_rows_colbuf;
+        for col in self.edev.chip.columns() {
+            if self.edev.chip.kind.has_io_we()
+                && (col == self.edev.chip.col_w() || col == self.edev.chip.col_e())
+            {
+                continue;
+            }
+            if self.edev.chip.cols_bram.contains(&col) {
+                continue;
+            }
+            for row in self.edev.chip.rows() {
+                if row == self.edev.chip.row_s() || row == self.edev.chip.row_n() {
+                    continue;
+                }
+                let (row_colbuf, _, _) = self
+                    .gencfg
+                    .rows_colbuf
+                    .iter()
+                    .copied()
+                    .find(|&(_, row_b, row_t)| row >= row_b && row < row_t)
+                    .unwrap();
+                let trow = if row < row_colbuf {
+                    if self.edev.chip.cols_bram.contains(&col)
+                        && !self.edev.chip.kind.has_ice40_bramv2()
+                    {
+                        row_colbuf - 2
+                    } else {
+                        row_colbuf - 1
+                    }
+                } else {
+                    row_colbuf
+                };
+
+                for (idx, bits) in plb_bits.iter().enumerate() {
+                    let bits = bits.as_ref().unwrap();
+                    let key = format!("COLBUF:{col}.{row}.{idx}");
+                    let bits = bits
+                        .iter()
+                        .map(|(&bit, &val)| ((BitOwner::Main(col, trow), bit.frame, bit.bit), val))
+                        .collect();
+                    harvester.force_global(key.clone(), bits);
+                    harvester.known_global.remove(&key);
+                }
+            }
+        }
+
+        for (idx, bits) in plb_bits.into_iter().enumerate() {
+            harvester.force_tiled(format!("PLB:COLBUF:GLOBAL.{idx}:BIT0"), bits.unwrap());
+        }
+        harvester.process();
+    }
+
+    fn muxes_complete(&self) -> bool {
+        let mut nodes_complete = 0;
+        let muxes = self.muxes.lock().unwrap();
+        for (&nk, muxes) in &*muxes {
+            let mut stats: BTreeMap<String, usize> = BTreeMap::new();
+            let nkn = self.edev.egrid.db.nodes.key(nk);
+            for (&(_, wt), mux) in muxes {
+                let wtn = self.edev.egrid.db.wires.key(wt);
+                for &(_, wf) in &mux.ins {
+                    let wfn = self.edev.egrid.db.wires.key(wf);
+                    let bucket = if wtn.starts_with("QUAD.V") && wfn.starts_with("QUAD") {
+                        "QUAD-QUAD.V"
+                    } else if wtn.starts_with("QUAD.H") && wfn.starts_with("QUAD") {
+                        "QUAD-QUAD.H"
+                    } else if wtn.starts_with("QUAD.V") && wfn.starts_with("LONG") {
+                        "LONG-QUAD.V"
+                    } else if wtn.starts_with("QUAD.H") && wfn.starts_with("LONG") {
+                        "LONG-QUAD.H"
+                    } else if wtn.starts_with("QUAD.V") && wfn.starts_with("OUT") {
+                        "OUT-QUAD.V"
+                    } else if wtn.starts_with("QUAD.H") && wfn.starts_with("OUT") {
+                        "OUT-QUAD.H"
+                    } else if wtn.starts_with("LONG.V") && wfn.starts_with("LONG") {
+                        "LONG-LONG.V"
+                    } else if wtn.starts_with("LONG.H") && wfn.starts_with("LONG") {
+                        "LONG-LONG.H"
+                    } else if wtn.starts_with("LONG.V") && wfn.starts_with("OUT") {
+                        "OUT-LONG.V"
+                    } else if wtn.starts_with("LONG.H") && wfn.starts_with("OUT") {
+                        "OUT-LONG.H"
+                    } else {
+                        wtn
+                    };
+                    *stats.entry(bucket.to_string()).or_default() += 1;
+                }
+            }
+            let golden_stats = get_golden_mux_stats(self.edev.chip.kind, nkn);
+            if stats == golden_stats {
+                nodes_complete += 1;
+            } else {
+                for (k, &v) in &stats {
+                    let gv = golden_stats.get(k).copied().unwrap_or(0);
+                    if v > gv {
+                        println!("UMMMM GOT MORE MUXES THAN BARGAINED FOR AT {nkn} {k} {v}/{gv}");
+                    }
+                }
+                let mut missing = BTreeMap::new();
+                for (k, &gv) in &golden_stats {
+                    let v = stats.get(k).copied().unwrap_or(0);
+                    if v < gv {
+                        missing.insert(k, gv - v);
+                    }
+                }
+                if self.ctx.debug >= 1 && !missing.is_empty() {
+                    print!("missing muxes in {nkn}:");
+                    for (k, v) in missing {
+                        print!(" {v}×{k}");
+                    }
+                    println!();
+                }
+            }
+        }
+        let golden_nodes_complete = if self.edev.chip.kind == ChipKind::Ice40P03 {
+            5 // PLB, 4×IO
+        } else if self.edev.chip.kind.has_io_we() {
+            6 // PLB, INT.BRAM, 4×IO
+        } else {
+            4 // PLB, INT.BRAM, 2×IO
+        };
+        golden_nodes_complete == nodes_complete
+    }
+
+    fn new_sample(&self) -> Option<(String, Design, RunResult)> {
+        let design = generate(&self.gencfg);
+        let uniq: u128 = rand::rng().random();
+        let prefix = if !self.gencfg.allow_global {
+            "gen-noglobal"
+        } else if self.ctx.chip.kind.has_colbuf() && self.gencfg.rows_colbuf.is_empty() {
+            "gen-nocolbuf"
+        } else {
+            "gen-full"
+        };
+        let key = format!("{prefix}-{uniq:032x}");
+        match run(self.ctx.sbt, &design, &key) {
+            Ok(res) => Some((key, design, res)),
+            Err(err) => {
+                if self.ctx.debug >= 2 {
+                    println!("OOPS {err:?}");
+                }
+                None
+            }
+        }
+    }
+
+    fn add_sample(&self, design: Design, result: RunResult) -> bool {
+        let (sample, cur_pips) = make_sample(
+            &design,
+            self.edev,
+            &result,
+            &self.ctx.empty_runs[&design.package.as_str()],
+            &self.ctx.xlat_col[&design.package.as_str()],
+            &self.ctx.xlat_row[&design.package.as_str()],
+            &self.ctx.xlat_io[&design.package.as_str()],
+            &self.gencfg.rows_colbuf,
+            &self.ctx.extra_wire_names,
+            &self.ctx.extra_node_locs,
+        );
+        let mut harvester = self.harvester.lock().unwrap();
+        let mut muxes = self.muxes.lock().unwrap();
+        let mut ctr = 0;
+        for pip in cur_pips {
+            let mux = muxes
+                .entry(pip.0)
+                .or_default()
+                .entry((NodeTileId::from_idx(0), pip.1))
+                .or_insert_with(|| MuxInfo {
+                    kind: MuxKind::Plain,
+                    ins: BTreeSet::new(),
+                });
+
+            if mux.ins.insert((NodeTileId::from_idx(0), pip.2)) {
+                ctr += 1;
+            }
+        }
+        if self.ctx.debug >= 2 {
+            println!("TOTAL NEW PIPS: {ctr} / {tot}", tot = muxes.len());
+        }
+        drop(muxes);
+        harvester.add_sample(sample).is_some()
+    }
+
+    fn run(&mut self) {
+        let mut ctr = 0;
+        for (design, result) in get_cached_designs(self.ctx.chip.kind, "gen-noglobal") {
+            self.add_sample(design, result);
+            ctr += 1;
+            if ctr % 20 == 0 {
+                self.harvester.get_mut().unwrap().process();
+            }
+        }
+        if ctr != 0 {
+            self.harvester.get_mut().unwrap().process();
+        }
+        println!("{ctr} cached noglobal designs");
+        if self.harvester.get_mut().unwrap().samples.len() < 40 {
+            (0..40).into_par_iter().for_each(|_| {
+                if let Some((_, design, result)) = self.new_sample() {
+                    self.add_sample(design, result);
+                }
+            });
+            self.harvester.get_mut().unwrap().process();
+        }
+        self.gencfg.allow_global = true;
+        let mut ctr = 0;
+        for (design, result) in get_cached_designs(self.ctx.chip.kind, "gen-nocolbuf") {
+            self.add_sample(design, result);
+            ctr += 1;
+            if ctr % 100 == 0 {
+                self.harvester.get_mut().unwrap().process();
+            }
+        }
+        if ctr != 0 {
+            self.harvester.get_mut().unwrap().process();
+        }
+        println!("{ctr} cached nocolbuf designs");
+        self.handle_colbufs();
+        while self.ctx.chip.kind.has_colbuf() && self.gencfg.rows_colbuf.is_empty() {
+            (0..40).into_par_iter().for_each(|_| {
+                if let Some((_, design, result)) = self.new_sample() {
+                    self.add_sample(design, result);
+                }
+            });
+            self.harvester.get_mut().unwrap().process();
+            self.handle_colbufs();
+        }
+        let mut ctr = 0;
+        for (design, result) in get_cached_designs(self.ctx.chip.kind, "gen-full") {
+            self.add_sample(design, result);
+            ctr += 1;
+            if ctr % 100 == 0 {
+                self.harvester.get_mut().unwrap().process();
+            }
+        }
+        if ctr != 0 {
+            self.harvester.get_mut().unwrap().process();
+        }
+        println!("{ctr} cached full designs");
+        while !self.muxes_complete() || self.harvester.get_mut().unwrap().has_unresolved() {
+            (0..40).into_par_iter().for_each(|_| {
+                if let Some((key, design, result)) = self.new_sample() {
+                    if !self.add_sample(design, result) {
+                        remove_cache_key(self.ctx.chip.kind, &key);
+                    }
+                }
+            });
+            self.harvester.get_mut().unwrap().process();
+        }
+        println!("DONE with {}!", self.ctx.part.name);
+    }
 }
 
 impl PartContext<'_> {
@@ -128,21 +471,11 @@ impl PartContext<'_> {
             }
             for &pkg in part.packages {
                 s.spawn(move |_| {
-                    let design = Design {
-                        kind: part.kind,
-                        device: part.name,
-                        package: pkg,
-                        speed: part.speeds[0],
-                        temp: part.temps[0],
-                        insts: Default::default(),
-                        keep_tmp: false,
-                        opts: vec![],
-                        props: Default::default(),
-                    };
-                    empty_runs_ref
-                        .lock()
-                        .unwrap()
-                        .insert(pkg, run(sbt, &design).unwrap());
+                    let design = Design::new(part, pkg, part.speeds[0], part.temps[0]);
+                    empty_runs_ref.lock().unwrap().insert(
+                        pkg,
+                        run(sbt, &design, &format!("empty-{dev}-{pkg}", dev = part.name)).unwrap(),
+                    );
                 });
 
                 for kind in [
@@ -691,7 +1024,7 @@ impl PartContext<'_> {
                     .count()
             })
             .unwrap();
-        let mut pkg_pins = HashMap::new();
+        let mut pkg_pins = DirPartMap::new();
         for (pkg_pin, &pin) in &self.bonds[package].pins {
             let (BondPin::Io(crd) | BondPin::IoCDone(crd)) = pin else {
                 continue;
@@ -700,14 +1033,16 @@ impl PartContext<'_> {
                 continue;
             }
             let edge = crd.edge();
-            pkg_pins.entry(edge).or_insert(pkg_pin.as_str());
+            if !pkg_pins.contains_key(edge) {
+                pkg_pins.insert(edge, pkg_pin.as_str());
+            }
         }
         let expected = if self.chip.kind.has_io_we() && self.chip.kind != ChipKind::Ice40R04 {
             4
         } else {
             2
         };
-        assert_eq!(pkg_pins.len(), expected);
+        assert_eq!(pkg_pins.iter().count(), expected);
         for (edge, (x, y)) in find_io_latch_locs(self.sbt, self.part, package, &pkg_pins) {
             self.chip.extra_nodes.insert(
                 ExtraNodeLoc::LatchIo(edge),
@@ -1354,41 +1689,6 @@ impl PartContext<'_> {
         );
     }
 
-    fn compute_rows_colbuf(
-        &self,
-        colbuf_map: BTreeMap<RowId, RowId>,
-    ) -> Option<Vec<(RowId, RowId, RowId)>> {
-        let mut row_c = *colbuf_map.get(&RowId::from_idx(1))?;
-        let mut row_b = RowId::from_idx(0);
-        let mut row_prev = RowId::from_idx(0);
-        let mut in_top = false;
-        let mut result = vec![];
-        for (row, trow) in colbuf_map {
-            if trow != row_c {
-                if row != row_prev + 1 {
-                    return None;
-                }
-                if !in_top {
-                    assert_eq!(trow, row_c + 1);
-                    assert_eq!(trow, row);
-                    in_top = true;
-                } else {
-                    result.push((row_c, row_b, row));
-                    row_b = row;
-                    in_top = false;
-                }
-                row_c = trow;
-            }
-            row_prev = row;
-        }
-        if row_prev != self.chip.row_n() - 1 {
-            return None;
-        }
-        assert!(in_top);
-        result.push((row_c, row_b, row_prev + 2));
-        Some(result)
-    }
-
     fn inject_lut0_cascade(&mut self, harvester: &mut Harvester<BitOwner>) {
         harvester.force_tiled(
             "PLB:LC0:MUX.I2:LTIN",
@@ -1560,7 +1860,7 @@ impl PartContext<'_> {
         }
 
         let edev = self.chip.expand_grid(&self.intdb);
-        let mut gencfg = GeneratorConfig {
+        let gencfg = GeneratorConfig {
             part: self.part,
             prims: &self.prims,
             edev: &edev,
@@ -1580,249 +1880,22 @@ impl PartContext<'_> {
         for key in wanted_keys_global(&edev) {
             harvester.want_global(key);
         }
-        let mut harvester = Mutex::new(harvester);
-        for round in 0.. {
-            if round >= 5 {
-                gencfg.allow_global = true;
-            }
-            (0..40).into_par_iter().for_each(|_| {
-                let design = generate(&gencfg);
-                let mut result = match run(self.sbt, &design) {
-                    Ok(res) => res,
-                    Err(err) => {
-                        if self.debug >= 2 {
-                            println!("OOPS {err:?}");
-                            if let Some(dir) = err.dir {
-                                println!(
-                                    "fucked directory left at {}",
-                                    dir.path().to_string_lossy()
-                                );
-                                std::mem::forget(dir);
-                            }
-                        }
-                        return;
-                    }
-                };
-                let dir = ManuallyDrop::new(result.dir.take());
-                if let Some(ref dir) = *dir {
-                    println!("YAY {}", dir.path().to_string_lossy());
-                }
-                let (sample, cur_pips) = make_sample(
-                    &design,
-                    &edev,
-                    &result,
-                    &self.empty_runs[&design.package],
-                    &self.xlat_col[&design.package],
-                    &self.xlat_row[&design.package],
-                    &self.xlat_io[&design.package],
-                    &gencfg.rows_colbuf,
-                    &self.extra_wire_names,
-                    &self.extra_node_locs,
-                );
-                let mut harvester = harvester.lock().unwrap();
-                let mut muxes = muxes.lock().unwrap();
-                let mut ctr = 0;
-                for pip in cur_pips {
-                    let mux = muxes
-                        .entry(pip.0)
-                        .or_default()
-                        .entry((NodeTileId::from_idx(0), pip.1))
-                        .or_insert_with(|| MuxInfo {
-                            kind: MuxKind::Plain,
-                            ins: BTreeSet::new(),
-                        });
+        let harvester = Mutex::new(harvester);
+        let mut hctx = HarvestContext {
+            ctx: self,
+            edev: &edev,
+            gencfg,
+            harvester,
+            muxes,
+        };
 
-                    if mux.ins.insert((NodeTileId::from_idx(0), pip.2)) {
-                        ctr += 1;
-                    }
-                }
-                if self.debug >= 2 {
-                    println!("TOTAL NEW PIPS: {ctr} / {tot}", tot = muxes.len());
-                }
-                drop(muxes);
-                if let Some(sample_id) = harvester.add_sample(sample) {
-                    if let Some(ref dir) = *dir {
-                        println!("SAMPLE {sample_id} {}", dir.path().to_string_lossy());
-                    }
-                }
-            });
-            let harvester = harvester.get_mut().unwrap();
-            if self.debug >= 1 {
-                println!("ROUND {round}:")
-            }
-            harvester.process();
-            if self.chip.kind.has_colbuf() && gencfg.rows_colbuf.is_empty() {
-                let mut plb_bits = [const { None }; 8];
-                let mut colbuf_map = BTreeMap::new();
-                for (key, bits) in &harvester.known_global {
-                    let Some(crd) = key.strip_prefix("COLBUF:") else {
-                        continue;
-                    };
-                    let (_, crd) = crd.split_once('.').unwrap();
-                    let (srow, idx) = crd.split_once('.').unwrap();
-                    let srow = RowId::from_idx(srow.parse().unwrap());
-                    let idx: usize = idx.parse().unwrap();
-                    assert_eq!(bits.len(), 1);
-                    let (&bit, &val) = bits.iter().next().unwrap();
-                    plb_bits[idx] = Some(BTreeMap::from_iter([(
-                        TileBit {
-                            tile: 0,
-                            frame: bit.1,
-                            bit: bit.2,
-                        },
-                        val,
-                    )]));
-                    let BitOwner::Main(_, row) = bit.0 else {
-                        unreachable!()
-                    };
-                    colbuf_map.insert(srow, row);
-                }
-                if self.debug >= 3 {
-                    println!("COLBUF ROWS: {colbuf_map:?}");
-                }
-                let got_all_idx = plb_bits.iter().all(|x| x.is_some());
-                if got_all_idx {
-                    if let Some(rows_colbuf) = self.compute_rows_colbuf(colbuf_map) {
-                        if self.debug >= 1 {
-                            println!("HEEEEEEY WE GOT COLBUFS!");
-                        }
-                        gencfg.rows_colbuf = rows_colbuf;
-                        for col in self.chip.columns() {
-                            if self.chip.kind.has_io_we()
-                                && (col == self.chip.col_w() || col == self.chip.col_e())
-                            {
-                                continue;
-                            }
-                            if self.chip.cols_bram.contains(&col) {
-                                continue;
-                            }
-                            for row in self.chip.rows() {
-                                if row == self.chip.row_s() || row == self.chip.row_n() {
-                                    continue;
-                                }
-                                let (row_colbuf, _, _) = gencfg
-                                    .rows_colbuf
-                                    .iter()
-                                    .copied()
-                                    .find(|&(_, row_b, row_t)| row >= row_b && row < row_t)
-                                    .unwrap();
-                                let trow = if row < row_colbuf {
-                                    if edev.chip.cols_bram.contains(&col)
-                                        && !edev.chip.kind.has_ice40_bramv2()
-                                    {
-                                        row_colbuf - 2
-                                    } else {
-                                        row_colbuf - 1
-                                    }
-                                } else {
-                                    row_colbuf
-                                };
+        hctx.run();
 
-                                for (idx, bits) in plb_bits.iter().enumerate() {
-                                    let bits = bits.as_ref().unwrap();
-                                    let key = format!("COLBUF:{col}.{row}.{idx}");
-                                    let bits = bits
-                                        .iter()
-                                        .map(|(&bit, &val)| {
-                                            ((BitOwner::Main(col, trow), bit.frame, bit.bit), val)
-                                        })
-                                        .collect();
-                                    harvester.force_global(key.clone(), bits);
-                                    harvester.known_global.remove(&key);
-                                }
-                            }
-                        }
-
-                        for (idx, bits) in plb_bits.into_iter().enumerate() {
-                            harvester.force_tiled(
-                                format!("PLB:COLBUF:GLOBAL.{idx}:BIT0"),
-                                bits.unwrap(),
-                            );
-                        }
-                        harvester.process();
-                    }
-                }
-            }
-            let muxes = muxes.lock().unwrap();
-            let mut nodes_complete = 0;
-            for (&nk, muxes) in &*muxes {
-                let mut stats: BTreeMap<String, usize> = BTreeMap::new();
-                let nkn = edev.egrid.db.nodes.key(nk);
-                for (&(_, wt), mux) in muxes {
-                    let wtn = edev.egrid.db.wires.key(wt);
-                    for &(_, wf) in &mux.ins {
-                        let wfn = edev.egrid.db.wires.key(wf);
-                        let bucket = if wtn.starts_with("QUAD.V") && wfn.starts_with("QUAD") {
-                            "QUAD-QUAD.V"
-                        } else if wtn.starts_with("QUAD.H") && wfn.starts_with("QUAD") {
-                            "QUAD-QUAD.H"
-                        } else if wtn.starts_with("QUAD.V") && wfn.starts_with("LONG") {
-                            "LONG-QUAD.V"
-                        } else if wtn.starts_with("QUAD.H") && wfn.starts_with("LONG") {
-                            "LONG-QUAD.H"
-                        } else if wtn.starts_with("QUAD.V") && wfn.starts_with("OUT") {
-                            "OUT-QUAD.V"
-                        } else if wtn.starts_with("QUAD.H") && wfn.starts_with("OUT") {
-                            "OUT-QUAD.H"
-                        } else if wtn.starts_with("LONG.V") && wfn.starts_with("LONG") {
-                            "LONG-LONG.V"
-                        } else if wtn.starts_with("LONG.H") && wfn.starts_with("LONG") {
-                            "LONG-LONG.H"
-                        } else if wtn.starts_with("LONG.V") && wfn.starts_with("OUT") {
-                            "OUT-LONG.V"
-                        } else if wtn.starts_with("LONG.H") && wfn.starts_with("OUT") {
-                            "OUT-LONG.H"
-                        } else {
-                            wtn
-                        };
-                        *stats.entry(bucket.to_string()).or_default() += 1;
-                    }
-                }
-                let golden_stats = get_golden_mux_stats(edev.chip.kind, nkn);
-                if stats == golden_stats {
-                    nodes_complete += 1;
-                } else {
-                    for (k, &v) in &stats {
-                        let gv = golden_stats.get(k).copied().unwrap_or(0);
-                        if v > gv {
-                            println!(
-                                "UMMMM GOT MORE MUXES THAN BARGAINED FOR AT {nkn} {k} {v}/{gv}"
-                            );
-                        }
-                    }
-                    let mut missing = BTreeMap::new();
-                    for (k, &gv) in &golden_stats {
-                        let v = stats.get(k).copied().unwrap_or(0);
-                        if v < gv {
-                            missing.insert(k, gv - v);
-                        }
-                    }
-                    if self.debug >= 1 && !missing.is_empty() {
-                        print!("missing muxes in {nkn}:");
-                        for (k, v) in missing {
-                            print!(" {v}×{k}");
-                        }
-                        println!();
-                    }
-                }
-            }
-            let golden_nodes_complete = if edev.chip.kind == ChipKind::Ice40P03 {
-                5 // PLB, 4×IO
-            } else if edev.chip.kind.has_io_we() {
-                6 // PLB, INT.BRAM, 4×IO
-            } else {
-                4 // PLB, INT.BRAM, 2×IO
-            };
-            if golden_nodes_complete == nodes_complete && !harvester.has_unresolved() {
-                break;
-            }
-        }
-        println!("DONE with {}!", self.part.name);
-        let mut muxes = muxes.into_inner().unwrap();
-        let mut harvester = harvester.into_inner().unwrap();
+        let mut muxes = hctx.muxes.into_inner().unwrap();
+        let mut harvester = hctx.harvester.into_inner().unwrap();
         let io_iob = collect_iob(&edev, &mut harvester);
         let tiledb = collect(&edev, &muxes, &harvester);
-        self.chip.rows_colbuf = gencfg.rows_colbuf;
+        self.chip.rows_colbuf = hctx.gencfg.rows_colbuf;
         self.chip.io_iob = io_iob;
 
         for tile_muxes in muxes.values_mut() {
