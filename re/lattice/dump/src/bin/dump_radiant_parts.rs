@@ -72,7 +72,7 @@ const RADIANT_FAMILIES: &[FamilyInfo] = &[FamilyInfo {
     about = "Dump Radiant part geometry into rawdump files."
 )]
 struct Args {
-    toolchain: String,
+    toolchain: PathBuf,
     target_directory: PathBuf,
     families: Vec<String>,
     #[arg(short, long, default_value = "0")]

@@ -22,6 +22,7 @@ unnamed_entity.workspace = true
 prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-siliconblue.workspace = true
+prjcombine-re-toolchain.workspace = true
 prjcombine-re-harvester.workspace = true
 prjcombine-re-sdf.workspace = true
 prjcombine-re-fpga-hammer.workspace = true

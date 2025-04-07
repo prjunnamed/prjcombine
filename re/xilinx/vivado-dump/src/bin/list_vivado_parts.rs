@@ -1,7 +1,7 @@
 use clap::Parser;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_vivado_dump::parts::get_parts;
-use std::error::Error;
+use std::{error::Error, path::PathBuf};
 
 #[derive(Debug, Parser)]
 #[command(
@@ -9,7 +9,7 @@ use std::error::Error;
     about = "Dump Vivado part geometry into rawdump files."
 )]
 struct Args {
-    toolchain: String,
+    toolchain: PathBuf,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

@@ -1,8 +1,11 @@
 use std::collections::HashSet;
 
-use crate::{tiledb::{
-    check_devdata, check_misc_data, gen_misc_table, gen_tiles, FrameDirection, TileOrientation
-}, DocgenContext};
+use crate::{
+    DocgenContext,
+    tiledb::{
+        FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_misc_table, gen_tiles,
+    },
+};
 
 pub fn gen_virtex(ctx: &mut DocgenContext) {
     let reg_orientation = TileOrientation {

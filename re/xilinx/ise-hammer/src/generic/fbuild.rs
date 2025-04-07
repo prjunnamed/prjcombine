@@ -10,9 +10,17 @@ use prjcombine_xilinx_bitstream::Reg;
 use crate::backend::{IseBackend, Key, MultiValue, PinFromKind, Value};
 
 use super::props::{
+    BaseRaw, DynProp, FuzzRaw, FuzzRawMulti, NullBits,
     bel::{
-        BaseBelAttr, BaseBelMode, BaseBelNoPin, BaseBelPin, BaseBelPinFrom, BaseBelPinPips, BaseGlobalXy, BelMutex, ForceBelName, FuzzBelAttr, FuzzBelMode, FuzzBelMultiAttr, FuzzBelPin, FuzzBelPinFrom, FuzzBelPinIntPips, FuzzBelPinPair, FuzzBelPinPips, FuzzGlobalXy, FuzzMultiGlobalXy, GlobalMutexHere, RowMutexHere
-    }, extra::{ExtraGtz, ExtraReg, ExtraTile, ExtraTilesByBel, ExtraTilesByKind}, mutex::{IntMutex, RowMutex, TileMutex, TileMutexExclusive}, pip::{BasePip, BelIntoPipWire, FuzzPip}, relation::{FixedRelation, HasRelated, NodeRelation, NoopRelation, Related}, BaseRaw, DynProp, FuzzRaw, FuzzRawMulti, NullBits
+        BaseBelAttr, BaseBelMode, BaseBelNoPin, BaseBelPin, BaseBelPinFrom, BaseBelPinPips,
+        BaseGlobalXy, BelMutex, ForceBelName, FuzzBelAttr, FuzzBelMode, FuzzBelMultiAttr,
+        FuzzBelPin, FuzzBelPinFrom, FuzzBelPinIntPips, FuzzBelPinPair, FuzzBelPinPips,
+        FuzzGlobalXy, FuzzMultiGlobalXy, GlobalMutexHere, RowMutexHere,
+    },
+    extra::{ExtraGtz, ExtraReg, ExtraTile, ExtraTilesByBel, ExtraTilesByKind},
+    mutex::{IntMutex, RowMutex, TileMutex, TileMutexExclusive},
+    pip::{BasePip, BelIntoPipWire, FuzzPip},
+    relation::{FixedRelation, HasRelated, NodeRelation, NoopRelation, Related},
 };
 
 pub struct FuzzCtx<'sm, 'a> {

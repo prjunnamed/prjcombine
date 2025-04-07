@@ -2,15 +2,16 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
+use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
-use std::{fs::File, path::Path};
+use std::process::Stdio;
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::db::PinDir;
 use prjcombine_re_sdf::Sdf;
+use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::bitstream::Bitstream;
 use prjcombine_siliconblue::chip::ChipKind;
 use serde::{Deserialize, Serialize};
@@ -732,7 +733,7 @@ fn get_result<R: std::io::Read + std::io::Seek>(zip: &mut ZipArchive<R>) -> RunR
     }
 }
 
-pub fn run(sbt: &Path, design: &Design, key: &str) -> Result<RunResult, RunError> {
+pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResult, RunError> {
     let cache_dir = PathBuf::from("cache")
         .join("icecube")
         .join(design.kind.to_string());
@@ -814,10 +815,9 @@ pub fn run(sbt: &Path, design: &Design, key: &str) -> Result<RunResult, RunError
     emit_edif(&mut f_edf, design).unwrap();
     std::mem::drop(f_edf);
 
-    let mut cmd = Command::new("timeout");
+    let mut cmd = toolchain.command("timeout");
     cmd.arg("5m");
     cmd.arg("tclsh");
-    cmd.env("SBT_DIR", sbt);
     cmd.env("UNBLOCK_LEDDIP_THUNDER", "1");
     cmd.env("DISABLE_IOGLITCHFIX_THUNDER", "1");
     cmd.current_dir(&work_dir);

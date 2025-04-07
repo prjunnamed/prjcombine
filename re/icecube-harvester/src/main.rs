@@ -1,6 +1,6 @@
 use std::{
     collections::{BTreeMap, BTreeSet, HashSet, btree_map},
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::Mutex,
 };
 
@@ -21,6 +21,7 @@ use prjcombine_interconnect::{
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
 };
 use prjcombine_re_harvester::Harvester;
+use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{
     bels,
     bond::{Bond, BondPin, CfgPin},
@@ -52,7 +53,7 @@ mod xlat;
 
 #[derive(Parser)]
 struct Args {
-    sbt: PathBuf,
+    toolchain: PathBuf,
     parts: Vec<String>,
     #[arg(short, long, action = clap::ArgAction::Count)]
     debug: u8,
@@ -63,7 +64,7 @@ struct PartContext<'a> {
     part: &'static Part,
     chip: Chip,
     intdb: IntDb,
-    sbt: &'a Path,
+    toolchain: &'a Toolchain,
     prims: BTreeMap<&'static str, Primitive>,
     empty_runs: BTreeMap<&'static str, RunResult>,
     plb_info: Vec<SiteInfo>,
@@ -304,7 +305,7 @@ impl HarvestContext<'_> {
             "gen-full"
         };
         let key = format!("{prefix}-{uniq:032x}");
-        match run(self.ctx.sbt, &design, &key) {
+        match run(self.ctx.toolchain, &design, &key) {
             Ok(res) => Some((key, design, res)),
             Err(err) => {
                 if self.ctx.debug >= 2 {
@@ -424,7 +425,7 @@ impl HarvestContext<'_> {
 
 impl PartContext<'_> {
     fn fill_sites(&mut self) {
-        let sbt = self.sbt;
+        let toolchain = self.toolchain;
         let part = self.part;
         let mut plb_info = None;
         let plb_info_ref = &mut plb_info;
@@ -437,7 +438,7 @@ impl PartContext<'_> {
         let empty_runs_ref = &empty_runs;
         rayon::scope(|s| {
             s.spawn(move |_| {
-                let locs = find_sites_plb(sbt, part);
+                let locs = find_sites_plb(toolchain, part);
                 *plb_info_ref = Some(locs);
             });
             for kind in [
@@ -464,7 +465,7 @@ impl PartContext<'_> {
                     continue;
                 }
                 s.spawn(move |_| {
-                    let locs = find_sites_misc(sbt, prims_ref, part, part.packages[0], kind);
+                    let locs = find_sites_misc(toolchain, prims_ref, part, part.packages[0], kind);
                     let mut binfo = bel_info_ref.lock().unwrap();
                     binfo.insert(kind, locs);
                 });
@@ -474,7 +475,12 @@ impl PartContext<'_> {
                     let design = Design::new(part, pkg, part.speeds[0], part.temps[0]);
                     empty_runs_ref.lock().unwrap().insert(
                         pkg,
-                        run(sbt, &design, &format!("empty-{dev}-{pkg}", dev = part.name)).unwrap(),
+                        run(
+                            toolchain,
+                            &design,
+                            &format!("empty-{dev}-{pkg}", dev = part.name),
+                        )
+                        .unwrap(),
                     );
                 });
 
@@ -514,13 +520,13 @@ impl PartContext<'_> {
                         continue;
                     }
                     s.spawn(move |_| {
-                        let locs = find_sites_misc(sbt, prims_ref, part, pkg, kind);
+                        let locs = find_sites_misc(toolchain, prims_ref, part, pkg, kind);
                         let mut binfo = pkg_bel_info_ref.lock().unwrap();
                         binfo.insert((pkg, kind), locs);
                     });
                 }
                 s.spawn(move |_| {
-                    let locs = find_sites_iox3(sbt, part, pkg);
+                    let locs = find_sites_iox3(toolchain, part, pkg);
                     let mut binfo = pkg_bel_info_ref.lock().unwrap();
                     binfo.insert((pkg, "IOx3"), locs);
                 });
@@ -968,7 +974,7 @@ impl PartContext<'_> {
             .into_par_iter()
             .for_each(|((kind, _), (pkg, site))| {
                 let mut pins = find_bel_pins(
-                    self.sbt,
+                    self.toolchain,
                     &self.prims,
                     self.part,
                     &edev,
@@ -1043,7 +1049,7 @@ impl PartContext<'_> {
             2
         };
         assert_eq!(pkg_pins.iter().count(), expected);
-        for (edge, (x, y)) in find_io_latch_locs(self.sbt, self.part, package, &pkg_pins) {
+        for (edge, (x, y)) in find_io_latch_locs(self.toolchain, self.part, package, &pkg_pins) {
             self.chip.extra_nodes.insert(
                 ExtraNodeLoc::LatchIo(edge),
                 ExtraNode {
@@ -1980,6 +1986,7 @@ impl PartContext<'_> {
 
 fn main() {
     let args = Args::parse();
+    let toolchain = Toolchain::from_file(args.toolchain).unwrap();
     for part in parts::PARTS {
         if !args.parts.is_empty() && !args.parts.iter().any(|p| p == part.name) {
             continue;
@@ -2000,7 +2007,7 @@ fn main() {
                 extra_nodes: BTreeMap::new(),
             },
             intdb: make_intdb(part.kind),
-            sbt: &args.sbt,
+            toolchain: &toolchain,
             prims: get_prims(part.kind),
             plb_info: vec![],
             empty_runs: BTreeMap::new(),

@@ -1,9 +1,6 @@
 use arrayvec::ArrayVec;
 use bitvec::prelude::*;
-use prjcombine_interconnect::{
-    dir::DirV,
-    grid::DieId,
-};
+use prjcombine_interconnect::{dir::DirV, grid::DieId};
 use std::collections::{BTreeMap, HashMap};
 use unnamed_entity::EntityVec;
 

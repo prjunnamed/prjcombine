@@ -13,7 +13,7 @@ use std::path::PathBuf;
     about = "Dump Vivado part geometry into rawdump files."
 )]
 struct Args {
-    toolchain: String,
+    toolchain: PathBuf,
     target_directory: PathBuf,
     families: Vec<String>,
     #[arg(long)]

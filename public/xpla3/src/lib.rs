@@ -8,7 +8,7 @@ use std::{
 use jzon::JsonValue;
 use prjcombine_types::{FbId, FbMcId, tiledb::Tile};
 use serde::{Deserialize, Serialize};
-use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
+use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
 
 entity_id! {
     pub id ChipId u32;

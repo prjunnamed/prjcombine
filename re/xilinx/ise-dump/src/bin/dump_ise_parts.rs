@@ -16,7 +16,7 @@ use std::path::PathBuf;
     about = "Dump ISE part geometry into rawdump files."
 )]
 struct Args {
-    toolchain: String,
+    toolchain: PathBuf,
     target_directory: PathBuf,
     families: Vec<String>,
     #[arg(short, long, default_value = "0")]

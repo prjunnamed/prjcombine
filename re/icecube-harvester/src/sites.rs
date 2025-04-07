@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, path::Path};
+use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
@@ -6,6 +6,7 @@ use prjcombine_interconnect::{
     dir::DirPartMap,
     grid::{ColId, DieId, IntWire, RowId},
 };
+use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
 use prjcombine_types::tiledb::{TileDb, TileItemKind};
 use unnamed_entity::{EntityId, EntityPartVec};
@@ -52,7 +53,7 @@ fn find_sites(
     best
 }
 
-pub fn find_sites_plb(sbt: &Path, part: &Part) -> Vec<SiteInfo> {
+pub fn find_sites_plb(toolchain: &Toolchain, part: &Part) -> Vec<SiteInfo> {
     find_sites(512, |num| {
         if part.name == "iCE40MX16K" && num >= 1913 {
             // ??????? this hangs sbtplacer.
@@ -79,7 +80,11 @@ pub fn find_sites_plb(sbt: &Path, part: &Part) -> Vec<SiteInfo> {
         inst.connect("D_OUT_0", chain_site, chain_pin);
         design.insts.push(inst);
 
-        match run(sbt, &design, &format!("plb-{dev}-{num}", dev = part.name)) {
+        match run(
+            toolchain,
+            &design,
+            &format!("plb-{dev}-{num}", dev = part.name),
+        ) {
             Err(_) => None,
             Ok(res) => {
                 let mut locs = vec![];
@@ -113,7 +118,7 @@ pub fn find_sites_plb(sbt: &Path, part: &Part) -> Vec<SiteInfo> {
 }
 
 pub fn find_sites_misc(
-    sbt: &Path,
+    toolchain: &Toolchain,
     prims: &BTreeMap<&'static str, Primitive>,
     part: &Part,
     pkg: &'static str,
@@ -429,7 +434,7 @@ pub fn find_sites_misc(
             design.insts.push(io);
         }
         match run(
-            sbt,
+            toolchain,
             &design,
             &format!("sites-{dev}-{pkg}-{kind}-{num}", dev = part.name),
         ) {
@@ -548,7 +553,7 @@ pub fn find_sites_misc(
     })
 }
 
-pub fn find_sites_iox3(sbt: &Path, part: &Part, pkg: &'static str) -> Vec<SiteInfo> {
+pub fn find_sites_iox3(toolchain: &Toolchain, part: &Part, pkg: &'static str) -> Vec<SiteInfo> {
     find_sites(3, |num| {
         let mut design = Design::new(part, pkg, part.speeds[0], part.temps[0]);
         for _ in 0..num {
@@ -562,7 +567,7 @@ pub fn find_sites_iox3(sbt: &Path, part: &Part, pkg: &'static str) -> Vec<SiteIn
             design.insts.push(inst);
         }
         match run(
-            sbt,
+            toolchain,
             &design,
             &format!("iox3-{dev}-{pkg}-{num}", dev = part.name),
         ) {
@@ -607,7 +612,7 @@ pub fn find_sites_iox3(sbt: &Path, part: &Part, pkg: &'static str) -> Vec<SiteIn
 }
 
 pub fn find_io_latch_locs(
-    sbt: &Path,
+    toolchain: &Toolchain,
     part: &Part,
     pkg: &'static str,
     pkg_pins: &DirPartMap<&str>,
@@ -631,7 +636,7 @@ pub fn find_io_latch_locs(
         design.insts.push(inst);
     }
     match run(
-        sbt,
+        toolchain,
         &design,
         &format!("iolatch-{dev}-{pkg}", dev = part.name),
     ) {
@@ -667,7 +672,7 @@ pub struct BelPins {
 
 #[allow(clippy::too_many_arguments)]
 pub fn find_bel_pins(
-    sbt: &Path,
+    toolchain: &Toolchain,
     prims: &BTreeMap<&'static str, Primitive>,
     part: &Part,
     edev: &ExpandedDevice,
@@ -941,7 +946,7 @@ pub fn find_bel_pins(
             design.insts.push(io);
         }
         let res = run(
-            sbt,
+            toolchain,
             &design,
             &format!(
                 "belpins-{dev}-{pkg}-{kind}-{x}_{y}_{bel}",

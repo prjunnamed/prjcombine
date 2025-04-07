@@ -352,7 +352,7 @@ const DIAMOND_FAMILIES: &[FamilyInfo] = &[
     about = "Dump Diamond part geometry into rawdump files."
 )]
 struct Args {
-    toolchain: String,
+    toolchain: PathBuf,
     target_directory: PathBuf,
     families: Vec<String>,
     #[arg(short, long, default_value = "0")]
