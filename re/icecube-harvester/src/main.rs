@@ -29,7 +29,7 @@ use prjcombine_siliconblue::{
     db::Database,
     expanded::{BitOwner, ExpandedDevice},
 };
-use prjcombine_types::tiledb::{TileBit, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileDb, TileItemKind};
 use rand::Rng;
 use rayon::prelude::*;
 use run::{Design, InstPin, RawLoc, RunResult, get_cached_designs, remove_cache_key, run};
@@ -54,29 +54,33 @@ mod xlat;
 #[derive(Parser)]
 struct Args {
     toolchain: PathBuf,
-    parts: Vec<String>,
+    kinds: Vec<String>,
     #[arg(short, long, action = clap::ArgAction::Count)]
     debug: u8,
 }
 
+pub struct PkgInfo {
+    pub part: &'static Part,
+    pub bond: Bond,
+    pub empty_run: RunResult,
+    pub bel_info: BTreeMap<&'static str, Vec<SiteInfo>>,
+    pub xlat_col: Vec<ColId>,
+    pub xlat_row: Vec<RowId>,
+    pub xlat_io: BTreeMap<(u32, u32, u32), EdgeIoCoord>,
+}
+
 #[allow(clippy::type_complexity)]
 struct PartContext<'a> {
-    part: &'static Part,
+    parts: Vec<&'static Part>,
     chip: Chip,
     intdb: IntDb,
     toolchain: &'a Toolchain,
     prims: BTreeMap<&'static str, Primitive>,
-    empty_runs: BTreeMap<&'static str, RunResult>,
-    plb_info: Vec<SiteInfo>,
-    bel_info: BTreeMap<&'static str, Vec<SiteInfo>>,
-    pkg_bel_info: BTreeMap<(&'static str, &'static str), Vec<SiteInfo>>,
-    xlat_col: BTreeMap<&'static str, Vec<ColId>>,
-    xlat_row: BTreeMap<&'static str, Vec<RowId>>,
-    xlat_io: BTreeMap<&'static str, BTreeMap<(u32, u32, u32), EdgeIoCoord>>,
-    bonds: BTreeMap<&'static str, Bond>,
+    pkgs: BTreeMap<(&'static str, &'static str), PkgInfo>,
     extra_wire_names: BTreeMap<(u32, u32, String), IntWire>,
     bel_pins: BTreeMap<(&'static str, RawLoc), BelPins>,
     extra_node_locs: BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
+    tiledb: TileDb,
     debug: u8,
 }
 
@@ -316,15 +320,18 @@ impl HarvestContext<'_> {
         }
     }
 
-    fn add_sample(&self, design: Design, result: RunResult) -> bool {
+    fn add_sample(&self, key: &str, design: Design, result: RunResult) -> bool {
+        if matches!(
+            design.device.as_str(),
+            "iCE40LP640" | "iCE40HX640" | "iCE40LP4K" | "iCE40HX4K"
+        ) {
+            return false;
+        }
         let (sample, cur_pips) = make_sample(
             &design,
             self.edev,
             &result,
-            &self.ctx.empty_runs[&design.package.as_str()],
-            &self.ctx.xlat_col[&design.package.as_str()],
-            &self.ctx.xlat_row[&design.package.as_str()],
-            &self.ctx.xlat_io[&design.package.as_str()],
+            &self.ctx.pkgs[&(design.device.as_str(), design.package.as_str())],
             &self.gencfg.rows_colbuf,
             &self.ctx.extra_wire_names,
             &self.ctx.extra_node_locs,
@@ -347,16 +354,23 @@ impl HarvestContext<'_> {
             }
         }
         if self.ctx.debug >= 2 {
-            println!("TOTAL NEW PIPS: {ctr} / {tot}", tot = muxes.len());
+            println!("{key} TOTAL NEW PIPS: {ctr} / {tot}", tot = muxes.len());
         }
         drop(muxes);
-        harvester.add_sample(sample).is_some()
+        if let Some(sid) = harvester.add_sample(sample) {
+            if self.ctx.debug >= 2 {
+                println!("SAMPLE {sid}: {key}");
+            }
+            true
+        } else {
+            false
+        }
     }
 
     fn run(&mut self) {
         let mut ctr = 0;
-        for (design, result) in get_cached_designs(self.ctx.chip.kind, "gen-noglobal") {
-            self.add_sample(design, result);
+        for (key, design, result) in get_cached_designs(self.ctx.chip.kind, "gen-noglobal") {
+            self.add_sample(&key, design, result);
             ctr += 1;
             if ctr % 20 == 0 {
                 self.harvester.get_mut().unwrap().process();
@@ -368,16 +382,16 @@ impl HarvestContext<'_> {
         println!("{ctr} cached noglobal designs");
         if self.harvester.get_mut().unwrap().samples.len() < 40 {
             (0..40).into_par_iter().for_each(|_| {
-                if let Some((_, design, result)) = self.new_sample() {
-                    self.add_sample(design, result);
+                if let Some((key, design, result)) = self.new_sample() {
+                    self.add_sample(&key, design, result);
                 }
             });
             self.harvester.get_mut().unwrap().process();
         }
         self.gencfg.allow_global = true;
         let mut ctr = 0;
-        for (design, result) in get_cached_designs(self.ctx.chip.kind, "gen-nocolbuf") {
-            self.add_sample(design, result);
+        for (key, design, result) in get_cached_designs(self.ctx.chip.kind, "gen-nocolbuf") {
+            self.add_sample(&key, design, result);
             ctr += 1;
             if ctr % 100 == 0 {
                 self.harvester.get_mut().unwrap().process();
@@ -390,16 +404,16 @@ impl HarvestContext<'_> {
         self.handle_colbufs();
         while self.ctx.chip.kind.has_colbuf() && self.gencfg.rows_colbuf.is_empty() {
             (0..40).into_par_iter().for_each(|_| {
-                if let Some((_, design, result)) = self.new_sample() {
-                    self.add_sample(design, result);
+                if let Some((key, design, result)) = self.new_sample() {
+                    self.add_sample(&key, design, result);
                 }
             });
             self.harvester.get_mut().unwrap().process();
             self.handle_colbufs();
         }
         let mut ctr = 0;
-        for (design, result) in get_cached_designs(self.ctx.chip.kind, "gen-full") {
-            self.add_sample(design, result);
+        for (key, design, result) in get_cached_designs(self.ctx.chip.kind, "gen-full") {
+            self.add_sample(&key, design, result);
             ctr += 1;
             if ctr % 100 == 0 {
                 self.harvester.get_mut().unwrap().process();
@@ -412,133 +426,178 @@ impl HarvestContext<'_> {
         while !self.muxes_complete() || self.harvester.get_mut().unwrap().has_unresolved() {
             (0..40).into_par_iter().for_each(|_| {
                 if let Some((key, design, result)) = self.new_sample() {
-                    if !self.add_sample(design, result) {
+                    if !self.add_sample(&key, design, result) {
                         remove_cache_key(self.ctx.chip.kind, &key);
                     }
                 }
             });
             self.harvester.get_mut().unwrap().process();
         }
-        println!("DONE with {}!", self.ctx.part.name);
+        println!("DONE with {}!", self.ctx.chip.kind);
     }
 }
 
 impl PartContext<'_> {
+    fn def_pkg(&self) -> (&'static str, &'static str) {
+        (self.parts[0].name, self.parts[0].packages[0])
+    }
+
     fn fill_sites(&mut self) {
         let toolchain = self.toolchain;
-        let part = self.part;
-        let mut plb_info = None;
-        let plb_info_ref = &mut plb_info;
-        let bel_info = Mutex::new(BTreeMap::new());
+        let parts = &self.parts;
+        let bel_info = Mutex::new(vec![]);
         let bel_info_ref = &bel_info;
-        let pkg_bel_info = Mutex::new(BTreeMap::new());
-        let pkg_bel_info_ref = &pkg_bel_info;
         let prims_ref = &self.prims;
         let empty_runs = Mutex::new(BTreeMap::new());
         let empty_runs_ref = &empty_runs;
         rayon::scope(|s| {
-            s.spawn(move |_| {
-                let locs = find_sites_plb(toolchain, part);
-                *plb_info_ref = Some(locs);
-            });
-            for kind in [
-                "SB_GB",
-                "SB_RAM4K",
-                "SB_RAM40_4K",
-                "SB_RAM40_16K",
-                "SB_MAC16",
-                "SB_SPRAM256KA",
-                "SB_WARMBOOT",
-                "SB_SPI",
-                "SB_I2C",
-                "SB_FILTER_50NS",
-                "SB_HSOSC",
-                "SB_LSOSC",
-                "SB_HFOSC",
-                "SB_LFOSC",
-                "SB_LEDD_IP",
-                "SB_LEDDA_IP",
-                "SB_IR_IP",
-                "SB_I2C_FIFO",
-            ] {
-                if !self.prims.contains_key(kind) {
-                    continue;
-                }
+            for &part in parts {
                 s.spawn(move |_| {
-                    let locs = find_sites_misc(toolchain, prims_ref, part, part.packages[0], kind);
+                    let locs = find_sites_plb(toolchain, part);
                     let mut binfo = bel_info_ref.lock().unwrap();
-                    binfo.insert(kind, locs);
+                    binfo.push((part.name, part.packages[0], "PLB", locs));
                 });
-            }
-            for &pkg in part.packages {
-                s.spawn(move |_| {
-                    let design = Design::new(part, pkg, part.speeds[0], part.temps[0]);
-                    empty_runs_ref.lock().unwrap().insert(
-                        pkg,
-                        run(
-                            toolchain,
-                            &design,
-                            &format!("empty-{dev}-{pkg}", dev = part.name),
-                        )
-                        .unwrap(),
-                    );
-                });
-
                 for kind in [
-                    "SB_IO",
-                    "SB_IO_DS",
-                    "SB_IO_DLY",
-                    "SB_IO_I3C",
-                    "SB_IO_OD",
-                    "SB_GB_IO",
-                    "SB_IR_DRV",
-                    "SB_BARCODE_DRV",
-                    "SB_IR400_DRV",
-                    "SB_IR500_DRV",
-                    "SB_RGB_DRV",
-                    "SB_RGBA_DRV",
-                    "SB_PLL_CORE",
-                    "SB_PLL_PAD",
-                    "SB_PLL_2_PAD",
-                    "SB_PLL40_CORE",
-                    "SB_PLL40_PAD",
-                    "SB_PLL40_PAD_DS",
-                    "SB_PLL40_2_PAD",
-                    "SB_PLL40_2F_CORE",
-                    "SB_PLL40_2F_PAD",
-                    "SB_PLL40_2F_PAD_DS",
-                    "SB_MIPI_RX_2LANE",
-                    "SB_MIPI_TX_4LANE",
-                    "SB_TMDS_deserializer",
+                    "SB_GB",
+                    "SB_RAM4K",
+                    "SB_RAM40_4K",
+                    "SB_RAM40_16K",
+                    "SB_MAC16",
+                    "SB_SPRAM256KA",
+                    "SB_WARMBOOT",
+                    "SB_SPI",
+                    "SB_I2C",
+                    "SB_FILTER_50NS",
+                    "SB_HSOSC",
+                    "SB_LSOSC",
+                    "SB_HFOSC",
+                    "SB_LFOSC",
+                    "SB_LEDD_IP",
+                    "SB_LEDDA_IP",
+                    "SB_IR_IP",
+                    "SB_I2C_FIFO",
                 ] {
                     if !self.prims.contains_key(kind) {
                         continue;
                     }
-                    if kind.starts_with("SB_PLL")
-                        && matches!(part.kind, ChipKind::Ice40M08 | ChipKind::Ice40M16)
-                    {
-                        continue;
-                    }
                     s.spawn(move |_| {
-                        let locs = find_sites_misc(toolchain, prims_ref, part, pkg, kind);
-                        let mut binfo = pkg_bel_info_ref.lock().unwrap();
-                        binfo.insert((pkg, kind), locs);
+                        let locs =
+                            find_sites_misc(toolchain, prims_ref, part, part.packages[0], kind);
+                        let mut binfo = bel_info_ref.lock().unwrap();
+                        binfo.push((part.name, part.packages[0], kind, locs));
                     });
                 }
-                s.spawn(move |_| {
-                    let locs = find_sites_iox3(toolchain, part, pkg);
-                    let mut binfo = pkg_bel_info_ref.lock().unwrap();
-                    binfo.insert((pkg, "IOx3"), locs);
-                });
+                for &pkg in part.packages {
+                    s.spawn(move |_| {
+                        let design = Design::new(part, pkg, part.speeds[0], part.temps[0]);
+                        empty_runs_ref.lock().unwrap().insert(
+                            (part.name, pkg),
+                            run(
+                                toolchain,
+                                &design,
+                                &format!("empty-{dev}-{pkg}", dev = part.name),
+                            )
+                            .unwrap(),
+                        );
+                    });
+
+                    for kind in [
+                        "SB_IO",
+                        "SB_IO_DS",
+                        "SB_IO_DLY",
+                        "SB_IO_I3C",
+                        "SB_IO_OD",
+                        "SB_GB_IO",
+                        "SB_IR_DRV",
+                        "SB_BARCODE_DRV",
+                        "SB_IR400_DRV",
+                        "SB_IR500_DRV",
+                        "SB_RGB_DRV",
+                        "SB_RGBA_DRV",
+                        "SB_PLL_CORE",
+                        "SB_PLL_PAD",
+                        "SB_PLL_2_PAD",
+                        "SB_PLL40_CORE",
+                        "SB_PLL40_PAD",
+                        "SB_PLL40_PAD_DS",
+                        "SB_PLL40_2_PAD",
+                        "SB_PLL40_2F_CORE",
+                        "SB_PLL40_2F_PAD",
+                        "SB_PLL40_2F_PAD_DS",
+                        "SB_MIPI_RX_2LANE",
+                        "SB_MIPI_TX_4LANE",
+                        "SB_TMDS_deserializer",
+                    ] {
+                        if !self.prims.contains_key(kind) {
+                            continue;
+                        }
+                        if kind.starts_with("SB_PLL")
+                            && matches!(part.kind, ChipKind::Ice40M08 | ChipKind::Ice40M16)
+                        {
+                            continue;
+                        }
+                        s.spawn(move |_| {
+                            let locs = find_sites_misc(toolchain, prims_ref, part, pkg, kind);
+                            let mut binfo = bel_info_ref.lock().unwrap();
+                            binfo.push((part.name, pkg, kind, locs));
+                        });
+                    }
+                    s.spawn(move |_| {
+                        let locs = find_sites_iox3(toolchain, part, pkg);
+                        let mut binfo = bel_info_ref.lock().unwrap();
+                        binfo.push((part.name, pkg, "IOx3", locs));
+                    });
+                }
             }
         });
 
-        self.empty_runs = empty_runs.into_inner().unwrap();
-        self.plb_info = plb_info.unwrap();
-        self.bel_info = bel_info.into_inner().unwrap();
-        self.pkg_bel_info = pkg_bel_info.into_inner().unwrap();
+        let empty_runs = empty_runs.into_inner().unwrap();
+        let bel_info = bel_info.into_inner().unwrap();
+        self.pkgs = empty_runs
+            .into_iter()
+            .map(|((dev, pkg), v)| {
+                let part = self
+                    .parts
+                    .iter()
+                    .copied()
+                    .find(|part| part.name == dev)
+                    .unwrap();
+                (
+                    (dev, pkg),
+                    PkgInfo {
+                        part,
+                        bond: Bond {
+                            pins: Default::default(),
+                        },
+                        empty_run: v,
+                        bel_info: Default::default(),
+                        xlat_col: Default::default(),
+                        xlat_row: Default::default(),
+                        xlat_io: Default::default(),
+                    },
+                )
+            })
+            .collect();
+        for (dev, pkg, kind, locs) in bel_info {
+            let pkg_info = self.pkgs.get_mut(&(dev, pkg)).unwrap();
+            pkg_info.bel_info.insert(kind, locs);
+        }
+        for &part in &self.parts {
+            for &pkg in part.packages {
+                let (sdev, spkg) = if part.name == "iCE40LP640" && pkg == "SWG16TR" {
+                    ("iCE40LP1K", "DI")
+                } else {
+                    (part.name, part.packages[0])
+                };
+                let sbels = self.pkgs[&(sdev, spkg)].bel_info.clone();
+                let dbels = &mut self.pkgs.get_mut(&(part.name, pkg)).unwrap().bel_info;
+                for (k, v) in sbels {
+                    dbels.entry(k).or_insert(v);
+                }
+            }
+        }
         self.chip.row_mid = RowId::from_idx(
-            self.empty_runs[self.part.packages[0]].bitstream.cram[0]
+            self.pkgs[&self.def_pkg()].empty_run.bitstream.cram[0]
                 .frame_present
                 .len()
                 / 16,
@@ -546,128 +605,124 @@ impl PartContext<'_> {
     }
 
     fn fill_xlat_rc(&mut self) {
-        let mut xlat_col = BTreeMap::new();
-        let mut xlat_row = BTreeMap::new();
-        let mut info_sets = vec![
-            (&self.plb_info, InstPin::Simple("Q".into()), true, false),
-            (
-                &self.bel_info["SB_GB"],
-                InstPin::Simple("USER_SIGNAL_TO_GLOBAL_BUFFER".into()),
-                true,
-                false,
-            ),
-            (
-                &self.bel_info[if self.part.kind.is_ice65() {
-                    "SB_RAM4K"
-                } else {
-                    "SB_RAM40_4K"
-                }],
-                InstPin::Indexed("RDATA".into(), 0),
-                false,
-                true,
-            ),
-        ];
-        if self.bel_info.contains_key("SB_MAC16") {
-            info_sets.push((
-                &self.bel_info["SB_MAC16"],
-                InstPin::Indexed("O".into(), 0),
-                false,
-                false,
-            ));
-        }
-        if self.bel_info.contains_key("SB_LSOSC") {
-            info_sets.push((
-                &self.bel_info["SB_LSOSC"],
-                InstPin::Simple("CLKK".into()),
-                false,
-                false,
-            ));
-            info_sets.push((
-                &self.bel_info["SB_HSOSC"],
-                InstPin::Simple("CLKM".into()),
-                false,
-                false,
-            ));
-        }
+        let mut first = true;
+        for pkg_info in self.pkgs.values_mut() {
+            let mut xlat_col = BTreeMap::new();
+            let mut xlat_row = BTreeMap::new();
+            let mut info_sets = vec![
+                (
+                    &pkg_info.bel_info["PLB"],
+                    InstPin::Simple("Q".into()),
+                    true,
+                    false,
+                ),
+                (
+                    &pkg_info.bel_info["SB_GB"],
+                    InstPin::Simple("USER_SIGNAL_TO_GLOBAL_BUFFER".into()),
+                    true,
+                    false,
+                ),
+                (
+                    &pkg_info.bel_info[if self.chip.kind.is_ice65() {
+                        "SB_RAM4K"
+                    } else {
+                        "SB_RAM40_4K"
+                    }],
+                    InstPin::Indexed("RDATA".into(), 0),
+                    false,
+                    true,
+                ),
+            ];
+            if pkg_info.bel_info.contains_key("SB_MAC16") {
+                info_sets.push((
+                    &pkg_info.bel_info["SB_MAC16"],
+                    InstPin::Indexed("O".into(), 0),
+                    false,
+                    false,
+                ));
+            }
+            if pkg_info.bel_info.contains_key("SB_LSOSC") {
+                info_sets.push((
+                    &pkg_info.bel_info["SB_LSOSC"],
+                    InstPin::Simple("CLKK".into()),
+                    false,
+                    false,
+                ));
+                info_sets.push((
+                    &pkg_info.bel_info["SB_HSOSC"],
+                    InstPin::Simple("CLKM".into()),
+                    false,
+                    false,
+                ));
+            }
 
-        for (infos, pin, do_y, is_ram) in info_sets {
-            for info in infos {
-                let (col, row, _) = *info
-                    .out_wires
-                    .get(&pin)
-                    .unwrap_or_else(|| &info.in_wires[&pin]);
-                let col = ColId::from_idx(col.try_into().unwrap());
-                match xlat_col.entry(info.loc.x) {
-                    btree_map::Entry::Vacant(e) => {
-                        e.insert(col);
-                    }
-                    btree_map::Entry::Occupied(e) => {
-                        assert_eq!(*e.get(), col);
-                    }
-                }
-                if is_ram {
-                    self.chip.cols_bram.insert(col);
-                }
-                if do_y {
-                    let row = RowId::from_idx(row.try_into().unwrap());
-                    match xlat_row.entry(info.loc.y) {
+            for (infos, pin, do_y, is_ram) in info_sets {
+                for info in infos {
+                    let (col, row, _) = *info
+                        .out_wires
+                        .get(&pin)
+                        .unwrap_or_else(|| &info.in_wires[&pin]);
+                    let col = ColId::from_idx(col.try_into().unwrap());
+                    match xlat_col.entry(info.loc.x) {
                         btree_map::Entry::Vacant(e) => {
-                            e.insert(row);
+                            e.insert(col);
                         }
                         btree_map::Entry::Occupied(e) => {
-                            assert_eq!(*e.get(), row);
+                            assert_eq!(*e.get(), col);
+                        }
+                    }
+                    if is_ram {
+                        self.chip.cols_bram.insert(col);
+                    }
+                    if do_y {
+                        let row = RowId::from_idx(row.try_into().unwrap());
+                        match xlat_row.entry(info.loc.y) {
+                            btree_map::Entry::Vacant(e) => {
+                                e.insert(row);
+                            }
+                            btree_map::Entry::Occupied(e) => {
+                                assert_eq!(*e.get(), row);
+                            }
                         }
                     }
                 }
             }
-        }
-        self.chip.columns = xlat_col.values().max().unwrap().to_idx() + 1;
-        self.chip.rows = xlat_row.values().max().unwrap().to_idx() + 1;
+            let mut columns = xlat_col.values().max().unwrap().to_idx() + 1;
+            let rows = xlat_row.values().max().unwrap().to_idx() + 1;
 
-        // iCE5LP1K fixup.
-        if !self.chip.kind.has_io_we() {
-            for &pkg in self.part.packages {
-                for site in &self.pkg_bel_info[&(pkg, "SB_IO")] {
-                    let (col, _, _) = site.in_wires[&InstPin::Simple("D_OUT_0".into())];
-                    self.chip.columns = self.chip.columns.max(col as usize + 2);
-                }
+            // iCE5LP1K fixup.
+            if self.chip.kind == ChipKind::Ice40T04 {
+                columns = 26;
             }
-        }
 
-        for (i, (&j, _)) in xlat_col.iter().enumerate() {
-            assert_eq!(i, usize::try_from(j).unwrap());
-        }
-        for (i, (&j, _)) in xlat_row.iter().enumerate() {
-            assert_eq!(i, usize::try_from(j).unwrap());
-        }
-        let xlat_col: Vec<_> = xlat_col.into_values().collect();
-        let xlat_row: Vec<_> = xlat_row.into_values().collect();
-
-        for &pkg in self.part.packages {
-            if self.part.name == "iCE40LP640" && pkg == "SWG16TR" {
-                self.xlat_col
-                    .insert(pkg, Vec::from_iter((0..14).map(ColId::from_idx)));
-                self.xlat_row
-                    .insert(pkg, Vec::from_iter((0..18).map(RowId::from_idx)));
+            if first {
+                self.chip.columns = columns;
+                self.chip.rows = rows;
             } else {
-                self.xlat_col.insert(pkg, xlat_col.clone());
-                self.xlat_row.insert(pkg, xlat_row.clone());
+                assert_eq!(self.chip.columns, columns);
+                assert_eq!(self.chip.rows, rows);
             }
+
+            for (i, (&j, _)) in xlat_col.iter().enumerate() {
+                assert_eq!(i, usize::try_from(j).unwrap());
+            }
+            for (i, (&j, _)) in xlat_row.iter().enumerate() {
+                assert_eq!(i, usize::try_from(j).unwrap());
+            }
+            pkg_info.xlat_col = xlat_col.into_values().collect();
+            pkg_info.xlat_row = xlat_row.into_values().collect();
+
+            first = false;
         }
     }
 
     fn fill_bonds(&mut self) {
-        let col_w = ColId::from_idx(0);
-        let col_e = ColId::from_idx(self.chip.columns - 1);
-        let row_s = RowId::from_idx(0);
-        let row_n = RowId::from_idx(self.chip.rows - 1);
-        for &pkg in self.part.packages {
-            let mut xlat_io = BTreeMap::new();
-
-            let mut bond = Bond {
-                pins: Default::default(),
-            };
-            for info in &self.pkg_bel_info[&(pkg, "SB_IO")] {
+        let col_w = self.chip.col_w();
+        let col_e = self.chip.col_e();
+        let row_s = self.chip.row_s();
+        let row_n = self.chip.row_n();
+        for (&(dev, pkg), pkg_info) in &mut self.pkgs {
+            for info in &pkg_info.bel_info["SB_IO"] {
                 let (col, row, ref wn) = info.in_wires[&InstPin::Simple("D_OUT_0".into())];
                 let col = ColId::from_idx(col.try_into().unwrap());
                 let row = RowId::from_idx(row.try_into().unwrap());
@@ -684,8 +739,11 @@ impl PartContext<'_> {
                 let io = self.chip.get_io_crd((DieId::from_idx(0), (col, row), slot));
                 // will be fixed up later.
                 self.chip.io_iob.insert(io, io);
-                assert_eq!(bond.pins.insert(pin.clone(), BondPin::Io(io)), None);
-                match xlat_io.entry(xy) {
+                assert_eq!(
+                    pkg_info.bond.pins.insert(pin.clone(), BondPin::Io(io)),
+                    None
+                );
+                match pkg_info.xlat_io.entry(xy) {
                     btree_map::Entry::Vacant(e) => {
                         e.insert(io);
                     }
@@ -694,8 +752,8 @@ impl PartContext<'_> {
                     }
                 }
             }
-            if self.part.kind.is_ice65() {
-                for info in &self.pkg_bel_info[&(pkg, "SB_IO_DS")] {
+            if self.chip.kind.is_ice65() {
+                for info in &pkg_info.bel_info["SB_IO_DS"] {
                     for pin in ["PACKAGE_PIN", "PACKAGE_PIN_B"] {
                         let (loc, ref pin) = info.pads[pin];
                         let col = ColId::from_idx(loc.x.try_into().unwrap());
@@ -713,11 +771,14 @@ impl PartContext<'_> {
                             unreachable!()
                         };
                         self.chip.io_iob.insert(io, io);
-                        assert_eq!(bond.pins.insert(pin.clone(), BondPin::Io(io)), None);
+                        assert_eq!(
+                            pkg_info.bond.pins.insert(pin.clone(), BondPin::Io(io)),
+                            None
+                        );
                     }
                 }
             }
-            if let Some(infos) = self.pkg_bel_info.get(&(pkg, "SB_IO_OD")) {
+            if let Some(infos) = pkg_info.bel_info.get("SB_IO_OD") {
                 for info in infos {
                     let (col, row, ref wn) = info.in_wires[&InstPin::Simple("DOUT0".into())];
                     let col = ColId::from_idx(col.try_into().unwrap());
@@ -745,8 +806,11 @@ impl PartContext<'_> {
                     };
                     self.chip.io_iob.insert(io, io);
                     self.chip.io_od.insert(io);
-                    assert_eq!(bond.pins.insert(pin.clone(), BondPin::Io(io)), None);
-                    match xlat_io.entry(xy) {
+                    assert_eq!(
+                        pkg_info.bond.pins.insert(pin.clone(), BondPin::Io(io)),
+                        None
+                    );
+                    match pkg_info.xlat_io.entry(xy) {
                         btree_map::Entry::Vacant(e) => {
                             e.insert(io);
                         }
@@ -756,16 +820,16 @@ impl PartContext<'_> {
                     }
                 }
             }
-            if matches!(self.part.name, "iCE65L04" | "iCE65P04") && pkg == "CB132" {
+            if matches!(dev, "iCE65L04" | "iCE65P04") && pkg == "CB132" {
                 // AAAAAAAAAAAAAAAAAAAaaaaaaaaaaaa
                 let io = EdgeIoCoord::W(RowId::from_idx(11), TileIobId::from_idx(0));
                 self.chip.io_iob.insert(io, io);
-                bond.pins.insert("G1".into(), BondPin::Io(io));
+                pkg_info.bond.pins.insert("G1".into(), BondPin::Io(io));
                 let io = EdgeIoCoord::W(RowId::from_idx(10), TileIobId::from_idx(1));
                 self.chip.io_iob.insert(io, io);
-                bond.pins.insert("H1".into(), BondPin::Io(io));
+                pkg_info.bond.pins.insert("H1".into(), BondPin::Io(io));
             }
-            if self.part.kind.is_ice65() {
+            if self.chip.kind.is_ice65() {
                 for &io in self.chip.io_iob.keys() {
                     let (col, row, iob) = match io {
                         EdgeIoCoord::N(col, iob) => (col, row_n, iob),
@@ -778,7 +842,7 @@ impl PartContext<'_> {
                         row.to_idx().try_into().unwrap(),
                         iob.to_idx().try_into().unwrap(),
                     );
-                    match xlat_io.entry(xy) {
+                    match pkg_info.xlat_io.entry(xy) {
                         btree_map::Entry::Vacant(e) => {
                             e.insert(io);
                         }
@@ -788,7 +852,7 @@ impl PartContext<'_> {
                     }
                 }
             }
-            for (pin, info) in &self.empty_runs[pkg].pin_table {
+            for (pin, info) in &pkg_info.empty_run.pin_table {
                 let typ = &info.typ[..];
                 let pad = match typ {
                     "GND" => BondPin::Gnd,
@@ -817,16 +881,19 @@ impl PartContext<'_> {
                     "NC" => BondPin::Nc,
                     "PIO" | "PIO_GBIN" | "PIO_GBIN_CDONE" | "PIO_LED" | "PIO_RGB"
                     | "PIO_BARCODE" | "PIO_I3C" => {
-                        let BondPin::Io(crd) = bond.pins[pin] else {
+                        let BondPin::Io(crd) = pkg_info.bond.pins[pin] else {
                             panic!("umm {pin} not really IO?");
                         };
                         if typ == "PIO_GBIN_CDONE" {
-                            bond.pins.insert(pin.clone(), BondPin::IoCDone(crd));
+                            pkg_info
+                                .bond
+                                .pins
+                                .insert(pin.clone(), BondPin::IoCDone(crd));
                         }
                         continue;
                     }
                     "SPI_SCK" | "SPI_SI" | "SPI_SO" | "SPI_SS_B" => {
-                        let BondPin::Io(crd) = bond.pins[pin] else {
+                        let BondPin::Io(crd) = pkg_info.bond.pins[pin] else {
                             panic!("umm {pin} not really IO?");
                         };
                         let cpin = match typ {
@@ -848,12 +915,12 @@ impl PartContext<'_> {
                     }
                     _ => panic!("ummm {}", info.typ),
                 };
-                assert_eq!(bond.pins.insert(pin.clone(), pad), None);
+                assert_eq!(pkg_info.bond.pins.insert(pin.clone(), pad), None);
             }
             let mut x3 = BTreeMap::new();
-            for info in &self.pkg_bel_info[&(pkg, "IOx3")] {
+            for info in &pkg_info.bel_info["IOx3"] {
                 let xy = (info.loc.x, info.loc.y, info.loc.bel);
-                let io = xlat_io[&xy];
+                let io = pkg_info.xlat_io[&xy];
                 let r0 = info.dedio["REP0"];
                 let ior0 = self.chip.get_io_crd((
                     DieId::from_idx(0),
@@ -874,7 +941,7 @@ impl PartContext<'_> {
                 ));
                 x3.insert(io, (ior0, ior1));
             }
-            for bpin in bond.pins.values_mut() {
+            for bpin in pkg_info.bond.pins.values_mut() {
                 if let BondPin::Io(io) = *bpin {
                     if let Some(&(ior0, ior1)) = x3.get(&io) {
                         let mut ior = [ior0, ior1];
@@ -886,16 +953,14 @@ impl PartContext<'_> {
             if pkg != "DI" {
                 let all_pins = get_pkg_pins(pkg);
                 for pin in &all_pins {
-                    if let btree_map::Entry::Vacant(e) = bond.pins.entry(pin.to_string()) {
+                    if let btree_map::Entry::Vacant(e) = pkg_info.bond.pins.entry(pin.to_string()) {
                         e.insert(BondPin::Nc);
                     }
                 }
-                assert_eq!(bond.pins.len(), all_pins.len());
+                assert_eq!(pkg_info.bond.pins.len(), all_pins.len());
             }
-            self.bonds.insert(pkg, bond);
-            self.xlat_io.insert(pkg, xlat_io);
         }
-        self.chip.col_bio_split = match self.part.kind {
+        self.chip.col_bio_split = match self.chip.kind {
             ChipKind::Ice40T04 | ChipKind::Ice40T05 => ColId::from_idx(12),
             _ => {
                 let EdgeIoCoord::S(col, _) = self.chip.cfg_io[&SharedCfgPin::SpiSo] else {
@@ -907,13 +972,12 @@ impl PartContext<'_> {
     }
 
     fn fill_cbsel(&mut self) {
-        if !self.part.kind.has_actual_io_we() {
+        if !self.chip.kind.has_actual_io_we() {
             // not sure if the later devices really don't have CBSEL or just don't advertise it,
             // but the below pin mappings definitely aren't stable anymore
             return;
         }
-        for &pkg in self.part.packages {
-            let bond = &self.bonds[pkg];
+        for (&(_dev, pkg), pkg_info) in &self.pkgs {
             let balls = match pkg {
                 "CB132" => [(SharedCfgPin::CbSel0, "L9"), (SharedCfgPin::CbSel1, "P10")],
                 "CM36" | "CM36A" => [(SharedCfgPin::CbSel0, "E3"), (SharedCfgPin::CbSel1, "F3")],
@@ -924,7 +988,7 @@ impl PartContext<'_> {
                 _ => continue,
             };
             for (cpin, ball) in balls {
-                let BondPin::Io(io) = bond.pins[ball] else {
+                let BondPin::Io(io) = pkg_info.bond.pins[ball] else {
                     unreachable!()
                 };
                 match self.chip.cfg_io.entry(cpin) {
@@ -941,42 +1005,45 @@ impl PartContext<'_> {
 
     fn fill_bel_pins(&mut self) {
         let mut worklist = BTreeMap::new();
-        let defpkg = self.part.packages[0];
-        for (&kind, sites) in &self.bel_info {
-            if kind == "SB_GB" || kind.starts_with("SB_RAM") {
-                continue;
-            }
-            for site in sites {
-                worklist.insert((kind, site.loc), (defpkg, site));
-            }
-        }
-        for (&(pkg, kind), sites) in &self.pkg_bel_info {
-            if matches!(
-                kind,
-                "SB_IO" | "SB_IO_DS" | "SB_IO_OD" | "SB_GB_IO" | "IOx3"
-            ) {
-                continue;
-            }
-            for site in sites {
-                worklist.insert((kind, site.loc), (pkg, site));
+        let defdev = self.parts[0].name;
+        let defpkg = self.parts[0].packages[0];
+        for (&(dev, pkg), pkg_info) in &self.pkgs {
+            for (&kind, sites) in &pkg_info.bel_info {
+                if kind.starts_with("SB_RAM") {
+                    continue;
+                }
+                if matches!(
+                    kind,
+                    "PLB" | "SB_GB" | "SB_IO" | "SB_IO_DS" | "SB_IO_OD" | "SB_GB_IO" | "IOx3"
+                ) {
+                    continue;
+                }
+                if !(kind.contains("PLL") || kind.contains("DRV") || kind.contains("_IO"))
+                    && (dev, pkg) != (defdev, defpkg)
+                {
+                    continue;
+                }
+                for site in sites {
+                    worklist.insert((kind, site.loc), (dev, pkg, site));
+                }
             }
         }
         let edev = self.chip.expand_grid(&self.intdb);
         let db = if edev.chip.kind.has_actual_io_we() {
             None
         } else {
-            Some(Database::from_file("databases/iCE40LP1K.zstd").unwrap())
+            Some(Database::from_file("databases/ice40p01.zstd").unwrap())
         };
         let tiledb = db.as_ref().map(|x| &x.tiles);
         let extra_wire_names = Mutex::new(BTreeMap::new());
         let bel_pins = Mutex::new(BTreeMap::new());
         worklist
             .into_par_iter()
-            .for_each(|((kind, _), (pkg, site))| {
+            .for_each(|((kind, _), (dev, pkg, site))| {
                 let mut pins = find_bel_pins(
                     self.toolchain,
                     &self.prims,
-                    self.part,
+                    self.pkgs[&(dev, pkg)].part,
                     &edev,
                     tiledb,
                     pkg,
@@ -1017,13 +1084,12 @@ impl PartContext<'_> {
     }
 
     fn fill_io_latch(&mut self) {
-        let package = self
-            .part
-            .packages
+        let (&(_dev, pkg), pkg_info) = self
+            .pkgs
             .iter()
-            .copied()
-            .max_by_key(|pkg| {
-                self.bonds[pkg]
+            .max_by_key(|(_, pkg_info)| {
+                pkg_info
+                    .bond
                     .pins
                     .values()
                     .filter(|&pin| matches!(pin, BondPin::Io(_) | BondPin::IoCDone(_)))
@@ -1031,7 +1097,7 @@ impl PartContext<'_> {
             })
             .unwrap();
         let mut pkg_pins = DirPartMap::new();
-        for (pkg_pin, &pin) in &self.bonds[package].pins {
+        for (pkg_pin, &pin) in &pkg_info.bond.pins {
             let (BondPin::Io(crd) | BondPin::IoCDone(crd)) = pin else {
                 continue;
             };
@@ -1049,7 +1115,7 @@ impl PartContext<'_> {
             2
         };
         assert_eq!(pkg_pins.iter().count(), expected);
-        for (edge, (x, y)) in find_io_latch_locs(self.toolchain, self.part, package, &pkg_pins) {
+        for (edge, (x, y)) in find_io_latch_locs(self.toolchain, pkg_info.part, pkg, &pkg_pins) {
             self.chip.extra_nodes.insert(
                 ExtraNodeLoc::LatchIo(edge),
                 ExtraNode {
@@ -1064,7 +1130,7 @@ impl PartContext<'_> {
     }
 
     fn fill_gbin_fabric(&mut self) {
-        let sb_gb = &self.bel_info["SB_GB"];
+        let sb_gb = &self.pkgs[&self.def_pkg()].bel_info["SB_GB"];
         let mut found = HashSet::new();
         for site in sb_gb {
             let (x, y) = site.fabout_wires[&InstPin::Simple("USER_SIGNAL_TO_GLOBAL_BUFFER".into())];
@@ -1084,14 +1150,13 @@ impl PartContext<'_> {
 
     fn fill_gbin_io(&mut self) {
         let mut gb_io = BTreeMap::new();
-        for &package in self.part.packages {
-            let xlat_io = &self.xlat_io[package];
-            let sb_gb_io = &self.pkg_bel_info[&(package, "SB_GB_IO")];
+        for pkg_info in self.pkgs.values() {
+            let sb_gb_io = &pkg_info.bel_info["SB_GB_IO"];
             for site in sb_gb_io {
                 let index =
                     site.global_nets[&InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())] as usize;
                 let xy = (site.loc.x, site.loc.y, site.loc.bel);
-                let io = xlat_io[&xy];
+                let io = pkg_info.xlat_io[&xy];
                 match gb_io.entry(index) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(io);
@@ -1103,7 +1168,7 @@ impl PartContext<'_> {
             }
         }
 
-        if self.part.kind.is_ice65() {
+        if self.chip.kind.is_ice65() {
             // sigh.
             if !gb_io.contains_key(&1) {
                 let Some(&EdgeIoCoord::E(row, iob)) = gb_io.get(&0) else {
@@ -1174,14 +1239,15 @@ impl PartContext<'_> {
             "SB_LEDDA_IP",
             "SB_IR_IP",
         ] {
-            let Some(sites) = self.bel_info.get(kind) else {
+            let pkg_info = &self.pkgs[&self.def_pkg()];
+            let Some(sites) = pkg_info.bel_info.get(kind) else {
                 continue;
             };
             for site in sites {
                 let (loc, slot, fixed_crd, extra_crd, dedio) = match kind {
                     "SB_MAC16" => {
-                        let col = self.xlat_col[self.part.packages[0]][site.loc.x as usize];
-                        let row = self.xlat_row[self.part.packages[0]][site.loc.y as usize];
+                        let col = pkg_info.xlat_col[site.loc.x as usize];
+                        let row = pkg_info.xlat_row[site.loc.y as usize];
                         (
                             if self.chip.kind == ChipKind::Ice40T05
                                 && col.to_idx() == 0
@@ -1328,7 +1394,7 @@ impl PartContext<'_> {
                 for &(slot, pin) in dedio {
                     let loc = site.dedio[pin];
                     let xy = (loc.x, loc.y, loc.bel);
-                    let io = self.xlat_io[self.part.packages[0]][&xy];
+                    let io = pkg_info.xlat_io[&xy];
                     extra_node.io.insert(slot, io);
                 }
                 self.intdb.nodes.insert(loc.node_kind(), int_node);
@@ -1344,13 +1410,13 @@ impl PartContext<'_> {
         } else {
             "SB_PLL_CORE"
         };
-        for &package in self.part.packages {
-            let Some(sites) = self.pkg_bel_info.get(&(package, kind)) else {
+        for pkg_info in self.pkgs.values() {
+            let Some(sites) = pkg_info.bel_info.get(kind) else {
                 continue;
             };
             for site in sites {
                 let xy = (site.loc.x, site.loc.y, site.loc.bel);
-                let io = self.xlat_io[package][&xy];
+                let io = pkg_info.xlat_io[&xy];
                 let io2 = match io {
                     EdgeIoCoord::S(col, _) => EdgeIoCoord::S(col + 1, TileIobId::from_idx(0)),
                     EdgeIoCoord::N(col, _) => EdgeIoCoord::N(col + 1, TileIobId::from_idx(0)),
@@ -1421,13 +1487,13 @@ impl PartContext<'_> {
     }
 
     fn fill_io_i3c(&mut self) {
-        for &package in self.part.packages {
-            let Some(sites) = self.pkg_bel_info.get(&(package, "SB_IO_I3C")) else {
+        for pkg_info in self.pkgs.values() {
+            let Some(sites) = pkg_info.bel_info.get("SB_IO_I3C") else {
                 continue;
             };
             for site in sites {
                 let xy = (site.loc.x, site.loc.y, site.loc.bel);
-                let crd = self.xlat_io[package][&xy];
+                let crd = pkg_info.xlat_io[&xy];
                 let (_, (col, row), _) = self.chip.get_io_loc(crd);
                 let mut bel_pins = self.bel_pins[&("SB_IO_I3C", site.loc)].clone();
                 bel_pins.outs.clear();
@@ -1450,7 +1516,7 @@ impl PartContext<'_> {
     }
 
     fn fill_drv(&mut self) {
-        for &package in self.part.packages {
+        for pkg_info in self.pkgs.values() {
             for (loc, node_bels, fixed_crd, extra_crd) in [
                 (
                     ExtraNodeLoc::RgbDrv,
@@ -1537,7 +1603,7 @@ impl PartContext<'_> {
                     ],
                 ),
             ] {
-                let Some(sites) = self.pkg_bel_info.get(&(package, node_bels[0].0)) else {
+                let Some(sites) = pkg_info.bel_info.get(&node_bels[0].0) else {
                     continue;
                 };
                 if sites.is_empty() {
@@ -1550,7 +1616,7 @@ impl PartContext<'_> {
 
                 let mut site_locs = vec![];
                 for &(kind, slot, io_pins) in node_bels {
-                    let sites = &self.pkg_bel_info[&(package, kind)];
+                    let sites = &pkg_info.bel_info[kind];
                     assert_eq!(sites.len(), 1);
                     let site = &sites[0];
                     site_locs.push(site.loc);
@@ -1573,7 +1639,7 @@ impl PartContext<'_> {
                     for &(slot, pin) in io_pins {
                         let io = site.pads[pin].0;
                         let xy = (io.x, io.y, io.bel);
-                        let crd = self.xlat_io[package][&xy];
+                        let crd = pkg_info.xlat_io[&xy];
                         nb.io.insert(slot, crd);
                     }
                     nb.add_bel(slot, &bel_pins);
@@ -1613,7 +1679,7 @@ impl PartContext<'_> {
     }
 
     fn fill_spram(&mut self) {
-        let Some(sites) = self.bel_info.get("SB_SPRAM256KA") else {
+        let Some(sites) = self.pkgs[&self.def_pkg()].bel_info.get("SB_SPRAM256KA") else {
             return;
         };
         let mut sites = sites.clone();
@@ -1641,7 +1707,7 @@ impl PartContext<'_> {
     }
 
     fn fill_filter(&mut self) {
-        let Some(sites) = self.bel_info.get("SB_FILTER_50NS") else {
+        let Some(sites) = self.pkgs[&self.def_pkg()].bel_info.get("SB_FILTER_50NS") else {
             return;
         };
         let mut sites = sites.clone();
@@ -1795,7 +1861,7 @@ impl PartContext<'_> {
         harvester: &mut Harvester<BitOwner>,
         muxes: &mut BTreeMap<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>,
     ) {
-        let db = Database::from_file("databases/iCE40LP1K.zstd").unwrap();
+        let db = Database::from_file("databases/ice40p01.zstd").unwrap();
         for tile in ["IO.W", "IO.E"] {
             let node = db.int.nodes.get(tile).unwrap().1;
             let node_dst = self.intdb.nodes.get(tile).unwrap().0;
@@ -1867,13 +1933,9 @@ impl PartContext<'_> {
 
         let edev = self.chip.expand_grid(&self.intdb);
         let gencfg = GeneratorConfig {
-            part: self.part,
             prims: &self.prims,
             edev: &edev,
-            bonds: &self.bonds,
-            plb_info: &self.plb_info,
-            bel_info: &self.bel_info,
-            pkg_bel_info: &self.pkg_bel_info,
+            pkgs: &self.pkgs,
             allow_global: false,
             rows_colbuf: vec![],
             extra_node_locs: &self.extra_node_locs,
@@ -1945,39 +2007,51 @@ impl PartContext<'_> {
             }
         }
 
+        self.tiledb = tiledb;
+
         for (nk, node_muxes) in muxes {
             self.intdb.nodes[nk].muxes = node_muxes;
         }
+    }
 
-        // TODO: move to some proper place.
+    fn write_db(&mut self) {
         let mut db = Database {
             chips: EntityVec::new(),
             bonds: EntityVec::new(),
             parts: vec![],
             int: self.intdb.clone(),
-            tiles: tiledb,
+            tiles: self.tiledb.clone(),
         };
         let chip = db.chips.push(self.chip.clone());
-        let bonds = self
-            .bonds
-            .iter()
-            .map(|(name, bond)| {
-                let bid = db.bonds.push(bond.clone());
-                (name.to_string(), bid)
-            })
-            .collect();
-        let part = prjcombine_siliconblue::db::Part {
-            name: self.part.name.to_string(),
-            chip,
-            bonds,
-            speeds: self.part.speeds.iter().map(|x| x.to_string()).collect(),
-            temps: self.part.temps.iter().map(|x| x.to_string()).collect(),
-        };
-        db.parts.push(part);
-        db.to_file(format!("databases/{}.zstd", self.part.name))
+        for &part in &self.parts {
+            let bonds = part
+                .packages
+                .iter()
+                .map(|&pkg| {
+                    let bond = &self.pkgs[&(part.name, pkg)].bond;
+                    let bid = 'bond: {
+                        for (bid, db_bond) in &db.bonds {
+                            if db_bond == bond {
+                                break 'bond bid;
+                            }
+                        }
+                        db.bonds.push(bond.clone())
+                    };
+                    (pkg.to_string(), bid)
+                })
+                .collect();
+            db.parts.push(prjcombine_siliconblue::db::Part {
+                name: part.name.to_string(),
+                chip,
+                bonds,
+                speeds: part.speeds.iter().map(|x| x.to_string()).collect(),
+                temps: part.temps.iter().map(|x| x.to_string()).collect(),
+            });
+        }
+        db.to_file(format!("databases/{}.zstd", self.chip.kind))
             .unwrap();
         std::fs::write(
-            format!("databases/{}.json", self.part.name),
+            format!("databases/{}.json", self.chip.kind),
             JsonValue::from(&db).to_string(),
         )
         .unwrap();
@@ -1987,14 +2061,41 @@ impl PartContext<'_> {
 fn main() {
     let args = Args::parse();
     let toolchain = Toolchain::from_file(args.toolchain).unwrap();
-    for part in parts::PARTS {
-        if !args.parts.is_empty() && !args.parts.iter().any(|p| p == part.name) {
-            continue;
-        }
+    let mut kinds = Vec::from_iter(args.kinds.iter().map(|kind| match kind.as_str() {
+        "ice65l01" => ChipKind::Ice65L01,
+        "ice65l04" => ChipKind::Ice65L04,
+        "ice65l08" => ChipKind::Ice65L08,
+        "ice65p04" => ChipKind::Ice65P04,
+        "ice40p01" => ChipKind::Ice40P01,
+        "ice40p03" => ChipKind::Ice40P03,
+        "ice40p08" => ChipKind::Ice40P08,
+        "ice40r04" => ChipKind::Ice40R04,
+        "ice40t04" => ChipKind::Ice40T04,
+        "ice40t01" => ChipKind::Ice40T01,
+        "ice40t05" => ChipKind::Ice40T05,
+        _ => panic!("unknown kind {kind}"),
+    }));
+    if kinds.is_empty() {
+        kinds = vec![
+            ChipKind::Ice65L01,
+            ChipKind::Ice65L04,
+            ChipKind::Ice65L08,
+            ChipKind::Ice65P04,
+            ChipKind::Ice40P01,
+            ChipKind::Ice40P03,
+            ChipKind::Ice40P08,
+            ChipKind::Ice40R04,
+            ChipKind::Ice40T04,
+            ChipKind::Ice40T01,
+            ChipKind::Ice40T05,
+        ];
+    }
+    for kind in kinds {
+        let parts = Vec::from_iter(parts::PARTS.iter().filter(|part| part.kind == kind));
         let mut ctx = PartContext {
-            part,
+            parts,
             chip: Chip {
-                kind: part.kind,
+                kind,
                 columns: 0,
                 cols_bram: BTreeSet::new(),
                 col_bio_split: ColId::from_idx(0),
@@ -2006,24 +2107,18 @@ fn main() {
                 io_od: BTreeSet::new(),
                 extra_nodes: BTreeMap::new(),
             },
-            intdb: make_intdb(part.kind),
+            intdb: make_intdb(kind),
             toolchain: &toolchain,
-            prims: get_prims(part.kind),
-            plb_info: vec![],
-            empty_runs: BTreeMap::new(),
-            bel_info: BTreeMap::new(),
-            pkg_bel_info: BTreeMap::new(),
-            xlat_col: BTreeMap::new(),
-            xlat_row: BTreeMap::new(),
-            xlat_io: BTreeMap::new(),
-            bonds: BTreeMap::new(),
+            prims: get_prims(kind),
+            pkgs: BTreeMap::new(),
             extra_wire_names: BTreeMap::new(),
             bel_pins: BTreeMap::new(),
             extra_node_locs: BTreeMap::new(),
+            tiledb: TileDb::default(),
             debug: args.debug,
         };
 
-        println!("{}: initializing", ctx.part.name);
+        println!("{kind}: initializing");
 
         // ctx.intdb.print(&mut std::io::stdout()).unwrap();
 
@@ -2044,50 +2139,9 @@ fn main() {
         ctx.fill_filter();
         ctx.fill_smcclk();
 
-        println!("{}: initial geometry done; starting harvest", ctx.part.name);
-
-        // println!("---- {}", part.name);
-        // println!("PLB: {num}", num = ctx.plb_info.len());
-        // for info in &ctx.plb_info {
-        //     println!("\t{:?}", info.loc);
-        // }
-        // for (&kind, locs) in &ctx.bel_info {
-        //     println!("{kind}: {num}", num = locs.len());
-        //     for info in locs {
-        //         println!("\t{:?}", info.loc);
-        //     }
-        // }
-        // for (&(pkg, kind), locs) in &ctx.pkg_bel_info {
-        //     println!("{pkg} {kind}: {num}", num = locs.len());
-        //     for info in locs {
-        //         println!("\t{:?}", info.loc);
-        //     }
-        // }
-
-        // let bs = &ctx.empty_runs[part.packages[0]].bitstream;
-        // for (i, bank) in bs.cram.iter().enumerate() {
-        //     println!(
-        //         "CRAM {i}: {w}×{h}",
-        //         w = bank.frame_len,
-        //         h = bank.frame_present.len()
-        //     );
-        // }
-        // for (i, bank) in bs.bram.iter().enumerate() {
-        //     println!(
-        //         "BRAM {i}: {w}×{h}",
-        //         w = bank.frame_len,
-        //         h = bank.frame_present.len()
-        //     );
-        // }
-
-        // for (&pkg, bond) in &ctx.bonds {
-        //     println!("BOND {pkg}:");
-        //     print!("{bond}");
-        // }
-        // for (&cpin, &io) in &ctx.chip.cfg_io {
-        //     println!("CFG {io}: {cpin:?}");
-        // }
+        println!("{kind}: initial geometry done; starting harvest");
 
         ctx.harvest();
+        ctx.write_db();
     }
 }

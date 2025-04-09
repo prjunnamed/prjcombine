@@ -4,7 +4,7 @@ use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::{NodeKindId, NodeWireId, PinDir, WireId},
     dir::{Dir, DirH, DirV},
-    grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
+    grid::{ColId, DieId, IntWire, RowId, TileIobId},
 };
 use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
@@ -16,6 +16,7 @@ use prjcombine_siliconblue::{
 use unnamed_entity::EntityId;
 
 use crate::{
+    PkgInfo,
     run::{Design, InstId, InstPin, InstPinSource, RawLoc, RunResult},
     xlat::{GenericNet, xlat_mux_in, xlat_wire},
 };
@@ -51,10 +52,7 @@ pub fn make_sample(
     design: &Design,
     edev: &ExpandedDevice,
     runres: &RunResult,
-    empty: &RunResult,
-    xlat_col: &[ColId],
-    xlat_row: &[RowId],
-    xlat_io: &BTreeMap<(u32, u32, u32), EdgeIoCoord>,
+    pkg_info: &PkgInfo,
     rows_colbuf: &[(RowId, RowId, RowId)],
     extra_wire_names: &BTreeMap<(u32, u32, String), IntWire>,
     extra_node_locs: &BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
@@ -62,7 +60,7 @@ pub fn make_sample(
     let mut sample = Sample::default();
     let mut pips = HashSet::new();
     let die = edev.egrid.die(DieId::from_idx(0));
-    let diff = Bitstream::diff(&empty.bitstream, &runres.bitstream);
+    let diff = Bitstream::diff(&pkg_info.empty_run.bitstream, &runres.bitstream);
     let mut fucked_bits = 0;
     for (bit, val) in diff {
         if let Some((tile, owner)) = edev.classify_bit(bit) {
@@ -352,8 +350,8 @@ pub fn make_sample(
         if let Some(loc) = runres.loc_map.get(iid) {
             match &inst.kind[..] {
                 "SB_LUT4" => {
-                    let col = xlat_col[loc.loc.x as usize];
-                    let row = xlat_row[loc.loc.y as usize];
+                    let col = pkg_info.xlat_col[loc.loc.x as usize];
+                    let row = pkg_info.xlat_row[loc.loc.y as usize];
                     let lc = loc.loc.bel;
                     if let Some(lut_init) = inst.props.get("LUT_INIT") {
                         if lut_init != "16'h0000" {
@@ -423,8 +421,8 @@ pub fn make_sample(
                     }
                 }
                 "SB_CARRY" => {
-                    let col = xlat_col[loc.loc.x as usize];
-                    let row = xlat_row[loc.loc.y as usize];
+                    let col = pkg_info.xlat_col[loc.loc.x as usize];
+                    let row = pkg_info.xlat_row[loc.loc.y as usize];
                     let lc = loc.loc.bel;
                     if lc == 0 {
                         let ci = &inst.pins[&InstPin::Simple("CI".into())];
@@ -451,7 +449,7 @@ pub fn make_sample(
                     );
                 }
                 "SB_IO" | "SB_IO_DS" | "SB_GB_IO" | "SB_IO_OD" | "SB_IO_I3C" => {
-                    let io = xlat_io[&(loc.loc.x, loc.loc.y, loc.loc.bel)];
+                    let io = pkg_info.xlat_io[&(loc.loc.x, loc.loc.y, loc.loc.bel)];
                     let (_, (col, row), slot) = edev.chip.get_io_loc(io);
                     let iob = io.iob();
                     let slot_name = edev.egrid.db.bel_slots[slot].as_str();
@@ -667,8 +665,8 @@ pub fn make_sample(
                     }
                 }
                 kind if kind.starts_with("SB_DFF") => {
-                    let col = xlat_col[loc.loc.x as usize];
-                    let row = xlat_row[loc.loc.y as usize];
+                    let col = pkg_info.xlat_col[loc.loc.x as usize];
+                    let row = pkg_info.xlat_row[loc.loc.y as usize];
                     let lc = loc.loc.bel;
                     let mut kind = kind.strip_prefix("SB_DFF").unwrap();
                     sample.add_tiled_pattern_single(
@@ -728,8 +726,8 @@ pub fn make_sample(
                             .next()
                             .unwrap()
                     };
-                    let col = xlat_col[loc.loc.x as usize];
-                    let row = xlat_row[loc.loc.y as usize];
+                    let col = pkg_info.xlat_col[loc.loc.x as usize];
+                    let row = pkg_info.xlat_row[loc.loc.y as usize];
                     let tiles = [BitOwner::Main(col, row), BitOwner::Main(col, row + 1)];
                     for (key, pin, pinn) in [("NW", "WCLK", "WCLKN"), ("NR", "RCLK", "RCLKN")] {
                         let (tile, wire) = get_pin(pin);
@@ -975,8 +973,8 @@ pub fn make_sample(
                     }
                 }
                 "SB_MAC16" => {
-                    let col = xlat_col[loc.loc.x as usize];
-                    let row = xlat_row[loc.loc.y as usize];
+                    let col = pkg_info.xlat_col[loc.loc.x as usize];
+                    let row = pkg_info.xlat_row[loc.loc.y as usize];
                     let mut xnloc = ExtraNodeLoc::Mac16(col, row);
                     if !edev.chip.extra_nodes.contains_key(&xnloc) {
                         xnloc = ExtraNodeLoc::Mac16Trim(col, row);

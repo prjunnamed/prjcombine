@@ -878,7 +878,7 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
 pub fn get_cached_designs(
     kind: ChipKind,
     prefix: &str,
-) -> impl Iterator<Item = (Design, RunResult)> {
+) -> impl Iterator<Item = (String, Design, RunResult)> {
     let ok_dir = PathBuf::from("cache")
         .join("icecube")
         .join(kind.to_string())
@@ -900,7 +900,7 @@ pub fn get_cached_designs(
         let mut zip = ZipArchive::new(File::open(zip).unwrap()).unwrap();
         let design_file = zip.by_name("design").unwrap();
         let design: Design = bincode::deserialize_from(design_file).unwrap();
-        (design, get_result(&mut zip))
+        (key, design, get_result(&mut zip))
     })
 }
 

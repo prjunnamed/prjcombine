@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_siliconblue::{
-    bond::{Bond, BondPin},
+    bond::BondPin,
     chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
     expanded::ExpandedDevice,
 };
@@ -15,19 +15,14 @@ use rand::prelude::*;
 use unnamed_entity::EntityId;
 
 use crate::{
-    parts::Part,
+    PkgInfo,
     prims::{Primitive, PropKind},
     run::{Design, InstId, InstPin, InstPinSource, Instance, RawLoc},
-    sites::SiteInfo,
 };
 
 pub struct GeneratorConfig<'a> {
-    pub part: &'a Part,
+    pub pkgs: &'a BTreeMap<(&'static str, &'static str), PkgInfo>,
     pub edev: &'a ExpandedDevice<'a>,
-    pub bonds: &'a BTreeMap<&'static str, Bond>,
-    pub plb_info: &'a [SiteInfo],
-    pub bel_info: &'a BTreeMap<&'static str, Vec<SiteInfo>>,
-    pub pkg_bel_info: &'a BTreeMap<(&'static str, &'static str), Vec<SiteInfo>>,
     pub allow_global: bool,
     pub rows_colbuf: Vec<(RowId, RowId, RowId)>,
     pub prims: &'a BTreeMap<&'static str, Primitive>,
@@ -45,6 +40,7 @@ enum LeftVcc {
 struct Generator<'a> {
     rng: ThreadRng,
     cfg: &'a GeneratorConfig<'a>,
+    pkg_info: &'a PkgInfo,
     design: Design,
     signals: Vec<(InstId, InstPin)>,
     unused_signals: HashSet<(InstId, InstPin)>,
@@ -169,7 +165,7 @@ impl Generator<'_> {
             && !is_i3c
             && self.cfg.edev.chip.io_has_lvds(crd);
         if crd.edge() == Dir::W
-            && self.cfg.part.kind.has_vref()
+            && self.cfg.edev.chip.kind.has_vref()
             && !matches!(self.left_vcc, LeftVcc::_1P8 | LeftVcc::_2P5)
         {
             lvds = false;
@@ -216,8 +212,10 @@ impl Generator<'_> {
                     io.prop("PULLUP", "1'b0");
                 }
             } else if self.cfg.allow_global {
-                if matches!(self.cfg.part.kind, ChipKind::Ice40T01 | ChipKind::Ice40T05)
-                    && self.rng.random()
+                if matches!(
+                    self.cfg.edev.chip.kind,
+                    ChipKind::Ice40T01 | ChipKind::Ice40T05
+                ) && self.rng.random()
                     && global_idx.is_none()
                 {
                     io.prop("PULLUP", "1'b1");
@@ -242,7 +240,7 @@ impl Generator<'_> {
         }
         if lvds {
             let iostd = if crd.edge() == Dir::W
-                && self.cfg.part.kind.has_vref()
+                && self.cfg.edev.chip.kind.has_vref()
                 && self.left_vcc == LeftVcc::_1P8
             {
                 "SB_SUBLVDS_INPUT"
@@ -250,7 +248,7 @@ impl Generator<'_> {
                 "SB_LVDS_INPUT"
             };
             io.prop("IO_STANDARD", iostd);
-        } else if crd.edge() == Dir::W && self.cfg.part.kind.has_vref() {
+        } else if crd.edge() == Dir::W && self.cfg.edev.chip.kind.has_vref() {
             let iostds = match self.left_vcc {
                 LeftVcc::_1P5 => ["SB_LVCMOS15_4", "SB_LVCMOS15_2"].as_slice(),
                 LeftVcc::_1P8 => [
@@ -325,8 +323,10 @@ impl Generator<'_> {
                 for pin in shared_in_pins {
                     let mask = if pin.ends_with("CLK") {
                         0xff
-                    } else if matches!(self.cfg.part.kind, ChipKind::Ice65L04 | ChipKind::Ice65P04)
-                    {
+                    } else if matches!(
+                        self.cfg.edev.chip.kind,
+                        ChipKind::Ice65L04 | ChipKind::Ice65P04
+                    ) {
                         0x55
                     } else {
                         0xaa
@@ -419,7 +419,7 @@ impl Generator<'_> {
                 };
             }
         }
-        let sites = &self.cfg.pkg_bel_info[&(self.design.package.as_str(), kind)];
+        let sites = &self.pkg_info.bel_info[&kind];
         let Some(site) = sites
             .iter()
             .find(|site| (site.loc.y == 0) == (side == DirV::S))
@@ -639,7 +639,7 @@ impl Generator<'_> {
     }
 
     fn emit_bram(&mut self) {
-        let (kind, addr_bits) = if self.cfg.part.kind.is_ice65() {
+        let (kind, addr_bits) = if self.cfg.edev.chip.kind.is_ice65() {
             ("SB_RAM4K", 8)
         } else {
             ("SB_RAM40_4K", 11)
@@ -662,7 +662,7 @@ impl Generator<'_> {
             inst.prop(&format!("INIT_{i:X}"), &val);
         }
         let mut write_mode = 0;
-        if self.cfg.part.kind.is_ice40() && self.rng.random_bool(0.2) {
+        if self.cfg.edev.chip.kind.is_ice40() && self.rng.random_bool(0.2) {
             write_mode = self.rng.random_range(0..4);
             let read_mode = self.rng.random_range(0..4);
             inst.prop("READ_MODE", &read_mode.to_string());
@@ -751,7 +751,7 @@ impl Generator<'_> {
     }
 
     fn emit_bram_pair(&mut self) {
-        let (kind, addr_bits) = if self.cfg.part.kind.is_ice65() {
+        let (kind, addr_bits) = if self.cfg.edev.chip.kind.is_ice65() {
             ("SB_RAM4K", 8)
         } else {
             ("SB_RAM40_4K", 11)
@@ -1576,7 +1576,7 @@ impl Generator<'_> {
             let package_pin = if is_od { "PACKAGEPIN" } else { "PACKAGE_PIN" };
             let mut io = Instance::new(if is_od { "SB_IO_OD" } else { "SB_IO" });
             if !is_od {
-                if crd.edge() == Dir::W && self.cfg.part.kind.has_vref() {
+                if crd.edge() == Dir::W && self.cfg.edev.chip.kind.has_vref() {
                     let iostd = match self.left_vcc {
                         LeftVcc::_1P5 => "SB_LVCMOS15_4",
                         LeftVcc::_1P8 => "SB_LVCMOS18_10",
@@ -1629,18 +1629,22 @@ impl Generator<'_> {
                 }
             }
         }
-        let mut actual_ios = self.rng.random_range(
-            1..=self.cfg.pkg_bel_info[&(self.design.package.as_str(), "SB_IO")].len() - 4,
-        );
-        let mut actual_lcs = self.rng.random_range(4..=self.cfg.plb_info.len());
+        let mut actual_ios = self
+            .rng
+            .random_range(1..=self.pkg_info.bel_info["SB_IO"].len() - 4);
+        let mut actual_lcs = self
+            .rng
+            .random_range(4..=self.pkg_info.bel_info["PLB"].len());
         let mut actual_brams = 0;
-        if self.cfg.part.kind != ChipKind::Ice40P03 {
-            let kind = if self.cfg.part.kind.is_ice65() {
+        if self.cfg.edev.chip.kind != ChipKind::Ice40P03 {
+            let kind = if self.cfg.edev.chip.kind.is_ice65() {
                 "SB_RAM4K"
             } else {
                 "SB_RAM40_4K"
             };
-            actual_brams = self.rng.random_range(2..=self.cfg.bel_info[kind].len());
+            actual_brams = self
+                .rng
+                .random_range(2..=self.pkg_info.bel_info[kind].len());
         }
 
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1817,13 +1821,21 @@ impl Generator<'_> {
 
 pub fn generate(cfg: &GeneratorConfig) -> Design {
     let mut rng = rand::rng();
+    let &(dev, mut pkg) = Vec::from_iter(cfg.pkgs.keys().copied())
+        .choose(&mut rng)
+        .unwrap();
+    let mut pkg_info = &cfg.pkgs[&(dev, pkg)];
+    if rng.random_bool(0.5) {
+        pkg = pkg_info.part.packages[0];
+        pkg_info = &cfg.pkgs[&(dev, pkg)];
+    }
     let mut design = Design::new(
-        cfg.part,
-        cfg.part.packages.choose(&mut rng).unwrap(),
-        cfg.part.speeds.choose(&mut rng).unwrap(),
-        cfg.part.temps.choose(&mut rng).unwrap(),
+        pkg_info.part,
+        pkg,
+        pkg_info.part.speeds.choose(&mut rng).unwrap(),
+        pkg_info.part.temps.choose(&mut rng).unwrap(),
     );
-    if cfg.part.kind != ChipKind::Ice40T04 {
+    if cfg.edev.chip.kind != ChipKind::Ice40T04 {
         design.opts.push(
             ["--frequency low", "--frequency medium", "--frequency high"]
                 .choose(&mut rng)
@@ -1834,12 +1846,11 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
 
     let mut unused_io = vec![];
     let mut io_map = HashMap::new();
-    let bond = &cfg.bonds[design.package.as_str()];
-    for (pad, &pin) in &bond.pins {
+    for (pad, &pin) in &pkg_info.bond.pins {
         let (BondPin::Io(crd) | BondPin::IoCDone(crd)) = pin else {
             continue;
         };
-        if !cfg.allow_global && cfg.part.kind.has_vref() && crd.edge() == Dir::W {
+        if !cfg.allow_global && cfg.edev.chip.kind.has_vref() && crd.edge() == Dir::W {
             continue;
         }
         io_map.insert(crd, pad.as_str());
@@ -1863,6 +1874,7 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
     let mut generator = Generator {
         cfg,
         rng,
+        pkg_info,
         design,
         signals: Default::default(),
         unused_signals: Default::default(),
