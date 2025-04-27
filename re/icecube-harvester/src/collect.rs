@@ -8,14 +8,14 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_fpga_hammer::{
     Collector, Diff, FeatureData, FeatureId, OcdMode, State, extract_bitvec_val_part, xlat_bit,
-    xlat_bitvec, xlat_enum_ocd,
+    xlat_bitvec, xlat_enum, xlat_enum_ocd,
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
     chip::{ChipKind, ExtraNodeLoc},
     expanded::{BitOwner, ExpandedDevice},
 };
-use prjcombine_types::tiledb::{TileBit, TileDb};
+use prjcombine_types::tiledb::{TileBit, TileDb, TileItem};
 use unnamed_entity::EntityId;
 
 pub fn collect_iob(
@@ -703,10 +703,55 @@ pub fn collect(
         }
     }
 
-    if edev.chip.kind != ChipKind::Ice40T04 {
+    {
         let tile = "SPEED";
         let bel = "SPEED";
-        collector.collect_enum(tile, bel, "SPEED", &["LOW", "MEDIUM", "HIGH"]);
+        if edev.chip.kind == ChipKind::Ice40T04 {
+            collector.tiledb.insert(
+                tile,
+                bel,
+                "SPEED",
+                xlat_enum(vec![
+                    ("LOW", Diff::default()),
+                    (
+                        "MEDIUM",
+                        Diff {
+                            bits: HashMap::from_iter([(TileBit::new(0, 0, 0), true)]),
+                        },
+                    ),
+                    (
+                        "HIGH",
+                        Diff {
+                            bits: HashMap::from_iter([(TileBit::new(0, 0, 1), true)]),
+                        },
+                    ),
+                ]),
+            );
+        } else {
+            collector.collect_enum(tile, bel, "SPEED", &["LOW", "MEDIUM", "HIGH"]);
+        }
+    }
+    {
+        let tile = "CREG";
+        let bel = "MISC";
+        collector.tiledb.insert(
+            tile,
+            bel,
+            "LOW_POWER",
+            TileItem::from_bit(TileBit::new(0, 0, 0), true),
+        );
+        collector.tiledb.insert(
+            tile,
+            bel,
+            "COLD_BOOT",
+            TileItem::from_bit(TileBit::new(0, 0, 4), false),
+        );
+        collector.tiledb.insert(
+            tile,
+            bel,
+            "WARM_BOOT",
+            TileItem::from_bit(TileBit::new(0, 0, 5), false),
+        );
     }
 
     for (feat, data) in &state.features {

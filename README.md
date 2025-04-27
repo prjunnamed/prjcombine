@@ -49,7 +49,7 @@ For each of the supported device families:
 
 | Target                                              | Geometry | Bitstream | Timing | Test | Final documentation |
 | --------------------------------------------------- | -------- | --------- | ------ | ---- | ------------------- |
-| iCE65, iCE40                                        | 👷🏼‍♀️        | 👷🏼‍♀️         | ❌      | ❌    | ❌                   |
+| iCE65, iCE40                                        | ✅        | ✅         | ❌      | ❌    | ❌                   |
 | XC2000, XC3000, XC4000, Spartan, Spartan XL, XC5200 | ✅        | ✅         | ❌      | ❌    | ❌                   |
 | Virtex, Virtex E, Spartan 2, Spartan 2E             | ✅        | ✅         | ❌      | ❌    | ❌                   |
 | Virtex 2, Virtex 2 Pro                              | ✅        | ✅         | ❌      | ❌    | ❌                   |
