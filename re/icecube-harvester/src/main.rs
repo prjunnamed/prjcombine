@@ -1,7 +1,10 @@
 use std::{
     collections::{BTreeMap, BTreeSet, HashSet, btree_map},
     path::PathBuf,
-    sync::Mutex,
+    sync::{
+        Mutex,
+        atomic::{AtomicU32, Ordering},
+    },
 };
 
 use clap::Parser;
@@ -368,14 +371,15 @@ impl HarvestContext<'_> {
     }
 
     fn run(&mut self) {
-        let mut ctr = 0;
-        for (key, design, result) in get_cached_designs(self.ctx.chip.kind, "gen-noglobal") {
+        let mut ctr = AtomicU32::new(0);
+        get_cached_designs(self.ctx.chip.kind, "gen-noglobal").for_each(|(key, design, result)| {
             self.add_sample(&key, design, result);
-            ctr += 1;
-            if ctr % 20 == 0 {
-                self.harvester.get_mut().unwrap().process();
+            let new_cnt = ctr.fetch_add(1, Ordering::Relaxed) + 1;
+            if new_cnt % 20 == 0 {
+                self.harvester.lock().unwrap().process();
             }
-        }
+        });
+        let ctr = *ctr.get_mut();
         if ctr != 0 {
             self.harvester.get_mut().unwrap().process();
         }
@@ -389,14 +393,15 @@ impl HarvestContext<'_> {
             self.harvester.get_mut().unwrap().process();
         }
         self.gencfg.allow_global = true;
-        let mut ctr = 0;
-        for (key, design, result) in get_cached_designs(self.ctx.chip.kind, "gen-nocolbuf") {
+        let mut ctr = AtomicU32::new(0);
+        get_cached_designs(self.ctx.chip.kind, "gen-nocolbuf").for_each(|(key, design, result)| {
             self.add_sample(&key, design, result);
-            ctr += 1;
-            if ctr % 100 == 0 {
-                self.harvester.get_mut().unwrap().process();
+            let new_cnt = ctr.fetch_add(1, Ordering::Relaxed) + 1;
+            if new_cnt % 100 == 0 {
+                self.harvester.lock().unwrap().process();
             }
-        }
+        });
+        let ctr = *ctr.get_mut();
         if ctr != 0 {
             self.harvester.get_mut().unwrap().process();
         }
@@ -411,14 +416,15 @@ impl HarvestContext<'_> {
             self.harvester.get_mut().unwrap().process();
             self.handle_colbufs();
         }
-        let mut ctr = 0;
-        for (key, design, result) in get_cached_designs(self.ctx.chip.kind, "gen-full") {
+        let mut ctr = AtomicU32::new(0);
+        get_cached_designs(self.ctx.chip.kind, "gen-full").for_each(|(key, design, result)| {
             self.add_sample(&key, design, result);
-            ctr += 1;
-            if ctr % 100 == 0 {
-                self.harvester.get_mut().unwrap().process();
+            let new_cnt = ctr.fetch_add(1, Ordering::Relaxed) + 1;
+            if new_cnt % 100 == 0 {
+                self.harvester.lock().unwrap().process();
             }
-        }
+        });
+        let ctr = *ctr.get_mut();
         if ctr != 0 {
             self.harvester.get_mut().unwrap().process();
         }

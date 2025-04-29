@@ -14,6 +14,7 @@ use prjcombine_re_sdf::Sdf;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::bitstream::Bitstream;
 use prjcombine_siliconblue::chip::ChipKind;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 use walkdir::WalkDir;
@@ -878,7 +879,7 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
 pub fn get_cached_designs(
     kind: ChipKind,
     prefix: &str,
-) -> impl Iterator<Item = (String, Design, RunResult)> {
+) -> impl ParallelIterator<Item = (String, Design, RunResult)> {
     let ok_dir = PathBuf::from("cache")
         .join("icecube")
         .join(kind.to_string())
@@ -895,7 +896,7 @@ pub fn get_cached_designs(
             }
         }
     }
-    keys.into_iter().map(move |key| {
+    keys.into_par_iter().map(move |key| {
         let zip = ok_dir.join(format!("{key}.zip"));
         let mut zip = ZipArchive::new(File::open(zip).unwrap()).unwrap();
         let design_file = zip.by_name("design").unwrap();
