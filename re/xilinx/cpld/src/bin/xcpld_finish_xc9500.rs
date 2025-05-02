@@ -966,15 +966,13 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 .speeds
                 .iter()
                 .map(|sn| {
-                    let speed = xc9500::Speed {
-                        timing: sdb
-                            .parts
-                            .iter()
-                            .find(|x| x.dev_name == spart.dev_name && &x.speed_name == sn)
-                            .unwrap()
-                            .timing
-                            .clone(),
-                    };
+                    let speed = sdb
+                        .parts
+                        .iter()
+                        .find(|x| x.dev_name == spart.dev_name && &x.speed_name == sn)
+                        .unwrap()
+                        .speed
+                        .clone();
                     let speed = 'sid: {
                         for (i, x) in &speeds {
                             if *x == speed {

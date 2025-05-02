@@ -13,9 +13,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let db = SpeedDb::from_file(args.sdb)?;
     for part in db.parts {
         println!("DEV {d} {s}", d = part.dev_name, s = part.speed_name);
-        for (k, v) in &part.timing {
-            println!("    {k} = {v}");
-        }
+        print!("{}", part.speed);
     }
     Ok(())
 }

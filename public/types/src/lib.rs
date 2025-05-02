@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use unnamed_entity::entity_id;
 
 pub mod bscan;
+pub mod speed;
 pub mod tiledb;
 
 entity_id! {

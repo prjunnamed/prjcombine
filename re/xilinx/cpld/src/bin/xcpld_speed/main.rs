@@ -44,7 +44,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         done.insert(part.dev_name.clone());
         for spd in &part.speeds {
             println!("DEV {d} {p} {spd}", d = part.dev_name, p = part.pkg_name);
-            let timing = match device.device.kind {
+            let speed = match device.device.kind {
                 DeviceKind::Xc9500 | DeviceKind::Xc9500Xl | DeviceKind::Xc9500Xv => {
                     xc9500::test_xc9500(&tc, part, &device.device, package, spd)
                 }
@@ -54,7 +54,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             parts.push(SpeedDbPart {
                 dev_name: part.dev_name.clone(),
                 speed_name: spd.clone(),
-                timing,
+                speed,
             })
         }
     }

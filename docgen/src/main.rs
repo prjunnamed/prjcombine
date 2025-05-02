@@ -24,6 +24,7 @@ use xpla3::gen_xpla3;
 mod coolrunner2;
 mod siliconblue;
 mod spartan6;
+mod speed;
 mod tiledb;
 mod virtex;
 mod virtex2;

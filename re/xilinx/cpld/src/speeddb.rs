@@ -1,12 +1,13 @@
-use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
+use std::{error::Error, fs::File, path::Path};
 
+use prjcombine_types::speed::Speed;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SpeedDbPart {
     pub dev_name: String,
     pub speed_name: String,
-    pub timing: BTreeMap<String, i64>,
+    pub speed: Speed,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]

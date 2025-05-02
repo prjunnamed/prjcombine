@@ -6,7 +6,7 @@ use std::{
 };
 
 use jzon::JsonValue;
-use prjcombine_types::{FbId, FbMcId, tiledb::Tile};
+use prjcombine_types::{FbId, FbMcId, speed::Speed, tiledb::Tile};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
 
@@ -71,11 +71,6 @@ impl std::fmt::Display for BondPin {
 pub struct Bond {
     pub idcode_part: u32,
     pub pins: BTreeMap<String, BondPin>,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Speed {
-    pub timing: BTreeMap<String, i64>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -166,16 +161,6 @@ impl Bond {
     }
 }
 
-impl Speed {
-    pub fn to_json(&self) -> JsonValue {
-        jzon::object! {
-            timing: jzon::object::Object::from_iter(
-                self.timing.iter().map(|(k, v)| (k, *v))
-            ),
-        }
-    }
-}
-
 impl Part {
     pub fn to_json(&self) -> JsonValue {
         jzon::object! {
@@ -196,7 +181,7 @@ impl Database {
         jzon::object! {
             chips: Vec::from_iter(self.chips.values().map(Chip::to_json)),
             bonds: Vec::from_iter(self.bonds.values().map(Bond::to_json)),
-            speeds: Vec::from_iter(self.speeds.values().map(Speed::to_json)),
+            speeds: Vec::from_iter(self.speeds.values()),
             parts: Vec::from_iter(self.parts.iter().map(Part::to_json)),
             mc_bits: &self.mc_bits,
             fb_bits: &self.fb_bits,

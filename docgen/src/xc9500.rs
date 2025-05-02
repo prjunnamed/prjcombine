@@ -6,8 +6,7 @@ use prjcombine_xc9500::{BankId, BondPin, ChipKind, Database};
 use unnamed_entity::{EntityId, EntityPartVec};
 
 use crate::{
-    DocgenContext,
-    tiledb::{FrameDirection, TileOrientation, gen_tile},
+    speed::{gen_speed, SpeedData}, tiledb::{gen_tile, FrameDirection, TileOrientation}, DocgenContext
 };
 
 fn gen_devlist(ctx: &mut DocgenContext, dbs: &[Database]) {
@@ -102,9 +101,6 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
         names: Vec<String>,
         pins: HashMap<BondPin, PinData>,
     }
-    struct SpeedData {
-        names: Vec<String>,
-    }
     struct PinData {
         pins: Vec<String>,
         special: Option<String>,
@@ -122,7 +118,6 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
             let mut bonds = EntityPartVec::new();
             let mut speeds = EntityPartVec::new();
             let mut packages = IndexSet::new();
-            let mut speed_params = IndexSet::new();
             for part in &db.parts {
                 if part.chip != chipid {
                     continue;
@@ -164,11 +159,14 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
 
                 for (sname, &speedid) in &part.speeds {
                     let speed = &db.speeds[speedid];
-                    for k in speed.timing.keys() {
-                        speed_params.insert(k);
-                    }
                     if !speeds.contains_id(speedid) {
-                        speeds.insert(speedid, SpeedData { names: vec![] });
+                        speeds.insert(
+                            speedid,
+                            SpeedData {
+                                names: vec![],
+                                speed,
+                            },
+                        );
                     }
                     speeds[speedid]
                         .names
@@ -264,31 +262,14 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
             writeln!(buf, r#"</table></div>"#).unwrap();
             writeln!(buf).unwrap();
 
+            gen_speed(ctx, &parts[0].name, &Vec::from_iter(speeds.into_values()));
             writeln!(buf, r#"## Speed data"#).unwrap();
             writeln!(buf).unwrap();
-            writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
-            writeln!(buf, r#"<thead>"#).unwrap();
-            writeln!(buf, r#"<tr>"#).unwrap();
-            writeln!(buf, r#"<th>Timing parameter</th>"#).unwrap();
-            for speed in speeds.values() {
-                let names = speed.names.join("<br>");
-                writeln!(buf, r#"<th>{names}</th>"#).unwrap();
-            }
-            writeln!(buf, r#"</tr>"#).unwrap();
-            writeln!(buf, r#"</thead>"#).unwrap();
-            writeln!(buf, r#"<tbody>"#).unwrap();
-            for &key in &speed_params {
-                writeln!(buf, r#"<tr>"#).unwrap();
-                writeln!(buf, r#"<td>{key}</td>"#).unwrap();
-                for speedid in speeds.ids() {
-                    let speed = &db.speeds[speedid];
-                    let val = speed.timing[key];
-                    writeln!(buf, r#"<td>{val}</td>"#).unwrap();
-                }
-                writeln!(buf, r#"</tr>"#).unwrap();
-            }
-            writeln!(buf, r#"</tbody>"#).unwrap();
-            writeln!(buf, r#"</table></div>"#).unwrap();
+            let item = ctx
+                .items
+                .remove(&format!("speed-{pname}", pname = parts[0].name))
+                .unwrap();
+            buf.push_str(&item);
             writeln!(buf).unwrap();
 
             gen_tile(ctx, &parts[0].name, "imux", &chip.imux_bits, orientation);

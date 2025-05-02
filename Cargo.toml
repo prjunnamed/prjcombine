@@ -156,7 +156,6 @@ prjcombine-re-xilinx-xact-geom = { path = "re/xilinx/xact/geom" }
 prjcombine-re-xilinx-xact-data = { path = "re/xilinx/xact/data" }
 prjcombine-re-xilinx-cpld = { path = "re/xilinx/cpld" }
 prjcombine-re-lattice-rawdump = { path = "re/lattice/rawdump" }
-rust_decimal = "1.36.0"
 enum-map = { version = "2.4", features = ["serde"] }
 indexmap = { version = "2", features = ["serde"] }
 rand = { version = "0.9", features = ["small_rng"] }

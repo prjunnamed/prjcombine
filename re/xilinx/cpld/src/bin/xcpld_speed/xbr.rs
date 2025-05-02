@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use prjcombine_re_sdf::Sdf;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_cpld::{
@@ -10,13 +8,16 @@ use prjcombine_re_xilinx_cpld::{
     vm6::{InputNodeKind, NodeKind},
     vm6_util::prep_vm6,
 };
-use prjcombine_types::FbId;
+use prjcombine_types::{
+    FbId,
+    speed::{SetupHold, Speed, SpeedVal, Time},
+};
 use unnamed_entity::EntityId;
 
 use crate::{
     extract::{
-        extract_and2, extract_buf, extract_ff, extract_latch, extract_tri_ctl, extract_tri_i,
-        set_timing,
+        collect_and2, collect_buf, collect_ff, collect_latch, collect_tri_ctl, collect_tri_i,
+        extract_and2, extract_buf, set_timing, set_timing_delay,
     },
     vm6_emit::{
         insert_bufoe, insert_ct, insert_ibuf, insert_mc, insert_mc_out, insert_mc_si, insert_obuf,
@@ -30,29 +31,29 @@ pub fn test_xbr(
     device: &Device,
     package: &Package,
     spd: &str,
-) -> BTreeMap<String, i64> {
-    let mut timing = BTreeMap::new();
-    test_comb(tc, part, device, package, spd, &mut timing);
-    test_ff_pt(tc, part, device, package, spd, &mut timing);
-    test_ff_ct(tc, part, device, package, spd, &mut timing);
-    test_ff_fast(tc, part, device, package, spd, &mut timing);
-    test_latch(tc, part, device, package, spd, &mut timing);
-    test_iostd(tc, part, device, package, spd, &mut timing, "LVCMOS15");
-    test_iostd(tc, part, device, package, spd, &mut timing, "LVCMOS18");
-    test_iostd(tc, part, device, package, spd, &mut timing, "LVCMOS18_ANY");
-    test_iostd(tc, part, device, package, spd, &mut timing, "LVCMOS25");
-    test_iostd(tc, part, device, package, spd, &mut timing, "LVCMOS33");
-    test_iostd(tc, part, device, package, spd, &mut timing, "LVTTL");
+) -> Speed {
+    let mut speed = Speed::new();
+    test_comb(tc, part, device, package, spd, &mut speed);
+    test_ff_pt(tc, part, device, package, spd, &mut speed);
+    test_ff_ct(tc, part, device, package, spd, &mut speed);
+    test_ff_fast(tc, part, device, package, spd, &mut speed);
+    test_latch(tc, part, device, package, spd, &mut speed);
+    test_iostd(tc, part, device, package, spd, &mut speed, "LVCMOS15");
+    test_iostd(tc, part, device, package, spd, &mut speed, "LVCMOS18");
+    test_iostd(tc, part, device, package, spd, &mut speed, "LVCMOS18_ANY");
+    test_iostd(tc, part, device, package, spd, &mut speed, "LVCMOS25");
+    test_iostd(tc, part, device, package, spd, &mut speed, "LVCMOS33");
+    test_iostd(tc, part, device, package, spd, &mut speed, "LVTTL");
     if device.has_vref {
-        test_iostd(tc, part, device, package, spd, &mut timing, "SSTL2_I");
-        test_iostd(tc, part, device, package, spd, &mut timing, "SSTL3_I");
-        test_iostd(tc, part, device, package, spd, &mut timing, "HSTL_I");
+        test_iostd(tc, part, device, package, spd, &mut speed, "SSTL2_I");
+        test_iostd(tc, part, device, package, spd, &mut speed, "SSTL3_I");
+        test_iostd(tc, part, device, package, spd, &mut speed, "HSTL_I");
     }
     if device.dge_pad.is_some() {
-        test_dge(tc, part, device, package, spd, &mut timing);
+        test_dge(tc, part, device, package, spd, &mut speed);
     }
     if device.cdr_pad.is_some() {
-        let (s, h) = match (&*part.dev_name, spd) {
+        let (setup, hold) = match (&*part.dev_name, spd) {
             ("xc2c128", "-6") => (1300, 0),
             ("xc2c128", "-7") => (2000, 0),
             ("xa2c128", "-7") => (2000, 0),
@@ -69,10 +70,16 @@ pub fn test_xbr(
             ("xc2c512", "-10") => (2500, 0),
             (d, s) => panic!("missing data sheet timings for {d}{s}"),
         };
-        set_timing(&mut timing, "SETUP_CD_RST", s);
-        set_timing(&mut timing, "HOLD_CD_RST", h);
+        set_timing(
+            &mut speed,
+            "SETUPHOLD_CD_RST",
+            SpeedVal::SetupHold(SetupHold {
+                setup: Time(setup.into()),
+                hold: Time(hold.into()),
+            }),
+        );
     }
-    let (s, h) = match (&*part.dev_name, spd) {
+    let (setup, hold) = match (&*part.dev_name, spd) {
         ("xc2c32", "-3") => (900, 0),
         ("xc2c32", "-4") => (700, 0),
         ("xc2c32", "-6") => (1700, 0),
@@ -102,10 +109,16 @@ pub fn test_xbr(
         ("xc2c512", "-10") => (1800, 0),
         (d, s) => panic!("missing data sheet timings for {d}{s}"),
     };
-    set_timing(&mut timing, "SETUP_CE_CLK", s);
-    set_timing(&mut timing, "HOLD_CE_CLK", h);
+    set_timing(
+        &mut speed,
+        "SETUPHOLD_CE_CLK",
+        SpeedVal::SetupHold(SetupHold {
+            setup: Time(setup.into()),
+            hold: Time(hold.into()),
+        }),
+    );
 
-    timing
+    speed
 }
 
 fn test_comb(
@@ -114,7 +127,7 @@ fn test_comb(
     device: &Device,
     package: &Package,
     spd: &str,
-    timing: &mut BTreeMap<String, i64>,
+    speed: &mut Speed,
 ) {
     let mut vm6 = prep_vm6(part, device, package, spd);
     let node_i1 = insert_ibuf(&mut vm6, "I1", NodeKind::IiImux, 0);
@@ -143,20 +156,22 @@ fn test_comb(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    extract_buf(&sdf, "I1", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "I2", timing, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "I1", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "I2", speed, "DEL_IBUF_IMUX");
 
-    extract_and2(&sdf, "MC.D1", timing, "DEL_IMUX_PT");
-    extract_and2(&sdf, "MC.D2", timing, "DEL_IMUX_OR");
+    collect_and2(&sdf, "MC.D1", speed, "DEL_IMUX_PT");
+    collect_and2(&sdf, "MC.D2", speed, "DEL_IMUX_OR");
 
-    extract_buf(&sdf, "MC.Q", timing, "DEL_D_Q_COMB");
-    extract_buf(&sdf, "UMC.Q", timing, "DEL_D_Q_COMB");
-    extract_buf(&sdf, "MC_PAD_6", timing, "DEL_OBUF_FAST.LVCMOS18");
-    extract_buf(&sdf, "UMC_PAD_8", timing, "DEL_OBUF_SLOW.LVCMOS18");
+    collect_buf(&sdf, "MC.Q", speed, "DEL_D_Q_COMB");
+    collect_buf(&sdf, "UMC.Q", speed, "DEL_D_Q_COMB");
+    collect_buf(&sdf, "MC_PAD_6", speed, "DEL_OBUF_FAST.LVCMOS18");
+    collect_buf(&sdf, "UMC_PAD_8", speed, "DEL_OBUF_SLOW.LVCMOS18");
 
-    let mut tmp = BTreeMap::new();
-    extract_and2(&sdf, "UMC.D1", &mut tmp, "UIM");
-    set_timing(timing, "DEL_UIM_IMUX", tmp["UIM"] - timing["DEL_IMUX_PT"]);
+    let uim = extract_and2(&sdf, "UMC.D1");
+    let SpeedVal::Delay(del_imux_pt) = speed.vals["DEL_IMUX_PT"] else {
+        unreachable!()
+    };
+    set_timing_delay(speed, "DEL_UIM_IMUX", uim - del_imux_pt.max);
 }
 
 fn test_ff_pt(
@@ -165,7 +180,7 @@ fn test_ff_pt(
     device: &Device,
     package: &Package,
     spd: &str,
-    timing: &mut BTreeMap<String, i64>,
+    speed: &mut Speed,
 ) {
     let mut vm6 = prep_vm6(part, device, package, spd);
     let node_d = insert_ibuf(&mut vm6, "D", NodeKind::IiImux, 0);
@@ -196,44 +211,40 @@ fn test_ff_pt(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    extract_buf(&sdf, "D", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "I", timing, "DEL_IBUF_D");
-    extract_buf(&sdf, "C", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "R", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "E", timing, "DEL_IBUF_IMUX");
-    extract_tri_i(&sdf, "MC_PAD_15", timing, "DEL_OBUF_FAST.LVCMOS18");
-    extract_tri_ctl(&sdf, "MC_PAD_15", timing, "DEL_OBUF_OE");
-    extract_buf(&sdf, "IMC_PAD_17", timing, "DEL_OBUF_FAST.LVCMOS18");
+    collect_buf(&sdf, "D", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "I", speed, "DEL_IBUF_D");
+    collect_buf(&sdf, "C", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "R", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "E", speed, "DEL_IBUF_IMUX");
+    collect_tri_i(&sdf, "MC_PAD_15", speed, "DEL_OBUF_FAST.LVCMOS18");
+    collect_tri_ctl(&sdf, "MC_PAD_15", speed, "DEL_OBUF_OE");
+    collect_buf(&sdf, "IMC_PAD_17", speed, "DEL_OBUF_FAST.LVCMOS18");
 
-    extract_and2(&sdf, "MC.D1", timing, "DEL_IMUX_PT");
-    extract_and2(&sdf, "MC.CLKF", timing, "DEL_IMUX_CT");
-    extract_and2(&sdf, "MC.RSTF", timing, "DEL_IMUX_CT");
-    extract_and2(&sdf, "MC.TRST", timing, "DEL_IMUX_CT");
-    extract_and2(&sdf, "IMC.CLKF", timing, "DEL_IMUX_CT");
+    collect_and2(&sdf, "MC.D1", speed, "DEL_IMUX_PT");
+    collect_and2(&sdf, "MC.CLKF", speed, "DEL_IMUX_CT");
+    collect_and2(&sdf, "MC.RSTF", speed, "DEL_IMUX_CT");
+    collect_and2(&sdf, "MC.TRST", speed, "DEL_IMUX_CT");
+    collect_and2(&sdf, "IMC.CLKF", speed, "DEL_IMUX_CT");
 
-    extract_ff(
+    collect_ff(
         &sdf,
         "MC.REG",
-        timing,
+        speed,
         "DEL_CLK_Q",
         "DEL_SR_Q",
-        "SETUP_D_CLK_PT_PT",
-        "HOLD_D_CLK_PT_PT",
-        None,
+        "SETUPHOLD_D_CLK_PT_PT",
         None,
         "WIDTH_CLK_PT",
         "WIDTH_SR",
     );
 
-    extract_ff(
+    collect_ff(
         &sdf,
         "IMC.REG",
-        timing,
+        speed,
         "DEL_CLK_Q",
         "DEL_SR_Q",
-        "SETUP_D_CLK_IBUF_PT",
-        "HOLD_D_CLK_IBUF_PT",
-        None,
+        "SETUPHOLD_D_CLK_IBUF_PT",
         None,
         "WIDTH_CLK_PT",
         "WIDTH_SR",
@@ -246,7 +257,7 @@ fn test_ff_ct(
     device: &Device,
     package: &Package,
     spd: &str,
-    timing: &mut BTreeMap<String, i64>,
+    speed: &mut Speed,
 ) {
     let mut vm6 = prep_vm6(part, device, package, spd);
     let node_d = insert_ibuf(&mut vm6, "D", NodeKind::IiImux, 0);
@@ -283,46 +294,42 @@ fn test_ff_ct(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    extract_buf(&sdf, "D", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "I", timing, "DEL_IBUF_D");
-    extract_buf(&sdf, "C", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "R", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "S", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "E", timing, "DEL_IBUF_IMUX");
-    extract_tri_i(&sdf, "MC_PAD_19", timing, "DEL_OBUF_FAST.LVCMOS18");
-    extract_tri_ctl(&sdf, "MC_PAD_19", timing, "DEL_OBUF_OE");
-    extract_buf(&sdf, "IMC_PAD_21", timing, "DEL_OBUF_FAST.LVCMOS18");
+    collect_buf(&sdf, "D", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "I", speed, "DEL_IBUF_D");
+    collect_buf(&sdf, "C", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "R", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "S", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "E", speed, "DEL_IBUF_IMUX");
+    collect_tri_i(&sdf, "MC_PAD_19", speed, "DEL_OBUF_FAST.LVCMOS18");
+    collect_tri_ctl(&sdf, "MC_PAD_19", speed, "DEL_OBUF_OE");
+    collect_buf(&sdf, "IMC_PAD_21", speed, "DEL_OBUF_FAST.LVCMOS18");
 
-    extract_and2(&sdf, "MC.D1", timing, "DEL_IMUX_PT");
-    extract_and2(&sdf, "MC.CE", timing, "DEL_IMUX_CT");
-    extract_and2(&sdf, "FOOBAR1__ctinst/4", timing, "DEL_IMUX_CT");
-    extract_and2(&sdf, "FOOBAR1__ctinst/5", timing, "DEL_IMUX_CT");
-    extract_and2(&sdf, "FOOBAR1__ctinst/6", timing, "DEL_IMUX_CT");
-    extract_and2(&sdf, "FOOBAR1__ctinst/7", timing, "DEL_IMUX_CT");
+    collect_and2(&sdf, "MC.D1", speed, "DEL_IMUX_PT");
+    collect_and2(&sdf, "MC.CE", speed, "DEL_IMUX_CT");
+    collect_and2(&sdf, "FOOBAR1__ctinst/4", speed, "DEL_IMUX_CT");
+    collect_and2(&sdf, "FOOBAR1__ctinst/5", speed, "DEL_IMUX_CT");
+    collect_and2(&sdf, "FOOBAR1__ctinst/6", speed, "DEL_IMUX_CT");
+    collect_and2(&sdf, "FOOBAR1__ctinst/7", speed, "DEL_IMUX_CT");
 
-    extract_ff(
+    collect_ff(
         &sdf,
         "MC.REG",
-        timing,
+        speed,
         "DEL_CLK_Q",
         "DEL_SR_Q",
-        "SETUP_D_CLK_PT_PT",
-        "HOLD_D_CLK_PT_PT",
-        None,
+        "SETUPHOLD_D_CLK_PT_PT",
         None,
         "WIDTH_CLK_PT",
         "WIDTH_SR",
     );
 
-    extract_ff(
+    collect_ff(
         &sdf,
         "IMC.REG",
-        timing,
+        speed,
         "DEL_CLK_Q",
         "DEL_SR_Q",
-        "SETUP_D_CLK_IBUF_PT",
-        "HOLD_D_CLK_IBUF_PT",
-        None,
+        "SETUPHOLD_D_CLK_IBUF_PT",
         None,
         "WIDTH_CLK_PT",
         "WIDTH_SR",
@@ -335,7 +342,7 @@ fn test_ff_fast(
     device: &Device,
     package: &Package,
     spd: &str,
-    timing: &mut BTreeMap<String, i64>,
+    speed: &mut Speed,
 ) {
     let mut vm6 = prep_vm6(part, device, package, spd);
     let node_d = insert_ibuf(&mut vm6, "D", NodeKind::IiImux, 0);
@@ -365,41 +372,37 @@ fn test_ff_fast(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    extract_buf(&sdf, "D", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "I", timing, "DEL_IBUF_D");
-    extract_buf(&sdf, "C", timing, "DEL_IBUF_FCLK");
-    extract_buf(&sdf, "R", timing, "DEL_IBUF_FSR");
-    extract_buf(&sdf, "E", timing, "DEL_IBUF_FOE");
-    extract_tri_i(&sdf, "MC_PAD_17", timing, "DEL_OBUF_FAST.LVCMOS18");
-    extract_tri_ctl(&sdf, "MC_PAD_17", timing, "DEL_OBUF_OE");
-    extract_buf(&sdf, "IMC_PAD_19", timing, "DEL_OBUF_FAST.LVCMOS18");
+    collect_buf(&sdf, "D", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "I", speed, "DEL_IBUF_D");
+    collect_buf(&sdf, "C", speed, "DEL_IBUF_FCLK");
+    collect_buf(&sdf, "R", speed, "DEL_IBUF_FSR");
+    collect_buf(&sdf, "E", speed, "DEL_IBUF_FOE");
+    collect_tri_i(&sdf, "MC_PAD_17", speed, "DEL_OBUF_FAST.LVCMOS18");
+    collect_tri_ctl(&sdf, "MC_PAD_17", speed, "DEL_OBUF_OE");
+    collect_buf(&sdf, "IMC_PAD_19", speed, "DEL_OBUF_FAST.LVCMOS18");
 
-    extract_and2(&sdf, "MC.D1", timing, "DEL_IMUX_PT");
-    extract_and2(&sdf, "MC.CE", timing, "DEL_IMUX_CT");
+    collect_and2(&sdf, "MC.D1", speed, "DEL_IMUX_PT");
+    collect_and2(&sdf, "MC.CE", speed, "DEL_IMUX_CT");
 
-    extract_ff(
+    collect_ff(
         &sdf,
         "MC.REG",
-        timing,
+        speed,
         "DEL_CLK_Q",
         "DEL_SR_Q",
-        "SETUP_D_CLK_PT_FCLK",
-        "HOLD_D_CLK_PT_FCLK",
-        None,
+        "SETUPHOLD_D_CLK_PT_FCLK",
         None,
         "WIDTH_CLK",
         "WIDTH_SR",
     );
 
-    extract_ff(
+    collect_ff(
         &sdf,
         "IMC.REG",
-        timing,
+        speed,
         "DEL_CLK_Q",
         "DEL_SR_Q",
-        "SETUP_D_CLK_IBUF_FCLK",
-        "HOLD_D_CLK_IBUF_FCLK",
-        None,
+        "SETUPHOLD_D_CLK_IBUF_FCLK",
         None,
         "WIDTH_CLK",
         "WIDTH_SR",
@@ -412,7 +415,7 @@ fn test_latch(
     device: &Device,
     package: &Package,
     spd: &str,
-    timing: &mut BTreeMap<String, i64>,
+    speed: &mut Speed,
 ) {
     let mut vm6 = prep_vm6(part, device, package, spd);
     let node_d = insert_ibuf(&mut vm6, "D", NodeKind::IiImux, 0);
@@ -444,32 +447,31 @@ fn test_latch(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    extract_buf(&sdf, "D", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "C", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "R", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "S", timing, "DEL_IBUF_IMUX");
-    extract_buf(&sdf, "E", timing, "DEL_IBUF_IMUX");
-    extract_tri_i(&sdf, "MC_PAD_12", timing, "DEL_OBUF_FAST.LVCMOS18");
-    extract_tri_ctl(&sdf, "MC_PAD_12", timing, "DEL_OBUF_OE");
+    collect_buf(&sdf, "D", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "C", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "R", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "S", speed, "DEL_IBUF_IMUX");
+    collect_buf(&sdf, "E", speed, "DEL_IBUF_IMUX");
+    collect_tri_i(&sdf, "MC_PAD_12", speed, "DEL_OBUF_FAST.LVCMOS18");
+    collect_tri_ctl(&sdf, "MC_PAD_12", speed, "DEL_OBUF_OE");
 
-    extract_and2(&sdf, "EMC.D1", timing, "DEL_IMUX_PT");
-    extract_buf(&sdf, "EMC.Q", timing, "DEL_D_Q_COMB");
+    collect_and2(&sdf, "EMC.D1", speed, "DEL_IMUX_PT");
+    collect_buf(&sdf, "EMC.Q", speed, "DEL_D_Q_COMB");
 
-    extract_and2(&sdf, "MC.D1", timing, "DEL_IMUX_PT");
-    extract_and2(&sdf, "FOOBAR1__ctinst/4", timing, "DEL_IMUX_CT");
-    extract_and2(&sdf, "FOOBAR1__ctinst/5", timing, "DEL_IMUX_CT");
-    extract_and2(&sdf, "FOOBAR1__ctinst/6", timing, "DEL_IMUX_CT");
-    extract_buf(&sdf, "MC.BUFOE.OUT", timing, "DEL_MC_FOE");
+    collect_and2(&sdf, "MC.D1", speed, "DEL_IMUX_PT");
+    collect_and2(&sdf, "FOOBAR1__ctinst/4", speed, "DEL_IMUX_CT");
+    collect_and2(&sdf, "FOOBAR1__ctinst/5", speed, "DEL_IMUX_CT");
+    collect_and2(&sdf, "FOOBAR1__ctinst/6", speed, "DEL_IMUX_CT");
+    collect_buf(&sdf, "MC.BUFOE.OUT", speed, "DEL_MC_FOE");
 
-    extract_latch(
+    collect_latch(
         &sdf,
         "MC.REG",
-        timing,
+        speed,
         "DEL_D_Q_LATCH",
         "DEL_CLK_Q",
         Some("DEL_SR_Q"),
-        "SETUP_D_CLK_PT_PT",
-        "HOLD_D_CLK_PT_PT",
+        "SETUPHOLD_D_CLK_PT_PT",
         "WIDTH_CLK_PT",
         Some("WIDTH_SR"),
     );
@@ -481,7 +483,7 @@ fn test_iostd(
     device: &Device,
     package: &Package,
     spd: &str,
-    timing: &mut BTreeMap<String, i64>,
+    speed: &mut Speed,
     iostd: &str,
 ) {
     let mut vm6 = prep_vm6(part, device, package, spd);
@@ -516,24 +518,26 @@ fn test_iostd(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    let mut tmp = BTreeMap::new();
+    let SpeedVal::Delay(del_ibuf_imux) = speed.vals["DEL_IBUF_IMUX"] else {
+        unreachable!()
+    };
     if has_plain {
-        extract_buf(&sdf, "IP", &mut tmp, "DEL_IBUF_PLAIN");
-        set_timing(
-            timing,
+        let del_ibuf_plain = extract_buf(&sdf, "IP");
+        set_timing_delay(
+            speed,
             &format!("DEL_IBUF_PLAIN.{iostd}"),
-            tmp["DEL_IBUF_PLAIN"] - timing["DEL_IBUF_IMUX"],
+            del_ibuf_plain - del_ibuf_imux.max,
         );
     }
-    extract_buf(&sdf, "IS", &mut tmp, "DEL_IBUF_SCHMITT");
-    set_timing(
-        timing,
+    let del_ibuf_shcmitt = extract_buf(&sdf, "IS");
+    set_timing_delay(
+        speed,
         &format!("DEL_IBUF_SCHMITT.{iostd}"),
-        tmp["DEL_IBUF_SCHMITT"] - timing["DEL_IBUF_IMUX"],
+        del_ibuf_shcmitt - del_ibuf_imux.max,
     );
 
-    extract_buf(&sdf, "FMC_PAD_6", timing, &format!("DEL_OBUF_FAST.{iostd}"));
-    extract_buf(&sdf, "SMC_PAD_8", timing, &format!("DEL_OBUF_SLOW.{iostd}"));
+    collect_buf(&sdf, "FMC_PAD_6", speed, &format!("DEL_OBUF_FAST.{iostd}"));
+    collect_buf(&sdf, "SMC_PAD_8", speed, &format!("DEL_OBUF_SLOW.{iostd}"));
 }
 
 fn test_dge(
@@ -542,7 +546,7 @@ fn test_dge(
     device: &Device,
     package: &Package,
     spd: &str,
-    timing: &mut BTreeMap<String, i64>,
+    speed: &mut Speed,
 ) {
     let mut vm6 = prep_vm6(part, device, package, spd);
     let node_d = insert_ibuf(&mut vm6, "D", NodeKind::IiImux, 0x420);
@@ -560,20 +564,17 @@ fn test_dge(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    let mut zero = BTreeMap::new();
-    zero.insert("ZERO".into(), 0);
-    extract_buf(&sdf, "D", &mut zero, "ZERO");
-    extract_buf(&sdf, "G", timing, "DEL_IBUF_IMUX");
+    assert_eq!(extract_buf(&sdf, "D"), Time(0.0));
+    collect_buf(&sdf, "G", speed, "DEL_IBUF_IMUX");
 
-    extract_latch(
+    collect_latch(
         &sdf,
         "D_PAD_tsimcreated_dg_",
-        timing,
+        speed,
         "DEL_IBUF_IMUX",
         "DEL_IBUF_DGE",
         None,
-        "SETUP_IBUF_DGE",
-        "HOLD_IBUF_DGE",
+        "SETUPHOLD_IBUF_DGE",
         "WIDTH_IBUF_DGE",
         None,
     );

@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use rust_decimal::Decimal;
+use prjcombine_types::speed::Time;
 
 pub mod parse;
 
@@ -31,8 +31,8 @@ pub struct Cell {
 pub struct IoPath {
     pub port_from: Edge,
     pub port_to: Edge,
-    pub del_rise: Option<Delay>,
-    pub del_fall: Option<Delay>,
+    pub del_rise: Delay,
+    pub del_fall: Delay,
 }
 
 #[derive(Debug)]
@@ -72,9 +72,9 @@ pub struct Width {
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Delay {
-    pub min: Decimal,
-    pub typ: Decimal,
-    pub max: Decimal,
+    pub min: Time,
+    pub typ: Time,
+    pub max: Time,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
