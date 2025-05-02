@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use jzon::JsonValue;
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_types::tiledb::TileDb;
+use prjcombine_types::{speed::Speed, tiledb::TileDb};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 
@@ -11,6 +11,7 @@ use crate::{bond::Bond, chip::Chip};
 entity_id! {
     pub id ChipId usize;
     pub id BondId usize;
+    pub id SpeedId usize;
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -18,7 +19,7 @@ pub struct Part {
     pub name: String,
     pub chip: ChipId,
     pub bonds: BTreeMap<String, BondId>,
-    pub speeds: Vec<String>,
+    pub speeds: BTreeMap<String, SpeedId>,
     pub temps: Vec<String>,
 }
 
@@ -26,6 +27,7 @@ pub struct Part {
 pub struct Database {
     pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
+    pub speeds: EntityVec<SpeedId, Speed>,
     pub parts: Vec<Part>,
     pub int: IntDb,
     pub tiles: TileDb,
@@ -53,7 +55,7 @@ impl From<&Part> for JsonValue {
             name: part.name.as_str(),
             chip: part.chip.to_idx(),
             bonds: jzon::object::Object::from_iter(part.bonds.iter().map(|(name, bond)| (name.as_str(), bond.to_idx()))),
-            speeds: Vec::from_iter(part.speeds.iter().map(|x| x.as_str())),
+            speeds: jzon::object::Object::from_iter(part.speeds.iter().map(|(name, speed)| (name.as_str(), speed.to_idx()))),
             temps: Vec::from_iter(part.temps.iter().map(|x| x.as_str())),
         }
     }
@@ -64,6 +66,7 @@ impl From<&Database> for JsonValue {
         jzon::object! {
             chips: Vec::from_iter(db.chips.values()),
             bonds: Vec::from_iter(db.bonds.values()),
+            speeds: Vec::from_iter(db.speeds.values()),
             parts: Vec::from_iter(db.parts.iter()),
             int: &db.int,
             tiles: &db.tiles,

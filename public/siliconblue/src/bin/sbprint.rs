@@ -33,12 +33,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .long("packages")
                 .action(ArgAction::SetTrue),
         )
+        .arg(
+            Arg::new("speed")
+                .short('s')
+                .long("speed")
+                .action(ArgAction::SetTrue),
+        )
         .get_matches();
     let arg_db = m.get_one::<PathBuf>("db").unwrap();
     let flag_intdb = m.get_flag("intdb");
     let flag_devices = m.get_flag("devices");
     let flag_chips = m.get_flag("chips");
     let flag_packages = m.get_flag("packages");
+    let flag_speed = m.get_flag("speed");
 
     let db = Database::from_file(arg_db)?;
     if flag_intdb {
@@ -75,14 +82,30 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
+    if flag_speed || flag_devices {
+        for (sid, speed) in &db.speeds {
+            print!("SPEED {sid}:");
+            for dev in &db.parts {
+                for (sname, &dspeed) in &dev.speeds {
+                    if dspeed == sid {
+                        print!(" {dev}-{sname}", dev = dev.name);
+                    }
+                }
+            }
+            println!();
+            if flag_speed {
+                print!("{speed}");
+            }
+        }
+    }
     if flag_devices {
         for dev in &db.parts {
             println!("DEVICE {n} GRID {g}", n = dev.name, g = dev.chip);
             for (pkg, bond) in &dev.bonds {
                 println!("\tBOND {pkg}: {bond}");
             }
-            for speed in &dev.speeds {
-                println!("\tSPEED {speed}");
+            for (speed, sid) in &dev.speeds {
+                println!("\tSPEED {speed}: {sid}");
             }
             for temp in &dev.temps {
                 println!("\tTEMP {temp}");

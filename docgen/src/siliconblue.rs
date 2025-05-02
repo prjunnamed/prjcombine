@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 
+use unnamed_entity::EntityPartVec;
+
 use crate::{
-    DocgenContext,
-    tiledb::{FrameDirection, TileOrientation, check_misc_data, gen_misc_table, gen_tiles},
+    speed::{gen_speed, SpeedData}, tiledb::{check_misc_data, gen_misc_table, gen_tiles, FrameDirection, TileOrientation}, DocgenContext
 };
 
 pub fn gen_siliconblue(ctx: &mut DocgenContext) {
@@ -20,6 +21,25 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
         )
         .unwrap();
         gen_tiles(ctx, kind, &db.tiles, |_| tile_orientation);
+        let mut speeds = EntityPartVec::new();
+        for part in &db.parts {
+            for (sname, &speedid) in &part.speeds {
+                let speed = &db.speeds[speedid];
+                if !speeds.contains_id(speedid) {
+                    speeds.insert(
+                        speedid,
+                        SpeedData {
+                            names: vec![],
+                            speed,
+                        },
+                    );
+                }
+                speeds[speedid]
+                    .names
+                    .push(format!("{pname}{sname}", pname = part.name));
+            }
+        }
+        gen_speed(ctx, kind, &Vec::from_iter(speeds.into_values()));
         let mut misc_used = HashSet::new();
         if matches!(kind, "ice65l04" | "ice65p04" | "ice65l08") {
             gen_misc_table(

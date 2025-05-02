@@ -32,7 +32,10 @@ use prjcombine_siliconblue::{
     db::Database,
     expanded::{BitOwner, ExpandedDevice},
 };
-use prjcombine_types::tiledb::{TileBit, TileDb, TileItemKind};
+use prjcombine_types::{
+    speed::Speed,
+    tiledb::{TileBit, TileDb, TileItemKind},
+};
 use rand::Rng;
 use rayon::prelude::*;
 use run::{Design, InstPin, RawLoc, RunResult, get_cached_designs, remove_cache_key, run};
@@ -41,6 +44,7 @@ use sites::{
     BelPins, SiteInfo, find_bel_pins, find_io_latch_locs, find_sites_iox3, find_sites_misc,
     find_sites_plb,
 };
+use speed::{SpeedCollector, finish_speed, get_speed_data, want_speed_data};
 use unnamed_entity::{EntityId, EntityVec};
 
 mod collect;
@@ -52,6 +56,7 @@ mod prims;
 mod run;
 mod sample;
 mod sites;
+mod speed;
 mod xlat;
 
 #[derive(Parser)]
@@ -84,6 +89,7 @@ struct PartContext<'a> {
     bel_pins: BTreeMap<(&'static str, RawLoc), BelPins>,
     extra_node_locs: BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
     tiledb: TileDb,
+    speed: BTreeMap<(&'static str, &'static str), Speed>,
     debug: u8,
 }
 
@@ -92,6 +98,7 @@ struct HarvestContext<'a> {
     edev: &'a ExpandedDevice<'a>,
     gencfg: GeneratorConfig<'a>,
     harvester: Mutex<Harvester<BitOwner>>,
+    speed: BTreeMap<(&'static str, &'static str), Mutex<SpeedCollector>>,
     muxes: Mutex<BTreeMap<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>>,
 }
 
@@ -301,6 +308,22 @@ impl HarvestContext<'_> {
         golden_nodes_complete == nodes_complete
     }
 
+    fn speed_complete(&mut self) -> bool {
+        let mut res = true;
+        for ((dev, sname), collector) in &mut self.speed {
+            let collector = collector.get_mut().unwrap();
+            for key in &collector.wanted_keys {
+                if !collector.db.vals.contains_key(key) {
+                    if self.ctx.debug >= 1 {
+                        println!("WANTED SPEED DATA: {dev} {sname} {key}");
+                    }
+                    res = false;
+                }
+            }
+        }
+        res
+    }
+
     fn new_sample(&self) -> Option<(String, Design, RunResult)> {
         let design = generate(&self.gencfg);
         let uniq: u128 = rand::rng().random();
@@ -324,11 +347,16 @@ impl HarvestContext<'_> {
     }
 
     fn add_sample(&self, key: &str, design: Design, result: RunResult) -> bool {
+        let speed = get_speed_data(&design, &result);
+        let mut changed = self.speed[&(design.device.as_str(), design.speed.as_str())]
+            .lock()
+            .unwrap()
+            .merge(&speed.db);
         if matches!(
             design.device.as_str(),
             "iCE40LP640" | "iCE40HX640" | "iCE40LP4K" | "iCE40HX4K"
         ) {
-            return false;
+            return changed;
         }
         let (sample, cur_pips) = make_sample(
             &design,
@@ -354,6 +382,7 @@ impl HarvestContext<'_> {
 
             if mux.ins.insert((NodeTileId::from_idx(0), pip.2)) {
                 ctr += 1;
+                changed = true;
             }
         }
         if self.ctx.debug >= 2 {
@@ -364,10 +393,9 @@ impl HarvestContext<'_> {
             if self.ctx.debug >= 2 {
                 println!("SAMPLE {sid}: {key}");
             }
-            true
-        } else {
-            false
+            changed = true;
         }
+        changed
     }
 
     fn run(&mut self) {
@@ -429,7 +457,10 @@ impl HarvestContext<'_> {
             self.harvester.get_mut().unwrap().process();
         }
         println!("{ctr} cached full designs");
-        while !self.muxes_complete() || self.harvester.get_mut().unwrap().has_unresolved() {
+        while !self.speed_complete()
+            || !self.muxes_complete()
+            || self.harvester.get_mut().unwrap().has_unresolved()
+        {
             (0..40).into_par_iter().for_each(|_| {
                 if let Some((key, design, result)) = self.new_sample() {
                     if !self.add_sample(&key, design, result) {
@@ -1955,11 +1986,25 @@ impl PartContext<'_> {
             harvester.want_global(key);
         }
         let harvester = Mutex::new(harvester);
+        let speed = self
+            .parts
+            .iter()
+            .flat_map(|part| {
+                part.speeds.iter().map(|&speed| {
+                    ((part.name, speed), {
+                        let mut collector = SpeedCollector::new();
+                        want_speed_data(&mut collector, self.chip.kind);
+                        Mutex::new(collector)
+                    })
+                })
+            })
+            .collect();
         let mut hctx = HarvestContext {
             ctx: self,
             edev: &edev,
             gencfg,
             harvester,
+            speed,
             muxes,
         };
 
@@ -1969,6 +2014,7 @@ impl PartContext<'_> {
         let mut harvester = hctx.harvester.into_inner().unwrap();
         let io_iob = collect_iob(&edev, &mut harvester);
         let tiledb = collect(&edev, &muxes, &harvester);
+        let speed = hctx.speed;
         self.chip.rows_colbuf = hctx.gencfg.rows_colbuf;
         self.chip.io_iob = io_iob;
 
@@ -2018,12 +2064,17 @@ impl PartContext<'_> {
         for (nk, node_muxes) in muxes {
             self.intdb.nodes[nk].muxes = node_muxes;
         }
+
+        for (k, v) in speed {
+            self.speed.insert(k, finish_speed(v.into_inner().unwrap()));
+        }
     }
 
     fn write_db(&mut self) {
         let mut db = Database {
             chips: EntityVec::new(),
             bonds: EntityVec::new(),
+            speeds: EntityVec::new(),
             parts: vec![],
             int: self.intdb.clone(),
             tiles: self.tiledb.clone(),
@@ -2046,11 +2097,27 @@ impl PartContext<'_> {
                     (pkg.to_string(), bid)
                 })
                 .collect();
+            let speeds = part
+                .speeds
+                .iter()
+                .map(|&sname| {
+                    let speed = &self.speed[&(part.name, sname)];
+                    let sid = 'speed: {
+                        for (sid, db_speed) in &db.speeds {
+                            if db_speed == speed {
+                                break 'speed sid;
+                            }
+                        }
+                        db.speeds.push(speed.clone())
+                    };
+                    (sname.to_string(), sid)
+                })
+                .collect();
             db.parts.push(prjcombine_siliconblue::db::Part {
                 name: part.name.to_string(),
                 chip,
                 bonds,
-                speeds: part.speeds.iter().map(|x| x.to_string()).collect(),
+                speeds,
                 temps: part.temps.iter().map(|x| x.to_string()).collect(),
             });
         }
@@ -2121,6 +2188,7 @@ fn main() {
             bel_pins: BTreeMap::new(),
             extra_node_locs: BTreeMap::new(),
             tiledb: TileDb::default(),
+            speed: BTreeMap::new(),
             debug: args.debug,
         };
 
