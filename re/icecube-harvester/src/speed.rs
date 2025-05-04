@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet, btree_map};
 use prjcombine_re_sdf::{Cell, Edge, IoPath};
 use prjcombine_siliconblue::chip::ChipKind;
 use prjcombine_types::speed::{
-    Delay, DelayRfBinate, DelayRfFromEdge, DelayRfUnate, RecRem, SetupHoldRf, Speed, SpeedVal, Time,
+    DelayRfBinateRange, DelayRfUnateRange, RecRem, SetupHoldRf, Speed, SpeedVal, Time, TimeRange,
 };
 
 use crate::run::{Design, RunResult};
@@ -46,34 +46,34 @@ impl SpeedCollector {
 }
 
 const ZERO: prjcombine_re_sdf::Delay = prjcombine_re_sdf::Delay {
-    min: Time(0.0),
-    typ: Time(0.0),
-    max: Time(0.0),
+    min: Time::ZERO,
+    typ: Time::ZERO,
+    max: Time::ZERO,
 };
 
-fn convert_delay(del: prjcombine_re_sdf::Delay) -> Delay {
-    Delay {
+fn convert_delay(del: prjcombine_re_sdf::Delay) -> TimeRange {
+    TimeRange {
         min: del.min,
         max: del.max,
     }
 }
 
-fn convert_delay_rf_unate(iopath: &IoPath) -> DelayRfUnate {
-    DelayRfUnate {
+fn convert_delay_rf_unate(iopath: &IoPath) -> DelayRfUnateRange {
+    DelayRfUnateRange {
         rise: convert_delay(iopath.del_rise),
         fall: convert_delay(iopath.del_fall),
     }
 }
 
-fn convert_delay_rf_from_edge(iopath: &IoPath) -> DelayRfFromEdge {
-    DelayRfFromEdge {
+fn convert_delay_rf_from_edge(iopath: &IoPath) -> DelayRfUnateRange {
+    DelayRfUnateRange {
         rise: convert_delay(iopath.del_rise),
         fall: convert_delay(iopath.del_fall),
     }
 }
 
-fn convert_delay_rf_binate(iopath: &IoPath) -> DelayRfBinate {
-    DelayRfBinate {
+fn convert_delay_rf_binate(iopath: &IoPath) -> DelayRfBinateRange {
+    DelayRfBinateRange {
         rise_to_rise: convert_delay(iopath.del_rise),
         rise_to_fall: convert_delay(iopath.del_fall),
         fall_to_rise: convert_delay(iopath.del_rise),
@@ -87,7 +87,7 @@ fn collect_int(collector: &mut SpeedCollector, name: &str, cell: &Cell) {
     assert_eq!(iopath.port_from, Edge::Plain("I".into()));
     assert_eq!(iopath.port_to, Edge::Plain("O".into()));
     let delay = convert_delay_rf_unate(iopath);
-    collector.insert(name, SpeedVal::DelayRfUnate(delay));
+    collector.insert(name, SpeedVal::DelayRfPosUnateRange(delay));
     assert!(cell.ports.is_empty());
     assert!(cell.setuphold.is_empty());
     assert!(cell.recrem.is_empty());
@@ -121,25 +121,25 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell) {
                 if port_from == "sr" {
                     if path.del_rise != ZERO {
                         let delay = convert_delay(path.del_rise);
-                        collector.insert(format!("{name}:RISE"), SpeedVal::Delay(delay));
+                        collector.insert(format!("{name}:RISE"), SpeedVal::DelayRange(delay));
                     }
                     if path.del_fall != ZERO {
                         let delay = convert_delay(path.del_fall);
-                        collector.insert(format!("{name}:FALL"), SpeedVal::Delay(delay));
+                        collector.insert(format!("{name}:FALL"), SpeedVal::DelayRange(delay));
                     }
                 } else if port_to == "carryout" {
                     let delay = convert_delay_rf_unate(path);
-                    collector.insert(name, SpeedVal::DelayRfUnate(delay));
+                    collector.insert(name, SpeedVal::DelayRfPosUnateRange(delay));
                 } else {
                     let delay = convert_delay_rf_binate(path);
-                    collector.insert(name, SpeedVal::DelayRfBinate(delay));
+                    collector.insert(name, SpeedVal::DelayRfBinateRange(delay));
                 }
             }
             Edge::Posedge(port_from) => {
                 assert_eq!(port_from, "clk");
                 assert_eq!(port_to, "lcout");
                 let delay = convert_delay_rf_from_edge(path);
-                collector.insert("PLB:CLK_TO_O", SpeedVal::DelayRfFromEdge(delay));
+                collector.insert("PLB:CLK_TO_O", SpeedVal::DelayRfFromEdgeRange(delay));
             }
             _ => unreachable!(),
         }
@@ -211,7 +211,7 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell) {
                         "PLB:RST_RECREM_CLK",
                         SpeedVal::RecRem(RecRem {
                             recovery: delay.max,
-                            removal: Time(0.0),
+                            removal: Time::ZERO,
                         }),
                     );
                 }
@@ -234,7 +234,7 @@ fn collect_carry_init(collector: &mut SpeedCollector, cell: &Cell) {
     assert_eq!(iopath.port_from, Edge::Plain("carryinitin".into()));
     assert_eq!(iopath.port_to, Edge::Plain("carryinitout".into()));
     let delay = convert_delay_rf_unate(iopath);
-    collector.insert("PLB:CARRY_INIT", SpeedVal::DelayRfUnate(delay));
+    collector.insert("PLB:CARRY_INIT", SpeedVal::DelayRfPosUnateRange(delay));
     assert!(cell.ports.is_empty());
     assert!(cell.setuphold.is_empty());
     assert!(cell.recrem.is_empty());
@@ -251,7 +251,7 @@ fn collect_gb_fabric(collector: &mut SpeedCollector, cell: &Cell) {
     );
     assert_eq!(iopath.port_to, Edge::Plain("GLOBALBUFFEROUTPUT".into()));
     let delay = convert_delay_rf_unate(iopath);
-    collector.insert("GB_FABRIC", SpeedVal::DelayRfUnate(delay));
+    collector.insert("GB_FABRIC", SpeedVal::DelayRfPosUnateRange(delay));
     assert!(cell.ports.is_empty());
     assert!(cell.setuphold.is_empty());
     assert!(cell.recrem.is_empty());
@@ -281,7 +281,7 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
         let delay = convert_delay_rf_from_edge(path);
         collector.insert(
             format!("{kind}:{port_from}_TO_{port_to}"),
-            SpeedVal::DelayRfFromEdge(delay),
+            SpeedVal::DelayRfFromEdgeRange(delay),
         );
     }
     let mut setuphold = BTreeMap::new();
@@ -697,15 +697,15 @@ pub fn finish_speed(mut collector: SpeedCollector) -> Speed {
             println!("KEY {key} NOT WANTED?!?");
         }
     }
-    let SpeedVal::Delay(rise) = collector.db.vals.remove("PLB:RST_TO_O:RISE").unwrap() else {
+    let SpeedVal::DelayRange(rise) = collector.db.vals.remove("PLB:RST_TO_O:RISE").unwrap() else {
         unreachable!()
     };
-    let SpeedVal::Delay(fall) = collector.db.vals.remove("PLB:RST_TO_O:FALL").unwrap() else {
+    let SpeedVal::DelayRange(fall) = collector.db.vals.remove("PLB:RST_TO_O:FALL").unwrap() else {
         unreachable!()
     };
     collector.insert(
         "PLB:RST_TO_O",
-        SpeedVal::DelayRfFromEdge(DelayRfFromEdge { rise, fall }),
+        SpeedVal::DelayRfFromEdgeRange(DelayRfUnateRange { rise, fall }),
     );
     collector.db
 }

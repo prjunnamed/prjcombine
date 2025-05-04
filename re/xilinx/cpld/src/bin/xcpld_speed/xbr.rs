@@ -171,7 +171,7 @@ fn test_comb(
     let SpeedVal::Delay(del_imux_pt) = speed.vals["DEL_IMUX_PT"] else {
         unreachable!()
     };
-    set_timing_delay(speed, "DEL_UIM_IMUX", uim - del_imux_pt.max);
+    set_timing_delay(speed, "DEL_UIM_IMUX", uim - del_imux_pt);
 }
 
 fn test_ff_pt(
@@ -526,14 +526,14 @@ fn test_iostd(
         set_timing_delay(
             speed,
             &format!("DEL_IBUF_PLAIN.{iostd}"),
-            del_ibuf_plain - del_ibuf_imux.max,
+            del_ibuf_plain - del_ibuf_imux,
         );
     }
     let del_ibuf_shcmitt = extract_buf(&sdf, "IS");
     set_timing_delay(
         speed,
         &format!("DEL_IBUF_SCHMITT.{iostd}"),
-        del_ibuf_shcmitt - del_ibuf_imux.max,
+        del_ibuf_shcmitt - del_ibuf_imux,
     );
 
     collect_buf(&sdf, "FMC_PAD_6", speed, &format!("DEL_OBUF_FAST.{iostd}"));
@@ -564,7 +564,7 @@ fn test_dge(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    assert_eq!(extract_buf(&sdf, "D"), Time(0.0));
+    assert_eq!(extract_buf(&sdf, "D"), Time::ZERO);
     collect_buf(&sdf, "G", speed, "DEL_IBUF_IMUX");
 
     collect_latch(

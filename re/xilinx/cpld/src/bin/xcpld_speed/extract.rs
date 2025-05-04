@@ -1,7 +1,7 @@
 use std::collections::btree_map;
 
 use prjcombine_re_sdf::{self as sdf, Edge, Sdf};
-use prjcombine_types::speed::{Delay, SetupHold, Speed, SpeedVal, Time};
+use prjcombine_types::speed::{Scalar, SetupHold, Speed, SpeedVal, Time};
 
 pub fn set_timing(tgt: &mut Speed, name: &str, src: SpeedVal) {
     match tgt.vals.entry(name.into()) {
@@ -13,7 +13,7 @@ pub fn set_timing(tgt: &mut Speed, name: &str, src: SpeedVal) {
 }
 
 pub fn set_timing_delay(tgt: &mut Speed, name: &str, src: Time) {
-    set_timing(tgt, name, SpeedVal::Delay(Delay { min: src, max: src }));
+    set_timing(tgt, name, SpeedVal::Delay(src));
 }
 
 fn convert_delay(del: sdf::Delay) -> Time {
@@ -24,8 +24,7 @@ fn convert_delay(del: sdf::Delay) -> Time {
 
 fn collect_delay(del: sdf::Delay, tgt: &mut Speed, tname: &str) {
     let del = convert_delay(del);
-    let d = Delay { min: del, max: del };
-    set_timing(tgt, tname, SpeedVal::Delay(d));
+    set_timing(tgt, tname, SpeedVal::Delay(del));
 }
 
 fn collect_setuphold(sh: &sdf::SetupHold, tgt: &mut Speed, tname: &str) {
@@ -157,7 +156,7 @@ pub fn collect_ff(
     set_timing(
         tgt,
         tname_width_clk,
-        SpeedVal::PulseWidth(Time(period.0 / 2.0)),
+        SpeedVal::PulseWidth(Time(period.0 / Scalar(2.0))),
     );
 
     assert_eq!(cell.width.len(), 2);

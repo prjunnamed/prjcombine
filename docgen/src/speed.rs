@@ -26,17 +26,42 @@ pub fn gen_speed<'a>(ctx: &mut DocgenContext, tag: &str, speeds: &[SpeedData<'a>
                 SpeedVal::Delay(delay) => {
                     add_kv(idx, k, "", delay.to_string());
                 }
+                SpeedVal::DelayRange(delay) => {
+                    add_kv(idx, k, "", delay.to_string());
+                }
                 SpeedVal::DelayRfBinate(delay) => {
                     add_kv(idx, k, "rise-to-rise", delay.rise_to_rise.to_string());
                     add_kv(idx, k, "rise-to-fall", delay.rise_to_fall.to_string());
                     add_kv(idx, k, "fall-to-rise", delay.fall_to_rise.to_string());
                     add_kv(idx, k, "fall-to-fall", delay.fall_to_fall.to_string());
                 }
-                SpeedVal::DelayRfUnate(delay) => {
+                SpeedVal::DelayRfBinateRange(delay) => {
+                    add_kv(idx, k, "rise-to-rise", delay.rise_to_rise.to_string());
+                    add_kv(idx, k, "rise-to-fall", delay.rise_to_fall.to_string());
+                    add_kv(idx, k, "fall-to-rise", delay.fall_to_rise.to_string());
+                    add_kv(idx, k, "fall-to-fall", delay.fall_to_fall.to_string());
+                }
+                SpeedVal::DelayRfPosUnate(delay) => {
+                    add_kv(idx, k, "rise-to-rise", delay.rise.to_string());
+                    add_kv(idx, k, "fall-to-fall", delay.fall.to_string());
+                }
+                SpeedVal::DelayRfPosUnateRange(delay) => {
+                    add_kv(idx, k, "rise-to-rise", delay.rise.to_string());
+                    add_kv(idx, k, "fall-to-fall", delay.fall.to_string());
+                }
+                SpeedVal::DelayRfNegUnate(delay) => {
+                    add_kv(idx, k, "fall-to-rise", delay.rise.to_string());
+                    add_kv(idx, k, "rise-to-fall", delay.fall.to_string());
+                }
+                SpeedVal::DelayRfNegUnateRange(delay) => {
+                    add_kv(idx, k, "fall-to-rise", delay.rise.to_string());
+                    add_kv(idx, k, "rise-to-fall", delay.fall.to_string());
+                }
+                SpeedVal::DelayRfFromEdge(delay) => {
                     add_kv(idx, k, "rise", delay.rise.to_string());
                     add_kv(idx, k, "fall", delay.fall.to_string());
                 }
-                SpeedVal::DelayRfFromEdge(delay) => {
+                SpeedVal::DelayRfFromEdgeRange(delay) => {
                     add_kv(idx, k, "rise", delay.rise.to_string());
                     add_kv(idx, k, "fall", delay.fall.to_string());
                 }

@@ -3,25 +3,28 @@ use std::collections::BTreeMap;
 use jzon::JsonValue;
 use serde::{Deserialize, Serialize};
 
-/// A time-dimension value for speed data.  The unit is ps.
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub struct Time(pub f64);
+/// A f64 with proper equality and total ordering.
+///
+/// This is needed for speed data deduplication.
+#[derive(Clone, Copy, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct Scalar(pub f64);
 
-impl PartialEq for Time {
+impl PartialEq for Scalar {
     fn eq(&self, other: &Self) -> bool {
         self.0.to_bits() == other.0.to_bits()
     }
 }
 
-impl Eq for Time {}
+impl Eq for Scalar {}
 
-impl PartialOrd for Time {
+impl PartialOrd for Scalar {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for Time {
+impl Ord for Scalar {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         let mut a = self.0.to_bits();
         let mut b = other.0.to_bits();
@@ -39,6 +42,78 @@ impl Ord for Time {
     }
 }
 
+impl std::fmt::Debug for Scalar {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(&self.0, f)
+    }
+}
+
+impl std::fmt::Display for Scalar {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(&self.0, f)
+    }
+}
+
+impl std::ops::Add for Scalar {
+    type Output = Scalar;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Scalar(self.0 + rhs.0)
+    }
+}
+
+impl std::ops::Sub for Scalar {
+    type Output = Scalar;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Scalar(self.0 - rhs.0)
+    }
+}
+
+impl std::ops::Mul for Scalar {
+    type Output = Scalar;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Scalar(self.0 * rhs.0)
+    }
+}
+
+impl std::ops::Div for Scalar {
+    type Output = Scalar;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        Scalar(self.0 / rhs.0)
+    }
+}
+
+impl std::ops::Neg for Scalar {
+    type Output = Scalar;
+
+    fn neg(self) -> Self::Output {
+        Scalar(-self.0)
+    }
+}
+
+impl From<f64> for Scalar {
+    fn from(value: f64) -> Self {
+        Self(value)
+    }
+}
+
+impl From<i32> for Scalar {
+    fn from(value: i32) -> Self {
+        Self(value.into())
+    }
+}
+
+/// A time-dimension value for speed data.  The unit is ps.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+pub struct Time(pub Scalar);
+
+impl Time {
+    pub const ZERO: Time = Time(Scalar(0.0));
+}
+
 impl std::ops::Sub for Time {
     type Output = Time;
 
@@ -54,28 +129,13 @@ impl std::fmt::Display for Time {
 }
 
 /// A simple propagation delay, with minimum and maximum value.
-///
-/// Used for:
-///
-/// - routing delays
-/// - combinational logic delays
-/// - clock-to-out delays
-/// - reset-to-out delays
-///
-/// This value type is used when the timing model is not unateness-aware,
-/// or when only a single unateness is involved (such as reset-to-out delays).
-/// For unate-aware delays, one of the `DelayRf*` types can be used instead:
-///
-/// - [`DelayRfBinate`] for binate combinational logic delays
-/// - [`DelayRfUnate`] for routing delays and positive or negative unate combinational logic delays
-/// - [`DelayRfFromEdge`] for clock-to-out and reset-to-out delays
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Delay {
+pub struct TimeRange {
     pub min: Time,
     pub max: Time,
 }
 
-impl std::fmt::Display for Delay {
+impl std::fmt::Display for TimeRange {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "[{}, {}]", self.min, self.max)
     }
@@ -114,10 +174,10 @@ impl std::fmt::Display for Delay {
 ///    fields is applicable.  In this case, a simple [`Delay`] should be used.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DelayRfBinate {
-    pub rise_to_rise: Delay,
-    pub rise_to_fall: Delay,
-    pub fall_to_rise: Delay,
-    pub fall_to_fall: Delay,
+    pub rise_to_rise: Time,
+    pub rise_to_fall: Time,
+    pub fall_to_rise: Time,
+    pub fall_to_fall: Time,
 }
 
 impl std::fmt::Display for DelayRfBinate {
@@ -130,14 +190,33 @@ impl std::fmt::Display for DelayRfBinate {
     }
 }
 
+/// A version of [`DelayRfBinate`] with min and max values.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DelayRfBinateRange {
+    pub rise_to_rise: TimeRange,
+    pub rise_to_fall: TimeRange,
+    pub fall_to_rise: TimeRange,
+    pub fall_to_fall: TimeRange,
+}
+
+impl std::fmt::Display for DelayRfBinateRange {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "r-r {} r-f {} f-r {} f-f {}",
+            self.rise_to_rise, self.rise_to_fall, self.fall_to_rise, self.fall_to_fall
+        )
+    }
+}
+
 /// An unateness-aware delay through unate combinational logic or routing.
 ///
 /// The `rise` field describes the input-to-output delay for a rising edge on the output,
 /// and the `fall` field describes the input-to-output delay for a falling edge on the output.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DelayRfUnate {
-    pub rise: Delay,
-    pub fall: Delay,
+    pub rise: Time,
+    pub fall: Time,
 }
 
 impl std::fmt::Display for DelayRfUnate {
@@ -146,19 +225,15 @@ impl std::fmt::Display for DelayRfUnate {
     }
 }
 
-/// An unateness-aware clock-to-out or reset-to-out delay.
-///
-/// The `rise` field describes the input-to-output delay for a rising edge on the output,
-/// and the `fall` field describes the input-to-output delay for a falling edge on the output.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct DelayRfFromEdge {
-    pub rise: Delay,
-    pub fall: Delay,
+pub struct DelayRfUnateRange {
+    pub rise: TimeRange,
+    pub fall: TimeRange,
 }
 
-impl std::fmt::Display for DelayRfFromEdge {
+impl std::fmt::Display for DelayRfUnateRange {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "+{} -{}", self.rise, self.fall)
+        write!(f, "r {} f {}", self.rise, self.fall)
     }
 }
 
@@ -192,7 +267,7 @@ pub struct SetupHold {
 
 impl std::fmt::Display for SetupHold {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "setuphold [{}, {}]", -self.setup.0, self.hold)
+        write!(f, "setup {} hold {}", self.setup, self.hold)
     }
 }
 
@@ -217,8 +292,8 @@ impl std::fmt::Display for SetupHoldRf {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "setuphold rf +[{}, {}] -[{}, {}]",
-            -self.rise_setup.0, self.rise_hold, -self.fall_setup.0, self.fall_hold
+            "r setup {} r hold {} f setup {} f hold {}",
+            self.rise_setup, self.rise_hold, self.fall_setup, self.fall_hold
         )
     }
 }
@@ -253,21 +328,48 @@ pub struct RecRem {
 
 impl std::fmt::Display for RecRem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "recrem [{}, {}]", -self.recovery.0, self.removal)
+        write!(f, "recovery {} removal {}", self.recovery, self.removal)
     }
 }
 
 /// A single speed value in the speed database.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum SpeedVal {
-    /// A simple non-unate delay.  See [`Delay`] for details.
-    Delay(Delay),
+    /// A simple propagation delay.
+    ///
+    /// Used for:
+    ///
+    /// - routing delays
+    /// - combinational logic delays
+    /// - clock-to-out delays
+    /// - reset-to-out delays
+    ///
+    /// This value type is used when the timing model is not unateness-aware,
+    /// or when only a single unateness is involved (such as reset-to-out delays).
+    /// For unate-aware delays, one of the `DelayRf*` types can be used instead:
+    ///
+    /// - [`DelayRfBinate`] for binate combinational logic delays
+    /// - [`DelayRfUnate`] for routing delays and positive or negative unate combinational logic delays
+    /// - [`DelayRfFromEdge`] for clock-to-out and reset-to-out delays
+    Delay(Time),
+    /// A propagation delay with min and max values.
+    DelayRange(TimeRange),
     /// A binate combinational delay.  See [`DelayRfBinate`] for details.
     DelayRfBinate(DelayRfBinate),
+    /// A binate combinational delay with min and max values.
+    DelayRfBinateRange(DelayRfBinateRange),
     /// An unate combinational or routing delay.  See [`DelayRfUnate`] for details.
-    DelayRfUnate(DelayRfUnate),
-    /// An unate clock-to-out or reset-to-out delay.  See [`DelayRfFromEdge`] for details.
-    DelayRfFromEdge(DelayRfFromEdge),
+    DelayRfPosUnate(DelayRfUnate),
+    /// An unate combinational delay with min and max values.
+    DelayRfPosUnateRange(DelayRfUnateRange),
+    /// An unate combinational or routing delay.  See [`DelayRfUnate`] for details.
+    DelayRfNegUnate(DelayRfUnate),
+    /// An unate combinational delay with min and max values.
+    DelayRfNegUnateRange(DelayRfUnateRange),
+    /// An unate clock-to-out or reset-to-out delay.
+    DelayRfFromEdge(DelayRfUnate),
+    /// An unate clock-to-out or reset-to-out delay with min and max values.
+    DelayRfFromEdgeRange(DelayRfUnateRange),
     /// A simple non-unate setup-hold constraint.  See [`SetupHold`] for details.
     SetupHold(SetupHold),
     /// An unate setup-hold constraint.  See [`SetupHoldRf`] for details.
@@ -297,9 +399,17 @@ impl std::fmt::Display for SpeedVal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             SpeedVal::Delay(delay) => write!(f, "delay {delay}"),
+            SpeedVal::DelayRange(delay) => write!(f, "delay {delay}"),
             SpeedVal::DelayRfBinate(delay) => write!(f, "delay rf binate {delay}"),
-            SpeedVal::DelayRfUnate(delay) => write!(f, "delay rf unate {delay}"),
+            SpeedVal::DelayRfBinateRange(delay) => write!(f, "delay rf binate {delay}"),
+            SpeedVal::DelayRfPosUnate(delay) => write!(f, "delay rf pos unate {delay}"),
+            SpeedVal::DelayRfPosUnateRange(delay) => write!(f, "delay rf pos unate {delay}"),
+            SpeedVal::DelayRfNegUnate(delay) => write!(f, "delay rf neg unate {delay}"),
+            SpeedVal::DelayRfNegUnateRange(delay) => write!(f, "delay rf neg unate {delay}"),
             SpeedVal::DelayRfFromEdge(delay) => {
+                write!(f, "delay rf from edge {delay}")
+            }
+            SpeedVal::DelayRfFromEdgeRange(delay) => {
                 write!(f, "delay rf from edge {delay}")
             }
             SpeedVal::SetupHold(setuphold) => write!(f, "{setuphold}"),
@@ -323,14 +433,20 @@ impl Speed {
     }
 }
 
+impl From<Scalar> for JsonValue {
+    fn from(value: Scalar) -> Self {
+        value.0.into()
+    }
+}
+
 impl From<Time> for JsonValue {
     fn from(value: Time) -> Self {
         value.0.into()
     }
 }
 
-impl From<Delay> for JsonValue {
-    fn from(value: Delay) -> Self {
+impl From<TimeRange> for JsonValue {
+    fn from(value: TimeRange) -> Self {
         jzon::object! {
             min: value.min,
             max: value.max,
@@ -345,6 +461,10 @@ impl From<SpeedVal> for JsonValue {
                 kind: "delay",
                 value: delay,
             },
+            SpeedVal::DelayRange(range) => jzon::object! {
+                kind: "delay",
+                value: range,
+            },
             SpeedVal::DelayRfBinate(delay) => jzon::object! {
                 kind: "delay_rf_binate",
                 rise_to_rise: delay.rise_to_rise,
@@ -352,12 +472,39 @@ impl From<SpeedVal> for JsonValue {
                 fall_to_rise: delay.fall_to_rise,
                 fall_to_fall: delay.fall_to_fall,
             },
-            SpeedVal::DelayRfUnate(delay) => jzon::object! {
-                kind: "delay_rf_unate",
+            SpeedVal::DelayRfBinateRange(delay) => jzon::object! {
+                kind: "delay_rf_binate",
+                rise_to_rise: delay.rise_to_rise,
+                rise_to_fall: delay.rise_to_fall,
+                fall_to_rise: delay.fall_to_rise,
+                fall_to_fall: delay.fall_to_fall,
+            },
+            SpeedVal::DelayRfPosUnate(delay) => jzon::object! {
+                kind: "delay_rf_pos_unate",
+                rise: delay.rise,
+                fall: delay.fall,
+            },
+            SpeedVal::DelayRfPosUnateRange(delay) => jzon::object! {
+                kind: "delay_rf_pos_unate",
+                rise: delay.rise,
+                fall: delay.fall,
+            },
+            SpeedVal::DelayRfNegUnate(delay) => jzon::object! {
+                kind: "delay_rf_neg_unate",
+                rise: delay.rise,
+                fall: delay.fall,
+            },
+            SpeedVal::DelayRfNegUnateRange(delay) => jzon::object! {
+                kind: "delay_rf_neg_unate",
                 rise: delay.rise,
                 fall: delay.fall,
             },
             SpeedVal::DelayRfFromEdge(delay) => jzon::object! {
+                kind: "delay_rf_from_edge",
+                rise: delay.rise,
+                fall: delay.fall,
+            },
+            SpeedVal::DelayRfFromEdgeRange(delay) => jzon::object! {
                 kind: "delay_rf_from_edge",
                 rise: delay.rise,
                 fall: delay.fall,

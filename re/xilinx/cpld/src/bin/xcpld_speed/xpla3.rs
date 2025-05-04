@@ -62,7 +62,7 @@ pub fn test_xpla3(
         "RECREM_SR_CLK",
         SpeedVal::RecRem(RecRem {
             recovery: Time(r.into()),
-            removal: Time(0.0),
+            removal: Time((0.0).into()),
         }),
     );
     speed
@@ -109,8 +109,8 @@ fn test_comb(
     collect_and2(&sdf, "MC.D2_PT_1", speed, "DEL_IMUX_OR");
     collect_and2_iopath(&sdf, "FBN", speed, "DEL_IMUX_FBN");
 
-    assert_eq!(extract_buf(&sdf, "MC.Q"), Time(0.0));
-    assert_eq!(extract_buf(&sdf, "UMC.Q"), Time(0.0));
+    assert_eq!(extract_buf(&sdf, "MC.Q"), Time::ZERO);
+    assert_eq!(extract_buf(&sdf, "UMC.Q"), Time::ZERO);
     collect_buf(&sdf, "MC_PAD_8", speed, "DEL_OBUF_FAST");
     collect_buf(&sdf, "UMC_PAD_10", speed, "DEL_OBUF_SLOW");
 
@@ -118,7 +118,7 @@ fn test_comb(
         unreachable!()
     };
     let uim = extract_and2(&sdf, "UMC.D1");
-    set_timing_delay(speed, "DEL_UIM_IMUX", uim - del_imux_pt.max);
+    set_timing_delay(speed, "DEL_UIM_IMUX", uim - del_imux_pt);
 }
 
 fn test_ff_pt(
@@ -290,7 +290,7 @@ fn test_ff_ut(
     let SpeedVal::Delay(del_imux_pt) = speed.vals["DEL_IMUX_PT"] else {
         unreachable!()
     };
-    set_timing_delay(speed, "DEL_PT_UT", ut - del_imux_pt.max);
+    set_timing_delay(speed, "DEL_PT_UT", ut - del_imux_pt);
 
     collect_ff(
         &sdf,

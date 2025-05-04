@@ -1,4 +1,4 @@
-use prjcombine_types::speed::Time;
+use prjcombine_types::speed::{Scalar, Time};
 
 use crate::{Cell, Delay, Edge, IoPath, Period, Port, RecRem, Sdf, SetupHold, Width};
 
@@ -470,8 +470,8 @@ impl Parser<'_> {
 
     fn get_time(&mut self) -> Time {
         match self.lexer.next() {
-            Some(Token::Integer(i)) => Time(i as f64),
-            Some(Token::Float(f)) => Time(f),
+            Some(Token::Integer(i)) => Time(Scalar(i as f64)),
+            Some(Token::Float(f)) => Time(Scalar(f)),
             _ => panic!("expected number"),
         }
     }

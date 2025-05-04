@@ -42,7 +42,7 @@ pub fn test_xc9500(
         "RECREM_SR_CLK",
         SpeedVal::RecRem(RecRem {
             recovery: Time(rec.into()),
-            removal: Time(0.0),
+            removal: Time::ZERO,
         }),
     );
     speed
@@ -112,7 +112,7 @@ fn test_comb(
 
     let del_imux_exp_d = extract_and2(&sdf, "EEMC.EXP");
     assert_eq!(del_imux_exp_d, extract_and2(&sdf, "EMC.EXP_PT_0"));
-    set_timing_delay(speed, "DEL_EXP_D", del_imux_exp_d - del_imux_d.max);
+    set_timing_delay(speed, "DEL_EXP_D", del_imux_exp_d - del_imux_d);
 
     collect_buf(&sdf, "MC.Q", speed, "DEL_D_Q_COMB");
     collect_buf(&sdf, "UMC.Q", speed, "DEL_D_Q_COMB");
@@ -124,10 +124,10 @@ fn test_comb(
     }
 
     let uim = extract_and2(&sdf, "UMC.D2");
-    set_timing_delay(speed, "DEL_UIM_IMUX", uim - del_imux_d.max);
+    set_timing_delay(speed, "DEL_UIM_IMUX", uim - del_imux_d);
     if device.has_fbk {
         let fbk = extract_and2(&sdf, "FMC.D2");
-        set_timing_delay(speed, "DEL_FBK_IMUX", fbk - del_imux_d.max);
+        set_timing_delay(speed, "DEL_FBK_IMUX", fbk - del_imux_d);
     }
 }
 
