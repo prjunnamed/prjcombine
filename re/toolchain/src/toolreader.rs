@@ -4,7 +4,6 @@ use nix::sys::stat::Mode;
 use nix::unistd::mkfifo;
 use std::fs::{File, write};
 use std::io::{self, BufReader, Read};
-use std::os::unix::io::AsRawFd;
 use std::process::{Child, Stdio};
 use tempfile::TempDir;
 
@@ -43,7 +42,7 @@ impl ToolchainReader {
         }
         let child = cmd.spawn()?;
         let fifo = File::open(path)?;
-        let _ = fcntl(fifo.as_raw_fd(), FcntlArg::F_SETPIPE_SZ(1 << 20));
+        let _ = fcntl(&fifo, FcntlArg::F_SETPIPE_SZ(1 << 20));
         Ok(BufReader::new(ToolchainReader {
             fifo: Some(fifo),
             _dir: dir,
