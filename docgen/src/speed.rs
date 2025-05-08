@@ -85,6 +85,18 @@ pub fn gen_speed<'a>(ctx: &mut DocgenContext, tag: &str, speeds: &[SpeedData<'a>
                 SpeedVal::Period(time) => {
                     add_kv(idx, k, "", time.to_string());
                 }
+                SpeedVal::Scalar(scalar) => {
+                    add_kv(idx, k, "", scalar.to_string());
+                }
+                SpeedVal::DerateFactorTemperatureLinear(eq) => {
+                    add_kv(idx, k, "a", eq.a.to_string());
+                    add_kv(idx, k, "b", eq.b.to_string());
+                }
+                SpeedVal::DerateFactorVoltageInvQuadratic(eq) => {
+                    add_kv(idx, k, "a", eq.a.to_string());
+                    add_kv(idx, k, "b", eq.b.to_string());
+                    add_kv(idx, k, "c", eq.c.to_string());
+                }
             }
         }
     }

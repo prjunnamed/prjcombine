@@ -44,7 +44,7 @@ use sites::{
     BelPins, SiteInfo, find_bel_pins, find_io_latch_locs, find_sites_iox3, find_sites_misc,
     find_sites_plb,
 };
-use speed::{SpeedCollector, finish_speed, get_speed_data, want_speed_data};
+use speed::{SpeedCollector, finish_speed, get_speed_data, init_speed_data};
 use unnamed_entity::{EntityId, EntityVec};
 
 mod collect;
@@ -1992,9 +1992,7 @@ impl PartContext<'_> {
             .flat_map(|part| {
                 part.speeds.iter().map(|&speed| {
                     ((part.name, speed), {
-                        let mut collector = SpeedCollector::new();
-                        want_speed_data(&mut collector, self.chip.kind);
-                        Mutex::new(collector)
+                        Mutex::new(init_speed_data(self.chip.kind, part.name, speed))
                     })
                 })
             })

@@ -6,6 +6,7 @@ use unnamed_entity::entity_id;
 pub mod bscan;
 pub mod speed;
 pub mod tiledb;
+pub mod units;
 
 entity_id! {
     pub id FbId u8;

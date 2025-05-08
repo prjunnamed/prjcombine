@@ -1,7 +1,8 @@
 use std::collections::btree_map;
 
 use prjcombine_re_sdf::{self as sdf, Edge, Sdf};
-use prjcombine_types::speed::{Scalar, SetupHold, Speed, SpeedVal, Time};
+use prjcombine_types::speed::{SetupHold, Speed, SpeedVal};
+use prjcombine_types::units::{Scalar, Time};
 
 pub fn set_timing(tgt: &mut Speed, name: &str, src: SpeedVal) {
     match tgt.vals.entry(name.into()) {

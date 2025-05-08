@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use prjcombine_types::speed::Time;
+use prjcombine_types::units::Time;
 
 pub mod parse;
 

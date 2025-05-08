@@ -9,8 +9,7 @@ use prjcombine_re_xilinx_cpld::{
     vm6_util::prep_vm6,
 };
 use prjcombine_types::{
-    FbId,
-    speed::{RecRem, SetupHold, Speed, SpeedVal, Time},
+    speed::{RecRem, SetupHold, Speed, SpeedVal}, units::Time, FbId
 };
 use unnamed_entity::EntityId;
 
@@ -62,7 +61,7 @@ pub fn test_xpla3(
         "RECREM_SR_CLK",
         SpeedVal::RecRem(RecRem {
             recovery: Time(r.into()),
-            removal: Time((0.0).into()),
+            removal: Time::ZERO,
         }),
     );
     speed

@@ -3,7 +3,8 @@ use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_cpld::device::{Device, DeviceKind, Package};
 use prjcombine_re_xilinx_cpld::vm6::{InputNodeKind, NodeKind};
 use prjcombine_re_xilinx_cpld::{db::Part, tsim::run_tsim, vm6_util::prep_vm6};
-use prjcombine_types::speed::{RecRem, Speed, SpeedVal, Time};
+use prjcombine_types::speed::{RecRem, Speed, SpeedVal};
+use prjcombine_types::units::Time;
 
 use crate::extract::{extract_and2, set_timing_delay};
 use crate::{

@@ -2,8 +2,12 @@ use std::collections::{BTreeMap, BTreeSet, btree_map};
 
 use prjcombine_re_sdf::{Cell, Edge, IoPath};
 use prjcombine_siliconblue::chip::ChipKind;
-use prjcombine_types::speed::{
-    DelayRfBinateRange, DelayRfUnateRange, RecRem, SetupHoldRf, Speed, SpeedVal, Time, TimeRange,
+use prjcombine_types::{
+    speed::{
+        DelayRfBinate, DelayRfUnate, DerateFactorTemperatureLinear,
+        DerateFactorVoltageInvQuadratic, RecRem, SetupHoldRf, Speed, SpeedVal,
+    },
+    units::{Scalar, Temperature, Time, Voltage},
 };
 
 use crate::run::{Design, RunResult};
@@ -51,43 +55,61 @@ const ZERO: prjcombine_re_sdf::Delay = prjcombine_re_sdf::Delay {
     max: Time::ZERO,
 };
 
-fn convert_delay(del: prjcombine_re_sdf::Delay) -> TimeRange {
-    TimeRange {
-        min: del.min,
-        max: del.max,
+#[derive(Copy, Clone, Debug)]
+struct DerateFactors {
+    min: Scalar,
+    typ: Scalar,
+    max: Scalar,
+}
+
+fn convert_delay(del: prjcombine_re_sdf::Delay, der: DerateFactors) -> Time {
+    let v0 = del.min / der.min;
+    let v1 = del.typ / der.typ;
+    let v2 = del.max / der.max;
+    let mut scale = 1.0;
+    let v = (v0.0.0 + v1.0.0 + v2.0.0) / 3.0;
+    if v != 0.0 {
+        while (v * scale).abs() < 100000.0 {
+            scale *= 10.0;
+        }
+        while (v * scale).abs() >= 1000000.0 {
+            scale /= 10.0;
+        }
+    }
+    let vs = (v * scale).round();
+    let v = vs / scale;
+    // let v0s = v0.0.0 * scale;
+    // let v1s = v1.0.0 * scale;
+    // let v2s = v2.0.0 * scale;
+    // if (vs - v0s).abs() >= 0.7 || (vs - v1s).abs() >= 0.7 || (vs - v2s).abs() >= 0.7 {
+    //     println!("MEOW {v} {vs} {v0s} {v1s} {v2s}");
+    // }
+    Time(v.into())
+}
+
+fn convert_delay_rf_unate(iopath: &IoPath, der: DerateFactors) -> DelayRfUnate {
+    DelayRfUnate {
+        rise: convert_delay(iopath.del_rise, der),
+        fall: convert_delay(iopath.del_fall, der),
     }
 }
 
-fn convert_delay_rf_unate(iopath: &IoPath) -> DelayRfUnateRange {
-    DelayRfUnateRange {
-        rise: convert_delay(iopath.del_rise),
-        fall: convert_delay(iopath.del_fall),
+fn convert_delay_rf_binate(iopath: &IoPath, der: DerateFactors) -> DelayRfBinate {
+    DelayRfBinate {
+        rise_to_rise: convert_delay(iopath.del_rise, der),
+        rise_to_fall: convert_delay(iopath.del_fall, der),
+        fall_to_rise: convert_delay(iopath.del_rise, der),
+        fall_to_fall: convert_delay(iopath.del_fall, der),
     }
 }
 
-fn convert_delay_rf_from_edge(iopath: &IoPath) -> DelayRfUnateRange {
-    DelayRfUnateRange {
-        rise: convert_delay(iopath.del_rise),
-        fall: convert_delay(iopath.del_fall),
-    }
-}
-
-fn convert_delay_rf_binate(iopath: &IoPath) -> DelayRfBinateRange {
-    DelayRfBinateRange {
-        rise_to_rise: convert_delay(iopath.del_rise),
-        rise_to_fall: convert_delay(iopath.del_fall),
-        fall_to_rise: convert_delay(iopath.del_rise),
-        fall_to_fall: convert_delay(iopath.del_fall),
-    }
-}
-
-fn collect_int(collector: &mut SpeedCollector, name: &str, cell: &Cell) {
+fn collect_int(collector: &mut SpeedCollector, name: &str, cell: &Cell, der: DerateFactors) {
     assert_eq!(cell.iopath.len(), 1);
     let iopath = &cell.iopath[0];
     assert_eq!(iopath.port_from, Edge::Plain("I".into()));
     assert_eq!(iopath.port_to, Edge::Plain("O".into()));
-    let delay = convert_delay_rf_unate(iopath);
-    collector.insert(name, SpeedVal::DelayRfPosUnateRange(delay));
+    let delay = convert_delay_rf_unate(iopath, der);
+    collector.insert(name, SpeedVal::DelayRfPosUnate(delay));
     assert!(cell.ports.is_empty());
     assert!(cell.setuphold.is_empty());
     assert!(cell.recrem.is_empty());
@@ -95,7 +117,7 @@ fn collect_int(collector: &mut SpeedCollector, name: &str, cell: &Cell) {
     assert!(cell.width.is_empty());
 }
 
-fn collect_lc(collector: &mut SpeedCollector, cell: &Cell) {
+fn collect_lc(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
     let mut setuphold = BTreeMap::new();
     for path in &cell.iopath {
         let Edge::Plain(port_to) = &path.port_to else {
@@ -120,26 +142,26 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell) {
                 };
                 if port_from == "sr" {
                     if path.del_rise != ZERO {
-                        let delay = convert_delay(path.del_rise);
-                        collector.insert(format!("{name}:RISE"), SpeedVal::DelayRange(delay));
+                        let delay = convert_delay(path.del_rise, der);
+                        collector.insert(format!("{name}:RISE"), SpeedVal::Delay(delay));
                     }
                     if path.del_fall != ZERO {
-                        let delay = convert_delay(path.del_fall);
-                        collector.insert(format!("{name}:FALL"), SpeedVal::DelayRange(delay));
+                        let delay = convert_delay(path.del_fall, der);
+                        collector.insert(format!("{name}:FALL"), SpeedVal::Delay(delay));
                     }
                 } else if port_to == "carryout" {
-                    let delay = convert_delay_rf_unate(path);
-                    collector.insert(name, SpeedVal::DelayRfPosUnateRange(delay));
+                    let delay = convert_delay_rf_unate(path, der);
+                    collector.insert(name, SpeedVal::DelayRfPosUnate(delay));
                 } else {
-                    let delay = convert_delay_rf_binate(path);
-                    collector.insert(name, SpeedVal::DelayRfBinateRange(delay));
+                    let delay = convert_delay_rf_binate(path, der);
+                    collector.insert(name, SpeedVal::DelayRfBinate(delay));
                 }
             }
             Edge::Posedge(port_from) => {
                 assert_eq!(port_from, "clk");
                 assert_eq!(port_to, "lcout");
-                let delay = convert_delay_rf_from_edge(path);
-                collector.insert("PLB:CLK_TO_O", SpeedVal::DelayRfFromEdgeRange(delay));
+                let delay = convert_delay_rf_unate(path, der);
+                collector.insert("PLB:CLK_TO_O", SpeedVal::DelayRfFromEdge(delay));
             }
             _ => unreachable!(),
         }
@@ -165,17 +187,15 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell) {
         };
         let data = setuphold.entry(port).or_insert((None, None, None, None));
         if let Some(setup) = sh.setup {
-            let delay = convert_delay(setup);
+            let delay = convert_delay(setup, der);
             if is_rise {
-                data.0 = Some(delay.max);
+                data.0 = Some(delay);
             } else {
-                data.1 = Some(delay.max);
+                data.1 = Some(delay);
             }
         }
         if let Some(hold) = sh.hold {
-            let delay = convert_delay(hold);
-            // sigh.
-            let delay = std::cmp::max(delay.max, delay.min);
+            let delay = convert_delay(hold, der);
             if is_rise {
                 data.2 = Some(delay);
             } else {
@@ -206,11 +226,11 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell) {
             match &recrem.edge_r {
                 Edge::Negedge(port_r) => {
                     assert_eq!(port_r, "sr");
-                    let delay = convert_delay(recovery);
+                    let delay = convert_delay(recovery, der);
                     collector.insert(
                         "PLB:RST_RECREM_CLK",
                         SpeedVal::RecRem(RecRem {
-                            recovery: delay.max,
+                            recovery: delay,
                             removal: Time::ZERO,
                         }),
                     );
@@ -228,13 +248,13 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell) {
     assert!(cell.width.is_empty());
 }
 
-fn collect_carry_init(collector: &mut SpeedCollector, cell: &Cell) {
+fn collect_carry_init(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
     assert_eq!(cell.iopath.len(), 1);
     let iopath = &cell.iopath[0];
     assert_eq!(iopath.port_from, Edge::Plain("carryinitin".into()));
     assert_eq!(iopath.port_to, Edge::Plain("carryinitout".into()));
-    let delay = convert_delay_rf_unate(iopath);
-    collector.insert("PLB:CARRY_INIT", SpeedVal::DelayRfPosUnateRange(delay));
+    let delay = convert_delay_rf_unate(iopath, der);
+    collector.insert("PLB:CARRY_INIT", SpeedVal::DelayRfPosUnate(delay));
     assert!(cell.ports.is_empty());
     assert!(cell.setuphold.is_empty());
     assert!(cell.recrem.is_empty());
@@ -242,7 +262,7 @@ fn collect_carry_init(collector: &mut SpeedCollector, cell: &Cell) {
     assert!(cell.width.is_empty());
 }
 
-fn collect_gb_fabric(collector: &mut SpeedCollector, cell: &Cell) {
+fn collect_gb_fabric(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
     assert_eq!(cell.iopath.len(), 1);
     let iopath = &cell.iopath[0];
     assert_eq!(
@@ -250,8 +270,8 @@ fn collect_gb_fabric(collector: &mut SpeedCollector, cell: &Cell) {
         Edge::Plain("USERSIGNALTOGLOBALBUFFER".into())
     );
     assert_eq!(iopath.port_to, Edge::Plain("GLOBALBUFFEROUTPUT".into()));
-    let delay = convert_delay_rf_unate(iopath);
-    collector.insert("GB_FABRIC", SpeedVal::DelayRfPosUnateRange(delay));
+    let delay = convert_delay_rf_unate(iopath, der);
+    collector.insert("GB_FABRIC", SpeedVal::DelayRfPosUnate(delay));
     assert!(cell.ports.is_empty());
     assert!(cell.setuphold.is_empty());
     assert!(cell.recrem.is_empty());
@@ -268,7 +288,7 @@ fn strip_index(name: &str) -> &str {
     }
 }
 
-fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
+fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell, der: DerateFactors) {
     for path in &cell.iopath {
         // println!("IOPATH {kind} {path:?}");
         let Edge::Plain(port_to) = &path.port_to else {
@@ -278,10 +298,10 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
         let Edge::Posedge(port_from) = &path.port_from else {
             unreachable!()
         };
-        let delay = convert_delay_rf_from_edge(path);
+        let delay = convert_delay_rf_unate(path, der);
         collector.insert(
             format!("{kind}:{port_from}_TO_{port_to}"),
-            SpeedVal::DelayRfFromEdgeRange(delay),
+            SpeedVal::DelayRfFromEdge(delay),
         );
     }
     let mut setuphold = BTreeMap::new();
@@ -300,17 +320,15 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
             .entry((port_d, port_c))
             .or_insert((None, None, None, None));
         if let Some(setup) = sh.setup {
-            let delay = convert_delay(setup);
+            let delay = convert_delay(setup, der);
             if is_rise {
-                data.0 = Some(delay.max);
+                data.0 = Some(delay);
             } else {
-                data.1 = Some(delay.max);
+                data.1 = Some(delay);
             }
         }
         if let Some(hold) = sh.hold {
-            let delay = convert_delay(hold);
-            // sigh.
-            let delay = std::cmp::max(delay.max, delay.min);
+            let delay = convert_delay(hold, der);
             if is_rise {
                 data.2 = Some(delay);
             } else {
@@ -361,7 +379,125 @@ fn collect_null(cell: &Cell) {
     assert!(cell.width.is_empty());
 }
 
-pub fn want_speed_data(collector: &mut SpeedCollector, kind: ChipKind) {
+pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollector {
+    let mut collector = SpeedCollector::new();
+
+    collector.want("DERATE_V");
+    if kind.is_ice65() {
+        collector.want("DERATE_P_WORST");
+        collector.want("DERATE_P_TYP");
+        collector.want("DERATE_P_BEST");
+        if grade == "L" {
+            collector.want("DERATE_T_WORST");
+            collector.want("DERATE_T_TYP");
+            collector.want("DERATE_T_BEST");
+            collector.insert("DERATE_P_WORST", SpeedVal::Scalar(1.075.into()));
+            collector.insert("DERATE_P_TYP", SpeedVal::Scalar(1.0.into()));
+            collector.insert("DERATE_P_BEST", SpeedVal::Scalar(0.5.into()));
+            collector.insert(
+                "DERATE_V",
+                SpeedVal::DerateFactorVoltageInvQuadratic(DerateFactorVoltageInvQuadratic {
+                    a: 0.548.into(),
+                    b: 1.1588.into(),
+                    c: (-1.1768).into(),
+                }),
+            );
+            collector.insert(
+                "DERATE_T_WORST",
+                SpeedVal::DerateFactorTemperatureLinear(DerateFactorTemperatureLinear {
+                    a: 0.00021.into(),
+                    b: 0.994.into(),
+                }),
+            );
+            collector.insert(
+                "DERATE_T_TYP",
+                SpeedVal::DerateFactorTemperatureLinear(DerateFactorTemperatureLinear {
+                    a: 0.000414.into(),
+                    b: 0.989.into(),
+                }),
+            );
+            collector.insert(
+                "DERATE_T_BEST",
+                SpeedVal::DerateFactorTemperatureLinear(DerateFactorTemperatureLinear {
+                    a: 0.000552.into(),
+                    b: 0.986.into(),
+                }),
+            );
+        } else {
+            collector.want("DERATE_T");
+            collector.insert("DERATE_P_WORST", SpeedVal::Scalar(1.095.into()));
+            collector.insert("DERATE_P_TYP", SpeedVal::Scalar(1.0.into()));
+            collector.insert("DERATE_P_BEST", SpeedVal::Scalar(0.5.into()));
+            collector.insert(
+                "DERATE_V",
+                SpeedVal::DerateFactorVoltageInvQuadratic(DerateFactorVoltageInvQuadratic {
+                    a: 0.0216.into(),
+                    b: 1.7748.into(),
+                    c: (-1.1641).into(),
+                }),
+            );
+            collector.insert(
+                "DERATE_T",
+                SpeedVal::DerateFactorTemperatureLinear(DerateFactorTemperatureLinear {
+                    a: 0.0006.into(),
+                    b: 0.985.into(),
+                }),
+            );
+        }
+    } else {
+        collector.want("DERATE_T");
+        let derate_v_lp = DerateFactorVoltageInvQuadratic {
+            a: 0.337.into(),
+            b: 1.304.into(),
+            c: (-1.052).into(),
+        };
+        let derate_v_lp_12 = derate_v_lp.eval(Voltage(1.2.into()));
+        let derate_p = |f: f64| Scalar(f) / Scalar(1.327) * Scalar(0.85) / derate_v_lp_12;
+        if part.starts_with("iCE40HX") {
+            collector.want("DERATE_P");
+            collector.insert("DERATE_P", SpeedVal::Scalar(derate_p(0.973)));
+            collector.insert(
+                "DERATE_V",
+                SpeedVal::DerateFactorVoltageInvQuadratic(DerateFactorVoltageInvQuadratic {
+                    a: (-0.135).into(),
+                    b: 2.013.into(),
+                    c: (-1.223).into(),
+                }),
+            );
+            collector.insert(
+                "DERATE_T",
+                SpeedVal::DerateFactorTemperatureLinear(DerateFactorTemperatureLinear {
+                    a: 0.0001722.into(),
+                    b: 0.996.into(),
+                }),
+            );
+        } else {
+            collector.want("DERATE_P_WORST");
+            collector.want("DERATE_P_TYP");
+            collector.want("DERATE_P_BEST");
+            if part.starts_with("iCE40LP") {
+                collector.insert("DERATE_P_WORST", SpeedVal::Scalar(derate_p(1.421)));
+                collector.insert("DERATE_P_TYP", SpeedVal::Scalar(derate_p(1.327)));
+                collector.insert("DERATE_P_BEST", SpeedVal::Scalar(derate_p(1.149)));
+            } else {
+                collector.insert("DERATE_P_WORST", SpeedVal::Scalar(1.164.into()));
+                collector.insert("DERATE_P_TYP", SpeedVal::Scalar(0.858.into()));
+                collector.insert("DERATE_P_BEST", SpeedVal::Scalar(0.552.into()));
+            }
+            collector.insert(
+                "DERATE_V",
+                SpeedVal::DerateFactorVoltageInvQuadratic(derate_v_lp),
+            );
+            collector.insert(
+                "DERATE_T",
+                SpeedVal::DerateFactorTemperatureLinear(DerateFactorTemperatureLinear {
+                    a: (-0.00012).into(),
+                    b: 1.003.into(),
+                }),
+            );
+        }
+    }
+
     // interconnect
     collector.want("INT:IMUX_LC");
     collector.want("INT:IMUX_IO");
@@ -500,9 +636,54 @@ pub fn want_speed_data(collector: &mut SpeedCollector, kind: ChipKind) {
         collector.want("SPRAM:MASKWREN_SETUPHOLD_CLOCK");
         collector.want("SPRAM:WREN_SETUPHOLD_CLOCK");
     }
+
+    collector
+}
+
+fn get_der_factors(design: &Design) -> DerateFactors {
+    // bug: without a project file, icecube always uses "L" grade for derating
+    // factor computation (but loads the T speed file as appropriate).
+    let speed = init_speed_data(design.kind, &design.device, "L");
+    let factors = [
+        ("BEST", 1.26, 0.0),
+        ("TYP", 1.2, 25.0),
+        ("WORST", 1.14, 85.0),
+    ]
+    .map(|(c, v, t)| {
+        let pf = *speed
+            .db
+            .vals
+            .get("DERATE_P")
+            .unwrap_or_else(|| speed.db.vals.get(&format!("DERATE_P_{c}")).unwrap());
+        let vf = speed.db.vals["DERATE_V"];
+        let tf = *speed
+            .db
+            .vals
+            .get("DERATE_T")
+            .unwrap_or_else(|| speed.db.vals.get(&format!("DERATE_T_{c}")).unwrap());
+        let SpeedVal::Scalar(pf) = pf else {
+            unreachable!()
+        };
+        let SpeedVal::DerateFactorVoltageInvQuadratic(vf) = vf else {
+            unreachable!()
+        };
+        let SpeedVal::DerateFactorTemperatureLinear(tf) = tf else {
+            unreachable!()
+        };
+        let vf = vf.eval(Voltage(v.into()));
+        let tf = tf.eval(Temperature(t.into()));
+        pf * vf * tf
+    });
+    DerateFactors {
+        min: factors[0],
+        typ: factors[1],
+        max: factors[2],
+    }
 }
 
 pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
+    let der = get_der_factors(design);
+
     let mut res = SpeedCollector::new();
     for cell in run
         .sdf
@@ -511,63 +692,63 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
         .chain(run.sdf.cells_by_type.values())
     {
         match cell.typ.as_str() {
-            "InMux" => collect_int(&mut res, "INT:IMUX_LC", cell),
-            "IoInMux" => collect_int(&mut res, "INT:IMUX_IO", cell),
-            "ClkMux" => collect_int(&mut res, "INT:IMUX_CLK", cell),
-            "CEMux" => collect_int(&mut res, "INT:IMUX_CE", cell),
-            "SRMux" => collect_int(&mut res, "INT:IMUX_RST", cell),
-            "LocalMux" => collect_int(&mut res, "INT:LOCAL", cell),
-            "Glb2LocalMux" => collect_int(&mut res, "INT:GOUT", cell),
-            "GlobalMux" => collect_int(&mut res, "INT:GLOBAL", cell),
-            "Span12Mux_s0_v" => collect_int(&mut res, "INT:LONG_V_0", cell),
-            "Span12Mux_s1_v" => collect_int(&mut res, "INT:LONG_V_1", cell),
-            "Span12Mux_s2_v" => collect_int(&mut res, "INT:LONG_V_2", cell),
-            "Span12Mux_s3_v" => collect_int(&mut res, "INT:LONG_V_3", cell),
-            "Span12Mux_s4_v" => collect_int(&mut res, "INT:LONG_V_4", cell),
-            "Span12Mux_s5_v" => collect_int(&mut res, "INT:LONG_V_5", cell),
-            "Span12Mux_s6_v" => collect_int(&mut res, "INT:LONG_V_6", cell),
-            "Span12Mux_s7_v" => collect_int(&mut res, "INT:LONG_V_7", cell),
-            "Span12Mux_s8_v" => collect_int(&mut res, "INT:LONG_V_8", cell),
-            "Span12Mux_s9_v" => collect_int(&mut res, "INT:LONG_V_9", cell),
-            "Span12Mux_s10_v" => collect_int(&mut res, "INT:LONG_V_10", cell),
-            "Span12Mux_s11_v" => collect_int(&mut res, "INT:LONG_V_11", cell),
-            "Span12Mux_v" => collect_int(&mut res, "INT:LONG_V_12", cell),
-            "Span12Mux_s0_h" => collect_int(&mut res, "INT:LONG_H_0", cell),
-            "Span12Mux_s1_h" => collect_int(&mut res, "INT:LONG_H_1", cell),
-            "Span12Mux_s2_h" => collect_int(&mut res, "INT:LONG_H_2", cell),
-            "Span12Mux_s3_h" => collect_int(&mut res, "INT:LONG_H_3", cell),
-            "Span12Mux_s4_h" => collect_int(&mut res, "INT:LONG_H_4", cell),
-            "Span12Mux_s5_h" => collect_int(&mut res, "INT:LONG_H_5", cell),
-            "Span12Mux_s6_h" => collect_int(&mut res, "INT:LONG_H_6", cell),
-            "Span12Mux_s7_h" => collect_int(&mut res, "INT:LONG_H_7", cell),
-            "Span12Mux_s8_h" => collect_int(&mut res, "INT:LONG_H_8", cell),
-            "Span12Mux_s9_h" => collect_int(&mut res, "INT:LONG_H_9", cell),
-            "Span12Mux_s10_h" => collect_int(&mut res, "INT:LONG_H_10", cell),
-            "Span12Mux_s11_h" => collect_int(&mut res, "INT:LONG_H_11", cell),
-            "Span12Mux_h" => collect_int(&mut res, "INT:LONG_H_12", cell),
-            "Span12Mux" => collect_int(&mut res, "INT:LONG", cell),
-            "Span4Mux_s0_v" => collect_int(&mut res, "INT:QUAD_V_0", cell),
-            "Span4Mux_s1_v" => collect_int(&mut res, "INT:QUAD_V_1", cell),
-            "Span4Mux_s2_v" => collect_int(&mut res, "INT:QUAD_V_2", cell),
-            "Span4Mux_s3_v" => collect_int(&mut res, "INT:QUAD_V_3", cell),
-            "Span4Mux_v" => collect_int(&mut res, "INT:QUAD_V_4", cell),
-            "Span4Mux_s0_h" => collect_int(&mut res, "INT:QUAD_H_0", cell),
-            "Span4Mux_s1_h" => collect_int(&mut res, "INT:QUAD_H_1", cell),
-            "Span4Mux_s2_h" => collect_int(&mut res, "INT:QUAD_H_2", cell),
-            "Span4Mux_s3_h" => collect_int(&mut res, "INT:QUAD_H_3", cell),
-            "Span4Mux_h" => collect_int(&mut res, "INT:QUAD_H_4", cell),
-            "Span4Mux" => collect_int(&mut res, "INT:QUAD", cell),
-            "IoSpan4Mux" => collect_int(&mut res, "INT:QUAD_IO", cell),
-            "Odrv4" => collect_int(&mut res, "INT:OUT_TO_QUAD", cell),
-            "Odrv12" => collect_int(&mut res, "INT:OUT_TO_LONG", cell),
-            "Sp12to4" => collect_int(&mut res, "INT:LONG_TO_QUAD", cell),
+            "InMux" => collect_int(&mut res, "INT:IMUX_LC", cell, der),
+            "IoInMux" => collect_int(&mut res, "INT:IMUX_IO", cell, der),
+            "ClkMux" => collect_int(&mut res, "INT:IMUX_CLK", cell, der),
+            "CEMux" => collect_int(&mut res, "INT:IMUX_CE", cell, der),
+            "SRMux" => collect_int(&mut res, "INT:IMUX_RST", cell, der),
+            "LocalMux" => collect_int(&mut res, "INT:LOCAL", cell, der),
+            "Glb2LocalMux" => collect_int(&mut res, "INT:GOUT", cell, der),
+            "GlobalMux" => collect_int(&mut res, "INT:GLOBAL", cell, der),
+            "Span12Mux_s0_v" => collect_int(&mut res, "INT:LONG_V_0", cell, der),
+            "Span12Mux_s1_v" => collect_int(&mut res, "INT:LONG_V_1", cell, der),
+            "Span12Mux_s2_v" => collect_int(&mut res, "INT:LONG_V_2", cell, der),
+            "Span12Mux_s3_v" => collect_int(&mut res, "INT:LONG_V_3", cell, der),
+            "Span12Mux_s4_v" => collect_int(&mut res, "INT:LONG_V_4", cell, der),
+            "Span12Mux_s5_v" => collect_int(&mut res, "INT:LONG_V_5", cell, der),
+            "Span12Mux_s6_v" => collect_int(&mut res, "INT:LONG_V_6", cell, der),
+            "Span12Mux_s7_v" => collect_int(&mut res, "INT:LONG_V_7", cell, der),
+            "Span12Mux_s8_v" => collect_int(&mut res, "INT:LONG_V_8", cell, der),
+            "Span12Mux_s9_v" => collect_int(&mut res, "INT:LONG_V_9", cell, der),
+            "Span12Mux_s10_v" => collect_int(&mut res, "INT:LONG_V_10", cell, der),
+            "Span12Mux_s11_v" => collect_int(&mut res, "INT:LONG_V_11", cell, der),
+            "Span12Mux_v" => collect_int(&mut res, "INT:LONG_V_12", cell, der),
+            "Span12Mux_s0_h" => collect_int(&mut res, "INT:LONG_H_0", cell, der),
+            "Span12Mux_s1_h" => collect_int(&mut res, "INT:LONG_H_1", cell, der),
+            "Span12Mux_s2_h" => collect_int(&mut res, "INT:LONG_H_2", cell, der),
+            "Span12Mux_s3_h" => collect_int(&mut res, "INT:LONG_H_3", cell, der),
+            "Span12Mux_s4_h" => collect_int(&mut res, "INT:LONG_H_4", cell, der),
+            "Span12Mux_s5_h" => collect_int(&mut res, "INT:LONG_H_5", cell, der),
+            "Span12Mux_s6_h" => collect_int(&mut res, "INT:LONG_H_6", cell, der),
+            "Span12Mux_s7_h" => collect_int(&mut res, "INT:LONG_H_7", cell, der),
+            "Span12Mux_s8_h" => collect_int(&mut res, "INT:LONG_H_8", cell, der),
+            "Span12Mux_s9_h" => collect_int(&mut res, "INT:LONG_H_9", cell, der),
+            "Span12Mux_s10_h" => collect_int(&mut res, "INT:LONG_H_10", cell, der),
+            "Span12Mux_s11_h" => collect_int(&mut res, "INT:LONG_H_11", cell, der),
+            "Span12Mux_h" => collect_int(&mut res, "INT:LONG_H_12", cell, der),
+            "Span12Mux" => collect_int(&mut res, "INT:LONG", cell, der),
+            "Span4Mux_s0_v" => collect_int(&mut res, "INT:QUAD_V_0", cell, der),
+            "Span4Mux_s1_v" => collect_int(&mut res, "INT:QUAD_V_1", cell, der),
+            "Span4Mux_s2_v" => collect_int(&mut res, "INT:QUAD_V_2", cell, der),
+            "Span4Mux_s3_v" => collect_int(&mut res, "INT:QUAD_V_3", cell, der),
+            "Span4Mux_v" => collect_int(&mut res, "INT:QUAD_V_4", cell, der),
+            "Span4Mux_s0_h" => collect_int(&mut res, "INT:QUAD_H_0", cell, der),
+            "Span4Mux_s1_h" => collect_int(&mut res, "INT:QUAD_H_1", cell, der),
+            "Span4Mux_s2_h" => collect_int(&mut res, "INT:QUAD_H_2", cell, der),
+            "Span4Mux_s3_h" => collect_int(&mut res, "INT:QUAD_H_3", cell, der),
+            "Span4Mux_h" => collect_int(&mut res, "INT:QUAD_H_4", cell, der),
+            "Span4Mux" => collect_int(&mut res, "INT:QUAD", cell, der),
+            "IoSpan4Mux" => collect_int(&mut res, "INT:QUAD_IO", cell, der),
+            "Odrv4" => collect_int(&mut res, "INT:OUT_TO_QUAD", cell, der),
+            "Odrv12" => collect_int(&mut res, "INT:OUT_TO_LONG", cell, der),
+            "Sp12to4" => collect_int(&mut res, "INT:LONG_TO_QUAD", cell, der),
 
             // PLB
-            "LogicCell2" | "LogicCell40" => collect_lc(&mut res, cell),
-            "ICE_CARRY_IN_MUX" => collect_carry_init(&mut res, cell),
+            "LogicCell2" | "LogicCell40" => collect_lc(&mut res, cell, der),
+            "ICE_CARRY_IN_MUX" => collect_carry_init(&mut res, cell, der),
 
             // globals
-            "ICE_GB" => collect_gb_fabric(&mut res, cell),
+            "ICE_GB" => collect_gb_fabric(&mut res, cell, der),
 
             // IO (ice65)
             "ICE_IO" | "ICE_GB_IO" => {
@@ -586,11 +767,11 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
             }
 
             // BRAM
-            "SB_RAM4K" => collect_simple(&mut res, "BRAM", cell),
-            "SB_RAM40_4K" => collect_simple(&mut res, "BRAM", cell),
-            "CascadeBuf" => collect_int(&mut res, "BRAM:CASCADE", cell),
+            "SB_RAM4K" => collect_simple(&mut res, "BRAM", cell, der),
+            "SB_RAM40_4K" => collect_simple(&mut res, "BRAM", cell, der),
+            "CascadeBuf" => collect_int(&mut res, "BRAM:CASCADE", cell, der),
             // SPRAM
-            "SB_SPRAM256KA" => collect_simple(&mut res, "SPRAM", cell),
+            "SB_SPRAM256KA" => collect_simple(&mut res, "SPRAM", cell, der),
             // hard logic
             "SB_SPI" => {
                 // TODO
@@ -601,9 +782,9 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
             "SB_I2C_FIFO" => {
                 // TODO
             }
-            "SB_LEDD_IP" => collect_simple(&mut res, "LEDD_IP", cell),
-            "SB_LEDDA_IP" => collect_simple(&mut res, "LEDDA_IP", cell),
-            "SB_IR_IP" => collect_simple(&mut res, "IR_IP", cell),
+            "SB_LEDD_IP" => collect_simple(&mut res, "LEDD_IP", cell, der),
+            "SB_LEDDA_IP" => collect_simple(&mut res, "LEDDA_IP", cell, der),
+            "SB_IR_IP" => collect_simple(&mut res, "IR_IP", cell, der),
             "SB_FILTER_50NS" => {
                 // TODO
             }
@@ -697,15 +878,15 @@ pub fn finish_speed(mut collector: SpeedCollector) -> Speed {
             println!("KEY {key} NOT WANTED?!?");
         }
     }
-    let SpeedVal::DelayRange(rise) = collector.db.vals.remove("PLB:RST_TO_O:RISE").unwrap() else {
+    let SpeedVal::Delay(rise) = collector.db.vals.remove("PLB:RST_TO_O:RISE").unwrap() else {
         unreachable!()
     };
-    let SpeedVal::DelayRange(fall) = collector.db.vals.remove("PLB:RST_TO_O:FALL").unwrap() else {
+    let SpeedVal::Delay(fall) = collector.db.vals.remove("PLB:RST_TO_O:FALL").unwrap() else {
         unreachable!()
     };
     collector.insert(
         "PLB:RST_TO_O",
-        SpeedVal::DelayRfFromEdgeRange(DelayRfUnateRange { rise, fall }),
+        SpeedVal::DelayRfFromEdge(DelayRfUnate { rise, fall }),
     );
     collector.db
 }

@@ -1,4 +1,4 @@
-use prjcombine_types::speed::{Scalar, Time};
+use prjcombine_types::units::{Scalar, Time};
 
 use crate::{Cell, Delay, Edge, IoPath, Period, Port, RecRem, Sdf, SetupHold, Width};
 

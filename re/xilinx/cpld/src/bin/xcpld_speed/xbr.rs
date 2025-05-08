@@ -9,8 +9,7 @@ use prjcombine_re_xilinx_cpld::{
     vm6_util::prep_vm6,
 };
 use prjcombine_types::{
-    FbId,
-    speed::{SetupHold, Speed, SpeedVal, Time},
+    speed::{SetupHold, Speed, SpeedVal}, units::Time, FbId
 };
 use unnamed_entity::EntityId;
 

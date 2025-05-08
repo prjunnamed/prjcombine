@@ -3,130 +3,7 @@ use std::collections::BTreeMap;
 use jzon::JsonValue;
 use serde::{Deserialize, Serialize};
 
-/// A f64 with proper equality and total ordering.
-///
-/// This is needed for speed data deduplication.
-#[derive(Clone, Copy, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Scalar(pub f64);
-
-impl PartialEq for Scalar {
-    fn eq(&self, other: &Self) -> bool {
-        self.0.to_bits() == other.0.to_bits()
-    }
-}
-
-impl Eq for Scalar {}
-
-impl PartialOrd for Scalar {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Scalar {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let mut a = self.0.to_bits();
-        let mut b = other.0.to_bits();
-        if (a & (1 << 63)) != 0 {
-            a = !a;
-        } else {
-            a ^= 1 << 63;
-        }
-        if (b & (1 << 63)) != 0 {
-            b = !b;
-        } else {
-            b ^= 1 << 63;
-        }
-        a.cmp(&b)
-    }
-}
-
-impl std::fmt::Debug for Scalar {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Debug::fmt(&self.0, f)
-    }
-}
-
-impl std::fmt::Display for Scalar {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.0, f)
-    }
-}
-
-impl std::ops::Add for Scalar {
-    type Output = Scalar;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Scalar(self.0 + rhs.0)
-    }
-}
-
-impl std::ops::Sub for Scalar {
-    type Output = Scalar;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Scalar(self.0 - rhs.0)
-    }
-}
-
-impl std::ops::Mul for Scalar {
-    type Output = Scalar;
-
-    fn mul(self, rhs: Self) -> Self::Output {
-        Scalar(self.0 * rhs.0)
-    }
-}
-
-impl std::ops::Div for Scalar {
-    type Output = Scalar;
-
-    fn div(self, rhs: Self) -> Self::Output {
-        Scalar(self.0 / rhs.0)
-    }
-}
-
-impl std::ops::Neg for Scalar {
-    type Output = Scalar;
-
-    fn neg(self) -> Self::Output {
-        Scalar(-self.0)
-    }
-}
-
-impl From<f64> for Scalar {
-    fn from(value: f64) -> Self {
-        Self(value)
-    }
-}
-
-impl From<i32> for Scalar {
-    fn from(value: i32) -> Self {
-        Self(value.into())
-    }
-}
-
-/// A time-dimension value for speed data.  The unit is ps.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
-pub struct Time(pub Scalar);
-
-impl Time {
-    pub const ZERO: Time = Time(Scalar(0.0));
-}
-
-impl std::ops::Sub for Time {
-    type Output = Time;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Time(self.0 - rhs.0)
-    }
-}
-
-impl std::fmt::Display for Time {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}ps", self.0)
-    }
-}
+use crate::units::{Scalar, Temperature, Time, Voltage};
 
 /// A simple propagation delay, with minimum and maximum value.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -332,6 +209,55 @@ impl std::fmt::Display for RecRem {
     }
 }
 
+/// A linear derating factor equation for temperature-based derating.
+///
+/// The factor is `a * t + b`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DerateFactorTemperatureLinear {
+    pub a: Scalar,
+    pub b: Scalar,
+}
+
+impl DerateFactorTemperatureLinear {
+    pub fn eval(self, t: Temperature) -> Scalar {
+        self.a * t.0 + self.b
+    }
+}
+
+impl std::fmt::Display for DerateFactorTemperatureLinear {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({a}t + {b})", a = self.a, b = self.b)
+    }
+}
+
+/// An inverse-quadratic derating factor equation for voltage-based derating.
+///
+/// The factor is `1 / (a * V * V + b + V + c)`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DerateFactorVoltageInvQuadratic {
+    pub a: Scalar,
+    pub b: Scalar,
+    pub c: Scalar,
+}
+
+impl DerateFactorVoltageInvQuadratic {
+    pub fn eval(self, v: Voltage) -> Scalar {
+        Scalar(1.0) / (self.a * v.0 * v.0 + self.b * v.0 + self.c)
+    }
+}
+
+impl std::fmt::Display for DerateFactorVoltageInvQuadratic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "({a}V² + {b}V + {c})¯¹",
+            a = self.a,
+            b = self.b,
+            c = self.c,
+        )
+    }
+}
+
 /// A single speed value in the speed database.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum SpeedVal {
@@ -393,6 +319,10 @@ pub enum SpeedVal {
     /// specific constraints on the width of the low and high clock periods, which would be
     /// described by separate [`SpeedVal::PulseWidth`] entries.
     Period(Time),
+    /// A scalar value, for example a derating factor.
+    Scalar(Scalar),
+    DerateFactorTemperatureLinear(DerateFactorTemperatureLinear),
+    DerateFactorVoltageInvQuadratic(DerateFactorVoltageInvQuadratic),
 }
 
 impl std::fmt::Display for SpeedVal {
@@ -417,6 +347,13 @@ impl std::fmt::Display for SpeedVal {
             SpeedVal::RecRem(recrem) => write!(f, "{recrem}"),
             SpeedVal::PulseWidth(time) => write!(f, "pulsewidth {time}"),
             SpeedVal::Period(time) => write!(f, "period {time}"),
+            SpeedVal::Scalar(scalar) => write!(f, "scalar {scalar}"),
+            SpeedVal::DerateFactorTemperatureLinear(eq) => {
+                write!(f, "derate temperature linear {eq}")
+            }
+            SpeedVal::DerateFactorVoltageInvQuadratic(eq) => {
+                write!(f, "derate voltage inverse quadratic {eq}")
+            }
         }
     }
 }
@@ -430,18 +367,6 @@ pub struct Speed {
 impl Speed {
     pub fn new() -> Self {
         Default::default()
-    }
-}
-
-impl From<Scalar> for JsonValue {
-    fn from(value: Scalar) -> Self {
-        value.0.into()
-    }
-}
-
-impl From<Time> for JsonValue {
-    fn from(value: Time) -> Self {
-        value.0.into()
     }
 }
 
@@ -533,6 +458,21 @@ impl From<SpeedVal> for JsonValue {
             SpeedVal::Period(time) => jzon::object! {
                 kind: "period",
                 value: time,
+            },
+            SpeedVal::Scalar(scalar) => jzon::object! {
+                kind: "scalar",
+                value: scalar,
+            },
+            SpeedVal::DerateFactorTemperatureLinear(eq) => jzon::object! {
+                kind: "derate_factor_temperature_linear",
+                a: eq.a,
+                b: eq.b,
+            },
+            SpeedVal::DerateFactorVoltageInvQuadratic(eq) => jzon::object! {
+                kind: "derate_factor_voltage_inv_quadratic",
+                a: eq.a,
+                b: eq.b,
+                c: eq.c,
             },
         }
     }
