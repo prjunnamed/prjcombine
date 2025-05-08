@@ -313,7 +313,7 @@ impl<'a> Backend for XactBackend<'a> {
             Err(_) => {
                 let log_file = std::fs::read(dir.path().join("MEOW.LOG")).unwrap();
                 let log_file = String::from_utf8_lossy(&log_file);
-                print!("{}", log_file);
+                print!("{log_file}");
                 println!("temp dir at {}", dir.path().to_string_lossy());
                 std::mem::forget(dir);
                 panic!("FAILED TO GET BITS FILE");

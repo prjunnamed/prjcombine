@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if args.grids {
-                print!("{}", grid);
+                print!("{grid}");
             }
         }
     }
@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if args.pkgs {
-                print!("{}", bond);
+                print!("{bond}");
             }
         }
     }

@@ -1147,7 +1147,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 assert_eq!(wire_to.0.to_idx(), 0);
                                 assert_eq!(wire_from.0.to_idx(), 0);
-                                format!("BIPASS.{}.{}", wtname, wfname)
+                                format!("BIPASS.{wtname}.{wfname}")
                             };
                             ctx.tiledb.insert(tile, "INT", name, xlat_bit(diff));
                             continue;

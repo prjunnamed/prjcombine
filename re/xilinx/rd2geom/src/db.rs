@@ -195,7 +195,7 @@ impl DbBuilder {
                         }
                         Some((_, v2)) => {
                             if v != *v2 {
-                                println!("FAIL at {}", k);
+                                println!("FAIL at {k}");
                             }
                             assert_eq!(&v, v2);
                         }
@@ -208,7 +208,7 @@ impl DbBuilder {
                         }
                         Some((_, v2)) => {
                             if v != *v2 {
-                                println!("FAIL at {}", k);
+                                println!("FAIL at {k}");
                             }
                             assert_eq!(&v, v2);
                         }
@@ -285,7 +285,7 @@ impl DbBuilder {
                         }
                         Some((_, v2)) => {
                             if v != *v2 {
-                                println!("FAIL at {}", k);
+                                println!("FAIL at {k}");
                             }
                             assert_eq!(&v, v2);
                         }

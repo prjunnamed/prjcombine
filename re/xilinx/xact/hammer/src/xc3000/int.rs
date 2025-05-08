@@ -511,7 +511,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             let mux_name = if tile.starts_with("LL") {
                 format!("MUX.{}.{}", wire_to.0, wire_to_name)
             } else {
-                format!("MUX.{}", wire_to_name)
+                format!("MUX.{wire_to_name}")
             };
             for &wire_from in &mux.ins {
                 let wire_from_name = intdb.wires.key(wire_from.1);
@@ -745,7 +745,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 assert_eq!(wire_to.0.to_idx(), 0);
                                 assert_eq!(wire_from.0.to_idx(), 0);
-                                format!("BIPASS.{}.{}", wtname, wfname)
+                                format!("BIPASS.{wtname}.{wfname}")
                             };
                             ctx.tiledb.insert(tile, "INT", name, xlat_bit(diff));
                             continue;

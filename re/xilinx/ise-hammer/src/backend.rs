@@ -839,7 +839,7 @@ impl<'a> Backend for IseBackend<'a> {
                     }
                 }
                 val = val.checked_add_signed(delta.into()).unwrap();
-                Value::String(format!("{}", val))
+                Value::String(val.to_string())
             }
         }
     }

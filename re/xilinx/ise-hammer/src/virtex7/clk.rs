@@ -894,7 +894,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
     if !bali_only {
         let tile = "CLK_BUFG";
         for i in 0..16 {
-            let bel = &format!("BUFGCTRL{}", i);
+            let bel = &format!("BUFGCTRL{i}");
             for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
                 ctx.collect_inv(tile, bel, pin);
             }

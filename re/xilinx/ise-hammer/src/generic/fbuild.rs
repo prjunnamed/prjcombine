@@ -669,15 +669,15 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
 
     pub fn test_inv(self, pin: impl Into<String>) {
         let pin = pin.into();
-        let pininv = format!("{}INV", pin);
-        let pin_b = format!("{}_B", pin);
+        let pininv = format!("{pin}INV");
+        let pin_b = format!("{pin}_B");
         self.pin(&pin).test_enum(pininv, &[pin, pin_b]);
     }
 
     pub fn test_inv_suffix(self, pin: impl Into<String>, suffix: impl AsRef<str>) {
         let pin = pin.into();
-        let pininv = format!("{}INV", pin);
-        let pin_b = format!("{}_B", pin);
+        let pininv = format!("{pin}INV");
+        let pin_b = format!("{pin}_B");
         self.pin(&pin)
             .test_enum_suffix(pininv, suffix, &[pin, pin_b]);
     }
