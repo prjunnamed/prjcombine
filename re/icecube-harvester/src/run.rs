@@ -704,20 +704,20 @@ fn get_result<R: std::io::Read + std::io::Seek>(zip: &mut ZipArchive<R>) -> RunR
         res
     };
 
-    let pin_table = read_to_string("sbt/outputs/packer/top_pin_table.CSV");
+    let pin_table = read_to_string("meow_Implmnt/sbt/outputs/packer/top_pin_table.CSV");
     let pin_table = parse_pin_table(&pin_table);
-    let placer_pcf = read_to_string("sbt/outputs/placer/top_sbt.pcf");
+    let placer_pcf = read_to_string("meow_Implmnt/sbt/outputs/placer/top_sbt.pcf");
     let loc_map = parse_placer_pcf(&placer_pcf);
-    let io_pcf = read_to_string("sbt/outputs/packer/top_io_pcf.log");
+    let io_pcf = read_to_string("meow_Implmnt/sbt/outputs/packer/top_io_pcf.log");
     let io_map = parse_io_pcf(&io_pcf);
-    let routes = read_to_string("sbt/outputs/router/top.route");
+    let routes = read_to_string("meow_Implmnt/sbt/outputs/router/top.route");
     let routes = parse_routes(routes);
-    let sdf = read_to_string("top_sbt.sdf");
+    let sdf = read_to_string("meow_Implmnt/top_sbt.sdf");
     let sdf = Sdf::parse(&sdf);
-    let placer_log = read_to_string("sbt/outputs/placer/placer.log");
+    let placer_log = read_to_string("meow_Implmnt/sbt/outputs/placer/placer.log");
     let dedio = parse_dedio(placer_log);
     let mut bsdata = vec![];
-    zip.by_name("sbt/outputs/bitmap/top_bitmap.bin")
+    zip.by_name("meow_Implmnt/sbt/outputs/bitmap/top_bitmap.bin")
         .unwrap()
         .read_to_end(&mut bsdata)
         .unwrap();
@@ -784,11 +784,14 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
     .unwrap();
     writeln!(f_tcl, "source $sbt_tcl").unwrap();
     let opts = design.opts.join(" ");
-    writeln!(f_tcl, "set res [run_sbt_backend_auto {dev}-{speed}{pkg}{temp} top . . \":edifparser -y top.pcf :bitmap --noheader {opts}\" top]", dev = design.device, speed = design.speed, pkg = design.package, temp = design.temp).unwrap();
+    writeln!(f_tcl, "set res [run_sbt_backend_auto {dev}-{speed}{pkg}{temp} top . meow_Implmnt \":edifparser -y meow_Implmnt/top.pcf :bitmap --noheader {opts}\" top]", dev = design.device, speed = design.speed, pkg = design.package, temp = design.temp).unwrap();
     writeln!(f_tcl, "exit [expr {{1 - $res}}]").unwrap();
     std::mem::drop(f_tcl);
 
-    let mut f_pcf = File::create(work_dir.join("top.pcf")).unwrap();
+    let impl_dir = work_dir.join("meow_Implmnt");
+    std::fs::create_dir_all(&impl_dir).unwrap();
+
+    let mut f_pcf = File::create(impl_dir.join("top.pcf")).unwrap();
     writeln!(f_pcf, "# hi,,,").unwrap();
     for (iid, inst) in &design.insts {
         if let Some(loc) = inst.loc {
@@ -808,13 +811,58 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
     }
     std::mem::drop(f_pcf);
 
-    let mut f_scf = File::create(work_dir.join("top.scf")).unwrap();
+    let mut f_scf = File::create(impl_dir.join("top.scf")).unwrap();
     writeln!(f_scf, "# hi,,,").unwrap();
     std::mem::drop(f_scf);
 
-    let mut f_edf = File::create(work_dir.join("top.edf")).unwrap();
+    let mut f_edf = File::create(impl_dir.join("top.edf")).unwrap();
     emit_edif(&mut f_edf, design).unwrap();
     std::mem::drop(f_edf);
+
+    // HORRIBLE HACK ALERT
+    //
+    // In SDF, icecube emits the base delay (from the ground-truth timing database)
+    // multiplied by the three derating factors (min, typ, max).  The derating factors
+    // are, in turn, computed from voltage, temperature, and device-specific coefficients.
+    //
+    // We are interested in obtaining the base delay, and so would need to compute it backwards
+    // through dividing by the derate factor.  This is perfectly feasible, but results in some
+    // loss of precision.
+    //
+    // Instead, we use a hack: we provide nonsensical temperature and voltage data.
+    // This causes the derating factor computation function to error out, and an effective factor
+    // of exactly 1.0 is used, resulting in no loss of precision.
+    let mut f_proj = File::create(work_dir.join("meow_sbt.project")).unwrap();
+    writeln!(f_proj, "[Project]").unwrap();
+    writeln!(f_proj, "CurImplementation=top_Implmnt").unwrap();
+    writeln!(f_proj, "Implementations=top_Implmnt").unwrap();
+    writeln!(f_proj, "[top_Implmnt]").unwrap();
+    if let Some(dev) = design.device.strip_prefix("iCE65") {
+        writeln!(f_proj, "DeviceFamily=iCE65").unwrap();
+        writeln!(f_proj, "Device={dev}").unwrap();
+    } else {
+        let family = &design.device[..7];
+        let dev = &design.device[7..];
+        writeln!(f_proj, "DeviceFamily={family}").unwrap();
+        writeln!(f_proj, "Device={dev}").unwrap();
+    };
+    writeln!(f_proj, "DevicePackage={pkg}", pkg = design.package).unwrap();
+    writeln!(f_proj, "DevicePower={grade}", grade = design.speed).unwrap();
+    writeln!(f_proj, "Devicevoltage=1337").unwrap();
+    writeln!(f_proj, "DevicevoltagePerformance=+/-5%(datasheet default)").unwrap();
+    writeln!(f_proj, "DeviceTemperature=-1337").unwrap();
+    writeln!(f_proj, "TimingAnalysisBasedOn=Worst").unwrap();
+    writeln!(f_proj, "OperationRange=Custom").unwrap();
+    writeln!(f_proj, "TypicalCustomTemperature=25").unwrap();
+    writeln!(f_proj, "WorstCustomTemperature=25").unwrap();
+    writeln!(f_proj, "BestCustomTemperature=25").unwrap();
+    writeln!(
+        f_proj,
+        "IOBankVoltages=topBank,3.3 bottomBank,3.3 leftBank,3.3 rightBank,3.3"
+    )
+    .unwrap();
+    writeln!(f_proj, "derValue=0.85").unwrap();
+    std::mem::drop(f_proj);
 
     let mut cmd = toolchain.command("timeout");
     cmd.arg("5m");

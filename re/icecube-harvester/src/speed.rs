@@ -7,10 +7,10 @@ use prjcombine_types::{
         DelayRfBinate, DelayRfUnate, DerateFactorTemperatureLinear,
         DerateFactorVoltageInvQuadratic, RecRem, SetupHoldRf, Speed, SpeedVal,
     },
-    units::{Scalar, Temperature, Time, Voltage},
+    units::{Scalar, Time, Voltage},
 };
 
-use crate::run::{Design, RunResult};
+use crate::run::RunResult;
 
 #[derive(Debug, Default)]
 pub struct SpeedCollector {
@@ -55,60 +55,34 @@ const ZERO: prjcombine_re_sdf::Delay = prjcombine_re_sdf::Delay {
     max: Time::ZERO,
 };
 
-#[derive(Copy, Clone, Debug)]
-struct DerateFactors {
-    min: Scalar,
-    typ: Scalar,
-    max: Scalar,
+fn convert_delay(del: prjcombine_re_sdf::Delay) -> Time {
+    assert_eq!(del.min, del.typ);
+    assert_eq!(del.min, del.max);
+    del.min
 }
 
-fn convert_delay(del: prjcombine_re_sdf::Delay, der: DerateFactors) -> Time {
-    let v0 = del.min / der.min;
-    let v1 = del.typ / der.typ;
-    let v2 = del.max / der.max;
-    let mut scale = 1.0;
-    let v = (v0.0.0 + v1.0.0 + v2.0.0) / 3.0;
-    if v != 0.0 {
-        while (v * scale).abs() < 100000.0 {
-            scale *= 10.0;
-        }
-        while (v * scale).abs() >= 1000000.0 {
-            scale /= 10.0;
-        }
-    }
-    let vs = (v * scale).round();
-    let v = vs / scale;
-    // let v0s = v0.0.0 * scale;
-    // let v1s = v1.0.0 * scale;
-    // let v2s = v2.0.0 * scale;
-    // if (vs - v0s).abs() >= 0.7 || (vs - v1s).abs() >= 0.7 || (vs - v2s).abs() >= 0.7 {
-    //     println!("MEOW {v} {vs} {v0s} {v1s} {v2s}");
-    // }
-    Time(v.into())
-}
-
-fn convert_delay_rf_unate(iopath: &IoPath, der: DerateFactors) -> DelayRfUnate {
+fn convert_delay_rf_unate(iopath: &IoPath) -> DelayRfUnate {
     DelayRfUnate {
-        rise: convert_delay(iopath.del_rise, der),
-        fall: convert_delay(iopath.del_fall, der),
+        rise: convert_delay(iopath.del_rise),
+        fall: convert_delay(iopath.del_fall),
     }
 }
 
-fn convert_delay_rf_binate(iopath: &IoPath, der: DerateFactors) -> DelayRfBinate {
+fn convert_delay_rf_binate(iopath: &IoPath) -> DelayRfBinate {
     DelayRfBinate {
-        rise_to_rise: convert_delay(iopath.del_rise, der),
-        rise_to_fall: convert_delay(iopath.del_fall, der),
-        fall_to_rise: convert_delay(iopath.del_rise, der),
-        fall_to_fall: convert_delay(iopath.del_fall, der),
+        rise_to_rise: convert_delay(iopath.del_rise),
+        rise_to_fall: convert_delay(iopath.del_fall),
+        fall_to_rise: convert_delay(iopath.del_rise),
+        fall_to_fall: convert_delay(iopath.del_fall),
     }
 }
 
-fn collect_int(collector: &mut SpeedCollector, name: &str, cell: &Cell, der: DerateFactors) {
+fn collect_int(collector: &mut SpeedCollector, name: &str, cell: &Cell) {
     assert_eq!(cell.iopath.len(), 1);
     let iopath = &cell.iopath[0];
     assert_eq!(iopath.port_from, Edge::Plain("I".into()));
     assert_eq!(iopath.port_to, Edge::Plain("O".into()));
-    let delay = convert_delay_rf_unate(iopath, der);
+    let delay = convert_delay_rf_unate(iopath);
     collector.insert(name, SpeedVal::DelayRfPosUnate(delay));
     assert!(cell.ports.is_empty());
     assert!(cell.setuphold.is_empty());
@@ -117,7 +91,7 @@ fn collect_int(collector: &mut SpeedCollector, name: &str, cell: &Cell, der: Der
     assert!(cell.width.is_empty());
 }
 
-fn collect_lc(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
+fn collect_lc(collector: &mut SpeedCollector, cell: &Cell) {
     let mut setuphold = BTreeMap::new();
     for path in &cell.iopath {
         let Edge::Plain(port_to) = &path.port_to else {
@@ -142,25 +116,25 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
                 };
                 if port_from == "sr" {
                     if path.del_rise != ZERO {
-                        let delay = convert_delay(path.del_rise, der);
+                        let delay = convert_delay(path.del_rise);
                         collector.insert(format!("{name}:RISE"), SpeedVal::Delay(delay));
                     }
                     if path.del_fall != ZERO {
-                        let delay = convert_delay(path.del_fall, der);
+                        let delay = convert_delay(path.del_fall);
                         collector.insert(format!("{name}:FALL"), SpeedVal::Delay(delay));
                     }
                 } else if port_to == "carryout" {
-                    let delay = convert_delay_rf_unate(path, der);
+                    let delay = convert_delay_rf_unate(path);
                     collector.insert(name, SpeedVal::DelayRfPosUnate(delay));
                 } else {
-                    let delay = convert_delay_rf_binate(path, der);
+                    let delay = convert_delay_rf_binate(path);
                     collector.insert(name, SpeedVal::DelayRfBinate(delay));
                 }
             }
             Edge::Posedge(port_from) => {
                 assert_eq!(port_from, "clk");
                 assert_eq!(port_to, "lcout");
-                let delay = convert_delay_rf_unate(path, der);
+                let delay = convert_delay_rf_unate(path);
                 collector.insert("PLB:CLK_TO_O", SpeedVal::DelayRfFromEdge(delay));
             }
             _ => unreachable!(),
@@ -187,7 +161,7 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
         };
         let data = setuphold.entry(port).or_insert((None, None, None, None));
         if let Some(setup) = sh.setup {
-            let delay = convert_delay(setup, der);
+            let delay = convert_delay(setup);
             if is_rise {
                 data.0 = Some(delay);
             } else {
@@ -195,7 +169,7 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
             }
         }
         if let Some(hold) = sh.hold {
-            let delay = convert_delay(hold, der);
+            let delay = convert_delay(hold);
             if is_rise {
                 data.2 = Some(delay);
             } else {
@@ -226,7 +200,7 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
             match &recrem.edge_r {
                 Edge::Negedge(port_r) => {
                     assert_eq!(port_r, "sr");
-                    let delay = convert_delay(recovery, der);
+                    let delay = convert_delay(recovery);
                     collector.insert(
                         "PLB:RST_RECREM_CLK",
                         SpeedVal::RecRem(RecRem {
@@ -248,12 +222,12 @@ fn collect_lc(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
     assert!(cell.width.is_empty());
 }
 
-fn collect_carry_init(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
+fn collect_carry_init(collector: &mut SpeedCollector, cell: &Cell) {
     assert_eq!(cell.iopath.len(), 1);
     let iopath = &cell.iopath[0];
     assert_eq!(iopath.port_from, Edge::Plain("carryinitin".into()));
     assert_eq!(iopath.port_to, Edge::Plain("carryinitout".into()));
-    let delay = convert_delay_rf_unate(iopath, der);
+    let delay = convert_delay_rf_unate(iopath);
     collector.insert("PLB:CARRY_INIT", SpeedVal::DelayRfPosUnate(delay));
     assert!(cell.ports.is_empty());
     assert!(cell.setuphold.is_empty());
@@ -262,7 +236,7 @@ fn collect_carry_init(collector: &mut SpeedCollector, cell: &Cell, der: DerateFa
     assert!(cell.width.is_empty());
 }
 
-fn collect_gb_fabric(collector: &mut SpeedCollector, cell: &Cell, der: DerateFactors) {
+fn collect_gb_fabric(collector: &mut SpeedCollector, cell: &Cell) {
     assert_eq!(cell.iopath.len(), 1);
     let iopath = &cell.iopath[0];
     assert_eq!(
@@ -270,7 +244,7 @@ fn collect_gb_fabric(collector: &mut SpeedCollector, cell: &Cell, der: DerateFac
         Edge::Plain("USERSIGNALTOGLOBALBUFFER".into())
     );
     assert_eq!(iopath.port_to, Edge::Plain("GLOBALBUFFEROUTPUT".into()));
-    let delay = convert_delay_rf_unate(iopath, der);
+    let delay = convert_delay_rf_unate(iopath);
     collector.insert("GB_FABRIC", SpeedVal::DelayRfPosUnate(delay));
     assert!(cell.ports.is_empty());
     assert!(cell.setuphold.is_empty());
@@ -288,7 +262,7 @@ fn strip_index(name: &str) -> &str {
     }
 }
 
-fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell, der: DerateFactors) {
+fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
     for path in &cell.iopath {
         // println!("IOPATH {kind} {path:?}");
         let Edge::Plain(port_to) = &path.port_to else {
@@ -298,7 +272,7 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell, der: 
         let Edge::Posedge(port_from) = &path.port_from else {
             unreachable!()
         };
-        let delay = convert_delay_rf_unate(path, der);
+        let delay = convert_delay_rf_unate(path);
         collector.insert(
             format!("{kind}:{port_from}_TO_{port_to}"),
             SpeedVal::DelayRfFromEdge(delay),
@@ -320,7 +294,7 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell, der: 
             .entry((port_d, port_c))
             .or_insert((None, None, None, None));
         if let Some(setup) = sh.setup {
-            let delay = convert_delay(setup, der);
+            let delay = convert_delay(setup);
             if is_rise {
                 data.0 = Some(delay);
             } else {
@@ -328,7 +302,7 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell, der: 
             }
         }
         if let Some(hold) = sh.hold {
-            let delay = convert_delay(hold, der);
+            let delay = convert_delay(hold);
             if is_rise {
                 data.2 = Some(delay);
             } else {
@@ -640,50 +614,7 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
     collector
 }
 
-fn get_der_factors(design: &Design) -> DerateFactors {
-    // bug: without a project file, icecube always uses "L" grade for derating
-    // factor computation (but loads the T speed file as appropriate).
-    let speed = init_speed_data(design.kind, &design.device, "L");
-    let factors = [
-        ("BEST", 1.26, 0.0),
-        ("TYP", 1.2, 25.0),
-        ("WORST", 1.14, 85.0),
-    ]
-    .map(|(c, v, t)| {
-        let pf = *speed
-            .db
-            .vals
-            .get("DERATE_P")
-            .unwrap_or_else(|| speed.db.vals.get(&format!("DERATE_P_{c}")).unwrap());
-        let vf = speed.db.vals["DERATE_V"];
-        let tf = *speed
-            .db
-            .vals
-            .get("DERATE_T")
-            .unwrap_or_else(|| speed.db.vals.get(&format!("DERATE_T_{c}")).unwrap());
-        let SpeedVal::Scalar(pf) = pf else {
-            unreachable!()
-        };
-        let SpeedVal::DerateFactorVoltageInvQuadratic(vf) = vf else {
-            unreachable!()
-        };
-        let SpeedVal::DerateFactorTemperatureLinear(tf) = tf else {
-            unreachable!()
-        };
-        let vf = vf.eval(Voltage(v.into()));
-        let tf = tf.eval(Temperature(t.into()));
-        pf * vf * tf
-    });
-    DerateFactors {
-        min: factors[0],
-        typ: factors[1],
-        max: factors[2],
-    }
-}
-
-pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
-    let der = get_der_factors(design);
-
+pub fn get_speed_data(run: &RunResult) -> SpeedCollector {
     let mut res = SpeedCollector::new();
     for cell in run
         .sdf
@@ -692,63 +623,63 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
         .chain(run.sdf.cells_by_type.values())
     {
         match cell.typ.as_str() {
-            "InMux" => collect_int(&mut res, "INT:IMUX_LC", cell, der),
-            "IoInMux" => collect_int(&mut res, "INT:IMUX_IO", cell, der),
-            "ClkMux" => collect_int(&mut res, "INT:IMUX_CLK", cell, der),
-            "CEMux" => collect_int(&mut res, "INT:IMUX_CE", cell, der),
-            "SRMux" => collect_int(&mut res, "INT:IMUX_RST", cell, der),
-            "LocalMux" => collect_int(&mut res, "INT:LOCAL", cell, der),
-            "Glb2LocalMux" => collect_int(&mut res, "INT:GOUT", cell, der),
-            "GlobalMux" => collect_int(&mut res, "INT:GLOBAL", cell, der),
-            "Span12Mux_s0_v" => collect_int(&mut res, "INT:LONG_V_0", cell, der),
-            "Span12Mux_s1_v" => collect_int(&mut res, "INT:LONG_V_1", cell, der),
-            "Span12Mux_s2_v" => collect_int(&mut res, "INT:LONG_V_2", cell, der),
-            "Span12Mux_s3_v" => collect_int(&mut res, "INT:LONG_V_3", cell, der),
-            "Span12Mux_s4_v" => collect_int(&mut res, "INT:LONG_V_4", cell, der),
-            "Span12Mux_s5_v" => collect_int(&mut res, "INT:LONG_V_5", cell, der),
-            "Span12Mux_s6_v" => collect_int(&mut res, "INT:LONG_V_6", cell, der),
-            "Span12Mux_s7_v" => collect_int(&mut res, "INT:LONG_V_7", cell, der),
-            "Span12Mux_s8_v" => collect_int(&mut res, "INT:LONG_V_8", cell, der),
-            "Span12Mux_s9_v" => collect_int(&mut res, "INT:LONG_V_9", cell, der),
-            "Span12Mux_s10_v" => collect_int(&mut res, "INT:LONG_V_10", cell, der),
-            "Span12Mux_s11_v" => collect_int(&mut res, "INT:LONG_V_11", cell, der),
-            "Span12Mux_v" => collect_int(&mut res, "INT:LONG_V_12", cell, der),
-            "Span12Mux_s0_h" => collect_int(&mut res, "INT:LONG_H_0", cell, der),
-            "Span12Mux_s1_h" => collect_int(&mut res, "INT:LONG_H_1", cell, der),
-            "Span12Mux_s2_h" => collect_int(&mut res, "INT:LONG_H_2", cell, der),
-            "Span12Mux_s3_h" => collect_int(&mut res, "INT:LONG_H_3", cell, der),
-            "Span12Mux_s4_h" => collect_int(&mut res, "INT:LONG_H_4", cell, der),
-            "Span12Mux_s5_h" => collect_int(&mut res, "INT:LONG_H_5", cell, der),
-            "Span12Mux_s6_h" => collect_int(&mut res, "INT:LONG_H_6", cell, der),
-            "Span12Mux_s7_h" => collect_int(&mut res, "INT:LONG_H_7", cell, der),
-            "Span12Mux_s8_h" => collect_int(&mut res, "INT:LONG_H_8", cell, der),
-            "Span12Mux_s9_h" => collect_int(&mut res, "INT:LONG_H_9", cell, der),
-            "Span12Mux_s10_h" => collect_int(&mut res, "INT:LONG_H_10", cell, der),
-            "Span12Mux_s11_h" => collect_int(&mut res, "INT:LONG_H_11", cell, der),
-            "Span12Mux_h" => collect_int(&mut res, "INT:LONG_H_12", cell, der),
-            "Span12Mux" => collect_int(&mut res, "INT:LONG", cell, der),
-            "Span4Mux_s0_v" => collect_int(&mut res, "INT:QUAD_V_0", cell, der),
-            "Span4Mux_s1_v" => collect_int(&mut res, "INT:QUAD_V_1", cell, der),
-            "Span4Mux_s2_v" => collect_int(&mut res, "INT:QUAD_V_2", cell, der),
-            "Span4Mux_s3_v" => collect_int(&mut res, "INT:QUAD_V_3", cell, der),
-            "Span4Mux_v" => collect_int(&mut res, "INT:QUAD_V_4", cell, der),
-            "Span4Mux_s0_h" => collect_int(&mut res, "INT:QUAD_H_0", cell, der),
-            "Span4Mux_s1_h" => collect_int(&mut res, "INT:QUAD_H_1", cell, der),
-            "Span4Mux_s2_h" => collect_int(&mut res, "INT:QUAD_H_2", cell, der),
-            "Span4Mux_s3_h" => collect_int(&mut res, "INT:QUAD_H_3", cell, der),
-            "Span4Mux_h" => collect_int(&mut res, "INT:QUAD_H_4", cell, der),
-            "Span4Mux" => collect_int(&mut res, "INT:QUAD", cell, der),
-            "IoSpan4Mux" => collect_int(&mut res, "INT:QUAD_IO", cell, der),
-            "Odrv4" => collect_int(&mut res, "INT:OUT_TO_QUAD", cell, der),
-            "Odrv12" => collect_int(&mut res, "INT:OUT_TO_LONG", cell, der),
-            "Sp12to4" => collect_int(&mut res, "INT:LONG_TO_QUAD", cell, der),
+            "InMux" => collect_int(&mut res, "INT:IMUX_LC", cell),
+            "IoInMux" => collect_int(&mut res, "INT:IMUX_IO", cell),
+            "ClkMux" => collect_int(&mut res, "INT:IMUX_CLK", cell),
+            "CEMux" => collect_int(&mut res, "INT:IMUX_CE", cell),
+            "SRMux" => collect_int(&mut res, "INT:IMUX_RST", cell),
+            "LocalMux" => collect_int(&mut res, "INT:LOCAL", cell),
+            "Glb2LocalMux" => collect_int(&mut res, "INT:GOUT", cell),
+            "GlobalMux" => collect_int(&mut res, "INT:GLOBAL", cell),
+            "Span12Mux_s0_v" => collect_int(&mut res, "INT:LONG_V_0", cell),
+            "Span12Mux_s1_v" => collect_int(&mut res, "INT:LONG_V_1", cell),
+            "Span12Mux_s2_v" => collect_int(&mut res, "INT:LONG_V_2", cell),
+            "Span12Mux_s3_v" => collect_int(&mut res, "INT:LONG_V_3", cell),
+            "Span12Mux_s4_v" => collect_int(&mut res, "INT:LONG_V_4", cell),
+            "Span12Mux_s5_v" => collect_int(&mut res, "INT:LONG_V_5", cell),
+            "Span12Mux_s6_v" => collect_int(&mut res, "INT:LONG_V_6", cell),
+            "Span12Mux_s7_v" => collect_int(&mut res, "INT:LONG_V_7", cell),
+            "Span12Mux_s8_v" => collect_int(&mut res, "INT:LONG_V_8", cell),
+            "Span12Mux_s9_v" => collect_int(&mut res, "INT:LONG_V_9", cell),
+            "Span12Mux_s10_v" => collect_int(&mut res, "INT:LONG_V_10", cell),
+            "Span12Mux_s11_v" => collect_int(&mut res, "INT:LONG_V_11", cell),
+            "Span12Mux_v" => collect_int(&mut res, "INT:LONG_V_12", cell),
+            "Span12Mux_s0_h" => collect_int(&mut res, "INT:LONG_H_0", cell),
+            "Span12Mux_s1_h" => collect_int(&mut res, "INT:LONG_H_1", cell),
+            "Span12Mux_s2_h" => collect_int(&mut res, "INT:LONG_H_2", cell),
+            "Span12Mux_s3_h" => collect_int(&mut res, "INT:LONG_H_3", cell),
+            "Span12Mux_s4_h" => collect_int(&mut res, "INT:LONG_H_4", cell),
+            "Span12Mux_s5_h" => collect_int(&mut res, "INT:LONG_H_5", cell),
+            "Span12Mux_s6_h" => collect_int(&mut res, "INT:LONG_H_6", cell),
+            "Span12Mux_s7_h" => collect_int(&mut res, "INT:LONG_H_7", cell),
+            "Span12Mux_s8_h" => collect_int(&mut res, "INT:LONG_H_8", cell),
+            "Span12Mux_s9_h" => collect_int(&mut res, "INT:LONG_H_9", cell),
+            "Span12Mux_s10_h" => collect_int(&mut res, "INT:LONG_H_10", cell),
+            "Span12Mux_s11_h" => collect_int(&mut res, "INT:LONG_H_11", cell),
+            "Span12Mux_h" => collect_int(&mut res, "INT:LONG_H_12", cell),
+            "Span12Mux" => collect_int(&mut res, "INT:LONG", cell),
+            "Span4Mux_s0_v" => collect_int(&mut res, "INT:QUAD_V_0", cell),
+            "Span4Mux_s1_v" => collect_int(&mut res, "INT:QUAD_V_1", cell),
+            "Span4Mux_s2_v" => collect_int(&mut res, "INT:QUAD_V_2", cell),
+            "Span4Mux_s3_v" => collect_int(&mut res, "INT:QUAD_V_3", cell),
+            "Span4Mux_v" => collect_int(&mut res, "INT:QUAD_V_4", cell),
+            "Span4Mux_s0_h" => collect_int(&mut res, "INT:QUAD_H_0", cell),
+            "Span4Mux_s1_h" => collect_int(&mut res, "INT:QUAD_H_1", cell),
+            "Span4Mux_s2_h" => collect_int(&mut res, "INT:QUAD_H_2", cell),
+            "Span4Mux_s3_h" => collect_int(&mut res, "INT:QUAD_H_3", cell),
+            "Span4Mux_h" => collect_int(&mut res, "INT:QUAD_H_4", cell),
+            "Span4Mux" => collect_int(&mut res, "INT:QUAD", cell),
+            "IoSpan4Mux" => collect_int(&mut res, "INT:QUAD_IO", cell),
+            "Odrv4" => collect_int(&mut res, "INT:OUT_TO_QUAD", cell),
+            "Odrv12" => collect_int(&mut res, "INT:OUT_TO_LONG", cell),
+            "Sp12to4" => collect_int(&mut res, "INT:LONG_TO_QUAD", cell),
 
             // PLB
-            "LogicCell2" | "LogicCell40" => collect_lc(&mut res, cell, der),
-            "ICE_CARRY_IN_MUX" => collect_carry_init(&mut res, cell, der),
+            "LogicCell2" | "LogicCell40" => collect_lc(&mut res, cell),
+            "ICE_CARRY_IN_MUX" => collect_carry_init(&mut res, cell),
 
             // globals
-            "ICE_GB" => collect_gb_fabric(&mut res, cell, der),
+            "ICE_GB" => collect_gb_fabric(&mut res, cell),
 
             // IO (ice65)
             "ICE_IO" | "ICE_GB_IO" => {
@@ -767,11 +698,11 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
             }
 
             // BRAM
-            "SB_RAM4K" => collect_simple(&mut res, "BRAM", cell, der),
-            "SB_RAM40_4K" => collect_simple(&mut res, "BRAM", cell, der),
-            "CascadeBuf" => collect_int(&mut res, "BRAM:CASCADE", cell, der),
+            "SB_RAM4K" => collect_simple(&mut res, "BRAM", cell),
+            "SB_RAM40_4K" => collect_simple(&mut res, "BRAM", cell),
+            "CascadeBuf" => collect_int(&mut res, "BRAM:CASCADE", cell),
             // SPRAM
-            "SB_SPRAM256KA" => collect_simple(&mut res, "SPRAM", cell, der),
+            "SB_SPRAM256KA" => collect_simple(&mut res, "SPRAM", cell),
             // hard logic
             "SB_SPI" => {
                 // TODO
@@ -782,9 +713,9 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
             "SB_I2C_FIFO" => {
                 // TODO
             }
-            "SB_LEDD_IP" => collect_simple(&mut res, "LEDD_IP", cell, der),
-            "SB_LEDDA_IP" => collect_simple(&mut res, "LEDDA_IP", cell, der),
-            "SB_IR_IP" => collect_simple(&mut res, "IR_IP", cell, der),
+            "SB_LEDD_IP" => collect_simple(&mut res, "LEDD_IP", cell),
+            "SB_LEDDA_IP" => collect_simple(&mut res, "LEDDA_IP", cell),
+            "SB_IR_IP" => collect_simple(&mut res, "IR_IP", cell),
             "SB_FILTER_50NS" => {
                 // TODO
             }
