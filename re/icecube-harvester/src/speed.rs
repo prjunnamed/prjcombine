@@ -9,8 +9,9 @@ use prjcombine_types::{
     },
     units::{Scalar, Time, Voltage},
 };
+use unnamed_entity::EntityId;
 
-use crate::run::RunResult;
+use crate::run::{Design, InstId, Instance, RunResult};
 
 #[derive(Debug, Default)]
 pub struct SpeedCollector {
@@ -246,6 +247,152 @@ fn collect_gb_fabric(collector: &mut SpeedCollector, cell: &Cell) {
     assert_eq!(iopath.port_to, Edge::Plain("GLOBALBUFFEROUTPUT".into()));
     let delay = convert_delay_rf_unate(iopath);
     collector.insert("GB_FABRIC", SpeedVal::DelayRfPosUnate(delay));
+    assert!(cell.ports.is_empty());
+    assert!(cell.setuphold.is_empty());
+    assert!(cell.recrem.is_empty());
+    assert!(cell.period.is_empty());
+    assert!(cell.width.is_empty());
+}
+
+fn collect_ice_io(collector: &mut SpeedCollector, cell: &Cell, design: &Design) {
+    for path in &cell.iopath {
+        let (is_edge, is_neg, port_from) = match path.port_from {
+            Edge::Plain(ref port) => (false, false, port.as_str()),
+            Edge::Posedge(ref port) => (true, false, port.as_str()),
+            Edge::Negedge(ref port) => (true, true, port.as_str()),
+        };
+        let Edge::Plain(ref port_to) = path.port_to else {
+            unreachable!()
+        };
+        let port_to = port_to.as_str();
+        let (is_edge, key) = match (is_edge, is_neg, port_from, port_to) {
+            (false, false, "PACKAGEPIN", "DIN0") => (false, "PAD_TO_DIN0"),
+            (false, false, "PACKAGEPIN", "GLOBALBUFFEROUTPUT") => (false, "PAD_TO_GB"),
+            (false, false, "LATCHINPUTVALUE", "DIN0") => (false, "LATCH_TO_DIN0"),
+            (true, false, "INPUTCLK", "DIN0") => (true, "ICLK_P_TO_DIN0"),
+            (true, true, "INPUTCLK", "DIN1") => (true, "ICLK_N_TO_DIN1"),
+            (false, false, "DOUT0", "PACKAGEPIN") => (false, "DOUT0_TO_PAD"),
+            (true, false, "OUTPUTCLK", "PACKAGEPIN") => (true, "OCLK_P_TO_PAD"),
+            (true, true, "OUTPUTCLK", "PACKAGEPIN") => (true, "OCLK_N_TO_PAD"),
+            (false, false, "OUTPUTENABLE", "PACKAGEPIN") => (false, "OE_TO_PAD_ON"),
+            // BUG: icecube uses wrong edge here. but only on the T speed grade.
+            (false, false, "INPUTCLK", "PACKAGEPIN") => (false, "OE_TO_PAD_OFF"),
+            (false, false, "OUTPUTCLK", "PACKAGEPIN") => (true, "OCLK_P_TO_PAD_OE"),
+            _ => {
+                println!("unk IOPATH {path:?}");
+                continue;
+            }
+        };
+        let delay = convert_delay_rf_unate(path);
+        if is_edge {
+            collector.insert(format!("IO:{key}"), SpeedVal::DelayRfFromEdge(delay));
+        } else {
+            collector.insert(format!("IO:{key}"), SpeedVal::DelayRfPosUnate(delay));
+            if design.speed == "L" && key == "OE_TO_PAD_ON" {
+                collector.insert("IO:OE_TO_PAD_OFF", SpeedVal::DelayRfPosUnate(delay));
+            }
+        }
+    }
+    let mut setuphold = BTreeMap::new();
+    for sh in &cell.setuphold {
+        let (is_neg, port_c) = match sh.edge_c {
+            Edge::Posedge(ref port) => (false, port.as_str()),
+            Edge::Negedge(ref port) => (true, port.as_str()),
+            _ => unreachable!(),
+        };
+        let (is_rise, port_d) = match sh.edge_d {
+            Edge::Posedge(ref port) => (true, port.as_str()),
+            Edge::Negedge(ref port) => (false, port.as_str()),
+            _ => unreachable!(),
+        };
+        let key = match (port_d, is_neg, port_c) {
+            ("CLOCKENABLE", false, "INPUTCLK") => "CE_SETUPHOLD_ICLK",
+            ("CLOCKENABLE", false, "OUTPUTCLK") => "CE_SETUPHOLD_OCLK",
+            ("PACKAGEPIN", false, "INPUTCLK") => "PAD_SETUPHOLD_ICLK_P",
+            ("PACKAGEPIN", true, "INPUTCLK") => "PAD_SETUPHOLD_ICLK_N",
+            ("DOUT0", false, "OUTPUTCLK") => "DOUT0_SETUPHOLD_OCLK_P",
+            ("DOUT1", true, "OUTPUTCLK") => "DOUT1_SETUPHOLD_OCLK_N",
+            ("OUTPUTENABLE", false, "OUTPUTCLK") => "OE_SETUPHOLD_OCLK_P",
+            _ => unreachable!(),
+        };
+        let data = setuphold.entry(key).or_insert((None, None, None, None));
+        if let Some(setup) = sh.setup {
+            let delay = convert_delay(setup);
+            if is_rise {
+                data.0 = Some(delay);
+            } else {
+                data.1 = Some(delay);
+            }
+        }
+        if let Some(hold) = sh.hold {
+            let delay = convert_delay(hold);
+            if is_rise {
+                data.2 = Some(delay);
+            } else {
+                data.3 = Some(delay);
+            }
+        }
+    }
+    for (key, (sr, sf, hr, hf)) in setuphold {
+        collector.insert(
+            format!("IO:{key}"),
+            SpeedVal::SetupHoldRf(SetupHoldRf {
+                rise_setup: sr.unwrap(),
+                rise_hold: hr.unwrap(),
+                fall_setup: sf.unwrap(),
+                fall_hold: hf.unwrap(),
+            }),
+        );
+    }
+    assert!(cell.ports.is_empty());
+    assert!(cell.recrem.is_empty());
+    assert!(cell.period.is_empty());
+    assert!(cell.width.is_empty());
+}
+
+fn collect_pll(collector: &mut SpeedCollector, cell: &Cell, inst: &Instance) {
+    let feedback = inst.props["FEEDBACK_PATH"].as_str();
+    let typ = cell.typ.as_str();
+    for path in &cell.iopath {
+        let Edge::Plain(ref port_from) = path.port_from else {
+            unreachable!();
+        };
+        let Edge::Plain(ref port_to) = path.port_to else {
+            unreachable!();
+        };
+        let key = match (typ, port_from.as_str(), port_to.as_str()) {
+            ("SB_PLL_CORE", "REFERENCECLK", "PLLOUTCORE") => {
+                format!("PLL:REFERENCECLK_TO_PLLOUTCORE_{feedback}")
+            }
+            ("SB_PLL_CORE", "REFERENCECLK", "PLLOUTGLOBAL") => {
+                format!("PLL:REFERENCECLK_TO_PLLOUTGLOBAL_{feedback}")
+            }
+            ("SB_PLL_PAD", "PACKAGEPIN", "PLLOUTCORE") => {
+                format!("PLL:PAD_TO_PLLOUTCORE_{feedback}")
+            }
+            ("SB_PLL_PAD", "PACKAGEPIN", "PLLOUTGLOBAL") => {
+                format!("PLL:PAD_TO_PLLOUTGLOBAL_{feedback}")
+            }
+            ("SB_PLL_2_PAD", "PACKAGEPIN", "PLLOUTCOREB") => {
+                format!("PLL:PAD_TO_PLLOUTCORE_{feedback}")
+            }
+            ("SB_PLL_2_PAD", "PACKAGEPIN", "PLLOUTGLOBALB") => {
+                format!("PLL:PAD_TO_PLLOUTGLOBAL_{feedback}")
+            }
+            ("SB_PLL_2_PAD", "PACKAGEPIN", "PLLOUTCOREA") => {
+                "IO:PAD_TO_DIN0".to_string()
+            }
+            ("SB_PLL_2_PAD", "PACKAGEPIN", "PLLOUTGLOBALA") => {
+                "IO:PAD_TO_GB".to_string()
+            }
+            _ => {
+                println!("unk IOPATH {typ} {feedback} {path:?}");
+                continue;
+            }
+        };
+        let delay = convert_delay_rf_unate(path);
+        collector.insert(key, SpeedVal::DelayRfPosUnate(delay));
+    }
     assert!(cell.ports.is_empty());
     assert!(cell.setuphold.is_empty());
     assert!(cell.recrem.is_empty());
@@ -526,6 +673,53 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
     collector.want("PLB:RST_SETUPHOLD_CLK");
     collector.want("PLB:RST_RECREM_CLK");
 
+    // IO and PLL
+    if kind.is_ice65() {
+        collector.want("IO:CE_SETUPHOLD_ICLK");
+        collector.want("IO:CE_SETUPHOLD_OCLK");
+
+        collector.want("IO:PAD_TO_DIN0");
+        collector.want("IO:PAD_TO_GB");
+        collector.want("IO:LATCH_TO_DIN0");
+        collector.want("IO:PAD_SETUPHOLD_ICLK_P");
+        collector.want("IO:PAD_SETUPHOLD_ICLK_N");
+        collector.want("IO:ICLK_P_TO_DIN0");
+        collector.want("IO:ICLK_N_TO_DIN1");
+
+        collector.want("IO:DOUT0_TO_PAD");
+        collector.want("IO:DOUT0_SETUPHOLD_OCLK_P");
+        collector.want("IO:DOUT1_SETUPHOLD_OCLK_N");
+        collector.want("IO:OCLK_P_TO_PAD");
+        collector.want("IO:OCLK_N_TO_PAD");
+
+        collector.want("IO:OE_TO_PAD_ON");
+        collector.want("IO:OE_TO_PAD_OFF");
+        collector.want("IO:OE_SETUPHOLD_OCLK_P");
+        collector.want("IO:OCLK_P_TO_PAD_OE");
+
+        if part.starts_with("iCE65P") {
+            collector.want("PLL:REFERENCECLK_TO_PLLOUTCORE_SIMPLE");
+            collector.want("PLL:REFERENCECLK_TO_PLLOUTCORE_DELAY");
+            collector.want("PLL:REFERENCECLK_TO_PLLOUTCORE_PHASE_AND_DELAY");
+            collector.want("PLL:REFERENCECLK_TO_PLLOUTCORE_EXTERNAL");
+            collector.want("PLL:REFERENCECLK_TO_PLLOUTGLOBAL_SIMPLE");
+            collector.want("PLL:REFERENCECLK_TO_PLLOUTGLOBAL_DELAY");
+            collector.want("PLL:REFERENCECLK_TO_PLLOUTGLOBAL_PHASE_AND_DELAY");
+            collector.want("PLL:REFERENCECLK_TO_PLLOUTGLOBAL_EXTERNAL");
+
+            collector.want("PLL:PAD_TO_PLLOUTCORE_SIMPLE");
+            collector.want("PLL:PAD_TO_PLLOUTCORE_DELAY");
+            collector.want("PLL:PAD_TO_PLLOUTCORE_PHASE_AND_DELAY");
+            collector.want("PLL:PAD_TO_PLLOUTCORE_EXTERNAL");
+            collector.want("PLL:PAD_TO_PLLOUTGLOBAL_SIMPLE");
+            collector.want("PLL:PAD_TO_PLLOUTGLOBAL_DELAY");
+            collector.want("PLL:PAD_TO_PLLOUTGLOBAL_PHASE_AND_DELAY");
+            collector.want("PLL:PAD_TO_PLLOUTGLOBAL_EXTERNAL");
+        }
+    } else {
+        // TODO
+    }
+
     // BRAM
     if kind != ChipKind::Ice40P03 {
         collector.want("BRAM:RCLK_TO_RDATA");
@@ -614,13 +808,14 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
     collector
 }
 
-pub fn get_speed_data(run: &RunResult) -> SpeedCollector {
+pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
     let mut res = SpeedCollector::new();
-    for cell in run
+    for (inst, cell) in run
         .sdf
         .cells_by_name
-        .values()
-        .chain(run.sdf.cells_by_type.values())
+        .iter()
+        .map(|(key, val)| (Some(key.as_str()), val))
+        .chain(run.sdf.cells_by_type.values().map(|val| (None, val)))
     {
         match cell.typ.as_str() {
             "InMux" => collect_int(&mut res, "INT:IMUX_LC", cell),
@@ -682,9 +877,7 @@ pub fn get_speed_data(run: &RunResult) -> SpeedCollector {
             "ICE_GB" => collect_gb_fabric(&mut res, cell),
 
             // IO (ice65)
-            "ICE_IO" | "ICE_GB_IO" => {
-                // TODO
-            }
+            "ICE_IO" | "ICE_GB_IO" => collect_ice_io(&mut res, cell, design),
 
             // IO (ice40)
             "IO_PAD" | "IO_PAD_I3C" | "IO_PAD_OD" => {
@@ -722,6 +915,9 @@ pub fn get_speed_data(run: &RunResult) -> SpeedCollector {
 
             // PLL (ice65)
             "SB_PLL_CORE" | "SB_PLL_PAD" | "SB_PLL_2_PAD" => {
+                let inst =
+                    InstId::from_idx(inst.unwrap().strip_prefix('i').unwrap().parse().unwrap());
+                collect_pll(&mut res, cell, &design.insts[inst]);
                 // TODO
             }
             // PLL (ice40)
@@ -778,7 +974,7 @@ pub fn get_speed_data(run: &RunResult) -> SpeedCollector {
             }
 
             _ => {
-                println!("unknown cell: {}", cell.typ);
+                println!("unknown cell: {typ} {inst:?}", typ = cell.typ);
                 for path in &cell.iopath {
                     println!("  IOPATH {path:?}");
                 }
