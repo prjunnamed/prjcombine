@@ -573,20 +573,33 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
             unreachable!()
         };
         let port_to = strip_index(port_to);
-        let Edge::Posedge(port_from) = &path.port_from else {
-            unreachable!()
+        let (is_neg, port_from) = match path.port_from {
+            Edge::Posedge(ref port_from) => (false, port_from),
+            Edge::Negedge(ref port_from) => (true, port_from),
+            _ => unreachable!(),
         };
         let delay = convert_delay_rf_unate(path);
-        collector.insert(
-            format!("{kind}:{port_from}_TO_{port_to}"),
-            SpeedVal::DelayRfFromEdge(delay),
-        );
+        if matches!(port_from.as_str(), "SCKI" | "SCKO" | "SCLI" | "SCLO") {
+            let pn = if is_neg { 'N' } else { 'P' };
+            collector.insert(
+                format!("{kind}:{port_from}_{pn}_TO_{port_to}"),
+                SpeedVal::DelayRfFromEdge(delay),
+            );
+        } else {
+            assert!(!is_neg);
+            collector.insert(
+                format!("{kind}:{port_from}_TO_{port_to}"),
+                SpeedVal::DelayRfFromEdge(delay),
+            );
+        };
     }
     let mut setuphold = BTreeMap::new();
     for sh in &cell.setuphold {
         // println!("SETUPHOLD {kind} {sh:?}");
-        let Edge::Posedge(port_c) = &sh.edge_c else {
-            unreachable!()
+        let (is_neg, port_c) = match sh.edge_c {
+            Edge::Posedge(ref port_c) => (false, port_c),
+            Edge::Negedge(ref port_c) => (true, port_c),
+            _ => unreachable!(),
         };
         let (is_rise, port_d) = match &sh.edge_d {
             Edge::Posedge(port) => (true, port),
@@ -595,7 +608,7 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
         };
         let port_d = strip_index(port_d);
         let data = setuphold
-            .entry((port_d, port_c))
+            .entry((port_d, is_neg, port_c))
             .or_insert((None, None, None, None));
         if let Some(setup) = sh.setup {
             let delay = convert_delay(setup);
@@ -614,9 +627,16 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
             }
         }
     }
-    for ((port_d, port_c), (sr, sf, hr, hf)) in setuphold {
+    for ((port_d, is_neg, port_c), (sr, sf, hr, hf)) in setuphold {
+        let key = if matches!(port_c.as_str(), "SCKI" | "SCKO" | "SCLI" | "SCLO") {
+            let pn = if is_neg { 'N' } else { 'P' };
+            format!("{kind}:{port_d}_SETUPHOLD_{port_c}_{pn}")
+        } else {
+            assert!(!is_neg);
+            format!("{kind}:{port_d}_SETUPHOLD_{port_c}")
+        };
         collector.insert(
-            format!("{kind}:{port_d}_SETUPHOLD_{port_c}"),
+            key,
             SpeedVal::SetupHoldRf(SetupHoldRf {
                 rise_setup: sr.unwrap(),
                 rise_hold: hr.unwrap(),
@@ -1156,6 +1176,112 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
         }
     }
 
+    // SPI, I2C
+    if matches!(
+        kind,
+        ChipKind::Ice40R04 | ChipKind::Ice40T04 | ChipKind::Ice40T05
+    ) {
+        for pin in [
+            "SBADRI0", "SBADRI1", "SBADRI2", "SBADRI3", "SBADRI4", "SBADRI5", "SBADRI6", "SBADRI7",
+            "SBDATI0", "SBDATI1", "SBDATI2", "SBDATI3", "SBDATI4", "SBDATI5", "SBDATI6", "SBDATI7",
+            "SBRWI", "SBSTBI",
+        ] {
+            collector.want(format!("SPI:{pin}_SETUPHOLD_SBCLKI"));
+        }
+        for pin in [
+            "SBACKO", "SBDATO0", "SBDATO1", "SBDATO2", "SBDATO3", "SBDATO4", "SBDATO5", "SBDATO6",
+            "SBDATO7", "SPIIRQ", "SPIWKUP",
+        ] {
+            collector.want(format!("SPI:SBCLKI_TO_{pin}"));
+        }
+        collector.want("SPI:SCKI_N_TO_SO");
+        collector.want("SPI:SCKI_P_TO_SO");
+        collector.want("SPI:SCKI_P_TO_SOE");
+        collector.want("SPI:SCKO_N_TO_MO");
+        collector.want("SPI:SCKO_P_TO_MO");
+        collector.want("SPI:SCKO_P_TO_MOE");
+        collector.want("SPI:SCKO_P_TO_MCSNO0");
+        collector.want("SPI:SCKO_P_TO_MCSNO1");
+        collector.want("SPI:SCKO_P_TO_MCSNO2");
+        collector.want("SPI:SCKO_P_TO_MCSNO3");
+        collector.want("SPI:SCKO_P_TO_MCSNOE0");
+        collector.want("SPI:SCKO_P_TO_MCSNOE1");
+        collector.want("SPI:SCKO_P_TO_MCSNOE2");
+        collector.want("SPI:SCKO_P_TO_MCSNOE3");
+        collector.want("SPI:MI_SETUPHOLD_SCKO_N");
+        collector.want("SPI:MI_SETUPHOLD_SCKO_P");
+        collector.want("SPI:SCSNI_SETUPHOLD_SCKI_N");
+        collector.want("SPI:SCSNI_SETUPHOLD_SCKI_P");
+        collector.want("SPI:SI_SETUPHOLD_SCKI_N");
+        collector.want("SPI:SI_SETUPHOLD_SCKI_P");
+
+        for pin in [
+            "SBADRI0", "SBADRI1", "SBADRI2", "SBADRI3", "SBADRI4", "SBADRI5", "SBADRI6", "SBADRI7",
+            "SBDATI0", "SBDATI1", "SBDATI2", "SBDATI3", "SBDATI4", "SBDATI5", "SBDATI6", "SBDATI7",
+            "SBRWI", "SBSTBI",
+        ] {
+            collector.want(format!("I2C:{pin}_SETUPHOLD_SBCLKI"));
+        }
+        for pin in [
+            "SBACKO", "SBDATO0", "SBDATO1", "SBDATO2", "SBDATO3", "SBDATO4", "SBDATO5", "SBDATO6",
+            "SBDATO7", "I2CIRQ", "I2CWKUP",
+        ] {
+            collector.want(format!("I2C:SBCLKI_TO_{pin}"));
+        }
+        collector.want("I2C:SCLI_N_TO_SDAO");
+        collector.want("I2C:SCLI_N_TO_SDAOE");
+        collector.want("I2C:SCLI_P_TO_SDAO");
+        collector.want("I2C:SCLI_P_TO_SDAOE");
+        collector.want("I2C:SCLO_N_TO_SDAO");
+        collector.want("I2C:SCLO_N_TO_SDAOE");
+        collector.want("I2C:SCLO_P_TO_SDAO");
+        collector.want("I2C:SCLO_P_TO_SDAOE");
+        collector.want("I2C:SDAI_SETUPHOLD_SCLI_P");
+        collector.want("I2C:SDAI_SETUPHOLD_SCLO_P");
+    }
+    if kind == ChipKind::Ice40T01 {
+        for pin in [
+            "ADRI0", "ADRI1", "ADRI2", "ADRI3", "CSI", "DATI0", "DATI1", "DATI2", "DATI3", "DATI4",
+            "DATI5", "DATI6", "DATI7", "DATI8", "DATI9", "FIFORST", "STBI", "WEI",
+        ] {
+            collector.want(format!("I2C_FIFO:{pin}_SETUPHOLD_CLKI"));
+        }
+        for pin in [
+            "ACKO",
+            "DATO0",
+            "DATO1",
+            "DATO2",
+            "DATO3",
+            "DATO4",
+            "DATO5",
+            "DATO6",
+            "DATO7",
+            "DATO8",
+            "DATO9",
+            "RXFIFOAFULL",
+            "RXFIFOEMPTY",
+            "RXFIFOFULL",
+            "SCLO",
+            "SCLOE",
+            "SRWO",
+            "TXFIFOAEMPTY",
+            "TXFIFOEMPTY",
+            "TXFIFOFULL",
+        ] {
+            collector.want(format!("I2C_FIFO:CLKI_TO_{pin}"));
+        }
+        collector.want("I2C_FIFO:SCLI_N_TO_SDAO");
+        collector.want("I2C_FIFO:SCLI_N_TO_SDAOE");
+        collector.want("I2C_FIFO:SCLI_P_TO_SDAO");
+        collector.want("I2C_FIFO:SCLI_P_TO_SDAOE");
+        collector.want("I2C_FIFO:SCLO_N_TO_SDAO");
+        collector.want("I2C_FIFO:SCLO_N_TO_SDAOE");
+        collector.want("I2C_FIFO:SCLO_P_TO_SDAO");
+        collector.want("I2C_FIFO:SCLO_P_TO_SDAOE");
+        collector.want("I2C_FIFO:SDAI_SETUPHOLD_SCLI_P");
+        collector.want("I2C_FIFO:SDAI_SETUPHOLD_SCLO_P");
+    }
+
     // LEDD_IP
     if kind == ChipKind::Ice40T04 {
         collector.want("LEDD_IP:LEDDCLK_TO_LEDDON");
@@ -1320,14 +1446,22 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
             // SPRAM
             "SB_SPRAM256KA" => collect_simple(&mut res, "SPRAM", cell),
             // hard logic
-            "SB_SPI" => {
-                // TODO
-            }
-            "SB_I2C" => {
-                // TODO
-            }
-            "SB_I2C_FIFO" => {
-                // TODO
+            "SB_SPI" => collect_simple(&mut res, "SPI", cell),
+            "SB_I2C" | "SB_I2C_FIFO" => {
+                let inst =
+                    InstId::from_idx(inst.unwrap().strip_prefix('i').unwrap().parse().unwrap());
+                let inst = &design.insts[inst];
+                if let Some(val) = inst.props.get("SDA_INPUT_DELAYED") {
+                    if val == "1" {
+                        continue;
+                    }
+                }
+                if let Some(val) = inst.props.get("SDA_OUTPUT_DELAYED") {
+                    if val == "1" {
+                        continue;
+                    }
+                }
+                collect_simple(&mut res, &cell.typ[3..], cell);
             }
             "SB_LEDD_IP" => collect_simple(&mut res, "LEDD_IP", cell),
             "SB_LEDDA_IP" => collect_simple(&mut res, "LEDDA_IP", cell),
