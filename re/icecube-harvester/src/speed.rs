@@ -651,6 +651,42 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
     assert!(cell.width.is_empty());
 }
 
+fn collect_drv(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
+    // NOTE: the EN-to-LED paths have two delays in the `.lib` file, `three_state_enable`
+    // and `three_state_disable`.  They are just dumped as two IO paths between the same terminals
+    // upon SDF conversion.  We undo this transformation, and merge them into a single struct.
+    // Since the output in question is open drain, we model output enable as a falling edge,
+    // and output disable as a rising edge.
+    let mut assembly = BTreeMap::new();
+    for path in &cell.iopath {
+        // println!("IOPATH {kind} {path:?}");
+        let Edge::Plain(port_to) = &path.port_to else {
+            unreachable!()
+        };
+        let Edge::Plain(port_from) = &path.port_from else {
+            unreachable!()
+        };
+        let delay = convert_delay_rf_unate(path);
+        let key = format!("{kind}:{port_from}_TO_{port_to}");
+        if port_from.contains("EN") {
+            assert_eq!(delay.rise, delay.fall);
+            let delay = delay.rise;
+            match assembly.entry(key) {
+                btree_map::Entry::Vacant(entry) => {
+                    entry.insert(delay);
+                }
+                btree_map::Entry::Occupied(entry) => {
+                    let (key, fall) = entry.remove_entry();
+                    let delay = DelayRfUnate { rise: delay, fall };
+                    collector.insert(key, SpeedVal::DelayRfNegUnate(delay));
+                }
+            }
+        } else {
+            collector.insert(key, SpeedVal::DelayRfPosUnate(delay));
+        }
+    }
+}
+
 fn collect_filter(collector: &mut SpeedCollector, cell: &Cell) {
     assert_eq!(cell.iopath.len(), 1);
     let iopath = &cell.iopath[0];
@@ -1356,6 +1392,33 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
         collector.want("FILTER:IN_TO_OUT");
     }
 
+    // DRV
+    if kind == ChipKind::Ice40T04 {
+        collector.want("LED_DRV_CUR:EN_TO_LEDPU");
+        collector.want("IR_DRV:IRPWM_TO_IRLED");
+        collector.want("RGB_DRV:RGB0PWM_TO_RGB0");
+        collector.want("RGB_DRV:RGB1PWM_TO_RGB1");
+        collector.want("RGB_DRV:RGB2PWM_TO_RGB2");
+    }
+    if matches!(kind, ChipKind::Ice40T05 | ChipKind::Ice40T01) {
+        collector.want("RGBA_DRV:RGBLEDEN_TO_RGB0");
+        collector.want("RGBA_DRV:RGBLEDEN_TO_RGB1");
+        collector.want("RGBA_DRV:RGBLEDEN_TO_RGB2");
+        collector.want("RGBA_DRV:RGB0PWM_TO_RGB0");
+        collector.want("RGBA_DRV:RGB1PWM_TO_RGB1");
+        collector.want("RGBA_DRV:RGB2PWM_TO_RGB2");
+    }
+    if kind == ChipKind::Ice40T01 {
+        collector.want("IR400_DRV:IRLEDEN_TO_IRLED");
+        collector.want("IR400_DRV:IRPWM_TO_IRLED");
+        collector.want("BARCODE_DRV:BARCODEEN_TO_BARCODE");
+        collector.want("BARCODE_DRV:BARCODEPWM_TO_BARCODE");
+        collector.want("IR500_DRV:IRLEDEN_TO_IRLED1");
+        collector.want("IR500_DRV:IRPWM_TO_IRLED1");
+        collector.want("IR500_DRV:IRLEDEN2_TO_IRLED2");
+        collector.want("IR500_DRV:IRPWM2_TO_IRLED2");
+    }
+
     collector
 }
 
@@ -1505,27 +1568,13 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
             }
 
             // LED drivers
-            "SB_LED_DRV_CUR" => {
-                // TODO
-            }
-            "SB_RGB_DRV" => {
-                // TODO
-            }
-            "SB_IR_DRV" => {
-                // TODO
-            }
-            "SB_RGBA_DRV" => {
-                // TODO
-            }
-            "SB_IR400_DRV" => {
-                // TODO
-            }
-            "SB_BARCODE_DRV" => {
-                // TODO
-            }
-            "ICE_IR500_DRV" => {
-                // TODO
-            }
+            "SB_LED_DRV_CUR" => collect_drv(&mut res, "LED_DRV_CUR", cell),
+            "SB_RGB_DRV" => collect_drv(&mut res, "RGB_DRV", cell),
+            "SB_IR_DRV" => collect_drv(&mut res, "IR_DRV", cell),
+            "SB_RGBA_DRV" => collect_drv(&mut res, "RGBA_DRV", cell),
+            "SB_IR400_DRV" => collect_drv(&mut res, "IR400_DRV", cell),
+            "SB_BARCODE_DRV" => collect_drv(&mut res, "BARCODE_DRV", cell),
+            "ICE_IR500_DRV" => collect_drv(&mut res, "IR500_DRV", cell),
 
             // junk
             "LUT_MUX" | "ADTTRIBUF" | "GIOBUG" => {
