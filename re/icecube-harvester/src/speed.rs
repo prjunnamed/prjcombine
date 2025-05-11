@@ -5,9 +5,9 @@ use prjcombine_siliconblue::chip::ChipKind;
 use prjcombine_types::{
     speed::{
         DelayRfBinate, DelayRfUnate, DerateFactorTemperatureLinear,
-        DerateFactorVoltageInvQuadratic, RecRem, SetupHoldRf, Speed, SpeedVal,
+        DerateFactorVoltageInvQuadratic, RecRem, ResistanceRf, SetupHoldRf, Speed, SpeedVal,
     },
-    units::{Scalar, Time, Voltage},
+    units::{Resistance, Scalar, Time, Voltage},
 };
 use unnamed_entity::EntityId;
 
@@ -31,7 +31,7 @@ impl SpeedCollector {
                 true
             }
             btree_map::Entry::Occupied(entry) => {
-                assert_eq!(*entry.get(), val);
+                assert_eq!(*entry.get(), val, "mismatch for {key}", key = entry.key());
                 false
             }
         }
@@ -350,15 +350,116 @@ fn collect_ice_io(collector: &mut SpeedCollector, cell: &Cell, design: &Design) 
     assert!(cell.width.is_empty());
 }
 
+fn collect_pre_io(collector: &mut SpeedCollector, cell: &Cell) {
+    for path in &cell.iopath {
+        let (is_edge, is_neg, port_from) = match path.port_from {
+            Edge::Plain(ref port) => (false, false, port.as_str()),
+            Edge::Posedge(ref port) => (true, false, port.as_str()),
+            Edge::Negedge(ref port) => (true, true, port.as_str()),
+        };
+        let Edge::Plain(ref port_to) = path.port_to else {
+            unreachable!()
+        };
+        let port_to = port_to.as_str();
+        let (is_edge, key) = match (is_edge, is_neg, port_from, port_to) {
+            (false, false, "PADIN", "DIN0") => (false, "PADIN_TO_DIN0"),
+            (false, false, "PADSIGNALTOGLOBALBUFFER", "GLOBALBUFFEROUTPUT") => {
+                (false, "PADIN_TO_GB")
+            }
+            (false, false, "LATCHINPUTVALUE", "DIN0") => (false, "LATCH_TO_DIN0"),
+            (true, false, "INPUTCLK", "DIN0") => (true, "ICLK_P_TO_DIN0"),
+            (true, true, "INPUTCLK", "DIN1") => (true, "ICLK_N_TO_DIN1"),
+            (false, false, "DOUT0", "PADOUT") => (false, "DOUT0_TO_PADOUT"),
+            (true, false, "OUTPUTCLK", "PADOUT") => (true, "OCLK_P_TO_PADOUT"),
+            (true, true, "OUTPUTCLK", "PADOUT") => (true, "OCLK_N_TO_PADOUT"),
+            (false, false, "OUTPUTENABLE", "PADOEN") => (false, "OE_TO_PADOEN"),
+            (true, false, "OUTPUTCLK", "PADOEN") => (true, "OCLK_P_TO_PADOEN"),
+            _ => {
+                println!("unk IOPATH {path:?}");
+                continue;
+            }
+        };
+        let delay = convert_delay_rf_unate(path);
+        if is_edge {
+            collector.insert(format!("IO:{key}"), SpeedVal::DelayRfFromEdge(delay));
+        } else {
+            collector.insert(format!("IO:{key}"), SpeedVal::DelayRfPosUnate(delay));
+        }
+    }
+    let mut setuphold = BTreeMap::new();
+    for sh in &cell.setuphold {
+        let (is_neg, port_c) = match sh.edge_c {
+            Edge::Posedge(ref port) => (false, port.as_str()),
+            Edge::Negedge(ref port) => (true, port.as_str()),
+            _ => unreachable!(),
+        };
+        let (is_rise, port_d) = match sh.edge_d {
+            Edge::Posedge(ref port) => (true, port.as_str()),
+            Edge::Negedge(ref port) => (false, port.as_str()),
+            _ => unreachable!(),
+        };
+        let key = match (port_d, is_neg, port_c) {
+            ("CLOCKENABLE", false, "INPUTCLK") => "CE_SETUPHOLD_ICLK",
+            ("CLOCKENABLE", false, "OUTPUTCLK") => "CE_SETUPHOLD_OCLK",
+            ("PADIN", false, "INPUTCLK") => "PADIN_SETUPHOLD_ICLK_P",
+            ("PADIN", true, "INPUTCLK") => "PADIN_SETUPHOLD_ICLK_N",
+            ("DOUT0", false, "OUTPUTCLK") => "DOUT0_SETUPHOLD_OCLK_P",
+            ("DOUT1", true, "OUTPUTCLK") => "DOUT1_SETUPHOLD_OCLK_N",
+            ("OUTPUTENABLE", false, "OUTPUTCLK") => "OE_SETUPHOLD_OCLK_P",
+            _ => {
+                println!("unk SETUPHOLD {sh:?}");
+                continue;
+            }
+        };
+        let data = setuphold.entry(key).or_insert((None, None, None, None));
+        if let Some(setup) = sh.setup {
+            let delay = convert_delay(setup);
+            if is_rise {
+                data.0 = Some(delay);
+            } else {
+                data.1 = Some(delay);
+            }
+        }
+        if let Some(hold) = sh.hold {
+            let delay = convert_delay(hold);
+            if is_rise {
+                data.2 = Some(delay);
+            } else {
+                data.3 = Some(delay);
+            }
+        }
+    }
+    for (key, (sr, sf, hr, hf)) in setuphold {
+        collector.insert(
+            format!("IO:{key}"),
+            SpeedVal::SetupHoldRf(SetupHoldRf {
+                rise_setup: sr.unwrap(),
+                rise_hold: hr.unwrap(),
+                fall_setup: sf.unwrap(),
+                fall_hold: hf.unwrap(),
+            }),
+        );
+    }
+    assert!(cell.ports.is_empty());
+    assert!(cell.recrem.is_empty());
+    assert!(cell.period.is_empty());
+    assert!(cell.width.is_empty());
+}
+
 fn collect_pll(collector: &mut SpeedCollector, cell: &Cell, inst: &Instance) {
     let feedback = inst.props["FEEDBACK_PATH"].as_str();
     let typ = cell.typ.as_str();
     for path in &cell.iopath {
-        let Edge::Plain(ref port_from) = path.port_from else {
-            unreachable!();
-        };
         let Edge::Plain(ref port_to) = path.port_to else {
             unreachable!();
+        };
+        let Edge::Plain(ref port_from) = path.port_from else {
+            let Edge::Negedge(ref port_from) = path.port_from else {
+                unreachable!();
+            };
+            assert_eq!(port_from, "SCLK");
+            assert_eq!(port_to, "SDO");
+            continue;
         };
         let key = match (typ, port_from.as_str(), port_to.as_str()) {
             ("SB_PLL_CORE", "REFERENCECLK", "PLLOUTCORE") => {
@@ -379,12 +480,59 @@ fn collect_pll(collector: &mut SpeedCollector, cell: &Cell, inst: &Instance) {
             ("SB_PLL_2_PAD", "PACKAGEPIN", "PLLOUTGLOBALB") => {
                 format!("PLL:PAD_TO_PLLOUTGLOBAL_{feedback}")
             }
-            ("SB_PLL_2_PAD", "PACKAGEPIN", "PLLOUTCOREA") => {
-                "IO:PAD_TO_DIN0".to_string()
+            ("SB_PLL_2_PAD", "PACKAGEPIN", "PLLOUTCOREA") => "IO:PAD_TO_DIN0".to_string(),
+            ("SB_PLL_2_PAD", "PACKAGEPIN", "PLLOUTGLOBALA") => "IO:PAD_TO_GB".to_string(),
+
+            ("SB_PLL40_CORE", "REFERENCECLK", "PLLOUTCORE") => {
+                format!("PLL40_CORE:REFERENCECLK_TO_PLLOUTCORE_{feedback}")
             }
-            ("SB_PLL_2_PAD", "PACKAGEPIN", "PLLOUTGLOBALA") => {
-                "IO:PAD_TO_GB".to_string()
+            ("SB_PLL40_CORE", "REFERENCECLK", "PLLOUTGLOBAL") => {
+                format!("PLL40_CORE:REFERENCECLK_TO_PLLOUTGLOBAL_{feedback}")
             }
+            ("SB_PLL40_2F_CORE", "REFERENCECLK", "PLLOUTCOREA") => {
+                format!("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTCOREA_{feedback}")
+            }
+            ("SB_PLL40_2F_CORE", "REFERENCECLK", "PLLOUTGLOBALA") => {
+                format!("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTGLOBALA_{feedback}")
+            }
+            ("SB_PLL40_2F_CORE", "REFERENCECLK", "PLLOUTCOREB") => {
+                format!("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTCOREB_{feedback}")
+            }
+            ("SB_PLL40_2F_CORE", "REFERENCECLK", "PLLOUTGLOBALB") => {
+                format!("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTGLOBALB_{feedback}")
+            }
+
+            ("PLL40", "PLLIN", "PLLOUTCORE") => {
+                format!("PLL40_PAD:PLLIN_TO_PLLOUTCORE_{feedback}")
+            }
+            ("PLL40", "PLLIN", "PLLOUTGLOBAL") => {
+                format!("PLL40_PAD:PLLIN_TO_PLLOUTGLOBAL_{feedback}")
+            }
+            ("PLL40_2", "PLLIN", "PLLOUTCOREA") => {
+                format!("PLL40_2_PAD:PLLIN_TO_PLLOUTCOREA_{feedback}")
+            }
+            ("PLL40_2", "PLLIN", "PLLOUTGLOBALA") => {
+                format!("PLL40_2_PAD:PLLIN_TO_PLLOUTGLOBALA_{feedback}")
+            }
+            ("PLL40_2", "PLLIN", "PLLOUTCOREB") => {
+                format!("PLL40_2_PAD:PLLIN_TO_PLLOUTCOREB_{feedback}")
+            }
+            ("PLL40_2", "PLLIN", "PLLOUTGLOBALB") => {
+                format!("PLL40_2_PAD:PLLIN_TO_PLLOUTGLOBALB_{feedback}")
+            }
+            ("PLL40_2F", "PLLIN", "PLLOUTCOREA") => {
+                format!("PLL40_2F_PAD:PLLIN_TO_PLLOUTCOREA_{feedback}")
+            }
+            ("PLL40_2F", "PLLIN", "PLLOUTGLOBALA") => {
+                format!("PLL40_2F_PAD:PLLIN_TO_PLLOUTGLOBALA_{feedback}")
+            }
+            ("PLL40_2F", "PLLIN", "PLLOUTCOREB") => {
+                format!("PLL40_2F_PAD:PLLIN_TO_PLLOUTCOREB_{feedback}")
+            }
+            ("PLL40_2F", "PLLIN", "PLLOUTGLOBALB") => {
+                format!("PLL40_2F_PAD:PLLIN_TO_PLLOUTGLOBALB_{feedback}")
+            }
+
             _ => {
                 println!("unk IOPATH {typ} {feedback} {path:?}");
                 continue;
@@ -393,8 +541,17 @@ fn collect_pll(collector: &mut SpeedCollector, cell: &Cell, inst: &Instance) {
         let delay = convert_delay_rf_unate(path);
         collector.insert(key, SpeedVal::DelayRfPosUnate(delay));
     }
+    for sh in &cell.setuphold {
+        let Edge::Negedge(ref port_c) = sh.edge_c else {
+            unreachable!();
+        };
+        assert_eq!(port_c, "SCLK");
+        let (Edge::Negedge(ref port_d) | Edge::Posedge(ref port_d)) = sh.edge_d else {
+            unreachable!();
+        };
+        assert_eq!(port_d, "SDI");
+    }
     assert!(cell.ports.is_empty());
-    assert!(cell.setuphold.is_empty());
     assert!(cell.recrem.is_empty());
     assert!(cell.period.is_empty());
     assert!(cell.width.is_empty());
@@ -498,6 +655,44 @@ fn collect_null(cell: &Cell) {
     }
     assert!(cell.period.is_empty());
     assert!(cell.width.is_empty());
+}
+
+fn insert_iob_data(
+    collector: &mut SpeedCollector,
+    prefix: &str,
+    del_out: (f64, f64),
+    res_out: (f64, f64),
+    del_oe: (f64, f64),
+    del_in: (f64, f64),
+) {
+    collector.insert(
+        format!("{prefix}:PAD_TO_PADIN"),
+        SpeedVal::DelayRfPosUnate(DelayRfUnate {
+            rise: Time(del_in.0.into()),
+            fall: Time(del_in.1.into()),
+        }),
+    );
+    collector.insert(
+        format!("{prefix}:PADOUT_TO_PAD"),
+        SpeedVal::DelayRfPosUnate(DelayRfUnate {
+            rise: Time(del_out.0.into()),
+            fall: Time(del_out.1.into()),
+        }),
+    );
+    collector.insert(
+        format!("{prefix}:PADOUT_TO_PAD_RES"),
+        SpeedVal::ResistanceRf(ResistanceRf {
+            rise: Resistance(res_out.0.into()),
+            fall: Resistance(res_out.1.into()),
+        }),
+    );
+    collector.insert(
+        format!("{prefix}:PADOEN_TO_PAD"),
+        SpeedVal::DelayRfPosUnate(DelayRfUnate {
+            rise: Time(del_oe.0.into()),
+            fall: Time(del_oe.1.into()),
+        }),
+    );
 }
 
 pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollector {
@@ -697,7 +892,7 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
         collector.want("IO:OE_SETUPHOLD_OCLK_P");
         collector.want("IO:OCLK_P_TO_PAD_OE");
 
-        if part.starts_with("iCE65P") {
+        if kind == ChipKind::Ice65P04 {
             collector.want("PLL:REFERENCECLK_TO_PLLOUTCORE_SIMPLE");
             collector.want("PLL:REFERENCECLK_TO_PLLOUTCORE_DELAY");
             collector.want("PLL:REFERENCECLK_TO_PLLOUTCORE_PHASE_AND_DELAY");
@@ -717,7 +912,218 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
             collector.want("PLL:PAD_TO_PLLOUTGLOBAL_EXTERNAL");
         }
     } else {
-        // TODO
+        collector.want("IO:CE_SETUPHOLD_ICLK");
+        collector.want("IO:CE_SETUPHOLD_OCLK");
+
+        collector.want("IO:PADIN_TO_DIN0");
+        collector.want("IO:PADIN_TO_GB");
+        collector.want("IO:LATCH_TO_DIN0");
+        collector.want("IO:PADIN_SETUPHOLD_ICLK_P");
+        collector.want("IO:PADIN_SETUPHOLD_ICLK_N");
+        collector.want("IO:ICLK_P_TO_DIN0");
+        collector.want("IO:ICLK_N_TO_DIN1");
+
+        collector.want("IO:DOUT0_TO_PADOUT");
+        collector.want("IO:DOUT0_SETUPHOLD_OCLK_P");
+        collector.want("IO:DOUT1_SETUPHOLD_OCLK_N");
+        collector.want("IO:OCLK_P_TO_PADOUT");
+        collector.want("IO:OCLK_N_TO_PADOUT");
+
+        collector.want("IO:OE_TO_PADOEN");
+        collector.want("IO:OE_SETUPHOLD_OCLK_P");
+        collector.want("IO:OCLK_P_TO_PADOEN");
+
+        for v in ["1.8", "2.5", "3.3"] {
+            collector.want(format!("IOB_{v}:PAD_TO_PADIN"));
+            collector.want(format!("IOB_{v}:PADOUT_TO_PAD"));
+            collector.want(format!("IOB_{v}:PADOUT_TO_PAD_RES"));
+            collector.want(format!("IOB_{v}:PADOEN_TO_PAD"));
+        }
+
+        if kind == ChipKind::Ice40R04 {
+            insert_iob_data(
+                &mut collector,
+                "IOB_3.3",
+                (1941.5 - 353.0, 1973.2 - 353.0),
+                (35.0, 38.0),
+                (2537.0, 2347.0),
+                (485.0, 755.0),
+            );
+            insert_iob_data(
+                &mut collector,
+                "IOB_2.5",
+                (1941.5, 1973.2),
+                (35.0, 38.0),
+                (2890.0, 2700.0),
+                (830.0, 1100.0),
+            );
+            insert_iob_data(
+                &mut collector,
+                "IOB_1.8",
+                (1941.5 + 1191.0, 1973.2 + 1191.0),
+                (35.0, 38.0),
+                (4081.0, 3891.0),
+                (2021.0, 2291.0),
+            );
+        } else {
+            insert_iob_data(
+                &mut collector,
+                "IOB_3.3",
+                (1634.0, 1768.0),
+                (28.0, 32.0),
+                (1768.0, 1634.0),
+                (510.0, 460.0),
+            );
+            insert_iob_data(
+                &mut collector,
+                "IOB_2.5",
+                (1941.5, 1973.2),
+                (35.0, 38.0),
+                (1973.0, 1942.0),
+                (590.0, 540.0),
+            );
+            insert_iob_data(
+                &mut collector,
+                "IOB_1.8",
+                (2824.0, 2707.0),
+                (51.0, 53.0),
+                (2707.0, 2824.0),
+                (850.0, 770.0),
+            );
+        }
+
+        if kind.has_actual_io_we() {
+            for v in ["1.8", "2.5", "3.3"] {
+                collector.want(format!("IOB_W_{v}:PAD_TO_PADIN"));
+                collector.want(format!("IOB_W_{v}:PADOUT_TO_PAD"));
+                collector.want(format!("IOB_W_{v}:PADOUT_TO_PAD_RES"));
+                collector.want(format!("IOB_W_{v}:PADOEN_TO_PAD"));
+            }
+            insert_iob_data(
+                &mut collector,
+                "IOB_W_3.3",
+                (1634.0, 1768.0),
+                (28.0, 32.0),
+                (1681.0, 1617.0),
+                (510.0, 460.0),
+            );
+            insert_iob_data(
+                &mut collector,
+                "IOB_W_2.5",
+                (1941.5, 1973.2),
+                (35.0, 38.0),
+                (1902.0, 1990.0),
+                (590.0, 540.0),
+            );
+            insert_iob_data(
+                &mut collector,
+                "IOB_W_1.8",
+                (2824.0, 2707.0),
+                (51.0, 53.0),
+                (2631.0, 2965.0),
+                (850.0, 770.0),
+            );
+        }
+
+        if !kind.has_io_we() {
+            for v in ["1.8", "2.5", "3.3"] {
+                collector.want(format!("IOB_OD_{v}:PAD_TO_PADIN"));
+                collector.want(format!("IOB_OD_{v}:PADOUT_TO_PAD"));
+                collector.want(format!("IOB_OD_{v}:PADOUT_TO_PAD_RES"));
+                collector.want(format!("IOB_OD_{v}:PADOEN_TO_PAD"));
+            }
+            insert_iob_data(
+                &mut collector,
+                "IOB_OD_3.3",
+                (f64::INFINITY, 1768.0),
+                (f64::INFINITY, 32.0),
+                (2510.0, 2350.0),
+                (720.0, 960.0),
+            );
+            insert_iob_data(
+                &mut collector,
+                "IOB_OD_2.5",
+                (f64::INFINITY, 1973.2),
+                (f64::INFINITY, 38.0),
+                (2890.0, 2700.0),
+                (830.0, 1100.0),
+            );
+            insert_iob_data(
+                &mut collector,
+                "IOB_OD_1.8",
+                (f64::INFINITY, 2707.0),
+                (f64::INFINITY, 53.0),
+                (4080.0, 3810.0),
+                (1180.0, 1560.0),
+            );
+        }
+
+        if kind != ChipKind::Ice40P03 && part != "iCE40HX640" {
+            collector.want("PLL40_CORE:REFERENCECLK_TO_PLLOUTCORE_SIMPLE");
+            collector.want("PLL40_CORE:REFERENCECLK_TO_PLLOUTCORE_DELAY");
+            collector.want("PLL40_CORE:REFERENCECLK_TO_PLLOUTCORE_PHASE_AND_DELAY");
+            collector.want("PLL40_CORE:REFERENCECLK_TO_PLLOUTCORE_EXTERNAL");
+            collector.want("PLL40_CORE:REFERENCECLK_TO_PLLOUTGLOBAL_SIMPLE");
+            collector.want("PLL40_CORE:REFERENCECLK_TO_PLLOUTGLOBAL_DELAY");
+            collector.want("PLL40_CORE:REFERENCECLK_TO_PLLOUTGLOBAL_PHASE_AND_DELAY");
+            collector.want("PLL40_CORE:REFERENCECLK_TO_PLLOUTGLOBAL_EXTERNAL");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTCOREA_SIMPLE");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTCOREA_DELAY");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTCOREA_PHASE_AND_DELAY");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTCOREA_EXTERNAL");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTGLOBALA_SIMPLE");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTGLOBALA_DELAY");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTGLOBALA_PHASE_AND_DELAY");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTGLOBALA_EXTERNAL");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTCOREB_SIMPLE");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTCOREB_DELAY");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTCOREB_PHASE_AND_DELAY");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTCOREB_EXTERNAL");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTGLOBALB_SIMPLE");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTGLOBALB_DELAY");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTGLOBALB_PHASE_AND_DELAY");
+            collector.want("PLL40_2F_CORE:REFERENCECLK_TO_PLLOUTGLOBALB_EXTERNAL");
+            collector.want("PLL40_PAD:PLLIN_TO_PLLOUTCORE_SIMPLE");
+            collector.want("PLL40_PAD:PLLIN_TO_PLLOUTCORE_DELAY");
+            collector.want("PLL40_PAD:PLLIN_TO_PLLOUTCORE_PHASE_AND_DELAY");
+            collector.want("PLL40_PAD:PLLIN_TO_PLLOUTCORE_EXTERNAL");
+            collector.want("PLL40_PAD:PLLIN_TO_PLLOUTGLOBAL_SIMPLE");
+            collector.want("PLL40_PAD:PLLIN_TO_PLLOUTGLOBAL_DELAY");
+            collector.want("PLL40_PAD:PLLIN_TO_PLLOUTGLOBAL_PHASE_AND_DELAY");
+            collector.want("PLL40_PAD:PLLIN_TO_PLLOUTGLOBAL_EXTERNAL");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTCOREA_SIMPLE");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTCOREA_DELAY");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTCOREA_PHASE_AND_DELAY");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTCOREA_EXTERNAL");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTGLOBALA_SIMPLE");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTGLOBALA_DELAY");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTGLOBALA_PHASE_AND_DELAY");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTGLOBALA_EXTERNAL");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTCOREB_SIMPLE");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTCOREB_DELAY");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTCOREB_PHASE_AND_DELAY");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTCOREB_EXTERNAL");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTGLOBALB_SIMPLE");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTGLOBALB_DELAY");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTGLOBALB_PHASE_AND_DELAY");
+            collector.want("PLL40_2_PAD:PLLIN_TO_PLLOUTGLOBALB_EXTERNAL");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTCOREA_SIMPLE");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTCOREA_DELAY");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTCOREA_PHASE_AND_DELAY");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTCOREA_EXTERNAL");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTGLOBALA_SIMPLE");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTGLOBALA_DELAY");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTGLOBALA_PHASE_AND_DELAY");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTGLOBALA_EXTERNAL");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTCOREB_SIMPLE");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTCOREB_DELAY");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTCOREB_PHASE_AND_DELAY");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTCOREB_EXTERNAL");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTGLOBALB_SIMPLE");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTGLOBALB_DELAY");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTGLOBALB_PHASE_AND_DELAY");
+            collector.want("PLL40_2F_PAD:PLLIN_TO_PLLOUTGLOBALB_EXTERNAL");
+        }
     }
 
     // BRAM
@@ -881,13 +1287,11 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
 
             // IO (ice40)
             "IO_PAD" | "IO_PAD_I3C" | "IO_PAD_OD" => {
-                // TODO
+                // (ignored)
             }
-            _ if cell.typ.starts_with("PRE_IO") => {
-                // TODO
-            }
+            _ if cell.typ.starts_with("PRE_IO") => collect_pre_io(&mut res, cell),
             "SB_IO_OD" => {
-                // TODO
+                // (ignored)
             }
 
             // BRAM
@@ -913,32 +1317,40 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
                 // TODO
             }
 
-            // PLL (ice65)
-            "SB_PLL_CORE" | "SB_PLL_PAD" | "SB_PLL_2_PAD" => {
-                let inst =
-                    InstId::from_idx(inst.unwrap().strip_prefix('i').unwrap().parse().unwrap());
+            // PLL
+            "SB_PLL_CORE" | "SB_PLL_PAD" | "SB_PLL_2_PAD" | "SB_PLL40_CORE"
+            | "SB_PLL40_2F_CORE" | "PLL40" | "PLL40_2" | "PLL40_2F" => {
+                let inst = if cell.typ.starts_with("PLL40") {
+                    if inst.is_none() {
+                        continue;
+                    }
+                    InstId::from_idx(
+                        inst.unwrap()
+                            .strip_prefix('i')
+                            .unwrap()
+                            .strip_suffix("_pll")
+                            .unwrap()
+                            .parse()
+                            .unwrap(),
+                    )
+                } else {
+                    InstId::from_idx(inst.unwrap().strip_prefix('i').unwrap().parse().unwrap())
+                };
                 collect_pll(&mut res, cell, &design.insts[inst]);
-                // TODO
             }
-            // PLL (ice40)
-            "SB_PLL40_CORE"
-            | "SB_PLL40_2F_CORE"
-            | "PLL40"
-            | "PLL40_FEEDBACK_PATH_DELAY"
+            "PLL40_FEEDBACK_PATH_DELAY"
             | "PLL40_FEEDBACK_PATH_EXTERNAL"
             | "PLL40_FEEDBACK_PATH_PHASE_AND_DELAY"
             | "PLL40_FEEDBACK_PATH_SIMPLE"
-            | "PLL40_2"
             | "PLL40_2_FEEDBACK_PATH_DELAY"
             | "PLL40_2_FEEDBACK_PATH_EXTERNAL"
             | "PLL40_2_FEEDBACK_PATH_PHASE_AND_DELAY"
             | "PLL40_2_FEEDBACK_PATH_SIMPLE"
-            | "PLL40_2F"
             | "PLL40_2F_FEEDBACK_PATH_DELAY"
             | "PLL40_2F_FEEDBACK_PATH_EXTERNAL"
             | "PLL40_2F_FEEDBACK_PATH_PHASE_AND_DELAY"
             | "PLL40_2F_FEEDBACK_PATH_SIMPLE" => {
-                // TODO
+                // (ignore)
             }
 
             // LED drivers

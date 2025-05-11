@@ -348,6 +348,9 @@ impl HarvestContext<'_> {
 
     fn add_sample(&self, key: &str, design: Design, result: RunResult) -> bool {
         let speed = get_speed_data(&design, &result);
+        if self.ctx.debug >= 2 {
+            println!("SPEED MERGE {key}");
+        }
         let mut changed = self.speed[&(design.device.as_str(), design.speed.as_str())]
             .lock()
             .unwrap()

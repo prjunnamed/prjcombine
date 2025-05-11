@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use jzon::JsonValue;
 use serde::{Deserialize, Serialize};
 
-use crate::units::{Scalar, Temperature, Time, Voltage};
+use crate::units::{Resistance, Scalar, Temperature, Time, Voltage};
 
 /// A simple propagation delay, with minimum and maximum value.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -258,6 +258,19 @@ impl std::fmt::Display for DerateFactorVoltageInvQuadratic {
     }
 }
 
+/// An unateness-aware resistance.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ResistanceRf {
+    pub rise: Resistance,
+    pub fall: Resistance,
+}
+
+impl std::fmt::Display for ResistanceRf {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "+{} -{}", self.rise, self.fall)
+    }
+}
+
 /// A single speed value in the speed database.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum SpeedVal {
@@ -323,6 +336,8 @@ pub enum SpeedVal {
     Scalar(Scalar),
     DerateFactorTemperatureLinear(DerateFactorTemperatureLinear),
     DerateFactorVoltageInvQuadratic(DerateFactorVoltageInvQuadratic),
+    Resistance(Resistance),
+    ResistanceRf(ResistanceRf),
 }
 
 impl std::fmt::Display for SpeedVal {
@@ -354,6 +369,8 @@ impl std::fmt::Display for SpeedVal {
             SpeedVal::DerateFactorVoltageInvQuadratic(eq) => {
                 write!(f, "derate voltage inverse quadratic {eq}")
             }
+            SpeedVal::Resistance(res) => write!(f, "res {res}"),
+            SpeedVal::ResistanceRf(res) => write!(f, "res rf {res}"),
         }
     }
 }
@@ -473,6 +490,15 @@ impl From<SpeedVal> for JsonValue {
                 a: eq.a,
                 b: eq.b,
                 c: eq.c,
+            },
+            SpeedVal::Resistance(res) => jzon::object! {
+                kind: "resistance",
+                value: res,
+            },
+            SpeedVal::ResistanceRf(res) => jzon::object! {
+                kind: "resistance_rf",
+                rise: res.rise,
+                fall: res.fall,
             },
         }
     }

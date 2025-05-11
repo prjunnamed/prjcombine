@@ -1646,6 +1646,15 @@ impl Generator<'_> {
                 .rng
                 .random_range(2..=self.pkg_info.bel_info[kind].len());
         }
+        let mut dsp_limit = 0;
+        if let Some(dsps) = self.pkg_info.bel_info.get("SB_MAC16") {
+            dsp_limit = dsps.len();
+        }
+        if self.rng.random_bool(0.6) {
+            actual_lcs /= 8;
+            actual_brams /= 8;
+            dsp_limit /= 2;
+        }
 
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         enum Thing {
@@ -1709,7 +1718,10 @@ impl Generator<'_> {
                     things.push(Thing::IrIp);
                 }
                 ExtraNodeLoc::Mac16(_, _) => {
-                    things.push(Thing::Dsp);
+                    if dsp_limit > 0 {
+                        things.push(Thing::Dsp);
+                        dsp_limit -= 1;
+                    }
                 }
                 ExtraNodeLoc::SpramPair(side) => {
                     things.push(Thing::Spram(side));

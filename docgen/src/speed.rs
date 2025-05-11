@@ -97,6 +97,13 @@ pub fn gen_speed<'a>(ctx: &mut DocgenContext, tag: &str, speeds: &[SpeedData<'a>
                     add_kv(idx, k, "b", eq.b.to_string());
                     add_kv(idx, k, "c", eq.c.to_string());
                 }
+                SpeedVal::Resistance(res) => {
+                    add_kv(idx, k, "", res.to_string());
+                }
+                SpeedVal::ResistanceRf(res) => {
+                    add_kv(idx, k, "rise", res.rise.to_string());
+                    add_kv(idx, k, "fall", res.fall.to_string());
+                }
             }
         }
     }
