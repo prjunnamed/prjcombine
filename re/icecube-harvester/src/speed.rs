@@ -631,6 +631,20 @@ fn collect_simple(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
     assert!(cell.width.is_empty());
 }
 
+fn collect_filter(collector: &mut SpeedCollector, cell: &Cell) {
+    assert_eq!(cell.iopath.len(), 1);
+    let iopath = &cell.iopath[0];
+    assert_eq!(iopath.port_from, Edge::Plain("FILTERIN".into()));
+    assert_eq!(iopath.port_to, Edge::Plain("FILTEROUT".into()));
+    let delay = convert_delay_rf_unate(iopath);
+    collector.insert("FILTER:IN_TO_OUT", SpeedVal::DelayRfPosUnate(delay));
+    assert!(cell.ports.is_empty());
+    assert!(cell.setuphold.is_empty());
+    assert!(cell.recrem.is_empty());
+    assert!(cell.period.is_empty());
+    assert!(cell.width.is_empty());
+}
+
 fn collect_null(cell: &Cell) {
     for iopath in &cell.iopath {
         assert_eq!(iopath.del_rise, ZERO);
@@ -1211,6 +1225,11 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
         collector.want("SPRAM:WREN_SETUPHOLD_CLOCK");
     }
 
+    // FILTER
+    if kind == ChipKind::Ice40T05 {
+        collector.want("FILTER:IN_TO_OUT");
+    }
+
     collector
 }
 
@@ -1313,9 +1332,7 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
             "SB_LEDD_IP" => collect_simple(&mut res, "LEDD_IP", cell),
             "SB_LEDDA_IP" => collect_simple(&mut res, "LEDDA_IP", cell),
             "SB_IR_IP" => collect_simple(&mut res, "IR_IP", cell),
-            "SB_FILTER_50NS" => {
-                // TODO
-            }
+            "SB_FILTER_50NS" => collect_filter(&mut res, cell),
 
             // PLL
             "SB_PLL_CORE" | "SB_PLL_PAD" | "SB_PLL_2_PAD" | "SB_PLL40_CORE"
