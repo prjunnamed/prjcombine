@@ -668,7 +668,7 @@ fn collect_drv(collector: &mut SpeedCollector, kind: &str, cell: &Cell) {
         };
         let delay = convert_delay_rf_unate(path);
         let key = format!("{kind}:{port_from}_TO_{port_to}");
-        if port_from.contains("EN") {
+        if port_from.contains("EN") && kind != "LED_DRV_CUR" {
             assert_eq!(delay.rise, delay.fall);
             let delay = delay.rise;
             match assembly.entry(key) {
