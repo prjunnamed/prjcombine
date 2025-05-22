@@ -1,6 +1,6 @@
 # General interconnect
 
-The Spartan 3 general interconnect is essentially a scaled-down version of Virtex 2 interconnect.
+The Spartan 3 general interconnect is essentially a scaled-down version of [Virtex 2 interconnect](../../virtex2/interconnect/README.md).
 
 The general interconnect of Virtex 2 is made of several kinds of similar, but not identical interconnect tiles. The tile types include:
 
