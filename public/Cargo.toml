@@ -49,7 +49,14 @@ clap = "4.1"
 serde = { version = "1.0", features = ["derive"] }
 zstd = "0.13"
 
+[profile.dev]
+opt-level = 2
+overflow-checks = false
+debug-assertions = false
+debug = 2
+
 [workspace.lints.clippy]
+collapsible_if = "allow"
 collapsible_else_if = "allow"
 bool_to_int_with_if = "allow"
 needless_range_loop = "allow"
