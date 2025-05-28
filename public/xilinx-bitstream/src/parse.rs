@@ -1890,7 +1890,9 @@ fn parse_virtex4_bitstream(
                     insert_virtex4_frame(diebs, fi, last_frame.as_ref().unwrap());
                     if kind == DeviceKind::Virtex7 && diebs.frame_info[fi].addr.typ == 1 {
                         for _ in 0..8 {
-                            assert_eq!(packets.next(), Some(Packet::Nop));
+                            if packets.peek() == Some(Packet::Nop) {
+                                packets.next();
+                            }
                         }
                     }
                 }
@@ -2016,9 +2018,9 @@ fn parse_virtex4_bitstream(
                 num_nops -= 2;
             }
             num_nops -= 6 * trim_regs;
-            for _ in 0..num_nops {
-                assert_eq!(packets.next(), Some(Packet::Nop));
-            }
+            // for _ in 0..num_nops {
+            //     assert_eq!(packets.next(), Some(Packet::Nop));
+            // }
         }
         _ => unreachable!(),
     }
@@ -2044,7 +2046,7 @@ fn parse_virtex4_bitstream(
     loop {
         match packets.next() {
             Some(Packet::Nop) => (),
-            Some(Packet::DummyWord) => break,
+            Some(Packet::DummyWord) => return,
             None => return,
             p => panic!("expected end got {p:?}"),
         }

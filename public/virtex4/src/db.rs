@@ -9,6 +9,7 @@ use unnamed_entity::{EntityId, EntityMap, EntityVec, entity_id};
 use crate::{
     bond::Bond,
     chip::{Chip, DisabledPart, Interposer},
+    expanded::ExpandedDevice,
     gtz::GtzDb,
 };
 
@@ -61,6 +62,17 @@ impl Database {
         bincode::serialize_into(&mut cf, self)?;
         cf.finish()?;
         Ok(())
+    }
+
+    pub fn expand_grid(&self, part: &Part) -> ExpandedDevice {
+        let chips = part.chips.map(|_, &chip_id| &self.chips[chip_id]);
+        crate::expand_grid(
+            &chips,
+            part.interposer.map(|iid| &self.interposers[iid]),
+            &part.disabled,
+            &self.int,
+            &self.gtz,
+        )
     }
 }
 
