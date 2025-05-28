@@ -57,9 +57,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     for die in egrid.dies() {
         for col in die.cols() {
             for row in die.rows() {
-                for (layer, node) in &die[(col, row)].nodes {
+                for (layer, node) in &die[(col, row)].tiles {
                     let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.nodes.key(node.kind);
+                    let kind = egrid.db.tile_classes.key(node.class);
                     let mut naming = kind.to_string();
                     if col == grid.col_w() + 1 {
                         naming += ".L1";

@@ -1,10 +1,10 @@
 use prjcombine_interconnect::{
-    db::NodeTileId,
+    db::TileCellId,
     grid::{DieId, LayerId},
 };
 use prjcombine_re_fpga_hammer::{Diff, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_xc2000::bels::xc2000 as bels;
 use unnamed_entity::EntityId;
 
@@ -17,7 +17,7 @@ use crate::{
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let grid = backend.edev.chip;
-    for (_, tile, node) in &backend.egrid.db.nodes {
+    for (_, tile, node) in &backend.egrid.db.tile_classes {
         if !tile.starts_with("CLB") {
             continue;
         }
@@ -69,16 +69,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 LayerId::from_idx(0),
             );
             let wt = (
-                NodeTileId::from_idx(0),
+                TileCellId::from_idx(0),
                 backend.egrid.db.get_wire("IMUX.BUFG"),
             );
             let wf = (
-                NodeTileId::from_idx(0),
+                TileCellId::from_idx(0),
                 backend.egrid.db.get_wire("OUT.OSC"),
             );
             let crd = backend.ngrid.int_pip(nloc, wt, wf);
-            let rwt = backend.egrid.resolve_node_wire_nobuf(nloc, wt).unwrap();
-            let rwf = backend.egrid.resolve_node_wire_nobuf(nloc, wf).unwrap();
+            let rwt = backend.egrid.resolve_tile_wire_nobuf(nloc, wt).unwrap();
+            let rwf = backend.egrid.resolve_tile_wire_nobuf(nloc, wf).unwrap();
             for val in ["ENABLE", "DIV2"] {
                 ctx.build()
                     .raw(Key::NodeMutex(rwt), "OSC_SPECIAL")
@@ -106,7 +106,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for (_, tile, node) in &ctx.edev.egrid.db.nodes {
+    for (_, tile, node) in &ctx.edev.egrid.db.tile_classes {
         if tile == "LLV.RS" {
             let bel = "MISC";
             ctx.tiledb.insert(

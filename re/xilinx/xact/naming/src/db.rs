@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use prjcombine_interconnect::db::{BelSlotId, IntDb, NodeWireId};
+use prjcombine_interconnect::db::{BelSlotId, IntDb, TileClassWire};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityMap, entity_id};
 
@@ -28,7 +28,7 @@ impl NamingDb {
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
 pub struct NodeNaming {
-    pub int_pips: BTreeMap<(NodeWireId, NodeWireId), IntPipNaming>,
+    pub int_pips: BTreeMap<(TileClassWire, TileClassWire), IntPipNaming>,
     pub bel_pips: BTreeMap<(BelSlotId, String), PipNaming>,
 }
 

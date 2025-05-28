@@ -1,12 +1,12 @@
 use core::fmt::Debug;
 
 use prjcombine_interconnect::{
-    db::{BelSlotId, NodeTileId, NodeWireId},
+    db::{BelSlotId, TileCellId, TileClassWire},
     grid::NodeLoc,
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
-use prjcombine_re_xilinx_naming::db::NodeRawTileId;
+use prjcombine_re_xilinx_naming::db::RawTileId;
 use unnamed_entity::EntityId;
 
 use crate::backend::{IseBackend, Key};
@@ -88,7 +88,7 @@ impl BelIntoPipWire for PipWire {
 
 impl BelIntoPipWire for (PipInt, usize, &str) {
     fn into_pip_wire(self, backend: &IseBackend, _slot: BelSlotId) -> PipWire {
-        let tile = NodeTileId::from_idx(self.1);
+        let tile = TileCellId::from_idx(self.1);
         let wire = backend.egrid.db.get_wire(self.2);
         PipWire::Int((tile, wire))
     }
@@ -96,7 +96,7 @@ impl BelIntoPipWire for (PipInt, usize, &str) {
 
 impl BelIntoPipWire for (PipInt, usize, String) {
     fn into_pip_wire(self, backend: &IseBackend, _slot: BelSlotId) -> PipWire {
-        let tile = NodeTileId::from_idx(self.1);
+        let tile = TileCellId::from_idx(self.1);
         let wire = backend.egrid.db.get_wire(&self.2);
         PipWire::Int((tile, wire))
     }
@@ -104,7 +104,7 @@ impl BelIntoPipWire for (PipInt, usize, String) {
 
 #[derive(Clone, Debug)]
 pub enum PipWire {
-    Int(NodeWireId),
+    Int(TileClassWire),
     BelPinNear(BelSlotId, String),
     BelPinFar(BelSlotId, String),
 }
@@ -115,17 +115,17 @@ impl PipWire {
         backend: &IseBackend<'a>,
         nloc: NodeLoc,
     ) -> Option<(&'a str, &'a str)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let ndb = backend.ngrid.db;
-        let nnode = &backend.ngrid.nodes[&nloc];
-        let node_naming = &ndb.node_namings[nnode.naming];
+        let nnode = &backend.ngrid.tiles[&nloc];
+        let node_naming = &ndb.tile_class_namings[nnode.naming];
         Some(match self {
             PipWire::Int(wire) => {
                 backend
                     .egrid
-                    .resolve_wire((nloc.0, node.tiles[wire.0], wire.1))?;
+                    .resolve_wire((nloc.0, node.cells[wire.0], wire.1))?;
                 (
-                    &nnode.names[NodeRawTileId::from_idx(0)],
+                    &nnode.names[RawTileId::from_idx(0)],
                     node_naming.wires.get(wire)?,
                 )
             }
@@ -140,7 +140,7 @@ impl PipWire {
                             panic!(
                                 "missing pin {pin} in bel {bel} tile {tile}",
                                 bel = backend.egrid.db.bel_slots[*bel],
-                                tile = backend.egrid.db.nodes.key(node.kind),
+                                tile = backend.egrid.db.tile_classes.key(node.class),
                             )
                         })
                         .name,
@@ -157,7 +157,7 @@ impl PipWire {
                             panic!(
                                 "missing pin {pin} in bel {bel} tile {tile}",
                                 bel = backend.egrid.db.bel_slots[*bel],
-                                tile = backend.egrid.db.nodes.key(node.kind),
+                                tile = backend.egrid.db.tile_classes.key(node.class),
                             )
                         })
                         .name_far,

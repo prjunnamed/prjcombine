@@ -5,7 +5,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::bels;
 
 use crate::{
@@ -1089,8 +1089,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for i in 0..4 {
             let mut props: Vec<Box<DynProp>> = vec![];
             for tile in ["HCLK_IOI_HP", "HCLK_IOI_HR"] {
-                let node = backend.egrid.db.get_node(tile);
-                if !backend.egrid.node_index[node].is_empty() {
+                let node = backend.egrid.db.get_tile_class(tile);
+                if !backend.egrid.tile_index[node].is_empty() {
                     props.push(Box::new(ExtraTileMaybe::new(
                         ColPair(tile),
                         Some("HCLK_IOI".into()),

@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt::Write};
 
 use indexmap::IndexSet;
 use itertools::Itertools;
-use prjcombine_types::tiledb::{Tile, TileItemKind};
+use prjcombine_types::bsdata::{Tile, TileItemKind};
 use prjcombine_xpla3::{BondPin, Database};
 use unnamed_entity::EntityPartVec;
 

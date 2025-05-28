@@ -1,16 +1,22 @@
 use prjcombine_interconnect::{
-    db::{IntDb, NodeTileId, TermInfo, WireKind},
+    db::{ConnectorWire, IntDb, TileCellId, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, NamingDb};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{
+    bels,
+    expanded::{REGION_HCLK, REGION_LEAF},
+};
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
+
+    assert_eq!(builder.db.region_slots.insert("HCLK".into()).0, REGION_HCLK);
+    assert_eq!(builder.db.region_slots.insert("LEAF".into()).0, REGION_LEAF);
 
     for &slot in bels::SLOTS {
         builder.db.bel_slots.insert(slot.into());
@@ -21,10 +27,18 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.wire("VCC", WireKind::Tie1, &["VCC_WIRE"]);
 
     for i in 0..10 {
-        builder.wire(format!("HCLK{i}"), WireKind::ClkOut, &[format!("GCLK{i}")]);
+        builder.wire(
+            format!("HCLK{i}"),
+            WireKind::Regional(REGION_LEAF),
+            &[format!("GCLK{i}")],
+        );
     }
     for i in 0..4 {
-        builder.wire(format!("RCLK{i}"), WireKind::ClkOut, &[format!("RCLK{i}")]);
+        builder.wire(
+            format!("RCLK{i}"),
+            WireKind::Regional(REGION_LEAF),
+            &[format!("RCLK{i}")],
+        );
     }
 
     for (name, da, db, dbeg, dend, dmid) in [
@@ -453,13 +467,19 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         builder.extract_intf("INTF.DELAY", Dir::E, tkn, format!("INTF.{n}"), true);
     }
 
-    let mps = builder.db.terms.get("MAIN.S").unwrap().1.clone();
-    builder.db.terms.insert("MAIN.NHOLE.S".to_string(), mps);
-    let mut mpn = builder.db.terms.get("MAIN.N").unwrap().1.clone();
+    let mps = builder.db.conn_classes.get("MAIN.S").unwrap().1.clone();
+    builder
+        .db
+        .conn_classes
+        .insert("MAIN.NHOLE.S".to_string(), mps);
+    let mut mpn = builder.db.conn_classes.get("MAIN.N").unwrap().1.clone();
     for w in lv_bh_n {
-        mpn.wires.insert(w, TermInfo::BlackHole);
+        mpn.wires.insert(w, ConnectorWire::BlackHole);
     }
-    builder.db.terms.insert("MAIN.NHOLE.N".to_string(), mpn);
+    builder
+        .db
+        .conn_classes
+        .insert("MAIN.NHOLE.N".to_string(), mpn);
 
     for tkn in ["CLBLL", "CLBLM"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
@@ -484,7 +504,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
 
-    let intf = builder.ndb.get_node_naming("INTF");
+    let intf = builder.ndb.get_tile_class_naming("INTF");
 
     if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
         let mut int_xy = Vec::new();
@@ -574,7 +594,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     if let Some(&xy) = rd.tiles_by_kind_name("EMAC").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let intf_emac = builder.ndb.get_node_naming("INTF.EMAC");
+        let intf_emac = builder.ndb.get_tile_class_naming("INTF.EMAC");
         for dy in 0..10 {
             int_xy.push(xy.delta(-2, dy));
             intf_xy.push((xy.delta(-1, dy), intf_emac));
@@ -593,7 +613,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_B").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let intf_pcie = builder.ndb.get_node_naming("INTF.PCIE");
+        let intf_pcie = builder.ndb.get_tile_class_naming("INTF.PCIE");
         for by in [-11, 0, 11, 22] {
             for dy in 0..10 {
                 int_xy.push(xy.delta(-2, by + dy));
@@ -611,16 +631,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
 
-    if let Some((_, intf)) = builder.ndb.node_namings.get_mut("INTF.PPC_R") {
+    if let Some((_, intf)) = builder.ndb.tile_class_namings.get_mut("INTF.PPC_R") {
         intf.intf_wires_in.insert(
-            (NodeTileId::from_idx(0), clk[0]),
+            (TileCellId::from_idx(0), clk[0]),
             IntfWireInNaming::Buf {
                 name_out: "PPC_R_INT_INTERFACE_FB_CLK_B0".to_string(),
                 name_in: "INT_INTERFACE_CLK_B0".to_string(),
             },
         );
         intf.intf_wires_in.insert(
-            (NodeTileId::from_idx(0), clk[1]),
+            (TileCellId::from_idx(0), clk[1]),
             IntfWireInNaming::Buf {
                 name_out: "PPC_R_INT_INTERFACE_FB_CLK_B1".to_string(),
                 name_in: "INT_INTERFACE_CLK_B1".to_string(),
@@ -632,8 +652,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         let ppc_t_xy = xy.delta(0, 22);
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let intf_ppc_l = builder.ndb.get_node_naming("INTF.PPC_L");
-        let intf_ppc_r = builder.ndb.get_node_naming("INTF.PPC_R");
+        let intf_ppc_l = builder.ndb.get_tile_class_naming("INTF.PPC_L");
+        let intf_ppc_r = builder.ndb.get_tile_class_naming("INTF.PPC_R");
         for by in [-10, 1, 12, 23] {
             for dy in 0..10 {
                 int_xy.push(xy.delta(-11, by + dy));
@@ -1463,7 +1483,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for (tkn, kind) in [("GT3", "GTP"), ("GTX", "GTX"), ("GTX_LEFT", "GTX")] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let int_dx = if tkn == "GTX_LEFT" { 2 } else { -3 };
-            let intf_gt = builder.ndb.get_node_naming(if tkn == "GTX_LEFT" {
+            let intf_gt = builder.ndb.get_tile_class_naming(if tkn == "GTX_LEFT" {
                 "INTF.GTX_LEFT"
             } else {
                 "INTF.GTP"

@@ -760,25 +760,25 @@ pub fn name_device<'a>(
         for col in die.cols() {
             for row in die.rows() {
                 let reg = chip.row_to_reg(row);
-                for (layer, node) in &die[(col, row)].nodes {
+                for (layer, node) in &die[(col, row)].tiles {
                     let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.nodes.key(node.kind);
+                    let kind = egrid.db.tile_classes.key(node.class);
                     let x = int_grid.xlut[col];
                     let y = int_grid.ylut[die.die][row];
                     match &kind[..] {
                         "INT" => {
-                            ngrid.name_node(nloc, "INT", [format!("INT_X{x}Y{y}")]);
+                            ngrid.name_tile(nloc, "INT", [format!("INT_X{x}Y{y}")]);
                         }
                         "INTF" => match chip.kind {
                             ChipKind::Ultrascale => {
                                 if chip.col_side(col) == DirH::W {
-                                    ngrid.name_node(
+                                    ngrid.name_tile(
                                         nloc,
                                         "INTF.W",
                                         [format!("INT_INTERFACE_L_X{x}Y{y}")],
                                     );
                                 } else {
-                                    ngrid.name_node(
+                                    ngrid.name_tile(
                                         nloc,
                                         "INTF.E",
                                         [format!("INT_INTERFACE_R_X{x}Y{y}")],
@@ -787,13 +787,13 @@ pub fn name_device<'a>(
                             }
                             ChipKind::UltrascalePlus => {
                                 if chip.col_side(col) == DirH::W {
-                                    ngrid.name_node(
+                                    ngrid.name_tile(
                                         nloc,
                                         "INTF.W",
                                         [format!("INT_INTF_L_X{x}Y{y}")],
                                     );
                                 } else {
-                                    ngrid.name_node(
+                                    ngrid.name_tile(
                                         nloc,
                                         "INTF.E",
                                         [format!("INT_INTF_R_X{x}Y{y}")],
@@ -809,7 +809,7 @@ pub fn name_device<'a>(
                                             chip.cols_io.iter().find(|x| x.col == col).unwrap();
                                         match cio.regs[reg] {
                                             IoRowKind::Hpio | IoRowKind::Hrio => {
-                                                ngrid.name_node(
+                                                ngrid.name_tile(
                                                     nloc,
                                                     "INTF.W.IO",
                                                     [format!(
@@ -823,7 +823,7 @@ pub fn name_device<'a>(
                                                 } else {
                                                     "INT_INTF_L_TERM_GT"
                                                 };
-                                                ngrid.name_node(
+                                                ngrid.name_tile(
                                                     nloc,
                                                     "INTF.W.GT",
                                                     [format!("{kind}_X{x}Y{y}")],
@@ -837,7 +837,7 @@ pub fn name_device<'a>(
                                         } else {
                                             "INT_INTF_L_PCIE4"
                                         };
-                                        ngrid.name_node(
+                                        ngrid.name_tile(
                                             nloc,
                                             "INTF.W.PCIE",
                                             [format!("{kind}_X{x}Y{y}")],
@@ -853,14 +853,14 @@ pub fn name_device<'a>(
                                         } else {
                                             "INT_INTF_R_TERM_GT"
                                         };
-                                        ngrid.name_node(
+                                        ngrid.name_tile(
                                             nloc,
                                             "INTF.E.GT",
                                             [format!("{kind}_X{x}Y{y}")],
                                         );
                                     }
                                     ColumnKind::Hard(HardKind::Term, _) => {
-                                        ngrid.name_node(
+                                        ngrid.name_tile(
                                             nloc,
                                             "INTF.E.GT",
                                             [format!("INT_INTF_RIGHT_TERM_HDIO_FT_X{x}Y{y}")],
@@ -876,7 +876,7 @@ pub fn name_device<'a>(
                                         } else {
                                             "INT_INTF_R_PCIE4"
                                         };
-                                        ngrid.name_node(
+                                        ngrid.name_tile(
                                             nloc,
                                             "INTF.E.PCIE",
                                             [format!("{kind}_X{x}Y{y}")],
@@ -897,14 +897,14 @@ pub fn name_device<'a>(
                                         } else {
                                             "INT_INTF_L_IO"
                                         };
-                                        ngrid.name_node(
+                                        ngrid.name_tile(
                                             nloc,
                                             "INTF.W.IO",
                                             [format!("{kind}_X{x}Y{y}")],
                                         );
                                     }
                                     _ => {
-                                        ngrid.name_node(
+                                        ngrid.name_tile(
                                             nloc,
                                             "INTF.PSS",
                                             [format!("INT_INTF_LEFT_TERM_PSS_X{x}Y{y}")],
@@ -912,7 +912,7 @@ pub fn name_device<'a>(
                                     }
                                 }
                             } else {
-                                ngrid.name_node(
+                                ngrid.name_tile(
                                     nloc,
                                     "INTF.E.IO",
                                     [format!("INT_INTF_RIGHT_TERM_IO_X{x}Y{y}")],
@@ -922,7 +922,7 @@ pub fn name_device<'a>(
                         "RCLK_INT" => {
                             let lr = if col < chip.col_cfg() { 'L' } else { 'R' };
                             let name = format!("RCLK_INT_{lr}_X{x}Y{yy}", yy = y - 1);
-                            let nnode = ngrid.name_node(nloc, "RCLK_INT", [name]);
+                            let nnode = ngrid.name_tile(nloc, "RCLK_INT", [name]);
                             let rx = rclk_int_grid.xlut[col];
                             let ry = rclk_int_grid.ylut[die.die][row];
                             match chip.kind {
@@ -965,7 +965,7 @@ pub fn name_device<'a>(
                             } else {
                                 "CLEL_R"
                             };
-                            let nnode = ngrid.name_node(nloc, "CLEL", [format!("{tkn}_X{x}Y{y}")]);
+                            let nnode = ngrid.name_tile(nloc, "CLEL", [format!("{tkn}_X{x}Y{y}")]);
                             if !(row.to_idx() % 60 == 59
                                 && edev
                                     .disabled
@@ -983,7 +983,7 @@ pub fn name_device<'a>(
                                 (ChipKind::UltrascalePlus, true) => "CLEM",
                                 (ChipKind::UltrascalePlus, false) => "CLEM_R",
                             };
-                            let nnode = ngrid.name_node(nloc, "CLEM", [format!("{tk}_X{x}Y{y}")]);
+                            let nnode = ngrid.name_tile(nloc, "CLEM", [format!("{tk}_X{x}Y{y}")]);
                             if !(row.to_idx() % 60 == 59
                                 && edev
                                     .disabled
@@ -999,7 +999,7 @@ pub fn name_device<'a>(
                                 ChipKind::Ultrascale => (x, "LAGUNA_TILE"),
                                 ChipKind::UltrascalePlus => (x - 1, "LAG_LAG"),
                             };
-                            let nnode = ngrid.name_node(nloc, "LAGUNA", [format!("{tk}_X{x}Y{y}")]);
+                            let nnode = ngrid.name_tile(nloc, "LAGUNA", [format!("{tk}_X{x}Y{y}")]);
                             let lx0 = laguna_grid.xlut[col] * 2;
                             let lx1 = lx0 + 1;
                             let ly0 = laguna_grid.ylut[die.die][row] * 2;
@@ -1010,7 +1010,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(bels::LAGUNA3, format!("LAGUNA_X{lx1}Y{ly1}"));
                         }
                         "BRAM" => {
-                            let nnode = ngrid.name_node(nloc, "BRAM", [format!("BRAM_X{x}Y{y}")]);
+                            let nnode = ngrid.name_tile(nloc, "BRAM", [format!("BRAM_X{x}Y{y}")]);
                             let bx = bram_grid.xlut[col];
                             let by = bram_grid.ylut[die.die][row];
                             nnode.add_bel(bels::BRAM_F, format!("RAMB36_X{bx}Y{by}"));
@@ -1022,7 +1022,7 @@ pub fn name_device<'a>(
                         }
                         "HARD_SYNC" => {
                             let tk = get_bram_tk(edev, has_laguna, die.die, col, row);
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 "HARD_SYNC",
                                 [format!("{tk}_X{x}Y{y}", y = y - 1)],
@@ -1037,7 +1037,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(bels::HARD_SYNC3, format!("HARD_SYNC_X{hx1}Y{hy1}"));
                         }
                         "DSP" => {
-                            let nnode = ngrid.name_node(nloc, "DSP", [format!("DSP_X{x}Y{y}")]);
+                            let nnode = ngrid.name_tile(nloc, "DSP", [format!("DSP_X{x}Y{y}")]);
                             let dx = dsp_grid.xlut[col];
                             let dy0 = dsp_grid.ylut[die.die][row] * 2;
                             let dy1 = dy0 + 1;
@@ -1056,7 +1056,7 @@ pub fn name_device<'a>(
                             } else {
                                 "URAM_URAM_FT"
                             };
-                            let nnode = ngrid.name_node(nloc, "URAM", [format!("{tk}_X{x}Y{y}")]);
+                            let nnode = ngrid.name_tile(nloc, "URAM", [format!("{tk}_X{x}Y{y}")]);
                             let ux = uram_grid.xlut[col];
                             let uy0 = uram_grid.ylut[die.die][row] * 4;
                             let uy1 = uy0 + 1;
@@ -1085,7 +1085,7 @@ pub fn name_device<'a>(
                                 "CSEC_CONFIG_FT"
                             };
                             let name = format!("{tk}_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = cfg_grid.xlut[col];
                             let sy = cfg_grid.ylut[die.die][row];
                             if chip.has_csec {
@@ -1119,7 +1119,7 @@ pub fn name_device<'a>(
                                 "CFGIOLC_IOB20_FT"
                             };
                             let name = format!("{tk}_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = cfgio_grid.xlut[col];
                             let sy = cfgio_grid.ylut[die.die][row];
                             nnode.add_bel(bels::PMV, format!("PMV_X{sx}Y{sy}"));
@@ -1142,7 +1142,7 @@ pub fn name_device<'a>(
                                 x
                             };
                             let name = format!("AMS_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = ams_grid.xlut[col];
                             let sy = ams_grid.ylut[die.die][row];
                             let bk = if chip.kind == ChipKind::Ultrascale {
@@ -1154,7 +1154,7 @@ pub fn name_device<'a>(
                         }
                         "PCIE" => {
                             let name = format!("PCIE_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = pcie_grid.xlut[col];
                             let sy = pcie_grid.ylut[die.die][row];
                             nnode.add_bel(bels::PCIE3, format!("PCIE_3_1_X{sx}Y{sy}"));
@@ -1162,7 +1162,7 @@ pub fn name_device<'a>(
                         "PCIE4" => {
                             let name = format!("PCIE4_PCIE4_FT_X{x}Y{y}");
                             let naming = if has_mcap { "PCIE4" } else { "PCIE4.NOCFG" };
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             let sx = pcie4_grid.xlut[col];
                             let sy = pcie4_grid.ylut[die.die][row];
                             nnode.add_bel(bels::PCIE4, format!("PCIE40E4_X{sx}Y{sy}"));
@@ -1170,7 +1170,7 @@ pub fn name_device<'a>(
                         "PCIE4C" => {
                             let name = format!("PCIE4C_PCIE4C_FT_X{x}Y{y}");
                             let naming = if has_mcap { "PCIE4C" } else { "PCIE4C.NOCFG" };
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             let sx = pcie4c_grid.xlut[col];
                             let sy = pcie4c_grid.ylut[die.die][row];
                             nnode.add_bel(bels::PCIE4C, format!("PCIE4CE4_X{sx}Y{sy}"));
@@ -1182,7 +1182,7 @@ pub fn name_device<'a>(
                             } else {
                                 format!("CMAC_X{x}Y{y}")
                             };
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = cmac_grid.xlut[col];
                             let sy = cmac_grid.ylut[die.die][row];
                             if chip.kind == ChipKind::Ultrascale {
@@ -1197,7 +1197,7 @@ pub fn name_device<'a>(
                             } else {
                                 format!("ILKN_ILKN_FT_X{x}Y{y}")
                             };
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = ilkn_grid.xlut[col];
                             let sy = ilkn_grid.ylut[die.die][row];
                             if chip.kind == ChipKind::Ultrascale {
@@ -1208,56 +1208,56 @@ pub fn name_device<'a>(
                         }
                         "FE" => {
                             let name = format!("FE_FE_FT_X{x}Y{y}", x = x - 1);
-                            let nnode = ngrid.name_node(nloc, "FE", [name]);
+                            let nnode = ngrid.name_tile(nloc, "FE", [name]);
                             let sx = fe_grid.xlut[col];
                             let sy = fe_grid.ylut[die.die][row];
                             nnode.add_bel(bels::FE, format!("FE_X{sx}Y{sy}"));
                         }
                         "DFE_A" => {
                             let name = format!("DFE_DFE_TILEA_FT_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = dfe_a_grid.xlut[col];
                             let sy = dfe_a_grid.ylut[die.die][row];
                             nnode.add_bel(bels::DFE_A, format!("DFE_A_X{sx}Y{sy}"));
                         }
                         "DFE_B" => {
                             let name = format!("DFE_DFE_TILEB_FT_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = dfe_b_grid.xlut[col];
                             let sy = dfe_b_grid.ylut[die.die][row];
                             nnode.add_bel(bels::DFE_B, format!("DFE_B_X{sx}Y{sy}"));
                         }
                         "DFE_C" => {
                             let name = format!("DFE_DFE_TILEC_FT_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = dfe_c_grid.xlut[col];
                             let sy = dfe_c_grid.ylut[die.die][row];
                             nnode.add_bel(bels::DFE_C, format!("DFE_C_X{sx}Y{sy}"));
                         }
                         "DFE_D" => {
                             let name = format!("DFE_DFE_TILED_FT_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = dfe_d_grid.xlut[col];
                             let sy = dfe_d_grid.ylut[die.die][row];
                             nnode.add_bel(bels::DFE_D, format!("DFE_D_X{sx}Y{sy}"));
                         }
                         "DFE_E" => {
                             let name = format!("DFE_DFE_TILEE_FT_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = dfe_e_grid.xlut[col];
                             let sy = dfe_e_grid.ylut[die.die][row];
                             nnode.add_bel(bels::DFE_E, format!("DFE_E_X{sx}Y{sy}"));
                         }
                         "DFE_F" => {
                             let name = format!("DFE_DFE_TILEF_FT_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = dfe_f_grid.xlut[col];
                             let sy = dfe_f_grid.ylut[die.die][row];
                             nnode.add_bel(bels::DFE_F, format!("DFE_F_X{sx}Y{sy}"));
                         }
                         "DFE_G" => {
                             let name = format!("DFE_DFE_TILEG_FT_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = dfe_g_grid.xlut[col];
                             let sy = dfe_g_grid.ylut[die.die][row];
                             nnode.add_bel(bels::DFE_G, format!("DFE_G_X{sx}Y{sy}"));
@@ -1273,7 +1273,7 @@ pub fn name_device<'a>(
                             };
                             let x = if hdio_cfg_only[idx] { x } else { x + 1 };
                             let name = format!("{tkn}_RIGHT_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let iox = io_grid.hdio_xlut[col];
                             let ioy = match &kind[..] {
                                 "HDIO_S" => io_grid.hdio_ylut[die.die][reg].0,
@@ -1339,7 +1339,7 @@ pub fn name_device<'a>(
                                 _ => unreachable!(),
                             };
                             let name = format!("{naming}_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             let iox = io_grid.hdio_xlut[col];
                             let ioy = match &kind[..] {
                                 "HDIOLC_S" => io_grid.hdio_ylut[die.die][reg].0,
@@ -1393,7 +1393,7 @@ pub fn name_device<'a>(
                                 HardKind::Term => "RCLK_RCLK_HDIO_LAST_R_FT",
                             };
                             let name = format!("{tkn}_X{x}Y{y}", y = y - 1);
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = rclk_hdio_grid.xlut[col];
                             let sy = rclk_hdio_grid.ylut[die.die][row];
                             nnode.add_bel(
@@ -1438,7 +1438,7 @@ pub fn name_device<'a>(
                                 ("RCLK_HDIOLC_R", "RCLK_RCLK_HDIOL_R_FT")
                             };
                             let name = format!("{tkn}_X{x}Y{y}", y = y - 1);
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             let sx = rclk_hdio_grid.xlut[col];
                             let sy = rclk_hdio_grid.ylut[die.die][row];
                             nnode.add_bel(
@@ -1503,7 +1503,7 @@ pub fn name_device<'a>(
                                 "CMT_R"
                             };
                             let name = format!("{tk}_X{x}Y{y}", y = y - 30);
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             let cmtx = cmt_grid.xlut[col];
                             let cmty = cmt_grid.ylut[die.die][row];
                             let gtbx = clk_grid.gtbxlut[col];
@@ -1562,7 +1562,7 @@ pub fn name_device<'a>(
                             }
                         }
                         "XIPHY" if edev.kind == ChipKind::Ultrascale => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 "XIPHY",
                                 [format!("XIPHY_L_X{x}Y{y}", y = y - 30)],
@@ -1661,7 +1661,7 @@ pub fn name_device<'a>(
                             } else {
                                 "XIPHY_BYTE_RIGHT"
                             };
-                            let nnode = ngrid.name_node(nloc, kind, [format!("{tk}_X{x}Y{y}")]);
+                            let nnode = ngrid.name_tile(nloc, kind, [format!("{tk}_X{x}Y{y}")]);
                             let phyx = xiphy_grid.xlut[col];
                             let phyy = xiphy_grid.ylut[die.die][row];
                             for i in 0..13 {
@@ -1700,7 +1700,7 @@ pub fn name_device<'a>(
                                 DirH::E => ("RCLK_XIPHY_R", "RCLK_XIPHY_OUTER_RIGHT"),
                             };
                             let name = format!("{tk}_X{x}Y{y}", y = y - 1);
-                            ngrid.name_node(nloc, naming, [name]);
+                            ngrid.name_tile(nloc, naming, [name]);
                         }
 
                         "HPIO" if chip.kind == ChipKind::Ultrascale => {
@@ -1711,7 +1711,7 @@ pub fn name_device<'a>(
                             } else {
                                 "HPIO"
                             };
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             let iox = io_grid.hpio_xlut[col];
                             let (ioy_b, ioy_t) = match row.to_idx() % 60 {
                                 0 => (
@@ -1758,7 +1758,7 @@ pub fn name_device<'a>(
                                 x = if x > 0 { x - 1 } else { x },
                                 y = y - 1
                             );
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = rclk_hpio_grid.xlut[col];
                             let sy = rclk_hpio_grid.ylut[die.die][row];
                             for i in 0..5 {
@@ -1784,7 +1784,7 @@ pub fn name_device<'a>(
                             } else {
                                 "HRIO.NOCFG"
                             };
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             let iox = io_grid.hpio_xlut[col];
                             let (ioy_b, ioy_t) = match row.to_idx() % 60 {
                                 0 => (
@@ -1830,7 +1830,7 @@ pub fn name_device<'a>(
                                 x = if x > 0 { x - 1 } else { x },
                                 y = y - 1
                             );
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             for i in 0..8 {
                                 nnode.add_bel(
                                     bels::ABUS_SWITCH_HRIO[i],
@@ -1867,7 +1867,7 @@ pub fn name_device<'a>(
                                     x
                                 }
                             );
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             let iox = io_grid.hpio_xlut[col];
                             let (ioy_b, ioy_t) = match row.to_idx() % 60 {
                                 0 => (
@@ -1930,7 +1930,7 @@ pub fn name_device<'a>(
                                 },
                                 y = y - 1
                             );
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let sx = rclk_hpio_grid.xlut[col];
                             let sy = rclk_hpio_grid.ylut[die.die][row];
                             let asx = if chip.col_side(col) == DirH::W {
@@ -2011,7 +2011,7 @@ pub fn name_device<'a>(
                                     _ => unreachable!(),
                                 };
                             let name = format!("{tk}_X{x}Y{y}", y = y - 30);
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             let gtx = gt_grid.xlut[col];
                             let gty = gt_grid.ylut[die.die][row];
                             for i in 0..24 {
@@ -2112,12 +2112,12 @@ pub fn name_device<'a>(
                         }
 
                         "PS" => {
-                            let nnode = ngrid.name_node(nloc, "PS", [format!("PSS_ALTO_X0Y{y}")]);
+                            let nnode = ngrid.name_tile(nloc, "PS", [format!("PSS_ALTO_X0Y{y}")]);
                             nnode.add_bel(bels::PS, "PS8_X0Y0".to_string());
                         }
                         "VCU" => {
                             let nnode =
-                                ngrid.name_node(nloc, "VCU", [format!("VCU_VCU_FT_X0Y{y}")]);
+                                ngrid.name_tile(nloc, "VCU", [format!("VCU_VCU_FT_X0Y{y}")]);
                             nnode.add_bel(bels::VCU, "VCU_X0Y0".to_string());
                         }
                         "RCLK_PS" => {
@@ -2129,7 +2129,7 @@ pub fn name_device<'a>(
                                 PsIntfKind::Dc12 => "RCLK_RCLK_INTF_LEFT_TERM_DC12_FT",
                                 PsIntfKind::Mx8 => "RCLK_RCLK_INTF_LEFT_TERM_MX8_FT",
                             };
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 "RCLK_PS",
                                 [format!("{tk}_X{x}Y{y}", y = y - 1)],
@@ -2144,7 +2144,7 @@ pub fn name_device<'a>(
                         }
                         "BLI" => {
                             let nnode =
-                                ngrid.name_node(nloc, "BLI", [format!("BLI_BLI_FT_X{x}Y{y}")]);
+                                ngrid.name_tile(nloc, "BLI", [format!("BLI_BLI_FT_X{x}Y{y}")]);
                             let dx = dsp_grid.xlut[col];
                             nnode.add_bel(
                                 bels::BLI_HBM_APB_INTF,
@@ -2192,7 +2192,7 @@ pub fn name_device<'a>(
                                 };
                                 let is_alt = dev_naming.rclk_alt_pins[tk];
                                 let name = format!("{tk}_X{x}Y{y}", y = y - 1);
-                                let nnode = ngrid.name_node(
+                                let nnode = ngrid.name_tile(
                                     nloc,
                                     if is_alt {
                                         "RCLK_V_SINGLE.ALT"
@@ -2234,7 +2234,7 @@ pub fn name_device<'a>(
                                 };
                                 let is_alt = dev_naming.rclk_alt_pins[tk];
                                 let name = format!("{tk}_X{x}Y{y}", y = y - 1);
-                                let nnode = ngrid.name_node(
+                                let nnode = ngrid.name_tile(
                                     nloc,
                                     if is_alt {
                                         "RCLK_V_SINGLE.ALT"
@@ -2270,7 +2270,7 @@ pub fn name_device<'a>(
                             };
                             let is_alt = dev_naming.rclk_alt_pins[tk];
                             let name = format!("{tk}_X{x}Y{y}", x = x - 1, y = y - 1);
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 if is_alt {
                                     "RCLK_V_SINGLE.ALT"
@@ -2295,7 +2295,7 @@ pub fn name_device<'a>(
                             let tk = get_bram_tk(edev, has_laguna, die.die, col, row);
                             let is_alt = dev_naming.rclk_alt_pins[tk];
                             let name = format!("{tk}_X{x}Y{y}", y = y - 1);
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 if is_alt {
                                     "RCLK_V_DOUBLE.ALT"
@@ -2371,7 +2371,7 @@ pub fn name_device<'a>(
                             };
                             let is_alt = dev_naming.rclk_alt_pins[tk];
                             let name = format!("{tk}_X{x}Y{y}", y = y - 1);
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 if is_alt {
                                     "RCLK_V_DOUBLE.ALT"
@@ -2409,7 +2409,7 @@ pub fn name_device<'a>(
                             let tk = get_bram_tk(edev, has_laguna, die.die, col, row);
                             let is_alt = dev_naming.rclk_alt_pins[tk];
                             let name = format!("{tk}_X{x}Y{y}", y = y - 1);
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 if is_alt {
                                     "RCLK_V_QUAD.BRAM.ALT"
@@ -2452,7 +2452,7 @@ pub fn name_device<'a>(
                             let tk = "RCLK_RCLK_URAM_INTF_L_FT";
                             let is_alt = dev_naming.rclk_alt_pins[tk];
                             let name = format!("{tk}_X{x}Y{y}", x = x - 1, y = y - 1);
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 if is_alt {
                                     "RCLK_V_QUAD.URAM.ALT"
@@ -2496,14 +2496,14 @@ pub fn name_device<'a>(
                                 ChipKind::Ultrascale => "RCLK_DSP_CLKBUF_L",
                                 ChipKind::UltrascalePlus => "RCLK_DSP_INTF_CLKBUF_L",
                             };
-                            ngrid.name_node(
+                            ngrid.name_tile(
                                 nloc,
                                 "RCLK_SPLITTER",
                                 [format!("{tk}_X{x}Y{y}", y = y - 1)],
                             );
                         }
                         "RCLK_HROUTE_SPLITTER.CLE" => {
-                            ngrid.name_node(
+                            ngrid.name_tile(
                                 nloc,
                                 "RCLK_HROUTE_SPLITTER",
                                 [format!("RCLK_CLEM_CLKBUF_L_X{x}Y{y}", y = y - 1)],
@@ -2575,10 +2575,10 @@ pub fn name_device<'a>(
                                 }
                                 _ => unreachable!(),
                             };
-                            ngrid.name_node(nloc, "RCLK_HROUTE_SPLITTER", [name]);
+                            ngrid.name_tile(nloc, "RCLK_HROUTE_SPLITTER", [name]);
                         }
                         "HBM_ABUS_SWITCH" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [format!("CFRM_CFRAME_TERM_H_FT_X{x}Y{y}", x = x + 1)],

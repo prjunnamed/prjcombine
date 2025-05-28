@@ -2,11 +2,15 @@ use crate::bond::{PsPin, SharedCfgPin};
 use crate::chip::{Chip, ChipKind, DisabledPart, GtKind, Interposer, IoKind, RegId, XadcIoLoc};
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use bimap::BiHashMap;
+use prjcombine_interconnect::db::RegionSlotId;
 use prjcombine_interconnect::dir::DirPartMap;
 use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, NodeLoc, Rect, RowId, TileIobId};
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+
+pub const REGION_HCLK: RegionSlotId = RegionSlotId::from_idx_const(0);
+pub const REGION_LEAF: RegionSlotId = RegionSlotId::from_idx_const(1);
 
 #[derive(Clone, Debug)]
 pub struct DieFrameGeom {
@@ -119,8 +123,8 @@ impl ExpandedDevice<'_> {
                 for col in die_s.cols() {
                     let row_s = die_s.rows().next_back().unwrap() - 49;
                     let row_n = die_n.rows().next().unwrap() + 1;
-                    if !die_s[(col, row_s)].nodes.is_empty()
-                        && !die_n[(col, row_n)].nodes.is_empty()
+                    if !die_s[(col, row_s)].tiles.is_empty()
+                        && !die_n[(col, row_n)].tiles.is_empty()
                     {
                         cursed_wires.insert((dieid_s, (col, row_s), lvb6));
                     }
@@ -909,8 +913,8 @@ impl ExpandedDevice<'_> {
 
     pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
         let (die, col, row, _) = nloc;
-        let node = self.egrid.node(nloc);
-        let kind = self.egrid.db.nodes.key(node.kind).as_str();
+        let node = self.egrid.tile(nloc);
+        let kind = self.egrid.db.tile_classes.key(node.class).as_str();
         if kind == "BRAM" {
             if self.kind == ChipKind::Virtex4 {
                 vec![
@@ -1043,7 +1047,7 @@ impl ExpandedDevice<'_> {
             ]
         } else {
             Vec::from_iter(
-                node.tiles
+                node.cells
                     .values()
                     .map(|&(col, row)| self.btile_main(die, col, row)),
             )
@@ -1055,21 +1059,21 @@ impl ExpandedDevice<'_> {
         match self.kind {
             ChipKind::Virtex4 => {
                 self.egrid
-                    .get_node_by_kind(die, (self.col_cfg, chip.row_bufg() - 8), |kind| {
+                    .get_tile_by_class(die, (self.col_cfg, chip.row_bufg() - 8), |kind| {
                         kind == "CFG"
                     })
             }
             ChipKind::Virtex5 => {
                 self.egrid
-                    .get_node_by_kind(die, (self.col_cfg, chip.row_bufg() - 10), |kind| {
+                    .get_tile_by_class(die, (self.col_cfg, chip.row_bufg() - 10), |kind| {
                         kind == "CFG"
                     })
             }
             ChipKind::Virtex6 => {
                 self.egrid
-                    .get_node_by_kind(die, (self.col_cfg, chip.row_bufg()), |kind| kind == "CFG")
+                    .get_tile_by_class(die, (self.col_cfg, chip.row_bufg()), |kind| kind == "CFG")
             }
-            ChipKind::Virtex7 => self.egrid.get_node_by_kind(
+            ChipKind::Virtex7 => self.egrid.get_tile_by_class(
                 die,
                 (self.col_cfg, chip.row_reg_bot(chip.reg_cfg - 1)),
                 |kind| kind == "CFG",

@@ -4,7 +4,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::TileBit;
+use prjcombine_types::bsdata::TileBit;
 use prjcombine_xilinx_bitstream::BitTile;
 
 use crate::{
@@ -57,20 +57,20 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllColumnIo {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.egrid.db;
-    for (_, name, node) in &intdb.nodes {
+    for (_, name, node) in &intdb.tile_classes {
         if node.muxes.is_empty() {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, name);
         for (&wire_to, mux) in &node.muxes {
-            let mux_name = if node.tiles.len() == 1 {
+            let mux_name = if node.cells.len() == 1 {
                 format!("MUX.{}", intdb.wires.key(wire_to.1))
             } else {
                 format!("MUX.{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
             };
             for &wire_from in &mux.ins {
                 let wire_from_name = intdb.wires.key(wire_from.1);
-                let in_name = if node.tiles.len() == 1 {
+                let in_name = if node.cells.len() == 1 {
                     wire_from_name.to_string()
                 } else {
                     format!("{}.{}", wire_from.0, wire_from_name)
@@ -171,23 +171,23 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let egrid = ctx.edev.egrid();
     let intdb = egrid.db;
-    for (node_kind, tile, node) in &intdb.nodes {
+    for (node_kind, tile, node) in &intdb.tile_classes {
         if node.muxes.is_empty() {
             continue;
         }
-        if egrid.node_index[node_kind].is_empty() {
+        if egrid.tile_index[node_kind].is_empty() {
             continue;
         }
 
         for (&wire_to, mux) in &node.muxes {
             if intdb.wires[wire_to.1] != WireKind::MuxOut {
-                let out_name = if node.tiles.len() == 1 {
+                let out_name = if node.cells.len() == 1 {
                     intdb.wires.key(wire_to.1).to_string()
                 } else {
                     format!("{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
                 };
                 for &wire_from in &mux.ins {
-                    let in_name = if node.tiles.len() == 1 {
+                    let in_name = if node.cells.len() == 1 {
                         intdb.wires.key(wire_from.1).to_string()
                     } else {
                         format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
@@ -224,7 +224,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.tiledb.insert(tile, "INT", name, item);
                 }
             } else {
-                let out_name = if node.tiles.len() == 1 {
+                let out_name = if node.cells.len() == 1 {
                     intdb.wires.key(wire_to.1).to_string()
                 } else {
                     format!("{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
@@ -234,7 +234,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let mut inps = vec![];
                 let mut got_empty = false;
                 for &wire_from in &mux.ins {
-                    let in_name = if node.tiles.len() == 1 {
+                    let in_name = if node.cells.len() == 1 {
                         intdb.wires.key(wire_from.1).to_string()
                     } else {
                         format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))

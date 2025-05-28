@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use prjcombine_interconnect::{
-    db::{NodeTileId, NodeWireId, WireKind},
+    db::{TileCellId, TileClassWire, WireKind},
     grid::{ColId, LayerId, NodeLoc, RowId},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
@@ -26,7 +26,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug)]
-struct VirtexPinBramLv(NodeWireId);
+struct VirtexPinBramLv(TileClassWire);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinBramLv {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -39,16 +39,16 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinBramLv {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let wire = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.0.0], self.0.1))?;
+            .resolve_wire((nloc.0, node.cells[self.0.0], self.0.1))?;
         let mut nloc = nloc;
         nloc.2 = RowId::from_idx(1);
         nloc.3 = LayerId::from_idx(0);
         for i in 0..12 {
             let wire_pin = (
-                NodeTileId::from_idx(0),
+                TileCellId::from_idx(0),
                 backend.egrid.db.get_wire(&format!("LV.{i}")),
             );
 
@@ -57,7 +57,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinBramLv {
                 .resolve_wire((nloc.0, (nloc.1, nloc.2), wire_pin.1))
                 .unwrap();
             let wire_clk = (
-                NodeTileId::from_idx(0),
+                TileCellId::from_idx(0),
                 backend.egrid.db.get_wire("IMUX.BRAM.CLKA"),
             );
             let resolved_clk = backend
@@ -76,7 +76,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinBramLv {
 }
 
 #[derive(Clone, Debug)]
-struct VirtexPinLh(NodeWireId);
+struct VirtexPinLh(TileClassWire);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinLh {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -89,22 +89,22 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinLh {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let resolved_wire = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.0.0], self.0.1))?;
-        let mut nloc = (nloc.0, ColId::from_idx(0), node.tiles[self.0.0].1, nloc.3);
+            .resolve_wire((nloc.0, node.cells[self.0.0], self.0.1))?;
+        let mut nloc = (nloc.0, ColId::from_idx(0), node.cells[self.0.0].1, nloc.3);
         let (layer, node) = backend
             .egrid
-            .find_node_loc(nloc.0, (nloc.1, nloc.2), |n| {
-                backend.egrid.db.nodes.key(n.kind) == "IO.L"
+            .find_tile_loc(nloc.0, (nloc.1, nloc.2), |n| {
+                backend.egrid.db.tile_classes.key(n.class) == "IO.L"
             })
             .unwrap();
         nloc.3 = layer;
-        let node_data = &backend.egrid.db.nodes[node.kind];
+        let node_data = &backend.egrid.db.tile_classes[node.class];
         for i in 0..12 {
             let wire_pin = (
-                NodeTileId::from_idx(0),
+                TileCellId::from_idx(0),
                 backend.egrid.db.get_wire(&format!("LH.{i}")),
             );
             let resolved_pin = backend
@@ -134,7 +134,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinLh {
 }
 
 #[derive(Clone, Debug)]
-struct VirtexPinIoLh(NodeWireId);
+struct VirtexPinIoLh(TileClassWire);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -147,19 +147,19 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let resolved_wire = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.0.0], self.0.1))?;
-        let mut nloc = (nloc.0, ColId::from_idx(0), node.tiles[self.0.0].1, nloc.3);
+            .resolve_wire((nloc.0, node.cells[self.0.0], self.0.1))?;
+        let mut nloc = (nloc.0, ColId::from_idx(0), node.cells[self.0.0].1, nloc.3);
         loop {
-            if let Some((layer, _)) = backend.egrid.find_node_loc(nloc.0, (nloc.1, nloc.2), |n| {
-                matches!(&backend.egrid.db.nodes.key(n.kind)[..], "IO.B" | "IO.T")
+            if let Some((layer, _)) = backend.egrid.find_tile_loc(nloc.0, (nloc.1, nloc.2), |n| {
+                matches!(&backend.egrid.db.tile_classes.key(n.class)[..], "IO.B" | "IO.T")
             }) {
                 nloc.3 = layer;
                 for i in [0, 6] {
                     let wire_pin = (
-                        NodeTileId::from_idx(0),
+                        TileCellId::from_idx(0),
                         backend.egrid.db.get_wire(&format!("LH.{i}")),
                     );
                     let resolved_pin = backend
@@ -171,7 +171,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
                     }
                     // FOUND
                     let wire_buf = (
-                        NodeTileId::from_idx(0),
+                        TileCellId::from_idx(0),
                         backend.egrid.db.get_wire(&format!("LH.{i}.FAKE")),
                     );
                     let resolved_buf = backend
@@ -191,7 +191,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
 }
 
 #[derive(Clone, Debug)]
-struct VirtexPinHexH(NodeWireId);
+struct VirtexPinHexH(TileClassWire);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -204,17 +204,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let resolved_wire = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.0.0], self.0.1))?;
+            .resolve_wire((nloc.0, node.cells[self.0.0], self.0.1))?;
         let wire_name = backend.egrid.db.wires.key(self.0.1);
         let h = wire_name[4..5].chars().next().unwrap();
         let i: usize = wire_name[5..6].parse().unwrap();
         let mut nloc = (
             nloc.0,
-            node.tiles[self.0.0].0,
-            node.tiles[self.0.0].1,
+            node.cells[self.0.0].0,
+            node.cells[self.0.0].1,
             nloc.3,
         );
         if nloc.1.to_idx() >= 8 {
@@ -224,18 +224,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
         };
         loop {
             if let Some((layer, node)) =
-                backend.egrid.find_node_loc(nloc.0, (nloc.1, nloc.2), |n| {
+                backend.egrid.find_tile_loc(nloc.0, (nloc.1, nloc.2), |n| {
                     matches!(
-                        &backend.egrid.db.nodes.key(n.kind)[..],
+                        &backend.egrid.db.tile_classes.key(n.class)[..],
                         "IO.L" | "IO.R" | "IO.B" | "IO.T" | "CLB" | "CNR.BR" | "CNR.TR"
                     )
                 })
             {
                 nloc.3 = layer;
-                let node_data = &backend.egrid.db.nodes[node.kind];
+                let node_data = &backend.egrid.db.tile_classes[node.class];
                 for j in 0..=6 {
                     let wire_pin = (
-                        NodeTileId::from_idx(0),
+                        TileCellId::from_idx(0),
                         backend.egrid.db.get_wire(&format!("HEX.{h}{i}.{j}")),
                     );
                     let resolved_pin = backend
@@ -251,9 +251,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
                             if out_name.starts_with("SINGLE")
                                 || (out_name.starts_with("LV") && i >= 4)
                                 || (out_name.starts_with("HEX.E")
-                                    && backend.egrid.db.nodes.key(node.kind) == "IO.L")
+                                    && backend.egrid.db.tile_classes.key(node.class) == "IO.L")
                                 || (out_name.starts_with("HEX.W")
-                                    && backend.egrid.db.nodes.key(node.kind) == "IO.R")
+                                    && backend.egrid.db.tile_classes.key(node.class) == "IO.R")
                             {
                                 // FOUND
                                 let resolved_out = backend
@@ -277,7 +277,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
 }
 
 #[derive(Clone, Debug)]
-struct VirtexPinHexV(NodeWireId);
+struct VirtexPinHexV(TileClassWire);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -290,17 +290,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let resolved_wire = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.0.0], self.0.1))?;
+            .resolve_wire((nloc.0, node.cells[self.0.0], self.0.1))?;
         let wire_name = backend.egrid.db.wires.key(self.0.1);
         let v = wire_name[4..5].chars().next().unwrap();
         let i: usize = wire_name[5..6].parse().unwrap();
         let mut nloc = (
             nloc.0,
-            node.tiles[self.0.0].0,
-            node.tiles[self.0.0].1,
+            node.cells[self.0.0].0,
+            node.cells[self.0.0].1,
             nloc.3,
         );
         if nloc.2.to_idx() >= 6 {
@@ -310,18 +310,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
         };
         loop {
             if let Some((layer, node)) =
-                backend.egrid.find_node_loc(nloc.0, (nloc.1, nloc.2), |n| {
+                backend.egrid.find_tile_loc(nloc.0, (nloc.1, nloc.2), |n| {
                     matches!(
-                        &backend.egrid.db.nodes.key(n.kind)[..],
+                        &backend.egrid.db.tile_classes.key(n.class)[..],
                         "IO.L" | "IO.R" | "CLB" | "IO.B" | "IO.T"
                     )
                 })
             {
                 nloc.3 = layer;
-                let node_data = &backend.egrid.db.nodes[node.kind];
+                let node_data = &backend.egrid.db.tile_classes[node.class];
                 for j in 0..=6 {
                     let wire_pin = (
-                        NodeTileId::from_idx(0),
+                        TileCellId::from_idx(0),
                         backend.egrid.db.get_wire(&format!("HEX.{v}{i}.{j}")),
                     );
                     let resolved_pin = backend
@@ -336,9 +336,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
                             let out_name = backend.egrid.db.wires.key(wire_out.1);
                             if out_name.starts_with("SINGLE")
                                 || (out_name.starts_with("HEX.N")
-                                    && backend.egrid.db.nodes.key(node.kind) == "IO.B")
+                                    && backend.egrid.db.tile_classes.key(node.class) == "IO.B")
                                 || (out_name.starts_with("HEX.S")
-                                    && backend.egrid.db.nodes.key(node.kind) == "IO.T")
+                                    && backend.egrid.db.tile_classes.key(node.class) == "IO.T")
                             {
                                 // FOUND
                                 let resolved_out = backend
@@ -362,7 +362,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
 }
 
 #[derive(Clone, Debug)]
-struct VirtexDriveHexH(NodeWireId);
+struct VirtexDriveHexH(TileClassWire);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -375,17 +375,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let resolved_wire = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.0.0], self.0.1))?;
+            .resolve_wire((nloc.0, node.cells[self.0.0], self.0.1))?;
         let wire_name = backend.egrid.db.wires.key(self.0.1);
         let h = wire_name[4..5].chars().next().unwrap();
         let i: usize = wire_name[5..6].parse().unwrap();
         let mut nloc = (
             nloc.0,
-            node.tiles[self.0.0].0,
-            node.tiles[self.0.0].1,
+            node.cells[self.0.0].0,
+            node.cells[self.0.0].1,
             nloc.3,
         );
         if nloc.1.to_idx() >= 8 {
@@ -395,18 +395,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
         };
         loop {
             if let Some((layer, node)) =
-                backend.egrid.find_node_loc(nloc.0, (nloc.1, nloc.2), |n| {
+                backend.egrid.find_tile_loc(nloc.0, (nloc.1, nloc.2), |n| {
                     matches!(
-                        &backend.egrid.db.nodes.key(n.kind)[..],
+                        &backend.egrid.db.tile_classes.key(n.class)[..],
                         "IO.L" | "IO.R" | "IO.B" | "IO.T" | "CLB"
                     )
                 })
             {
                 nloc.3 = layer;
-                let node_data = &backend.egrid.db.nodes[node.kind];
+                let node_data = &backend.egrid.db.tile_classes[node.class];
                 for j in 0..=6 {
                     let wire_pin = (
-                        NodeTileId::from_idx(0),
+                        TileCellId::from_idx(0),
                         backend.egrid.db.get_wire(&format!("HEX.{h}{i}.{j}")),
                     );
                     let resolved_pin = backend
@@ -422,10 +422,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
                             if inp_name.starts_with("OMUX")
                                 || inp_name.starts_with("OUT")
                                 || (h == 'E'
-                                    && backend.egrid.db.nodes.key(node.kind) == "IO.L"
+                                    && backend.egrid.db.tile_classes.key(node.class) == "IO.L"
                                     && inp_name.starts_with("HEX"))
                                 || (h == 'W'
-                                    && backend.egrid.db.nodes.key(node.kind) == "IO.R"
+                                    && backend.egrid.db.tile_classes.key(node.class) == "IO.R"
                                     && inp_name.starts_with("HEX"))
                             {
                                 // FOUND
@@ -452,7 +452,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
 }
 
 #[derive(Clone, Debug)]
-struct VirtexDriveHexV(NodeWireId);
+struct VirtexDriveHexV(TileClassWire);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -465,17 +465,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let resolved_wire = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.0.0], self.0.1))?;
+            .resolve_wire((nloc.0, node.cells[self.0.0], self.0.1))?;
         let wire_name = backend.egrid.db.wires.key(self.0.1);
         let v = wire_name[4..5].chars().next().unwrap();
         let i: usize = wire_name[5..6].parse().unwrap();
         let mut nloc = (
             nloc.0,
-            node.tiles[self.0.0].0,
-            node.tiles[self.0.0].1,
+            node.cells[self.0.0].0,
+            node.cells[self.0.0].1,
             nloc.3,
         );
         if nloc.2.to_idx() >= 6 {
@@ -485,18 +485,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
         };
         loop {
             if let Some((layer, node)) =
-                backend.egrid.find_node_loc(nloc.0, (nloc.1, nloc.2), |n| {
+                backend.egrid.find_tile_loc(nloc.0, (nloc.1, nloc.2), |n| {
                     matches!(
-                        &backend.egrid.db.nodes.key(n.kind)[..],
+                        &backend.egrid.db.tile_classes.key(n.class)[..],
                         "IO.L" | "IO.R" | "CLB" | "IO.B" | "IO.T"
                     )
                 })
             {
                 nloc.3 = layer;
-                let node_data = &backend.egrid.db.nodes[node.kind];
+                let node_data = &backend.egrid.db.tile_classes[node.class];
                 for j in 0..=6 {
                     let wire_pin = (
-                        NodeTileId::from_idx(0),
+                        TileCellId::from_idx(0),
                         backend.egrid.db.get_wire(&format!("HEX.{v}{i}.{j}")),
                     );
                     let resolved_pin = backend
@@ -512,10 +512,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
                             if inp_name.starts_with("OMUX")
                                 || inp_name.starts_with("OUT")
                                 || (v == 'N'
-                                    && backend.egrid.db.nodes.key(node.kind) == "IO.B"
+                                    && backend.egrid.db.tile_classes.key(node.class) == "IO.B"
                                     && inp_name.starts_with("HEX"))
                                 || (v == 'S'
-                                    && backend.egrid.db.nodes.key(node.kind) == "IO.T"
+                                    && backend.egrid.db.tile_classes.key(node.class) == "IO.T"
                                     && inp_name.starts_with("HEX"))
                             {
                                 // FOUND
@@ -543,7 +543,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.egrid.db;
-    for (_, tile, node) in &intdb.nodes {
+    for (_, tile, node) in &intdb.tile_classes {
         if node.muxes.is_empty() {
             continue;
         }
@@ -551,7 +551,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             continue;
         };
         for (&wire_to, mux) in &node.muxes {
-            let mux_name = if node.tiles.len() == 1 {
+            let mux_name = if node.cells.len() == 1 {
                 format!("MUX.{}", intdb.wires.key(wire_to.1))
             } else {
                 format!("MUX.{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
@@ -567,15 +567,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         )));
                         props.push(Box::new(BaseBelPin::new(bels::IO[i], "I".into())));
                     }
-                    let clb_id = intdb.get_node("CLB");
-                    let clb = &intdb.nodes[clb_id];
+                    let clb_id = intdb.get_tile_class("CLB");
+                    let clb = &intdb.tile_classes[clb_id];
                     let wire_name = intdb.wires.key(wire_to.1);
                     let clb_wire = if tile == "IO.L" {
                         format!("{wire_name}.W")
                     } else {
                         format!("{wire_name}.E")
                     };
-                    let clb_wire = (NodeTileId::from_idx(0), intdb.get_wire(&clb_wire));
+                    let clb_wire = (TileCellId::from_idx(0), intdb.get_wire(&clb_wire));
                     let wire_pin = 'omux_pin: {
                         for (&wire, mux) in &clb.muxes {
                             if mux.ins.contains(&clb_wire) {
@@ -610,7 +610,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
                 }
                 for &wire_from in &mux.ins {
-                    let in_name = if node.tiles.len() == 1 {
+                    let in_name = if node.cells.len() == 1 {
                         intdb.wires.key(wire_from.1).to_string()
                     } else {
                         format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
@@ -666,7 +666,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         'quad_src_all_pin: {
                             if in_wire_name.starts_with("SINGLE") {
                                 let wire_buf = format!("{in_wire_name}.BUF");
-                                let wire_buf = (NodeTileId::from_idx(0), intdb.get_wire(&wire_buf));
+                                let wire_buf = (TileCellId::from_idx(0), intdb.get_wire(&wire_buf));
                                 let related = Delta::new(
                                     -1,
                                     wire_from.0.to_idx() as i32 - 4,
@@ -676,7 +676,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     related.clone(),
                                     BaseIntPip::new(
                                         wire_buf,
-                                        (NodeTileId::from_idx(0), wire_from.1),
+                                        (TileCellId::from_idx(0), wire_from.1),
                                     ),
                                 )));
                                 props.push(Box::new(Related::new(
@@ -707,7 +707,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 for &wire_from in &mux.ins {
                     let in_wire_name = intdb.wires.key(wire_from.1);
-                    let in_name = if node.tiles.len() == 1 {
+                    let in_name = if node.cells.len() == 1 {
                         in_wire_name.to_string()
                     } else {
                         format!("{}.{}", wire_from.0, in_wire_name)
@@ -764,7 +764,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(NodeMutexExclusive::new(wire_to))];
 
                 let wire_buf = format!("{out_name}.BUF");
-                let wire_buf = (NodeTileId::from_idx(0), intdb.get_wire(&wire_buf));
+                let wire_buf = (TileCellId::from_idx(0), intdb.get_wire(&wire_buf));
                 if !tile.contains("BRAM") {
                     props.push(Box::new(BaseIntPip::new(wire_buf, wire_to)));
                     props.push(Box::new(NodeMutexExclusive::new(wire_buf)));
@@ -776,7 +776,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     );
                     props.push(Box::new(Related::new(
                         related.clone(),
-                        BaseIntPip::new(wire_buf, (NodeTileId::from_idx(0), wire_to.1)),
+                        BaseIntPip::new(wire_buf, (TileCellId::from_idx(0), wire_to.1)),
                     )));
                     props.push(Box::new(Related::new(
                         related,
@@ -785,7 +785,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 for &wire_from in &mux.ins {
                     let in_wire_name = intdb.wires.key(wire_from.1);
-                    let in_name = if node.tiles.len() == 1 {
+                    let in_name = if node.cells.len() == 1 {
                         in_wire_name.to_string()
                     } else {
                         format!("{}.{}", wire_from.0, in_wire_name)
@@ -838,7 +838,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
                 if out_name.starts_with("LH") && matches!(&tile[..], "IO.B" | "IO.T") {
                     let wire_buf = format!("{out_name}.FAKE");
-                    let wire_buf = (NodeTileId::from_idx(0), intdb.get_wire(&wire_buf));
+                    let wire_buf = (TileCellId::from_idx(0), intdb.get_wire(&wire_buf));
                     props.push(Box::new(BaseIntPip::new(wire_buf, wire_to)));
                     props.push(Box::new(NodeMutexExclusive::new(wire_buf)));
                 } else if out_name.starts_with("LV") && matches!(&tile[..], "BRAM_BOT" | "BRAM_TOP")
@@ -879,7 +879,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let in_wire_name = intdb.wires.key(wire_from.1);
                     'll_src_pin: {
                         if let Some(wire_unbuf) = in_wire_name.strip_suffix(".BUF") {
-                            let wire_unbuf = (NodeTileId::from_idx(0), intdb.get_wire(wire_unbuf));
+                            let wire_unbuf = (TileCellId::from_idx(0), intdb.get_wire(wire_unbuf));
                             props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
                             props.push(Box::new(NodeMutexExclusive::new(wire_unbuf)));
                             break 'll_src_pin;
@@ -906,7 +906,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             }
                             break 'll_src_pin;
                         } else if let Some(wire_unbuf) = in_wire_name.strip_suffix(".FAKE") {
-                            let wire_unbuf = (NodeTileId::from_idx(0), intdb.get_wire(wire_unbuf));
+                            let wire_unbuf = (TileCellId::from_idx(0), intdb.get_wire(wire_unbuf));
                             props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
                             props.push(Box::new(NodeMutexExclusive::new(wire_unbuf)));
                             break 'll_src_pin;
@@ -930,7 +930,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             }
                         } else if in_wire_name.starts_with("SINGLE") {
                             let wire_buf = format!("{in_wire_name}.BUF");
-                            let wire_buf = (NodeTileId::from_idx(0), intdb.get_wire(&wire_buf));
+                            let wire_buf = (TileCellId::from_idx(0), intdb.get_wire(&wire_buf));
                             if tile.ends_with("BRAM") {
                                 let related = Delta::new(
                                     -1,
@@ -941,7 +941,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     related.clone(),
                                     BaseIntPip::new(
                                         wire_buf,
-                                        (NodeTileId::from_idx(0), wire_from.1),
+                                        (TileCellId::from_idx(0), wire_from.1),
                                     ),
                                 )));
                                 props.push(Box::new(Related::new(
@@ -992,7 +992,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
                 for &wire_from in &mux.ins {
                     let in_wire_name = intdb.wires.key(wire_from.1);
-                    let in_name = if node.tiles.len() == 1 {
+                    let in_name = if node.cells.len() == 1 {
                         in_wire_name.to_string()
                     } else {
                         format!("{}.{}", wire_from.0, in_wire_name)
@@ -1025,13 +1025,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     }
                     if out_name == "DLL.IMUX.CLKIN" {
                         alt_out_wire = Some((
-                            NodeTileId::from_idx(0),
+                            TileCellId::from_idx(0),
                             backend.egrid.db.get_wire("DLL.IMUX.CLKFB"),
                         ));
                     }
                     if out_name == "DLL.IMUX.CLKFB" {
                         alt_out_wire = Some((
-                            NodeTileId::from_idx(0),
+                            TileCellId::from_idx(0),
                             backend.egrid.db.get_wire("DLL.IMUX.CLKIN"),
                         ));
                     }
@@ -1054,7 +1054,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         'imux_pin: {
                             if let Some(wire_unbuf) = in_wire_name.strip_suffix(".BUF") {
                                 let wire_unbuf =
-                                    (NodeTileId::from_idx(0), intdb.get_wire(wire_unbuf));
+                                    (TileCellId::from_idx(0), intdb.get_wire(wire_unbuf));
                                 props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
                                 props.push(Box::new(NodeMutexExclusive::new(wire_unbuf)));
                                 break 'imux_pin;
@@ -1088,7 +1088,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 for &wire_from in &mux.ins {
                     let in_wire_name = intdb.wires.key(wire_from.1);
-                    let in_name = if node.tiles.len() == 1 {
+                    let in_name = if node.cells.len() == 1 {
                         in_wire_name.to_string()
                     } else {
                         format!("{}.{}", wire_from.0, in_wire_name)
@@ -1104,7 +1104,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             break 'imux_pin;
                         } else if out_name == "PCI.IMUX.I3" {
                             let wire_buf = format!("{in_wire_name}.BUF");
-                            let wire_buf = (NodeTileId::from_idx(0), intdb.get_wire(&wire_buf));
+                            let wire_buf = (TileCellId::from_idx(0), intdb.get_wire(&wire_buf));
                             let related =
                                 Delta::new(0, 0, if tile == "CLKL" { "IO.L" } else { "IO.R" });
                             props.push(Box::new(Related::new(
@@ -1188,11 +1188,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     };
     let egrid = ctx.edev.egrid();
     let intdb = egrid.db;
-    for (node_kind, tile, node) in &intdb.nodes {
+    for (node_kind, tile, node) in &intdb.tile_classes {
         if node.muxes.is_empty() {
             continue;
         }
-        if egrid.node_index[node_kind].is_empty() {
+        if egrid.tile_index[node_kind].is_empty() {
             continue;
         }
 
@@ -1201,13 +1201,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 intdb.wires[wire_to.1],
                 WireKind::PipOut | WireKind::PipBranch(_)
             ) {
-                let out_name = if node.tiles.len() == 1 {
+                let out_name = if node.cells.len() == 1 {
                     intdb.wires.key(wire_to.1).to_string()
                 } else {
                     format!("{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
                 };
                 for &wire_from in &mux.ins {
-                    let in_name = if node.tiles.len() == 1 {
+                    let in_name = if node.cells.len() == 1 {
                         intdb.wires.key(wire_from.1).to_string()
                     } else {
                         format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
@@ -1242,7 +1242,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.tiledb.insert(tile, "INT", name, item);
                 }
             } else {
-                let out_name = if node.tiles.len() == 1 {
+                let out_name = if node.cells.len() == 1 {
                     intdb.wires.key(wire_to.1).to_string()
                 } else {
                     format!("{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
@@ -1252,7 +1252,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let mut inps = vec![];
                 let mut got_empty = false;
                 for &wire_from in &mux.ins {
-                    let in_name = if node.tiles.len() == 1 {
+                    let in_name = if node.cells.len() == 1 {
                         intdb.wires.key(wire_from.1).to_string()
                     } else {
                         format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))

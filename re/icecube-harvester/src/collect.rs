@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
-    db::{MuxInfo, NodeKindId, NodeWireId},
+    db::{MuxInfo, TileClassId, TileClassWire},
     dir::{Dir, DirV},
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
@@ -15,7 +15,7 @@ use prjcombine_siliconblue::{
     chip::{ChipKind, ExtraNodeLoc},
     expanded::{BitOwner, ExpandedDevice},
 };
-use prjcombine_types::tiledb::{TileBit, TileDb, TileItem};
+use prjcombine_types::bsdata::{TileBit, BsData, TileItem};
 use unnamed_entity::EntityId;
 
 pub fn collect_iob(
@@ -119,10 +119,10 @@ pub fn collect_iob(
 
 pub fn collect(
     edev: &ExpandedDevice,
-    muxes: &BTreeMap<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>,
+    muxes: &BTreeMap<TileClassId, BTreeMap<TileClassWire, MuxInfo>>,
     harvester: &Harvester<BitOwner>,
-) -> TileDb {
-    let mut tiledb = TileDb::new();
+) -> BsData {
+    let mut tiledb = BsData::new();
     let mut state = State::new();
     let mut bitvec_diffs: BTreeMap<FeatureId, BTreeMap<usize, Diff>> = BTreeMap::new();
     for (key, bits) in &harvester.known_global {
@@ -176,7 +176,7 @@ pub fn collect(
     };
 
     for (&node_kind, tile_muxes) in muxes {
-        let tile = edev.egrid.db.nodes.key(node_kind);
+        let tile = edev.egrid.db.tile_classes.key(node_kind);
         let bel = "INT";
         if !tile.starts_with("IO") {
             collector.collect_bit(tile, bel, "INV.IMUX.CLK", "");

@@ -31,7 +31,7 @@ impl NodeRelation for Rclk {
         };
         Some(
             edev.egrid
-                .get_node_by_bel((nloc.0, (col, nloc.2), bels::IOCLK)),
+                .get_tile_by_bel((nloc.0, (col, nloc.2), bels::IOCLK)),
         )
     }
 }
@@ -46,7 +46,7 @@ impl NodeRelation for Hclk {
         };
         let row = edev.chips[nloc.0].row_hclk(nloc.2);
         edev.egrid
-            .find_node_by_kind(nloc.0, (nloc.1, row), |kind| kind == self.0)
+            .find_tile_by_class(nloc.0, (nloc.1, row), |kind| kind == self.0)
     }
 }
 
@@ -79,7 +79,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkBramMgtPrev {
         if let Some(&col) = col {
             let nnloc = edev
                 .egrid
-                .get_node_by_bel((nloc.0, (col, nloc.2), bels::HCLK_BRAM_MGT));
+                .get_tile_by_bel((nloc.0, (col, nloc.2), bels::HCLK_BRAM_MGT));
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
                     tile: "HCLK_BRAM_MGT".into(),
@@ -117,7 +117,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
             if let Some(nnloc) =
                 backend
                     .egrid
-                    .find_node_by_kind(nloc.0, (edev.col_clk, nloc.2), |kind| kind == self.0)
+                    .find_tile_by_class(nloc.0, (edev.col_clk, nloc.2), |kind| kind == self.0)
             {
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
@@ -158,7 +158,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllIodelay {
             let row = bot + i;
             let Some(nnloc) = edev
                 .egrid
-                .find_node_by_bel((nloc.0, (nloc.1, row), bels::IODELAY0))
+                .find_tile_by_bel((nloc.0, (nloc.1, row), bels::IODELAY0))
             else {
                 continue;
             };
@@ -297,8 +297,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
-        let node_kind = backend.egrid.db.get_node(tile);
-        let node_data = &backend.egrid.db.nodes[node_kind];
+        let node_kind = backend.egrid.db.get_tile_class(tile);
+        let node_data = &backend.egrid.db.tile_classes[node_kind];
 
         for i in 0..4 {
             let bel = bels::BUFIO[i];
@@ -372,8 +372,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             "HCLK_IOI_CMT",
                             "HCLK_CMT_IOI",
                         ] {
-                            let onode = backend.egrid.db.get_node(otile);
-                            if !backend.egrid.node_index[onode].is_empty() {
+                            let onode = backend.egrid.db.get_tile_class(otile);
+                            if !backend.egrid.tile_index[onode].is_empty() {
                                 extras.push(Box::new(HclkIoiCenter(
                                     otile,
                                     "IOCLK",
@@ -620,8 +620,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "HCLK_IOI_CMT",
         "HCLK_CMT_IOI",
     ] {
-        let node_kind = edev.egrid.db.get_node(tile);
-        let node_data = &edev.egrid.db.nodes[node_kind];
+        let node_kind = edev.egrid.db.get_tile_class(tile);
+        let node_data = &edev.egrid.db.tile_classes[node_kind];
 
         if !ctx.has_tile(tile) {
             continue;

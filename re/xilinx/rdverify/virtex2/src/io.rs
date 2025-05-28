@@ -1,6 +1,6 @@
 use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
-use prjcombine_re_xilinx_naming::db::NodeRawTileId;
+use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Coord;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
@@ -88,7 +88,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
         vrf.claim_node(&[bel.fwire_far("I")]);
         vrf.claim_pip(bel.crd(), bel.wire_far("I"), bel.wire("I"));
     } else {
-        let tn = &bel.nnode.names[NodeRawTileId::from_idx(0)];
+        let tn = &bel.nnode.names[RawTileId::from_idx(0)];
         let is_ipad = tn.contains("IBUFS") || (tn.contains("IOIB") && bel.slot == bels::IO2);
         let kind = if matches!(
             endev.chip.kind,

@@ -1,7 +1,7 @@
 use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind};
 
 use crate::{

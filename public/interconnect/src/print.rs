@@ -1,4 +1,4 @@
-use crate::db::{IntDb, IntfInfo, IriPin, PinDir, TermInfo};
+use crate::db::{IntDb, IntfInfo, IriPin, PinDir, ConnectorWire};
 use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
 
@@ -7,11 +7,14 @@ impl IntDb {
         for (_, k, &w) in &self.wires {
             writeln!(o, "\tWIRE {k:14} {w}", w = w.to_string(self))?;
         }
+        for slot in self.region_slots.values() {
+            writeln!(o, "\tREGION SLOT {slot}")?;
+        }
         for slot in self.bel_slots.values() {
             writeln!(o, "\tBEL SLOT {slot}")?;
         }
-        for (_, name, node) in &self.nodes {
-            writeln!(o, "\tNODE {name} {nt}", nt = node.tiles.len())?;
+        for (_, name, node) in &self.tile_classes {
+            writeln!(o, "\tTILE CLASS {name} {nt}", nt = node.cells.len())?;
             for (&wo, mux) in &node.muxes {
                 write!(
                     o,
@@ -149,29 +152,29 @@ impl IntDb {
                 writeln!(o)?;
             }
         }
-        for (_, name, slot) in &self.term_slots {
+        for (_, name, slot) in &self.conn_slots {
             writeln!(
                 o,
-                "\tTERM SLOT {name}: opposite {oname}",
-                oname = self.term_slots.key(slot.opposite)
+                "\tCONN SLOT {name}: opposite {oname}",
+                oname = self.conn_slots.key(slot.opposite)
             )?;
         }
-        for (_, name, term) in &self.terms {
+        for (_, name, term) in &self.conn_classes {
             writeln!(
                 o,
-                "\tTERM {name} {slot}",
-                slot = self.term_slots.key(term.slot)
+                "\tCONN CLASS {name} {slot}",
+                slot = self.conn_slots.key(term.slot)
             )?;
             for (w, ti) in &term.wires {
                 let wn = &self.wires.key(w);
                 match ti {
-                    TermInfo::BlackHole => {
+                    ConnectorWire::BlackHole => {
                         writeln!(o, "\t\tBLACKHOLE {wn}")?;
                     }
-                    &TermInfo::PassNear(ow) => {
+                    &ConnectorWire::Reflect(ow) => {
                         writeln!(o, "\t\tPASS NEAR {wn} <- {own}", own = self.wires.key(ow))?;
                     }
-                    &TermInfo::PassFar(ow) => {
+                    &ConnectorWire::Pass(ow) => {
                         writeln!(o, "\t\tPASS FAR {wn} <- {own}", own = self.wires.key(ow))?;
                     }
                 }

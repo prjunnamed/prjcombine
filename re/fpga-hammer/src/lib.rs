@@ -9,11 +9,11 @@ use std::{
 use bitvec::{slice::BitSlice, vec::BitVec};
 use itertools::Itertools;
 use prjcombine_interconnect::{
-    db::NodeKindId,
+    db::TileClassId,
     grid::{ColId, DieId, ExpandedGrid, LayerId, NodeLoc, RowId},
 };
 use prjcombine_re_hammer::{Backend, BatchValue, Fuzzer, FuzzerGen, FuzzerId};
-use prjcombine_types::tiledb::{TileBit, TileDb, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, BsData, TileItem, TileItemKind};
 use rand::seq::IndexedRandom;
 use unnamed_entity::EntityId;
 
@@ -56,7 +56,7 @@ impl<'a, B: FpgaBackend> Clone for Box<dyn FuzzerProp<'a, B> + 'a> {
 
 #[derive(Debug)]
 pub struct FpgaFuzzerGen<'b, B: FpgaBackend> {
-    pub node_kind: Option<NodeKindId>,
+    pub node_kind: Option<TileClassId>,
     pub feature: FeatureId,
     pub props: Vec<Box<dyn FuzzerProp<'b, B> + 'b>>,
 }
@@ -112,7 +112,7 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerGen<'b, B> {
         kv: &HashMap<B::Key, BatchValue<B>>,
     ) -> Option<(Fuzzer<B>, Option<Box<dyn FuzzerGen<'b, B> + 'b>>)> {
         let (res, sad_props) = if let Some(node_kind) = self.node_kind {
-            let locs = &backend.egrid().node_index[node_kind];
+            let locs = &backend.egrid().tile_index[node_kind];
             let mut rng = rand::rng();
             'find: {
                 if locs.len() > 20 {
@@ -165,7 +165,7 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerChainGen<'b, B> {
         kv: &HashMap<B::Key, BatchValue<B>>,
     ) -> Option<(Fuzzer<B>, Option<Box<dyn FuzzerGen<'b, B> + 'b>>)> {
         let (res, mut sad_props) = if let Some(node_kind) = self.orig.node_kind {
-            let locs = &backend.egrid().node_index[node_kind];
+            let locs = &backend.egrid().tile_index[node_kind];
             let mut rng = rand::rng();
             'find: {
                 if locs.len() > 20 {
@@ -891,7 +891,7 @@ impl State {
 #[derive(Debug)]
 pub struct Collector<'a> {
     pub state: &'a mut State,
-    pub tiledb: &'a mut TileDb,
+    pub tiledb: &'a mut BsData,
 }
 
 impl Collector<'_> {

@@ -33,7 +33,7 @@ impl NodeRelation for ColPair {
         };
         backend
             .egrid
-            .find_node_by_kind(nloc.0, (col, nloc.2), |kind| kind == self.0)
+            .find_tile_by_class(nloc.0, (col, nloc.2), |kind| kind == self.0)
     }
 }
 
@@ -51,7 +51,7 @@ impl NodeRelation for CmtDir {
         };
         backend
             .egrid
-            .find_node_by_kind(nloc.0, (scol, nloc.2), |kind| kind == "CMT")
+            .find_tile_by_class(nloc.0, (scol, nloc.2), |kind| kind == "CMT")
     }
 }
 
@@ -87,7 +87,7 @@ impl NodeRelation for ClkRebuf {
             }
             if let Some(nnloc) = backend
                 .egrid
-                .find_node_by_kind(nloc.0, (nloc.1, nloc.2), |kind| {
+                .find_tile_by_class(nloc.0, (nloc.1, nloc.2), |kind| {
                     matches!(kind, "CLK_BUFG_REBUF" | "CLK_BALI_REBUF")
                 })
             {
@@ -504,11 +504,11 @@ pub fn add_fuzzers<'a>(
         }
         {
             let mut bctx = ctx.bel(bels::CLK_HROW);
-            let cmt = backend.egrid.db.get_node("CMT");
-            let has_lio = backend.egrid.node_index[cmt]
+            let cmt = backend.egrid.db.get_tile_class("CMT");
+            let has_lio = backend.egrid.tile_index[cmt]
                 .iter()
                 .any(|loc| loc.1 <= edev.col_clk);
-            let has_rio = backend.egrid.node_index[cmt]
+            let has_rio = backend.egrid.tile_index[cmt]
                 .iter()
                 .any(|loc| loc.1 > edev.col_clk);
             for i in 0..32 {

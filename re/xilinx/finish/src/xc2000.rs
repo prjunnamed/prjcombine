@@ -4,8 +4,8 @@ use std::{
 };
 
 use itertools::Itertools;
-use prjcombine_interconnect::db::{BelInfo, NodeTileId};
-use prjcombine_types::tiledb::TileDb;
+use prjcombine_interconnect::db::{BelInfo, TileCellId};
+use prjcombine_types::bsdata::BsData;
 use prjcombine_xc2000::{
     bels,
     bond::Bond,
@@ -141,7 +141,7 @@ fn sort_key<'a>(name: &'a str, chip: &'a Chip) -> SortKey<'a> {
 pub fn finish(
     xact: Option<prjcombine_re_xilinx_xact_geom::GeomDb>,
     geom: Option<prjcombine_re_xilinx_geom::GeomDb>,
-    tiledb: TileDb,
+    tiledb: BsData,
 ) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     if let Some(ref xact) = xact {
@@ -257,13 +257,13 @@ pub fn finish(
             let (key_i, mut int_i) = geom.ints.into_iter().next().unwrap();
             assert_eq!(key_x, "xc5200");
             assert_eq!(key_i, "xc5200");
-            let io_b = int_i.get_node("IO.B");
-            let io_b = &mut int_i.nodes[io_b];
+            let io_b = int_i.get_tile_class("IO.B");
+            let io_b = &mut int_i.tile_classes[io_b];
             io_b.bels.insert(bels::xc5200::SCANTEST, BelInfo::default());
-            let key = (NodeTileId::from_idx(0), int_i.get_wire("IMUX.BYPOSC.PUMP"));
-            let imux_byposc_pump = int_i.nodes.get("CNR.TR").unwrap().1.muxes[&key].clone();
+            let key = (TileCellId::from_idx(0), int_i.get_wire("IMUX.BYPOSC.PUMP"));
+            let imux_byposc_pump = int_i.tile_classes.get("CNR.TR").unwrap().1.muxes[&key].clone();
             int_x
-                .nodes
+                .tile_classes
                 .get_mut("CNR.TR")
                 .unwrap()
                 .1
@@ -282,6 +282,6 @@ pub fn finish(
         bonds,
         parts,
         int,
-        tiles: tiledb,
+        bsdata: tiledb,
     }
 }

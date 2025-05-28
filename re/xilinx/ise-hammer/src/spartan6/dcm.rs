@@ -8,7 +8,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_spartan6::bels;
-use prjcombine_types::tiledb::{TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileItem, TileItemKind};
 
 use crate::{
     backend::{IseBackend, MultiValue, PinFromKind},
@@ -33,8 +33,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllOtherDcms {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.db.get_node("CMT_DCM");
-        for &nnloc in &backend.egrid.node_index[node] {
+        let node = backend.egrid.db.get_tile_class("CMT_DCM");
+        for &nnloc in &backend.egrid.tile_index[node] {
             if nloc == nnloc {
                 continue;
             }

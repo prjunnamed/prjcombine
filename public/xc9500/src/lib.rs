@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use jzon::JsonValue;
-use prjcombine_types::{FbId, FbMcId, speed::Speed, tiledb::Tile};
+use prjcombine_types::{FbId, FbMcId, speed::Speed, bsdata::Tile};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 

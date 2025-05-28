@@ -28,10 +28,10 @@ pub fn gen_xc2000(ctx: &mut DocgenContext) {
             ctx.ctx.root.join(format!("../databases/{kind}.zstd")),
         )
         .unwrap();
-        gen_tiles(ctx, kind, &db.tiles, |_| tile_orientation);
+        gen_tiles(ctx, kind, &db.bsdata, |_| tile_orientation);
         let misc_used = HashSet::new();
         let devdata_used = HashSet::new();
-        check_misc_data(&db.tiles, kind, &misc_used);
-        check_devdata(&db.tiles, kind, &devdata_used);
+        check_misc_data(&db.bsdata, kind, &misc_used);
+        check_devdata(&db.bsdata, kind, &devdata_used);
     }
 }

@@ -3,7 +3,7 @@ use prjcombine_interconnect::{db::PinDir, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::TileItemKind;
+use prjcombine_types::bsdata::TileItemKind;
 use prjcombine_virtex2::{bels, chip::ChipKind};
 
 use crate::{
@@ -34,11 +34,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for StabilizeGclkc {
         _nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
-        for (node_kind, node_name, _) in &backend.egrid.db.nodes {
+        for (node_kind, node_name, _) in &backend.egrid.db.tile_classes {
             if !node_name.starts_with("GCLKC") {
                 continue;
             }
-            for &nloc in &backend.egrid.node_index[node_kind] {
+            for &nloc in &backend.egrid.tile_index[node_kind] {
                 for (o, i) in [
                     ("OUT_L0", "IN_B0"),
                     ("OUT_R0", "IN_B0"),
@@ -505,15 +505,15 @@ pub fn add_fuzzers<'a>(
     if !grid_kind.is_virtex2() && grid_kind != ChipKind::FpgaCore {
         // PTE2OMUX
         for tile in ["INT.DCM", "INT.DCM.S3E.DUMMY"] {
-            let node_kind = backend.egrid.db.get_node(tile);
-            if backend.egrid.node_index[node_kind].is_empty() {
+            let node_kind = backend.egrid.db.get_tile_class(tile);
+            if backend.egrid.tile_index[node_kind].is_empty() {
                 continue;
             }
             for i in 0..4 {
                 let mut ctx = FuzzCtx::new(session, backend, tile);
-                let node_kind = backend.egrid.db.get_node(tile);
+                let node_kind = backend.egrid.db.get_tile_class(tile);
                 let mut bctx = ctx.bel(bels::PTE2OMUX[i]);
-                let bel_data = &backend.egrid.db.nodes[node_kind].bels[bels::PTE2OMUX[i]];
+                let bel_data = &backend.egrid.db.tile_classes[node_kind].bels[bels::PTE2OMUX[i]];
                 for (pin_name, pin_data) in &bel_data.pins {
                     if pin_data.dir == PinDir::Output {
                         continue;
@@ -585,8 +585,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     for tile in [clkb, clkt] {
         for i in 0..bufg_num {
             if edev.chip.kind != ChipKind::FpgaCore {
-                let node_kind = intdb.get_node(tile);
-                let bel = &intdb.nodes[node_kind].bels[bels::BUFGMUX[i]];
+                let node_kind = intdb.get_tile_class(tile);
+                let bel = &intdb.tile_classes[node_kind].bels[bels::BUFGMUX[i]];
                 let pin = &bel.pins["S"];
                 let bel = format!("BUFGMUX{i}");
                 let bel = &bel;
@@ -778,11 +778,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             if !ctx.has_tile(tile) {
                 continue;
             }
-            let node_kind = intdb.get_node(tile);
+            let node_kind = intdb.get_tile_class(tile);
             let bel = "PTE2OMUX";
             for i in 0..4 {
                 let bel_id = bels::PTE2OMUX[i];
-                let bel_data = &intdb.nodes[node_kind].bels[bel_id];
+                let bel_data = &intdb.tile_classes[node_kind].bels[bel_id];
                 let mux_name = &intdb.bel_slots[bel_id];
                 let mut diffs = vec![];
                 for (pin_name, pin_data) in &bel_data.pins {

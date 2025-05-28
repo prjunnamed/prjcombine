@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use jzon::JsonValue;
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_types::{speed::Speed, tiledb::TileDb};
+use prjcombine_types::{speed::Speed, bsdata::BsData};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 
@@ -30,7 +30,7 @@ pub struct Database {
     pub speeds: EntityVec<SpeedId, Speed>,
     pub parts: Vec<Part>,
     pub int: IntDb,
-    pub tiles: TileDb,
+    pub bsdata: BsData,
 }
 
 impl Database {
@@ -69,7 +69,7 @@ impl From<&Database> for JsonValue {
             speeds: Vec::from_iter(db.speeds.values()),
             parts: Vec::from_iter(db.parts.iter()),
             int: &db.int,
-            tiles: &db.tiles,
+            bsdata: &db.bsdata,
         }
     }
 }

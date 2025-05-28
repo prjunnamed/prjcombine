@@ -2,7 +2,7 @@ use bitvec::vec::BitVec;
 use prjcombine_re_fpga_hammer::{OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_spartan6::bels;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 
 use crate::{
     backend::IseBackend,

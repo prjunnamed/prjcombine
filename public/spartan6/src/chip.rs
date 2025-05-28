@@ -1,5 +1,5 @@
 use jzon::JsonValue;
-use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, IntBel, RowId, TileIobId};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, BelCoord, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
@@ -310,7 +310,7 @@ impl Chip {
         }
     }
 
-    pub fn get_io_crd(&self, bel: IntBel) -> EdgeIoCoord {
+    pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
         let (_, (col, row), slot) = bel;
         let iob = bels::IOB.iter().position(|&x| x == slot).unwrap();
         if col == self.col_lio() {
@@ -330,7 +330,7 @@ impl Chip {
         }
     }
 
-    pub fn get_io_loc(&self, io: EdgeIoCoord) -> IntBel {
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> BelCoord {
         let die = DieId::from_idx(0);
         match io {
             EdgeIoCoord::N(col, iob) => {

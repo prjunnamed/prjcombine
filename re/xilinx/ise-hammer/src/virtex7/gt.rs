@@ -5,7 +5,7 @@ use prjcombine_interconnect::grid::NodeLoc;
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex4::bels;
 
 use crate::{
@@ -1465,7 +1465,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TouchHout {
         } else {
             let lr = if nloc.1 < edev.col_clk { 'L' } else { 'R' };
             let clk_hrow_bel = (nloc.0, (edev.col_clk, nloc.2), bels::CLK_HROW);
-            let clk_hrow = edev.egrid.get_node_by_bel(clk_hrow_bel);
+            let clk_hrow = edev.egrid.get_tile_by_bel(clk_hrow_bel);
             let (ta, wa) = PipWire::BelPinNear(bels::CLK_HROW, format!("HIN{idx}_{lr}"))
                 .resolve(backend, clk_hrow)?;
             let (tb, wb) = PipWire::BelPinNear(bels::CLK_HROW, format!("CASCO{idx}"))
@@ -1572,8 +1572,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_manual("QPLLREFCLKSEL_MODE", "DYNAMIC")
             .pip("GTREFCLK0", (PinFar, "GTREFCLK0"))
             .commit();
-        let node = backend.egrid.db.get_node(tile);
-        if backend.egrid.node_index[node].len() > 1 {
+        let node = backend.egrid.db.get_tile_class(tile);
+        if backend.egrid.tile_index[node].len() > 1 {
             for i in 0..2 {
                 bctx.build()
                     .mutex(format!("MUX.NORTHREFCLK{i}_N"), format!("NORTHREFCLK{i}"))
@@ -2027,8 +2027,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             OcdMode::BitOrderDrpV6,
         );
         ctx.collect_enum_default(tile, bel, "QPLLREFCLKSEL_MODE", &["DYNAMIC"], "STATIC");
-        let node = ctx.edev.egrid().db.get_node(tile);
-        if ctx.edev.egrid().node_index[node].len() > 1 {
+        let node = ctx.edev.egrid().db.get_tile_class(tile);
+        if ctx.edev.egrid().tile_index[node].len() > 1 {
             ctx.collect_enum_default_ocd(
                 tile,
                 bel,

@@ -11,7 +11,7 @@ use itertools::Itertools;
 use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_xact_geom::{Device, GeomDb};
-use prjcombine_types::tiledb::TileDb;
+use prjcombine_types::bsdata::BsData;
 use prjcombine_xc2000::chip::ChipKind;
 
 mod backend;
@@ -46,7 +46,7 @@ struct RunOpts {
     no_dup: bool,
 }
 
-fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &RunOpts) {
+fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &RunOpts) {
     println!("part {name}", name = part.name);
     let edev = db.expand_grid(part);
     let endev = db.name(part, &edev);
@@ -111,7 +111,7 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let db = GeomDb::from_file(args.geomdb)?;
-    let mut tiledb = TileDb::new();
+    let mut tiledb = BsData::new();
     let opts = RunOpts {
         no_dup: args.no_dup,
         debug: args.debug,

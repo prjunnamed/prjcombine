@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 
 use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
-use prjcombine_types::tiledb::{DbValue, TileItem};
+use prjcombine_types::bsdata::{DbValue, TileItem};
 use prjcombine_xilinx_bitstream::Bitstream;
 use unnamed_entity::EntityId;
 
@@ -51,8 +51,8 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
 
     pub fn has_tile(&self, tile: &str) -> bool {
         let egrid = self.edev.egrid();
-        let node = egrid.db.get_node(tile);
-        !egrid.node_index[node].is_empty()
+        let node = egrid.db.get_tile_class(tile);
+        !egrid.tile_index[node].is_empty()
     }
 
     pub fn insert_int_inv(
@@ -65,7 +65,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     ) {
         let intdb = self.edev.egrid().db;
         let slot = intdb.bel_slots.get(bel).unwrap();
-        let node = intdb.nodes.get(tile).unwrap().1;
+        let node = intdb.tile_classes.get(tile).unwrap().1;
         let bel = &node.bels[slot];
         let pin = &bel.pins[pin];
         assert_eq!(pin.wires.len(), 1);
@@ -86,7 +86,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     pub fn item_int_inv(&self, int_tiles: &[&str], tile: &str, bel: &str, pin: &str) -> TileItem {
         let intdb = self.edev.egrid().db;
         let slot = intdb.bel_slots.get(bel).unwrap();
-        let node = intdb.nodes.get(tile).unwrap().1;
+        let node = intdb.tile_classes.get(tile).unwrap().1;
         let bel = &node.bels[slot];
         let pin = &bel.pins[pin];
         assert_eq!(pin.wires.len(), 1);

@@ -7,7 +7,7 @@ use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_hammer::{Backend, Session};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
-use prjcombine_types::tiledb::TileDb;
+use prjcombine_types::bsdata::BsData;
 use prjcombine_xilinx_bitstream::Reg;
 use std::collections::HashMap;
 use std::error::Error;
@@ -103,7 +103,7 @@ impl RunOpts {
     }
 }
 
-fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &RunOpts) {
+fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &RunOpts) {
     println!("part {name}", name = part.name);
     let mut opts = *opts;
     let gedev = db.expand_grid(part);
@@ -716,7 +716,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let tc = Toolchain::from_file(&args.toolchain)?;
     let db = GeomDb::from_file(args.geomdb)?;
-    let mut tiledb = TileDb::new();
+    let mut tiledb = BsData::new();
     let opts = RunOpts {
         skip_io: args.skip_io,
         skip_clk: args.skip_clk,

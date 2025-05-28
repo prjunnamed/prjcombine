@@ -1,10 +1,10 @@
 use std::fmt::Write;
 
 use prjcombine_interconnect::{
-    db::{IntDb, NodeTileId, NodeWireId, TermInfo, TermKind, WireId, WireKind},
+    db::{IntDb, TileCellId, TileClassWire, ConnectorWire, ConnectorClass, WireId, WireKind},
     dir::{Dir, DirMap},
 };
-use prjcombine_re_xilinx_naming::db::{NamingDb, NodeNamingId};
+use prjcombine_re_xilinx_naming::db::{NamingDb, TileClassNamingId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_xc2000::bels::xc4000 as bels;
 use unnamed_entity::EntityId;
@@ -723,13 +723,13 @@ fn fill_clk_wires(builder: &mut IntBuilder) {
     }
 }
 
-fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
+fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileClassWire>) {
     let mut imux_wires = vec![];
     let mut imux_nw = vec![];
     for (pin, opin) in [("F1", "O_2"), ("G1", "O_1"), ("C1", "TXIN2")] {
         let w = builder.mux_out(format!("IMUX.CLB.{pin}"), &[format!("CENTER_{pin}")]);
         imux_wires.push(w);
-        imux_nw.push((NodeTileId::from_idx(0), w));
+        imux_nw.push((TileCellId::from_idx(0), w));
         for &k in &RT_KINDS {
             builder.extra_name(format!("{k}_{opin}"), w);
         }
@@ -743,7 +743,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
             &[format!("CENTER_{pin}")],
         );
         imux_wires.push(w);
-        imux_nw.push((NodeTileId::from_idx(0), w));
+        imux_nw.push((TileCellId::from_idx(0), w));
         imux_wires.push(ww);
         for k in LEFT_KINDS {
             builder.extra_name(format!("{k}_{pin}R"), w);
@@ -765,7 +765,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
             &[format!("CENTER_{pin}")],
         );
         imux_wires.push(w);
-        imux_nw.push((NodeTileId::from_idx(0), w));
+        imux_nw.push((TileCellId::from_idx(0), w));
         imux_wires.push(ww);
         for &k in &RT_KINDS {
             builder.extra_name(format!("{k}_{pin}L"), w);
@@ -781,7 +781,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
     ] {
         let w = builder.mux_out(format!("IMUX.CLB.{pin}"), &[format!("CENTER_{pin}")]);
         imux_wires.push(w);
-        imux_nw.push((NodeTileId::from_idx(0), w));
+        imux_nw.push((TileCellId::from_idx(0), w));
         for k in RT_KINDS {
             builder.extra_name(format!("{k}_{pin}"), w);
         }
@@ -793,7 +793,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
     {
         let w = builder.mux_out("IMUX.CLB.K", &["CENTER_K"]);
         imux_wires.push(w);
-        imux_nw.push((NodeTileId::from_idx(0), w));
+        imux_nw.push((TileCellId::from_idx(0), w));
     }
 
     for i in 0..2 {
@@ -807,7 +807,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
                 builder.extra_name(format!("{k}_TBUF{ii}{pin}"), w);
             }
             imux_wires.push(w);
-            imux_nw.push((NodeTileId::from_idx(0), w));
+            imux_nw.push((TileCellId::from_idx(0), w));
         }
     }
 
@@ -831,7 +831,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
             }
 
             imux_wires.push(w);
-            imux_nw.push((NodeTileId::from_idx(0), w));
+            imux_nw.push((TileCellId::from_idx(0), w));
         }
     }
 
@@ -841,7 +841,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
             builder.extra_name(format!("{k}_COUT"), w);
         }
         imux_wires.push(w);
-        imux_nw.push((NodeTileId::from_idx(0), w));
+        imux_nw.push((TileCellId::from_idx(0), w));
     }
 
     for pin in ["CLK", "GSR", "GTS"] {
@@ -867,7 +867,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
     ] {
         let w = builder.mux_out(n, &[xn]);
         imux_wires.push(w);
-        imux_nw.push((NodeTileId::from_idx(0), w));
+        imux_nw.push((TileCellId::from_idx(0), w));
     }
 
     (imux_wires, imux_nw)
@@ -1149,7 +1149,7 @@ fn fill_xc4000e_wirenames(builder: &mut IntBuilder) {
 fn extract_clb(
     builder: &mut IntBuilder,
     imux_wires: &[WireId],
-    imux_nw: &[NodeWireId],
+    imux_nw: &[TileClassWire],
     force_names: &[(usize, String, WireId)],
 ) {
     let is_xv = builder.rd.family == "xc4000xv";
@@ -1221,14 +1221,14 @@ fn extract_clb(
             .skip_muxes(&tbuf_wires)
             .bels(bels);
         for &(rti, ref name, wire) in force_names {
-            xn = xn.force_name(rti, name, (NodeTileId::from_idx(0), wire));
+            xn = xn.force_name(rti, name, (TileCellId::from_idx(0), wire));
         }
         for (wt, wf) in [
             ("IMUX.CLB.F2", "IMUX.IOB0.O1"),
             ("IMUX.CLB.G2", "IMUX.IOB1.O1"),
         ] {
-            let wt = (NodeTileId::from_idx(0), xn.builder.db.get_wire(wt));
-            let wf = (NodeTileId::from_idx(1), xn.builder.db.get_wire(wf));
+            let wt = (TileCellId::from_idx(0), xn.builder.db.get_wire(wt));
+            let wf = (TileCellId::from_idx(1), xn.builder.db.get_wire(wf));
             xn = xn.force_skip_pip(wt, wf);
         }
         if is_xv {
@@ -1243,14 +1243,14 @@ fn extract_clb(
         xn.extract();
     }
 
-    let naming = builder.ndb.get_node_naming("CLB");
+    let naming = builder.ndb.get_tile_class_naming("CLB");
     builder.inject_node_type_naming("CENTER", naming);
 }
 
 fn extract_bot(
     builder: &mut IntBuilder,
     imux_wires: &[WireId],
-    imux_nw: &[NodeWireId],
+    imux_nw: &[TileClassWire],
     force_names: &[(usize, String, WireId)],
 ) {
     let is_xv = builder.rd.family == "xc4000xv";
@@ -1301,24 +1301,24 @@ fn extract_bot(
                 .skip_muxes(imux_wires)
                 .bels(bels);
             for &(rti, ref name, wire) in force_names {
-                xn = xn.force_name(rti, name, (NodeTileId::from_idx(0), wire));
+                xn = xn.force_name(rti, name, (TileCellId::from_idx(0), wire));
             }
             if let Some(eclk_h) = eclk_h {
                 if tkn == "BOTSL" {
                     xn = xn
-                        .force_name(3, "LL_FCLK", (NodeTileId::from_idx(0), eclk_h))
-                        .force_name(3, "LL_BHLL1", (NodeTileId::from_idx(0), long_io[0]))
-                        .force_name(3, "LL_BHLL2", (NodeTileId::from_idx(0), long_io[1]))
-                        .force_name(3, "LL_BHLL4", (NodeTileId::from_idx(0), long_io[2]))
-                        .optin_muxes_tile(&[(NodeTileId::from_idx(0), eclk_h)]);
+                        .force_name(3, "LL_FCLK", (TileCellId::from_idx(0), eclk_h))
+                        .force_name(3, "LL_BHLL1", (TileCellId::from_idx(0), long_io[0]))
+                        .force_name(3, "LL_BHLL2", (TileCellId::from_idx(0), long_io[1]))
+                        .force_name(3, "LL_BHLL4", (TileCellId::from_idx(0), long_io[2]))
+                        .optin_muxes_tile(&[(TileCellId::from_idx(0), eclk_h)]);
                 }
             }
             for (wt, wf) in [
                 ("IMUX.CLB.F4", "IMUX.IOB0.O1"),
                 ("IMUX.CLB.G4", "IMUX.IOB1.O1"),
             ] {
-                let wt = (NodeTileId::from_idx(0), xn.builder.db.get_wire(wt));
-                let wf = (NodeTileId::from_idx(0), xn.builder.db.get_wire(wf));
+                let wt = (TileCellId::from_idx(0), xn.builder.db.get_wire(wt));
+                let wf = (TileCellId::from_idx(0), xn.builder.db.get_wire(wf));
                 xn = xn.force_skip_pip(wt, wf);
             }
             if is_xv {
@@ -1327,12 +1327,12 @@ fn extract_bot(
             xn.extract();
             found_naming = Some(naming);
         }
-        let naming = builder.ndb.get_node_naming(&found_naming.unwrap());
+        let naming = builder.ndb.get_tile_class_naming(&found_naming.unwrap());
         builder.inject_node_type_naming(tkn, naming);
     }
 }
 
-fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWireId]) {
+fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileClassWire]) {
     let is_xv = builder.rd.family == "xc4000xv";
     let eclk_h = builder.db.wires.get("ECLK.H").map(|x| x.0);
     let long_io = [
@@ -1388,22 +1388,22 @@ fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeW
             if let Some(eclk_h) = eclk_h {
                 if tkn == "TOPSL" {
                     xn = xn
-                        .force_name(2, "UL_FCLK", (NodeTileId::from_idx(0), eclk_h))
-                        .force_name(2, "UL_THLL1", (NodeTileId::from_idx(0), long_io[0]))
-                        .force_name(2, "UL_THLL2", (NodeTileId::from_idx(0), long_io[1]))
-                        .force_name(2, "UL_THLL4", (NodeTileId::from_idx(0), long_io[2]))
-                        .optin_muxes_tile(&[(NodeTileId::from_idx(0), eclk_h)]);
+                        .force_name(2, "UL_FCLK", (TileCellId::from_idx(0), eclk_h))
+                        .force_name(2, "UL_THLL1", (TileCellId::from_idx(0), long_io[0]))
+                        .force_name(2, "UL_THLL2", (TileCellId::from_idx(0), long_io[1]))
+                        .force_name(2, "UL_THLL4", (TileCellId::from_idx(0), long_io[2]))
+                        .optin_muxes_tile(&[(TileCellId::from_idx(0), eclk_h)]);
                 }
             }
             xn.extract();
             found_naming = Some(naming);
         }
-        let naming = builder.ndb.get_node_naming(&found_naming.unwrap());
+        let naming = builder.ndb.get_tile_class_naming(&found_naming.unwrap());
         builder.inject_node_type_naming(tkn, naming);
     }
 }
 
-fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWireId]) {
+fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileClassWire]) {
     let is_xv = builder.rd.family == "xc4000xv";
     let is_e = builder.rd.family == "xc4000e";
     let eclk_v = builder.db.wires.get("ECLK.V").map(|x| x.0);
@@ -1467,20 +1467,20 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
                 xn = xn
                     .skip_muxes(&tbuf_wires)
                     .force_pip(
-                        (NodeTileId::from_idx(0), tbuf_wires[0]),
-                        (NodeTileId::from_idx(0), single_wires[0]),
+                        (TileCellId::from_idx(0), tbuf_wires[0]),
+                        (TileCellId::from_idx(0), single_wires[0]),
                     )
                     .force_pip(
-                        (NodeTileId::from_idx(0), tbuf_wires[1]),
-                        (NodeTileId::from_idx(0), single_wires[1]),
+                        (TileCellId::from_idx(0), tbuf_wires[1]),
+                        (TileCellId::from_idx(0), single_wires[1]),
                     );
             }
             for (wt, wf) in [
                 ("IMUX.CLB.G1", "IMUX.IOB0.O1"),
                 ("IMUX.CLB.F1", "IMUX.IOB1.O1"),
             ] {
-                let wt = (NodeTileId::from_idx(0), xn.builder.db.get_wire(wt));
-                let wf = (NodeTileId::from_idx(0), xn.builder.db.get_wire(wf));
+                let wt = (TileCellId::from_idx(0), xn.builder.db.get_wire(wt));
+                let wf = (TileCellId::from_idx(0), xn.builder.db.get_wire(wf));
                 xn = xn.force_skip_pip(wt, wf);
             }
             if is_xv {
@@ -1489,8 +1489,8 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
             if let Some(eclk_v) = eclk_v {
                 if tkn == "RTT" {
                     xn = xn
-                        .force_name(2, "UR_URKX", (NodeTileId::from_idx(0), eclk_v))
-                        .optin_muxes_tile(&[(NodeTileId::from_idx(0), eclk_v)]);
+                        .force_name(2, "UR_URKX", (TileCellId::from_idx(0), eclk_v))
+                        .optin_muxes_tile(&[(TileCellId::from_idx(0), eclk_v)]);
                 }
             }
             xn.extract();
@@ -1498,13 +1498,13 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
         }
 
         if let Some(naming) = found_naming {
-            let naming = builder.ndb.get_node_naming(&naming);
+            let naming = builder.ndb.get_tile_class_naming(&naming);
             builder.inject_node_type_naming(tkn, naming);
         }
     }
 }
 
-fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWireId]) {
+fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileClassWire]) {
     let is_xv = builder.rd.family == "xc4000xv";
     let eclk_v = builder.db.wires.get("ECLK.V").map(|x| x.0);
     let tbuf_wires = [
@@ -1568,8 +1568,8 @@ fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[Node
             if let Some(eclk_v) = eclk_v {
                 if tkn == "LEFTT" {
                     xn = xn
-                        .force_name(3, "UL_KX", (NodeTileId::from_idx(0), eclk_v))
-                        .optin_muxes_tile(&[(NodeTileId::from_idx(0), eclk_v)]);
+                        .force_name(3, "UL_KX", (TileCellId::from_idx(0), eclk_v))
+                        .optin_muxes_tile(&[(TileCellId::from_idx(0), eclk_v)]);
                 }
             }
             xn.extract();
@@ -1577,13 +1577,13 @@ fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[Node
         }
 
         if let Some(naming) = found_naming {
-            let naming = builder.ndb.get_node_naming(&naming);
+            let naming = builder.ndb.get_tile_class_naming(&naming);
             builder.inject_node_type_naming(tkn, naming);
         }
     }
 }
 
-fn extract_lr(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWireId]) {
+fn extract_lr(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileClassWire]) {
     for &crd in builder.rd.tiles_by_kind_name("LR") {
         let mut bels = vec![];
         match &*builder.rd.family {
@@ -1662,7 +1662,7 @@ fn extract_lr(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
     }
 }
 
-fn extract_ur(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWireId]) {
+fn extract_ur(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileClassWire]) {
     let eclk_v = builder.db.wires.get("ECLK.V").map(|x| x.0);
     for &crd in builder.rd.tiles_by_kind_name("UR") {
         let mut bels = vec![];
@@ -1752,7 +1752,7 @@ fn extract_ur(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
     }
 }
 
-fn extract_ll(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWireId]) {
+fn extract_ll(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileClassWire]) {
     let eclk_h = builder.db.wires.get("ECLK.H").map(|x| x.0);
     for &crd in builder.rd.tiles_by_kind_name("LL") {
         let xy_e = builder.walk_to_int(crd, Dir::E, true).unwrap();
@@ -1842,7 +1842,7 @@ fn extract_ll(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
     }
 }
 
-fn extract_ul(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWireId]) {
+fn extract_ul(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileClassWire]) {
     let eclk_h = builder.db.wires.get("ECLK.H").map(|x| x.0);
     let eclk_v = builder.db.wires.get("ECLK.V").map(|x| x.0);
     for &crd in builder.rd.tiles_by_kind_name("UL") {
@@ -1931,7 +1931,7 @@ fn extract_ul(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
     }
 }
 
-fn get_tile_naming(builder: &IntBuilder, crd: Coord) -> NodeNamingId {
+fn get_tile_naming(builder: &IntBuilder, crd: Coord) -> TileClassNamingId {
     let tkn = builder.rd.tile_kinds.key(builder.rd.tiles[&crd].kind);
     if tkn == "CENTER" {
         let xy_s = builder.walk_to_int(crd, Dir::S, true).unwrap();
@@ -1945,19 +1945,19 @@ fn get_tile_naming(builder: &IntBuilder, crd: Coord) -> NodeNamingId {
                 write!(naming, ".{kind}").unwrap();
             }
         }
-        builder.ndb.get_node_naming(&naming)
+        builder.ndb.get_tile_class_naming(&naming)
     } else if tkn.starts_with("BOT") || tkn.starts_with("TOP") {
         let xy_e = builder.walk_to_int(crd, Dir::E, true).unwrap();
         let kind_e = builder.rd.tile_kinds.key(builder.rd.tiles[&xy_e].kind);
         let naming = format!("{tkn}.{kind_e}");
-        builder.ndb.get_node_naming(&naming)
+        builder.ndb.get_tile_class_naming(&naming)
     } else if tkn.starts_with("LEFT") || tkn.starts_with("RT") {
         let xy_s = builder.walk_to_int(crd, Dir::S, true).unwrap();
         let kind_s = builder.rd.tile_kinds.key(builder.rd.tiles[&xy_s].kind);
         let naming = format!("{tkn}.{kind_s}");
-        builder.ndb.get_node_naming(&naming)
+        builder.ndb.get_tile_class_naming(&naming)
     } else {
-        builder.ndb.get_node_naming(tkn)
+        builder.ndb.get_tile_class_naming(tkn)
     }
 }
 
@@ -2403,7 +2403,7 @@ fn extract_clkc(builder: &mut IntBuilder) {
 }
 
 fn extract_clkqc(builder: &mut IntBuilder) {
-    let hvbrk = builder.ndb.get_node_naming("LLVQ.CLB");
+    let hvbrk = builder.ndb.get_tile_class_naming("LLVQ.CLB");
     for (naming, tkn) in [("CLKQC.B", "HVBRKC"), ("CLKQC.T", "TVBRKC")] {
         if let Some(&crd) = builder.rd.tiles_by_kind_name(tkn).first() {
             let bel = builder
@@ -2434,7 +2434,7 @@ fn extract_clkqc(builder: &mut IntBuilder) {
 }
 
 fn extract_clkq(builder: &mut IntBuilder) {
-    let hvbrk = builder.ndb.get_node_naming("LLVQ.CLB");
+    let hvbrk = builder.ndb.get_tile_class_naming("LLVQ.CLB");
     for (naming, tkn) in [("CLKQ.B", "BCCBRK"), ("CLKQ.T", "TCCBRK")] {
         if let Some(&crd) = builder.rd.tiles_by_kind_name(tkn).first() {
             let bel = builder
@@ -2562,16 +2562,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
 
-    let mut llhq_w = builder.db.terms.get("MAIN.W").unwrap().1.clone();
-    let mut llhq_e = builder.db.terms.get("MAIN.E").unwrap().1.clone();
-    let mut llhq_io_w = builder.db.terms.get("MAIN.W").unwrap().1.clone();
-    let mut llhq_io_e = builder.db.terms.get("MAIN.E").unwrap().1.clone();
-    let mut llhc_w = builder.db.terms.get("MAIN.W").unwrap().1.clone();
-    let mut llhc_e = builder.db.terms.get("MAIN.E").unwrap().1.clone();
-    let mut llvq_s = builder.db.terms.get("MAIN.S").unwrap().1.clone();
-    let mut llvq_n = builder.db.terms.get("MAIN.N").unwrap().1.clone();
-    let mut llvc_s = builder.db.terms.get("MAIN.S").unwrap().1.clone();
-    let mut llvc_n = builder.db.terms.get("MAIN.N").unwrap().1.clone();
+    let mut llhq_w = builder.db.conn_classes.get("MAIN.W").unwrap().1.clone();
+    let mut llhq_e = builder.db.conn_classes.get("MAIN.E").unwrap().1.clone();
+    let mut llhq_io_w = builder.db.conn_classes.get("MAIN.W").unwrap().1.clone();
+    let mut llhq_io_e = builder.db.conn_classes.get("MAIN.E").unwrap().1.clone();
+    let mut llhc_w = builder.db.conn_classes.get("MAIN.W").unwrap().1.clone();
+    let mut llhc_e = builder.db.conn_classes.get("MAIN.E").unwrap().1.clone();
+    let mut llvq_s = builder.db.conn_classes.get("MAIN.S").unwrap().1.clone();
+    let mut llvq_n = builder.db.conn_classes.get("MAIN.N").unwrap().1.clone();
+    let mut llvc_s = builder.db.conn_classes.get("MAIN.S").unwrap().1.clone();
+    let mut llvc_n = builder.db.conn_classes.get("MAIN.N").unwrap().1.clone();
 
     for (w, wn, _) in &builder.db.wires {
         if wn.starts_with("LONG") {
@@ -2614,41 +2614,41 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
 
-    builder.db.terms.insert("LLHC.W".to_owned(), llhc_w);
-    builder.db.terms.insert("LLHC.E".to_owned(), llhc_e);
-    builder.db.terms.insert("LLVC.S".to_owned(), llvc_s);
-    builder.db.terms.insert("LLVC.N".to_owned(), llvc_n);
+    builder.db.conn_classes.insert("LLHC.W".to_owned(), llhc_w);
+    builder.db.conn_classes.insert("LLHC.E".to_owned(), llhc_e);
+    builder.db.conn_classes.insert("LLVC.S".to_owned(), llvc_s);
+    builder.db.conn_classes.insert("LLVC.N".to_owned(), llvc_n);
 
     if !matches!(&*rd.family, "xc4000e" | "spartanxl") {
-        builder.db.terms.insert("LLHQ.W".to_owned(), llhq_w);
-        builder.db.terms.insert("LLHQ.E".to_owned(), llhq_e);
-        builder.db.terms.insert("LLHQ.IO.W".to_owned(), llhq_io_w);
-        builder.db.terms.insert("LLHQ.IO.E".to_owned(), llhq_io_e);
-        builder.db.terms.insert("LLVQ.S".to_owned(), llvq_s);
-        builder.db.terms.insert("LLVQ.N".to_owned(), llvq_n);
+        builder.db.conn_classes.insert("LLHQ.W".to_owned(), llhq_w);
+        builder.db.conn_classes.insert("LLHQ.E".to_owned(), llhq_e);
+        builder.db.conn_classes.insert("LLHQ.IO.W".to_owned(), llhq_io_w);
+        builder.db.conn_classes.insert("LLHQ.IO.E".to_owned(), llhq_io_e);
+        builder.db.conn_classes.insert("LLVQ.S".to_owned(), llvq_s);
+        builder.db.conn_classes.insert("LLVQ.N".to_owned(), llvq_n);
     }
 
-    let mut tclb_n = builder.db.terms.get("MAIN.N").unwrap().1.clone();
+    let mut tclb_n = builder.db.conn_classes.get("MAIN.N").unwrap().1.clone();
     for (wt, wf) in [
         ("OUT.CLB.FX.S", "OUT.BT.IOB0.I2"),
         ("OUT.CLB.FXQ.S", "OUT.BT.IOB1.I2"),
     ] {
         let wt = builder.db.get_wire(wt);
         let wf = builder.db.get_wire(wf);
-        tclb_n.wires.insert(wt, TermInfo::PassFar(wf));
+        tclb_n.wires.insert(wt, ConnectorWire::Pass(wf));
     }
-    builder.db.terms.insert("TCLB.N".to_owned(), tclb_n);
+    builder.db.conn_classes.insert("TCLB.N".to_owned(), tclb_n);
 
-    let mut lclb_w = builder.db.terms.get("MAIN.W").unwrap().1.clone();
+    let mut lclb_w = builder.db.conn_classes.get("MAIN.W").unwrap().1.clone();
     for (wt, wf) in [
         ("OUT.CLB.GY.E", "OUT.LR.IOB1.I2"),
         ("OUT.CLB.GYQ.E", "OUT.LR.IOB0.I2"),
     ] {
         let wt = builder.db.get_wire(wt);
         let wf = builder.db.get_wire(wf);
-        lclb_w.wires.insert(wt, TermInfo::PassFar(wf));
+        lclb_w.wires.insert(wt, ConnectorWire::Pass(wf));
     }
-    builder.db.terms.insert("LCLB.W".to_owned(), lclb_w);
+    builder.db.conn_classes.insert("LCLB.W".to_owned(), lclb_w);
 
     for (name, dir, wires) in [
         ("CNR.LL.W", Dir::W, cnr_terms.term_ll_w),
@@ -2656,14 +2656,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("CNR.UL.N", Dir::N, cnr_terms.term_ul_n),
         ("CNR.UR.E", Dir::E, cnr_terms.term_ur_e),
     ] {
-        let term = TermKind {
+        let term = ConnectorClass {
             slot: builder.term_slots[dir],
             wires: wires
                 .into_iter()
-                .map(|(a, b)| (a, TermInfo::PassNear(b)))
+                .map(|(a, b)| (a, ConnectorWire::Reflect(b)))
                 .collect(),
         };
-        builder.db.terms.insert_new(name.to_string(), term);
+        builder.db.conn_classes.insert_new(name.to_string(), term);
     }
 
     builder.build()

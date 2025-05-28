@@ -6,7 +6,7 @@ use prjcombine_xilinx_bitstream::{
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind, ColumnIoKind, ColumnKind, DcmPairKind, RowIoKind};
-use crate::expanded::ExpandedDevice;
+use crate::expanded::{ExpandedDevice, REGION_HCLK, REGION_LEAF};
 use crate::iob::{get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w};
 
 struct Expander<'a, 'b> {
@@ -57,13 +57,13 @@ impl Expander<'_, '_> {
         self.die.fill_tile((col_r, row_b), cnr_kind);
         self.die.fill_tile((col_l, row_t), cnr_kind);
         self.die.fill_tile((col_r, row_t), cnr_kind);
-        self.die.add_xnode((col_l, row_b), ll, &[(col_l, row_b)]);
-        self.die.add_xnode((col_r, row_b), lr, &[(col_r, row_b)]);
-        self.die.add_xnode((col_l, row_t), ul, &[(col_l, row_t)]);
-        self.die.add_xnode((col_r, row_t), ur, &[(col_r, row_t)]);
+        self.die.add_tile((col_l, row_b), ll, &[(col_l, row_b)]);
+        self.die.add_tile((col_r, row_b), lr, &[(col_r, row_b)]);
+        self.die.add_tile((col_l, row_t), ul, &[(col_l, row_t)]);
+        self.die.add_tile((col_r, row_t), ur, &[(col_r, row_t)]);
 
         if !self.chip.kind.is_virtex2() {
-            self.die.add_xnode((col_l, row_t), "RANDOR_INIT", &[]);
+            self.die.add_tile((col_l, row_t), "RANDOR_INIT", &[]);
         }
     }
 
@@ -109,16 +109,16 @@ impl Expander<'_, '_> {
                 ChipKind::Spartan3A | ChipKind::Spartan3ADsp => ("INT.IOI.S3A.TB", "IOI.S3A.T"),
             };
             self.die.fill_tile((col, row), int_kind);
-            self.die.add_xnode((col, row), ioi_kind, &[(col, row)]);
+            self.die.add_tile((col, row), ioi_kind, &[(col, row)]);
             if cd.io != ColumnIoKind::None {
                 let (data, tidx) = get_iob_data_n(self.chip.kind, cd.io);
                 if tidx.to_idx() == 0 {
                     let coords: Vec<_> = (0..data.tiles).map(|dx| (col + dx, row)).collect();
-                    self.die.add_xnode((col, row), data.node, &coords);
+                    self.die.add_tile((col, row), data.node, &coords);
                 }
             }
             if !self.chip.kind.is_virtex2() {
-                self.die.add_xnode((col, row), "RANDOR", &[]);
+                self.die.add_tile((col, row), "RANDOR", &[]);
             }
         }
     }
@@ -137,11 +137,11 @@ impl Expander<'_, '_> {
                 ChipKind::Spartan3A | ChipKind::Spartan3ADsp => ("INT.IOI.S3A.LR", "IOI.S3A.LR"),
             };
             self.die.fill_tile((col, row), int_kind);
-            self.die.add_xnode((col, row), ioi_kind, &[(col, row)]);
+            self.die.add_tile((col, row), ioi_kind, &[(col, row)]);
             let (data, tidx) = get_iob_data_e(self.chip.kind, self.chip.rows[row]);
             if tidx.to_idx() == 0 {
                 let coords: Vec<_> = (0..data.tiles).map(|dx| (col, row + dx)).collect();
-                self.die.add_xnode((col, row), data.node, &coords);
+                self.die.add_tile((col, row), data.node, &coords);
             }
         }
     }
@@ -173,16 +173,16 @@ impl Expander<'_, '_> {
                 ChipKind::Spartan3A | ChipKind::Spartan3ADsp => ("INT.IOI.S3A.TB", "IOI.S3A.B"),
             };
             self.die.fill_tile((col, row), int_kind);
-            self.die.add_xnode((col, row), ioi_kind, &[(col, row)]);
+            self.die.add_tile((col, row), ioi_kind, &[(col, row)]);
             if cd.io != ColumnIoKind::None {
                 let (data, tidx) = get_iob_data_s(self.chip.kind, cd.io);
                 if tidx.to_idx() == 0 {
                     let coords: Vec<_> = (0..data.tiles).map(|dx| (col + dx, row)).collect();
-                    self.die.add_xnode((col, row), data.node, &coords);
+                    self.die.add_tile((col, row), data.node, &coords);
                 }
             }
             if !self.chip.kind.is_virtex2() && self.chip.kind != ChipKind::FpgaCore {
-                self.die.add_xnode((col, row), "RANDOR", &[(col, row)]);
+                self.die.add_tile((col, row), "RANDOR", &[(col, row)]);
             }
         }
     }
@@ -218,11 +218,11 @@ impl Expander<'_, '_> {
                 }
             }
             self.die.fill_tile((col, row), int_kind);
-            self.die.add_xnode((col, row), ioi_kind, &[(col, row)]);
+            self.die.add_tile((col, row), ioi_kind, &[(col, row)]);
             let (data, tidx) = get_iob_data_w(self.chip.kind, self.chip.rows[row]);
             if tidx.to_idx() == 0 {
                 let coords: Vec<_> = (0..data.tiles).map(|dx| (col, row + dx)).collect();
-                self.die.add_xnode((col, row), data.node, &coords);
+                self.die.add_tile((col, row), data.node, &coords);
             }
         }
     }
@@ -246,7 +246,7 @@ impl Expander<'_, '_> {
                     continue;
                 }
                 self.die.fill_tile((col, row), "INT.CLB");
-                self.die.add_xnode((col, row), "CLB", &[(col, row)]);
+                self.die.add_tile((col, row), "CLB", &[(col, row)]);
             }
         }
     }
@@ -277,7 +277,7 @@ impl Expander<'_, '_> {
                     row_t: t + 1,
                 });
                 for d in 1..4 {
-                    self.die.fill_term_pair(
+                    self.die.fill_conn_pair(
                         (col + d, b - 1),
                         (col + d, t + 1),
                         "TERM.BRAM.N",
@@ -305,13 +305,13 @@ impl Expander<'_, '_> {
                         ChipKind::Spartan3A => "BRAM.S3A",
                         ChipKind::Spartan3ADsp => "BRAM.S3ADSP",
                     };
-                    self.die.add_xnode(
+                    self.die.add_tile(
                         (col, row),
                         kind,
                         &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
                     );
                     if self.chip.kind == ChipKind::Spartan3ADsp {
-                        self.die.add_xnode(
+                        self.die.add_tile(
                             (col + 3, row),
                             "DSP",
                             &[
@@ -321,7 +321,7 @@ impl Expander<'_, '_> {
                                 (col + 3, row + 3),
                             ],
                         );
-                        self.die.add_xnode(
+                        self.die.add_tile(
                             (col + 3, row),
                             "INTF.DSP",
                             &[
@@ -350,10 +350,10 @@ impl Expander<'_, '_> {
                         });
                         let crd = (pair.col - 1, pair.row);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.BL", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.BL", &[crd]);
                         let crd = (pair.col, pair.row);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.BR", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.BR", &[crd]);
                     }
                     DcmPairKind::BotSingle => {
                         self.holes.push(Rect {
@@ -366,7 +366,7 @@ impl Expander<'_, '_> {
                         self.die.fill_tile(crd, "INT.DCM.S3E.DUMMY");
                         let crd = (pair.col, pair.row);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.BR", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.BR", &[crd]);
                     }
                     DcmPairKind::Top => {
                         self.holes.push(Rect {
@@ -377,10 +377,10 @@ impl Expander<'_, '_> {
                         });
                         let crd = (pair.col - 1, pair.row);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.TL", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.TL", &[crd]);
                         let crd = (pair.col, pair.row);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.TR", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.TR", &[crd]);
                     }
                     DcmPairKind::TopSingle => {
                         self.holes.push(Rect {
@@ -393,7 +393,7 @@ impl Expander<'_, '_> {
                         self.die.fill_tile(crd, "INT.DCM.S3E.DUMMY");
                         let crd = (pair.col, pair.row);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.TR", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.TR", &[crd]);
                     }
                     DcmPairKind::Left => {
                         self.holes.push(Rect {
@@ -404,10 +404,10 @@ impl Expander<'_, '_> {
                         });
                         let crd = (pair.col, pair.row - 1);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.LB", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.LB", &[crd]);
                         let crd = (pair.col, pair.row);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.LT", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.LT", &[crd]);
                     }
                     DcmPairKind::Right => {
                         self.holes.push(Rect {
@@ -418,10 +418,10 @@ impl Expander<'_, '_> {
                         });
                         let crd = (pair.col, pair.row - 1);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.RB", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.RB", &[crd]);
                         let crd = (pair.col, pair.row);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.RT", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.RT", &[crd]);
                     }
                     DcmPairKind::Bram => {
                         self.holes.push(Rect {
@@ -432,10 +432,10 @@ impl Expander<'_, '_> {
                         });
                         let crd = (pair.col, pair.row - 1);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.LB", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.LB", &[crd]);
                         let crd = (pair.col, pair.row);
                         self.die.fill_tile(crd, "INT.DCM");
-                        self.die.add_xnode(crd, "DCM.S3E.LT", &[crd]);
+                        self.die.add_tile(crd, "DCM.S3E.LT", &[crd]);
                     }
                 }
             }
@@ -462,14 +462,14 @@ impl Expander<'_, '_> {
                     self.die.fill_tile((col, row_b), kind);
                     self.die.fill_tile((col, row_t), kind);
                     if !dcm.is_empty() {
-                        self.die.add_xnode((col, row_b), dcm, &[(col, row_b)]);
-                        self.die.add_xnode((col, row_t), dcm, &[(col, row_t)]);
+                        self.die.add_tile((col, row_b), dcm, &[(col, row_b)]);
+                        self.die.add_tile((col, row_t), dcm, &[(col, row_t)]);
                     }
                 }
                 self.die
-                    .add_xnode((col, row_b), "DCMCONN.BOT", &[(col, row_b)]);
+                    .add_tile((col, row_b), "DCMCONN.BOT", &[(col, row_b)]);
                 self.die
-                    .add_xnode((col, row_t), "DCMCONN.TOP", &[(col, row_t)]);
+                    .add_tile((col, row_t), "DCMCONN.TOP", &[(col, row_t)]);
             }
         }
     }
@@ -503,7 +503,7 @@ impl Expander<'_, '_> {
 
             for &crd in &ints {
                 self.die.fill_tile(crd, "INT.PPC");
-                self.die.add_xnode(crd, "INTF.PPC", &[crd]);
+                self.die.add_tile(crd, "INTF.PPC", &[crd]);
             }
             // horiz passes
             for d in 1..15 {
@@ -511,11 +511,11 @@ impl Expander<'_, '_> {
                 let col_r = bc + 9;
                 let row = br + d;
                 self.die
-                    .add_xnode((col_l, row), "PPC.E", &[(col_l, row), (col_r, row)]);
+                    .add_tile((col_l, row), "PPC.E", &[(col_l, row), (col_r, row)]);
                 self.die
-                    .add_xnode((col_r, row), "PPC.W", &[(col_r, row), (col_l, row)]);
+                    .add_tile((col_r, row), "PPC.W", &[(col_r, row), (col_l, row)]);
                 self.die
-                    .fill_term_pair((col_l, row), (col_r, row), "PPC.E", "PPC.W");
+                    .fill_conn_pair((col_l, row), (col_r, row), "PPC.E", "PPC.W");
             }
             // vert passes
             for d in 1..9 {
@@ -523,18 +523,18 @@ impl Expander<'_, '_> {
                 let row_b = br;
                 let row_t = br + 15;
                 self.die
-                    .add_xnode((col, row_b), "PPC.N", &[(col, row_b), (col, row_t)]);
+                    .add_tile((col, row_b), "PPC.N", &[(col, row_b), (col, row_t)]);
                 self.die
-                    .add_xnode((col, row_t), "PPC.S", &[(col, row_t), (col, row_b)]);
+                    .add_tile((col, row_t), "PPC.S", &[(col, row_t), (col, row_b)]);
                 self.die
-                    .fill_term_pair((col, row_b), (col, row_t), "PPC.N", "PPC.S");
+                    .fill_conn_pair((col, row_b), (col, row_t), "PPC.N", "PPC.S");
             }
             let kind = if bc < self.chip.col_clk {
                 "LBPPC"
             } else {
                 "RBPPC"
             };
-            self.die.add_xnode((bc, br), kind, &ints);
+            self.die.add_tile((bc, br), kind, &ints);
         }
     }
 
@@ -571,7 +571,7 @@ impl Expander<'_, '_> {
             }
             for row in [row_b, row_t] {
                 self.die.fill_tile((col, row), "INT.GT.CLKPAD");
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col, row),
                     if row == row_b {
                         "INTF.GT.BCLKPAD"
@@ -590,7 +590,7 @@ impl Expander<'_, '_> {
                 for d in 0..n {
                     let row = br + d;
                     self.die.fill_tile((col, row), "INT.PPC");
-                    self.die.add_xnode(
+                    self.die.add_tile(
                         (col, row),
                         if d % 4 == 0 {
                             if br == row_b + 1 {
@@ -610,7 +610,7 @@ impl Expander<'_, '_> {
                 }
             }
             if self.chip.kind == ChipKind::Virtex2P {
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col, row_b),
                     "GIGABIT.B",
                     &[
@@ -621,7 +621,7 @@ impl Expander<'_, '_> {
                         (col, row_b + 4),
                     ],
                 );
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col, row_t),
                     "GIGABIT.T",
                     &[
@@ -633,7 +633,7 @@ impl Expander<'_, '_> {
                     ],
                 );
             } else {
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col, row_b),
                     "GIGABIT10.B",
                     &[
@@ -648,7 +648,7 @@ impl Expander<'_, '_> {
                         (col, row_b + 8),
                     ],
                 );
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col, row_t),
                     "GIGABIT10.T",
                     &[
@@ -674,10 +674,10 @@ impl Expander<'_, '_> {
             }
             let mut row_s = self.chip.row_mid() - 1;
             let mut row_n = self.chip.row_mid();
-            while self.die[(col, row_s)].nodes.is_empty() {
+            while self.die[(col, row_s)].tiles.is_empty() {
                 row_s -= 1;
             }
-            while self.die[(col, row_n)].nodes.is_empty() {
+            while self.die[(col, row_n)].tiles.is_empty() {
                 row_n += 1;
             }
             let mut term_s = "LLV.S";
@@ -689,8 +689,8 @@ impl Expander<'_, '_> {
                 term_n = "LLV.CLKLR.S3E.N";
             }
             self.die
-                .fill_term_pair((col, row_s), (col, row_n), term_n, term_s);
-            self.die.add_xnode(
+                .fill_conn_pair((col, row_s), (col, row_n), term_n, term_s);
+            self.die.add_tile(
                 (col, row_n),
                 if self.chip.kind.is_spartan3a() {
                     "LLV.S3A"
@@ -708,10 +708,10 @@ impl Expander<'_, '_> {
         for row in self.chip.rows.ids() {
             let mut col_l = self.chip.col_clk - 1;
             let mut col_r = self.chip.col_clk;
-            while self.die[(col_l, row)].nodes.is_empty() {
+            while self.die[(col_l, row)].tiles.is_empty() {
                 col_l -= 1;
             }
-            while self.die[(col_r, row)].nodes.is_empty() {
+            while self.die[(col_r, row)].tiles.is_empty() {
                 col_r += 1;
             }
             let mut term_w = "LLH.W";
@@ -732,8 +732,8 @@ impl Expander<'_, '_> {
                 term_e = "LLH.DCM.S3ADSP.E";
             }
             self.die
-                .fill_term_pair((col_l, row), (col_r, row), term_e, term_w);
-            self.die.add_xnode(
+                .fill_conn_pair((col_l, row), (col_r, row), term_e, term_w);
+            self.die.add_tile(
                 (col_r, row),
                 if self.chip.kind.is_spartan3a() && row == self.chip.row_s() {
                     "LLH.CLKB.S3A"
@@ -750,7 +750,7 @@ impl Expander<'_, '_> {
     fn fill_misc_passes(&mut self) {
         if self.chip.kind == ChipKind::Spartan3E && !self.chip.has_ll {
             for col in [self.chip.col_w(), self.chip.col_e()] {
-                self.die.fill_term_pair(
+                self.die.fill_conn_pair(
                     (col, self.chip.row_mid() - 1),
                     (col, self.chip.row_mid()),
                     "CLKLR.S3E.N",
@@ -769,7 +769,7 @@ impl Expander<'_, '_> {
                 }
                 for col in self.die.cols() {
                     self.die
-                        .fill_term_pair((col, row_s), (col, row_n), "BRKH.S3.N", "BRKH.S3.S");
+                        .fill_conn_pair((col, row_s), (col, row_n), "BRKH.S3.N", "BRKH.S3.S");
                 }
             }
         }
@@ -777,7 +777,7 @@ impl Expander<'_, '_> {
             for (col, cd) in &self.chip.columns {
                 if cd.kind == ColumnKind::Dsp {
                     for row in [self.chip.row_s(), self.chip.row_n()] {
-                        self.die.fill_term_pair(
+                        self.die.fill_conn_pair(
                             (col, row),
                             (col + 1, row),
                             "DSPHOLE.E",
@@ -789,7 +789,7 @@ impl Expander<'_, '_> {
             for col in [self.chip.col_w() + 3, self.chip.col_e() - 6] {
                 for row in [self.chip.row_mid() - 1, self.chip.row_mid()] {
                     self.die
-                        .fill_term_pair((col, row), (col + 4, row), "DSPHOLE.E", "DSPHOLE.W");
+                        .fill_conn_pair((col, row), (col + 4, row), "DSPHOLE.E", "DSPHOLE.W");
                 }
                 for row in [
                     self.chip.row_mid() - 4,
@@ -800,7 +800,7 @@ impl Expander<'_, '_> {
                     self.chip.row_mid() + 3,
                 ] {
                     self.die
-                        .fill_term_pair((col - 1, row), (col + 4, row), "HDCM.E", "HDCM.W");
+                        .fill_conn_pair((col - 1, row), (col + 4, row), "HDCM.E", "HDCM.W");
                 }
             }
         }
@@ -808,12 +808,12 @@ impl Expander<'_, '_> {
 
     fn fill_bram_passes(&mut self) {
         if matches!(self.chip.kind, ChipKind::Spartan3A | ChipKind::Spartan3ADsp) {
-            let slot_n = self.die.grid.db.get_term_slot("N");
-            let slot_s = self.die.grid.db.get_term_slot("S");
+            let slot_n = self.die.grid.db.get_conn_slot("N");
+            let slot_s = self.die.grid.db.get_conn_slot("S");
             for (col, cd) in &self.chip.columns {
                 if matches!(cd.kind, ColumnKind::BramCont(_)) {
-                    self.die[(col, self.chip.row_s())].terms.remove(slot_n);
-                    self.die[(col, self.chip.row_n())].terms.remove(slot_s);
+                    self.die[(col, self.chip.row_s())].conns.remove(slot_n);
+                    self.die[(col, self.chip.row_n())].conns.remove(slot_s);
                 }
             }
         }
@@ -828,19 +828,19 @@ impl Expander<'_, '_> {
             ChipKind::Virtex2PX => ("CLKB.V2PX", "CLKT.V2PX"),
             _ => unreachable!(),
         };
-        self.die.add_xnode(
+        self.die.add_tile(
             (self.chip.col_clk, row_b),
             kind_b,
             &[(self.chip.col_clk - 1, row_b), (self.chip.col_clk, row_b)],
         );
-        self.die.add_xnode(
+        self.die.add_tile(
             (self.chip.col_clk, row_t),
             kind_t,
             &[(self.chip.col_clk - 1, row_t), (self.chip.col_clk, row_t)],
         );
 
         let col_l = self.chip.col_w();
-        self.die.add_xnode(
+        self.die.add_tile(
             (col_l, self.chip.row_pci.unwrap()),
             "REG_L",
             &[
@@ -851,7 +851,7 @@ impl Expander<'_, '_> {
             ],
         );
         let col_r = self.chip.col_e();
-        self.die.add_xnode(
+        self.die.add_tile(
             (col_r, self.chip.row_pci.unwrap()),
             "REG_R",
             &[
@@ -871,12 +871,12 @@ impl Expander<'_, '_> {
         };
         let row_b = self.chip.row_s();
         let row_t = self.chip.row_n();
-        self.die.add_xnode(
+        self.die.add_tile(
             (self.chip.col_clk, row_b),
             clkb,
             &[(self.chip.col_clk - 1, row_b)],
         );
-        self.die.add_xnode(
+        self.die.add_tile(
             (self.chip.col_clk, row_t),
             clkt,
             &[(self.chip.col_clk - 1, row_t)],
@@ -884,7 +884,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_clkbt_s3e(&mut self) {
-        self.die.add_xnode(
+        self.die.add_tile(
             (self.chip.col_clk, self.chip.row_s()),
             if self.chip.kind == ChipKind::Spartan3E {
                 "CLKB.S3E"
@@ -893,7 +893,7 @@ impl Expander<'_, '_> {
             },
             &[(self.chip.col_clk - 1, self.chip.row_s())],
         );
-        self.die.add_xnode(
+        self.die.add_tile(
             (self.chip.col_clk, self.chip.row_n()),
             if self.chip.kind == ChipKind::Spartan3E {
                 "CLKT.S3E"
@@ -905,7 +905,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_clklr_s3e(&mut self) {
-        self.die.add_xnode(
+        self.die.add_tile(
             (self.chip.col_w(), self.chip.row_mid()),
             if self.chip.kind == ChipKind::Spartan3E {
                 "CLKL.S3E"
@@ -917,7 +917,7 @@ impl Expander<'_, '_> {
                 (self.chip.col_w(), self.chip.row_mid()),
             ],
         );
-        self.die.add_xnode(
+        self.die.add_tile(
             (self.chip.col_e(), self.chip.row_mid()),
             if self.chip.kind == ChipKind::Spartan3E {
                 "CLKR.S3E"
@@ -939,7 +939,7 @@ impl Expander<'_, '_> {
                 (self.chip.col_w(), self.chip.row_n()),
                 (self.chip.col_e(), self.chip.row_n()),
             ] {
-                self.die.add_xnode(c, "PCI_CE_CNR", &[]);
+                self.die.add_tile(c, "PCI_CE_CNR", &[]);
             }
 
             for &(row, _, _) in &self.chip.rows_hclk {
@@ -949,14 +949,14 @@ impl Expander<'_, '_> {
                     "PCI_CE_S"
                 };
                 for col in [self.chip.col_w(), self.chip.col_e()] {
-                    self.die.add_xnode((col, row), kind, &[]);
+                    self.die.add_tile((col, row), kind, &[]);
                 }
             }
             if self.chip.kind == ChipKind::Spartan3A {
                 if let Some((col_l, col_r)) = self.chip.cols_clkv {
                     for row in [self.chip.row_s(), self.chip.row_n()] {
-                        self.die.add_xnode((col_l, row), "PCI_CE_E", &[]);
-                        self.die.add_xnode((col_r, row), "PCI_CE_W", &[]);
+                        self.die.add_tile((col_l, row), "PCI_CE_E", &[]);
+                        self.die.add_tile((col_r, row), "PCI_CE_W", &[]);
                     }
                 }
             }
@@ -965,14 +965,36 @@ impl Expander<'_, '_> {
 
     fn fill_gclkh(&mut self) {
         for col in self.die.cols() {
+            let col_q = if col < self.chip.col_clk {
+                if let Some((col_q, _)) = self.chip.cols_clkv {
+                    col_q
+                } else {
+                    self.chip.col_clk - 1
+                }
+            } else {
+                if let Some((_, col_q)) = self.chip.cols_clkv {
+                    col_q
+                } else {
+                    self.chip.col_clk
+                }
+            };
             for (i, &(row_m, row_b, row_t)) in self.chip.rows_hclk.iter().enumerate() {
+                let row_q = if self.chip.kind.is_virtex2() {
+                    row_m
+                } else if row_m < self.chip.row_mid() {
+                    self.chip.row_mid() - 1
+                } else {
+                    self.chip.row_mid()
+                };
                 for r in row_b.to_idx()..row_m.to_idx() {
                     let row = RowId::from_idx(r);
-                    self.die[(col, row)].clkroot = (col, row_m - 1);
+                    self.die[(col, row)].region_root[REGION_LEAF] = (col, row_m - 1);
+                    self.die[(col, row)].region_root[REGION_HCLK] = (col_q, row_q);
                 }
                 for r in row_m.to_idx()..row_t.to_idx() {
                     let row = RowId::from_idx(r);
-                    self.die[(col, row)].clkroot = (col, row_m);
+                    self.die[(col, row)].region_root[REGION_LEAF] = (col, row_m);
+                    self.die[(col, row)].region_root[REGION_HCLK] = (col_q, row_q);
                 }
                 let kind = if matches!(self.chip.columns[col].kind, ColumnKind::BramCont(_)) {
                     if row_m == self.chip.row_mid() {
@@ -996,9 +1018,9 @@ impl Expander<'_, '_> {
                     "GCLKH"
                 };
                 self.die
-                    .add_xnode((col, row_m), kind, &[(col, row_m - 1), (col, row_m)]);
+                    .add_tile((col, row_m), kind, &[(col, row_m - 1), (col, row_m)]);
                 if self.chip.columns[col].kind == ColumnKind::Dsp {
-                    self.die.add_xnode((col, row_m), "GCLKH.DSP", &[]);
+                    self.die.add_tile((col, row_m), "GCLKH.DSP", &[]);
                 }
             }
         }
@@ -1015,10 +1037,10 @@ impl Expander<'_, '_> {
                     "GCLKC"
                 };
                 self.die
-                    .add_xnode((self.chip.col_clk, row_m), node_kind, &[]);
+                    .add_tile((self.chip.col_clk, row_m), node_kind, &[]);
             } else if let Some((col_cl, col_cr)) = self.chip.cols_clkv {
                 for col in [col_cl, col_cr] {
-                    self.die.add_xnode((col, row_m), "GCLKVC", &[]);
+                    self.die.add_tile((col, row_m), "GCLKVC", &[]);
                 }
             }
         }
@@ -1031,21 +1053,21 @@ impl Expander<'_, '_> {
             "CLKC"
         };
         self.die
-            .add_xnode((self.chip.col_clk, self.chip.row_mid()), kind, &[]);
+            .add_tile((self.chip.col_clk, self.chip.row_mid()), kind, &[]);
     }
 
     fn fill_gclkvm(&mut self) {
         if let Some((col_cl, col_cr)) = self.chip.cols_clkv {
             if matches!(self.chip.kind, ChipKind::Spartan3 | ChipKind::FpgaCore) {
                 self.die
-                    .add_xnode((col_cl, self.chip.row_mid()), "GCLKVM.S3", &[]);
+                    .add_tile((col_cl, self.chip.row_mid()), "GCLKVM.S3", &[]);
                 self.die
-                    .add_xnode((col_cr, self.chip.row_mid()), "GCLKVM.S3", &[]);
+                    .add_tile((col_cr, self.chip.row_mid()), "GCLKVM.S3", &[]);
             } else {
                 self.die
-                    .add_xnode((col_cl, self.chip.row_mid()), "GCLKVM.S3E", &[]);
+                    .add_tile((col_cl, self.chip.row_mid()), "GCLKVM.S3E", &[]);
                 self.die
-                    .add_xnode((col_cr, self.chip.row_mid()), "GCLKVM.S3E", &[]);
+                    .add_tile((col_cr, self.chip.row_mid()), "GCLKVM.S3E", &[]);
             }
         }
     }
@@ -1178,9 +1200,9 @@ impl Expander<'_, '_> {
 impl Chip {
     fn fill_term(&self, die: &mut ExpandedDieRefMut, coord: Coord, kind: &str) {
         if self.kind.is_virtex2() {
-            die.add_xnode(coord, kind, &[coord]);
+            die.add_tile(coord, kind, &[coord]);
         }
-        die.fill_term(coord, kind);
+        die.fill_conn_term(coord, kind);
     }
 
     pub fn expand_grid<'a>(&'a self, db: &'a IntDb) -> ExpandedDevice<'a> {

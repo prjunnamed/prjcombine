@@ -10,7 +10,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex4::{bels, expanded::IoCoord};
 use unnamed_entity::EntityId;
 
@@ -134,7 +134,7 @@ fn get_vrefs(backend: &IseBackend, nloc: NodeLoc) -> Vec<NodeLoc> {
     rows.into_iter()
         .map(|vref_row| {
             edev.egrid
-                .get_node_by_bel((die, (col, vref_row), bels::IOB0))
+                .get_tile_by_bel((die, (col, vref_row), bels::IOB0))
         })
         .collect()
 }
@@ -245,7 +245,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         let vr_row = RowId::from_idx(nloc.2.to_idx() / 32 * 32 + 9);
         let node_vr = edev
             .egrid
-            .get_node_by_kind(nloc.0, (nloc.1, vr_row), |kind| kind == "IO");
+            .get_tile_by_class(nloc.0, (nloc.1, vr_row), |kind| kind == "IO");
         for bel in [bels::IOB0, bels::IOB1] {
             let site = backend
                 .ngrid
@@ -266,7 +266,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Take exclusive mutex on bank DCI.
         let hclk_iois_dci = edev
             .egrid
-            .get_node_by_kind(nloc.0, (nloc.1, vr_row - 1), |kind| kind == "HCLK_IOIS_DCI");
+            .get_tile_by_class(nloc.0, (nloc.1, vr_row - 1), |kind| kind == "HCLK_IOIS_DCI");
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_iois_dci, "BANK_DCI".to_string()),
             None,
@@ -328,7 +328,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
         let lvds_row = RowId::from_idx(nloc.2.to_idx() / 32 * 32 + 24);
         let hclk_iois_lvds = edev
             .egrid
-            .get_node_by_kind(nloc.0, (nloc.1, lvds_row), |kind| kind == "HCLK_IOIS_LVDS");
+            .get_tile_by_class(nloc.0, (nloc.1, lvds_row), |kind| kind == "HCLK_IOIS_LVDS");
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_iois_lvds, "BANK_LVDS".to_string()),
             None,
@@ -1177,7 +1177,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 while row != edev.row_iobdcm.unwrap() - 16 {
                     let hclk_center =
                         edev.egrid
-                            .get_node_by_bel((die, (edev.col_cfg, row), bels::DCI));
+                            .get_tile_by_bel((die, (edev.col_cfg, row), bels::DCI));
                     builder = builder.extra_tile_attr_fixed(
                         hclk_center,
                         "DCI",
@@ -1188,7 +1188,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 let hclk_center = edev
                     .egrid
-                    .get_node_by_bel((die, (edev.col_cfg, row), bels::DCI));
+                    .get_tile_by_bel((die, (edev.col_cfg, row), bels::DCI));
                 builder = builder.extra_tile_attr_fixed(hclk_center, "DCI", "ENABLE", "1");
                 (
                     if chip.row_bufg() == edev.row_iobdcm.unwrap() - 24 {
@@ -1204,7 +1204,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 while row != edev.row_dcmiob.unwrap() + 16 {
                     let hclk_center =
                         edev.egrid
-                            .get_node_by_bel((die, (edev.col_cfg, row), bels::DCI));
+                            .get_tile_by_bel((die, (edev.col_cfg, row), bels::DCI));
                     builder = builder.extra_tile_attr_fixed(
                         hclk_center,
                         "DCI",
@@ -1215,7 +1215,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 let hclk_center = edev
                     .egrid
-                    .get_node_by_bel((die, (edev.col_cfg, row), bels::DCI));
+                    .get_tile_by_bel((die, (edev.col_cfg, row), bels::DCI));
                 builder = builder.extra_tile_attr_fixed(hclk_center, "DCI", "ENABLE", "1");
                 (
                     if chip.row_bufg() == edev.row_dcmiob.unwrap() + 24 {
@@ -1227,7 +1227,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 )
             }
             3 => {
-                let hclk_iobdcm = edev.egrid.get_node_by_bel((
+                let hclk_iobdcm = edev.egrid.get_tile_by_bel((
                     die,
                     (edev.col_cfg, edev.row_iobdcm.unwrap()),
                     bels::DCI,
@@ -1239,7 +1239,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 )
             }
             4 => {
-                let hclk_dcmiob = edev.egrid.get_node_by_bel((
+                let hclk_dcmiob = edev.egrid.get_tile_by_bel((
                     die,
                     (edev.col_cfg, edev.row_dcmiob.unwrap()),
                     bels::DCI,
@@ -1251,11 +1251,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         };
         let vr_node = vr_row.map(|row| {
             edev.egrid
-                .get_node_by_bel((die, (edev.col_cfg, row), bels::IOB0))
+                .get_tile_by_bel((die, (edev.col_cfg, row), bels::IOB0))
         });
         let io_node = edev
             .egrid
-            .get_node_by_bel((die, (edev.col_cfg, io_row), bels::IOB0));
+            .get_tile_by_bel((die, (edev.col_cfg, io_row), bels::IOB0));
 
         // Ensure nothing is placed in VR.  Set up VR diff.
         if let Some(vr_node) = vr_node {
@@ -2261,7 +2261,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         .insert_misc_data("IOSTD:LVDSBIAS:OFF", bitvec![0; 10]);
 
     let hclk_center_cnt =
-        ctx.edev.egrid().node_index[ctx.edev.egrid().db.get_node("HCLK_CENTER")].len();
+        ctx.edev.egrid().tile_index[ctx.edev.egrid().db.get_tile_class("HCLK_CENTER")].len();
     for tile in [
         "HCLK_IOIS_DCI",
         "HCLK_CENTER",

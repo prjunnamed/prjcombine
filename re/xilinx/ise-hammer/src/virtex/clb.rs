@@ -1,6 +1,6 @@
 use prjcombine_re_fpga_hammer::{xlat_bit, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex::bels;
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};

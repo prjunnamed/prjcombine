@@ -9,7 +9,7 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::{
     chip::{Chip, ChipKind},
-    expanded::ExpandedDevice,
+    expanded::{ExpandedDevice, REGION_GLOBAL},
 };
 
 impl Chip {
@@ -116,29 +116,29 @@ impl Chip {
                     if col == self.col_w() {
                         for row in die.rows() {
                             if row == self.row_s() {
-                                die.add_xnode((col, row), "CLB.BL", &[(col, row), (col + 1, row)]);
+                                die.add_tile((col, row), "CLB.BL", &[(col, row), (col + 1, row)]);
                             } else if row == self.row_n() {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     "CLB.TL",
                                     &[(col, row), (col, row - 1), (col + 1, row)],
                                 );
                             } else if row == self.row_mid() - 1 {
-                                die.add_xnode((col, row), "CLB.ML", &[(col, row), (col, row - 1)]);
+                                die.add_tile((col, row), "CLB.ML", &[(col, row), (col, row - 1)]);
                             } else {
-                                die.add_xnode((col, row), "CLB.L", &[(col, row), (col, row - 1)]);
+                                die.add_tile((col, row), "CLB.L", &[(col, row), (col, row - 1)]);
                             }
                         }
                     } else if col == self.col_e() {
                         for row in die.rows() {
                             if row == self.row_s() {
-                                die.add_xnode((col, row), "CLB.BR", &[(col, row)]);
+                                die.add_tile((col, row), "CLB.BR", &[(col, row)]);
                             } else if row == self.row_n() {
-                                die.add_xnode((col, row), "CLB.TR", &[(col, row), (col, row - 1)]);
+                                die.add_tile((col, row), "CLB.TR", &[(col, row), (col, row - 1)]);
                             } else if row == self.row_mid() - 1 {
-                                die.add_xnode((col, row), "CLB.MR", &[(col, row), (col, row - 1)]);
+                                die.add_tile((col, row), "CLB.MR", &[(col, row), (col, row - 1)]);
                             } else {
-                                die.add_xnode((col, row), "CLB.R", &[(col, row), (col, row - 1)]);
+                                die.add_tile((col, row), "CLB.R", &[(col, row), (col, row - 1)]);
                             }
                         }
                     } else {
@@ -149,33 +149,34 @@ impl Chip {
                                 } else {
                                     "CLB.B"
                                 };
-                                die.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
+                                die.add_tile((col, row), kind, &[(col, row), (col + 1, row)]);
                             } else if row == self.row_n() {
                                 let kind = if col == self.col_e() - 1 {
                                     "CLB.TR1"
                                 } else {
                                     "CLB.T"
                                 };
-                                die.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
+                                die.add_tile((col, row), kind, &[(col, row), (col + 1, row)]);
                             } else {
-                                die.add_xnode((col, row), "CLB", &[(col, row)]);
+                                die.add_tile((col, row), "CLB", &[(col, row)]);
                             }
                         }
                     }
                 }
                 for row in die.rows() {
                     for &col in &self.cols_bidi {
-                        die.add_xnode((col, row), "BIDIH", &[]);
+                        die.add_tile((col, row), "BIDIH", &[]);
                     }
                 }
                 for col in die.cols() {
                     for &row in &self.rows_bidi {
-                        die.add_xnode((col, row), "BIDIV", &[]);
+                        die.add_tile((col, row), "BIDIV", &[]);
                     }
                 }
                 for col in die.cols() {
                     for row in die.rows() {
-                        die[(col, row)].clkroot = (ColId::from_idx(0), RowId::from_idx(0));
+                        die[(col, row)].region_root[REGION_GLOBAL] =
+                            (ColId::from_idx(0), RowId::from_idx(0));
                     }
                 }
                 die.fill_main_passes();
@@ -235,19 +236,19 @@ impl Chip {
                         }
                         if col == self.col_w() {
                             if row == self.row_s() {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     &format!("CLB.BL{s}.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row + 1)],
                                 );
                             } else if row == self.row_n() {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     &format!("CLB.TL{s}.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row - 1)],
                                 );
                             } else {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     &format!("CLB.L.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row - 1), (col, row + 1)],
@@ -255,19 +256,19 @@ impl Chip {
                             }
                         } else if col == self.col_e() {
                             if row == self.row_s() {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     &format!("CLB.BR{s}.{subkind}"),
                                     &[(col, row), (col, row + 1)],
                                 );
                             } else if row == self.row_n() {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     &format!("CLB.TR{s}.{subkind}"),
                                     &[(col, row), (col, row - 1)],
                                 );
                             } else {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     &format!("CLB.R.{subkind}"),
                                     &[(col, row), (col, row - 1), (col, row + 1)],
@@ -275,19 +276,19 @@ impl Chip {
                             }
                         } else {
                             if row == self.row_s() {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     &format!("CLB.B.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row + 1)],
                                 );
                             } else if row == self.row_n() {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     &format!("CLB.T{s}.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row - 1)],
                                 );
                             } else {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     &format!("CLB.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row - 1), (col, row + 1)],
@@ -299,20 +300,20 @@ impl Chip {
                 {
                     let col = self.col_mid();
                     let row = self.row_s();
-                    die.fill_term_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
-                    die.add_xnode((col, row), "LLH.B", &[(col - 1, row), (col, row)]);
+                    die.fill_conn_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
+                    die.add_tile((col, row), "LLH.B", &[(col - 1, row), (col, row)]);
                     let row = self.row_n();
-                    die.fill_term_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
-                    die.add_xnode((col, row), "LLH.T", &[(col - 1, row), (col, row)]);
+                    die.fill_conn_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
+                    die.add_tile((col, row), "LLH.T", &[(col - 1, row), (col, row)]);
                 }
                 if self.is_small {
                     let row = self.row_mid();
                     let col = self.col_w();
-                    die.fill_term_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
-                    die.add_xnode((col, row), "LLV.LS", &[(col, row - 1), (col, row)]);
+                    die.fill_conn_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
+                    die.add_tile((col, row), "LLV.LS", &[(col, row - 1), (col, row)]);
                     let col = self.col_e();
-                    die.fill_term_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
-                    die.add_xnode((col, row), "LLV.RS", &[(col, row - 1), (col, row)]);
+                    die.fill_conn_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
+                    die.add_tile((col, row), "LLV.RS", &[(col, row - 1), (col, row)]);
                 } else {
                     let row = self.row_mid();
                     for col in die.cols() {
@@ -323,13 +324,14 @@ impl Chip {
                         } else {
                             "LLV"
                         };
-                        die.fill_term_pair((col, row - 1), (col, row), "LLV.N", "LLV.S");
-                        die.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
+                        die.fill_conn_pair((col, row - 1), (col, row), "LLV.N", "LLV.S");
+                        die.add_tile((col, row), kind, &[(col, row - 1), (col, row)]);
                     }
                 }
                 for col in die.cols() {
                     for row in die.rows() {
-                        die[(col, row)].clkroot = (ColId::from_idx(0), RowId::from_idx(0));
+                        die[(col, row)].region_root[REGION_GLOBAL] =
+                            (ColId::from_idx(0), RowId::from_idx(0));
                     }
                 }
                 die.fill_main_passes();
@@ -377,9 +379,9 @@ impl Chip {
                     if col == self.col_w() {
                         for row in die.rows() {
                             if row == self.row_s() {
-                                die.add_xnode((col, row), "CNR.BL", &[(col, row), (col + 1, row)]);
+                                die.add_tile((col, row), "CNR.BL", &[(col, row), (col + 1, row)]);
                             } else if row == self.row_n() {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     "CNR.TL",
                                     &[
@@ -390,7 +392,7 @@ impl Chip {
                                     ],
                                 );
                             } else {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     self.get_lio_node(row),
                                     &[(col, row), (col, row - 1), (col + 1, row), (col, row + 1)],
@@ -402,9 +404,9 @@ impl Chip {
                             if row == self.row_s() {
                                 die.fill_tile((col, row), "CNR.BR");
                             } else if row == self.row_n() {
-                                die.add_xnode((col, row), "CNR.TR", &[(col, row), (col, row - 1)]);
+                                die.add_tile((col, row), "CNR.TR", &[(col, row), (col, row - 1)]);
                             } else {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     self.get_rio_node(row),
                                     &[(col, row), (col, row - 1), (col, row + 1)],
@@ -414,13 +416,13 @@ impl Chip {
                     } else {
                         for row in die.rows() {
                             if row == self.row_s() {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     self.get_bio_node(col),
                                     &[(col, row), (col, row + 1), (col + 1, row), (col - 1, row)],
                                 );
                             } else if row == self.row_n() {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     self.get_tio_node(col),
                                     &[(col, row), (col + 1, row), (col - 1, row)],
@@ -451,7 +453,7 @@ impl Chip {
                                         "CLB"
                                     }
                                 };
-                                die.add_xnode(
+                                die.add_tile(
                                     (col, row),
                                     kind,
                                     &[(col, row), (col, row + 1), (col + 1, row)],
@@ -465,14 +467,14 @@ impl Chip {
                     for row in die.rows() {
                         for col in [self.col_ql(), self.col_qr()] {
                             if row == self.row_s() || row == self.row_n() {
-                                die.fill_term_pair(
+                                die.fill_conn_pair(
                                     (col - 1, row),
                                     (col, row),
                                     "LLHQ.IO.E",
                                     "LLHQ.IO.W",
                                 );
                             } else {
-                                die.fill_term_pair((col - 1, row), (col, row), "LLHQ.E", "LLHQ.W");
+                                die.fill_conn_pair((col - 1, row), (col, row), "LLHQ.E", "LLHQ.W");
                             }
                             let kind = if row == self.row_s() {
                                 "LLHQ.IO.B"
@@ -487,10 +489,10 @@ impl Chip {
                                     "LLHQ.CLB"
                                 }
                             };
-                            die.add_xnode((col, row), kind, &[(col - 1, row), (col, row)]);
+                            die.add_tile((col, row), kind, &[(col - 1, row), (col, row)]);
                         }
                         let col = self.col_mid();
-                        die.fill_term_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
+                        die.fill_conn_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
                         let kind = if row == self.row_s() {
                             "LLHC.IO.B"
                         } else if row == self.row_n() {
@@ -500,12 +502,12 @@ impl Chip {
                         } else {
                             "LLHC.CLB"
                         };
-                        die.add_xnode((col, row), kind, &[(col - 1, row), (col, row)]);
+                        die.add_tile((col, row), kind, &[(col - 1, row), (col, row)]);
                     }
 
                     for col in die.cols() {
                         for (bt, row) in [('B', self.row_qb()), ('T', self.row_qt())] {
-                            die.fill_term_pair((col, row - 1), (col, row), "LLVQ.N", "LLVQ.S");
+                            die.fill_conn_pair((col, row - 1), (col, row), "LLVQ.N", "LLVQ.S");
                             let kind = if col == self.col_w() {
                                 if bt == 'B' {
                                     "LLVQ.IO.L.B"
@@ -521,10 +523,10 @@ impl Chip {
                             } else {
                                 "LLVQ.CLB"
                             };
-                            die.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
+                            die.add_tile((col, row), kind, &[(col, row - 1), (col, row)]);
                         }
                         let row = self.row_mid();
-                        die.fill_term_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
+                        die.fill_conn_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
                         let kind = if col == self.col_w() {
                             "LLVC.IO.L"
                         } else if col == self.col_e() {
@@ -532,23 +534,23 @@ impl Chip {
                         } else {
                             "LLVC.CLB"
                         };
-                        die.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
+                        die.add_tile((col, row), kind, &[(col, row - 1), (col, row)]);
                     }
 
                     if self.kind == ChipKind::Xc4000Xv {
                         for row in [self.row_qb(), self.row_qt()] {
                             for col in [self.col_ql(), self.col_qr()] {
-                                die.add_xnode((col, row), "CLKQ", &[(col - 1, row), (col, row)]);
+                                die.add_tile((col, row), "CLKQ", &[(col - 1, row), (col, row)]);
                             }
                         }
                     } else {
-                        die.add_xnode((self.col_mid(), self.row_mid()), "CLKC", &[]);
-                        die.add_xnode(
+                        die.add_tile((self.col_mid(), self.row_mid()), "CLKC", &[]);
+                        die.add_tile(
                             (self.col_mid(), self.row_qb()),
                             "CLKQC",
                             &[(self.col_mid(), self.row_qb())],
                         );
-                        die.add_xnode(
+                        die.add_tile(
                             (self.col_mid(), self.row_qt()),
                             "CLKQC",
                             &[(self.col_mid(), self.row_qt())],
@@ -557,7 +559,7 @@ impl Chip {
                 } else {
                     for row in die.rows() {
                         let col = self.col_mid();
-                        die.fill_term_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
+                        die.fill_conn_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
                         let kind = if row == self.row_s() {
                             "LLH.IO.B"
                         } else if row == self.row_n() {
@@ -567,12 +569,12 @@ impl Chip {
                         } else {
                             "LLH.CLB"
                         };
-                        die.add_xnode((col, row), kind, &[(col - 1, row), (col, row)]);
+                        die.add_tile((col, row), kind, &[(col - 1, row), (col, row)]);
                     }
 
                     for col in die.cols() {
                         let row = self.row_mid();
-                        die.fill_term_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
+                        die.fill_conn_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
                         let kind = if col == self.col_w() {
                             "LLV.IO.L"
                         } else if col == self.col_e() {
@@ -580,13 +582,13 @@ impl Chip {
                         } else {
                             "LLV.CLB"
                         };
-                        die.add_xnode((col, row), kind, &[(col, row - 1), (col, row)]);
+                        die.add_tile((col, row), kind, &[(col, row - 1), (col, row)]);
                     }
                 }
 
                 for col in die.cols() {
                     if col != self.col_w() && col != self.col_e() {
-                        die.fill_term_pair(
+                        die.fill_conn_pair(
                             (col, self.row_n() - 1),
                             (col, self.row_n()),
                             "TCLB.N",
@@ -597,7 +599,7 @@ impl Chip {
 
                 for row in die.rows() {
                     if row != self.row_s() && row != self.row_n() {
-                        die.fill_term_pair(
+                        die.fill_conn_pair(
                             (self.col_w(), row),
                             (self.col_w() + 1, row),
                             "MAIN.E",
@@ -607,10 +609,10 @@ impl Chip {
                 }
 
                 die.fill_main_passes();
-                die.fill_term((col_l, row_b), "CNR.LL.W");
-                die.fill_term((col_r, row_b), "CNR.LR.S");
-                die.fill_term((col_l, row_t), "CNR.UL.N");
-                die.fill_term((col_r, row_t), "CNR.UR.E");
+                die.fill_conn_term((col_l, row_b), "CNR.LL.W");
+                die.fill_conn_term((col_r, row_b), "CNR.LR.S");
+                die.fill_conn_term((col_l, row_t), "CNR.UL.N");
+                die.fill_conn_term((col_r, row_t), "CNR.UR.E");
 
                 for row in die.rows() {
                     if self.kind.is_xl() && (row == self.row_qb() || row == self.row_qt()) {
@@ -725,8 +727,8 @@ impl Chip {
                     };
                     let row_s = self.row_mid() - 1;
                     let row_n = self.row_mid();
-                    die.fill_term_pair((col, row_s), (col, row_n), "LLV.N", "LLV.S");
-                    die.add_xnode((col, row_n), kind, &[(col, row_s), (col, row_n)]);
+                    die.fill_conn_pair((col, row_s), (col, row_n), "LLV.N", "LLV.S");
+                    die.add_tile((col, row_n), kind, &[(col, row_s), (col, row_n)]);
                 }
 
                 for row in die.rows() {
@@ -739,15 +741,15 @@ impl Chip {
                     };
                     let col_l = self.col_mid() - 1;
                     let col_r = self.col_mid();
-                    die.fill_term_pair((col_l, row), (col_r, row), "LLH.E", "LLH.W");
-                    die.add_xnode((col_r, row), kind, &[(col_l, row), (col_r, row)]);
+                    die.fill_conn_pair((col_l, row), (col_r, row), "LLH.E", "LLH.W");
+                    die.add_tile((col_r, row), kind, &[(col_l, row), (col_r, row)]);
                 }
 
                 die.fill_main_passes();
-                die.fill_term((col_l, row_b), "CNR.LL");
-                die.fill_term((col_r, row_b), "CNR.LR");
-                die.fill_term((col_l, row_t), "CNR.UL");
-                die.fill_term((col_r, row_t), "CNR.UR");
+                die.fill_conn_term((col_l, row_b), "CNR.LL");
+                die.fill_conn_term((col_r, row_b), "CNR.LR");
+                die.fill_conn_term((col_l, row_t), "CNR.UL");
+                die.fill_conn_term((col_r, row_t), "CNR.UR");
 
                 for row in die.rows() {
                     if row == self.row_mid() {

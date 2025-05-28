@@ -2,9 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use jzon::JsonValue;
 use prjcombine_interconnect::{
-    db::NodeTileId,
+    db::TileCellId,
     dir::{Dir, DirH, DirV},
-    grid::{ColId, DieId, EdgeIoCoord, IntBel, RowId, TileIobId},
+    grid::{ColId, DieId, EdgeIoCoord, BelCoord, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityIds, EntityVec};
@@ -165,7 +165,7 @@ impl std::fmt::Display for SharedCfgPin {
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ExtraNode {
     pub io: BTreeMap<ExtraNodeIo, EdgeIoCoord>,
-    pub tiles: EntityVec<NodeTileId, (ColId, RowId)>,
+    pub tiles: EntityVec<TileCellId, (ColId, RowId)>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -355,7 +355,7 @@ impl Chip {
         }
     }
 
-    pub fn get_io_loc(&self, io: EdgeIoCoord) -> IntBel {
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> BelCoord {
         let (col, row, iob) = match io {
             EdgeIoCoord::N(col, iob) => (col, self.row_n(), iob),
             EdgeIoCoord::E(row, iob) => (self.col_e(), row, iob),
@@ -366,7 +366,7 @@ impl Chip {
         (DieId::from_idx(0), (col, row), slot)
     }
 
-    pub fn get_io_crd(&self, bel: IntBel) -> EdgeIoCoord {
+    pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
         let (_, (col, row), slot) = bel;
         let iob = TileIobId::from_idx(bels::IO.iter().position(|&x| x == slot).unwrap());
         if col == self.col_w() {

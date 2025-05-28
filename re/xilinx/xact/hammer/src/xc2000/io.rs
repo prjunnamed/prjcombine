@@ -1,11 +1,11 @@
 use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    for (_, tile, node) in &backend.egrid.db.nodes {
+    for (_, tile, node) in &backend.egrid.db.tile_classes {
         if !tile.starts_with("CLB") {
             continue;
         }
@@ -33,7 +33,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for (_, tile, node) in &ctx.edev.egrid.db.nodes {
+    for (_, tile, node) in &ctx.edev.egrid.db.tile_classes {
         if !tile.starts_with("CLB") {
             continue;
         }

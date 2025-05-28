@@ -1,7 +1,7 @@
 use prjcombine_re_fpga_hammer::{Diff, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_spartan6::bels;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 
 use crate::{
     backend::IseBackend,

@@ -7,7 +7,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex4::{bels, chip::RegId, expanded::IoCoord};
 use unnamed_entity::EntityId;
 
@@ -175,7 +175,7 @@ fn get_vrefs(backend: &IseBackend, nloc: NodeLoc) -> Vec<NodeLoc> {
         .into_iter()
         .map(|vref_row| {
             edev.egrid
-                .get_node_by_bel((die, (col, vref_row), bels::IOB0))
+                .get_tile_by_bel((die, (col, vref_row), bels::IOB0))
         })
         .collect()
 }
@@ -209,7 +209,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
         let hclk_ioi =
             backend
                 .egrid
-                .get_node_by_bel((nloc.0, (nloc.1, hclk_row), bels::IDELAYCTRL));
+                .get_tile_by_bel((nloc.0, (nloc.1, hclk_row), bels::IDELAYCTRL));
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_ioi, "VREF".to_string()),
             None,
@@ -222,10 +222,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
                 .unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             if self.0 {
-                let node = edev.egrid.node(vref);
+                let node = edev.egrid.tile(vref);
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
-                        tile: edev.egrid.db.nodes.key(node.kind).clone(),
+                        tile: edev.egrid.db.tile_classes.key(node.class).clone(),
                         bel: "IOB0".into(),
                         attr: "PRESENT".into(),
                         val: "VREF".into(),
@@ -270,15 +270,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Ensure nothing is placed in VR.
         for row in [chip.row_hclk(nloc.2) - 25, chip.row_hclk(nloc.2) + 24] {
             let vr_bel = (nloc.0, (nloc.1, row), bels::IOB0);
-            let vr_node = edev.egrid.get_node_by_bel(vr_bel);
+            let vr_node = edev.egrid.get_tile_by_bel(vr_bel);
             let site = backend.ngrid.get_bel_name(vr_bel).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             // Test VR.
             if self.0.is_some() {
-                let node = edev.egrid.node(vr_node);
+                let node = edev.egrid.tile(vr_node);
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
-                        tile: edev.egrid.db.nodes.key(node.kind).clone(),
+                        tile: edev.egrid.db.tile_classes.key(node.class).clone(),
                         bel: "IOB0".into(),
                         attr: "PRESENT".into(),
                         val: "VR".into(),
@@ -291,7 +291,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Take exclusive mutex on bank DCI.
         let hclk_ioi =
             edev.egrid
-                .get_node_by_kind(nloc.0, (nloc.1, chip.row_hclk(nloc.2)), |kind| {
+                .get_tile_by_class(nloc.0, (nloc.1, chip.row_hclk(nloc.2)), |kind| {
                     kind == "HCLK_IOI_HP"
                 });
         fuzzer = fuzzer.fuzz(
@@ -336,7 +336,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
         }
         // Make note of anchor VCCO.
-        let hclk_ioi_anchor = edev.egrid.get_node_by_kind(
+        let hclk_ioi_anchor = edev.egrid.get_tile_by_class(
             nloc.0,
             (edev.col_rio.unwrap(), chip.row_reg_hclk(anchor_reg)),
             |kind| kind == "HCLK_IOI_HP",
@@ -2019,11 +2019,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             };
             let io_row = chip.row_reg_hclk(anchor_reg) - 24;
             let io_bel = (die, (edev.col_rio.unwrap(), io_row), bels::IOB0);
-            let io_node = edev.egrid.get_node_by_bel(io_bel);
+            let io_node = edev.egrid.get_tile_by_bel(io_bel);
             let hclk_row = chip.row_hclk(io_node.2);
             let hclk_node =
                 edev.egrid
-                    .get_node_by_bel((die, (edev.col_rio.unwrap(), hclk_row), bels::DCI));
+                    .get_tile_by_bel((die, (edev.col_rio.unwrap(), hclk_row), bels::DCI));
 
             // Ensure nothing is placed in VR.
             for row in [
@@ -2031,7 +2031,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 chip.row_reg_hclk(anchor_reg) + 24,
             ] {
                 let vr_bel = (die, (edev.col_rio.unwrap(), row), bels::IOB0);
-                let vr_node = edev.egrid.get_node_by_bel(vr_bel);
+                let vr_node = edev.egrid.get_tile_by_bel(vr_bel);
                 let site = backend.ngrid.get_bel_name(vr_bel).unwrap();
                 builder = builder
                     .raw(Key::SiteMode(site), None)
@@ -2083,12 +2083,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let hclk_row_to = chip.row_reg_hclk(anchor_reg_to);
             let hclk_node_to = edev
                 .egrid
-                .get_node_by_bel((die, (col, hclk_row_to), bels::DCI));
+                .get_tile_by_bel((die, (col, hclk_row_to), bels::DCI));
             let io_row_from = hclk_row_from - 24;
             let io_bel_from = (die, (col, io_row_from), bels::IOB0);
             let io_row_to = hclk_row_to - 24;
             let io_bel_to = (die, (col, io_row_to), bels::IOB0);
-            let io_node_to = edev.egrid.get_node_by_bel(io_bel_to);
+            let io_node_to = edev.egrid.get_tile_by_bel(io_bel_to);
             let actual_bank_from = edev
                 .get_io_info(prjcombine_virtex4::expanded::IoCoord {
                     die,

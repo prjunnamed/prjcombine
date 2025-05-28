@@ -17,11 +17,11 @@ use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, IntDb, MuxInfo, MuxKind, NodeKind, NodeKindId, NodeTileId, NodeWireId,
+        BelInfo, BelPin, IntDb, MuxInfo, MuxKind, TileClass, TileClassId, TileCellId, TileClassWire,
         PinDir,
     },
     dir::{DirH, DirPartMap, DirV},
-    grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId, TileIobId},
+    grid::{ColId, DieId, EdgeIoCoord, WireCoord, RowId, TileIobId},
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_re_toolchain::Toolchain;
@@ -34,7 +34,7 @@ use prjcombine_siliconblue::{
 };
 use prjcombine_types::{
     speed::Speed,
-    tiledb::{TileBit, TileDb, TileItemKind},
+    bsdata::{TileBit, BsData, TileItemKind},
 };
 use rand::Rng;
 use rayon::prelude::*;
@@ -85,10 +85,10 @@ struct PartContext<'a> {
     toolchain: &'a Toolchain,
     prims: BTreeMap<&'static str, Primitive>,
     pkgs: BTreeMap<(&'static str, &'static str), PkgInfo>,
-    extra_wire_names: BTreeMap<(u32, u32, String), IntWire>,
+    extra_wire_names: BTreeMap<(u32, u32, String), WireCoord>,
     bel_pins: BTreeMap<(&'static str, RawLoc), BelPins>,
     extra_node_locs: BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
-    tiledb: TileDb,
+    tiledb: BsData,
     speed: BTreeMap<(&'static str, &'static str), Speed>,
     debug: u8,
 }
@@ -99,7 +99,7 @@ struct HarvestContext<'a> {
     gencfg: GeneratorConfig<'a>,
     harvester: Mutex<Harvester<BitOwner>>,
     speed: BTreeMap<(&'static str, &'static str), Mutex<SpeedCollector>>,
-    muxes: Mutex<BTreeMap<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>>,
+    muxes: Mutex<BTreeMap<TileClassId, BTreeMap<TileClassWire, MuxInfo>>>,
 }
 
 impl HarvestContext<'_> {
@@ -241,7 +241,7 @@ impl HarvestContext<'_> {
         let muxes = self.muxes.lock().unwrap();
         for (&nk, muxes) in &*muxes {
             let mut stats: BTreeMap<String, usize> = BTreeMap::new();
-            let nkn = self.edev.egrid.db.nodes.key(nk);
+            let nkn = self.edev.egrid.db.tile_classes.key(nk);
             for (&(_, wt), mux) in muxes {
                 let wtn = self.edev.egrid.db.wires.key(wt);
                 for &(_, wf) in &mux.ins {
@@ -377,13 +377,13 @@ impl HarvestContext<'_> {
             let mux = muxes
                 .entry(pip.0)
                 .or_default()
-                .entry((NodeTileId::from_idx(0), pip.1))
+                .entry((TileCellId::from_idx(0), pip.1))
                 .or_insert_with(|| MuxInfo {
                     kind: MuxKind::Plain,
                     ins: BTreeSet::new(),
                 });
 
-            if mux.ins.insert((NodeTileId::from_idx(0), pip.2)) {
+            if mux.ins.insert((TileCellId::from_idx(0), pip.2)) {
                 ctr += 1;
                 changed = true;
             }
@@ -1074,7 +1074,7 @@ impl PartContext<'_> {
         } else {
             Some(Database::from_file("databases/ice40p01.zstd").unwrap())
         };
-        let tiledb = db.as_ref().map(|x| &x.tiles);
+        let tiledb = db.as_ref().map(|x| &x.bsdata);
         let extra_wire_names = Mutex::new(BTreeMap::new());
         let bel_pins = Mutex::new(BTreeMap::new());
         worklist
@@ -1246,7 +1246,7 @@ impl PartContext<'_> {
             let loc = ExtraNodeLoc::GbIo(index);
             self.chip.extra_nodes.insert(loc, node);
             self.intdb
-                .nodes
+                .tile_classes
                 .insert(loc.node_kind(), MiscNodeBuilder::new(&[(col, row)]).node);
         }
     }
@@ -1260,7 +1260,7 @@ impl PartContext<'_> {
         };
         let nb = MiscNodeBuilder::new(&[crd]);
         let (int_node, extra_node) = nb.finish();
-        self.intdb.nodes.insert(loc.node_kind(), int_node);
+        self.intdb.tile_classes.insert(loc.node_kind(), int_node);
         self.chip.extra_nodes.insert(loc, extra_node);
     }
 
@@ -1437,7 +1437,7 @@ impl PartContext<'_> {
                     let io = pkg_info.xlat_io[&xy];
                     extra_node.io.insert(slot, io);
                 }
-                self.intdb.nodes.insert(loc.node_kind(), int_node);
+                self.intdb.tile_classes.insert(loc.node_kind(), int_node);
                 self.chip.extra_nodes.insert(loc, extra_node);
                 self.extra_node_locs.insert(loc, vec![site.loc]);
             }
@@ -1490,7 +1490,7 @@ impl PartContext<'_> {
                 match self.chip.extra_nodes.entry(loc) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(extra_node);
-                        self.intdb.nodes.insert(loc.node_kind(), int_node);
+                        self.intdb.tile_classes.insert(loc.node_kind(), int_node);
                         self.extra_node_locs.insert(loc, vec![site.loc]);
                     }
                     btree_map::Entry::Occupied(entry) => {
@@ -1515,14 +1515,14 @@ impl PartContext<'_> {
             };
             let xloc = ExtraNodeLoc::PllStub(DirV::S);
             self.chip.extra_nodes.insert(xloc, xnode);
-            let node = NodeKind {
-                tiles: EntityVec::from_iter([()]),
+            let node = TileClass {
+                cells: EntityVec::from_iter([()]),
                 muxes: Default::default(),
                 iris: Default::default(),
                 intfs: Default::default(),
                 bels: Default::default(),
             };
-            self.intdb.nodes.insert(xloc.node_kind(), node);
+            self.intdb.tile_classes.insert(xloc.node_kind(), node);
         }
     }
 
@@ -1544,7 +1544,7 @@ impl PartContext<'_> {
                 match self.chip.extra_nodes.entry(loc) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(extra_node);
-                        self.intdb.nodes.insert(loc.node_kind(), int_node);
+                        self.intdb.tile_classes.insert(loc.node_kind(), int_node);
                         self.extra_node_locs.insert(loc, vec![site.loc]);
                     }
                     btree_map::Entry::Occupied(entry) => {
@@ -1696,7 +1696,7 @@ impl PartContext<'_> {
                     match self.chip.extra_nodes.entry(loc) {
                         btree_map::Entry::Vacant(entry) => {
                             entry.insert(extra_node);
-                            self.intdb.nodes.insert(loc.node_kind(), int_node);
+                            self.intdb.tile_classes.insert(loc.node_kind(), int_node);
                         }
                         btree_map::Entry::Occupied(entry) => {
                             assert_eq!(*entry.get(), extra_node);
@@ -1707,7 +1707,7 @@ impl PartContext<'_> {
                 match self.chip.extra_nodes.entry(loc) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(extra_node);
-                        self.intdb.nodes.insert(loc.node_kind(), int_node);
+                        self.intdb.tile_classes.insert(loc.node_kind(), int_node);
                         self.extra_node_locs.insert(loc, site_locs);
                     }
                     btree_map::Entry::Occupied(entry) => {
@@ -1739,7 +1739,7 @@ impl PartContext<'_> {
                 nb.add_bel(bels::SPRAM[i], bel_pins);
             }
             let (int_node, extra_node) = nb.finish();
-            self.intdb.nodes.insert(loc.node_kind(), int_node);
+            self.intdb.tile_classes.insert(loc.node_kind(), int_node);
             self.chip.extra_nodes.insert(loc, extra_node);
             self.extra_node_locs
                 .insert(loc, vec![edge_sites[0].loc, edge_sites[1].loc]);
@@ -1761,7 +1761,7 @@ impl PartContext<'_> {
         }
         nb.get_tile((ColId::from_idx(25), RowId::from_idx(30)));
         let (int_node, extra_node) = nb.finish();
-        self.intdb.nodes.insert(loc.node_kind(), int_node);
+        self.intdb.tile_classes.insert(loc.node_kind(), int_node);
         self.chip.extra_nodes.insert(loc, extra_node);
         self.extra_node_locs
             .insert(loc, vec![sites[0].loc, sites[1].loc]);
@@ -1774,8 +1774,8 @@ impl PartContext<'_> {
             _ => return,
         };
         let wire = self.intdb.get_wire(wire);
-        let mut node = NodeKind {
-            tiles: EntityVec::from_iter([()]),
+        let mut node = TileClass {
+            cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
             intfs: Default::default(),
@@ -1785,13 +1785,13 @@ impl PartContext<'_> {
         bel.pins.insert(
             "CLK".into(),
             BelPin {
-                wires: BTreeSet::from_iter([(NodeTileId::from_idx(0), wire)]),
+                wires: BTreeSet::from_iter([(TileCellId::from_idx(0), wire)]),
                 dir: PinDir::Output,
                 is_intf_in: false,
             },
         );
         node.bels.insert(bels::SMCCLK, bel);
-        self.intdb.nodes.insert("SMCCLK".into(), node);
+        self.intdb.tile_classes.insert("SMCCLK".into(), node);
         self.chip.extra_nodes.insert(
             ExtraNodeLoc::SmcClk,
             ExtraNode {
@@ -1890,7 +1890,7 @@ impl PartContext<'_> {
                 },
             ),
         ] {
-            if self.intdb.nodes.contains_key(tile) {
+            if self.intdb.tile_classes.contains_key(tile) {
                 harvester.force_tiled(format!("{tile}:{key}"), BTreeMap::from_iter([(bit, true)]));
             }
         }
@@ -1899,14 +1899,14 @@ impl PartContext<'_> {
     fn transplant_r04(
         &mut self,
         harvester: &mut Harvester<BitOwner>,
-        muxes: &mut BTreeMap<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>,
+        muxes: &mut BTreeMap<TileClassId, BTreeMap<TileClassWire, MuxInfo>>,
     ) {
         let db = Database::from_file("databases/ice40p01.zstd").unwrap();
         for tile in ["IO.W", "IO.E"] {
-            let node = db.int.nodes.get(tile).unwrap().1;
-            let node_dst = self.intdb.nodes.get(tile).unwrap().0;
+            let node = db.int.tile_classes.get(tile).unwrap().1;
+            let node_dst = self.intdb.tile_classes.get(tile).unwrap().0;
             muxes.insert(node_dst, node.muxes.clone());
-            let tile_data = &db.tiles.tiles[tile];
+            let tile_data = &db.bsdata.tiles[tile];
             for (name, item) in &tile_data.items {
                 if name.starts_with("COLBUF:")
                     || name.ends_with(":PIN_TYPE")
@@ -2029,7 +2029,7 @@ impl PartContext<'_> {
                     let b: usize = b.parse().unwrap();
                     if a == 0 && b >= 4 {
                         let g2l_wire = (
-                            NodeTileId::from_idx(0),
+                            TileCellId::from_idx(0),
                             self.intdb.get_wire(&format!("GOUT.{}", b - 4)),
                         );
                         let mut g2l_ins = BTreeSet::new();
@@ -2063,7 +2063,7 @@ impl PartContext<'_> {
         self.tiledb = tiledb;
 
         for (nk, node_muxes) in muxes {
-            self.intdb.nodes[nk].muxes = node_muxes;
+            self.intdb.tile_classes[nk].muxes = node_muxes;
         }
 
         for (k, v) in speed {
@@ -2078,7 +2078,7 @@ impl PartContext<'_> {
             speeds: EntityVec::new(),
             parts: vec![],
             int: self.intdb.clone(),
-            tiles: self.tiledb.clone(),
+            bsdata: self.tiledb.clone(),
         };
         let chip = db.chips.push(self.chip.clone());
         for &part in &self.parts {
@@ -2188,7 +2188,7 @@ fn main() {
             extra_wire_names: BTreeMap::new(),
             bel_pins: BTreeMap::new(),
             extra_node_locs: BTreeMap::new(),
-            tiledb: TileDb::default(),
+            tiledb: BsData::default(),
             speed: BTreeMap::new(),
             debug: args.debug,
         };

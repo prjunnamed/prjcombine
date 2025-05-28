@@ -3,7 +3,7 @@ use std::{collections::btree_map, path::PathBuf};
 use clap::Parser;
 use jzon::JsonValue;
 use prjcombine_re_xilinx_geom::Chip;
-use prjcombine_types::tiledb::TileDb;
+use prjcombine_types::bsdata::BsData;
 
 mod spartan6;
 mod ultrascale;
@@ -23,8 +23,8 @@ struct Args {
     tiledb: Vec<PathBuf>,
 }
 
-fn merge_tiledb(tiledb: Vec<TileDb>) -> TileDb {
-    let mut res = TileDb::new();
+fn merge_tiledb(tiledb: Vec<BsData>) -> BsData {
+    let mut res = BsData::new();
     for db in tiledb {
         for (tile, tile_data) in db.tiles {
             let tile_dst = res.tiles.entry(tile).or_default();
@@ -66,7 +66,7 @@ fn main() {
     let tiledb: Vec<_> = args
         .tiledb
         .iter()
-        .map(|f| TileDb::from_file(f).unwrap())
+        .map(|f| BsData::from_file(f).unwrap())
         .collect();
     let tiledb = merge_tiledb(tiledb);
     if let Some(geom) = geom {

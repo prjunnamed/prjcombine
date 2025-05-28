@@ -4,8 +4,8 @@ use std::{
 };
 
 use prjcombine_interconnect::{
-    db::{BelSlotId, NodeWireId},
-    grid::{ExpandedGrid, IntBel, NodeLoc},
+    db::{BelSlotId, TileClassWire},
+    grid::{ExpandedGrid, BelCoord, NodeLoc},
 };
 use unnamed_entity::{EntityPartVec, EntityVec};
 
@@ -67,7 +67,7 @@ impl<'a> ExpandedGridNaming<'a> {
         entry.insert(nnode)
     }
 
-    pub fn get_bel_name(&self, bel: IntBel) -> Option<&str> {
+    pub fn get_bel_name(&self, bel: BelCoord) -> Option<&str> {
         let (die, (col, row), slot) = bel;
         if let Some(layer) = self.egrid.find_bel_layer(bel) {
             let nnode = &self.nodes[&(die, col, row, layer)];
@@ -77,7 +77,7 @@ impl<'a> ExpandedGridNaming<'a> {
         }
     }
 
-    pub fn bel_pip(&self, bel: IntBel, key: &str) -> PipCoords {
+    pub fn bel_pip(&self, bel: BelCoord, key: &str) -> PipCoords {
         let (die, (col, row), slot) = bel;
         let layer = self.egrid.find_bel_layer(bel).unwrap();
         let nloc = (die, col, row, layer);
@@ -89,7 +89,7 @@ impl<'a> ExpandedGridNaming<'a> {
         ))
     }
 
-    pub fn int_pip(&self, nloc: NodeLoc, wire_to: NodeWireId, wire_from: NodeWireId) -> PipCoords {
+    pub fn int_pip(&self, nloc: NodeLoc, wire_to: TileClassWire, wire_from: TileClassWire) -> PipCoords {
         let nnode = &self.nodes[&nloc];
         let naming = &self.db.node_namings[nnode.naming].int_pips[&(wire_to, wire_from)];
         match naming {

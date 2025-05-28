@@ -12,7 +12,7 @@ use enum_map::EnumMap;
 use itertools::Itertools;
 use prjcombine_types::{
     FbId, FbMcId, IoId, IpadId,
-    tiledb::{TileBit, TileItem, TileItemKind},
+    bsdata::{TileBit, TileItem, TileItemKind},
 };
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};

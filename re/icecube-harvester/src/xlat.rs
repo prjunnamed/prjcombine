@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use prjcombine_interconnect::{
     db::WireId,
     dir::Dir,
-    grid::{ColId, DieId, IntWire, RowId},
+    grid::{ColId, DieId, WireCoord, RowId},
 };
 use prjcombine_siliconblue::{
     chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
@@ -13,7 +13,7 @@ use unnamed_entity::EntityId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum GenericNet {
-    Int(IntWire),
+    Int(WireCoord),
     Cmux(ColId, RowId),
     Gbout(ColId, RowId, usize),
     Cout(ColId, RowId, usize),
@@ -573,8 +573,8 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
 
 pub fn xlat_mux_in(
     edev: &ExpandedDevice,
-    mut wa: IntWire,
-    wb: IntWire,
+    mut wa: WireCoord,
+    wb: WireCoord,
     na: (u32, u32, &str),
     nb: (u32, u32, &str),
 ) -> (ColId, RowId, WireId, WireId) {

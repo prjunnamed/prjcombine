@@ -11,7 +11,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::{
     bels,
     chip::{ChipKind, ColumnKind},
@@ -57,16 +57,16 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DcmCornerEnable {
                 DirH::W => edev.chip.col_w(),
                 DirH::E => edev.chip.col_e(),
             };
-            let nloc = edev.egrid.get_node_by_kind(nloc.0, (col, nloc.2), |kind| {
+            let nloc = edev.egrid.get_tile_by_class(nloc.0, (col, nloc.2), |kind| {
                 kind.starts_with("LL.")
                     || kind.starts_with("LR.")
                     || kind.starts_with("UL.")
                     || kind.starts_with("UR.")
             });
-            let node = edev.egrid.node(nloc);
+            let node = edev.egrid.tile(nloc);
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
-                    tile: edev.egrid.db.nodes.key(node.kind).clone(),
+                    tile: edev.egrid.db.tile_classes.key(node.class).clone(),
                     bel: "MISC".into(),
                     attr: "DCM_ENABLE".into(),
                     val: "1".into(),

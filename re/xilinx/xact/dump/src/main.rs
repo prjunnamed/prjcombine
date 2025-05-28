@@ -84,12 +84,12 @@ fn main() {
                     btree_map::Entry::Occupied(mut entry) => {
                         let cintdb = entry.get_mut();
                         assert_eq!(cintdb.wires, intdb.wires);
-                        assert_eq!(cintdb.terms, intdb.terms);
-                        for (_, name, node) in intdb.nodes {
-                            if let Some((_, cnode)) = cintdb.nodes.get(&name) {
+                        assert_eq!(cintdb.conn_classes, intdb.conn_classes);
+                        for (_, name, node) in intdb.tile_classes {
+                            if let Some((_, cnode)) = cintdb.tile_classes.get(&name) {
                                 assert_eq!(*cnode, node, "mismatch for node {name}");
                             } else {
-                                cintdb.nodes.insert(name, node);
+                                cintdb.tile_classes.insert(name, node);
                             }
                         }
                     }

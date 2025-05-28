@@ -31,12 +31,12 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
     )
     .unwrap();
     let part_names = Vec::from_iter(db.parts.iter().map(|part| part.name.as_str()));
-    gen_tiles(ctx, "spartan6", &db.tiles, orientation);
+    gen_tiles(ctx, "spartan6", &db.bsdata, orientation);
     let mut misc_used = HashSet::new();
     let mut devdata_used = HashSet::new();
     gen_misc_table(
         ctx,
-        &db.tiles,
+        &db.bsdata,
         &mut misc_used,
         "spartan6",
         "iostd-drive",
@@ -44,7 +44,7 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
     );
     gen_misc_table(
         ctx,
-        &db.tiles,
+        &db.bsdata,
         &mut misc_used,
         "spartan6",
         "iostd-term",
@@ -52,7 +52,7 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
     );
     gen_misc_table(
         ctx,
-        &db.tiles,
+        &db.bsdata,
         &mut misc_used,
         "spartan6",
         "iostd-slew",
@@ -60,7 +60,7 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
     );
     gen_misc_table(
         ctx,
-        &db.tiles,
+        &db.bsdata,
         &mut misc_used,
         "spartan6",
         "iostd-lvdsbias",
@@ -69,7 +69,7 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
 
     gen_misc_table(
         ctx,
-        &db.tiles,
+        &db.bsdata,
         &mut misc_used,
         "spartan6",
         "pll-lock",
@@ -83,7 +83,7 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
     );
     gen_misc_table(
         ctx,
-        &db.tiles,
+        &db.bsdata,
         &mut misc_used,
         "spartan6",
         "pll-filter",
@@ -96,13 +96,13 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
     );
     gen_devdata_table(
         ctx,
-        &db.tiles,
+        &db.bsdata,
         &part_names,
         &mut devdata_used,
         "spartan6",
         "pci-ce-delay",
         &["PCI_CE_DELAY"],
     );
-    check_misc_data(&db.tiles, "spartan6", &misc_used);
-    check_devdata(&db.tiles, "spartan6", &devdata_used);
+    check_misc_data(&db.bsdata, "spartan6", &misc_used);
+    check_devdata(&db.bsdata, "spartan6", &devdata_used);
 }

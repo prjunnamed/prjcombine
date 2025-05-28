@@ -1,4 +1,4 @@
-use prjcombine_interconnect::{db::NodeWireId, grid::NodeLoc};
+use prjcombine_interconnect::{db::TileClassWire, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 
@@ -28,8 +28,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IntMutex {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
-        for &(col, row) in node.tiles.values() {
+        let node = backend.egrid.tile(nloc);
+        for &(col, row) in node.cells.values() {
             fuzzer = fuzzer.base(Key::IntMutex(nloc.0, col, row), self.val.clone());
         }
         Some((fuzzer, false))
@@ -127,11 +127,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TileMutexExclusive {
 
 #[derive(Clone, Debug)]
 pub struct NodeMutexShared {
-    pub wire: NodeWireId,
+    pub wire: TileClassWire,
 }
 
 impl NodeMutexShared {
-    pub fn new(wire: NodeWireId) -> Self {
+    pub fn new(wire: TileClassWire) -> Self {
         Self { wire }
     }
 }
@@ -147,21 +147,21 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeMutexShared {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let node = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.wire.0], self.wire.1))?;
+            .resolve_wire((nloc.0, node.cells[self.wire.0], self.wire.1))?;
         Some((fuzzer.base(Key::NodeMutex(node), "SHARED"), false))
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct NodeMutexExclusive {
-    pub wire: NodeWireId,
+    pub wire: TileClassWire,
 }
 
 impl NodeMutexExclusive {
-    pub fn new(wire: NodeWireId) -> Self {
+    pub fn new(wire: TileClassWire) -> Self {
         Self { wire }
     }
 }
@@ -177,10 +177,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeMutexExclusive {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let node = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.wire.0], self.wire.1))?;
+            .resolve_wire((nloc.0, node.cells[self.wire.0], self.wire.1))?;
         Some((fuzzer.fuzz(Key::NodeMutex(node), None, "EXCLUSIVE"), false))
     }
 }

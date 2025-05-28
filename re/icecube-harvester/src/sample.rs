@@ -2,9 +2,9 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
-    db::{NodeKindId, NodeWireId, PinDir, WireId},
+    db::{TileClassId, TileClassWire, PinDir, WireId},
     dir::{Dir, DirH, DirV},
-    grid::{ColId, DieId, IntWire, RowId, TileIobId},
+    grid::{ColId, DieId, WireCoord, RowId, TileIobId},
 };
 use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
@@ -54,9 +54,9 @@ pub fn make_sample(
     runres: &RunResult,
     pkg_info: &PkgInfo,
     rows_colbuf: &[(RowId, RowId, RowId)],
-    extra_wire_names: &BTreeMap<(u32, u32, String), IntWire>,
+    extra_wire_names: &BTreeMap<(u32, u32, String), WireCoord>,
     extra_node_locs: &BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
-) -> (Sample<BitOwner>, HashSet<(NodeKindId, WireId, WireId)>) {
+) -> (Sample<BitOwner>, HashSet<(TileClassId, WireId, WireId)>) {
     let mut sample = Sample::default();
     let mut pips = HashSet::new();
     let die = edev.egrid.die(DieId::from_idx(0));
@@ -80,9 +80,9 @@ pub fn make_sample(
             let crd = *edev.chip.extra_nodes[&key].tiles.first().unwrap();
             let nloc = edev
                 .egrid
-                .get_node_by_kind(die.die, crd, |kind| kind == key.node_kind());
-            let node = edev.egrid.node(nloc);
-            let node_info = &edev.egrid.db.nodes[node.kind];
+                .get_tile_by_class(die.die, crd, |kind| kind == key.node_kind());
+            let node = edev.egrid.tile(nloc);
+            let node_info = &edev.egrid.db.tile_classes[node.class];
             for (bel, bel_info) in &node_info.bels {
                 for (pin, pin_info) in &bel_info.pins {
                     for wire in edev.egrid.get_bel_pin((die.die, crd, bel), pin) {
@@ -94,7 +94,7 @@ pub fn make_sample(
             }
         }
     }
-    let mut int_source: HashMap<IntWire, (InstId, InstPin)> = HashMap::new();
+    let mut int_source: HashMap<WireCoord, (InstId, InstPin)> = HashMap::new();
     let mut ibuf_used = HashSet::new();
     let mut gb_io_used = HashSet::new();
     for (&(src_inst, ref src_pin), route) in &runres.routes {
@@ -122,7 +122,7 @@ pub fn make_sample(
                         let (col, row, wa, wb) =
                             xlat_mux_in(edev, iwa, iwb, (ax, ay, aw), (bx, by, bw));
                         let tile_name = get_main_tile_kind(edev, col, row);
-                        let node = die[(col, row)].nodes.first().unwrap();
+                        let node = die[(col, row)].tiles.first().unwrap();
                         let wan = edev.egrid.db.wires.key(wa);
                         let wbn = edev.egrid.db.wires.key(wb);
                         if let Some(idx) = wbn.strip_prefix("GLOBAL.") {
@@ -137,7 +137,7 @@ pub fn make_sample(
                             }
                             continue;
                         }
-                        pips.insert((node.kind, wb, wa));
+                        pips.insert((node.class, wb, wa));
                         let key = format!("{tile_name}:INT:MUX.{wbn}:{wan}");
                         if (wbn.starts_with("QUAD") || wbn.starts_with("LONG"))
                             && wan.starts_with("OUT")
@@ -712,13 +712,13 @@ pub fn make_sample(
                     }
                 }
                 kind if kind.starts_with("SB_RAM") => {
-                    let node = edev.egrid.db.get_node("BRAM");
-                    let node = &edev.egrid.db.nodes[node];
+                    let node = edev.egrid.db.get_tile_class("BRAM");
+                    let node = &edev.egrid.db.tile_classes[node];
                     let bel_info = &node.bels[bels::BRAM];
-                    let get_pin = |pin: &str| -> NodeWireId {
+                    let get_pin = |pin: &str| -> TileClassWire {
                         bel_info.pins[pin].wires.iter().copied().next().unwrap()
                     };
-                    let get_pin_idx = |pin: &str, idx: usize| -> NodeWireId {
+                    let get_pin_idx = |pin: &str, idx: usize| -> TileClassWire {
                         bel_info.pins[&format!("{pin}{idx}")]
                             .wires
                             .iter()
@@ -1400,7 +1400,7 @@ pub fn make_sample(
                             }
                             if edev.chip.kind == ChipKind::Ice40R04 {
                                 let nk = xnloc.node_kind();
-                                let node_info = edev.egrid.db.nodes.get(&nk).unwrap().1;
+                                let node_info = edev.egrid.db.tile_classes.get(&nk).unwrap().1;
                                 let bel = match xnloc {
                                     ExtraNodeLoc::Spi(_) => bels::SPI,
                                     ExtraNodeLoc::I2c(_) => bels::I2C,

@@ -1,5 +1,5 @@
 use bitvec::vec::BitVec;
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, IntBel, IntWire, NodeLoc, RowId};
+use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, BelCoord, WireCoord, NodeLoc, RowId};
 use prjcombine_re_fpga_hammer::{Diff, FeatureData, FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_toolchain::Toolchain;
@@ -10,7 +10,7 @@ use prjcombine_re_xilinx_naming::grid::ExpandedGridNaming;
 use prjcombine_re_xilinx_xdl::{
     Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement, run_bitgen,
 };
-use prjcombine_types::tiledb::TileBit;
+use prjcombine_types::bsdata::TileBit;
 use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xilinx_bitstream::{KeyData, KeyDataAes, KeyDataDes, KeySeq, parse};
 use rand::prelude::*;
@@ -54,8 +54,8 @@ pub enum Key<'a> {
     VccoSenseMode(u32),
     GlobalMutex(String),
     RowMutex(String, RowId),
-    BelMutex(IntBel, String),
-    NodeMutex(IntWire),
+    BelMutex(BelCoord, String),
+    NodeMutex(WireCoord),
     TileMutex(NodeLoc, String),
     IntMutex(DieId, ColId, RowId),
 }
@@ -74,7 +74,7 @@ pub enum Value<'a> {
     U32(u32),
     PinFrom(PinFromKind),
     FromPin(&'a str, String),
-    Bel(IntBel),
+    Bel(BelCoord),
 }
 
 impl From<Option<core::convert::Infallible>> for Value<'_> {
@@ -229,12 +229,12 @@ impl<'a> Backend for IseBackend<'a> {
         };
 
         let mut site_to_tile = HashMap::new();
-        for nnode in self.ngrid.nodes.values() {
+        for nnode in self.ngrid.tiles.values() {
             if let Some(ref name) = nnode.tie_name {
                 site_to_tile.insert(name.to_string(), nnode.names[nnode.tie_rt].to_string());
             }
             for (id, name) in &nnode.bels {
-                let rt = self.ngrid.db.node_namings[nnode.naming].bels[id].tile;
+                let rt = self.ngrid.db.tile_class_namings[nnode.naming].bels[id].tile;
                 site_to_tile.insert(name.to_string(), nnode.names[rt].to_string());
             }
         }
@@ -296,7 +296,7 @@ impl<'a> Backend for IseBackend<'a> {
             _ => None,
         };
         if let Some(dummy_kind) = dummy_kind {
-            for nnode in self.ngrid.nodes.values() {
+            for nnode in self.ngrid.tiles.values() {
                 if let Some(ref name) = nnode.tie_name {
                     insts.insert(
                         "DUMMY_INST".to_string(),

@@ -5,7 +5,7 @@ use prjcombine_interconnect::grid::NodeLoc;
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex4::bels;
 
 use crate::{
@@ -29,7 +29,7 @@ impl NodeRelation for HclkCmt {
         let row = chip.row_hclk(nloc.2);
         Some(
             edev.egrid
-                .get_node_by_bel((nloc.0, (nloc.1, row), bels::HCLK_CMT_HCLK)),
+                .get_tile_by_bel((nloc.0, (nloc.1, row), bels::HCLK_CMT_HCLK)),
         )
     }
 }

@@ -10,7 +10,7 @@ use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,
 };
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex::{bels, chip::ChipKind};
 use unnamed_entity::EntityId;
 
@@ -176,7 +176,7 @@ fn has_any_vref<'a>(
     tile: &str,
     slot: BelSlotId,
 ) -> Option<&'a str> {
-    let node_kind = edev.egrid.db.get_node(tile);
+    let node_kind = edev.egrid.db.get_tile_class(tile);
     let mut bonded_ios = HashMap::new();
     for devbond in device.bonds.values() {
         let bond = &db.bonds[devbond.bond];
@@ -187,7 +187,7 @@ fn has_any_vref<'a>(
             bonded_ios.insert(io, &devbond.name[..]);
         }
     }
-    for &(die, col, row, _) in &edev.egrid.node_index[node_kind] {
+    for &(die, col, row, _) in &edev.egrid.tile_index[node_kind] {
         let crd = edev.chip.get_io_crd((die, (col, row), slot));
         if let Some(&pkg) = bonded_ios.get(&crd) {
             return Some(pkg);
@@ -511,7 +511,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         edev.chip.row_n()
                     };
                     let bel_clk = if i == 1 { "IOFB1" } else { "IOFB0" };
-                    let clkbt = edev.egrid.get_node_by_kind(
+                    let clkbt = edev.egrid.get_tile_by_class(
                         DieId::from_idx(0),
                         (edev.chip.col_clk(), row),
                         |x| x == tile_clk,

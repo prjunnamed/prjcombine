@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use prjcombine_interconnect::grid::{ColId, RowId};
 use prjcombine_re_xilinx_naming::{
-    db::{NamingDb, NodeRawTileId},
+    db::{NamingDb, RawTileId},
     grid::ExpandedGridNaming,
 };
 use prjcombine_xc2000::{
@@ -137,14 +137,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     for die in egrid.dies() {
         for col in die.cols() {
             for row in die.rows() {
-                for (layer, node) in &die[(col, row)].nodes {
+                for (layer, node) in &die[(col, row)].tiles {
                     let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.nodes.key(node.kind);
+                    let kind = egrid.db.tile_classes.key(node.class);
                     let c = col.to_idx();
                     let r = chip.row_n() - row;
                     match &kind[..] {
                         "CNR.BL" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 "CNR.BL",
                                 [
@@ -192,7 +192,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bels::RDBK, "RDBK".to_string());
                         }
                         "CNR.TL" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 "CNR.TL",
                                 [
@@ -237,7 +237,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CNR.BR" => {
                             let nnode =
-                                ngrid.name_node(nloc, "CNR.BR", [get_tile_name(chip, col, row)]);
+                                ngrid.name_tile(nloc, "CNR.BR", [get_tile_name(chip, col, row)]);
                             if chip.kind == ChipKind::SpartanXl {
                                 nnode.add_bel(bels::BUFGLS_H, "BUFGLS_SSE".to_string());
                                 nnode.add_bel(bels::BUFGLS_V, "BUFGLS_ESE".to_string());
@@ -274,7 +274,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
                         }
                         "CNR.TR" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 "CNR.TR",
                                 [
@@ -329,7 +329,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             if chip.kind == ChipKind::Xc4000Xv {
                                 names.push(format!("LHIR{r}"));
                             }
-                            let nnode = ngrid.name_node(nloc, &format!("{kind}.{kind_s}"), names);
+                            let nnode = ngrid.name_tile(nloc, &format!("{kind}.{kind_s}"), names);
                             let p = (chip.columns - 2) * 4
                                 + (chip.rows - 2) * 2
                                 + (row.to_idx() - 1) * 2
@@ -347,7 +347,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                             if chip.kind == ChipKind::Xc4000Xv {
                                 nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
-                                nnode.tie_rt = NodeRawTileId::from_idx(4);
+                                nnode.tie_rt = RawTileId::from_idx(4);
                             }
                         }
                         _ if kind.starts_with("IO.R") => {
@@ -361,7 +361,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             if chip.kind == ChipKind::Xc4000Xv {
                                 names.push(format!("RHIR{r}"));
                             }
-                            let nnode = ngrid.name_node(nloc, &format!("{kind}.{kind_s}"), names);
+                            let nnode = ngrid.name_tile(nloc, &format!("{kind}.{kind_s}"), names);
                             let p = (chip.columns - 2) * 2
                                 + (chip.row_n().to_idx() - row.to_idx() - 1) * 2
                                 + 1;
@@ -391,7 +391,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             if chip.kind == ChipKind::Xc4000Xv {
                                 names.push(format!("BVIC{c}"));
                             }
-                            let nnode = ngrid.name_node(nloc, &format!("{kind}.{kind_e}"), names);
+                            let nnode = ngrid.name_tile(nloc, &format!("{kind}.{kind_e}"), names);
                             let p = (chip.columns - 2) * 2
                                 + (chip.rows - 2) * 2
                                 + (chip.col_e().to_idx() - col.to_idx() - 1) * 2
@@ -417,7 +417,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             if chip.kind == ChipKind::Xc4000Xv {
                                 names.push(format!("TVIC{c}"));
                             }
-                            let nnode = ngrid.name_node(nloc, &format!("{kind}.{kind_e}"), names);
+                            let nnode = ngrid.name_tile(nloc, &format!("{kind}.{kind_e}"), names);
                             let p = (col.to_idx() - 1) * 2 + 1;
                             nnode.add_bel(bels::IO0, format!("PAD{p}"));
                             nnode.add_bel(bels::IO1, format!("PAD{}", p + 1));
@@ -428,7 +428,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                             if chip.kind == ChipKind::Xc4000Xv {
                                 nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
-                                nnode.tie_rt = NodeRawTileId::from_idx(3);
+                                nnode.tie_rt = RawTileId::from_idx(3);
                             }
                         }
                         _ if kind.starts_with("CLB") => {
@@ -453,7 +453,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     format!("VHIR{r}C{c}"),
                                 ]);
                             }
-                            let nnode = ngrid.name_node(nloc, &naming, names);
+                            let nnode = ngrid.name_tile(nloc, &naming, names);
                             nnode.add_bel(bels::CLB, format!("CLB_R{r}C{c}"));
                             nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.2"));
                             nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
@@ -461,10 +461,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
 
                         "LLH.IO.B" => {
-                            ngrid.name_node(nloc, "LLH.IO.B", ["BM".into()]);
+                            ngrid.name_tile(nloc, "LLH.IO.B", ["BM".into()]);
                         }
                         "LLH.IO.T" => {
-                            ngrid.name_node(nloc, "LLH.IO.T", ["TM".into()]);
+                            ngrid.name_tile(nloc, "LLH.IO.T", ["TM".into()]);
                         }
                         _ if kind.starts_with("LLH.CLB") => {
                             let naming = if row < chip.row_mid() {
@@ -472,16 +472,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 "LLH.CLB.T"
                             };
-                            ngrid.name_node(nloc, naming, [format!("VMR{r}")]);
+                            ngrid.name_tile(nloc, naming, [format!("VMR{r}")]);
                         }
                         "LLV.IO.L" => {
-                            ngrid.name_node(nloc, "LLV.IO.L", ["LM".into()]);
+                            ngrid.name_tile(nloc, "LLV.IO.L", ["LM".into()]);
                         }
                         "LLV.IO.R" => {
-                            ngrid.name_node(nloc, "LLV.IO.R", ["RM".into()]);
+                            ngrid.name_tile(nloc, "LLV.IO.R", ["RM".into()]);
                         }
                         "LLV.CLB" => {
-                            ngrid.name_node(nloc, "LLV.CLB", [format!("HMC{c}")]);
+                            ngrid.name_tile(nloc, "LLV.CLB", [format!("HMC{c}")]);
                         }
 
                         "LLHQ.IO.B" => {
@@ -492,7 +492,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 unreachable!()
                             };
-                            ngrid.name_node(nloc, "LLHQ.IO.B", [format!("BQ{lr}")]);
+                            ngrid.name_tile(nloc, "LLHQ.IO.B", [format!("BQ{lr}")]);
                         }
                         "LLHQ.IO.T" => {
                             let lr = if col == chip.col_ql() {
@@ -502,7 +502,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 unreachable!()
                             };
-                            ngrid.name_node(nloc, "LLHQ.IO.T", [format!("TQ{lr}")]);
+                            ngrid.name_tile(nloc, "LLHQ.IO.T", [format!("TQ{lr}")]);
                         }
                         _ if kind.starts_with("LLHQ.CLB") => {
                             let lr = if col == chip.col_ql() {
@@ -519,7 +519,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 "LLHQ.CLB.O"
                             };
-                            let nnode = ngrid.name_node(nloc, naming, [format!("VQ{lr}R{r}")]);
+                            let nnode = ngrid.name_tile(nloc, naming, [format!("VQ{lr}R{r}")]);
                             if chip.kind == ChipKind::Xc4000Xla {
                                 nnode.add_bel(
                                     bels::PULLUP_TBUF0_W,
@@ -539,7 +539,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "LLHC.IO.B" => {
-                            let nnode = ngrid.name_node(nloc, "LLHC.IO.B", ["BM".into()]);
+                            let nnode = ngrid.name_tile(nloc, "LLHC.IO.B", ["BM".into()]);
                             nnode.add_bel(bels::PULLUP_DEC0_W, format!("PULLUP_R{r}C{c}.4"));
                             nnode.add_bel(bels::PULLUP_DEC0_E, format!("PULLUP_R{r}C{c}.5"));
                             nnode.add_bel(bels::PULLUP_DEC1_W, format!("PULLUP_R{r}C{c}.3"));
@@ -550,7 +550,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bels::PULLUP_DEC3_E, format!("PULLUP_R{r}C{c}.8"));
                         }
                         "LLHC.IO.T" => {
-                            let nnode = ngrid.name_node(nloc, "LLHC.IO.T", ["TM".into()]);
+                            let nnode = ngrid.name_tile(nloc, "LLHC.IO.T", ["TM".into()]);
                             nnode.add_bel(bels::PULLUP_DEC0_W, format!("PULLUP_R{r}C{c}.1"));
                             nnode.add_bel(bels::PULLUP_DEC0_E, format!("PULLUP_R{r}C{c}.8"));
                             nnode.add_bel(bels::PULLUP_DEC1_W, format!("PULLUP_R{r}C{c}.2"));
@@ -566,7 +566,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 "LLHC.CLB.O"
                             };
-                            let nnode = ngrid.name_node(nloc, naming, [format!("VMR{r}")]);
+                            let nnode = ngrid.name_tile(nloc, naming, [format!("VMR{r}")]);
                             nnode.add_bel(bels::PULLUP_TBUF0_W, format!("PULLUP_R{r}C{c}.2"));
                             nnode.add_bel(bels::PULLUP_TBUF0_E, format!("PULLUP_R{r}C{c}.4"));
                             nnode.add_bel(bels::PULLUP_TBUF1_W, format!("PULLUP_R{r}C{c}.1"));
@@ -580,7 +580,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 unreachable!()
                             };
-                            let nnode = ngrid.name_node(nloc, kind, [format!("LQ{bt}")]);
+                            let nnode = ngrid.name_tile(nloc, kind, [format!("LQ{bt}")]);
                             let sn = if bt == 'B' { 'S' } else { 'N' };
                             nnode.add_bel(bels::BUFF, format!("BUFF_{sn}W"));
                         }
@@ -605,7 +605,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     "LLVQ.IO.R.TS"
                                 }
                             };
-                            let nnode = ngrid.name_node(nloc, naming, [format!("RQ{bt}")]);
+                            let nnode = ngrid.name_tile(nloc, naming, [format!("RQ{bt}")]);
                             let sn = if bt == 'B' { 'S' } else { 'N' };
                             nnode.add_bel(bels::BUFF, format!("BUFF_{sn}E"));
                         }
@@ -617,10 +617,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 unreachable!()
                             };
-                            ngrid.name_node(nloc, "LLVQ.CLB", [format!("HQ{bt}C{c}")]);
+                            ngrid.name_tile(nloc, "LLVQ.CLB", [format!("HQ{bt}C{c}")]);
                         }
                         "LLVC.IO.L" => {
-                            let nnode = ngrid.name_node(nloc, "LLVC.IO.L", ["LM".into()]);
+                            let nnode = ngrid.name_tile(nloc, "LLVC.IO.L", ["LM".into()]);
                             let r = r + 1;
                             nnode.add_bel(bels::PULLUP_DEC0_S, format!("PULLUP_R{r}C{c}.10"));
                             nnode.add_bel(bels::PULLUP_DEC0_N, format!("PULLUP_R{r}C{c}.3"));
@@ -632,7 +632,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bels::PULLUP_DEC3_N, format!("PULLUP_R{r}C{c}.6"));
                         }
                         "LLVC.IO.R" => {
-                            let nnode = ngrid.name_node(nloc, "LLVC.IO.R", ["RM".into()]);
+                            let nnode = ngrid.name_tile(nloc, "LLVC.IO.R", ["RM".into()]);
                             let r = r + 1;
                             nnode.add_bel(bels::PULLUP_DEC0_S, format!("PULLUP_R{r}C{c}.10"));
                             nnode.add_bel(bels::PULLUP_DEC0_N, format!("PULLUP_R{r}C{c}.3"));
@@ -644,7 +644,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bels::PULLUP_DEC3_N, format!("PULLUP_R{r}C{c}.6"));
                         }
                         "LLVC.CLB" => {
-                            ngrid.name_node(nloc, "LLVC.CLB", [format!("HMC{c}")]);
+                            ngrid.name_tile(nloc, "LLVC.CLB", [format!("HMC{c}")]);
                         }
 
                         "CLKQ" => {
@@ -663,10 +663,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 unreachable!()
                             };
 
-                            ngrid.name_node(nloc, &format!("CLKQ.{bt}"), [format!("Q{bt}{lr}")]);
+                            ngrid.name_tile(nloc, &format!("CLKQ.{bt}"), [format!("Q{bt}{lr}")]);
                         }
                         "CLKC" => {
-                            ngrid.name_node(nloc, "CLKC", ["M".into()]);
+                            ngrid.name_tile(nloc, "CLKC", ["M".into()]);
                         }
                         "CLKQC" => {
                             let bt = if row == chip.row_qb() {
@@ -676,7 +676,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 unreachable!()
                             };
-                            ngrid.name_node(nloc, &format!("CLKQC.{bt}"), [format!("VMQ{bt}")]);
+                            ngrid.name_tile(nloc, &format!("CLKQC.{bt}"), [format!("VMQ{bt}")]);
                         }
 
                         _ => unreachable!(),

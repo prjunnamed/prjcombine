@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, IntWire};
+use prjcombine_interconnect::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, RowId, WireCoord};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -7,7 +7,7 @@ use std::collections::{BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind, DisabledPart};
-use crate::expanded::ExpandedDevice;
+use crate::expanded::{ExpandedDevice, REGION_GLOBAL, REGION_LEAF};
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
@@ -20,7 +20,7 @@ struct Expander<'a, 'b> {
     col_frame: EntityVec<ColId, usize>,
     bram_frame: EntityPartVec<ColId, usize>,
     clkv_frame: EntityPartVec<ColId, usize>,
-    blackhole_wires: HashSet<IntWire>,
+    blackhole_wires: HashSet<WireCoord>,
 }
 
 impl Expander<'_, '_> {
@@ -70,7 +70,7 @@ impl Expander<'_, '_> {
 
             let row = self.chip.row_s();
             self.die
-                .add_xnode((col, row), "BRAM_BOT", &[(col, row), (col - 1, row)]);
+                .add_tile((col, row), "BRAM_BOT", &[(col, row), (col - 1, row)]);
 
             let mut prev_crd = (col, row);
             for row in self.die.rows() {
@@ -85,7 +85,7 @@ impl Expander<'_, '_> {
                 } else {
                     kind = "MBRAM";
                 }
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col, row),
                     kind,
                     &[
@@ -104,15 +104,15 @@ impl Expander<'_, '_> {
                     ],
                 );
                 self.die
-                    .fill_term_pair(prev_crd, (col, row), "MAIN.N", "MAIN.S");
+                    .fill_conn_pair(prev_crd, (col, row), "MAIN.N", "MAIN.S");
                 prev_crd = (col, row);
             }
 
             let row = self.chip.row_n();
             self.die
-                .add_xnode((col, row), "BRAM_TOP", &[(col, row), (col - 1, row)]);
+                .add_tile((col, row), "BRAM_TOP", &[(col, row), (col - 1, row)]);
             self.die
-                .fill_term_pair(prev_crd, (col, row), "MAIN.N", "MAIN.S");
+                .fill_conn_pair(prev_crd, (col, row), "MAIN.N", "MAIN.S");
 
             // special hack!
             for (wire, wname, _) in &self.db.wires {
@@ -132,32 +132,32 @@ impl Expander<'_, '_> {
             let col_c = self.chip.col_clk();
             let col_pl = self.chip.col_w() + 1;
             let col_pr = self.chip.col_e() - 1;
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_c, row_b),
                 "CLKB",
                 &[(col_c, row_b), (col_pl, row_b), (col_pr, row_b)],
             );
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_c, row_t),
                 "CLKT",
                 &[(col_c, row_t), (col_pl, row_t), (col_pr, row_t)],
             );
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_pl, row_b),
                 "DLL.BOT",
                 &[(col_pl, row_b), (col_pl - 1, row_b), (col_c, row_b)],
             );
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_pl, row_t),
                 "DLL.TOP",
                 &[(col_pl, row_t), (col_pl - 1, row_t), (col_c, row_t)],
             );
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_pr, row_b),
                 "DLL.BOT",
                 &[(col_pr, row_b), (col_pr - 1, row_b), (col_c, row_b)],
             );
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_pr, row_t),
                 "DLL.TOP",
                 &[(col_pr, row_t), (col_pr - 1, row_t), (col_c, row_t)],
@@ -182,7 +182,7 @@ impl Expander<'_, '_> {
                 kind_b = "CLKB_4DLL";
                 kind_t = "CLKT_4DLL";
             }
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_c, row_b),
                 kind_b,
                 &[
@@ -193,7 +193,7 @@ impl Expander<'_, '_> {
                     (col_sr, row_b),
                 ],
             );
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_c, row_t),
                 kind_t,
                 &[
@@ -205,28 +205,28 @@ impl Expander<'_, '_> {
                 ],
             );
             // DLLS
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_sl, row_b),
                 "DLLS.BOT",
                 &[(col_sl, row_b), (col_sl - 1, row_b), (col_c, row_b)],
             );
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_sl, row_t),
                 "DLLS.TOP",
                 &[(col_sl, row_t), (col_sl - 1, row_t), (col_c, row_t)],
             );
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_sr, row_b),
                 "DLLS.BOT",
                 &[(col_sr, row_b), (col_sr - 1, row_b), (col_c, row_b)],
             );
-            self.die.add_xnode(
+            self.die.add_tile(
                 (col_sr, row_t),
                 "DLLS.TOP",
                 &[(col_sr, row_t), (col_sr - 1, row_t), (col_c, row_t)],
             );
             if !self.disabled.contains(&DisabledPart::PrimaryDlls) {
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col_pl, row_b),
                     "DLLP.BOT",
                     &[
@@ -236,7 +236,7 @@ impl Expander<'_, '_> {
                         (col_sl, row_b),
                     ],
                 );
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col_pl, row_t),
                     "DLLP.TOP",
                     &[
@@ -246,7 +246,7 @@ impl Expander<'_, '_> {
                         (col_sl, row_t),
                     ],
                 );
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col_pr, row_b),
                     "DLLP.BOT",
                     &[
@@ -256,7 +256,7 @@ impl Expander<'_, '_> {
                         (col_sr, row_b),
                     ],
                 );
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col_pr, row_t),
                     "DLLP.TOP",
                     &[
@@ -274,24 +274,30 @@ impl Expander<'_, '_> {
         // CLKL/CLKR
         let pci_l = (self.chip.col_w(), self.chip.row_clk());
         let pci_r = (self.chip.col_e(), self.chip.row_clk());
-        self.die.add_xnode(pci_l, "CLKL", &[pci_l]);
-        self.die.add_xnode(pci_r, "CLKR", &[pci_r]);
+        self.die.add_tile(pci_l, "CLKL", &[pci_l]);
+        self.die.add_tile(pci_r, "CLKR", &[pci_r]);
     }
 
     fn fill_clk(&mut self) {
+        for col in self.die.cols() {
+            for row in self.die.rows() {
+                self.die[(col, row)].region_root[REGION_GLOBAL] =
+                    (ColId::from_idx(0), RowId::from_idx(0));
+            }
+        }
         for &(col_m, col_l, col_r) in &self.chip.cols_clkv {
             for row in self.die.rows() {
                 for c in col_l.to_idx()..col_m.to_idx() {
                     let col = ColId::from_idx(c);
-                    self.die[(col, row)].clkroot = (col_m - 1, row);
+                    self.die[(col, row)].region_root[REGION_LEAF] = (col_m - 1, row);
                 }
                 if col_m == self.chip.col_w() + 1 || col_m == self.chip.col_e() - 1 {
                     if row == self.chip.row_s() {
                         for c in col_m.to_idx()..col_r.to_idx() {
                             let col = ColId::from_idx(c);
-                            self.die[(col, row)].clkroot = (col_m, row);
+                            self.die[(col, row)].region_root[REGION_LEAF] = (col_m, row);
                         }
-                        self.die.add_xnode(
+                        self.die.add_tile(
                             (col_m, row),
                             "CLKV_BRAM_S",
                             &[(col_m, row), (col_m - 1, row), (col_m, row + 1)],
@@ -299,24 +305,25 @@ impl Expander<'_, '_> {
                     } else if row == self.chip.row_n() {
                         for c in col_m.to_idx()..col_r.to_idx() {
                             let col = ColId::from_idx(c);
-                            self.die[(col, row)].clkroot = (col_m, row);
+                            self.die[(col, row)].region_root[REGION_LEAF] = (col_m, row);
                         }
-                        self.die.add_xnode(
+                        self.die.add_tile(
                             (col_m, row),
                             "CLKV_BRAM_N",
                             &[(col_m, row), (col_m - 1, row), (col_m, row - 4)],
                         );
                     } else {
-                        self.die[(col_m, row)].clkroot = (col_m, self.chip.row_clk());
+                        self.die[(col_m, row)].region_root[REGION_LEAF] =
+                            (col_m, self.chip.row_clk());
                         for c in (col_m.to_idx() + 1)..col_r.to_idx() {
                             let col = ColId::from_idx(c);
-                            self.die[(col, row)].clkroot = (col_m + 1, row);
+                            self.die[(col, row)].region_root[REGION_LEAF] = (col_m + 1, row);
                         }
                     }
                 } else {
                     for c in col_m.to_idx()..col_r.to_idx() {
                         let col = ColId::from_idx(c);
-                        self.die[(col, row)].clkroot = (col_m, row);
+                        self.die[(col, row)].region_root[REGION_LEAF] = (col_m, row);
                     }
                     let kind = if row == self.chip.row_s() || row == self.chip.row_n() {
                         "CLKV.NULL"
@@ -326,21 +333,20 @@ impl Expander<'_, '_> {
                         "CLKV.GCLKV"
                     };
                     self.die
-                        .add_xnode((col_m, row), kind, &[(col_m - 1, row), (col_m, row)]);
+                        .add_tile((col_m, row), kind, &[(col_m - 1, row), (col_m, row)]);
                 }
             }
             if col_m == self.chip.col_w() + 1 || col_m == self.chip.col_e() - 1 {
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col_m, self.chip.row_clk()),
                     "BRAM_CLKH",
                     &[(col_m, self.chip.row_clk())],
                 );
             } else if col_m == self.chip.col_clk() {
-                self.die
-                    .add_xnode((col_m, self.chip.row_clk()), "CLKC", &[]);
+                self.die.add_tile((col_m, self.chip.row_clk()), "CLKC", &[]);
             } else {
                 self.die
-                    .add_xnode((col_m, self.chip.row_clk()), "GCLKC", &[]);
+                    .add_tile((col_m, self.chip.row_clk()), "GCLKC", &[]);
             }
         }
     }

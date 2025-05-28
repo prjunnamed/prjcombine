@@ -4,11 +4,11 @@ use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::PinDir,
     dir::DirPartMap,
-    grid::{ColId, DieId, IntWire, RowId},
+    grid::{ColId, DieId, WireCoord, RowId},
 };
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
-use prjcombine_types::tiledb::{TileDb, TileItemKind};
+use prjcombine_types::bsdata::{BsData, TileItemKind};
 use unnamed_entity::{EntityId, EntityPartVec};
 
 use crate::{
@@ -665,9 +665,9 @@ pub fn find_io_latch_locs(
 
 #[derive(Debug, Clone, Default)]
 pub struct BelPins {
-    pub ins: BTreeMap<String, IntWire>,
-    pub outs: BTreeMap<String, Vec<IntWire>>,
-    pub wire_names: BTreeMap<(u32, u32, String), IntWire>,
+    pub ins: BTreeMap<String, WireCoord>,
+    pub outs: BTreeMap<String, Vec<WireCoord>>,
+    pub wire_names: BTreeMap<(u32, u32, String), WireCoord>,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -676,7 +676,7 @@ pub fn find_bel_pins(
     prims: &BTreeMap<&'static str, Primitive>,
     part: &Part,
     edev: &ExpandedDevice,
-    tiledb: Option<&TileDb>,
+    tiledb: Option<&BsData>,
     pkg: &'static str,
     kind: &str,
     site: &SiteInfo,

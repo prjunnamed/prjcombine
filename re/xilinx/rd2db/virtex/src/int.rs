@@ -1,12 +1,13 @@
 use prjcombine_interconnect::{
-    db::{BelInfo, BelPin, IntDb, NodeTileId, PinDir, WireKind},
+    db::{BelInfo, BelPin, IntDb, PinDir, TileCellId, WireKind},
     dir::Dir,
 };
-use prjcombine_re_xilinx_naming::db::{
-    BelNaming, BelPinNaming, NamingDb, NodeExtPipNaming, NodeRawTileId,
-};
+use prjcombine_re_xilinx_naming::db::{BelNaming, BelPinNaming, NamingDb, PipNaming, RawTileId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
-use prjcombine_virtex::bels;
+use prjcombine_virtex::{
+    bels,
+    expanded::{REGION_GLOBAL, REGION_LEAF},
+};
 use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
 
@@ -16,6 +17,12 @@ use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
     builder.allow_mux_to_branch();
+
+    assert_eq!(
+        builder.db.region_slots.insert("GLOBAL".into()).0,
+        REGION_GLOBAL
+    );
+    assert_eq!(builder.db.region_slots.insert("LEAF".into()).0, REGION_LEAF);
 
     for &slot in bels::SLOTS {
         builder.db.bel_slots.insert(slot.into());
@@ -29,7 +36,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..4 {
         let w = builder.wire(
             format!("GCLK{i}"),
-            WireKind::ClkOut,
+            WireKind::Regional(REGION_LEAF),
             &[
                 format!("GCLK{i}"),
                 format!("LEFT_GCLK{i}"),
@@ -515,7 +522,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         dll_pins.insert(
             name.to_string(),
             BelPin {
-                wires: [(NodeTileId::from_idx(0), w)].into_iter().collect(),
+                wires: [(TileCellId::from_idx(0), w)].into_iter().collect(),
                 dir: PinDir::Input,
                 is_intf_in: false,
             },
@@ -553,7 +560,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         dll_pins.insert(
             name.to_string(),
             BelPin {
-                wires: [(NodeTileId::from_idx(0), w)].into_iter().collect(),
+                wires: [(TileCellId::from_idx(0), w)].into_iter().collect(),
                 dir: PinDir::Output,
                 is_intf_in: false,
             },
@@ -838,18 +845,18 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("DLLS.TL.GCLK", 'S', 'T', 'L'),
         ("DLLS.TR.GCLK", 'S', 'T', 'R'),
     ] {
-        if let Some((_, naming)) = builder.ndb.node_namings.get_mut(naming) {
+        if let Some((_, naming)) = builder.ndb.tile_class_namings.get_mut(naming) {
             let xt = if mode == 'S' { "_1" } else { "" };
-            let tile = NodeRawTileId::from_idx(1);
-            let t_dll = NodeTileId::from_idx(0);
-            let t_clk = NodeTileId::from_idx(2);
-            let t_dlls = NodeTileId::from_idx(3);
+            let tile = RawTileId::from_idx(1);
+            let t_dll = TileCellId::from_idx(0);
+            let t_clk = TileCellId::from_idx(2);
+            let t_dlls = TileCellId::from_idx(3);
             let wt_clkin = format!("CLK{bt}_CLKIN{lr}{xt}");
             let wt_clkfb = format!("CLK{bt}_CLKFB{lr}{xt}");
             for i in 0..2 {
                 naming.ext_pips.insert(
                     ((t_dll, clkin), (t_clk, clkpad[i])),
-                    NodeExtPipNaming {
+                    PipNaming {
                         tile,
                         wire_to: wt_clkin.clone(),
                         wire_from: format!("CLK{bt}_CLKPAD{i}"),
@@ -857,7 +864,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
                 naming.ext_pips.insert(
                     ((t_dll, clkfb), (t_clk, clkpad[i])),
-                    NodeExtPipNaming {
+                    PipNaming {
                         tile,
                         wire_to: wt_clkfb.clone(),
                         wire_from: format!("CLK{bt}_CLKPAD{i}"),
@@ -868,7 +875,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 for i in 0..2 {
                     naming.ext_pips.insert(
                         ((t_dll, clkin), (t_clk, iofb[i])),
-                        NodeExtPipNaming {
+                        PipNaming {
                             tile,
                             wire_to: wt_clkin.clone(),
                             wire_from: format!("CLK{bt}_IOFB{i}"),
@@ -876,7 +883,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     );
                     naming.ext_pips.insert(
                         ((t_dll, clkfb), (t_clk, iofb[i])),
-                        NodeExtPipNaming {
+                        PipNaming {
                             tile,
                             wire_to: wt_clkfb.clone(),
                             wire_from: format!("CLK{bt}_IOFB{i}"),
@@ -886,7 +893,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 if mode == 'P' {
                     naming.ext_pips.insert(
                         ((t_dll, clkin), (t_dlls, clk2x)),
-                        NodeExtPipNaming {
+                        PipNaming {
                             tile,
                             wire_to: wt_clkin,
                             wire_from: format!("CLK{bt}_CLK2X{lr}_1"),
@@ -895,7 +902,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 } else {
                     naming.ext_pips.insert(
                         ((t_dll, clkfb), (t_dll, clk2x)),
-                        NodeExtPipNaming {
+                        PipNaming {
                             tile,
                             wire_to: wt_clkfb,
                             wire_from: format!("CLK{bt}_CLK2X{lr}_1"),
@@ -932,7 +939,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             naming.bels.insert(
                 bels::DLL,
                 BelNaming {
-                    tile: NodeRawTileId::from_idx(1),
+                    tile: RawTileId::from_idx(1),
                     pins,
                 },
             );
@@ -946,10 +953,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("DLLS.BOT", 'S'),
         ("DLLS.TOP", 'S'),
     ] {
-        if let Some((_, node)) = builder.db.nodes.get_mut(node) {
-            let t_dll = NodeTileId::from_idx(0);
-            let t_clk = NodeTileId::from_idx(2);
-            let t_dlls = NodeTileId::from_idx(3);
+        if let Some((_, node)) = builder.db.tile_classes.get_mut(node) {
+            let t_dll = TileCellId::from_idx(0);
+            let t_clk = TileCellId::from_idx(2);
+            let t_dlls = TileCellId::from_idx(3);
             for i in 0..2 {
                 node.muxes
                     .get_mut(&(t_dll, clkin))
@@ -1178,22 +1185,22 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire_force("IN3", "BRAM_CLKH_GCLK3")
                 .extra_int_out_force(
                     "OUT0",
-                    (NodeTileId::from_idx(0), gclk[0]),
+                    (TileCellId::from_idx(0), gclk[0]),
                     "BRAM_CLKH_VGCLK0",
                 )
                 .extra_int_out_force(
                     "OUT1",
-                    (NodeTileId::from_idx(0), gclk[1]),
+                    (TileCellId::from_idx(0), gclk[1]),
                     "BRAM_CLKH_VGCLK1",
                 )
                 .extra_int_out_force(
                     "OUT2",
-                    (NodeTileId::from_idx(0), gclk[2]),
+                    (TileCellId::from_idx(0), gclk[2]),
                     "BRAM_CLKH_VGCLK2",
                 )
                 .extra_int_out_force(
                     "OUT3",
-                    (NodeTileId::from_idx(0), gclk[3]),
+                    (TileCellId::from_idx(0), gclk[3]),
                     "BRAM_CLKH_VGCLK3",
                 )],
         );

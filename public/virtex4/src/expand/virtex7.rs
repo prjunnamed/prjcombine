@@ -12,7 +12,9 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPin;
 use crate::chip::{Chip, ColumnKind, DisabledPart, GtKind, Interposer, IoKind, Pcie2Kind};
-use crate::expanded::{DieFrameGeom, ExpandedDevice, ExpandedGtz, IoCoord};
+use crate::expanded::{
+    DieFrameGeom, ExpandedDevice, ExpandedGtz, IoCoord, REGION_HCLK, REGION_LEAF,
+};
 use crate::gtz::{GtzDb, GtzIntColId};
 
 struct DieExpander<'a, 'b, 'c> {
@@ -186,7 +188,7 @@ impl DieExpander<'_, '_, '_> {
                 if self.is_int_hole(col, row) {
                     continue;
                 }
-                self.die.add_xnode((col, row), "INT", &[(col, row)]);
+                self.die.add_tile((col, row), "INT", &[(col, row)]);
                 if self.is_site_hole(col, row) {
                     continue;
                 }
@@ -194,14 +196,14 @@ impl DieExpander<'_, '_, '_> {
                     ColumnKind::ClbLL => (),
                     ColumnKind::ClbLM => (),
                     ColumnKind::Bram => {
-                        self.die.add_xnode((col, row), "INTF.BRAM", &[(col, row)]);
+                        self.die.add_tile((col, row), "INTF.BRAM", &[(col, row)]);
                     }
                     ColumnKind::Dsp
                     | ColumnKind::Cmt
                     | ColumnKind::Cfg
                     | ColumnKind::Clk
                     | ColumnKind::Io => {
-                        self.die.add_xnode((col, row), "INTF", &[(col, row)]);
+                        self.die.add_tile((col, row), "INTF", &[(col, row)]);
                     }
                     ColumnKind::Gt => (),
                 }
@@ -217,21 +219,21 @@ impl DieExpander<'_, '_, '_> {
             for dx in 0..6 {
                 let col = self.col_cfg - 6 + dx;
                 if row_cb.to_idx() != 0 {
-                    self.die.fill_term((col, row_cb - 1), "TERM.N");
+                    self.die.fill_conn_term((col, row_cb - 1), "TERM.N");
                 }
                 if row_ct.to_idx() != self.chip.regs * 50 {
-                    self.die.fill_term((col, row_ct), "TERM.S");
+                    self.die.fill_conn_term((col, row_ct), "TERM.S");
                 }
             }
         }
 
         let crds: [_; 50] = core::array::from_fn(|dy| (self.col_cfg, row_cb + dy));
-        self.die.add_xnode((self.col_cfg, row_cb), "CFG", &crds);
+        self.die.add_tile((self.col_cfg, row_cb), "CFG", &crds);
 
         if self.chip.regs != 1 {
             let row_m = row_cm + 25;
             let crds: [_; 25] = core::array::from_fn(|dy| (self.col_cfg, row_m + dy));
-            self.die.add_xnode((self.col_cfg, row_m), "SYSMON", &crds);
+            self.die.add_tile((self.col_cfg, row_m), "SYSMON", &crds);
         }
     }
 
@@ -243,18 +245,18 @@ impl DieExpander<'_, '_, '_> {
             if self.chip.regs != 2 {
                 for dx in 0..18 {
                     let col = col_l + dx;
-                    self.die.fill_term((col, row_pb - 1), "TERM.N");
+                    self.die.fill_conn_term((col, row_pb - 1), "TERM.N");
                 }
             }
             let col = col_l + 18;
             for dy in 0..100 {
                 let row = row_pb + dy;
-                self.die.fill_term((col, row), "TERM.W");
-                self.die.add_xnode((col, row), "INTF", &[(col, row)]);
+                self.die.fill_conn_term((col, row), "TERM.W");
+                self.die.add_tile((col, row), "INTF", &[(col, row)]);
             }
 
             let crds: [_; 100] = core::array::from_fn(|dy| (col, row_pb + dy));
-            self.die.add_xnode((col, row_pb + 50), "PS", &crds);
+            self.die.add_tile((col, row_pb + 50), "PS", &crds);
         }
     }
 
@@ -263,18 +265,18 @@ impl DieExpander<'_, '_, '_> {
             for dx in 1..3 {
                 let col = pcie2.col + dx;
                 if pcie2.row.to_idx() != 0 {
-                    self.die.fill_term((col, pcie2.row - 1), "TERM.N");
+                    self.die.fill_conn_term((col, pcie2.row - 1), "TERM.N");
                 }
-                self.die.fill_term((col, pcie2.row + 25), "TERM.S");
+                self.die.fill_conn_term((col, pcie2.row + 25), "TERM.S");
             }
             let col_l = pcie2.col;
             let col_r = pcie2.col + 3;
             for dy in 0..25 {
                 let row = pcie2.row + dy;
                 self.die
-                    .add_xnode((col_l, row), "INTF.DELAY", &[(col_l, row)]);
+                    .add_tile((col_l, row), "INTF.DELAY", &[(col_l, row)]);
                 self.die
-                    .add_xnode((col_r, row), "INTF.DELAY", &[(col_r, row)]);
+                    .add_tile((col_r, row), "INTF.DELAY", &[(col_r, row)]);
             }
             let mut crds = vec![];
             match pcie2.kind {
@@ -295,7 +297,7 @@ impl DieExpander<'_, '_, '_> {
                     }
                 }
             }
-            self.die.add_xnode(crds[0], "PCIE", &crds);
+            self.die.add_tile(crds[0], "PCIE", &crds);
         }
     }
 
@@ -303,17 +305,17 @@ impl DieExpander<'_, '_, '_> {
         for &(bc, br) in &self.chip.holes_pcie3 {
             for dx in 1..5 {
                 let col = bc + dx;
-                self.die.fill_term((col, br - 1), "TERM.N");
-                self.die.fill_term((col, br + 50), "TERM.S");
+                self.die.fill_conn_term((col, br - 1), "TERM.N");
+                self.die.fill_conn_term((col, br + 50), "TERM.S");
             }
             let col_l = bc;
             let col_r = bc + 5;
             for dy in 0..50 {
                 let row = br + dy;
                 self.die
-                    .add_xnode((col_l, row), "INTF.DELAY", &[(col_l, row)]);
+                    .add_tile((col_l, row), "INTF.DELAY", &[(col_l, row)]);
                 self.die
-                    .add_xnode((col_r, row), "INTF.DELAY", &[(col_r, row)]);
+                    .add_tile((col_r, row), "INTF.DELAY", &[(col_r, row)]);
             }
             let mut crds = vec![];
             for dy in 0..50 {
@@ -322,7 +324,7 @@ impl DieExpander<'_, '_, '_> {
             for dy in 0..50 {
                 crds.push((bc + 5, br + dy));
             }
-            self.die.add_xnode(crds[0], "PCIE3", &crds);
+            self.die.add_tile(crds[0], "PCIE3", &crds);
         }
     }
 
@@ -343,10 +345,10 @@ impl DieExpander<'_, '_, '_> {
                             for dx in 1..19 {
                                 let col = gtcol.col + dx;
                                 if br.to_idx() != 0 {
-                                    self.die.fill_term((col, br - 1), "TERM.N");
+                                    self.die.fill_conn_term((col, br - 1), "TERM.N");
                                 }
                                 if br.to_idx() + 50 != self.chip.regs * 50 {
-                                    self.die.fill_term((col, br + 50), "TERM.S");
+                                    self.die.fill_conn_term((col, br + 50), "TERM.S");
                                 }
                             }
                             let col_l = gtcol.col;
@@ -354,18 +356,18 @@ impl DieExpander<'_, '_, '_> {
                             for dy in 0..50 {
                                 let row = br + dy;
                                 self.die
-                                    .add_xnode((col_l, row), "INTF.DELAY", &[(col_l, row)]);
-                                self.die.fill_term((col_l, row), "TERM.E");
-                                self.die.fill_term((col_r, row), "TERM.W");
+                                    .add_tile((col_l, row), "INTF.DELAY", &[(col_l, row)]);
+                                self.die.fill_conn_term((col_l, row), "TERM.E");
+                                self.die.fill_conn_term((col_r, row), "TERM.W");
                             }
                         } else {
                             for dx in 1..19 {
                                 let col = gtcol.col - 19 + dx;
                                 if br.to_idx() != 0 {
-                                    self.die.fill_term((col, br - 1), "TERM.N");
+                                    self.die.fill_conn_term((col, br - 1), "TERM.N");
                                 }
                                 if br.to_idx() + 50 != self.chip.regs * 50 {
-                                    self.die.fill_term((col, br + 50), "TERM.S");
+                                    self.die.fill_conn_term((col, br + 50), "TERM.S");
                                 }
                             }
                             let col_l = gtcol.col - 19;
@@ -373,37 +375,37 @@ impl DieExpander<'_, '_, '_> {
                             for dy in 0..50 {
                                 let row = br + dy;
                                 self.die
-                                    .add_xnode((col_r, row), "INTF.DELAY", &[(col_r, row)]);
-                                self.die.fill_term((col_l, row), "TERM.E");
-                                self.die.fill_term((col_r, row), "TERM.W");
+                                    .add_tile((col_r, row), "INTF.DELAY", &[(col_r, row)]);
+                                self.die.fill_conn_term((col_l, row), "TERM.E");
+                                self.die.fill_conn_term((col_r, row), "TERM.W");
                             }
                         }
                     } else if is_l {
                         for dy in 0..50 {
                             let row = br + dy;
                             self.die
-                                .add_xnode((gtcol.col, row), "INTF.DELAY", &[(gtcol.col, row)]);
+                                .add_tile((gtcol.col, row), "INTF.DELAY", &[(gtcol.col, row)]);
                         }
                     } else {
                         if gtcol.col != self.chip.columns.last_id().unwrap() {
                             if reg.to_idx() != 0 && gtcol.regs[reg - 1].is_none() {
                                 for dx in 1..7 {
-                                    self.die.fill_term((gtcol.col + dx, br - 1), "TERM.N");
+                                    self.die.fill_conn_term((gtcol.col + dx, br - 1), "TERM.N");
                                 }
                             }
                             if reg.to_idx() != self.chip.regs - 1 && gtcol.regs[reg + 1].is_none() {
                                 for dx in 1..7 {
-                                    self.die.fill_term((gtcol.col + dx, br + 50), "TERM.S");
+                                    self.die.fill_conn_term((gtcol.col + dx, br + 50), "TERM.S");
                                 }
                             }
                             for dy in 0..50 {
-                                self.die.fill_term((gtcol.col, br + dy), "TERM.E");
+                                self.die.fill_conn_term((gtcol.col, br + dy), "TERM.E");
                             }
                         }
                         for dy in 0..50 {
                             let row = br + dy;
                             self.die
-                                .add_xnode((gtcol.col, row), "INTF.DELAY", &[(gtcol.col, row)]);
+                                .add_tile((gtcol.col, row), "INTF.DELAY", &[(gtcol.col, row)]);
                         }
                     }
                     let ksuf = if gtcol.is_middle { "_MID" } else { "" };
@@ -411,12 +413,12 @@ impl DieExpander<'_, '_, '_> {
                         let row = br + dy;
                         let crds: [_; 11] = core::array::from_fn(|dy| (gtcol.col, row + dy));
                         self.die
-                            .add_xnode((gtcol.col, row), &format!("{sk}_CHANNEL{ksuf}"), &crds);
+                            .add_tile((gtcol.col, row), &format!("{sk}_CHANNEL{ksuf}"), &crds);
                     }
                     let row = br + 22;
                     let crds: [_; 6] = core::array::from_fn(|dy| (gtcol.col, row + dy));
                     self.die
-                        .add_xnode((gtcol.col, row + 3), &format!("{sk}_COMMON{ksuf}"), &crds);
+                        .add_tile((gtcol.col, row + 3), &format!("{sk}_COMMON{ksuf}"), &crds);
 
                     self.gt.push((self.die.die, gtcol.col, row + 3));
                 }
@@ -424,7 +426,7 @@ impl DieExpander<'_, '_, '_> {
                     && (kind.is_some() || gtcol.regs[reg - 1].is_some())
                     && !gtcol.is_middle
                 {
-                    self.die.add_xnode((gtcol.col, br), "BRKH_GTX", &[]);
+                    self.die.add_tile((gtcol.col, br), "BRKH_GTX", &[]);
                 }
             }
         }
@@ -438,25 +440,25 @@ impl DieExpander<'_, '_, '_> {
         for col in self.die.cols() {
             if !self.is_int_hole(col, row_b) {
                 if self.chip.has_no_tbuturn {
-                    self.die.fill_term((col, row_b), "TERM.S.HOLE");
+                    self.die.fill_conn_term((col, row_b), "TERM.S.HOLE");
                 } else {
-                    self.die.fill_term((col, row_b), "TERM.S");
+                    self.die.fill_conn_term((col, row_b), "TERM.S");
                 }
             }
             if !self.is_int_hole(col, row_t) {
                 if self.chip.has_no_tbuturn {
-                    self.die.fill_term((col, row_t), "TERM.N.HOLE");
+                    self.die.fill_conn_term((col, row_t), "TERM.N.HOLE");
                 } else {
-                    self.die.fill_term((col, row_t), "TERM.N");
+                    self.die.fill_conn_term((col, row_t), "TERM.N");
                 }
             }
         }
         for row in self.die.rows() {
             if !self.is_int_hole(col_l, row) {
-                self.die.fill_term((col_l, row), "TERM.W");
+                self.die.fill_conn_term((col_l, row), "TERM.W");
             }
             if !self.is_int_hole(col_r, row) {
-                self.die.fill_term((col_r, row), "TERM.E");
+                self.die.fill_conn_term((col_r, row), "TERM.E");
             }
         }
         for reg in 1..self.chip.regs {
@@ -465,7 +467,7 @@ impl DieExpander<'_, '_, '_> {
             for col in self.die.cols() {
                 if !self.is_int_hole(col, row_s) && !self.is_int_hole(col, row_n) {
                     self.die
-                        .fill_term_pair((col, row_s), (col, row_n), "BRKH.N", "BRKH.S");
+                        .fill_conn_pair((col, row_s), (col, row_n), "BRKH.N", "BRKH.S");
                 }
             }
         }
@@ -482,7 +484,7 @@ impl DieExpander<'_, '_, '_> {
                 if self.is_site_hole(col, row) {
                     continue;
                 }
-                self.die.add_xnode((col, row), kind, &[(col, row)]);
+                self.die.add_tile((col, row), kind, &[(col, row)]);
             }
         }
     }
@@ -518,7 +520,7 @@ impl DieExpander<'_, '_, '_> {
                 if self.is_site_hole(col, row) {
                     continue;
                 }
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col, row),
                     kind,
                     &[
@@ -531,7 +533,7 @@ impl DieExpander<'_, '_, '_> {
                 );
                 if cd == ColumnKind::Bram && row.to_idx() % 50 == 25 {
                     let coords: Vec<_> = (0..15).map(|dy| (col, row + dy)).collect();
-                    self.die.add_xnode((col, row), "PMVBRAM", &coords);
+                    self.die.add_tile((col, row), "PMVBRAM", &coords);
                 }
             }
             if cd == ColumnKind::Bram {
@@ -545,7 +547,7 @@ impl DieExpander<'_, '_, '_> {
                     if !self.is_site_hole(col, row) {
                         continue;
                     }
-                    self.die.add_xnode((col, row), "PMVBRAM_NC", &[]);
+                    self.die.add_tile((col, row), "PMVBRAM_NC", &[]);
                 }
             }
         }
@@ -558,7 +560,7 @@ impl DieExpander<'_, '_, '_> {
                 let reg = self.chip.row_to_reg(row);
                 if let Some(kind) = iocol.regs[reg] {
                     if matches!(row.to_idx() % 50, 0 | 49) {
-                        self.die.add_xnode(
+                        self.die.add_tile(
                             (col, row),
                             if row.to_idx() % 50 == 0 {
                                 if kind == IoKind::Hpio {
@@ -582,7 +584,7 @@ impl DieExpander<'_, '_, '_> {
                             iob: TileIobId::from_idx(0),
                         });
                     } else if row.to_idx() % 2 == 1 {
-                        self.die.add_xnode(
+                        self.die.add_tile(
                             (col, row),
                             if kind == IoKind::Hpio {
                                 "IO_HP_PAIR"
@@ -609,7 +611,7 @@ impl DieExpander<'_, '_, '_> {
 
                     if row.to_idx() % 50 == 25 {
                         let crds: [_; 8] = core::array::from_fn(|dy| (col, row - 4 + dy));
-                        self.die.add_xnode(
+                        self.die.add_tile(
                             (col, row),
                             match kind {
                                 IoKind::Hpio => "HCLK_IOI_HP",
@@ -634,11 +636,11 @@ impl DieExpander<'_, '_, '_> {
                     continue;
                 }
                 let crds: [_; 50] = core::array::from_fn(|dy| (col, row - 25 + dy));
-                self.die.add_xnode((col, row), "CMT", &crds);
+                self.die.add_tile((col, row), "CMT", &crds);
 
                 for row in [row - 24, row - 12, row, row + 12] {
                     let crds: [_; 12] = core::array::from_fn(|dy| (col, row + dy));
-                    self.die.add_xnode((col, row), "CMT_FIFO", &crds);
+                    self.die.add_tile((col, row), "CMT_FIFO", &crds);
                 }
             }
         }
@@ -650,31 +652,31 @@ impl DieExpander<'_, '_, '_> {
             let row_h = self.chip.row_reg_hclk(reg);
             if self.chip.has_slr && reg.to_idx() == 0 {
                 let crds: [_; 16] = core::array::from_fn(|dy| (col, row_h - 21 + dy));
-                self.die.add_xnode(crds[0], "CLK_BALI_REBUF", &crds);
+                self.die.add_tile(crds[0], "CLK_BALI_REBUF", &crds);
             } else {
                 let crds: [_; 2] = core::array::from_fn(|dy| (col, row_h - 13 + dy));
-                self.die.add_xnode(crds[0], "CLK_BUFG_REBUF", &crds);
+                self.die.add_tile(crds[0], "CLK_BUFG_REBUF", &crds);
             }
 
             self.die
-                .add_xnode((col, row_h), "CLK_HROW", &[(col, row_h - 1), (col, row_h)]);
+                .add_tile((col, row_h), "CLK_HROW", &[(col, row_h - 1), (col, row_h)]);
 
             if self.chip.has_slr && reg.to_idx() == self.chip.regs - 1 {
                 let crds: [_; 16] = core::array::from_fn(|dy| (col, row_h + 5 + dy));
-                self.die.add_xnode(crds[0], "CLK_BALI_REBUF", &crds);
+                self.die.add_tile(crds[0], "CLK_BALI_REBUF", &crds);
             } else {
                 let crds: [_; 2] = core::array::from_fn(|dy| (col, row_h + 11 + dy));
-                self.die.add_xnode(crds[0], "CLK_BUFG_REBUF", &crds);
+                self.die.add_tile(crds[0], "CLK_BUFG_REBUF", &crds);
             }
         }
 
         let row = self.chip.row_bufg() - 4;
         let crds: [_; 4] = core::array::from_fn(|dy| (col, row + dy));
-        self.die.add_xnode((col, row), "CLK_BUFG", &crds);
+        self.die.add_tile((col, row), "CLK_BUFG", &crds);
         if self.chip.reg_clk.to_idx() != self.chip.regs {
             let row = self.chip.row_bufg();
             let crds: [_; 4] = core::array::from_fn(|dy| (col, row + dy));
-            self.die.add_xnode((col, row), "CLK_BUFG", &crds);
+            self.die.add_tile((col, row), "CLK_BUFG", &crds);
         }
 
         let pmv_base = if self.chip.regs == 1 { 0 } else { 1 };
@@ -686,30 +688,46 @@ impl DieExpander<'_, '_, '_> {
             ("CLK_MTBF2", 45),
         ] {
             let row = self.chip.row_bufg() - 50 + dy;
-            self.die.add_xnode((col, row), kind, &[(col, row)]);
+            self.die.add_tile((col, row), kind, &[(col, row)]);
         }
     }
 
     fn fill_hclk(&mut self) {
         for col in self.die.cols() {
+            let col_hrow = if col <= self.col_clk {
+                self.col_clk
+            } else {
+                self.col_clk + 1
+            };
             if col.to_idx() % 2 != 0 {
                 continue;
             }
             for row in self.die.rows() {
+                let row_hclk = self.chip.row_hclk(row);
+                let crow = if row < row_hclk {
+                    row_hclk - 1
+                } else {
+                    row_hclk
+                };
+                self.die[(col, row)].region_root[REGION_HCLK] = (col_hrow, row_hclk);
+                self.die[(col + 1, row)].region_root[REGION_HCLK] = (col_hrow, row_hclk);
+                self.die[(col, row)].region_root[REGION_LEAF] = (col, crow);
+                self.die[(col + 1, row)].region_root[REGION_LEAF] = (col, crow);
+
                 if row.to_idx() % 50 == 25 {
                     let hole_bot = self.is_int_hole(col, row - 1);
                     let hole_top = self.is_int_hole(col, row);
                     if hole_bot && hole_top {
                         continue;
                     }
-                    self.die.add_xnode((col, row), "HCLK", &[]);
+                    self.die.add_tile((col, row), "HCLK", &[]);
                 }
 
                 if self.is_int_hole(col, row) {
                     continue;
                 }
                 self.die
-                    .add_xnode((col, row), "INT_LCLK", &[(col, row), (col + 1, row)]);
+                    .add_tile((col, row), "INT_LCLK", &[(col, row), (col + 1, row)]);
             }
         }
     }
@@ -1077,13 +1095,13 @@ pub fn expand_grid<'a>(
             for dy in 0..49 {
                 let row_s = die_s.rows().next_back().unwrap() - 49 + dy;
                 let row_n = die_n.rows().next().unwrap() + 1 + dy;
-                if !die_s[(col, row_s)].nodes.is_empty() && !die_n[(col, row_n)].nodes.is_empty() {
+                if !die_s[(col, row_s)].tiles.is_empty() && !die_n[(col, row_n)].tiles.is_empty() {
                     xdie_wires.insert((dieid_n, (col, row_n), lvb6), (dieid_s, (col, row_s), lvb6));
                 }
             }
         }
     }
-    egrid.xdie_wires = xdie_wires;
+    egrid.extra_conns = xdie_wires;
 
     let mut die_order = vec![];
     die_order.push(interposer.primary);

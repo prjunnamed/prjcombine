@@ -1,6 +1,6 @@
 use bitvec::vec::BitVec;
 use prjcombine_interconnect::{
-    db::{BelSlotId, NodeKindId},
+    db::{BelSlotId, TileClassId},
     grid::NodeLoc,
 };
 use prjcombine_re_fpga_hammer::{FeatureId, FpgaFuzzerGen, FuzzerProp};
@@ -18,7 +18,7 @@ use crate::{
 pub struct FuzzCtx<'sm, 'a> {
     pub session: &'sm mut Session<'a, XactBackend<'a>>,
     pub backend: &'a XactBackend<'a>,
-    pub node_kind: NodeKindId,
+    pub node_kind: TileClassId,
 }
 
 impl<'sm, 'a> FuzzCtx<'sm, 'a> {
@@ -28,7 +28,7 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
         tile: impl Into<String>,
     ) -> Self {
         let tile = tile.into();
-        let node_kind = backend.egrid.db.get_node(&tile);
+        let node_kind = backend.egrid.db.get_tile_class(&tile);
         Self {
             session,
             backend,
@@ -42,8 +42,8 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
         tile: impl Into<String>,
     ) -> Option<Self> {
         let tile = tile.into();
-        let node_kind = backend.egrid.db.get_node(&tile);
-        if backend.egrid.node_index[node_kind].is_empty() {
+        let node_kind = backend.egrid.db.get_tile_class(&tile);
+        if backend.egrid.tile_index[node_kind].is_empty() {
             return None;
         }
         Some(Self {
@@ -87,7 +87,7 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
 pub struct FuzzBuilder<'sm, 'b> {
     pub session: &'sm mut Session<'b, XactBackend<'b>>,
     pub backend: &'b XactBackend<'b>,
-    pub node_kind: NodeKindId,
+    pub node_kind: TileClassId,
     pub props: Vec<Box<DynProp<'b>>>,
 }
 
@@ -112,7 +112,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
     pub fn test_global(self, bel: &'static str, opt: &str, vals: &[&str]) {
         for &val in vals {
             let feature = FeatureId {
-                tile: self.backend.egrid.db.nodes.key(self.node_kind).clone(),
+                tile: self.backend.egrid.db.tile_classes.key(self.node_kind).clone(),
                 bel: bel.into(),
                 attr: opt.into(),
                 val: val.into(),
@@ -135,7 +135,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
     pub fn test_cfg4000(self, bel: &'static str, opt: &str, vals: &[&str]) {
         for &val in vals {
             let feature = FeatureId {
-                tile: self.backend.egrid.db.nodes.key(self.node_kind).clone(),
+                tile: self.backend.egrid.db.tile_classes.key(self.node_kind).clone(),
                 bel: bel.into(),
                 attr: opt.into(),
                 val: val.into(),
@@ -162,7 +162,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
     pub fn test_cfg5200(self, bel: &'static str, opt: &str, vals: &[&str]) {
         for &val in vals {
             let feature = FeatureId {
-                tile: self.backend.egrid.db.nodes.key(self.node_kind).clone(),
+                tile: self.backend.egrid.db.tile_classes.key(self.node_kind).clone(),
                 bel: bel.into(),
                 attr: opt.into(),
                 val: val.into(),
@@ -195,7 +195,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
         let attr = attr.as_ref();
         let val = val.as_ref();
         let feature = FeatureId {
-            tile: self.backend.egrid.db.nodes.key(self.node_kind).clone(),
+            tile: self.backend.egrid.db.tile_classes.key(self.node_kind).clone(),
             bel: bel.into(),
             attr: attr.into(),
             val: val.into(),
@@ -211,7 +211,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
 
 pub struct FuzzBuilderTestManual<'sm, 'b> {
     pub session: &'sm mut Session<'b, XactBackend<'b>>,
-    pub node_kind: NodeKindId,
+    pub node_kind: TileClassId,
     pub props: Vec<Box<DynProp<'b>>>,
     pub feature: FeatureId,
 }
@@ -256,7 +256,7 @@ impl<'b> FuzzBuilderTestManual<'_, 'b> {
 pub struct FuzzCtxBel<'sm, 'a> {
     pub session: &'sm mut Session<'a, XactBackend<'a>>,
     pub backend: &'a XactBackend<'a>,
-    pub node_kind: NodeKindId,
+    pub node_kind: TileClassId,
     pub bel: BelSlotId,
 }
 
@@ -283,7 +283,7 @@ impl<'a> FuzzCtxBel<'_, 'a> {
 pub struct FuzzBuilderBel<'sm, 'b> {
     pub session: &'sm mut Session<'b, XactBackend<'b>>,
     pub backend: &'b XactBackend<'b>,
-    pub node_kind: NodeKindId,
+    pub node_kind: TileClassId,
     pub bel: BelSlotId,
     pub props: Vec<Box<DynProp<'b>>>,
 }
@@ -344,7 +344,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         for val in vals {
             let val = val.as_ref();
             let feature = FeatureId {
-                tile: self.backend.egrid.db.nodes.key(self.node_kind).clone(),
+                tile: self.backend.egrid.db.tile_classes.key(self.node_kind).clone(),
                 bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
                 attr: attr.into(),
                 val: val.into(),
@@ -403,7 +403,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let attr = attr.as_ref();
         let val = val.as_ref();
         let feature = FeatureId {
-            tile: self.backend.egrid.db.nodes.key(self.node_kind).clone(),
+            tile: self.backend.egrid.db.tile_classes.key(self.node_kind).clone(),
             bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
             attr: attr.into(),
             val: val.into(),
@@ -420,7 +420,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
 
 pub struct FuzzBuilderBelTestManual<'sm, 'b> {
     pub session: &'sm mut Session<'b, XactBackend<'b>>,
-    pub node_kind: NodeKindId,
+    pub node_kind: TileClassId,
     pub bel: BelSlotId,
     pub props: Vec<Box<DynProp<'b>>>,
     pub feature: FeatureId,

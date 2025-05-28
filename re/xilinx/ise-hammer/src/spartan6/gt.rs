@@ -5,7 +5,7 @@ use prjcombine_re_fpga_hammer::{FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::{bels, chip::Gts};
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 
 use crate::{
     backend::IseBackend,

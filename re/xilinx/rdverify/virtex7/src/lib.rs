@@ -3875,9 +3875,9 @@ fn verify_pre(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
             for col in die.cols() {
                 for row in die.rows() {
                     let et = &die[(col, row)];
-                    for node in et.nodes.values() {
-                        if endev.edev.egrid.db.nodes.key(node.kind) == "CLK_BUFG" {
-                            for bel in endev.edev.egrid.db.nodes[node.kind].bels.ids() {
+                    for node in et.tiles.values() {
+                        if endev.edev.egrid.db.tile_classes.key(node.class) == "CLK_BUFG" {
+                            for bel in endev.edev.egrid.db.tile_classes[node.class].bels.ids() {
                                 vrf.skip_bel_pin((die.die, (col, row), bel), "FB_TEST0");
                                 vrf.skip_bel_pin((die.die, (col, row), bel), "FB_TEST1");
                             }

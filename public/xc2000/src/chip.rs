@@ -4,7 +4,7 @@ use std::{
 };
 
 use jzon::JsonValue;
-use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, IntBel, RowId, TileIobId};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, BelCoord, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityIds};
 
@@ -168,7 +168,7 @@ impl Chip {
         EntityIds::new(self.rows)
     }
 
-    pub fn get_io_crd(&self, bel: IntBel) -> EdgeIoCoord {
+    pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
         let (_, (col, row), slot) = bel;
         match self.kind {
             ChipKind::Xc2000 | ChipKind::Xc3000 | ChipKind::Xc3000A => {
@@ -223,7 +223,7 @@ impl Chip {
         }
     }
 
-    pub fn get_io_loc(&self, io: EdgeIoCoord) -> IntBel {
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> BelCoord {
         let die = DieId::from_idx(0);
         match self.kind {
             ChipKind::Xc2000 | ChipKind::Xc3000 | ChipKind::Xc3000A => match io {

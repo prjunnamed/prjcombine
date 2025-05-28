@@ -1,20 +1,24 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
-    db::{BelInfo, BelPin, IntDb, NodeTileId, PinDir, WireKind},
+    db::{BelInfo, BelPin, IntDb, PinDir, TileCellId, WireKind},
     dir::Dir,
 };
-use prjcombine_re_xilinx_naming::db::{
-    BelNaming, BelPinNaming, NamingDb, NodeExtPipNaming, NodeRawTileId,
-};
+use prjcombine_re_xilinx_naming::db::{BelNaming, BelPinNaming, NamingDb, PipNaming, RawTileId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
-use prjcombine_virtex2::bels;
+use prjcombine_virtex2::{
+    bels,
+    expanded::{REGION_HCLK, REGION_LEAF},
+};
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
+
+    assert_eq!(builder.db.region_slots.insert("HCLK".into()).0, REGION_HCLK);
+    assert_eq!(builder.db.region_slots.insert("LEAF".into()).0, REGION_LEAF);
 
     for &slot in bels::SLOTS {
         builder.db.bel_slots.insert(slot.into());
@@ -40,7 +44,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..8 {
         let w = builder.wire(
             format!("GCLK{i}"),
-            WireKind::ClkOut,
+            WireKind::Regional(REGION_LEAF),
             &[format!("GCLK{i}"), format!("GCLK{i}_BRK")],
         );
         gclk.push(w);
@@ -1479,14 +1483,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 "CLK".into(),
                 BelPin {
                     wires: BTreeSet::from_iter([(
-                        NodeTileId::from_idx(0),
+                        TileCellId::from_idx(0),
                         builder.db.get_wire("IMUX.CLK3"),
                     )]),
                     dir: PinDir::Input,
                     is_intf_in: false,
                 },
             );
-            let node = builder.db.nodes.get_mut(tile).unwrap().1;
+            let node = builder.db.tile_classes.get_mut(tile).unwrap().1;
             node.bels.insert(bels::MISR, bel);
             let pin_naming = BelPinNaming {
                 name: "CNR_CLK3".into(),
@@ -1496,11 +1500,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 is_intf_out: false,
             };
             let mut bel_naming = BelNaming {
-                tile: NodeRawTileId::from_idx(0),
+                tile: RawTileId::from_idx(0),
                 pins: BTreeMap::new(),
             };
             bel_naming.pins.insert("CLK".into(), pin_naming);
-            let naming = builder.ndb.node_namings.get_mut(tile).unwrap().1;
+            let naming = builder.ndb.tile_class_namings.get_mut(tile).unwrap().1;
             naming.bels.insert(bels::MISR, bel_naming);
         }
     } else if rd.family == "spartan3e" {
@@ -1514,7 +1518,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder.bel_single(bels::CAPTURE, "CAPTURE"),
                 builder.bel_single(bels::ICAP, "ICAP").pin_force_int(
                     "I2",
-                    (NodeTileId::from_idx(0), lr_di2.unwrap()),
+                    (TileCellId::from_idx(0), lr_di2.unwrap()),
                     "CNR_DATA_IN2",
                 ),
             ],
@@ -2018,8 +2022,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_L",
                                 "CLKB_DLL_OUTL0",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTL0".to_string(),
                                     wire_from: "CLKV_OMUX10_OUTL0".to_string(),
                                 },
@@ -2027,8 +2031,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_R",
                                 "CLKB_DLL_OUTR0",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTR0".to_string(),
                                     wire_from: "CLKV_OMUX10_OUTR0".to_string(),
                                 },
@@ -2044,8 +2048,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_L",
                                 "CLKB_DLL_OUTL1",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTL1".to_string(),
                                     wire_from: "CLKV_OMUX11_OUTL1".to_string(),
                                 },
@@ -2053,8 +2057,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_R",
                                 "CLKB_DLL_OUTR1",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTR1".to_string(),
                                     wire_from: "CLKV_OMUX11_OUTR1".to_string(),
                                 },
@@ -2070,8 +2074,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_L",
                                 "CLKB_DLL_OUTL2",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTL2".to_string(),
                                     wire_from: "CLKV_OMUX12_OUTL2".to_string(),
                                 },
@@ -2079,8 +2083,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_R",
                                 "CLKB_DLL_OUTR2",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTR2".to_string(),
                                     wire_from: "CLKV_OMUX12_OUTR2".to_string(),
                                 },
@@ -2096,8 +2100,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_L",
                                 "CLKB_DLL_OUTL3",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTL3".to_string(),
                                     wire_from: "CLKV_OMUX15_OUTL3".to_string(),
                                 },
@@ -2105,8 +2109,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_R",
                                 "CLKB_DLL_OUTR3",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTR3".to_string(),
                                     wire_from: "CLKV_OMUX15_OUTR3".to_string(),
                                 },
@@ -2228,8 +2232,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_L",
                                 "CLKT_DLL_OUTL0",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTL0".to_string(),
                                     wire_from: "CLKV_OMUX10_OUTL0".to_string(),
                                 },
@@ -2237,8 +2241,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_R",
                                 "CLKT_DLL_OUTR0",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTR0".to_string(),
                                     wire_from: "CLKV_OMUX10_OUTR0".to_string(),
                                 },
@@ -2261,8 +2265,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_L",
                                 "CLKT_DLL_OUTL1",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTL1".to_string(),
                                     wire_from: "CLKV_OMUX11_OUTL1".to_string(),
                                 },
@@ -2270,8 +2274,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_R",
                                 "CLKT_DLL_OUTR1",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTR1".to_string(),
                                     wire_from: "CLKV_OMUX11_OUTR1".to_string(),
                                 },
@@ -2294,8 +2298,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_L",
                                 "CLKT_DLL_OUTL2",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTL2".to_string(),
                                     wire_from: "CLKV_OMUX12_OUTL2".to_string(),
                                 },
@@ -2303,8 +2307,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_R",
                                 "CLKT_DLL_OUTR2",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTR2".to_string(),
                                     wire_from: "CLKV_OMUX12_OUTR2".to_string(),
                                 },
@@ -2327,8 +2331,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_L",
                                 "CLKT_DLL_OUTL3",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTL3".to_string(),
                                     wire_from: "CLKV_OMUX15_OUTL3".to_string(),
                                 },
@@ -2336,8 +2340,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             .extra_wire_force_pip(
                                 "DCM_OUT_R",
                                 "CLKT_DLL_OUTR3",
-                                NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1),
+                                PipNaming {
+                                    tile: RawTileId::from_idx(1),
                                     wire_to: "CLKV_OUTR3".to_string(),
                                     wire_from: "CLKV_OMUX15_OUTR3".to_string(),
                                 },
@@ -2740,12 +2744,12 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
                 .extra_int_out_force(
                     format!("OUT_T{i}"),
-                    (NodeTileId::from_idx(1), gclk[i]),
+                    (TileCellId::from_idx(1), gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_UP{i}"),
                 )
                 .extra_int_out_force(
                     format!("OUT_B{i}"),
-                    (NodeTileId::from_idx(0), gclk[i]),
+                    (TileCellId::from_idx(0), gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_DN{i}"),
                 );
         }
@@ -2767,7 +2771,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
                 .extra_int_out_force(
                     format!("OUT_B{i}"),
-                    (NodeTileId::from_idx(0), gclk[i]),
+                    (TileCellId::from_idx(0), gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_DN{i}"),
                 );
         }
@@ -2789,7 +2793,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
                 .extra_int_out_force(
                     format!("OUT_T{i}"),
-                    (NodeTileId::from_idx(1), gclk[i]),
+                    (TileCellId::from_idx(1), gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_UP{i}"),
                 )
         }

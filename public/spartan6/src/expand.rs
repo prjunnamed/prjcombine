@@ -8,7 +8,7 @@ use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Gts, PllKind, RegId};
-use crate::expanded::ExpandedDevice;
+use crate::expanded::{ExpandedDevice, REGION_HCLK, REGION_LEAF};
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
@@ -181,7 +181,7 @@ impl Expander<'_, '_> {
                 if self.is_int_hole(col, row) {
                     continue;
                 }
-                self.die.add_xnode((col, row), "INT", &[(col, row)]);
+                self.die.add_tile((col, row), "INT", &[(col, row)]);
                 if self.is_site_hole(col, row) {
                     continue;
                 }
@@ -189,7 +189,7 @@ impl Expander<'_, '_> {
                     cd.kind,
                     ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus
                 ) {
-                    self.die.add_xnode((col, row), "INTF", &[(col, row)]);
+                    self.die.add_tile((col, row), "INTF", &[(col, row)]);
                 }
             }
         }
@@ -200,13 +200,13 @@ impl Expander<'_, '_> {
         for (row, &rd) in &self.chip.rows {
             if rd.lio {
                 self.fill_ioi((col, row));
-                self.die.add_xnode((col, row), "IOB", &[]);
+                self.die.add_tile((col, row), "IOB", &[]);
             } else {
-                self.die.add_xnode((col, row), "INTF", &[(col, row)]);
+                self.die.add_tile((col, row), "INTF", &[(col, row)]);
                 if row == self.chip.row_bio_outer() {
-                    self.die.add_xnode((col, row), "LL", &[(col, row)]);
+                    self.die.add_tile((col, row), "LL", &[(col, row)]);
                 } else if row == self.chip.row_tio_outer() {
-                    self.die.add_xnode((col, row), "UL", &[(col, row)]);
+                    self.die.add_tile((col, row), "UL", &[(col, row)]);
                 }
             }
 
@@ -215,24 +215,24 @@ impl Expander<'_, '_> {
                 || row == self.chip.row_clk() + 2
                 || row == self.chip.row_clk() + 3
             {
-                self.die.add_xnode((col, row), "CLKPIN_BUF", &[]);
+                self.die.add_tile((col, row), "CLKPIN_BUF", &[]);
             }
-            self.die.fill_term((col, row), "TERM.W");
+            self.die.fill_conn_term((col, row), "TERM.W");
 
             if row.to_idx() % 16 == 8 {
-                self.die.add_xnode((col, row), "LRIOI_CLK", &[]);
+                self.die.add_tile((col, row), "LRIOI_CLK", &[]);
                 if row == self.chip.rows_pci_ce_split.0 || row == self.chip.rows_pci_ce_split.1 {
-                    self.die.add_xnode((col, row), "PCI_CE_SPLIT", &[]);
+                    self.die.add_tile((col, row), "PCI_CE_SPLIT", &[]);
                 } else {
-                    self.die.add_xnode((col, row), "PCI_CE_TRUNK_BUF", &[]);
+                    self.die.add_tile((col, row), "PCI_CE_TRUNK_BUF", &[]);
                     if row != self.chip.row_clk() {
-                        self.die.add_xnode((col, row), "PCI_CE_V_BUF", &[]);
+                        self.die.add_tile((col, row), "PCI_CE_V_BUF", &[]);
                     }
                 }
             }
 
             if row == self.chip.row_bio_outer() || row == self.chip.row_tio_outer() {
-                self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
+                self.die.add_tile((col, row), "PCI_CE_H_BUF", &[]);
             }
         }
     }
@@ -242,15 +242,15 @@ impl Expander<'_, '_> {
         for (row, &rd) in self.chip.rows.iter().rev() {
             if rd.rio {
                 self.fill_ioi((col, row));
-                self.die.add_xnode((col, row), "IOB", &[]);
+                self.die.add_tile((col, row), "IOB", &[]);
             } else {
-                self.die.add_xnode((col, row), "INTF", &[(col, row)]);
+                self.die.add_tile((col, row), "INTF", &[(col, row)]);
                 if row == self.chip.row_bio_outer() {
                     self.die
-                        .add_xnode((col, row), "LR", &[(col, row), (col, row + 1)]);
+                        .add_tile((col, row), "LR", &[(col, row), (col, row + 1)]);
                 } else if row == self.chip.row_tio_inner() {
                     self.die
-                        .add_xnode((col, row), "UR", &[(col, row), (col, row + 1)]);
+                        .add_tile((col, row), "UR", &[(col, row), (col, row + 1)]);
                 }
             }
 
@@ -259,24 +259,24 @@ impl Expander<'_, '_> {
                 || row == self.chip.row_clk() + 2
                 || row == self.chip.row_clk() + 3
             {
-                self.die.add_xnode((col, row), "CLKPIN_BUF", &[]);
+                self.die.add_tile((col, row), "CLKPIN_BUF", &[]);
             }
-            self.die.fill_term((col, row), "TERM.E");
+            self.die.fill_conn_term((col, row), "TERM.E");
 
             if row.to_idx() % 16 == 8 {
-                self.die.add_xnode((col, row), "LRIOI_CLK", &[]);
+                self.die.add_tile((col, row), "LRIOI_CLK", &[]);
                 if row == self.chip.rows_pci_ce_split.0 || row == self.chip.rows_pci_ce_split.1 {
-                    self.die.add_xnode((col, row), "PCI_CE_SPLIT", &[]);
+                    self.die.add_tile((col, row), "PCI_CE_SPLIT", &[]);
                 } else {
-                    self.die.add_xnode((col, row), "PCI_CE_TRUNK_BUF", &[]);
+                    self.die.add_tile((col, row), "PCI_CE_TRUNK_BUF", &[]);
                     if row != self.chip.row_clk() && !(self.chip.has_encrypt && row.to_idx() == 8) {
-                        self.die.add_xnode((col, row), "PCI_CE_V_BUF", &[]);
+                        self.die.add_tile((col, row), "PCI_CE_V_BUF", &[]);
                     }
                 }
             }
 
             if row == self.chip.row_bio_outer() || row == self.chip.row_tio_outer() {
-                self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
+                self.die.add_tile((col, row), "PCI_CE_H_BUF", &[]);
             }
         }
     }
@@ -298,15 +298,15 @@ impl Expander<'_, '_> {
             ] {
                 self.fill_ioi((col, row));
                 if !unused {
-                    self.die.add_xnode((col, row), "IOB", &[]);
+                    self.die.add_tile((col, row), "IOB", &[]);
                 }
             }
             let row = self.chip.row_tio_outer();
             let is_clk = col == self.chip.col_clk || col == self.chip.col_clk + 1;
-            self.die.add_xnode((col, row), "BTIOI_CLK", &[]);
+            self.die.add_tile((col, row), "BTIOI_CLK", &[]);
             if is_clk {
-                self.die.add_xnode((col, row - 1), "CLKPIN_BUF", &[]);
-                self.die.add_xnode((col, row), "CLKPIN_BUF", &[]);
+                self.die.add_tile((col, row - 1), "CLKPIN_BUF", &[]);
+                self.die.add_tile((col, row), "CLKPIN_BUF", &[]);
             }
         }
     }
@@ -328,15 +328,15 @@ impl Expander<'_, '_> {
             ] {
                 self.fill_ioi((col, row));
                 if !unused {
-                    self.die.add_xnode((col, row), "IOB", &[]);
+                    self.die.add_tile((col, row), "IOB", &[]);
                 }
             }
             let row = self.chip.row_bio_outer();
             let is_clk = col == self.chip.col_clk || col == self.chip.col_clk + 1;
-            self.die.add_xnode((col, row), "BTIOI_CLK", &[]);
+            self.die.add_tile((col, row), "BTIOI_CLK", &[]);
             if is_clk {
-                self.die.add_xnode((col, row), "CLKPIN_BUF", &[]);
-                self.die.add_xnode((col, row + 1), "CLKPIN_BUF", &[]);
+                self.die.add_tile((col, row), "CLKPIN_BUF", &[]);
+                self.die.add_tile((col, row + 1), "CLKPIN_BUF", &[]);
             }
         }
     }
@@ -360,7 +360,7 @@ impl Expander<'_, '_> {
                         crds.push((col, urow + dy));
                     }
                 }
-                self.die.add_xnode((col, row), "MCB", &crds);
+                self.die.add_tile((col, row), "MCB", &crds);
             }
         }
     }
@@ -369,10 +369,10 @@ impl Expander<'_, '_> {
         let row = self.chip.row_clk();
 
         let col = self.chip.col_lio();
-        self.die.add_xnode((col, row), "PCILOGICSE", &[(col, row)]);
+        self.die.add_tile((col, row), "PCILOGICSE", &[(col, row)]);
 
         let col = self.chip.col_rio();
-        self.die.add_xnode((col, row), "PCILOGICSE", &[(col, row)]);
+        self.die.add_tile((col, row), "PCILOGICSE", &[(col, row)]);
     }
 
     fn fill_spine(&mut self) {
@@ -385,49 +385,49 @@ impl Expander<'_, '_> {
             row_b: row,
             row_t: row + 1,
         });
-        self.die.add_xnode((col, row), "INTF", &[(col, row)]);
-        self.die.add_xnode((col, row), "CLKC", &[(col, row)]);
+        self.die.add_tile((col, row), "INTF", &[(col, row)]);
+        self.die.add_tile((col, row), "CLKC", &[(col, row)]);
 
         for row in [self.chip.rows_hclkbuf.0, self.chip.rows_hclkbuf.1] {
-            self.die.add_xnode((col, row), "HCLK_V_MIDBUF", &[]);
+            self.die.add_tile((col, row), "HCLK_V_MIDBUF", &[]);
         }
 
         for row in [self.chip.rows_midbuf.0, self.chip.rows_midbuf.1] {
-            self.die.add_xnode((col, row), "CKPIN_V_MIDBUF", &[]);
+            self.die.add_tile((col, row), "CKPIN_V_MIDBUF", &[]);
         }
 
         {
             let row = self.chip.row_bio_outer();
             self.die
-                .add_xnode((col, row), "REG_B", &[(col + 1, row + 1)]);
+                .add_tile((col, row), "REG_B", &[(col + 1, row + 1)]);
         }
 
         {
             let row = self.chip.row_tio_outer();
-            self.die.add_xnode((col, row), "REG_T", &[(col + 1, row)]);
+            self.die.add_tile((col, row), "REG_T", &[(col + 1, row)]);
         }
 
         for row in self.die.rows() {
             if row.to_idx() % 16 == 8 {
-                self.die.add_xnode((col, row), "HCLK_ROW", &[]);
+                self.die.add_tile((col, row), "HCLK_ROW", &[]);
             }
         }
 
         for col in [self.chip.cols_reg_buf.0, self.chip.cols_reg_buf.1] {
             let row = self.chip.row_clk();
-            self.die.add_xnode((col, row), "CKPIN_H_MIDBUF", &[]);
+            self.die.add_tile((col, row), "CKPIN_H_MIDBUF", &[]);
         }
 
         {
             let col = self.chip.col_lio();
             self.die
-                .add_xnode((col, row), "REG_L", &[(col, row), (col, row + 1)]);
+                .add_tile((col, row), "REG_L", &[(col, row), (col, row + 1)]);
         }
 
         {
             let col = self.chip.col_rio();
             self.die
-                .add_xnode((col, row), "REG_R", &[(col, row), (col, row + 1)]);
+                .add_tile((col, row), "REG_R", &[(col, row), (col, row + 1)]);
         }
     }
 
@@ -449,14 +449,13 @@ impl Expander<'_, '_> {
             });
             for row in [br - 1, br] {
                 let tile = &mut self.die[(col, row)];
-                let node = tile.nodes.first_mut().unwrap();
-                node.kind = self.db.get_node("INT.IOI");
-                self.die
-                    .add_xnode((col, row), "INTF.CMT.IOI", &[(col, row)]);
+                let node = tile.tiles.first_mut().unwrap();
+                node.class = self.db.get_tile_class("INT.IOI");
+                self.die.add_tile((col, row), "INTF.CMT.IOI", &[(col, row)]);
             }
             self.die
-                .add_xnode((col, br), "CMT_DCM", &[(col, br - 1), (col, br)]);
-            self.die.add_xnode((col, br), buf_kind, &[]);
+                .add_tile((col, br), "CMT_DCM", &[(col, br - 1), (col, br)]);
+            self.die.add_tile((col, br), buf_kind, &[]);
         }
 
         for (br, kind) in self.chip.get_plls() {
@@ -475,17 +474,16 @@ impl Expander<'_, '_> {
                 row_t: br + 1,
             });
             let row: RowId = br - 1;
-            self.die.add_xnode((col, row), "INTF.CMT", &[(col, row)]);
+            self.die.add_tile((col, row), "INTF.CMT", &[(col, row)]);
             let row = br;
             let tile = &mut self.die[(col, row)];
-            let node = tile.nodes.first_mut().unwrap();
-            node.kind = self.db.get_node("INT.IOI");
-            self.die
-                .add_xnode((col, row), "INTF.CMT.IOI", &[(col, row)]);
+            let node = tile.tiles.first_mut().unwrap();
+            node.class = self.db.get_tile_class("INT.IOI");
+            self.die.add_tile((col, row), "INTF.CMT.IOI", &[(col, row)]);
 
             self.die
-                .add_xnode((col, br), "CMT_PLL", &[(col, br - 1), (col, br)]);
-            self.die.add_xnode((col, br), out, &[]);
+                .add_tile((col, br), "CMT_PLL", &[(col, br - 1), (col, br)]);
+            self.die.add_tile((col, br), out, &[]);
         }
     }
 
@@ -498,8 +496,8 @@ impl Expander<'_, '_> {
             let col_r = bc + 5;
             for dy in 0..8 {
                 let row = row_gt_mid + dy;
-                self.die.fill_term((col_l, row), "TERM.E");
-                self.die.fill_term((col_r, row), "TERM.W");
+                self.die.fill_conn_term((col_l, row), "TERM.E");
+                self.die.fill_conn_term((col_r, row), "TERM.W");
             }
             let col_l = bc - 5;
             let col_r = bc + 3;
@@ -524,8 +522,8 @@ impl Expander<'_, '_> {
             let col_r = bc + 7;
             for dy in 0..8 {
                 let row = row_gt_mid + dy;
-                self.die.fill_term((col_l, row), "TERM.E");
-                self.die.fill_term((col_r, row), "TERM.W");
+                self.die.fill_conn_term((col_l, row), "TERM.E");
+                self.die.fill_conn_term((col_r, row), "TERM.W");
             }
             let col_l = bc - 3;
             let col_r = bc + 6;
@@ -542,8 +540,8 @@ impl Expander<'_, '_> {
             let col_r = bcl + 5;
             for dy in 0..8 {
                 let row = row_gt_bot + dy;
-                self.die.fill_term((col_l, row), "TERM.E");
-                self.die.fill_term((col_r, row), "TERM.W");
+                self.die.fill_conn_term((col_l, row), "TERM.E");
+                self.die.fill_conn_term((col_r, row), "TERM.W");
             }
             let col_l = bcl - 5;
             let col_r = bcl + 3;
@@ -557,8 +555,8 @@ impl Expander<'_, '_> {
             let col_r = bcr + 7;
             for dy in 0..8 {
                 let row = row_gt_bot + dy;
-                self.die.fill_term((col_l, row), "TERM.E");
-                self.die.fill_term((col_r, row), "TERM.W");
+                self.die.fill_conn_term((col_l, row), "TERM.E");
+                self.die.fill_conn_term((col_r, row), "TERM.W");
             }
             let col_l = bcr - 3;
             let col_r = bcr + 6;
@@ -590,7 +588,7 @@ impl Expander<'_, '_> {
                     crd.push((col_r, row_gt_bot + dy));
                 }
                 self.die
-                    .add_xnode((bc, self.chip.row_tio_outer()), "GTP", &crd);
+                    .add_tile((bc, self.chip.row_tio_outer()), "GTP", &crd);
 
                 let col_l = bc - 2;
                 let col_r = bc + 2;
@@ -601,7 +599,7 @@ impl Expander<'_, '_> {
                 for dy in 0..16 {
                     crd.push((col_r, row_pcie_bot + dy));
                 }
-                self.die.add_xnode(crd[0], "PCIE", &crd);
+                self.die.add_tile(crd[0], "PCIE", &crd);
             }
             _ => (),
         }
@@ -620,7 +618,7 @@ impl Expander<'_, '_> {
                     crd.push((col_r, row_gt_bot + dy));
                 }
                 self.die
-                    .add_xnode((bc, self.chip.row_tio_outer()), "GTP", &crd);
+                    .add_tile((bc, self.chip.row_tio_outer()), "GTP", &crd);
             }
             _ => (),
         }
@@ -637,7 +635,7 @@ impl Expander<'_, '_> {
                 crd.push((col_r, row_gt_mid + dy));
             }
             self.die
-                .add_xnode((bcl, self.chip.row_bio_outer()), "GTP", &crd);
+                .add_tile((bcl, self.chip.row_bio_outer()), "GTP", &crd);
 
             let col_l = bcr - 3;
             let col_r = bcr + 6;
@@ -649,7 +647,7 @@ impl Expander<'_, '_> {
                 crd.push((col_r, row_gt_mid + dy));
             }
             self.die
-                .add_xnode((bcr, self.chip.row_bio_outer()), "GTP", &crd);
+                .add_tile((bcr, self.chip.row_bio_outer()), "GTP", &crd);
         }
     }
 
@@ -660,14 +658,14 @@ impl Expander<'_, '_> {
                 row_b += 1;
             }
             if cd.kind != ColumnKind::Bram {
-                self.die.fill_term((col, row_b), "TERM.S");
+                self.die.fill_conn_term((col, row_b), "TERM.S");
             }
 
             let mut row_t = self.chip.row_tio_outer();
             while self.is_int_hole(col, row_t) {
                 row_t -= 1;
             }
-            self.die.fill_term((col, row_t), "TERM.N");
+            self.die.fill_conn_term((col, row_t), "TERM.N");
         }
     }
 
@@ -691,7 +689,7 @@ impl Expander<'_, '_> {
                 } else {
                     "CLEXL"
                 };
-                self.die.add_xnode((col, row), kind, &[(col, row)]);
+                self.die.add_tile((col, row), kind, &[(col, row)]);
             }
         }
     }
@@ -712,7 +710,7 @@ impl Expander<'_, '_> {
                 if self.is_site_hole(col, row) {
                     continue;
                 }
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col, row),
                     "BRAM",
                     &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
@@ -720,10 +718,10 @@ impl Expander<'_, '_> {
             }
 
             let row = self.chip.row_bio_outer();
-            self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
+            self.die.add_tile((col, row), "PCI_CE_H_BUF", &[]);
 
             let row = self.chip.row_tio_outer();
-            self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
+            self.die.add_tile((col, row), "PCI_CE_H_BUF", &[]);
         }
     }
 
@@ -751,7 +749,7 @@ impl Expander<'_, '_> {
                 if self.is_site_hole(col, row) {
                     continue;
                 }
-                self.die.add_xnode(
+                self.die.add_tile(
                     (col, row),
                     "DSP",
                     &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
@@ -759,10 +757,10 @@ impl Expander<'_, '_> {
             }
 
             let row = self.chip.row_bio_outer();
-            self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
+            self.die.add_tile((col, row), "PCI_CE_H_BUF", &[]);
 
             let row = self.chip.row_tio_outer();
-            self.die.add_xnode((col, row), "PCI_CE_H_BUF", &[]);
+            self.die.add_tile((col, row), "PCI_CE_H_BUF", &[]);
         }
     }
 
@@ -773,7 +771,7 @@ impl Expander<'_, '_> {
                     if row.to_idx() % 16 != 8 {
                         continue;
                     }
-                    self.die.add_xnode((col, row), "HCLK_H_MIDBUF", &[]);
+                    self.die.add_tile((col, row), "HCLK_H_MIDBUF", &[]);
                 }
             }
         }
@@ -787,14 +785,20 @@ impl Expander<'_, '_> {
                 } else {
                     self.chip.row_hclk(row)
                 };
-                self.die[(col, row)].clkroot = (col, crow);
+                let hcol = if col <= self.chip.col_clk {
+                    self.chip.col_clk
+                } else {
+                    self.chip.col_clk + 1
+                };
+                self.die[(col, row)].region_root[REGION_HCLK] = (hcol, crow);
+                self.die[(col, row)].region_root[REGION_LEAF] = (col, crow);
 
                 if row.to_idx() % 16 == 8 {
                     if self.is_int_hole(col, row) && self.is_int_hole(col, row - 1) {
                         continue;
                     }
                     self.die
-                        .add_xnode((col, row), "HCLK", &[(col, row - 1), (col, row)]);
+                        .add_tile((col, row), "HCLK", &[(col, row - 1), (col, row)]);
                 }
             }
         }
@@ -802,25 +806,25 @@ impl Expander<'_, '_> {
 
     fn fill_ioi(&mut self, crd: Coord) {
         let tile = &mut self.die[crd];
-        let node = tile.nodes.first_mut().unwrap();
-        node.kind = self.db.get_node("INT.IOI");
-        self.die.add_xnode(crd, "INTF.IOI", &[crd]);
+        let node = tile.tiles.first_mut().unwrap();
+        node.class = self.db.get_tile_class("INT.IOI");
+        self.die.add_tile(crd, "INTF.IOI", &[crd]);
         let kind = if crd.0 == self.chip.col_lio() || crd.0 == self.chip.col_rio() {
             "IOI.LR"
         } else {
             "IOI.BT"
         };
-        self.die.add_xnode(crd, kind, &[crd]);
+        self.die.add_tile(crd, kind, &[crd]);
     }
 
     fn fill_intf_rterm(&mut self, crd: Coord) {
-        self.die.fill_term(crd, "TERM.E");
-        self.die.add_xnode(crd, "INTF", &[crd]);
+        self.die.fill_conn_term(crd, "TERM.E");
+        self.die.add_tile(crd, "INTF", &[crd]);
     }
 
     fn fill_intf_lterm(&mut self, crd: Coord) {
-        self.die.fill_term(crd, "TERM.W");
-        self.die.add_xnode(crd, "INTF", &[crd]);
+        self.die.fill_conn_term(crd, "TERM.W");
+        self.die.add_tile(crd, "INTF", &[crd]);
     }
 
     fn fill_frame_info(&mut self) {

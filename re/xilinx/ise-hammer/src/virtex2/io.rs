@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet, hash_map};
 
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
-    db::{BelSlotId, NodeTileId},
+    db::{BelSlotId, TileCellId},
     grid::NodeLoc,
 };
 use prjcombine_re_fpga_hammer::{
@@ -13,8 +13,8 @@ use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,
 };
-use prjcombine_re_xilinx_naming::db::NodeRawTileId;
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_re_xilinx_naming::db::RawTileId;
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::{
     bels,
     chip::{ChipKind, IoDiffKind},
@@ -51,8 +51,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NotIbuf {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
-        if !nnode.names[NodeRawTileId::from_idx(0)].contains("IOIS") {
+        let nnode = &backend.ngrid.tiles[&nloc];
+        if !nnode.names[RawTileId::from_idx(0)].contains("IOIS") {
             return None;
         }
         Some((fuzzer, false))
@@ -384,15 +384,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BankDiffOutput {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct IobRelation(NodeTileId);
+struct IobRelation(TileCellId);
 
 impl NodeRelation for IobRelation {
     fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
-        let node = backend.egrid.node(nloc);
-        let (col, row) = node.tiles[self.0];
+        let node = backend.egrid.tile(nloc);
+        let (col, row) = node.cells[self.0];
         backend
             .egrid
-            .find_node_by_kind(nloc.0, (col, row), |kind| kind.starts_with("IOI"))
+            .find_tile_by_class(nloc.0, (col, row), |kind| kind.starts_with("IOI"))
     }
 }
 
@@ -410,8 +410,8 @@ impl NodeRelation for IobBrefclkClkBT {
         nloc.1 = edev.chip.col_clk;
         let Some((layer, _)) = backend
             .egrid
-            .find_node_loc(nloc.0, (nloc.1, nloc.2), |node| {
-                backend.egrid.db.nodes.key(node.kind).starts_with("CLK")
+            .find_tile_loc(nloc.0, (nloc.1, nloc.2), |node| {
+                backend.egrid.db.tile_classes.key(node.class).starts_with("CLK")
             })
         else {
             unreachable!()
@@ -465,7 +465,7 @@ fn has_any_vref<'a>(
     tile: &str,
     iob_idx: usize,
 ) -> Option<&'a str> {
-    let node_kind = edev.egrid.db.get_node(tile);
+    let node_kind = edev.egrid.db.get_tile_class(tile);
     let iobs = get_iob_data(tile).iobs;
     let ioi_tile = iobs[iob_idx].tile;
     let ioi_bel = iobs[iob_idx].bel;
@@ -479,9 +479,9 @@ fn has_any_vref<'a>(
             bonded_ios.insert(io, &devbond.name[..]);
         }
     }
-    for &nloc in &edev.egrid.node_index[node_kind] {
-        let node = edev.egrid.node(nloc);
-        let (col, row) = node.tiles[ioi_tile];
+    for &nloc in &edev.egrid.tile_index[node_kind] {
+        let node = edev.egrid.tile(nloc);
+        let (col, row) = node.cells[ioi_tile];
         let crd = edev.chip.get_io_crd((nloc.0, (col, row), ioi_bel));
         if let Some(&pkg) = bonded_ios.get(&crd) {
             return Some(pkg);
@@ -497,7 +497,7 @@ fn has_any_vr<'a>(
     tile: &str,
     iob_idx: usize,
 ) -> Option<(&'a str, Option<bool>)> {
-    let node_kind = edev.egrid.db.get_node(tile);
+    let node_kind = edev.egrid.db.get_tile_class(tile);
     let iobs = get_iob_data(tile).iobs;
     let ioi_tile = iobs[iob_idx].tile;
     let ioi_bel = iobs[iob_idx].bel;
@@ -513,9 +513,9 @@ fn has_any_vr<'a>(
             }
         }
     }
-    for &nloc in &edev.egrid.node_index[node_kind] {
-        let node = edev.egrid.node(nloc);
-        let (col, row) = node.tiles[ioi_tile];
+    for &nloc in &edev.egrid.tile_index[node_kind] {
+        let node = edev.egrid.tile(nloc);
+        let (col, row) = node.cells[ioi_tile];
         let crd = edev.chip.get_io_crd((nloc.0, (col, row), ioi_bel));
         if let Some(&pkg) = bonded_ios.get(&crd) {
             for bank in 0..8 {
@@ -893,7 +893,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .unwrap();
 
     // IOI
-    for (_, name, node) in &intdb.nodes {
+    for (_, name, node) in &intdb.tile_classes {
         if !name.starts_with("IOI") {
             continue;
         }
@@ -1694,7 +1694,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     // IOB
-    for tile in intdb.nodes.keys() {
+    for tile in intdb.tile_classes.keys() {
         let is_s3a_lr = tile.starts_with("IOBS.S3A.L") || tile.starts_with("IOBS.S3A.R");
         if !tile.starts_with("IOB") {
             continue;
@@ -2433,7 +2433,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let mut bctx = ctx.bel(bels::BREFCLK_INT);
             bctx.test_manual("ENABLE", "1")
                 .related_pip(
-                    IobRelation(NodeTileId::from_idx(1)),
+                    IobRelation(TileCellId::from_idx(1)),
                     (bel_id, "BREFCLK"),
                     (PinFar, clk_bel_id, "I"),
                 )
@@ -2449,11 +2449,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let intdb = ctx.edev.egrid().db;
 
     // IOI
-    for (node_kind, tile, node) in &intdb.nodes {
+    for (node_kind, tile, node) in &intdb.tile_classes {
         if !tile.starts_with("IOI") {
             continue;
         }
-        if ctx.edev.egrid().node_index[node_kind].is_empty() {
+        if ctx.edev.egrid().tile_index[node_kind].is_empty() {
             continue;
         }
         let int_tiles = &[match edev.chip.kind {
@@ -2814,11 +2814,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     // IOB
-    for (node_kind, tile, _) in &intdb.nodes {
+    for (node_kind, tile, _) in &intdb.tile_classes {
         if !tile.starts_with("IOB") {
             continue;
         }
-        if ctx.edev.egrid().node_index[node_kind].is_empty() {
+        if ctx.edev.egrid().tile_index[node_kind].is_empty() {
             continue;
         }
         let iob_data = get_iob_data(tile);

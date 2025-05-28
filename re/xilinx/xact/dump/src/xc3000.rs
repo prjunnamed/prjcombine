@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, TermSlotId,
-        TermSlotInfo, WireKind,
+        BelInfo, BelPin, IntDb, TileClass, TileCellId, PinDir, ConnectorWire, ConnectorClass, ConnectorSlotId,
+        ConnectorSlot, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{DieId, EdgeIoCoord, LayerId},
@@ -11,7 +11,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
 use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
-use prjcombine_xc2000::chip::{Chip, ChipKind};
+use prjcombine_xc2000::{chip::{Chip, ChipKind}, expanded::REGION_GLOBAL};
 use prjcombine_xc2000::{
     bels::xc2000 as bels,
     bond::{Bond, BondPin, CfgPin},
@@ -28,7 +28,7 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
         bel.pins.insert(
             name.into(),
             BelPin {
-                wires: BTreeSet::from_iter([(NodeTileId::from_idx(0), db.get_wire(wire))]),
+                wires: BTreeSet::from_iter([(TileCellId::from_idx(0), db.get_wire(wire))]),
                 dir: if wire.starts_with("IMUX") {
                     PinDir::Input
                 } else {
@@ -44,38 +44,40 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
 pub fn make_intdb() -> IntDb {
     let mut db = IntDb::default();
 
+    assert_eq!(db.region_slots.insert("GLOBAL".into()).0, REGION_GLOBAL);
+
     for &slot in bels::SLOTS {
         db.bel_slots.insert(slot.into());
     }
 
     let slot_w = db
-        .term_slots
+        .conn_slots
         .insert(
             "W".into(),
-            TermSlotInfo {
-                opposite: TermSlotId::from_idx(0),
+            ConnectorSlot {
+                opposite: ConnectorSlotId::from_idx(0),
             },
         )
         .0;
     let slot_e = db
-        .term_slots
-        .insert("E".into(), TermSlotInfo { opposite: slot_w })
+        .conn_slots
+        .insert("E".into(), ConnectorSlot { opposite: slot_w })
         .0;
     let slot_s = db
-        .term_slots
+        .conn_slots
         .insert(
             "S".into(),
-            TermSlotInfo {
-                opposite: TermSlotId::from_idx(0),
+            ConnectorSlot {
+                opposite: ConnectorSlotId::from_idx(0),
             },
         )
         .0;
     let slot_n = db
-        .term_slots
-        .insert("N".into(), TermSlotInfo { opposite: slot_s })
+        .conn_slots
+        .insert("N".into(), ConnectorSlot { opposite: slot_s })
         .0;
-    db.term_slots[slot_w].opposite = slot_e;
-    db.term_slots[slot_s].opposite = slot_n;
+    db.conn_slots[slot_w].opposite = slot_e;
+    db.conn_slots[slot_s].opposite = slot_n;
 
     let term_slots = DirMap::from_fn(|dir| match dir {
         Dir::W => slot_w,
@@ -84,7 +86,7 @@ pub fn make_intdb() -> IntDb {
         Dir::N => slot_n,
     });
 
-    let mut main_terms = DirMap::from_fn(|dir| TermKind {
+    let mut main_terms = DirMap::from_fn(|dir| ConnectorClass {
         slot: term_slots[dir],
         wires: Default::default(),
     });
@@ -111,7 +113,7 @@ pub fn make_intdb() -> IntDb {
             .wires
             .insert(format!("{name}.E"), WireKind::PipBranch(slot_w))
             .0;
-        main_terms[Dir::W].wires.insert(w1, TermInfo::PassFar(w0));
+        main_terms[Dir::W].wires.insert(w1, ConnectorWire::Pass(w0));
         if stub {
             db.wires.insert(format!("{name}.STUB"), WireKind::PipOut);
         }
@@ -139,7 +141,7 @@ pub fn make_intdb() -> IntDb {
             .wires
             .insert(format!("{name}.S"), WireKind::PipBranch(slot_n))
             .0;
-        main_terms[Dir::N].wires.insert(w1, TermInfo::PassFar(w0));
+        main_terms[Dir::N].wires.insert(w1, ConnectorWire::Pass(w0));
         if stub {
             db.wires.insert(format!("{name}.STUB"), WireKind::PipOut);
             db.wires.insert(format!("{name}.S.STUB"), WireKind::PipOut);
@@ -158,7 +160,7 @@ pub fn make_intdb() -> IntDb {
             .wires
             .insert(name.into(), WireKind::MultiBranch(slot_w))
             .0;
-        main_terms[Dir::W].wires.insert(w, TermInfo::PassFar(w));
+        main_terms[Dir::W].wires.insert(w, ConnectorWire::Pass(w));
     }
     for name in [
         "LONG.V0",
@@ -174,14 +176,14 @@ pub fn make_intdb() -> IntDb {
             .wires
             .insert(name.into(), WireKind::MultiBranch(slot_s))
             .0;
-        main_terms[Dir::S].wires.insert(w, TermInfo::PassFar(w));
+        main_terms[Dir::S].wires.insert(w, ConnectorWire::Pass(w));
     }
 
     for name in [
         "GCLK", "ACLK", "IOCLK.B0", "IOCLK.B1", "IOCLK.T0", "IOCLK.T1", "IOCLK.L0", "IOCLK.L1",
         "IOCLK.R0", "IOCLK.R1",
     ] {
-        db.wires.insert(name.into(), WireKind::ClkOut);
+        db.wires.insert(name.into(), WireKind::Regional(REGION_GLOBAL));
     }
 
     for name in [
@@ -269,14 +271,14 @@ pub fn make_intdb() -> IntDb {
                 .wires
                 .insert(format!("{name}.{dir}"), WireKind::Branch(term_slots[!dir]))
                 .0;
-            main_terms[!dir].wires.insert(wo, TermInfo::PassFar(w));
+            main_terms[!dir].wires.insert(wo, ConnectorWire::Pass(w));
 
             if name == "OUT.CLB.X" && dir == Dir::E {
                 let wos = db
                     .wires
                     .insert(format!("{name}.{dir}S"), WireKind::Branch(slot_n))
                     .0;
-                main_terms[Dir::N].wires.insert(wos, TermInfo::PassFar(wo));
+                main_terms[Dir::N].wires.insert(wos, ConnectorWire::Pass(wo));
             }
         }
     }
@@ -302,20 +304,20 @@ pub fn make_intdb() -> IntDb {
     }
 
     for (dir, term) in main_terms {
-        db.terms.insert(format!("MAIN.{dir}"), term);
+        db.conn_classes.insert(format!("MAIN.{dir}"), term);
     }
-    db.terms.insert("LLH.W".into(), llh_w);
-    db.terms.insert("LLH.E".into(), llh_e);
-    db.terms.insert("LLV.S".into(), llv_s);
-    db.terms.insert("LLV.N".into(), llv_n);
-    db.terms.insert("LLV.S.S".into(), llvs_s);
-    db.terms.insert("LLV.S.N".into(), llvs_n);
+    db.conn_classes.insert("LLH.W".into(), llh_w);
+    db.conn_classes.insert("LLH.E".into(), llh_e);
+    db.conn_classes.insert("LLV.S".into(), llv_s);
+    db.conn_classes.insert("LLV.N".into(), llv_n);
+    db.conn_classes.insert("LLV.S.S".into(), llvs_s);
+    db.conn_classes.insert("LLV.S.N".into(), llvs_n);
 
     for name in [
         "CLB", "CLB.L", "CLB.R", "CLB.B", "CLB.BL", "CLB.BR", "CLB.T", "CLB.TL", "CLB.TR",
     ] {
-        let mut node = NodeKind {
-            tiles: EntityVec::from_iter([()]),
+        let mut node = TileClass {
+            cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
             intfs: Default::default(),
@@ -442,23 +444,23 @@ pub fn make_intdb() -> IntDb {
             if subkind == 3 && name != "CLB.R" {
                 continue;
             }
-            db.nodes.insert(format!("{name}.{subkind}"), node.clone());
+            db.tile_classes.insert(format!("{name}.{subkind}"), node.clone());
             if matches!(name, "CLB.BL" | "CLB.BR" | "CLB.TL" | "CLB.TR" | "CLB.T") {
-                db.nodes.insert(format!("{name}S.{subkind}"), node.clone());
+                db.tile_classes.insert(format!("{name}S.{subkind}"), node.clone());
             }
         }
     }
     for name in [
         "LLH.B", "LLH.T", "LLV.LS", "LLV.RS", "LLV.L", "LLV.R", "LLV",
     ] {
-        let node = NodeKind {
-            tiles: EntityVec::from_iter([(); 2]),
+        let node = TileClass {
+            cells: EntityVec::from_iter([(); 2]),
             muxes: Default::default(),
             iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
-        db.nodes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), node);
     }
 
     db
@@ -497,7 +499,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     let chip = make_chip(die, kind);
     let mut intdb = make_intdb();
     let mut ndb = NamingDb::default();
-    for name in intdb.nodes.keys() {
+    for name in intdb.tile_classes.keys() {
         ndb.node_namings.insert(name.clone(), NodeNaming::default());
         if name.starts_with("CLB") && !name.contains("L.") && !name.contains("R.") {
             ndb.node_namings
@@ -551,9 +553,9 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     let die = edev.egrid.die(DieId::from_idx(0));
     for col in die.cols() {
         for row in die.rows() {
-            for (layer, node) in &die[(col, row)].nodes {
+            for (layer, node) in &die[(col, row)].tiles {
                 let nloc = (die.die, col, row, layer);
-                let node_kind = &intdb.nodes[node.kind];
+                let node_kind = &intdb.tile_classes[node.class];
                 let nnode = &endev.ngrid.nodes[&nloc];
                 for (slot, bel_info) in &node_kind.bels {
                     let bel = (die.die, (col, row), slot);
@@ -721,7 +723,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 let row = chip.row_mid();
                 let layer = edev
                     .egrid
-                    .find_node_layer(die.die, (col, row), |node| node.starts_with("LLV"))
+                    .find_tile_layer(die.die, (col, row), |node| node.starts_with("LLV"))
                     .unwrap();
                 queue.push((net_t, net_f, (die.die, col, row, layer)))
             } else {
@@ -731,7 +733,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 let row = rwt.1.1;
                 let layer = edev
                     .egrid
-                    .find_node_layer(die.die, (col, row), |node| node.starts_with("LLH"))
+                    .find_tile_layer(die.die, (col, row), |node| node.starts_with("LLH"))
                     .unwrap();
                 queue.push((net_t, net_f, (die.die, col, row, layer)))
             }

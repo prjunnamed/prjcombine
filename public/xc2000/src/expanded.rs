@@ -1,8 +1,10 @@
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, NodeLoc, RowId};
+use prjcombine_interconnect::{db::RegionSlotId, grid::{ColId, DieId, ExpandedGrid, NodeLoc, RowId}};
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind};
+
+pub const REGION_GLOBAL: RegionSlotId = RegionSlotId::from_idx_const(0);
 
 pub struct ExpandedDevice<'a> {
     pub chip: &'a Chip,
@@ -17,8 +19,8 @@ pub struct ExpandedDevice<'a> {
 impl ExpandedDevice<'_> {
     pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
         let (_, col, row, _) = nloc;
-        let node = self.egrid.node(nloc);
-        let kind = self.egrid.db.nodes.key(node.kind);
+        let node = self.egrid.tile(nloc);
+        let kind = self.egrid.db.tile_classes.key(node.class);
         match self.chip.kind {
             ChipKind::Xc2000 => {
                 if kind.starts_with("BIDI") {

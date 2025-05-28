@@ -3,7 +3,7 @@ use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_bit_wide, xlat_bool,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex2::bels;
 
 use crate::{
@@ -46,7 +46,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IobExtra {
         };
         if let Some(layer) = backend
             .egrid
-            .find_node_layer(die, (col, row), |x| x == tile)
+            .find_tile_layer(die, (col, row), |x| x == tile)
         {
             let nloc = (die, col, row, layer);
             let fuzzer_id = fuzzer.info.features[0].id.clone();

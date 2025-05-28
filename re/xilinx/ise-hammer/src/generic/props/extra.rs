@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{BelSlotId, NodeKindId},
+    db::{BelSlotId, TileClassId},
     dir::DirV,
     grid::NodeLoc,
 };
@@ -47,8 +47,8 @@ impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let nloc = self.relation.resolve(backend, nloc)?;
-        let node = backend.egrid.node(nloc);
-        let tile = backend.egrid.db.nodes.key(node.kind);
+        let node = backend.egrid.tile(nloc);
+        let tile = backend.egrid.db.tile_classes.key(node.class);
         let main_id = &fuzzer.info.features[0].id;
         let id = FeatureId {
             tile: tile.into(),
@@ -102,8 +102,8 @@ impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe
         let Some(nloc) = self.relation.resolve(backend, nloc) else {
             return Some((fuzzer, true));
         };
-        let node = backend.egrid.node(nloc);
-        let tile = backend.egrid.db.nodes.key(node.kind);
+        let node = backend.egrid.tile(nloc);
+        let tile = backend.egrid.db.tile_classes.key(node.class);
         let main_id = &fuzzer.info.features[0].id;
         let id = FeatureId {
             tile: tile.into(),
@@ -121,7 +121,7 @@ impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe
 
 #[derive(Clone, Debug)]
 pub struct ExtraTilesByKind {
-    pub kind: NodeKindId,
+    pub kind: TileClassId,
     pub bel: Option<String>,
     pub attr: Option<String>,
     pub val: Option<String>,
@@ -129,7 +129,7 @@ pub struct ExtraTilesByKind {
 
 impl ExtraTilesByKind {
     pub fn new(
-        kind: NodeKindId,
+        kind: TileClassId,
         bel: Option<String>,
         attr: Option<String>,
         val: Option<String>,
@@ -154,10 +154,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind {
         _nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        if let Some(locs) = backend.egrid.node_index.get(self.kind) {
+        if let Some(locs) = backend.egrid.tile_index.get(self.kind) {
             for &nloc in locs {
-                let node = backend.egrid.node(nloc);
-                let tile = backend.egrid.db.nodes.key(node.kind);
+                let node = backend.egrid.tile(nloc);
+                let tile = backend.egrid.db.tile_classes.key(node.class);
                 let main_id = &fuzzer.info.features[0].id;
                 let id = FeatureId {
                     tile: tile.into(),
@@ -210,14 +210,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
         _nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        for (node_kind, locs) in &backend.egrid.node_index {
-            let node_kind = &backend.egrid.db.nodes[node_kind];
+        for (node_kind, locs) in &backend.egrid.tile_index {
+            let node_kind = &backend.egrid.db.tile_classes[node_kind];
             if !node_kind.bels.contains_id(self.slot) {
                 continue;
             }
             for &nloc in locs {
-                let node = backend.egrid.node(nloc);
-                let tile = backend.egrid.db.nodes.key(node.kind);
+                let node = backend.egrid.tile(nloc);
+                let tile = backend.egrid.db.tile_classes.key(node.class);
                 let main_id = &fuzzer.info.features[0].id;
                 let id = FeatureId {
                     tile: tile.into(),

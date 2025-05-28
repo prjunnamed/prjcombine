@@ -5,9 +5,9 @@ use std::{
 
 use ndarray::Array2;
 use prjcombine_interconnect::{
-    db::{BelSlotId, IntDb, MuxInfo, MuxKind, NodeKindId, NodeWireId, WireId, WireKind},
+    db::{BelSlotId, IntDb, MuxInfo, MuxKind, TileClassId, TileClassWire, WireId, WireKind},
     dir::Dir,
-    grid::{ColId, DieId, ExpandedGrid, IntBel, IntWire, NodeLoc, RowId},
+    grid::{ColId, DieId, ExpandedGrid, BelCoord, WireCoord, NodeLoc, RowId},
 };
 use prjcombine_re_xilinx_xact_data::die::{BoxId, Die, PrimId};
 use prjcombine_re_xilinx_xact_naming::{
@@ -48,27 +48,27 @@ pub struct Extractor<'a> {
     pub nets: EntityVec<NetId, Net<'a>>,
     pub prims_by_name_a: BTreeMap<&'a str, PrimId>,
     pub prims_by_name_i: BTreeMap<&'a str, PrimId>,
-    pub int_nets: BTreeMap<IntWire, NetId>,
-    pub bel_nets: BTreeMap<(IntBel, &'a str), NetId>,
+    pub int_nets: BTreeMap<WireCoord, NetId>,
+    pub bel_nets: BTreeMap<(BelCoord, &'a str), NetId>,
     pub egrid: &'a ExpandedGrid<'a>,
     pub ngrid: &'a ExpandedGridNaming<'a>,
     pub used_prims: EntityBitVec<PrimId>,
     pub box_owner: EntityPartVec<BoxId, NodeLoc>,
     pub pip_owner: BTreeMap<(NetId, NetId), NodeLoc>,
     pub tbuf_pseudos: BTreeSet<(NetId, NetId)>,
-    pub int_pip_force_dst: BTreeMap<(NetId, NetId), NodeWireId>,
+    pub int_pip_force_dst: BTreeMap<(NetId, NetId), TileClassWire>,
     pub used_pips: BTreeSet<(NetId, NetId)>,
     pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
-    pub node_muxes: EntityPartVec<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>,
-    pub int_pips: EntityPartVec<NodeNamingId, BTreeMap<(NodeWireId, NodeWireId), IntPipNaming>>,
+    pub node_muxes: EntityPartVec<TileClassId, BTreeMap<TileClassWire, MuxInfo>>,
+    pub int_pips: EntityPartVec<NodeNamingId, BTreeMap<(TileClassWire, TileClassWire), IntPipNaming>>,
     pub net_by_tile_override: BTreeMap<(ColId, RowId), BTreeMap<NetId, WireId>>,
     pub junk_prim_names: BTreeSet<String>,
 }
 
 pub struct Finisher {
     pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
-    pub node_muxes: EntityPartVec<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>,
-    pub int_pips: EntityPartVec<NodeNamingId, BTreeMap<(NodeWireId, NodeWireId), IntPipNaming>>,
+    pub node_muxes: EntityPartVec<TileClassId, BTreeMap<TileClassWire, MuxInfo>>,
+    pub int_pips: EntityPartVec<NodeNamingId, BTreeMap<(TileClassWire, TileClassWire), IntPipNaming>>,
 }
 
 #[derive(Debug)]
@@ -83,8 +83,8 @@ pub struct Net<'a> {
 pub enum NetBinding<'a> {
     None,
     Dummy,
-    Int(IntWire),
-    Bel(IntBel, &'a str),
+    Int(WireCoord),
+    Bel(BelCoord, &'a str),
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -251,7 +251,7 @@ impl<'a> Extractor<'a> {
         self.get_net(x, y, dir).unwrap()
     }
 
-    pub fn net_bel(&mut self, net_id: NetId, bel: IntBel, key: &'a str) {
+    pub fn net_bel(&mut self, net_id: NetId, bel: BelCoord, key: &'a str) {
         let net = &mut self.nets[net_id];
         let nbind = NetBinding::Bel(bel, key);
         if net.binding == NetBinding::None {
@@ -277,7 +277,7 @@ impl<'a> Extractor<'a> {
         }
     }
 
-    pub fn net_int(&mut self, net_id: NetId, wire: IntWire) {
+    pub fn net_int(&mut self, net_id: NetId, wire: WireCoord) {
         let wire = self.egrid.resolve_wire_nobuf(wire).unwrap();
         let net = &mut self.nets[net_id];
         let nbind = NetBinding::Int(wire);
@@ -318,32 +318,32 @@ impl<'a> Extractor<'a> {
         }
     }
 
-    pub fn net_bel_int(&mut self, net_id: NetId, bel: IntBel, pin: &'a str) {
+    pub fn net_bel_int(&mut self, net_id: NetId, bel: BelCoord, pin: &'a str) {
         let (die, (col, row), slot) = bel;
         let layer = self.egrid.find_bel_layer(bel).unwrap();
         let nloc = (die, col, row, layer);
-        let node = &self.egrid.die(die)[(col, row)].nodes[layer];
-        for &wire in &self.egrid.db.nodes[node.kind].bels[slot].pins[pin].wires {
-            let wire = (nloc.0, node.tiles[wire.0], wire.1);
+        let node = &self.egrid.die(die)[(col, row)].tiles[layer];
+        for &wire in &self.egrid.db.tile_classes[node.class].bels[slot].pins[pin].wires {
+            let wire = (nloc.0, node.cells[wire.0], wire.1);
             self.net_int(net_id, wire);
         }
     }
 
-    pub fn get_int_net(&self, nloc: NodeLoc, nw: NodeWireId) -> NetId {
-        let node = &self.egrid.die(nloc.0)[(nloc.1, nloc.2)].nodes[nloc.3];
+    pub fn get_int_net(&self, nloc: NodeLoc, nw: TileClassWire) -> NetId {
+        let node = &self.egrid.die(nloc.0)[(nloc.1, nloc.2)].tiles[nloc.3];
         let w = self
             .egrid
-            .resolve_wire_nobuf((nloc.0, node.tiles[nw.0], nw.1))
+            .resolve_wire_nobuf((nloc.0, node.cells[nw.0], nw.1))
             .unwrap();
         self.int_nets[&w]
     }
 
-    pub fn get_bel_int_net(&self, bel: IntBel, pin: &'a str) -> NetId {
+    pub fn get_bel_int_net(&self, bel: BelCoord, pin: &'a str) -> NetId {
         let (die, (col, row), slot) = bel;
         let layer = self.egrid.find_bel_layer(bel).unwrap();
         let nloc = (die, col, row, layer);
-        let node = &self.egrid.die(die)[(col, row)].nodes[layer];
-        let nw = *self.egrid.db.nodes[node.kind].bels[slot].pins[pin]
+        let node = &self.egrid.die(die)[(col, row)].tiles[layer];
+        let nw = *self.egrid.db.tile_classes[node.class].bels[slot].pins[pin]
             .wires
             .iter()
             .next()
@@ -352,7 +352,7 @@ impl<'a> Extractor<'a> {
     }
 
     #[track_caller]
-    pub fn get_bel_net(&self, bel: IntBel, pin: &'a str) -> NetId {
+    pub fn get_bel_net(&self, bel: BelCoord, pin: &'a str) -> NetId {
         self.bel_nets[&(bel, pin)]
     }
 
@@ -496,7 +496,7 @@ impl<'a> Extractor<'a> {
         self.box_owner.insert(box_id, nloc);
     }
 
-    pub fn own_mux(&mut self, wire: IntWire, nloc: NodeLoc) {
+    pub fn own_mux(&mut self, wire: WireCoord, nloc: NodeLoc) {
         let net = self.int_nets[&wire];
         for &net_f in self.nets[net].pips_bwd.keys() {
             if matches!(self.nets[net_f].binding, NetBinding::Int(_)) {
@@ -514,7 +514,7 @@ impl<'a> Extractor<'a> {
         self.tbuf_pseudos.insert((net_t, net_f));
     }
 
-    pub fn force_int_pip_dst(&mut self, net_t: NetId, net_f: NetId, nloc: NodeLoc, nw: NodeWireId) {
+    pub fn force_int_pip_dst(&mut self, net_t: NetId, net_f: NetId, nloc: NodeLoc, nw: TileClassWire) {
         self.pip_owner.insert((net_t, net_f), nloc);
         self.int_pip_force_dst.insert((net_t, net_f), nw);
     }
@@ -531,7 +531,7 @@ impl<'a> Extractor<'a> {
         let die = self.egrid.die(DieId::from_idx(0));
         for col in die.cols() {
             for row in die.rows() {
-                for (layer, _) in &die[(col, row)].nodes {
+                for (layer, _) in &die[(col, row)].tiles {
                     let nloc = (die.die, col, row, layer);
                     let nnode = &self.ngrid.nodes[&nloc];
                     if nnode.coords.is_empty() {
@@ -595,9 +595,9 @@ impl<'a> Extractor<'a> {
         }
         for col in die.cols() {
             for row in die.rows() {
-                for (layer, node) in &die[(col, row)].nodes {
+                for (layer, node) in &die[(col, row)].tiles {
                     let mut net_dict = BTreeMap::new();
-                    for (tid, &(col, row)) in &node.tiles {
+                    for (tid, &(col, row)) in &node.cells {
                         if let Some(nbt) = net_by_tile.get(&(col, row)) {
                             for (&net, &wire) in nbt {
                                 net_dict.entry(net).or_insert((tid, wire));
@@ -682,14 +682,14 @@ impl<'a> Extractor<'a> {
                             }
                         }
                     }
-                    if !self.node_muxes.contains_id(node.kind) {
-                        self.node_muxes.insert(node.kind, muxes);
+                    if !self.node_muxes.contains_id(node.class) {
+                        self.node_muxes.insert(node.class, muxes);
                     } else {
                         assert_eq!(
-                            self.node_muxes[node.kind],
+                            self.node_muxes[node.class],
                             muxes,
                             "fail merging node {}",
-                            self.egrid.db.nodes.key(node.kind)
+                            self.egrid.db.tile_classes.key(node.class)
                         );
                     }
                     if !self.int_pips.contains_id(nnode.naming) {
@@ -756,12 +756,12 @@ impl Finisher {
         }
         ndb.node_namings = new_node_namings;
         let mut new_nodes = EntityMap::new();
-        for (kind, name, mut node) in core::mem::take(&mut db.nodes) {
+        for (kind, name, mut node) in core::mem::take(&mut db.tile_classes) {
             if let Some(muxes) = self.node_muxes.remove(kind) {
                 node.muxes = muxes;
                 new_nodes.insert(name, node);
             }
         }
-        db.nodes = new_nodes;
+        db.tile_classes = new_nodes;
     }
 }

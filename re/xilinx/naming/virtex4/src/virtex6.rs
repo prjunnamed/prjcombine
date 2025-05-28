@@ -87,9 +87,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let chip = edev.chips[die.die];
         for col in die.cols() {
             for row in die.rows() {
-                for (layer, node) in &die[(col, row)].nodes {
+                for (layer, node) in &die[(col, row)].tiles {
                     let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.nodes.key(node.kind);
+                    let kind = egrid.db.tile_classes.key(node.class);
                     let x = col.to_idx();
                     let y = row.to_idx();
                     match &kind[..] {
@@ -97,19 +97,19 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode =
                                 namer
                                     .ngrid
-                                    .name_node(nloc, "INT", [format!("INT_X{x}Y{y}")]);
+                                    .name_tile(nloc, "INT", [format!("INT_X{x}Y{y}")]);
                             let tie_x = namer.tiexlut[col];
                             nnode.tie_name = Some(format!("TIEOFF_X{tie_x}Y{y}"));
                         }
                         "INTF" => {
                             if chip.columns[col] == ColumnKind::Io && col < edev.col_cfg {
-                                namer.ngrid.name_node(
+                                namer.ngrid.name_tile(
                                     nloc,
                                     "INTF.IOI_L",
                                     [format!("IOI_L_INT_INTERFACE_X{x}Y{y}")],
                                 );
                             } else {
-                                namer.ngrid.name_node(
+                                namer.ngrid.name_tile(
                                     nloc,
                                     "INTF",
                                     [format!("INT_INTERFACE_X{x}Y{y}")],
@@ -119,13 +119,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         "INTF.DELAY" => {
                             if chip.columns[col] == ColumnKind::Gt {
                                 if col.to_idx() == 0 {
-                                    namer.ngrid.name_node(
+                                    namer.ngrid.name_tile(
                                         nloc,
                                         "INTF.GT_L",
                                         [format!("GT_L_INT_INTERFACE_X{x}Y{y}")],
                                     );
                                 } else {
-                                    namer.ngrid.name_node(
+                                    namer.ngrid.name_tile(
                                         nloc,
                                         "INTF.GTX",
                                         [format!("GTX_INT_INTERFACE_X{x}Y{y}")],
@@ -134,19 +134,19 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 let hard = chip.col_hard.as_ref().unwrap();
                                 if col == hard.col {
-                                    namer.ngrid.name_node(
+                                    namer.ngrid.name_tile(
                                         nloc,
                                         "INTF.EMAC",
                                         [format!("EMAC_INT_INTERFACE_X{x}Y{y}")],
                                     );
                                 } else if col == hard.col - 3 {
-                                    namer.ngrid.name_node(
+                                    namer.ngrid.name_tile(
                                         nloc,
                                         "INTF.PCIE_L",
                                         [format!("PCIE_INT_INTERFACE_L_X{x}Y{y}")],
                                     );
                                 } else if col == hard.col - 2 {
-                                    namer.ngrid.name_node(
+                                    namer.ngrid.name_tile(
                                         nloc,
                                         "INTF.PCIE_R",
                                         [format!("PCIE_INT_INTERFACE_R_X{x}Y{y}")],
@@ -167,14 +167,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             if edev.in_int_hole(die.die, col, row - 1) {
                                 name = format!("HCLK_X{x}Y{y}");
                             }
-                            let nnode = namer.ngrid.name_node(nloc, naming, [name]);
+                            let nnode = namer.ngrid.name_tile(nloc, naming, [name]);
                             nnode.add_bel(
                                 bels::GLOBALSIG,
                                 format!("GLOBALSIG_X{x}Y{y}", y = y / 40),
                             );
                         }
                         "HCLK_QBUF" => {
-                            namer.ngrid.name_node(
+                            namer.ngrid.name_tile(
                                 nloc,
                                 "HCLK_QBUF",
                                 [format!("HCLK_QBUF_X{x}Y{y}", y = y - 1)],
@@ -182,13 +182,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "MGT_BUF" => {
                             if col < edev.col_cfg {
-                                namer.ngrid.name_node(
+                                namer.ngrid.name_tile(
                                     nloc,
                                     "MGT_BUF.L",
                                     [format!("HCLK_CLBLM_MGT_LEFT_X{x}Y{y}", y = y - 1)],
                                 );
                             } else {
-                                namer.ngrid.name_node(
+                                namer.ngrid.name_tile(
                                     nloc,
                                     "MGT_BUF.R",
                                     [format!("HCLK_CLB_X{x}Y{y}", y = y - 1)],
@@ -199,7 +199,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode =
                                 namer
                                     .ngrid
-                                    .name_node(nloc, kind, [format!("{kind}_X{x}Y{y}")]);
+                                    .name_tile(nloc, kind, [format!("{kind}_X{x}Y{y}")]);
                             let sx0 = clb_grid.xlut[col] * 2;
                             let sx1 = clb_grid.xlut[col] * 2 + 1;
                             let sy = clb_grid.ylut[row];
@@ -210,7 +210,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode =
                                 namer
                                     .ngrid
-                                    .name_node(nloc, kind, [format!("BRAM_X{x}Y{y}")]);
+                                    .name_tile(nloc, kind, [format!("BRAM_X{x}Y{y}")]);
                             let bx = bram_grid.xlut[col];
                             let by = bram_grid.ylut[row];
                             nnode.add_bel(bels::BRAM_F, format!("RAMB36_X{bx}Y{by}"));
@@ -230,7 +230,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let name_bram0 = format!("BRAM_X{x}Y{y}");
                             let name_bram1 = format!("BRAM_X{x}Y{y}", y = y + 5);
                             let name_bram2 = format!("BRAM_X{x}Y{y}", y = y + 10);
-                            let nnode = namer.ngrid.name_node(
+                            let nnode = namer.ngrid.name_tile(
                                 nloc,
                                 "PMVBRAM",
                                 [name, name_bram0, name_bram1, name_bram2],
@@ -241,7 +241,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "DSP" => {
                             let nnode =
-                                namer.ngrid.name_node(nloc, kind, [format!("DSP_X{x}Y{y}")]);
+                                namer.ngrid.name_tile(nloc, kind, [format!("DSP_X{x}Y{y}")]);
                             let dx = dsp_grid.xlut[col];
                             let dy0 = dsp_grid.ylut[row] * 2;
                             let dy1 = dsp_grid.ylut[row] * 2 + 1;
@@ -263,7 +263,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             };
                             let name_ioi = format!("{naming}_X{x}Y{y}");
                             let name_iob = format!("{iob_tk}_X{x}Y{y}");
-                            let nnode = namer.ngrid.name_node(nloc, naming, [name_ioi, name_iob]);
+                            let nnode = namer.ngrid.name_tile(nloc, naming, [name_ioi, name_iob]);
                             let iox = io_grid.xlut[col];
                             let ioy0 = io_grid.ylut[row] * 2;
                             let ioy1 = io_grid.ylut[row] * 2 + 1;
@@ -299,7 +299,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode =
                                 namer
                                     .ngrid
-                                    .name_node(nloc, naming, [name, name_ioi_s, name_ioi_n]);
+                                    .name_tile(nloc, naming, [name, name_ioi_s, name_ioi_n]);
                             let iox = io_grid.xlut[col];
                             let hy = row.to_idx() / 40;
                             nnode.add_bel(
@@ -329,7 +329,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 "CMT.TOP"
                             };
                             let bt = if row < chip.row_bufg() { "BOT" } else { "TOP" };
-                            let nnode = namer.ngrid.name_node(
+                            let nnode = namer.ngrid.name_tile(
                                 nloc,
                                 naming,
                                 [
@@ -366,13 +366,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode =
                                 namer
                                     .ngrid
-                                    .name_node(nloc, naming, [format!("{naming}_X{x}Y{y}")]);
+                                    .name_tile(nloc, naming, [format!("{naming}_X{x}Y{y}")]);
                             let bx = pmviob_grid.xlut[col];
                             let by = pmviob_grid.ylut[row];
                             nnode.add_bel(bels::PMVIOB, format!("PMVIOB_X{bx}Y{by}"));
                         }
                         "CMT_BUFG_BOT" => {
-                            let nnode = namer.ngrid.name_node(
+                            let nnode = namer.ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [
@@ -385,7 +385,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "CMT_BUFG_TOP" => {
-                            let nnode = namer.ngrid.name_node(
+                            let nnode = namer.ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [
@@ -406,19 +406,19 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 format!("CMT_PMVB_BUF_ABOVE_X{x}Y{y}")
                             };
-                            namer.ngrid.name_node(nloc, "GCLK_BUF", [name]);
+                            namer.ngrid.name_tile(nloc, "GCLK_BUF", [name]);
                         }
                         "EMAC" => {
                             let nnode =
                                 namer
                                     .ngrid
-                                    .name_node(nloc, kind, [format!("EMAC_X{x}Y{y}")]);
+                                    .name_tile(nloc, kind, [format!("EMAC_X{x}Y{y}")]);
                             let bx = emac_grid.xlut[col];
                             let by = emac_grid.ylut[row];
                             nnode.add_bel(bels::EMAC, format!("TEMAC_X{bx}Y{by}"));
                         }
                         "PCIE" => {
-                            let nnode = namer.ngrid.name_node(
+                            let nnode = namer.ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [format!("PCIE_X{x}Y{y}", x = x + 1, y = y + 10)],
@@ -431,7 +431,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let row_b: RowId = row - 40;
                             let ry = row_b.to_idx() + 11 + row_b.to_idx() / 20;
                             let rx = namer.rxlut[edev.col_cfg] - 2;
-                            let nnode = namer.ngrid.name_node(
+                            let nnode = namer.ngrid.name_tile(
                                 nloc,
                                 "CFG",
                                 [
@@ -487,7 +487,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     y = y + y / 20
                                 )
                             };
-                            let nnode = namer.ngrid.name_node(
+                            let nnode = namer.ngrid.name_tile(
                                 nloc,
                                 naming,
                                 [
@@ -549,7 +549,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                         }
                         "GTH" => {
-                            let nnode = namer.ngrid.name_node(
+                            let nnode = namer.ngrid.name_tile(
                                 nloc,
                                 if col.to_idx() == 0 { "GTH.L" } else { "GTH.R" },
                                 if col.to_idx() == 0 {

@@ -6,10 +6,16 @@ use prjcombine_re_xilinx_rawdump::{Coord, Part};
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{
+    bels,
+    expanded::{REGION_HCLK, REGION_LEAF},
+};
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
+
+    assert_eq!(builder.db.region_slots.insert("HCLK".into()).0, REGION_HCLK);
+    assert_eq!(builder.db.region_slots.insert("LEAF".into()).0, REGION_LEAF);
 
     for &slot in bels::SLOTS {
         builder.db.bel_slots.insert(slot.into());
@@ -21,14 +27,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..6 {
         builder.wire(
             format!("LCLK{i}"),
-            WireKind::ClkOut,
+            WireKind::LogicOut,
             &[format!("GCLK_B{i}_EAST"), format!("GCLK_L_B{i}")],
         );
     }
     for i in 6..12 {
         builder.wire(
             format!("LCLK{i}"),
-            WireKind::ClkOut,
+            WireKind::LogicOut,
             &[format!("GCLK_B{i}"), format!("GCLK_L_B{i}_WEST")],
         );
     }
@@ -581,9 +587,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut int_xy = Vec::new();
             let mut intf_xy = Vec::new();
-            let n = builder
-                .ndb
-                .get_node_naming(if tkn == "BRAM_L" { "INTF.L" } else { "INTF.R" });
+            let n = builder.ndb.get_tile_class_naming(if tkn == "BRAM_L" {
+                "INTF.L"
+            } else {
+                "INTF.R"
+            });
             for dy in 0..5 {
                 if tkn == "BRAM_L" {
                     int_xy.push(Coord {
@@ -736,7 +744,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
         if rd.tile_kinds.key(rd.tiles[&bram_xy[0]].kind) == "BRAM_L" {
-            let n = builder.ndb.get_node_naming("INTF.L");
+            let n = builder.ndb.get_tile_class_naming("INTF.L");
             for dy in 0..15 {
                 int_xy.push(Coord {
                     x: xy.x + 2,
@@ -751,7 +759,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 ));
             }
         } else {
-            let n = builder.ndb.get_node_naming("INTF.R");
+            let n = builder.ndb.get_tile_class_naming("INTF.R");
             for dy in 0..15 {
                 int_xy.push(Coord {
                     x: xy.x - 2,
@@ -792,9 +800,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut int_xy = Vec::new();
             let mut intf_xy = Vec::new();
-            let n = builder
-                .ndb
-                .get_node_naming(if tkn == "DSP_L" { "INTF.L" } else { "INTF.R" });
+            let n =
+                builder
+                    .ndb
+                    .get_tile_class_naming(if tkn == "DSP_L" { "INTF.L" } else { "INTF.R" });
             for dy in 0..5 {
                 if tkn == "DSP_L" {
                     int_xy.push(Coord {
@@ -867,8 +876,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     [xy.x - 2, xy.x + 6],
                     [xy.x - 1, xy.x + 5],
                     [
-                        builder.ndb.get_node_naming("INTF.PCIE_R"),
-                        builder.ndb.get_node_naming("INTF.PCIE_L"),
+                        builder.ndb.get_tile_class_naming("INTF.PCIE_R"),
+                        builder.ndb.get_tile_class_naming("INTF.PCIE_L"),
                     ],
                 )
             } else {
@@ -876,8 +885,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     [xy.x + 6, xy.x - 2],
                     [xy.x + 5, xy.x - 1],
                     [
-                        builder.ndb.get_node_naming("INTF.PCIE_LEFT_L"),
-                        builder.ndb.get_node_naming("INTF.PCIE_R"),
+                        builder.ndb.get_tile_class_naming("INTF.PCIE_LEFT_L"),
+                        builder.ndb.get_tile_class_naming("INTF.PCIE_R"),
                     ],
                 )
             };
@@ -926,8 +935,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE3_RIGHT").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let nl = builder.ndb.get_node_naming("INTF.PCIE3_L");
-        let nr = builder.ndb.get_node_naming("INTF.PCIE3_R");
+        let nl = builder.ndb.get_tile_class_naming("INTF.PCIE3_L");
+        let nr = builder.ndb.get_tile_class_naming("INTF.PCIE3_R");
         for bdy in [0, 26] {
             for dy in 0..25 {
                 int_xy.push(Coord {
@@ -1270,7 +1279,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .extra_int_out("FB_TEST1", &[format!("CLK_BUFG_R_CK_FB_TEST1_{i}")]),
                 );
             }
-            let intf = builder.ndb.get_node_naming("INTF.R");
+            let intf = builder.ndb.get_tile_class_naming("INTF.R");
             builder
                 .xnode("CLK_BUFG", tkn, xy)
                 .num_tiles(4)
@@ -1296,7 +1305,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel = builder.bel_xy(slot, sslot, 0, 0);
-            let intf = builder.ndb.get_node_naming("INTF.R");
+            let intf = builder.ndb.get_tile_class_naming("INTF.R");
             builder
                 .xnode(tkn, tkn, xy)
                 .ref_int(xy.delta(-2, dy), 0)
@@ -1328,7 +1337,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let intf_xy = int_xy.delta(if is_l { -1 } else { 1 }, 0);
             let intf = builder
                 .ndb
-                .get_node_naming(if is_l { "INTF.L" } else { "INTF.R" });
+                .get_tile_class_naming(if is_l { "INTF.L" } else { "INTF.R" });
 
             let mut bels = vec![];
             for i in 0..4 {
@@ -1472,7 +1481,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let intf_xy = int_xy.delta(if is_l { -1 } else { 1 }, 0);
             let intf = builder
                 .ndb
-                .get_node_naming(if is_l { "INTF.L" } else { "INTF.R" });
+                .get_tile_class_naming(if is_l { "INTF.L" } else { "INTF.R" });
             let mut bels = vec![];
             let num = if is_sing { 1 } else { 2 };
             for i in 0..num {
@@ -1704,7 +1713,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let intf_xy = xy.delta(if is_l { 2 } else { -2 }, -8);
             let intf = builder
                 .ndb
-                .get_node_naming(if is_l { "INTF.L" } else { "INTF.R" });
+                .get_tile_class_naming(if is_l { "INTF.L" } else { "INTF.R" });
             let mut bels = vec![];
             for i in 0..4 {
                 let abcd = ['A', 'B', 'C', 'D'][i];
@@ -2289,7 +2298,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let intf_xy = xy.delta(if is_l { 1 } else { -1 }, -6);
             let intf = builder
                 .ndb
-                .get_node_naming(if is_l { "INTF.L" } else { "INTF.R" });
+                .get_tile_class_naming(if is_l { "INTF.L" } else { "INTF.R" });
             let bels = [
                 builder
                     .bel_xy(bels::IN_FIFO, "IN_FIFO", 0, 0)
@@ -2315,7 +2324,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     if let Some(&xy_m) = rd.tiles_by_kind_name("CFG_CENTER_MID").iter().next() {
         let xy_b = xy_m.delta(0, -21);
         let xy_t = xy_m.delta(0, 10);
-        let intf = builder.ndb.get_node_naming("INTF.L");
+        let intf = builder.ndb.get_tile_class_naming("INTF.L");
         let bels = [
             builder.bel_xy(bels::BSCAN0, "BSCAN", 0, 0).raw_tile(1),
             builder.bel_xy(bels::BSCAN1, "BSCAN", 0, 1).raw_tile(1),
@@ -2371,7 +2380,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         if let Some(&xy_b) = rd.tiles_by_kind_name(tkn).iter().next() {
             let xy_m = xy_b.delta(0, 10);
             let xy_t = xy_b.delta(0, 20);
-            let intf = builder.ndb.get_node_naming("INTF.L");
+            let intf = builder.ndb.get_tile_class_naming("INTF.L");
             let mut bel_xadc = builder
                 .bel_xy(bels::SYSMON, "XADC", 0, 0)
                 .pins_name_only(&["VP", "VN"]);
@@ -2423,7 +2432,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         let xy_pss2 = xy_pss0.delta(0, 42);
         let xy_pss3 = xy_pss0.delta(0, 62);
         let xy_pss4 = xy_pss0.delta(0, 83);
-        let intf = builder.ndb.get_node_naming("INTF.PSS");
+        let intf = builder.ndb.get_tile_class_naming("INTF.PSS");
         let mut pins = vec![];
         pins.push((bels::IOPAD_DDRWEB, 1));
         pins.push((bels::IOPAD_DDRVRN, 2));
@@ -2601,7 +2610,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let intf = builder.ndb.get_node_naming(intf_kind);
+            let intf = builder.ndb.get_tile_class_naming(intf_kind);
             let bels = [
                 builder
                     .bel_xy(bels::GTP_CHANNEL, "GTPE2_CHANNEL", 0, 0)
@@ -2656,7 +2665,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let intf = builder.ndb.get_node_naming(intf_kind);
+            let intf = builder.ndb.get_tile_class_naming(intf_kind);
             let mut bel = builder
                 .bel_xy(bels::GTP_COMMON, "GTPE2_COMMON", 0, 0)
                 .pin_name_only("PLL0OUTCLK", 1)
@@ -2835,9 +2844,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let is_gtx = kind == "GTX_CHANNEL";
             let is_l = xy.x == 0;
-            let intf = builder
-                .ndb
-                .get_node_naming(if is_l { intf_l_kind } else { intf_r_kind });
+            let intf =
+                builder
+                    .ndb
+                    .get_tile_class_naming(if is_l { intf_l_kind } else { intf_r_kind });
             let bels = [
                 builder
                     .bel_xy(slot, bslot, 0, 0)
@@ -2901,9 +2911,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let is_l = xy.x == 0;
-            let intf = builder
-                .ndb
-                .get_node_naming(if is_l { intf_l_kind } else { intf_r_kind });
+            let intf =
+                builder
+                    .ndb
+                    .get_tile_class_naming(if is_l { intf_l_kind } else { intf_r_kind });
             let mut bel = builder
                 .bel_xy(slot, bslot, 0, 0)
                 .pin_name_only("QPLLOUTCLK", 1)

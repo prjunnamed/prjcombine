@@ -4,7 +4,7 @@ use std::fmt::Write;
 use bitvec::vec::BitVec;
 use indexmap::IndexMap;
 use itertools::Itertools;
-use prjcombine_types::tiledb::{DbValue, Tile, TileBit, TileDb, TileItemKind};
+use prjcombine_types::bsdata::{DbValue, Tile, TileBit, BsData, TileItemKind};
 
 use crate::DocgenContext;
 
@@ -221,7 +221,7 @@ pub fn gen_tile(
 pub fn gen_tiles(
     ctx: &mut DocgenContext,
     dbname: &str,
-    tiledb: &TileDb,
+    tiledb: &BsData,
     orientation: impl Fn(&str) -> TileOrientation,
 ) {
     for (tname, tile) in &tiledb.tiles {
@@ -231,7 +231,7 @@ pub fn gen_tiles(
 
 pub fn gen_misc_table(
     ctx: &mut DocgenContext,
-    tiledb: &TileDb,
+    tiledb: &BsData,
     misc_used: &mut HashSet<String>,
     dbname: &str,
     tname: &str,
@@ -323,7 +323,7 @@ pub fn gen_misc_table(
     ctx.items.insert(format!("misc-{dbname}-{tname}"), buf);
 }
 
-pub fn check_misc_data(tiledb: &TileDb, dbname: &str, misc_used: &HashSet<String>) {
+pub fn check_misc_data(tiledb: &BsData, dbname: &str, misc_used: &HashSet<String>) {
     for key in tiledb.misc_data.keys() {
         if !misc_used.contains(key) && !key.starts_with("INTF.DSP") {
             eprintln!("WARNING: unused misc data {dbname} {key}");
@@ -333,7 +333,7 @@ pub fn check_misc_data(tiledb: &TileDb, dbname: &str, misc_used: &HashSet<String
 
 pub fn gen_devdata_table(
     ctx: &mut DocgenContext,
-    tiledb: &TileDb,
+    tiledb: &BsData,
     part_names: &[&str],
     devdata_used: &mut HashSet<String>,
     dbname: &str,
@@ -432,7 +432,7 @@ pub fn gen_devdata_table(
     ctx.items.insert(format!("devdata-{dbname}-{tname}"), buf);
 }
 
-pub fn check_devdata(tiledb: &TileDb, dbname: &str, devdata_used: &HashSet<String>) {
+pub fn check_devdata(tiledb: &BsData, dbname: &str, devdata_used: &HashSet<String>) {
     let mut warned = HashSet::new();
     for data in tiledb.device_data.values() {
         for key in data.keys() {

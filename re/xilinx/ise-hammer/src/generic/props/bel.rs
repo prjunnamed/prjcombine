@@ -29,7 +29,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelMode {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         Some((
             fuzzer.base(Key::SiteMode(&nnode.bels[self.bel]), self.val.clone()),
             false,
@@ -59,7 +59,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BelUnused {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         Some((
             fuzzer.base(Key::SiteMode(&nnode.bels[self.bel]), None),
             false,
@@ -91,7 +91,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelMode {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         Some((
             fuzzer.fuzz(
                 Key::SiteMode(&nnode.bels[self.bel]),
@@ -126,7 +126,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPin {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         Some((
             fuzzer.base(Key::SitePin(&nnode.bels[self.bel], self.pin.clone()), true),
             false,
@@ -157,7 +157,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelNoPin {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         Some((
             fuzzer.base(Key::SitePin(&nnode.bels[self.bel], self.pin.clone()), false),
             false,
@@ -188,7 +188,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPin {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         Some((
             fuzzer.fuzz(
                 Key::SitePin(&nnode.bels[self.bel], self.pin.clone()),
@@ -223,8 +223,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinPips {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
-        let node_naming = &backend.ngrid.db.node_namings[nnode.naming];
+        let nnode = &backend.ngrid.tiles[&nloc];
+        let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
         let bel_naming = &node_naming.bels[self.bel];
         let pin_naming = &bel_naming.pins[&self.pin];
         for pip in &pin_naming.pips {
@@ -260,8 +260,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinPips {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
-        let node_naming = &backend.ngrid.db.node_namings[nnode.naming];
+        let nnode = &backend.ngrid.tiles[&nloc];
+        let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
         let bel_naming = &node_naming.bels[self.bel];
         let pin_naming = &bel_naming.pins[&self.pin];
         for pip in &pin_naming.pips {
@@ -298,10 +298,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinIntPips {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
-        let node_data = &backend.egrid.db.nodes[node.kind];
-        let nnode = &backend.ngrid.nodes[&nloc];
-        let node_naming = &backend.ngrid.db.node_namings[nnode.naming];
+        let node = backend.egrid.tile(nloc);
+        let node_data = &backend.egrid.db.tile_classes[node.class];
+        let nnode = &backend.ngrid.tiles[&nloc];
+        let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
         let bel_data = &node_data.bels[self.bel];
         let pin_data = &bel_data.pins[&self.pin];
         let bel_naming = &node_naming.bels[self.bel];
@@ -343,7 +343,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinFrom {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         Some((
             fuzzer.base(
                 Key::SitePinFrom(&nnode.bels[self.bel], self.pin.clone()),
@@ -384,7 +384,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinFrom {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         Some((
             fuzzer.fuzz(
                 Key::SitePinFrom(&nnode.bels[self.bel], self.pin.clone()),
@@ -426,7 +426,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinPair {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         let site_to = &nnode.bels[self.bel_to];
         let site_from = &nnode.bels[self.bel_from];
 
@@ -470,7 +470,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinPair {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         let site_to = &nnode.bels[self.bel_to];
         let site_from = &nnode.bels[self.bel_from];
 
@@ -509,7 +509,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelAttr {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         Some((
             fuzzer.base(
                 Key::SiteAttr(&nnode.bels[self.bel], self.attr.clone()),
@@ -550,7 +550,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelAttr {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         Some((
             fuzzer.fuzz(
                 Key::SiteAttr(&nnode.bels[self.bel], self.attr.clone()),
@@ -592,7 +592,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelMultiAttr {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         fuzzer.bits = self.width;
         Some((
             fuzzer.fuzz_multi(
@@ -703,7 +703,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for GlobalMutexHere {
 }
 
 fn resolve_global_xy(backend: &IseBackend, nloc: NodeLoc, slot: BelSlotId, opt: &str) -> String {
-    let site = &backend.ngrid.nodes[&nloc].bels[slot];
+    let site = &backend.ngrid.tiles[&nloc].bels[slot];
     opt.replace('*', &site[site.rfind('X').unwrap()..])
 }
 

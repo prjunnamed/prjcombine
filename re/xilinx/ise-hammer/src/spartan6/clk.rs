@@ -9,7 +9,7 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::{bels, chip::Gts};
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -32,7 +32,7 @@ impl NodeRelation for HclkInt {
         };
         backend
             .egrid
-            .find_node_by_kind(nloc.0, (nloc.1, row), |kind| kind.starts_with("INT"))
+            .find_tile_by_class(nloc.0, (nloc.1, row), |kind| kind.starts_with("INT"))
     }
 }
 
@@ -95,10 +95,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
             }
             if let Some(nnloc) = backend
                 .egrid
-                .find_node_by_kind(nloc.0, (nloc.1, row), |kind| kind.starts_with("PLL_BUFPLL"))
+                .find_tile_by_class(nloc.0, (nloc.1, row), |kind| kind.starts_with("PLL_BUFPLL"))
             {
-                let node = edev.egrid.node(nnloc);
-                if edev.egrid.db.nodes.key(node.kind) != self.1 {
+                let node = edev.egrid.tile(nnloc);
+                if edev.egrid.db.tile_classes.key(node.class) != self.1 {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {

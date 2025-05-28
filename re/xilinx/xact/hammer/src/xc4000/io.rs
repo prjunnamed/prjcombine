@@ -6,7 +6,7 @@ use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let grid = backend.edev.chip;
-    for tile in backend.egrid.db.nodes.keys() {
+    for tile in backend.egrid.db.tile_classes.keys() {
         if !tile.starts_with("IO") {
             continue;
         }
@@ -169,7 +169,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let grid = ctx.edev.chip;
-    for tile in ctx.edev.egrid.db.nodes.keys() {
+    for tile in ctx.edev.egrid.db.tile_classes.keys() {
         if !tile.starts_with("IO") {
             continue;
         }

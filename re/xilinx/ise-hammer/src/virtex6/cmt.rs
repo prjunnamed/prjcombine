@@ -3,7 +3,7 @@ use prjcombine_interconnect::{dir::DirH, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::bels;
 
 use crate::{
@@ -28,7 +28,7 @@ impl NodeRelation for HclkIoiInnerSide {
             DirH::E => edev.col_rcio.unwrap(),
         };
         let row = edev.chips[nloc.0].row_hclk(nloc.2);
-        Some(edev.egrid.get_node_by_bel((nloc.0, (col, row), bels::DCI)))
+        Some(edev.egrid.get_tile_by_bel((nloc.0, (col, row), bels::DCI)))
     }
 }
 

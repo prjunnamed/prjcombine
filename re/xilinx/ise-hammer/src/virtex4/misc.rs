@@ -8,7 +8,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex4::bels;
 use prjcombine_xilinx_bitstream::Reg;
 use unnamed_entity::EntityId;
@@ -33,7 +33,7 @@ impl NodeRelation for HclkDcm {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        Some(backend.egrid.get_node_by_kind(
+        Some(backend.egrid.get_tile_by_class(
             nloc.0,
             (edev.col_clk, edev.chips[nloc.0].row_hclk(nloc.2)),
             |kind| kind == "HCLK_DCM",
@@ -67,7 +67,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeater {
                 let rcol = if self.0 == DirH::W { col } else { col - 1 };
                 let nnloc = edev
                     .egrid
-                    .get_node_by_kind(nloc.0, (rcol, rrow), |kind| kind == "HCLK_MGT_REPEATER");
+                    .get_tile_by_class(nloc.0, (rcol, rrow), |kind| kind == "HCLK_MGT_REPEATER");
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
                         tile: "HCLK_MGT_REPEATER".into(),
@@ -152,7 +152,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let mb_idx = 2 * (i % 16) + midx;
                 let mb_out = format!("MUXBUS_O{mb_idx}");
                 let die = DieId::from_idx(0);
-                let clk_iob = edev.egrid.get_node_by_kind(
+                let clk_iob = edev.egrid.get_tile_by_class(
                     die,
                     (
                         edev.col_clk,
@@ -807,8 +807,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         },
     );
 
-    let sysmon = edev.egrid.db.get_node("SYSMON");
-    if !edev.egrid.node_index[sysmon].is_empty() {
+    let sysmon = edev.egrid.db.get_tile_class("SYSMON");
+    if !edev.egrid.tile_index[sysmon].is_empty() {
         let tile = "SYSMON";
         let bel = "SYSMON";
         ctx.collect_enum(tile, bel, "MONITOR_MODE", &["TEST", "MONITOR", "ADC"]);

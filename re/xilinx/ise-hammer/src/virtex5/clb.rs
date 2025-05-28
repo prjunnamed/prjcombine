@@ -36,7 +36,7 @@ impl NodeRelation for ClbCinDown {
             nloc.2 -= 1;
             if let Some(nnloc) = backend
                 .egrid
-                .find_node_by_kind(nloc.0, (nloc.1, nloc.2), |kind| {
+                .find_tile_by_class(nloc.0, (nloc.1, nloc.2), |kind| {
                     kind.starts_with("CLB") || kind.starts_with("CLEX")
                 })
             {
@@ -768,8 +768,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     } else {
         ["CLBLL", "CLBLM"]
     } {
-        let node_kind = ctx.edev.egrid().db.get_node(tile);
-        if ctx.edev.egrid().node_index[node_kind].is_empty() {
+        let node_kind = ctx.edev.egrid().db.get_tile_class(tile);
+        if ctx.edev.egrid().tile_index[node_kind].is_empty() {
             continue;
         }
         for (idx, bel) in ["SLICE0", "SLICE1"].into_iter().enumerate() {

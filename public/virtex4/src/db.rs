@@ -2,7 +2,7 @@ use std::{collections::BTreeSet, error::Error, fs::File, path::Path};
 
 use jzon::JsonValue;
 use prjcombine_interconnect::{db::IntDb, grid::DieId};
-use prjcombine_types::tiledb::TileDb;
+use prjcombine_types::bsdata::BsData;
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityMap, EntityVec, entity_id};
 
@@ -44,7 +44,7 @@ pub struct Database {
     pub bonds: EntityVec<BondId, Bond>,
     pub parts: Vec<Part>,
     pub int: IntDb,
-    pub tiles: TileDb,
+    pub bsdata: BsData,
     pub gtz: GtzDb,
 }
 
@@ -95,7 +95,7 @@ impl From<&Database> for JsonValue {
             bonds: Vec::from_iter(db.bonds.values()),
             parts: Vec::from_iter(db.parts.iter()),
             int: &db.int,
-            tiles: &db.tiles,
+            bsdata: &db.bsdata,
             gtz: &db.gtz,
         }
     }

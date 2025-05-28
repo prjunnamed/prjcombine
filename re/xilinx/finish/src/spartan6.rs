@@ -10,7 +10,7 @@ use prjcombine_spartan6::{
     chip::{Chip, DisabledPart},
     db::{Database, DeviceCombo, Part},
 };
-use prjcombine_types::tiledb::TileDb;
+use prjcombine_types::bsdata::BsData;
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
@@ -84,7 +84,7 @@ fn sort_key<'a>(name: &'a str, tpart: &TmpPart, chip: &Chip) -> SortKey<'a> {
     }
 }
 
-pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
+pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     for dev in &geom.devices {
         let prjcombine_re_xilinx_geom::Chip::Spartan6(ref chip) =
@@ -183,6 +183,6 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         bonds,
         parts,
         int,
-        tiles: tiledb,
+        bsdata: tiledb,
     }
 }

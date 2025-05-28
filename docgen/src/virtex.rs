@@ -30,12 +30,12 @@ pub fn gen_virtex(ctx: &mut DocgenContext) {
             ctx.ctx.root.join("../databases/virtex.zstd"),
         )
         .unwrap();
-        gen_tiles(ctx, "virtex", &db.tiles, orientation);
+        gen_tiles(ctx, "virtex", &db.bsdata, orientation);
         let mut misc_used = HashSet::new();
         let devdata_used = HashSet::new();
         gen_misc_table(
             ctx,
-            &db.tiles,
+            &db.bsdata,
             &mut misc_used,
             "virtex",
             "iostd-misc",
@@ -43,7 +43,7 @@ pub fn gen_virtex(ctx: &mut DocgenContext) {
         );
         gen_misc_table(
             ctx,
-            &db.tiles,
+            &db.bsdata,
             &mut misc_used,
             "virtex",
             "iostd-drive",
@@ -51,7 +51,7 @@ pub fn gen_virtex(ctx: &mut DocgenContext) {
         );
         gen_misc_table(
             ctx,
-            &db.tiles,
+            &db.bsdata,
             &mut misc_used,
             "virtex",
             "iostd-slew",
@@ -59,7 +59,7 @@ pub fn gen_virtex(ctx: &mut DocgenContext) {
         );
         gen_misc_table(
             ctx,
-            &db.tiles,
+            &db.bsdata,
             &mut misc_used,
             "virtexe",
             "iostd-misc",
@@ -67,7 +67,7 @@ pub fn gen_virtex(ctx: &mut DocgenContext) {
         );
         gen_misc_table(
             ctx,
-            &db.tiles,
+            &db.bsdata,
             &mut misc_used,
             "virtexe",
             "iostd-drive",
@@ -75,13 +75,13 @@ pub fn gen_virtex(ctx: &mut DocgenContext) {
         );
         gen_misc_table(
             ctx,
-            &db.tiles,
+            &db.bsdata,
             &mut misc_used,
             "virtexe",
             "iostd-slew",
             &["IOSTD:VE:SLEW"],
         );
-        check_misc_data(&db.tiles, "virtex", &misc_used);
-        check_devdata(&db.tiles, "virtex", &devdata_used);
+        check_misc_data(&db.bsdata, "virtex", &misc_used);
+        check_devdata(&db.bsdata, "virtex", &devdata_used);
     }
 }

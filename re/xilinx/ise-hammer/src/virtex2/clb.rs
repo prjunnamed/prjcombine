@@ -44,11 +44,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RandorInit {
             let col = col - 1;
             let layer = backend
                 .egrid
-                .find_node_layer(die, (col, row), |kind| kind == "RANDOR_INIT")
+                .find_tile_layer(die, (col, row), |kind| kind == "RANDOR_INIT")
                 .unwrap();
             let nloc = (die, col, row, layer);
-            let node = backend.egrid.node(nloc);
-            let tile = backend.egrid.db.nodes.key(node.kind);
+            let node = backend.egrid.tile(nloc);
+            let tile = backend.egrid.db.tile_classes.key(node.class);
             let first_feature_id = fuzzer.info.features.first().unwrap().id.clone();
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
@@ -920,14 +920,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, bel, "MODE", item);
     }
     let egrid = ctx.edev.egrid();
-    for (node_kind, name, node) in &egrid.db.nodes {
+    for (node_kind, name, node) in &egrid.db.tile_classes {
         if !name.starts_with("INT.") {
             continue;
         }
         if name == "INT.CLB" {
             continue;
         }
-        if egrid.node_index[node_kind].is_empty() {
+        if egrid.tile_index[node_kind].is_empty() {
             continue;
         }
         for &wire in node.muxes.keys() {

@@ -207,13 +207,13 @@ impl DbValue {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct TileDb {
+pub struct BsData {
     pub tiles: BTreeMap<String, Tile>,
     pub device_data: BTreeMap<String, BTreeMap<String, DbValue>>,
     pub misc_data: BTreeMap<String, DbValue>,
 }
 
-impl TileDb {
+impl BsData {
     pub fn new() -> Self {
         Self {
             tiles: BTreeMap::new(),
@@ -324,8 +324,8 @@ impl From<&Tile> for JsonValue {
     }
 }
 
-impl From<&TileDb> for JsonValue {
-    fn from(tiledb: &TileDb) -> Self {
+impl From<&BsData> for JsonValue {
+    fn from(tiledb: &BsData) -> Self {
         jzon::object! {
             tiles: jzon::object::Object::from_iter(tiledb.tiles.iter().map(|(name, tile)| {
                 (name.as_str(), tile)
@@ -342,7 +342,7 @@ impl From<&TileDb> for JsonValue {
     }
 }
 
-impl Default for TileDb {
+impl Default for BsData {
     fn default() -> Self {
         Self::new()
     }

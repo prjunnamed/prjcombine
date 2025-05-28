@@ -5,7 +5,7 @@ use unnamed_entity::entity_id;
 
 pub mod bscan;
 pub mod speed;
-pub mod tiledb;
+pub mod bsdata;
 pub mod units;
 
 entity_id! {

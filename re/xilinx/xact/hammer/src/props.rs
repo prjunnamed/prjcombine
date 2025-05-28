@@ -490,10 +490,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for PinMutexExclusive {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
-        let pin_info = &backend.egrid.db.nodes[node.kind].bels[self.bel].pins[&self.pin];
+        let node = backend.egrid.tile(nloc);
+        let pin_info = &backend.egrid.db.tile_classes[node.class].bels[self.bel].pins[&self.pin];
         for &wire in &pin_info.wires {
-            let nw = (nloc.0, node.tiles[wire.0], wire.1);
+            let nw = (nloc.0, node.cells[wire.0], wire.1);
             let rw = backend.egrid.resolve_wire(nw)?;
             fuzzer = fuzzer.fuzz(Key::NodeMutex(rw), false, true);
         }
@@ -601,8 +601,8 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ExtraTile {
         _nloc: NodeLoc,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let node = backend.egrid.node(self.nloc);
-        let tile = backend.egrid.db.nodes.key(node.kind);
+        let node = backend.egrid.tile(self.nloc);
+        let tile = backend.egrid.db.tile_classes.key(node.class);
         fuzzer.info.features.push(FuzzerFeature {
             id: FeatureId {
                 tile: tile.into(),

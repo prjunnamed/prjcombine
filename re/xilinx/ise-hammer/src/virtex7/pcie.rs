@@ -1,7 +1,7 @@
 use prjcombine_interconnect::grid::NodeLoc;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::bels;
 use unnamed_entity::EntityId;
 
@@ -652,7 +652,7 @@ impl NodeRelation for PcieHclkPair {
         let row = nloc.2 + edev.chips[nloc.0].rows_per_reg() / 2;
         Some(
             edev.egrid
-                .get_node_by_kind(nloc.0, (col, row), |kind| kind == "HCLK"),
+                .get_tile_by_class(nloc.0, (col, row), |kind| kind == "HCLK"),
         )
     }
 }

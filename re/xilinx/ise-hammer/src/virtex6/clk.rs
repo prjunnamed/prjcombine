@@ -23,7 +23,7 @@ impl NodeRelation for Cmt {
         };
         Some(
             edev.egrid
-                .get_node_by_bel((nloc.0, (edev.col_clk, nloc.2), bels::CMT)),
+                .get_tile_by_bel((nloc.0, (edev.col_clk, nloc.2), bels::CMT)),
         )
     }
 }

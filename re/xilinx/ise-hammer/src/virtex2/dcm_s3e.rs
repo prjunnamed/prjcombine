@@ -5,7 +5,7 @@ use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{Diff, extract_bitvec_val, xlat_bit, xlat_bitvec};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileItem, TileItemKind};
 use prjcombine_virtex2::{bels, chip::Dcms};
 
 use crate::{
@@ -364,8 +364,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ("DCM.S3E.RT", Some("DCM.S3E.RB")),
     ] {
         let bel = "DCM";
-        let node = edev.egrid.db.get_node(tile);
-        if edev.egrid.node_index[node].is_empty() {
+        let node = edev.egrid.db.get_tile_class(tile);
+        if edev.egrid.tile_index[node].is_empty() {
             continue;
         }
         for pin in [

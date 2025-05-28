@@ -1,14 +1,14 @@
 use std::collections::{BTreeMap, HashSet, btree_map};
 
 use prjcombine_interconnect::{
-    db::{BelSlotId, NodeTileId, NodeWireId},
+    db::{BelSlotId, TileCellId, TileClassWire},
     dir::DirH,
-    grid::{IntWire, LayerId, NodeLoc},
+    grid::{WireCoord, LayerId, NodeLoc},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::TileBit;
+use prjcombine_types::bsdata::TileBit;
 use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind};
 use unnamed_entity::EntityId;
 
@@ -34,9 +34,9 @@ use crate::{
 fn drive_xc4000_wire<'a>(
     backend: &IseBackend<'a>,
     fuzzer: Fuzzer<IseBackend<'a>>,
-    wire_target: IntWire,
-    orig_target: Option<(NodeLoc, NodeWireId)>,
-    wire_avoid: IntWire,
+    wire_target: WireCoord,
+    orig_target: Option<(NodeLoc, TileClassWire)>,
+    wire_avoid: WireCoord,
 ) -> (Fuzzer<IseBackend<'a>>, &'a str, &'a str) {
     let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
@@ -57,8 +57,8 @@ fn drive_xc4000_wire<'a>(
             bels::TBUF0
         };
         let nloc = (die, col, row, LayerId::from_idx(0));
-        let nnode = &backend.ngrid.nodes[&nloc];
-        let node_naming = &backend.ngrid.db.node_namings[nnode.naming];
+        let nnode = &backend.ngrid.tiles[&nloc];
+        let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
         let bel_naming = &node_naming.bels[bel];
         let pin_naming = &bel_naming.pins["O"];
         let site_name = &nnode.bels[bel];
@@ -76,7 +76,7 @@ fn drive_xc4000_wire<'a>(
         (fuzzer, site_name, "O")
     } else if wname == "GND" {
         let nloc = (die, col, row, LayerId::from_idx(0));
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         let site_name = nnode.tie_name.as_ref().unwrap();
         let fuzzer = fuzzer
             .base(Key::SiteMode(site_name), "TIE")
@@ -90,8 +90,8 @@ fn drive_xc4000_wire<'a>(
         let (tile, wt, wf) = resolve_int_pip(
             backend,
             (die, col, row, LayerId::from_idx(0)),
-            (NodeTileId::from_idx(0), wt),
-            (NodeTileId::from_idx(0), nwt.2),
+            (TileCellId::from_idx(0), wt),
+            (TileCellId::from_idx(0), nwt.2),
         )
         .unwrap();
         let fuzzer = fuzzer.base(
@@ -101,7 +101,7 @@ fn drive_xc4000_wire<'a>(
         (fuzzer, site_name, pin_name)
     } else if wname.starts_with("OUT.CLB") {
         let nloc = (die, col, row, LayerId::from_idx(0));
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         let site_name = &nnode.bels[bels::CLB];
         let (pin, fuzzer) = match &wname[..] {
             "OUT.CLB.FX" => (
@@ -166,10 +166,10 @@ fn drive_xc4000_wire<'a>(
                 backend,
                 (die, col + 1, row, LayerId::from_idx(0)),
                 (
-                    NodeTileId::from_idx(0),
+                    TileCellId::from_idx(0),
                     backend.egrid.db.get_wire(&format!("SINGLE.H{idx}.E")),
                 ),
-                (NodeTileId::from_idx(0), wt),
+                (TileCellId::from_idx(0), wt),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -184,9 +184,9 @@ fn drive_xc4000_wire<'a>(
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 (die, col, row, LayerId::from_idx(0)),
-                (NodeTileId::from_idx(0), wt),
+                (TileCellId::from_idx(0), wt),
                 (
-                    NodeTileId::from_idx(0),
+                    TileCellId::from_idx(0),
                     backend.egrid.db.get_wire(&format!("SINGLE.H{idx}.E")),
                 ),
             )
@@ -207,9 +207,9 @@ fn drive_xc4000_wire<'a>(
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 (die, col, row, LayerId::from_idx(0)),
-                (NodeTileId::from_idx(0), wt),
+                (TileCellId::from_idx(0), wt),
                 (
-                    NodeTileId::from_idx(0),
+                    TileCellId::from_idx(0),
                     backend.egrid.db.get_wire(&format!("SINGLE.V{idx}.S")),
                 ),
             )
@@ -230,8 +230,8 @@ fn drive_xc4000_wire<'a>(
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 (die, col, row, LayerId::from_idx(0)),
-                (NodeTileId::from_idx(0), wt),
-                (NodeTileId::from_idx(0), nwt.2),
+                (TileCellId::from_idx(0), wt),
+                (TileCellId::from_idx(0), nwt.2),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -260,8 +260,8 @@ fn drive_xc4000_wire<'a>(
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 (die, col, row, LayerId::from_idx(0)),
-                (NodeTileId::from_idx(0), wt),
-                (NodeTileId::from_idx(0), backend.egrid.db.get_wire(out)),
+                (TileCellId::from_idx(0), wt),
+                (TileCellId::from_idx(0), backend.egrid.db.get_wire(out)),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -280,9 +280,9 @@ fn drive_xc4000_wire<'a>(
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 (die, col, row, LayerId::from_idx(0)),
-                (NodeTileId::from_idx(0), wt),
+                (TileCellId::from_idx(0), wt),
                 (
-                    NodeTileId::from_idx(0),
+                    TileCellId::from_idx(0),
                     backend.egrid.db.get_wire(&format!("SINGLE.V{idx}.S")),
                 ),
             )
@@ -303,10 +303,10 @@ fn drive_xc4000_wire<'a>(
                 backend,
                 (die, col, row - 1, LayerId::from_idx(0)),
                 (
-                    NodeTileId::from_idx(0),
+                    TileCellId::from_idx(0),
                     backend.egrid.db.get_wire(&format!("SINGLE.V{idx}.S")),
                 ),
-                (NodeTileId::from_idx(0), wt),
+                (TileCellId::from_idx(0), wt),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -325,8 +325,8 @@ fn drive_xc4000_wire<'a>(
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 (die, col, row, LayerId::from_idx(0)),
-                (NodeTileId::from_idx(0), wt),
-                (NodeTileId::from_idx(0), nwt.2),
+                (TileCellId::from_idx(0), wt),
+                (TileCellId::from_idx(0), nwt.2),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -345,9 +345,9 @@ fn drive_xc4000_wire<'a>(
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 (die, col, row, LayerId::from_idx(0)),
-                (NodeTileId::from_idx(0), wt),
+                (TileCellId::from_idx(0), wt),
                 (
-                    NodeTileId::from_idx(0),
+                    TileCellId::from_idx(0),
                     backend.egrid.db.get_wire(&format!("SINGLE.H{idx}.E")),
                 ),
             )
@@ -378,8 +378,8 @@ fn drive_xc4000_wire<'a>(
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 (die, col, row, LayerId::from_idx(0)),
-                (NodeTileId::from_idx(0), wt),
-                (NodeTileId::from_idx(0), backend.egrid.db.get_wire(out)),
+                (TileCellId::from_idx(0), wt),
+                (TileCellId::from_idx(0), backend.egrid.db.get_wire(out)),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -396,7 +396,7 @@ fn drive_xc4000_wire<'a>(
         || wname.starts_with("VCLK")
     {
         let mut filter = None;
-        let mut twt = NodeTileId::from_idx(0);
+        let mut twt = TileCellId::from_idx(0);
         let mut layer = LayerId::from_idx(0);
         if wname.starts_with("LONG") {
             if wname.contains(".H") {
@@ -535,8 +535,8 @@ fn drive_xc4000_wire<'a>(
             }
             layer = backend
                 .egrid
-                .find_node_loc(die, (col, row), |node| {
-                    backend.egrid.db.nodes.key(node.kind).starts_with("LLVQ")
+                .find_tile_loc(die, (col, row), |node| {
+                    backend.egrid.db.tile_classes.key(node.class).starts_with("LLVQ")
                 })
                 .unwrap()
                 .0;
@@ -547,17 +547,17 @@ fn drive_xc4000_wire<'a>(
                 row = edev.chip.row_mid();
                 layer = backend
                     .egrid
-                    .find_node_loc(die, (col, row), |node| {
-                        backend.egrid.db.nodes.key(node.kind).starts_with("LLVC")
+                    .find_tile_loc(die, (col, row), |node| {
+                        backend.egrid.db.tile_classes.key(node.class).starts_with("LLVC")
                     })
                     .unwrap()
                     .0;
             } else if row == edev.chip.row_mid() {
-                twt = NodeTileId::from_idx(1);
+                twt = TileCellId::from_idx(1);
                 layer = backend
                     .egrid
-                    .find_node_loc(die, (col, row), |node| {
-                        backend.egrid.db.nodes.key(node.kind).starts_with("LLVC")
+                    .find_tile_loc(die, (col, row), |node| {
+                        backend.egrid.db.tile_classes.key(node.class).starts_with("LLVC")
                     })
                     .unwrap()
                     .0;
@@ -570,14 +570,14 @@ fn drive_xc4000_wire<'a>(
             unreachable!()
         }
         let nloc = (die, col, row, layer);
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let mwt = (twt, wt);
         let res = backend
             .egrid
-            .resolve_wire((die, node.tiles[twt], wt))
+            .resolve_wire((die, node.cells[twt], wt))
             .unwrap();
         assert_eq!(res, wire_target);
-        let mux = &backend.egrid.db.nodes[node.kind].muxes[&mwt];
+        let mux = &backend.egrid.db.tile_classes[node.class].muxes[&mwt];
         for &mwf in &mux.ins {
             let wfname = backend.egrid.db.wires.key(mwf.1);
             if let Some(filter) = filter {
@@ -597,7 +597,7 @@ fn drive_xc4000_wire<'a>(
             }
             let nwt = backend
                 .egrid
-                .resolve_wire((die, node.tiles[mwf.0], mwf.1))
+                .resolve_wire((die, node.cells[mwf.0], mwf.1))
                 .unwrap();
             if nwt == wire_avoid {
                 continue;
@@ -615,8 +615,8 @@ fn drive_xc4000_wire<'a>(
         panic!("umm failed at {wire_target:?} {wname}");
     } else if wname.starts_with("IO.DOUBLE") {
         let (loc, mwt) = orig_target.unwrap();
-        let node = backend.egrid.node(loc);
-        let mux = &backend.egrid.db.nodes[node.kind].muxes[&mwt];
+        let node = backend.egrid.tile(loc);
+        let mux = &backend.egrid.db.tile_classes[node.class].muxes[&mwt];
         for &mwf in &mux.ins {
             let wfname = backend.egrid.db.wires.key(mwf.1);
             if !wfname.starts_with("SINGLE") {
@@ -624,7 +624,7 @@ fn drive_xc4000_wire<'a>(
             }
             let nwt = backend
                 .egrid
-                .resolve_wire((die, node.tiles[mwf.0], mwf.1))
+                .resolve_wire((die, node.cells[mwf.0], mwf.1))
                 .unwrap();
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
@@ -643,13 +643,13 @@ fn drive_xc4000_wire<'a>(
 
 #[derive(Clone, Debug)]
 struct Xc4000DoublePip {
-    wire_to: NodeWireId,
-    wire_mid: NodeWireId,
-    wire_from: NodeWireId,
+    wire_to: TileClassWire,
+    wire_mid: TileClassWire,
+    wire_from: TileClassWire,
 }
 
 impl Xc4000DoublePip {
-    fn new(wire_to: NodeWireId, wire_mid: NodeWireId, wire_from: NodeWireId) -> Self {
+    fn new(wire_to: TileClassWire, wire_mid: TileClassWire, wire_from: TileClassWire) -> Self {
         Self {
             wire_to,
             wire_mid,
@@ -669,18 +669,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DoublePip {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let res_from = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.wire_from.0], self.wire_from.1))
+            .resolve_wire((nloc.0, node.cells[self.wire_from.0], self.wire_from.1))
             .unwrap();
         let res_mid = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.wire_mid.0], self.wire_mid.1))
+            .resolve_wire((nloc.0, node.cells[self.wire_mid.0], self.wire_mid.1))
             .unwrap();
         let res_to = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.wire_to.0], self.wire_to.1))
+            .resolve_wire((nloc.0, node.cells[self.wire_to.0], self.wire_to.1))
             .unwrap();
         let fuzzer = fuzzer
             .fuzz(Key::NodeMutex(res_to), None, "EXCLUSIVE-TGT")
@@ -713,12 +713,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DoublePip {
 
 #[derive(Clone, Debug)]
 struct Xc4000BiPip {
-    wire_to: NodeWireId,
-    wire_from: NodeWireId,
+    wire_to: TileClassWire,
+    wire_from: TileClassWire,
 }
 
 impl Xc4000BiPip {
-    fn new(wire_to: NodeWireId, wire_from: NodeWireId) -> Self {
+    fn new(wire_to: TileClassWire, wire_from: TileClassWire) -> Self {
         Self { wire_to, wire_from }
     }
 }
@@ -734,14 +734,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000BiPip {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
+        let node = backend.egrid.tile(nloc);
         let res_from = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.wire_from.0], self.wire_from.1))
+            .resolve_wire((nloc.0, node.cells[self.wire_from.0], self.wire_from.1))
             .unwrap();
         let res_to = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[self.wire_to.0], self.wire_to.1))
+            .resolve_wire((nloc.0, node.cells[self.wire_to.0], self.wire_to.1))
             .unwrap();
         let fuzzer = fuzzer.fuzz(Key::NodeMutex(res_to), None, "EXCLUSIVE-TGT");
         let (fuzzer, src_site, src_pin) = drive_xc4000_wire(
@@ -787,11 +787,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
         nloc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
-        let nnode = &backend.ngrid.nodes[&nloc];
-        let node_data = &backend.egrid.db.nodes[node.kind];
+        let node = backend.egrid.tile(nloc);
+        let nnode = &backend.ngrid.tiles[&nloc];
+        let node_data = &backend.egrid.db.tile_classes[node.class];
         let bel_data = &node_data.bels[self.slot];
-        let node_naming = &backend.ngrid.db.node_namings[nnode.naming];
+        let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
         let bel_naming = &node_naming.bels[self.slot];
 
         let (wire_from, wire_to, pin_from, pin_to, ex_from, ex_to) = match self.dir {
@@ -814,11 +814,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
         };
         let res_from = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[wire_from.0], wire_from.1))
+            .resolve_wire((nloc.0, node.cells[wire_from.0], wire_from.1))
             .unwrap();
         let res_to = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[wire_to.0], wire_to.1))
+            .resolve_wire((nloc.0, node.cells[wire_to.0], wire_to.1))
             .unwrap();
         let fuzzer = fuzzer.fuzz(Key::NodeMutex(res_to), None, "EXCLUSIVE-TGT");
         let (fuzzer, src_site, src_pin) =
@@ -858,7 +858,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
     let kind = edev.chip.kind;
     let intdb = backend.egrid.db;
-    for (_, tile, node) in &intdb.nodes {
+    for (_, tile, node) in &intdb.tile_classes {
         if node.muxes.is_empty() {
             continue;
         }
@@ -925,7 +925,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 };
                 if let Some(tbuf_i_wire) = tbuf_i_wire {
                     let tbuf_i_wire = backend.egrid.db.get_wire(tbuf_i_wire);
-                    if let Some(mux) = node.muxes.get(&(NodeTileId::from_idx(0), tbuf_i_wire)) {
+                    if let Some(mux) = node.muxes.get(&(TileCellId::from_idx(0), tbuf_i_wire)) {
                         if mux.ins.contains(&wire_to) {
                             is_bidi = true;
                         }
@@ -1059,7 +1059,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     "CIN".into(),
                 ))
                 .prop(NodeMutexExclusive::new((
-                    NodeTileId::from_idx(0),
+                    TileCellId::from_idx(0),
                     backend.egrid.db.get_wire("IMUX.CLB.F4"),
                 )))
                 .commit();
@@ -1096,7 +1096,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     FuzzBelAttr::new(bels::CLB, "G3MUX".into(), "".into(), "CIN".into()),
                 ))
                 .prop(NodeMutexExclusive::new((
-                    NodeTileId::from_idx(0),
+                    TileCellId::from_idx(0),
                     backend.egrid.db.get_wire("IMUX.CLB.G3"),
                 )))
                 .commit();
@@ -1131,7 +1131,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     FuzzBelAttr::new(bels::CLB, "G2MUX".into(), "".into(), "COUT0".into()),
                 ))
                 .prop(NodeMutexExclusive::new((
-                    NodeTileId::from_idx(0),
+                    TileCellId::from_idx(0),
                     backend.egrid.db.get_wire("IMUX.CLB.G2"),
                 )))
                 .commit();
@@ -1149,7 +1149,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         "WAND".into(),
                     ))
                     .prop(NodeMutexExclusive::new((
-                        NodeTileId::from_idx(0),
+                        TileCellId::from_idx(0),
                         backend.egrid.db.get_wire(&format!("IMUX.TBUF{idx}.TS")),
                     )))
                     .commit();
@@ -1159,11 +1159,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let mut bctx = ctx.bel(bel);
                 if kind.is_clb_xl() && tile.starts_with("CLB") {
                     let wt = (
-                        NodeTileId::from_idx(0),
+                        TileCellId::from_idx(0),
                         backend.egrid.db.get_wire(&format!("IMUX.TBUF{idx}.TS")),
                     );
                     let wf = (
-                        NodeTileId::from_idx(0),
+                        TileCellId::from_idx(0),
                         backend.egrid.db.get_wire("LONG.V0"),
                     );
                     bctx.mode("TBUF")
@@ -1293,8 +1293,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         continue;
                     }
                     let mut bctx = ctx.bel(bel);
-                    let wt = (NodeTileId::from_idx(0), backend.egrid.db.get_wire(out));
-                    let wf = (NodeTileId::from_idx(0), backend.egrid.db.get_wire(inp));
+                    let wt = (TileCellId::from_idx(0), backend.egrid.db.get_wire(out));
+                    let wf = (TileCellId::from_idx(0), backend.egrid.db.get_wire(inp));
                     bctx.build()
                         .prop(BaseIntPip::new(wt, wf))
                         .test_manual("ALT_PAD", "1")
@@ -1416,15 +1416,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let kind = edev.chip.kind;
     let egrid = ctx.edev.egrid();
     let intdb = egrid.db;
-    for (node_kind, tile, node) in &intdb.nodes {
+    for (node_kind, tile, node) in &intdb.tile_classes {
         if node.muxes.is_empty() {
             continue;
         }
-        if egrid.node_index[node_kind].is_empty() {
+        if egrid.tile_index[node_kind].is_empty() {
             continue;
         }
-        let mut mux_diffs: BTreeMap<NodeWireId, BTreeMap<NodeWireId, Diff>> = BTreeMap::new();
-        let mut obuf_diffs: BTreeMap<NodeWireId, BTreeMap<NodeWireId, Diff>> = BTreeMap::new();
+        let mut mux_diffs: BTreeMap<TileClassWire, BTreeMap<TileClassWire, Diff>> = BTreeMap::new();
+        let mut obuf_diffs: BTreeMap<TileClassWire, BTreeMap<TileClassWire, Diff>> = BTreeMap::new();
         for (&wire_to, mux) in &node.muxes {
             let out_name = intdb.wires.key(wire_to.1);
             let mux_name = if tile.starts_with("LL") {
@@ -1708,7 +1708,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         let common = Diff {
                             bits: [(bit, val)].into_iter().collect(),
                         };
-                        for iotile in intdb.nodes.keys() {
+                        for iotile in intdb.tile_classes.keys() {
                             if iotile.starts_with(filter) {
                                 ctx.tiledb.insert(
                                     iotile,

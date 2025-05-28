@@ -37,7 +37,7 @@ impl NodeRelation for ClkTerm {
         };
         Some(
             edev.egrid
-                .get_node_by_kind(nloc.0, (nloc.1, row), |kind| kind == "CLK_TERM"),
+                .get_tile_by_class(nloc.0, (nloc.1, row), |kind| kind == "CLK_TERM"),
         )
     }
 }
@@ -52,7 +52,7 @@ impl NodeRelation for ClkHrow {
         };
         Some(
             edev.egrid
-                .get_node_by_kind(nloc.0, (edev.col_clk, nloc.2), |kind| kind == "CLK_HROW"),
+                .get_tile_by_class(nloc.0, (edev.col_clk, nloc.2), |kind| kind == "CLK_HROW"),
         )
     }
 }
@@ -71,7 +71,7 @@ impl NodeRelation for HclkTerm {
         };
         Some(
             edev.egrid
-                .get_node_by_kind(nloc.0, (col, nloc.2), |kind| kind == "HCLK_TERM"),
+                .get_tile_by_class(nloc.0, (col, nloc.2), |kind| kind == "HCLK_TERM"),
         )
     }
 }
@@ -91,7 +91,7 @@ impl NodeRelation for Rclk {
         };
         Some(
             edev.egrid
-                .get_node_by_kind(nloc.0, (col, nloc.2), |kind| kind.starts_with("HCLK_IOIS")),
+                .get_tile_by_class(nloc.0, (col, nloc.2), |kind| kind.starts_with("HCLK_IOIS")),
         )
     }
 }
@@ -126,7 +126,7 @@ impl NodeRelation for Ioclk {
         };
         backend
             .egrid
-            .find_node_by_kind(nloc.0, (nloc.1, row), |node| {
+            .find_tile_by_class(nloc.0, (nloc.1, row), |node| {
                 matches!(
                     node,
                     "HCLK_IOIS_DCI"
@@ -165,7 +165,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
         for row in rows {
             if let Some(nnloc) = backend
                 .egrid
-                .find_node_by_kind(nloc.0, (nloc.1, row), |kind| kind == self.1)
+                .find_tile_by_class(nloc.0, (nloc.1, row), |kind| kind == self.1)
             {
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
@@ -205,7 +205,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraMgtRepeaterAttr {
                 let rcol = if self.0 == DirH::W { col } else { col - 1 };
                 let nnloc = edev
                     .egrid
-                    .get_node_by_kind(nloc.0, (rcol, nloc.2), |kind| kind == "HCLK_MGT_REPEATER");
+                    .get_tile_by_class(nloc.0, (rcol, nloc.2), |kind| kind == "HCLK_MGT_REPEATER");
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
                         tile: "HCLK_MGT_REPEATER".into(),
@@ -379,8 +379,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         "HCLK_CENTER_ABOVE_CFG",
     ] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        let node_kind = backend.egrid.db.get_node(tile);
-        let node_data = &backend.egrid.db.nodes[node_kind];
+        let node_kind = backend.egrid.db.get_tile_class(tile);
+        let node_data = &backend.egrid.db.tile_classes[node_kind];
         if node_data.bels.contains_id(bels::RCLK) {
             let mut bctx = ctx.bel(bels::RCLK);
             for opin in ["RCLK0", "RCLK1"] {
@@ -514,10 +514,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    let ccm = backend.egrid.db.get_node("CCM");
-    let num_ccms = backend.egrid.node_index[ccm].len();
-    let sysmon = backend.egrid.db.get_node("SYSMON");
-    let has_hclk_dcm = !backend.egrid.node_index[sysmon].is_empty();
+    let ccm = backend.egrid.db.get_tile_class("CCM");
+    let num_ccms = backend.egrid.tile_index[ccm].len();
+    let sysmon = backend.egrid.db.get_tile_class("SYSMON");
+    let has_hclk_dcm = !backend.egrid.tile_index[sysmon].is_empty();
     let has_gt = edev.col_lgt.is_some();
     for (tile, bel) in [
         ("HCLK_DCM", bels::HCLK_DCM),
@@ -766,8 +766,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "HCLK_CENTER",
         "HCLK_CENTER_ABOVE_CFG",
     ] {
-        let node_kind = ctx.edev.egrid().db.get_node(tile);
-        let node_data = &ctx.edev.egrid().db.nodes[node_kind];
+        let node_kind = ctx.edev.egrid().db.get_tile_class(tile);
+        let node_data = &ctx.edev.egrid().db.tile_classes[node_kind];
         if node_data.bels.contains_id(bels::RCLK) {
             let bel = "RCLK";
             for mux in ["MUX.RCLK0", "MUX.RCLK1"] {
@@ -979,8 +979,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bit(tile, bel, &format!("ENABLE.MGT{i}"), "1");
         }
     }
-    let ccm = edev.egrid.db.get_node("CCM");
-    let num_ccms = edev.egrid.node_index[ccm].len();
+    let ccm = edev.egrid.db.get_tile_class("CCM");
+    let num_ccms = edev.egrid.tile_index[ccm].len();
     if num_ccms != 0 {
         let tile = "CCM";
         let bel = "CCM";

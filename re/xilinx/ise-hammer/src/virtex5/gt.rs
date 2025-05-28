@@ -1,7 +1,7 @@
 use core::ops::Range;
 
 use prjcombine_re_hammer::Session;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::bels;
 
 use crate::{

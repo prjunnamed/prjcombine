@@ -28,14 +28,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesIoW {
         _nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        for (node_kind, locs) in &backend.egrid.node_index {
-            let tile = backend.egrid.db.nodes.key(node_kind);
+        for (node_kind, locs) in &backend.egrid.tile_index {
+            let tile = backend.egrid.db.tile_classes.key(node_kind);
             if !tile.starts_with("IO.L") {
                 continue;
             }
             for &nloc in locs {
-                let node = backend.egrid.node(nloc);
-                let tile = backend.egrid.db.nodes.key(node.kind);
+                let node = backend.egrid.tile(nloc);
+                let tile = backend.egrid.db.tile_classes.key(node.class);
                 let fuzzer_id = fuzzer.info.features[0].id.clone();
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
@@ -64,14 +64,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesAllIo {
         _nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        for (node_kind, locs) in &backend.egrid.node_index {
-            let tile = backend.egrid.db.nodes.key(node_kind);
+        for (node_kind, locs) in &backend.egrid.tile_index {
+            let tile = backend.egrid.db.tile_classes.key(node_kind);
             if !tile.starts_with("IO") {
                 continue;
             }
             for &nloc in locs {
-                let node = backend.egrid.node(nloc);
-                let tile = backend.egrid.db.nodes.key(node.kind);
+                let node = backend.egrid.tile(nloc);
+                let tile = backend.egrid.db.tile_classes.key(node.class);
                 let fuzzer_id = fuzzer.info.features[0].id.clone();
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
@@ -108,8 +108,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileSingle {
         _nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(self.nloc);
-        let tile = backend.egrid.db.nodes.key(node.kind);
+        let node = backend.egrid.tile(self.nloc);
+        let tile = backend.egrid.db.tile_classes.key(node.class);
         let fuzzer_id = fuzzer.info.features[0].id.clone();
         fuzzer.info.features.push(FuzzerFeature {
             id: FeatureId {
@@ -199,7 +199,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
         let mut bctx = ctx.bel(bels::BSCAN);
-        let nloc = edev.egrid.get_node_by_kind(
+        let nloc = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_e(), edev.chip.row_n()),
             |x| x == "CNR.TR",
@@ -364,7 +364,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     {
         let mut ctx = FuzzCtx::new(session, backend, "CNR.TR");
         let mut bctx = ctx.bel(bels::OSC);
-        let cnr_br = edev.egrid.get_node_by_kind(
+        let cnr_br = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_e(), edev.chip.row_s()),
             |x| x == "CNR.BR",
@@ -434,7 +434,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut ctx = FuzzCtx::new(session, backend, "CNR.BR");
         let mut bctx = ctx.bel(bels::READCLK);
         for val in ["CCLK", "RDBK"] {
-            let nloc = edev.egrid.get_node_by_kind(
+            let nloc = edev.egrid.get_tile_by_class(
                 DieId::from_idx(0),
                 (edev.chip.col_e(), edev.chip.row_n()),
                 |x| x == "CNR.TR",
@@ -465,17 +465,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
     if edev.chip.kind == ChipKind::SpartanXl {
         let mut ctx = FuzzCtx::new_null(session, backend);
-        let cnr_bl = edev.egrid.get_node_by_kind(
+        let cnr_bl = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_w(), edev.chip.row_s()),
             |x| x == "CNR.BL",
         );
-        let cnr_br = edev.egrid.get_node_by_kind(
+        let cnr_br = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_e(), edev.chip.row_s()),
             |x| x == "CNR.BR",
         );
-        let cnr_tr = edev.egrid.get_node_by_kind(
+        let cnr_tr = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_e(), edev.chip.row_n()),
             |x| x == "CNR.TR",
@@ -664,7 +664,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "TLC", "OFF", "ON");
     }
     if edev.chip.kind == ChipKind::SpartanXl {
-        for tile in edev.egrid.db.nodes.keys() {
+        for tile in edev.egrid.db.tile_classes.keys() {
             if !tile.starts_with("IO") {
                 continue;
             }
@@ -691,7 +691,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
     if edev.chip.kind == ChipKind::Xc4000Ex {
-        for tile in edev.egrid.db.nodes.keys() {
+        for tile in edev.egrid.db.tile_classes.keys() {
             if !tile.starts_with("IO.L") {
                 continue;
             }

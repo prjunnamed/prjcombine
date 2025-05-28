@@ -11,7 +11,7 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
 use prjcombine_spartan6::bels;
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -179,7 +179,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllMcbIoi {
             }
             if let Some(nnloc) = backend
                 .egrid
-                .find_node_by_kind(nloc.0, (nloc.1, row), |kind| kind == "IOI.LR")
+                .find_tile_by_class(nloc.0, (nloc.1, row), |kind| kind == "IOI.LR")
             {
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
@@ -1108,22 +1108,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("O")
             .commit();
 
-        let cnr_ll = edev.egrid.get_node_by_kind(
+        let cnr_ll = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_lio(), edev.chip.row_bio_outer()),
             |kind| kind == "LL",
         );
-        let cnr_ul = edev.egrid.get_node_by_kind(
+        let cnr_ul = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_lio(), edev.chip.row_tio_outer()),
             |kind| kind == "UL",
         );
-        let cnr_lr = edev.egrid.get_node_by_kind(
+        let cnr_lr = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_rio(), edev.chip.row_bio_outer()),
             |kind| kind == "LR",
         );
-        let cnr_ur = edev.egrid.get_node_by_kind(
+        let cnr_ur = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_rio(), edev.chip.row_tio_inner()),
             |kind| kind == "UR",

@@ -2,7 +2,7 @@ use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{OcdMode, xlat_bit, xlat_bitvec};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex4::bels;
 use prjcombine_xilinx_bitstream::Reg;
 

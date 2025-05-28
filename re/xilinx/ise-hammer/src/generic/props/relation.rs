@@ -83,7 +83,7 @@ impl NodeRelation for Delta {
         }
         let layer = backend
             .egrid
-            .find_node_layer(nloc.0, (nloc.1, nloc.2), |node| {
+            .find_tile_layer(nloc.0, (nloc.1, nloc.2), |node| {
                 self.nodes.iter().any(|x| x == node)
             })?;
         nloc.3 = layer;

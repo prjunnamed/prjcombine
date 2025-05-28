@@ -20,7 +20,7 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
             ctx.ctx.root.join(format!("../databases/{kind}.zstd")),
         )
         .unwrap();
-        gen_tiles(ctx, kind, &db.tiles, |_| tile_orientation);
+        gen_tiles(ctx, kind, &db.bsdata, |_| tile_orientation);
         let mut speeds = EntityPartVec::new();
         for part in &db.parts {
             for (sname, &speedid) in &part.speeds {
@@ -44,7 +44,7 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
         if matches!(kind, "ice65l04" | "ice65p04" | "ice65l08") {
             gen_misc_table(
                 ctx,
-                &db.tiles,
+                &db.bsdata,
                 &mut misc_used,
                 kind,
                 "iostd-drive",
@@ -52,13 +52,13 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
             );
             gen_misc_table(
                 ctx,
-                &db.tiles,
+                &db.bsdata,
                 &mut misc_used,
                 kind,
                 "iostd-misc",
                 &["IOSTD:IOSTD_MISC"],
             );
         }
-        check_misc_data(&db.tiles, kind, &misc_used);
+        check_misc_data(&db.bsdata, kind, &misc_used);
     }
 }

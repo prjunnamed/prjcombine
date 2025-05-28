@@ -271,8 +271,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Virtex4(edev) = ctx.edev else {
         unreachable!()
     };
-    let ccm = edev.egrid.db.get_node("CCM");
-    if edev.egrid.node_index[ccm].is_empty() {
+    let ccm = edev.egrid.db.get_tile_class("CCM");
+    if edev.egrid.tile_index[ccm].is_empty() {
         return;
     }
     let tile = "CCM";

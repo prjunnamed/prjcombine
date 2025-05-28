@@ -188,10 +188,10 @@ impl DbBuilder {
             btree_map::Entry::Occupied(mut tgt) => {
                 let tgt = tgt.get_mut();
                 assert_eq!(tgt.wires, int.wires);
-                for (_, k, v) in int.nodes {
-                    match tgt.nodes.get(&k) {
+                for (_, k, v) in int.tile_classes {
+                    match tgt.tile_classes.get(&k) {
                         None => {
-                            tgt.nodes.insert(k, v);
+                            tgt.tile_classes.insert(k, v);
                         }
                         Some((_, v2)) => {
                             if v != *v2 {
@@ -201,10 +201,10 @@ impl DbBuilder {
                         }
                     }
                 }
-                for (_, k, v) in int.terms {
-                    match tgt.terms.get(&k) {
+                for (_, k, v) in int.conn_classes {
+                    match tgt.conn_classes.get(&k) {
                         None => {
-                            tgt.terms.insert(k, v);
+                            tgt.conn_classes.insert(k, v);
                         }
                         Some((_, v2)) => {
                             if v != *v2 {
@@ -222,10 +222,10 @@ impl DbBuilder {
             }
             btree_map::Entry::Occupied(mut tgt) => {
                 let tgt = tgt.get_mut();
-                for (_, k, v) in naming.node_namings {
-                    match tgt.node_namings.get_mut(&k) {
+                for (_, k, v) in naming.tile_class_namings {
+                    match tgt.tile_class_namings.get_mut(&k) {
                         None => {
-                            tgt.node_namings.insert(k, v);
+                            tgt.tile_class_namings.insert(k, v);
                         }
                         Some((_, v2)) => {
                             for (kk, vv) in v.wires {
@@ -278,10 +278,10 @@ impl DbBuilder {
                         }
                     }
                 }
-                for (_, k, v) in naming.term_namings {
-                    match tgt.term_namings.get(&k) {
+                for (_, k, v) in naming.conn_class_namings {
+                    match tgt.conn_class_namings.get(&k) {
                         None => {
-                            tgt.term_namings.insert(k, v);
+                            tgt.conn_class_namings.insert(k, v);
                         }
                         Some((_, v2)) => {
                             if v != *v2 {

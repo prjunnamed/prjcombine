@@ -8,7 +8,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::{
     bels,
     chip::{ChipKind, IoDiffKind},
@@ -35,7 +35,7 @@ impl NodeRelation for IntRelation {
     fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
         backend
             .egrid
-            .find_node_by_kind(nloc.0, (nloc.1, nloc.2), |kind| kind.starts_with("INT."))
+            .find_tile_by_class(nloc.0, (nloc.1, nloc.2), |kind| kind.starts_with("INT."))
     }
 }
 
@@ -267,7 +267,7 @@ pub fn add_fuzzers<'a>(
         for val in ["NO", "YES"] {
             let mut builder = ctx.build();
             if edev.chip.kind.is_virtex2() {
-                let cnr_ne = edev.egrid.get_node_by_kind(
+                let cnr_ne = edev.egrid.get_tile_by_class(
                     DieId::from_idx(0),
                     (edev.chip.col_e(), edev.chip.row_n()),
                     |kind| kind.starts_with("UR."),
@@ -433,7 +433,7 @@ pub fn add_fuzzers<'a>(
             let mut bctx = ctx.bel(bels::SPI_ACCESS);
             bctx.build()
                 .extra_tile(IntRelation, "SPI_ACCESS")
-                .test_manual("PRESENT", "1")
+                .test_manual("ENABLE", "1")
                 .mode("SPI_ACCESS")
                 .commit();
         }
@@ -477,42 +477,42 @@ pub fn add_fuzzers<'a>(
 
     if edev.chip.kind == ChipKind::FpgaCore {
         let mut ctx = FuzzCtx::new_null(session, backend);
-        let cnr_ll = edev.egrid.get_node_by_kind(
+        let cnr_ll = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_w(), edev.chip.row_s()),
             |kind| kind == "LL.FC",
         );
-        let cnr_ul = edev.egrid.get_node_by_kind(
+        let cnr_ul = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_w(), edev.chip.row_n()),
             |kind| kind == "UL.FC",
         );
-        let cnr_lr = edev.egrid.get_node_by_kind(
+        let cnr_lr = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_e(), edev.chip.row_s()),
             |kind| kind == "LR.FC",
         );
-        let cnr_ur = edev.egrid.get_node_by_kind(
+        let cnr_ur = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_e(), edev.chip.row_n()),
             |kind| kind == "UR.FC",
         );
-        let int_ll = edev.egrid.get_node_by_kind(
+        let int_ll = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_w(), edev.chip.row_s()),
             |kind| kind == "INT.CLB",
         );
-        let int_ul = edev.egrid.get_node_by_kind(
+        let int_ul = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_w(), edev.chip.row_n()),
             |kind| kind == "INT.CLB",
         );
-        let int_lr = edev.egrid.get_node_by_kind(
+        let int_lr = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_e(), edev.chip.row_s()),
             |kind| kind == "INT.CLB",
         );
-        let int_ur = edev.egrid.get_node_by_kind(
+        let int_ur = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_e(), edev.chip.row_n()),
             |kind| kind == "INT.CLB",
@@ -1671,7 +1671,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     if edev.chip.kind.is_spartan3a() {
         let bel = "SPI_ACCESS";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
-        let mut diff = ctx.state.get_diff(int_tiles[0], bel, "PRESENT", "1");
+        let mut diff = ctx.state.get_diff(int_tiles[0], bel, "ENABLE", "1");
         diff.discard_bits(&ctx.item_int_inv(int_tiles, tile, bel, "MOSI"));
         diff.assert_empty();
     }
@@ -2376,8 +2376,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 } else {
                     "IOSTD:S3A.TB:LVDSBIAS"
                 };
-                let kind = edev.egrid.db.get_node(tile);
-                let (_, col, row, _) = edev.egrid.node_index[kind][0];
+                let kind = edev.egrid.db.get_tile_class(tile);
+                let (_, col, row, _) = edev.egrid.tile_index[kind][0];
                 let btile = edev.btile_lrterm(col, row);
                 let base: BitVec = lvdsbias_0
                     .bits

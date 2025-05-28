@@ -1,7 +1,7 @@
 use jzon::JsonValue;
-use prjcombine_interconnect::db::NodeTileId;
+use prjcombine_interconnect::db::TileCellId;
 use prjcombine_interconnect::dir::{Dir, DirH};
-use prjcombine_interconnect::grid::{ColId, Coord, DieId, EdgeIoCoord, IntBel, RowId, TileIobId};
+use prjcombine_interconnect::grid::{ColId, Coord, DieId, EdgeIoCoord, BelCoord, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use unnamed_entity::{EntityId, EntityVec};
@@ -479,7 +479,7 @@ impl Chip {
         res
     }
 
-    pub fn get_io_loc(&self, io: EdgeIoCoord) -> IntBel {
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> BelCoord {
         let (col, row, iob) = match io {
             EdgeIoCoord::N(col, iob) => (col, self.row_n(), iob),
             EdgeIoCoord::E(row, iob) => (self.col_e(), row, iob),
@@ -498,7 +498,7 @@ impl Chip {
         (DieId::from_idx(0), (col, row), slot)
     }
 
-    pub fn get_io_crd(&self, bel: IntBel) -> EdgeIoCoord {
+    pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
         let (_, (col, row), slot) = bel;
         let iob = TileIobId::from_idx(if self.kind == ChipKind::FpgaCore {
             bels::IBUF
@@ -735,7 +735,7 @@ impl Chip {
         }
     }
 
-    pub fn get_iob_tile_data(&self, coord: Coord) -> Option<(IobTileData, NodeTileId)> {
+    pub fn get_iob_tile_data(&self, coord: Coord) -> Option<(IobTileData, TileCellId)> {
         if coord.0 == self.col_w() {
             let kind = self.rows[coord.1];
             if kind == RowIoKind::None {

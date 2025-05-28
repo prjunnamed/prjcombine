@@ -3,7 +3,7 @@ use std::{
     fmt::Debug,
 };
 
-use prjcombine_types::tiledb::TileBit;
+use prjcombine_types::bsdata::TileBit;
 use unnamed_entity::{EntityVec, entity_id};
 
 #[derive(Debug, Clone)]

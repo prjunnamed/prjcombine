@@ -6,10 +6,13 @@ use prjcombine_re_xilinx_rawdump::Part;
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{bels, expanded::{REGION_HCLK, REGION_LEAF}};
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
+
+    assert_eq!(builder.db.region_slots.insert("HCLK".into()).0, REGION_HCLK);
+    assert_eq!(builder.db.region_slots.insert("LEAF".into()).0, REGION_LEAF);
 
     for &slot in bels::SLOTS {
         builder.db.bel_slots.insert(slot.into());
@@ -20,10 +23,18 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.wire("VCC", WireKind::Tie1, &["VCC_WIRE"]);
 
     for i in 0..8 {
-        builder.wire(format!("HCLK{i}"), WireKind::ClkOut, &[format!("GCLK{i}")]);
+        builder.wire(
+            format!("HCLK{i}"),
+            WireKind::Regional(REGION_LEAF),
+            &[format!("GCLK{i}")],
+        );
     }
     for i in 0..2 {
-        builder.wire(format!("RCLK{i}"), WireKind::ClkOut, &[format!("RCLK{i}")]);
+        builder.wire(
+            format!("RCLK{i}"),
+            WireKind::Regional(REGION_LEAF),
+            &[format!("RCLK{i}")],
+        );
     }
 
     for (i, da1, da2, db) in [

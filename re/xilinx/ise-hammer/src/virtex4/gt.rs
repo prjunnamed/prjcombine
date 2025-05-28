@@ -5,7 +5,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::bels;
 use unnamed_entity::EntityId;
 
@@ -349,7 +349,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeaterMgt {
                 let rcol = if is_w { col } else { col - 1 };
                 let nnloc = edev
                     .egrid
-                    .get_node_by_kind(nloc.0, (rcol, row), |kind| kind == "HCLK_MGT_REPEATER");
+                    .get_tile_by_class(nloc.0, (rcol, row), |kind| kind == "HCLK_MGT_REPEATER");
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
                         tile: "HCLK_MGT_REPEATER".into(),
@@ -377,7 +377,7 @@ impl NodeRelation for ClkHrow {
         Some(
             backend
                 .egrid
-                .get_node_by_kind(nloc.0, (edev.col_clk, nloc.2 + self.0), |kind| {
+                .get_tile_by_class(nloc.0, (edev.col_clk, nloc.2 + self.0), |kind| {
                     kind == "CLK_HROW"
                 }),
         )

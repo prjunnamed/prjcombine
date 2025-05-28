@@ -1,12 +1,14 @@
 use prjcombine_interconnect::{
-    dir::{Dir, DirMap},
-    grid::{ColId, DieId, ExpandedGrid, NodeLoc, Rect, RowId},
+    db::RegionSlotId, dir::{Dir, DirMap}, grid::{ColId, DieId, ExpandedGrid, NodeLoc, Rect, RowId}
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, DisabledPart, RegId};
+
+pub const REGION_HCLK: RegionSlotId = RegionSlotId::from_idx_const(0);
+pub const REGION_LEAF: RegionSlotId = RegionSlotId::from_idx_const(1);
 
 pub struct ExpandedDevice<'a> {
     pub chip: &'a Chip,
@@ -81,8 +83,8 @@ impl ExpandedDevice<'_> {
 
     pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
         let (_, col, row, _) = nloc;
-        let node = self.egrid.node(nloc);
-        let kind = self.egrid.db.nodes.key(node.kind).as_str();
+        let node = self.egrid.tile(nloc);
+        let kind = self.egrid.db.tile_classes.key(node.class).as_str();
         if kind == "BRAM" {
             vec![
                 self.btile_main(col, row),
@@ -118,7 +120,7 @@ impl ExpandedDevice<'_> {
             res
         } else {
             Vec::from_iter(
-                node.tiles
+                node.cells
                     .values()
                     .map(|&(col, row)| self.btile_main(col, row)),
             )

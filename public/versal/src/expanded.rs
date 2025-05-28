@@ -1,14 +1,16 @@
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId};
+use prjcombine_interconnect::{db::RegionSlotId, grid::{ColId, DieId, ExpandedGrid, RowId}};
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityBitVec, EntityVec, entity_id};
+
+use crate::chip::{Chip, DisabledPart, Interposer};
+
+pub const REGION_LEAF: RegionSlotId = RegionSlotId::from_idx_const(0);
 
 entity_id! {
     pub id UbumpId u8;
 }
 
 pub type UbumpLoc = (DieId, ColId, RowId, UbumpId);
-
-use crate::chip::{Chip, DisabledPart, Interposer};
 
 #[derive(Debug)]
 pub struct SllConns {

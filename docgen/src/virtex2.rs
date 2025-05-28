@@ -32,14 +32,14 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
         )
         .unwrap();
         let part_names = Vec::from_iter(db.parts.iter().map(|part| part.name.as_str()));
-        gen_tiles(ctx, kind, &db.tiles, orientation);
+        gen_tiles(ctx, kind, &db.bsdata, orientation);
         let mut misc_used = HashSet::new();
         let mut devdata_used = HashSet::new();
         match kind {
             "virtex2" => {
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2",
                     "iostd-drive",
@@ -47,7 +47,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2",
                     "iostd-slew",
@@ -55,7 +55,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2",
                     "iostd-output-misc",
@@ -63,7 +63,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2",
                     "iostd-output-diff",
@@ -71,7 +71,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2",
                     "iostd-lvdsbias",
@@ -79,7 +79,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2",
                     "iostd-dci-term-split",
@@ -87,7 +87,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2",
                     "iostd-dci-term-vcc",
@@ -95,7 +95,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2p",
                     "iostd-drive",
@@ -103,7 +103,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2p",
                     "iostd-slew",
@@ -111,7 +111,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2p",
                     "iostd-output-misc",
@@ -119,7 +119,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2p",
                     "iostd-output-diff",
@@ -127,7 +127,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2p",
                     "iostd-lvdsbias",
@@ -135,7 +135,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2p",
                     "iostd-dci-term-split",
@@ -143,7 +143,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2p",
                     "iostd-dci-term-vcc",
@@ -151,7 +151,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "virtex2",
                     "gt10-PMA_SPEED",
@@ -159,7 +159,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_devdata_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &part_names,
                     &mut devdata_used,
                     "virtex2",
@@ -168,7 +168,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_devdata_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &part_names,
                     &mut devdata_used,
                     "virtex2",
@@ -179,7 +179,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
             "spartan3" => {
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3",
                     "iostd-drive",
@@ -187,7 +187,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3",
                     "iostd-slew",
@@ -195,7 +195,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3",
                     "iostd-output-misc",
@@ -203,7 +203,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3",
                     "iostd-output-diff",
@@ -211,7 +211,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3",
                     "iostd-lvdsbias",
@@ -219,7 +219,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3",
                     "iostd-dci-term-split",
@@ -227,7 +227,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3",
                     "iostd-dci-term-vcc",
@@ -235,7 +235,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3e",
                     "iostd-drive",
@@ -243,7 +243,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3e",
                     "iostd-slew",
@@ -251,7 +251,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3e",
                     "iostd-output-misc",
@@ -259,7 +259,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3e",
                     "iostd-output-diff",
@@ -267,7 +267,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3e",
                     "iostd-lvdsbias",
@@ -275,7 +275,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3a",
                     "iostd-tb-drive",
@@ -283,7 +283,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3a",
                     "iostd-tb-slew",
@@ -291,7 +291,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3a",
                     "iostd-tb-output-diff",
@@ -299,7 +299,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3a",
                     "iostd-lr-drive",
@@ -307,7 +307,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3a",
                     "iostd-lr-slew",
@@ -315,7 +315,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_misc_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &mut misc_used,
                     "spartan3a",
                     "iostd-tb-lvdsbias",
@@ -323,7 +323,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_devdata_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &part_names,
                     &mut devdata_used,
                     "spartan3",
@@ -337,7 +337,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_devdata_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &part_names,
                     &mut devdata_used,
                     "spartan3",
@@ -346,7 +346,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_devdata_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &part_names,
                     &mut devdata_used,
                     "spartan3",
@@ -355,7 +355,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                 );
                 gen_devdata_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &part_names,
                     &mut devdata_used,
                     "spartan3",
@@ -366,7 +366,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
             "fpgacore" => {
                 gen_devdata_table(
                     ctx,
-                    &db.tiles,
+                    &db.bsdata,
                     &part_names,
                     &mut devdata_used,
                     "fpgacore",
@@ -376,7 +376,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
             }
             _ => unreachable!(),
         }
-        check_misc_data(&db.tiles, kind, &misc_used);
-        check_devdata(&db.tiles, kind, &devdata_used);
+        check_misc_data(&db.bsdata, kind, &misc_used);
+        check_devdata(&db.bsdata, kind, &devdata_used);
     }
 }

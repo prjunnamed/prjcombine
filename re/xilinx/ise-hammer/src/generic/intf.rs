@@ -1,10 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
-use prjcombine_interconnect::{db::NodeWireId, grid::NodeLoc};
+use prjcombine_interconnect::{db::TileClassWire, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, IntfWireOutNaming, NodeRawTileId};
+use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, IntfWireOutNaming, RawTileId};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -23,23 +23,23 @@ use super::{
 fn resolve_intf_test_pip<'a>(
     backend: &IseBackend<'a>,
     loc: NodeLoc,
-    wire_to: NodeWireId,
-    wire_from: NodeWireId,
+    wire_to: TileClassWire,
+    wire_from: TileClassWire,
 ) -> Option<(&'a str, &'a str, &'a str)> {
-    let node = backend.egrid.node(loc);
-    let nnode = &backend.ngrid.nodes[&loc];
+    let node = backend.egrid.tile(loc);
+    let nnode = &backend.ngrid.tiles[&loc];
     let intdb = backend.egrid.db;
     let ndb = backend.ngrid.db;
-    let node_naming = &ndb.node_namings[nnode.naming];
+    let node_naming = &ndb.tile_class_namings[nnode.naming];
     backend
         .egrid
-        .resolve_wire((loc.0, node.tiles[wire_to.0], wire_to.1))?;
+        .resolve_wire((loc.0, node.cells[wire_to.0], wire_to.1))?;
     backend
         .egrid
-        .resolve_wire((loc.0, node.tiles[wire_from.0], wire_from.1))?;
+        .resolve_wire((loc.0, node.cells[wire_from.0], wire_from.1))?;
     if let ExpandedDevice::Virtex4(edev) = backend.edev {
         if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5
-            && ndb.node_namings.key(nnode.naming) == "INTF.PPC_R"
+            && ndb.tile_class_namings.key(nnode.naming) == "INTF.PPC_R"
             && intdb.wires.key(wire_from.1).starts_with("TEST")
         {
             // ISE.
@@ -47,7 +47,7 @@ fn resolve_intf_test_pip<'a>(
         }
     }
     Some((
-        &nnode.names[NodeRawTileId::from_idx(0)],
+        &nnode.names[RawTileId::from_idx(0)],
         match node_naming.intf_wires_out.get(&wire_to)? {
             IntfWireOutNaming::Simple { name } => name,
             IntfWireOutNaming::Buf { name_out, .. } => name_out,
@@ -64,12 +64,12 @@ fn resolve_intf_test_pip<'a>(
 
 #[derive(Clone, Debug)]
 struct FuzzIntfTestPip {
-    wire_to: NodeWireId,
-    wire_from: NodeWireId,
+    wire_to: TileClassWire,
+    wire_from: TileClassWire,
 }
 
 impl FuzzIntfTestPip {
-    pub fn new(wire_to: NodeWireId, wire_from: NodeWireId) -> Self {
+    pub fn new(wire_to: TileClassWire, wire_from: TileClassWire) -> Self {
         Self { wire_to, wire_from }
     }
 }
@@ -107,15 +107,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfTestPip {
 fn resolve_intf_delay<'a>(
     backend: &IseBackend<'a>,
     loc: NodeLoc,
-    wire: NodeWireId,
+    wire: TileClassWire,
 ) -> Option<(&'a str, &'a str, &'a str, &'a str)> {
-    let node = backend.egrid.node(loc);
-    let nnode = &backend.ngrid.nodes[&loc];
+    let node = backend.egrid.tile(loc);
+    let nnode = &backend.ngrid.tiles[&loc];
     let ndb = backend.ngrid.db;
-    let node_naming = &ndb.node_namings[nnode.naming];
+    let node_naming = &ndb.tile_class_namings[nnode.naming];
     backend
         .egrid
-        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+        .resolve_wire((loc.0, node.cells[wire.0], wire.1))?;
     let IntfWireInNaming::Delay {
         name_out,
         name_in,
@@ -125,7 +125,7 @@ fn resolve_intf_delay<'a>(
         unreachable!()
     };
     Some((
-        &nnode.names[NodeRawTileId::from_idx(0)],
+        &nnode.names[RawTileId::from_idx(0)],
         name_in,
         name_delay,
         name_out,
@@ -134,12 +134,12 @@ fn resolve_intf_delay<'a>(
 
 #[derive(Clone, Debug)]
 struct FuzzIntfDelay {
-    wire: NodeWireId,
+    wire: TileClassWire,
     state: bool,
 }
 
 impl FuzzIntfDelay {
-    pub fn new(wire: NodeWireId, state: bool) -> Self {
+    pub fn new(wire: TileClassWire, state: bool) -> Self {
         Self { wire, state }
     }
 }
@@ -169,24 +169,24 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfDelay {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.egrid.db;
-    for (node_kind, tile, node) in &intdb.nodes {
+    for (node_kind, tile, node) in &intdb.tile_classes {
         if node.intfs.is_empty() {
             continue;
         }
-        if backend.egrid.node_index[node_kind].is_empty() {
+        if backend.egrid.tile_index[node_kind].is_empty() {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tile);
         for (&wire, intf) in &node.intfs {
             match intf {
                 prjcombine_interconnect::db::IntfInfo::OutputTestMux(inps) => {
-                    let mux_name = if node.tiles.len() == 1 {
+                    let mux_name = if node.cells.len() == 1 {
                         format!("MUX.{}", intdb.wires.key(wire.1))
                     } else {
                         format!("MUX.{}.{}", wire.0, intdb.wires.key(wire.1))
                     };
                     for &wire_from in inps {
-                        let in_name = if node.tiles.len() == 1 {
+                        let in_name = if node.cells.len() == 1 {
                             intdb.wires.key(wire_from.1).to_string()
                         } else {
                             format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
@@ -202,7 +202,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     }
                 }
                 prjcombine_interconnect::db::IntfInfo::InputDelay => {
-                    assert_eq!(node.tiles.len(), 1);
+                    assert_eq!(node.cells.len(), 1);
                     let del_name = format!("DELAY.{}", intdb.wires.key(wire.1));
                     for val in ["0", "1"] {
                         ctx.build()
@@ -223,11 +223,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let egrid = ctx.edev.egrid();
     let intdb = egrid.db;
-    for (node_kind, name, node) in &intdb.nodes {
+    for (node_kind, name, node) in &intdb.tile_classes {
         if node.intfs.is_empty() {
             continue;
         }
-        if egrid.node_index[node_kind].is_empty() {
+        if egrid.tile_index[node_kind].is_empty() {
             continue;
         }
         let mut test_muxes = vec![];
@@ -235,14 +235,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for (&wire, intf) in &node.intfs {
             match intf {
                 prjcombine_interconnect::db::IntfInfo::OutputTestMux(inps) => {
-                    let mux_name = if node.tiles.len() == 1 {
+                    let mux_name = if node.cells.len() == 1 {
                         format!("MUX.{}", intdb.wires.key(wire.1))
                     } else {
                         format!("MUX.{}.{}", wire.0, intdb.wires.key(wire.1))
                     };
                     let mut mux_inps = vec![];
                     for &wire_from in inps {
-                        let in_name = if node.tiles.len() == 1 {
+                        let in_name = if node.cells.len() == 1 {
                             intdb.wires.key(wire_from.1).to_string()
                         } else {
                             format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))

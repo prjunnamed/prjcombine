@@ -5,7 +5,7 @@ use prjcombine_interconnect::grid::NodeLoc;
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_spartan6::bels;
-use prjcombine_types::tiledb::{TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileItem, TileItemKind};
 
 use crate::{
     backend::{IseBackend, MultiValue},

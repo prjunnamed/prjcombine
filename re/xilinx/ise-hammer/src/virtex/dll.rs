@@ -10,7 +10,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex::bels;
 use prjcombine_xilinx_bitstream::Reg;
 use unnamed_entity::EntityId;
@@ -71,15 +71,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for PinNodeMutexShared {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
-        let node_data = &backend.egrid.db.nodes[node.kind];
+        let node = backend.egrid.tile(nloc);
+        let node_data = &backend.egrid.db.tile_classes[node.class];
         let bel_data = &node_data.bels[self.0];
         let pin_data = &bel_data.pins[self.1];
         for &wire in &pin_data.wires {
-            let node = backend.egrid.node(nloc);
+            let node = backend.egrid.tile(nloc);
             let node = backend
                 .egrid
-                .resolve_wire((nloc.0, node.tiles[wire.0], wire.1))?;
+                .resolve_wire((nloc.0, node.cells[wire.0], wire.1))?;
             fuzzer = fuzzer.base(Key::NodeMutex(node), "SHARED");
         }
         Some((fuzzer, false))
@@ -100,7 +100,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzGlobalDll {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&nloc];
         let site = &nnode.bels[self.0];
         let opt = self.1;
         let ExpandedDevice::Virtex(edev) = backend.edev else {
@@ -130,7 +130,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             continue;
         };
         let mut bctx = ctx.bel(bels::DLL);
-        let cnr_tl = edev.egrid.get_node_by_kind(
+        let cnr_tl = edev.egrid.get_tile_by_class(
             DieId::from_idx(0),
             (edev.chip.col_w(), edev.chip.row_n()),
             |x| x == "CNR.TL",

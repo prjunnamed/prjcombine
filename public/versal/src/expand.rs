@@ -7,7 +7,7 @@ use unnamed_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
 use crate::chip::{
     Chip, CleKind, ColumnKind, DisabledPart, GtRowKind, HardRowKind, Interposer, RightKind,
 };
-use crate::expanded::{ExpandedDevice, SllConns, UbumpId};
+use crate::expanded::{ExpandedDevice, SllConns, UbumpId, REGION_LEAF};
 
 struct DieInfo {
     col_cfrm: ColId,
@@ -56,9 +56,9 @@ impl Expander<'_> {
                         continue;
                     }
                     if chip.col_side(col) == DirH::W {
-                        die.add_xnode((col, row), "INT", &[(col, row), (col + 1, row)]);
+                        die.add_tile((col, row), "INT", &[(col, row), (col + 1, row)]);
                         if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_n(reg) {
-                            die.add_xnode((col, row), "RCLK", &[(col, row), (col + 1, row)]);
+                            die.add_tile((col, row), "RCLK", &[(col, row), (col + 1, row)]);
                         }
                     }
                 }
@@ -72,12 +72,12 @@ impl Expander<'_> {
                     if chip.in_int_hole(col, row) || chip.in_int_hole(col + 1, row) {
                         continue;
                     }
-                    die.fill_term_pair((col, row), (col + 1, row), "MAIN.E", "MAIN.W");
+                    die.fill_conn_pair((col, row), (col + 1, row), "MAIN.E", "MAIN.W");
                     if col == chip.columns.last_id().unwrap() - 1 {
                         continue;
                     }
                     if chip.col_side(col) == DirH::W {
-                        die.fill_term_pair((col, row), (col + 2, row), "MAIN.LE", "MAIN.LW");
+                        die.fill_conn_pair((col, row), (col + 2, row), "MAIN.LE", "MAIN.LW");
                     }
                 }
             }
@@ -90,7 +90,7 @@ impl Expander<'_> {
                     if chip.in_int_hole(col, row) || chip.in_int_hole(col, row + 1) {
                         continue;
                     }
-                    die.fill_term_pair((col, row), (col, row + 1), "MAIN.N", "MAIN.S");
+                    die.fill_conn_pair((col, row), (col, row + 1), "MAIN.N", "MAIN.S");
                 }
             }
 
@@ -98,28 +98,28 @@ impl Expander<'_> {
                 let row_t = RowId::from_idx(di.ps_height);
                 for dx in 0..ps_width {
                     let col = ColId::from_idx(dx);
-                    die.fill_term((col, row_t), "TERM.S");
+                    die.fill_conn_term((col, row_t), "TERM.S");
                 }
             }
             for dy in 0..di.ps_height {
                 let row = RowId::from_idx(dy);
-                die.fill_term((di.col_cfrm, row), "TERM.W");
-                die.fill_term((di.col_cfrm, row), "TERM.LW");
+                die.fill_conn_term((di.col_cfrm, row), "TERM.W");
+                die.fill_conn_term((di.col_cfrm, row), "TERM.LW");
             }
 
             for col in die.cols() {
                 if col >= di.col_cfrm {
-                    die.fill_term((col, row_b), "TERM.S");
+                    die.fill_conn_term((col, row_b), "TERM.S");
                 }
-                die.fill_term((col, row_t), "TERM.N");
+                die.fill_conn_term((col, row_t), "TERM.N");
             }
             for row in die.rows() {
                 if row.to_idx() >= di.ps_height {
-                    die.fill_term((col_l, row), "TERM.W");
-                    die.fill_term((col_l, row), "TERM.LW");
+                    die.fill_conn_term((col_l, row), "TERM.W");
+                    die.fill_conn_term((col_l, row), "TERM.LW");
                 }
-                die.fill_term((col_r, row), "TERM.E");
-                die.fill_term((col_r - 1, row), "TERM.LE");
+                die.fill_conn_term((col_r, row), "TERM.E");
+                die.fill_conn_term((col_r - 1, row), "TERM.LE");
             }
         }
     }
@@ -161,20 +161,20 @@ impl Expander<'_> {
                             }
                             _ => unreachable!(),
                         };
-                        die.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
+                        die.add_tile((col, row), kind, &[(col, row), (col + 1, row)]);
                         if has_bli {
-                            die.fill_term((col, row), "CLE.BLI.E");
-                            die.fill_term((col + 1, row), "CLE.BLI.W");
+                            die.fill_conn_term((col, row), "CLE.BLI.E");
+                            die.fill_conn_term((col + 1, row), "CLE.BLI.W");
                         } else {
-                            die.fill_term((col, row), "CLE.E");
-                            die.fill_term((col + 1, row), "CLE.W");
+                            die.fill_conn_term((col, row), "CLE.E");
+                            die.fill_conn_term((col + 1, row), "CLE.W");
                         }
                         let reg = chip.row_to_reg(row);
                         if row.to_idx() % Chip::ROWS_PER_REG == 0 {
                             if chip.is_reg_half(reg) {
-                                die.add_xnode((col + 1, row), "RCLK_CLE.HALF", &[(col + 1, row)]);
+                                die.add_tile((col + 1, row), "RCLK_CLE.HALF", &[(col + 1, row)]);
                             } else if chip.is_reg_n(reg) {
-                                die.add_xnode(
+                                die.add_tile(
                                     (col + 1, row),
                                     "RCLK_CLE",
                                     &[(col + 1, row), (col + 1, row - 1)],
@@ -227,13 +227,13 @@ impl Expander<'_> {
                             }
                             _ => format!("INTF.{side}"),
                         };
-                        die.add_xnode((col, row), &kind, &[(col, row)]);
+                        die.add_tile((col, row), &kind, &[(col, row)]);
                     } else if matches!(cd.kind, ColumnKind::Cle(_))
                         && cd.has_bli_s
                         && row < row_b + 4
                     {
                         let idx = row - row_b;
-                        die.add_xnode(
+                        die.add_tile(
                             (col, row),
                             &format!("INTF.BLI_CLE.{side}.S.{idx}"),
                             &[(col, row)],
@@ -243,7 +243,7 @@ impl Expander<'_> {
                         && row > row_t - 4
                     {
                         let idx = row - (row_t - 3);
-                        die.add_xnode(
+                        die.add_tile(
                             (col, row),
                             &format!("INTF.BLI_CLE.{side}.N.{idx}"),
                             &[(col, row)],
@@ -258,13 +258,13 @@ impl Expander<'_> {
                             && matches!(chip.right, RightKind::Cidb))
                     {
                         if chip.is_reg_half(reg) {
-                            die.add_xnode(
+                            die.add_tile(
                                 (col, row),
                                 &format!("RCLK_INTF.{side}.HALF"),
                                 &[(col, row)],
                             );
                         } else {
-                            die.add_xnode(
+                            die.add_tile(
                                 (col, row),
                                 &format!("RCLK_INTF.{side}"),
                                 &[(col, row), (col, row - 1)],
@@ -274,15 +274,15 @@ impl Expander<'_> {
                             cd.kind,
                             ColumnKind::ContDsp | ColumnKind::Bram(_) | ColumnKind::Uram
                         ) {
-                            die.add_xnode((col, row), &format!("RCLK_DFX.{side}"), &[(col, row)]);
+                            die.add_tile((col, row), &format!("RCLK_DFX.{side}"), &[(col, row)]);
                         }
                         if cd.kind == ColumnKind::Hard {
                             let hc = chip.get_col_hard(col).unwrap();
                             if hc.regs[reg] == HardRowKind::Hdio {
-                                die.add_xnode((col, row), "RCLK_HDIO", &[]);
+                                die.add_tile((col, row), "RCLK_HDIO", &[]);
                             } else if reg.to_idx() % 2 != 0 && hc.regs[reg - 1] == HardRowKind::Hdio
                             {
-                                die.add_xnode((col, row), "RCLK_HB_HDIO", &[]);
+                                die.add_tile((col, row), "RCLK_HB_HDIO", &[]);
                             }
                         }
                     }
@@ -310,13 +310,13 @@ impl Expander<'_> {
                     }
 
                     if chip.col_side(col) == DirH::W {
-                        die.add_xnode(
+                        die.add_tile(
                             (col, row),
                             if chip.is_vr { "CLE_W.VR" } else { "CLE_W" },
                             &[(col, row), (col - 1, row)],
                         );
                     } else {
-                        die.add_xnode(
+                        die.add_tile(
                             (col, row),
                             if chip.is_vr { "CLE_E.VR" } else { "CLE_E" },
                             &[(col, row)],
@@ -347,7 +347,7 @@ impl Expander<'_> {
                     if chip.in_int_hole(col, row) {
                         continue;
                     }
-                    die.add_xnode(
+                    die.add_tile(
                         (col, row),
                         "DSP",
                         &[
@@ -382,7 +382,7 @@ impl Expander<'_> {
                     if chip.in_int_hole(col, row) {
                         continue;
                     }
-                    die.add_xnode(
+                    die.add_tile(
                         (col, row),
                         if chip.col_side(col) == DirH::W {
                             "BRAM_W"
@@ -417,7 +417,7 @@ impl Expander<'_> {
                         continue;
                     }
                     let reg = chip.row_to_reg(row);
-                    die.add_xnode(
+                    die.add_tile(
                         (col, row),
                         if chip.is_reg_n(reg) && row.to_idx() % Chip::ROWS_PER_REG == 44 {
                             "URAM_DELAY"
@@ -477,7 +477,7 @@ impl Expander<'_> {
                     for i in 0..height {
                         crd.push((hc.col + 1, row + i));
                     }
-                    die.add_xnode((hc.col, row), nk, &crd);
+                    die.add_tile((hc.col, row), nk, &crd);
                 }
             }
         }
@@ -510,20 +510,20 @@ impl Expander<'_> {
                     }
                     match cd.kind {
                         ColumnKind::VNoc => {
-                            die.add_xnode((col, row), "VNOC", &crd);
+                            die.add_tile((col, row), "VNOC", &crd);
                         }
                         ColumnKind::VNoc2 => {
-                            die.add_xnode((col, row), "VNOC2", &crd);
+                            die.add_tile((col, row), "VNOC2", &crd);
                         }
                         ColumnKind::VNoc4 => {
-                            die.add_xnode((col, row), "VNOC4", &crd);
+                            die.add_tile((col, row), "VNOC4", &crd);
                         }
                         _ => unreachable!(),
                     }
                     if chip.is_reg_n(reg) {
-                        die.add_xnode((col + 1, row), "MISR", &crd);
+                        die.add_tile((col + 1, row), "MISR", &crd);
                     } else {
-                        die.add_xnode((col, row), "SYSMON_SAT.VNOC", &crd);
+                        die.add_tile((col, row), "SYSMON_SAT.VNOC", &crd);
                     }
                 }
             }
@@ -541,8 +541,8 @@ impl Expander<'_> {
                     continue;
                 }
                 let crds: [_; Chip::ROWS_PER_REG] = core::array::from_fn(|dy| (col, row + dy));
-                die.add_xnode(crds[0], "SYSMON_SAT.LGT", &crds);
-                die.add_xnode(crds[0], "DPLL.LGT", &crds);
+                die.add_tile(crds[0], "SYSMON_SAT.LGT", &crds);
+                die.add_tile(crds[0], "DPLL.LGT", &crds);
                 // TODO: actual GT
             }
         }
@@ -577,10 +577,10 @@ impl Expander<'_> {
                             }
                             GtRowKind::Xram => unreachable!(),
                             GtRowKind::Vdu => {
-                                die.add_xnode(crds[0], "VDU.E", &crds);
+                                die.add_tile(crds[0], "VDU.E", &crds);
                             }
                             GtRowKind::BfrB => {
-                                die.add_xnode(crds[0], "BFR_B.E", &crds);
+                                die.add_tile(crds[0], "BFR_B.E", &crds);
                             }
                             GtRowKind::Isp2 => {
                                 // TODO
@@ -602,8 +602,8 @@ impl Expander<'_> {
             for reg in chip.regs() {
                 let row = chip.row_reg_bot(reg);
                 let crds: [_; Chip::ROWS_PER_REG] = core::array::from_fn(|dy| (col, row + dy));
-                die.add_xnode(crds[0], "SYSMON_SAT.RGT", &crds);
-                die.add_xnode(crds[0], "DPLL.RGT", &crds);
+                die.add_tile(crds[0], "SYSMON_SAT.RGT", &crds);
+                die.add_tile(crds[0], "DPLL.RGT", &crds);
             }
         }
     }
@@ -620,7 +620,7 @@ impl Expander<'_> {
                     } else {
                         chip.row_reg_hclk(reg) - 1
                     };
-                    die[(col, row)].clkroot = (col, crow);
+                    die[(col, row)].region_root[REGION_LEAF] = (col, crow);
                 }
             }
         }

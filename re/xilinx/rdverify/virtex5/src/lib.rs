@@ -1,7 +1,7 @@
 #![recursion_limit = "1024"]
 
 use prjcombine_interconnect::grid::{DieId, LayerId, RowId};
-use prjcombine_re_xilinx_naming::db::NodeRawTileId;
+use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
@@ -1431,14 +1431,14 @@ pub fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL2");
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL3");
     if endev.edev.col_rgt.is_none() {
-        let nnode = &endev.ngrid.nodes[&(
+        let nnode = &endev.ngrid.tiles[&(
             DieId::from_idx(0),
             endev.edev.chips.first().unwrap().columns.last_id().unwrap(),
             RowId::from_idx(0),
             LayerId::from_idx(0),
         )];
         let crd = vrf
-            .xlat_tile(&nnode.names[NodeRawTileId::from_idx(0)])
+            .xlat_tile(&nnode.names[RawTileId::from_idx(0)])
             .unwrap();
         vrf.claim_node(&[(crd, "ER2BEG0")]);
     }

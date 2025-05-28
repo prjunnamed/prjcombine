@@ -27,7 +27,7 @@ impl NodeRelation for ClbTbusRight {
             nloc.1 += 1;
             if let Some(layer) = backend
                 .egrid
-                .find_node_layer(nloc.0, (nloc.1, nloc.2), |kind| kind == "CLB")
+                .find_tile_layer(nloc.0, (nloc.1, nloc.2), |kind| kind == "CLB")
             {
                 nloc.3 = layer;
                 if let ExpandedDevice::Virtex2(edev) = backend.edev {

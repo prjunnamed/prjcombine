@@ -21,7 +21,7 @@ use prjcombine_re_xilinx_cpld::{
 };
 use prjcombine_types::{
     FbId, FbMcId, IoId,
-    tiledb::{Tile, TileBit, TileItem, TileItemKind},
+    bsdata::{Tile, TileBit, TileItem, TileItemKind},
 };
 use prjcombine_xc9500 as xc9500;
 use unnamed_entity::{EntityId, EntityVec};

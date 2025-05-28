@@ -7,7 +7,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex4::bels;
 use unnamed_entity::EntityId;
 
@@ -108,7 +108,7 @@ fn get_vrefs(backend: &IseBackend, nloc: NodeLoc) -> Vec<NodeLoc> {
         .into_iter()
         .map(|vref_row| {
             edev.egrid
-                .get_node_by_bel((die, (col, vref_row), bels::IOB0))
+                .get_tile_by_bel((die, (col, vref_row), bels::IOB0))
         })
         .collect()
 }
@@ -142,7 +142,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
         let hclk_ioi =
             backend
                 .egrid
-                .get_node_by_bel((nloc.0, (nloc.1, hclk_row), bels::IDELAYCTRL));
+                .get_tile_by_bel((nloc.0, (nloc.1, hclk_row), bels::IDELAYCTRL));
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_ioi, "VREF".to_string()),
             None,
@@ -185,7 +185,7 @@ fn get_vr(backend: &IseBackend, nloc: NodeLoc) -> NodeLoc {
         chip.row_reg_bot(reg) + 14
     };
     edev.egrid
-        .get_node_by_bel((nloc.0, (nloc.1, row), bels::IOB0))
+        .get_tile_by_bel((nloc.0, (nloc.1, row), bels::IOB0))
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -241,7 +241,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Take exclusive mutex on bank DCI.
         let hclk_ioi =
             edev.egrid
-                .get_node_by_kind(nloc.0, (nloc.1, chip.row_hclk(nloc.2)), |kind| {
+                .get_tile_by_class(nloc.0, (nloc.1, chip.row_hclk(nloc.2)), |kind| {
                     kind == "HCLK_IOI"
                 });
         fuzzer = fuzzer.fuzz(
@@ -282,7 +282,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
         }
         // Make note of anchor VCCO.
-        let hclk_ioi_center = edev.egrid.get_node_by_kind(
+        let hclk_ioi_center = edev.egrid.get_tile_by_class(
             nloc.0,
             (edev.col_lcio.unwrap(), chip.row_bufg() + 20),
             |kind| kind == "HCLK_IOI",
@@ -1224,13 +1224,13 @@ pub fn add_fuzzers<'a>(
             (edev.col_lcio.unwrap(), chip.row_bufg() + 6),
             bels::IOB0,
         );
-        let vr_node = edev.egrid.get_node_by_bel(vr_bel);
+        let vr_node = edev.egrid.get_tile_by_bel(vr_bel);
         let io_bel = (die, (edev.col_lcio.unwrap(), chip.row_bufg()), bels::IOB0);
-        let io_node = edev.egrid.get_node_by_bel(io_bel);
+        let io_node = edev.egrid.get_tile_by_bel(io_bel);
         let hclk_row = chip.row_hclk(io_node.2);
         let hclk_node =
             edev.egrid
-                .get_node_by_bel((die, (edev.col_lcio.unwrap(), hclk_row), bels::DCI));
+                .get_tile_by_bel((die, (edev.col_lcio.unwrap(), hclk_row), bels::DCI));
 
         // Ensure nothing is placed in VR.
         for bel in [bels::IOB0, bels::IOB1] {
@@ -1270,18 +1270,18 @@ pub fn add_fuzzers<'a>(
         let mut builder = ctx.build().raw(Key::Package, &package.name);
 
         let io_bel_from = (die, (edev.col_lcio.unwrap(), chip.row_bufg()), bels::IOB0);
-        let io_node_from = edev.egrid.get_node_by_bel(io_bel_from);
+        let io_node_from = edev.egrid.get_tile_by_bel(io_bel_from);
         let io_row_to = match bank_to {
             24 => edev.chips[die].row_bufg() - 40,
             26 => edev.chips[die].row_bufg() + 40,
             _ => unreachable!(),
         };
         let io_bel_to = (die, (edev.col_lcio.unwrap(), io_row_to), bels::IOB0);
-        let io_node_to = edev.egrid.get_node_by_bel(io_bel_to);
+        let io_node_to = edev.egrid.get_tile_by_bel(io_bel_to);
         let hclk_row_to = chip.row_hclk(io_row_to);
         let hclk_node_to =
             edev.egrid
-                .get_node_by_bel((die, (edev.col_lcio.unwrap(), hclk_row_to), bels::DCI));
+                .get_tile_by_bel((die, (edev.col_lcio.unwrap(), hclk_row_to), bels::DCI));
 
         // Ensure nothing else in the bank.
         let bot = chip.row_reg_bot(chip.row_to_reg(io_node_from.2));

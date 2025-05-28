@@ -10,7 +10,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let intdb = backend.egrid.db;
     for tile in ["GIGABIT10.B", "GIGABIT10.T"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        let bel_data = &intdb.nodes[ctx.node_kind.unwrap()].bels[bels::GT10];
+        let bel_data = &intdb.tile_classes[ctx.node_kind.unwrap()].bels[bels::GT10];
         let mut bctx = ctx.bel(bels::GT10);
         let mode = "GT10";
         bctx.test_manual("ENABLE", "1").mode(mode).commit();
@@ -165,10 +165,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let egrid = ctx.edev.egrid();
     for tile in ["GIGABIT10.B", "GIGABIT10.T"] {
-        let node_kind = egrid.db.get_node(tile);
+        let node_kind = egrid.db.get_tile_class(tile);
         let bel = "GT10";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
-        let bel_data = &egrid.db.nodes[node_kind].bels[bels::GT10];
+        let bel_data = &egrid.db.tile_classes[node_kind].bels[bels::GT10];
         for (pin, pin_data) in &bel_data.pins {
             if pin_data.dir != PinDir::Input {
                 continue;

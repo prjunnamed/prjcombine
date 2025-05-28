@@ -7,12 +7,12 @@ use std::{
 };
 
 use bitvec::prelude::*;
-use prjcombine_interconnect::grid::{ExpandedGrid, IntBel, IntWire, NodeLoc};
+use prjcombine_interconnect::grid::{ExpandedGrid, BelCoord, WireCoord, NodeLoc};
 use prjcombine_re_fpga_hammer::{Diff, FeatureData, FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_xilinx_xact_geom::Device;
 use prjcombine_re_xilinx_xact_naming::grid::{ExpandedGridNaming, PipCoords};
-use prjcombine_types::tiledb::TileBit;
+use prjcombine_types::bsdata::TileBit;
 use prjcombine_xc2000::expanded::ExpandedDevice;
 use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom, KeyData, parse};
 
@@ -44,8 +44,8 @@ pub enum Key<'a> {
     BlockPin(&'a str, String),
     Pip(PipCoords),
     GlobalOpt(String),
-    BelMutex(IntBel, String),
-    NodeMutex(IntWire),
+    BelMutex(BelCoord, String),
+    NodeMutex(WireCoord),
     GlobalMutex(String),
 }
 
@@ -55,7 +55,7 @@ pub enum Value<'a> {
     Bool(bool),
     String(String),
     FromPin(&'a str, String),
-    IntWire(IntWire),
+    IntWire(WireCoord),
     Lut(&'static [&'static str], BitVec),
 }
 
@@ -89,8 +89,8 @@ impl From<bool> for Value<'_> {
     }
 }
 
-impl From<IntWire> for Value<'_> {
-    fn from(value: IntWire) -> Self {
+impl From<WireCoord> for Value<'_> {
+    fn from(value: WireCoord) -> Self {
         Self::IntWire(value)
     }
 }

@@ -3,7 +3,7 @@ use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::TileItemKind;
+use prjcombine_types::bsdata::TileItemKind;
 use prjcombine_xc2000::bels::xc5200 as bels;
 use unnamed_entity::EntityId;
 
@@ -223,7 +223,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let row = edev.chip.row_s();
         let layer = edev
             .egrid
-            .find_node_layer(die, (col, row), |kind| kind == "CNR.BR")
+            .find_tile_layer(die, (col, row), |kind| kind == "CNR.BR")
             .unwrap();
         let cnr_br = (die, col, row, layer);
         bctx.mode("OSC")

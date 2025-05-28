@@ -12,7 +12,7 @@ struct Args {
     #[arg(short, long)]
     devices: bool,
     #[arg(short, long)]
-    grids: bool,
+    chips: bool,
     #[arg(short, long)]
     pkgs: bool,
 }
@@ -29,17 +29,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             ndb.print(&geom.ints[name], &mut std::io::stdout())?;
         }
     }
-    if args.grids || args.devices {
-        for (gid, grid) in &geom.chips {
-            print!("GRID {gid}:");
+    if args.chips || args.devices {
+        for (cid, chip) in &geom.chips {
+            print!("CHIP {cid}:");
             for dev in &geom.devices {
-                if dev.chip == gid {
+                if dev.chip == cid {
                     print!(" {dev}", dev = dev.name);
                 }
             }
             println!();
-            if args.grids {
-                print!("{grid}");
+            if args.chips {
+                print!("{chip}");
             }
         }
     }
@@ -61,7 +61,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if args.devices {
         for dev in &geom.devices {
-            println!("DEVICE {n} GRIDS {g}", n = dev.name, g = dev.chip);
+            println!("DEVICE {n} CHIP {g}", n = dev.name, g = dev.chip);
             for bond in &dev.bonds {
                 println!("\tBOND {n}: {i}", n = bond.name, i = bond.bond);
             }

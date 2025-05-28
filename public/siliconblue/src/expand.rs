@@ -4,7 +4,10 @@ use prjcombine_interconnect::{
 };
 use unnamed_entity::{EntityId, EntityVec};
 
-use crate::{chip::Chip, expanded::ExpandedDevice};
+use crate::{
+    chip::Chip,
+    expanded::{ExpandedDevice, REGION_GLOBAL},
+};
 
 impl Chip {
     pub fn expand_grid<'a>(&'a self, db: &'a IntDb) -> ExpandedDevice<'a> {
@@ -35,7 +38,7 @@ impl Chip {
                     } else if self.cols_bram.contains(&col) {
                         die.fill_tile((col, row), "INT.BRAM");
                         if (row.to_idx() - 1) % 2 == 0 {
-                            die.add_xnode((col, row), "BRAM", &[(col, row), (col, row + 1)]);
+                            die.add_tile((col, row), "BRAM", &[(col, row), (col, row + 1)]);
                         }
                     } else {
                         die.fill_tile((col, row), "PLB");
@@ -44,14 +47,14 @@ impl Chip {
             }
         }
 
-        die.add_xnode(
+        die.add_tile(
             (self.col_w(), self.row_s()),
             "GB_OUT",
             &[(self.col_w(), self.row_s())],
         );
 
         for (&loc, node) in &self.extra_nodes {
-            die.add_xnode(
+            die.add_tile(
                 *node.tiles.first().unwrap(),
                 &loc.node_kind(),
                 &Vec::from_iter(node.tiles.values().copied()),
@@ -62,7 +65,7 @@ impl Chip {
 
         for col in die.cols() {
             for row in die.rows() {
-                die[(col, row)].clkroot = (self.col_w(), self.row_s());
+                die[(col, row)].region_root[REGION_GLOBAL] = (self.col_w(), self.row_s());
             }
         }
 
@@ -83,7 +86,7 @@ impl Chip {
                             db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 3 - j)),
                         ))
                         .unwrap();
-                    egrid.xdie_wires.insert(wh, wv);
+                    egrid.extra_conns.insert(wh, wv);
                 }
             }
             for i in 0..4 {
@@ -102,7 +105,7 @@ impl Chip {
                             db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 4 - j)),
                         ))
                         .unwrap();
-                    egrid.xdie_wires.insert(wh, wv);
+                    egrid.extra_conns.insert(wh, wv);
                 }
             }
             for i in 0..4 {
@@ -121,7 +124,7 @@ impl Chip {
                             db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 3 - j)),
                         ))
                         .unwrap();
-                    egrid.xdie_wires.insert(wh, wv);
+                    egrid.extra_conns.insert(wh, wv);
                 }
             }
             for i in 0..4 {
@@ -140,7 +143,7 @@ impl Chip {
                             db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 4 - j)),
                         ))
                         .unwrap();
-                    egrid.xdie_wires.insert(wh, wv);
+                    egrid.extra_conns.insert(wh, wv);
                 }
             }
         } else {
@@ -164,7 +167,7 @@ impl Chip {
                         db.get_wire(&format!("QUAD.V{which}.{seg}")),
                     ))
                     .unwrap();
-                egrid.xdie_wires.insert(wh, wv);
+                egrid.extra_conns.insert(wh, wv);
             }
             for i in 0..16 {
                 let seg = i / 4;
@@ -187,7 +190,7 @@ impl Chip {
                         db.get_wire(&format!("QUAD.V{which}.{seg}")),
                     ))
                     .unwrap();
-                egrid.xdie_wires.insert(wh, wv);
+                egrid.extra_conns.insert(wh, wv);
             }
             for i in 0..16 {
                 let seg = 1 + i / 4;
@@ -209,7 +212,7 @@ impl Chip {
                         db.get_wire(&format!("QUAD.V{which}.{seg}")),
                     ))
                     .unwrap();
-                egrid.xdie_wires.insert(wh, wv);
+                egrid.extra_conns.insert(wh, wv);
             }
             for i in 0..16 {
                 let seg = 1 + i / 4;
@@ -232,7 +235,7 @@ impl Chip {
                         db.get_wire(&format!("QUAD.V{which}.{seg}")),
                     ))
                     .unwrap();
-                egrid.xdie_wires.insert(wh, wv);
+                egrid.extra_conns.insert(wh, wv);
             }
         }
 

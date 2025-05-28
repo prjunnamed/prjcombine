@@ -6,10 +6,16 @@ use prjcombine_re_xilinx_rawdump::Part;
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
-use prjcombine_spartan6::bels;
+use prjcombine_spartan6::{
+    bels,
+    expanded::{REGION_HCLK, REGION_LEAF},
+};
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
+
+    assert_eq!(builder.db.region_slots.insert("HCLK".into()).0, REGION_HCLK);
+    assert_eq!(builder.db.region_slots.insert("LEAF".into()).0, REGION_LEAF);
 
     for &slot in bels::SLOTS {
         builder.db.bel_slots.insert(slot.into());
@@ -22,7 +28,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..16 {
         builder.wire(
             format!("GCLK{i}"),
-            WireKind::ClkOut,
+            WireKind::Regional(REGION_LEAF),
             &[format!("GCLK{i}"), format!("GCLK{i}_BRK")],
         );
     }
@@ -328,7 +334,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     if let Some(&xy) = rd.tiles_by_kind_name("BRAMSITE2").iter().next() {
         let mut intf_xy = Vec::new();
-        let n = builder.ndb.get_node_naming("INTF");
+        let n = builder.ndb.get_tile_class_naming("INTF");
         for dy in 0..4 {
             intf_xy.push((xy.delta(-1, dy), n));
         }
@@ -349,7 +355,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     if let Some(&xy) = rd.tiles_by_kind_name("MACCSITE2").iter().next() {
         let mut intf_xy = Vec::new();
-        let n = builder.ndb.get_node_naming("INTF");
+        let n = builder.ndb.get_tile_class_naming("INTF");
         for dy in 0..4 {
             intf_xy.push((xy.delta(-1, dy), n));
         }
@@ -368,7 +374,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         builder.extract_xnode_bels_intf("DSP", xy, &[], &[], &intf_xy, "DSP", &[bel_dsp]);
     }
 
-    let intf_cnr = builder.ndb.get_node_naming("INTF.CNR");
+    let intf_cnr = builder.ndb.get_tile_class_naming("INTF.CNR");
     for (tkn, bels) in [
         (
             "LL",
@@ -434,7 +440,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extract();
     }
 
-    let intf_ioi = builder.ndb.get_node_naming("INTF.IOI");
+    let intf_ioi = builder.ndb.get_tile_class_naming("INTF.IOI");
     for (nn, tkn, naming, is_bt) in [
         ("IOI.LR", "LIOI", "LIOI", false),
         ("IOI.LR", "LIOI_BRK", "LIOI", false),
@@ -1168,7 +1174,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for tkn in ["MCB_L", "MCB_L_BOT"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let intf = builder.ndb.get_node_naming("INTF");
+            let intf = builder.ndb.get_tile_class_naming("INTF");
             let mut bels = vec![];
             let mut bel = builder
                 .bel_xy(bels::MCB, "MCB", 0, 0)
@@ -2153,7 +2159,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
 
-    let intf = builder.ndb.get_node_naming("INTF");
+    let intf = builder.ndb.get_tile_class_naming("INTF");
     for (tkn, bt, kind, slot, d0, d1, d2) in [
         (
             "CMT_DCM_BOT",
@@ -2552,8 +2558,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {
         let mut intf_xy = Vec::new();
-        let nr = builder.ndb.get_node_naming("INTF.RTERM");
-        let nl = builder.ndb.get_node_naming("INTF.LTERM");
+        let nr = builder.ndb.get_tile_class_naming("INTF.RTERM");
+        let nl = builder.ndb.get_tile_class_naming("INTF.LTERM");
         for dy in [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16] {
             intf_xy.push((xy.delta(-5, -9 + dy), nr));
         }
@@ -2574,8 +2580,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for tkn in ["GTPDUAL_BOT", "GTPDUAL_TOP"] {
         let is_b = tkn == "GTPDUAL_BOT";
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let intf_rterm = builder.ndb.get_node_naming("INTF.RTERM");
-            let intf_lterm = builder.ndb.get_node_naming("INTF.LTERM");
+            let intf_rterm = builder.ndb.get_tile_class_naming("INTF.RTERM");
+            let intf_lterm = builder.ndb.get_tile_class_naming("INTF.LTERM");
             let by = if is_b { 0 } else { -9 };
             let intfs_l: [_; 8] = core::array::from_fn(|i| {
                 builder

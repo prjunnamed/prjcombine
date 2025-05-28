@@ -1,11 +1,11 @@
 use prjcombine_interconnect::{
-    db::{BelSlotId, NodeTileId},
+    db::{BelSlotId, TileCellId},
     grid::{LayerId, NodeLoc},
 };
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind};
 use unnamed_entity::EntityId;
 
@@ -43,25 +43,25 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
         nloc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.node(nloc);
-        let node_data = &backend.egrid.db.nodes[node.kind];
+        let node = backend.egrid.tile(nloc);
+        let node_data = &backend.egrid.db.tile_classes[node.class];
         let bel_data = &node_data.bels[self.slot];
         let wire = *bel_data.pins[self.pin].wires.iter().next().unwrap();
         let res_wire = backend
             .egrid
-            .resolve_wire((nloc.0, node.tiles[wire.0], wire.1))
+            .resolve_wire((nloc.0, node.cells[wire.0], wire.1))
             .unwrap();
         fuzzer = fuzzer.fuzz(Key::NodeMutex(res_wire), None, "EXCLUSIVE");
         if self.drive {
             let oloc = (res_wire.0, res_wire.1.0, res_wire.1.1, LayerId::from_idx(0));
-            let onode = backend.egrid.node(oloc);
-            let onode_data = &backend.egrid.db.nodes[onode.kind];
-            let wt = (NodeTileId::from_idx(0), res_wire.2);
+            let onode = backend.egrid.tile(oloc);
+            let onode_data = &backend.egrid.db.tile_classes[onode.class];
+            let wt = (TileCellId::from_idx(0), res_wire.2);
             let mux = &onode_data.muxes[&wt];
             let wf = *mux.ins.iter().next().unwrap();
             let res_wf = backend
                 .egrid
-                .resolve_wire((oloc.0, onode.tiles[wf.0], wf.1))
+                .resolve_wire((oloc.0, onode.cells[wf.0], wf.1))
                 .unwrap();
             let (tile, wt, wf) = resolve_int_pip(backend, oloc, wt, wf).unwrap();
             fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true).fuzz(
@@ -78,7 +78,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
     };
-    for tile in backend.egrid.db.nodes.keys() {
+    for tile in backend.egrid.db.tile_classes.keys() {
         if !tile.starts_with("IO") {
             continue;
         }
@@ -184,7 +184,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Xc2000(edev) = ctx.edev else {
         unreachable!()
     };
-    for tile in edev.egrid.db.nodes.keys() {
+    for tile in edev.egrid.db.tile_classes.keys() {
         if !tile.starts_with("IO") {
             continue;
         }

@@ -5,7 +5,7 @@ use std::{
 
 use itertools::Itertools;
 use prjcombine_re_xilinx_geom::GeomDb;
-use prjcombine_types::tiledb::TileDb;
+use prjcombine_types::bsdata::BsData;
 use prjcombine_virtex::{
     bond::Bond,
     chip::{Chip, ChipKind, DisabledPart},
@@ -69,7 +69,7 @@ fn sort_key<'a>(name: &'a str, chip: &'a Chip) -> SortKey<'a> {
     }
 }
 
-pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
+pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     for dev in &geom.devices {
         let prjcombine_re_xilinx_geom::Chip::Virtex(ref chip) =
@@ -167,6 +167,6 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         bonds,
         parts,
         int,
-        tiles: tiledb,
+        bsdata: tiledb,
     }
 }

@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{IntDb, TermInfo, TermKind, WireKind},
+    db::{IntDb, ConnectorWire, ConnectorClass, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_rawdump::Part;
@@ -155,14 +155,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("CNR.UL", Dir::N, term_ul),
         ("CNR.UR", Dir::E, term_ur),
     ] {
-        let term = TermKind {
+        let term = ConnectorClass {
             slot: builder.term_slots[dir],
             wires: wires
                 .into_iter()
-                .map(|(a, b)| (a, TermInfo::PassNear(b)))
+                .map(|(a, b)| (a, ConnectorWire::Reflect(b)))
                 .collect(),
         };
-        builder.db.terms.insert_new(name.to_string(), term);
+        builder.db.conn_classes.insert_new(name.to_string(), term);
     }
 
     for i in [0, 6] {
@@ -609,7 +609,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ],
     );
 
-    let node_bot = builder.db.nodes.get_mut("IO.B").unwrap().1;
+    let node_bot = builder.db.tile_classes.get_mut("IO.B").unwrap().1;
     for mux in node_bot.muxes.values_mut() {
         mux.ins.retain(|&x| x.1 != bot_cin);
     }

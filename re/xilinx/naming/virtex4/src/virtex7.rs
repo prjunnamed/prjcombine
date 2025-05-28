@@ -352,15 +352,15 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         for col in die.cols() {
             for row in die.rows() {
                 let reg = chip.row_to_reg(row);
-                for (layer, node) in &die[(col, row)].nodes {
+                for (layer, node) in &die[(col, row)].tiles {
                     let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.nodes.key(node.kind);
+                    let kind = egrid.db.tile_classes.key(node.class);
                     let x = int_grid.xlut[col];
                     let y = int_grid.ylut[die.die][row];
                     let int_lr = if col.to_idx() % 2 == 0 { 'L' } else { 'R' };
                     match &kind[..] {
                         "INT" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 &format!("INT.{int_lr}"),
                                 [format!("INT_{int_lr}_X{x}Y{y}")],
@@ -371,14 +371,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "INTF" => match chip.columns[col] {
                             ColumnKind::ClbLL => {
-                                ngrid.name_node(
+                                ngrid.name_tile(
                                     nloc,
                                     "INTF.PSS",
                                     [format!("INT_INTERFACE_PSS_{int_lr}_X{x}Y{y}")],
                                 );
                             }
                             ColumnKind::Io => {
-                                ngrid.name_node(
+                                ngrid.name_tile(
                                     nloc,
                                     &format!("INTF.{int_lr}"),
                                     [format!("IO_INT_INTERFACE_{int_lr}_X{x}Y{y}")],
@@ -388,7 +388,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             | ColumnKind::Cfg
                             | ColumnKind::Cmt
                             | ColumnKind::Clk => {
-                                ngrid.name_node(
+                                ngrid.name_tile(
                                     nloc,
                                     &format!("INTF.{int_lr}"),
                                     [format!("INT_INTERFACE_{int_lr}_X{x}Y{y}")],
@@ -397,7 +397,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             _ => unreachable!(),
                         },
                         "INTF.BRAM" => {
-                            ngrid.name_node(
+                            ngrid.name_tile(
                                 nloc,
                                 &format!("INTF.{int_lr}"),
                                 [format!("BRAM_INT_INTERFACE_{int_lr}_X{x}Y{y}")],
@@ -411,13 +411,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 if let Some(kind) = gtcol.regs[reg] {
                                     if gtcol.is_middle {
                                         if col < edev.col_clk {
-                                            ngrid.name_node(
+                                            ngrid.name_tile(
                                                 nloc,
                                                 "INTF.GTP_R",
                                                 [format!("GTP_INT_INTERFACE_R_X{x}Y{y}")],
                                             );
                                         } else {
-                                            ngrid.name_node(
+                                            ngrid.name_tile(
                                                 nloc,
                                                 "INTF.GTP_L",
                                                 [format!("GTP_INT_INTERFACE_L_X{x}Y{y}")],
@@ -430,13 +430,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                             GtKind::Gth => "GTH",
                                         };
                                         if col.to_idx() == 0 {
-                                            ngrid.name_node(
+                                            ngrid.name_tile(
                                                 nloc,
                                                 &format!("INTF.{gkind}_L"),
                                                 [format!("{gkind}_INT_INTERFACE_L_X{x}Y{y}")],
                                             );
                                         } else {
-                                            ngrid.name_node(
+                                            ngrid.name_tile(
                                                 nloc,
                                                 &format!("INTF.{gkind}"),
                                                 [format!("{gkind}_INT_INTERFACE_X{x}Y{y}")],
@@ -451,7 +451,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     continue;
                                 }
                                 if col == pcie2.col {
-                                    ngrid.name_node(
+                                    ngrid.name_tile(
                                         nloc,
                                         "INTF.PCIE_R",
                                         [format!("PCIE_INT_INTERFACE_R_X{x}Y{y}")],
@@ -460,14 +460,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 } else if col == pcie2.col + 3 {
                                     match pcie2.kind {
                                         Pcie2Kind::Left => {
-                                            ngrid.name_node(
+                                            ngrid.name_tile(
                                                 nloc,
                                                 "INTF.PCIE_LEFT_L",
                                                 [format!("PCIE_INT_INTERFACE_LEFT_L_X{x}Y{y}")],
                                             );
                                         }
                                         Pcie2Kind::Right => {
-                                            ngrid.name_node(
+                                            ngrid.name_tile(
                                                 nloc,
                                                 "INTF.PCIE_L",
                                                 [format!("PCIE_INT_INTERFACE_L_X{x}Y{y}")],
@@ -482,14 +482,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     continue;
                                 }
                                 if col == pcol {
-                                    ngrid.name_node(
+                                    ngrid.name_tile(
                                         nloc,
                                         "INTF.PCIE3_R",
                                         [format!("PCIE3_INT_INTERFACE_R_X{x}Y{y}")],
                                     );
                                     break 'intf;
                                 } else if col == pcol + 5 {
-                                    ngrid.name_node(
+                                    ngrid.name_tile(
                                         nloc,
                                         "INTF.PCIE3_L",
                                         [format!("PCIE3_INT_INTERFACE_L_X{x}Y{y}")],
@@ -529,7 +529,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             if hole_top {
                                 suf = "_TOP_UTURN";
                             }
-                            ngrid.name_node(
+                            ngrid.name_tile(
                                 nloc,
                                 "HCLK",
                                 [
@@ -539,7 +539,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                         }
                         "INT_LCLK" => {
-                            ngrid.name_node(
+                            ngrid.name_tile(
                                 nloc,
                                 "INT_LCLK",
                                 [
@@ -549,7 +549,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                         }
                         "CLBLL" | "CLBLM" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 &format!("{kind}_{int_lr}"),
                                 [format!("{kind}_{int_lr}_X{x}Y{y}")],
@@ -561,7 +561,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bels::SLICE1, format!("SLICE_X{sx1}Y{sy}"));
                         }
                         "BRAM" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 &format!("BRAM_{int_lr}"),
                                 [format!("BRAM_{int_lr}_X{x}Y{y}")],
@@ -582,7 +582,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 raw_grid.xlut[col] + 2
                             };
                             let hy = raw_grid.ylut[die.die][row] - 1;
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 "PMVBRAM",
                                 [
@@ -603,7 +603,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 raw_grid.xlut[col] + 2
                             };
                             let hy = raw_grid.ylut[die.die][row] - 1;
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 "PMVBRAM_NC",
                                 [format!("HCLK_BRAM_X{hx}Y{hy}")],
@@ -613,7 +613,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bels::PMVBRAM_NC, format!("PMVBRAM_X{bx}Y{by}"));
                         }
                         "DSP" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 &format!("DSP_{int_lr}"),
                                 [format!("DSP_{int_lr}_X{x}Y{y}")],
@@ -638,7 +638,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 ("PCIE_R", "", raw_grid.xlut[col] + 2)
                             };
                             let ry = raw_grid.ylut[die.die][row];
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 naming,
                                 [
@@ -653,7 +653,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         "PCIE3" => {
                             let rx = raw_grid.xlut[col] + 2;
                             let ry = raw_grid.ylut[die.die][row];
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 "PCIE3",
                                 [
@@ -714,7 +714,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     format!("{iob_tk}_X{rxiob}Y{ry}"),
                                 )
                             };
-                            let nnode = ngrid.name_node(nloc, &ioi_tk, [name, name_iob]);
+                            let nnode = ngrid.name_tile(nloc, &ioi_tk, [name, name_iob]);
                             let iox = io_grid.xlut[col];
                             let ioy0 = io_grid.ylut[die.die][row];
                             let ioy1 = io_grid.ylut[die.die][row] + 1;
@@ -791,7 +791,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 )
                             };
 
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [
@@ -832,7 +832,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 raw_grid.xlut[col] + 2
                             };
                             let ry = raw_grid.ylut[die.die][row];
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 naming,
                                 [format!("{naming}_X{rx}Y{ry}", ry = ry + 6)],
@@ -850,7 +850,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             } else {
                                 raw_grid.xlut[col] + 3
                             };
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 naming,
                                 [
@@ -916,7 +916,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 x = raw_grid.xlut[col] + 2,
                                 y = raw_grid.ylut[die.die][row],
                             );
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             for i in 0..16 {
                                 nnode.add_bel(
                                     bels::GCLK_TEST_BUF_REBUF_S[i],
@@ -943,7 +943,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 rx = raw_grid.xlut[col] + 2,
                                 ry = raw_grid.ylut[die.die][row + 8],
                             );
-                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(nloc, kind, [name]);
                             let ctb_y = tie_grid.ylut[die.die][row] / 50 * 48
                                 + if row.to_idx() % 50 < 25 { 0 } else { 32 };
                             let bglb_y = if edev.interposer.unwrap().gtz_bot && reg.to_idx() != 0 {
@@ -990,7 +990,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 x = raw_grid.xlut[col] + 2,
                                 y = raw_grid.ylut[die.die][row] - 1,
                             );
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             for i in 0..32 {
                                 nnode.add_bel(
                                     bels::GCLK_TEST_BUF_HROW_GCLK[i],
@@ -1033,7 +1033,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 x = raw_grid.xlut[col] + 2,
                                 y = raw_grid.ylut[die.die][row]
                             );
-                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let nnode = ngrid.name_tile(nloc, naming, [name]);
                             let bg_y = bufg_grid.ylut[die.die][row] * 16;
                             for i in 0..16 {
                                 nnode.add_bel(
@@ -1043,7 +1043,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "CLK_PMV" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [format!(
@@ -1058,7 +1058,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                         }
                         "CLK_PMVIOB" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [format!(
@@ -1072,7 +1072,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bels::PMVIOB, format!("PMVIOB_X{pmvx}Y{pmvy}"));
                         }
                         "CLK_PMV2_SVT" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [format!(
@@ -1087,7 +1087,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                         }
                         "CLK_PMV2" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [format!(
@@ -1102,7 +1102,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                         }
                         "CLK_MTBF2" => {
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [format!(
@@ -1123,7 +1123,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 "_SLAVE"
                             };
                             let rx = raw_grid.xlut[col] - 1;
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [
@@ -1208,7 +1208,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     ),
                                 ]);
                             }
-                            let nnode = ngrid.name_node(nloc, naming, names);
+                            let nnode = ngrid.name_tile(nloc, naming, names);
                             let ipx = ipad_grid.xlut[col];
                             let ipy0 = ipad_grid.ylut[die.die][row];
                             let ipy1 = ipy0 + 1;
@@ -1221,7 +1221,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "PS" => {
                             let rx = raw_grid.xlut[col] - 18;
-                            let nnode = ngrid.name_node(
+                            let nnode = ngrid.name_tile(
                                 nloc,
                                 "PS",
                                 [
@@ -1367,7 +1367,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             };
                             let ry = raw_grid.ylut[die.die][row + 5];
                             let nnode =
-                                ngrid.name_node(nloc, &naming, [format!("{naming}_X{rx}Y{ry}")]);
+                                ngrid.name_tile(nloc, &naming, [format!("{naming}_X{rx}Y{ry}")]);
                             let gtx = gt_grid.xlut[col];
                             let gty = gt_grid.ylut[die.die][row];
                             let ipx = ipad_grid.xlut[col];
@@ -1412,7 +1412,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             };
                             let ry = raw_grid.ylut[die.die][row - 3];
                             let nnode =
-                                ngrid.name_node(nloc, &naming, [format!("{naming}_X{rx}Y{ry}")]);
+                                ngrid.name_tile(nloc, &naming, [format!("{naming}_X{rx}Y{ry}")]);
                             let gtx = gtc_grid.xlut[col];
                             let gty = gtc_grid.ylut[die.die][row];
                             let ipx = ipad_grid.xlut[col];
@@ -1437,7 +1437,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "BRKH_GTX" => {
                             let gtcol = chip.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
-                            ngrid.name_node(
+                            ngrid.name_tile(
                                 nloc,
                                 kind,
                                 [if gtcol.regs[reg - 1].is_none() {
@@ -1455,20 +1455,20 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         _ => panic!("how to {kind}"),
                     }
                 }
-                for (slot, term) in &die[(col, row)].terms {
+                for (slot, term) in &die[(col, row)].conns {
                     let tloc = (die.die, col, row, slot);
-                    let kind = egrid.db.terms.key(term.kind);
+                    let kind = egrid.db.conn_classes.key(term.class);
                     let x = int_grid.xlut[col];
                     let y = int_grid.ylut[die.die][row];
 
                     match &kind[..] {
                         "BRKH.S" => {
                             let name = format!("BRKH_INT_X{x}Y{y}", y = y - 1);
-                            ngrid.name_term_tile(tloc, "BRKH.N", name);
+                            ngrid.name_conn_tile(tloc, "BRKH.N", name);
                         }
                         "BRKH.N" => {
                             let name = format!("BRKH_INT_X{x}Y{y}");
-                            ngrid.name_term_tile(tloc, "BRKH.S", name);
+                            ngrid.name_conn_tile(tloc, "BRKH.S", name);
                         }
                         _ => (),
                     }

@@ -1,59 +1,59 @@
 use std::collections::BTreeMap;
 
-use prjcombine_interconnect::db::{BelSlotId, IntDb, NodeIriId, NodeWireId, WireId};
+use prjcombine_interconnect::db::{BelSlotId, IntDb, TileIriId, TileClassWire, WireId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
 
 entity_id! {
-    pub id NodeNamingId u16, reserve 1;
-    pub id TermNamingId u16, reserve 1;
-    pub id NodeRawTileId u16, reserve 1;
+    pub id TileClassNamingId u16, reserve 1;
+    pub id ConnectorClassNamingId u16, reserve 1;
+    pub id RawTileId u16, reserve 1;
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct NamingDb {
-    pub node_namings: EntityMap<NodeNamingId, String, NodeNaming>,
-    pub term_namings: EntityMap<TermNamingId, String, TermNaming>,
+    pub tile_class_namings: EntityMap<TileClassNamingId, String, TileClassNaming>,
+    pub conn_class_namings: EntityMap<ConnectorClassNamingId, String, ConnectorClassNaming>,
 }
 
 impl NamingDb {
     #[track_caller]
-    pub fn get_node_naming(&self, name: &str) -> NodeNamingId {
-        self.node_namings
+    pub fn get_tile_class_naming(&self, name: &str) -> TileClassNamingId {
+        self.tile_class_namings
             .get(name)
-            .unwrap_or_else(|| panic!("no node naming {name}"))
+            .unwrap_or_else(|| panic!("no tile class naming {name}"))
             .0
     }
     #[track_caller]
-    pub fn get_term_naming(&self, name: &str) -> TermNamingId {
-        self.term_namings
+    pub fn get_conn_class_naming(&self, name: &str) -> ConnectorClassNamingId {
+        self.conn_class_namings
             .get(name)
-            .unwrap_or_else(|| panic!("no term naming {name}"))
+            .unwrap_or_else(|| panic!("no conn class naming {name}"))
             .0
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
-pub struct NodeNaming {
-    pub wires: BTreeMap<NodeWireId, String>,
-    pub wire_bufs: BTreeMap<NodeWireId, NodeExtPipNaming>,
-    pub ext_pips: BTreeMap<(NodeWireId, NodeWireId), NodeExtPipNaming>,
+pub struct TileClassNaming {
+    pub wires: BTreeMap<TileClassWire, String>,
+    pub wire_bufs: BTreeMap<TileClassWire, PipNaming>,
+    pub ext_pips: BTreeMap<(TileClassWire, TileClassWire), PipNaming>,
     pub bels: EntityPartVec<BelSlotId, BelNaming>,
-    pub iris: EntityVec<NodeIriId, IriNaming>,
-    pub intf_wires_out: BTreeMap<NodeWireId, IntfWireOutNaming>,
-    pub intf_wires_in: BTreeMap<NodeWireId, IntfWireInNaming>,
+    pub iris: EntityVec<TileIriId, IriNaming>,
+    pub intf_wires_out: BTreeMap<TileClassWire, IntfWireOutNaming>,
+    pub intf_wires_in: BTreeMap<TileClassWire, IntfWireInNaming>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct NodeExtPipNaming {
-    pub tile: NodeRawTileId,
+pub struct PipNaming {
+    pub tile: RawTileId,
     pub wire_to: String,
     pub wire_from: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BelNaming {
-    pub tile: NodeRawTileId,
+    pub tile: RawTileId,
     pub pins: BTreeMap<String, BelPinNaming>,
 }
 
@@ -61,14 +61,14 @@ pub struct BelNaming {
 pub struct BelPinNaming {
     pub name: String,
     pub name_far: String,
-    pub pips: Vec<NodeExtPipNaming>,
-    pub int_pips: BTreeMap<NodeWireId, NodeExtPipNaming>,
+    pub pips: Vec<PipNaming>,
+    pub int_pips: BTreeMap<TileClassWire, PipNaming>,
     pub is_intf_out: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IriNaming {
-    pub tile: NodeRawTileId,
+    pub tile: RawTileId,
     pub kind: String,
 }
 
@@ -113,20 +113,20 @@ pub enum IntfWireInNaming {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
-pub struct TermNaming {
-    pub wires_out: EntityPartVec<WireId, TermWireOutNaming>,
+pub struct ConnectorClassNaming {
+    pub wires_out: EntityPartVec<WireId, ConnectorWireOutNaming>,
     pub wires_in_near: EntityPartVec<WireId, String>,
-    pub wires_in_far: EntityPartVec<WireId, TermWireInFarNaming>,
+    pub wires_in_far: EntityPartVec<WireId, ConnectorWireInFarNaming>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum TermWireOutNaming {
+pub enum ConnectorWireOutNaming {
     Simple { name: String },
     Buf { name_out: String, name_in: String },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum TermWireInFarNaming {
+pub enum ConnectorWireInFarNaming {
     Simple {
         name: String,
     },
@@ -143,8 +143,8 @@ pub enum TermWireInFarNaming {
 
 impl NamingDb {
     pub fn print(&self, intdb: &IntDb, o: &mut dyn std::io::Write) -> std::io::Result<()> {
-        for (_, name, naming) in &self.node_namings {
-            writeln!(o, "\tNODE NAMING {name}")?;
+        for (_, name, naming) in &self.tile_class_namings {
+            writeln!(o, "\tTILE NAMING {name}")?;
             for (k, v) in &naming.wires {
                 writeln!(
                     o,
@@ -283,13 +283,13 @@ impl NamingDb {
                 }
             }
         }
-        for (_, name, naming) in &self.term_namings {
-            writeln!(o, "\tTERM NAMING {name}")?;
+        for (_, name, naming) in &self.conn_class_namings {
+            writeln!(o, "\tCONN NAMING {name}")?;
             for (w, wn) in &naming.wires_out {
                 write!(o, "\t\tWIRE OUT {w}: ", w = intdb.wires.key(w))?;
                 match wn {
-                    TermWireOutNaming::Simple { name } => writeln!(o, "{name}")?,
-                    TermWireOutNaming::Buf { name_out, name_in } => {
+                    ConnectorWireOutNaming::Simple { name } => writeln!(o, "{name}")?,
+                    ConnectorWireOutNaming::Buf { name_out, name_in } => {
                         writeln!(o, "{name_out} <- {name_in}")?
                     }
                 }
@@ -300,11 +300,11 @@ impl NamingDb {
             for (w, wn) in &naming.wires_in_far {
                 write!(o, "\t\tWIRE IN FAR {w}: ", w = intdb.wires.key(w))?;
                 match wn {
-                    TermWireInFarNaming::Simple { name } => writeln!(o, "{name}")?,
-                    TermWireInFarNaming::Buf { name_out, name_in } => {
+                    ConnectorWireInFarNaming::Simple { name } => writeln!(o, "{name}")?,
+                    ConnectorWireInFarNaming::Buf { name_out, name_in } => {
                         writeln!(o, "{name_out} <- {name_in}")?
                     }
-                    TermWireInFarNaming::BufFar {
+                    ConnectorWireInFarNaming::BufFar {
                         name,
                         name_far_out,
                         name_far_in,
