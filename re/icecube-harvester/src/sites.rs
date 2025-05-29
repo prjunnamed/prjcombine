@@ -755,6 +755,10 @@ pub fn find_bel_pins(
                                 | "INPUTCLK"
                                 | "OUTPUTCLK"
                                 | "LATCHINPUTVALUE"
+                                | "DOUT0"
+                                | "D_OUT_0"
+                                | "DOUT1"
+                                | "D_OUT_1"
                         )
                     {
                         continue;
