@@ -1,12 +1,13 @@
 use prjcombine_interconnect::{
     db::IntDb,
+    dir::Dir,
     grid::{DieId, ExpandedGrid},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::{
-    chip::Chip,
-    expanded::{ExpandedDevice, REGION_GLOBAL},
+    chip::{Chip, ExtraNodeLoc},
+    expanded::{ExpandedDevice, REGION_COLBUF, REGION_GLOBAL},
 };
 
 impl Chip {
@@ -20,28 +21,56 @@ impl Chip {
             for row in die.rows() {
                 if row == self.row_s() {
                     if col == self.col_w() || col == self.col_e() {
-                        die.fill_tile((col, row), "CNR");
+                        // empty corner
                     } else {
-                        die.fill_tile((col, row), "IO.S");
+                        die.fill_tile((col, row), self.kind.tile_class_ioi(Dir::S).unwrap());
+                        die.add_tile(
+                            (col, row),
+                            self.kind.tile_class_iob(Dir::S).unwrap(),
+                            &[(col, row)],
+                        );
                     }
                 } else if row == self.row_n() {
                     if col == self.col_w() || col == self.col_e() {
-                        die.fill_tile((col, row), "CNR");
+                        // empty corner
                     } else {
-                        die.fill_tile((col, row), "IO.N");
+                        die.fill_tile((col, row), self.kind.tile_class_ioi(Dir::N).unwrap());
+                        die.add_tile(
+                            (col, row),
+                            self.kind.tile_class_iob(Dir::N).unwrap(),
+                            &[(col, row)],
+                        );
                     }
                 } else {
-                    if self.kind.has_io_we() && col == self.col_w() {
-                        die.fill_tile((col, row), "IO.W");
-                    } else if self.kind.has_io_we() && col == self.col_e() {
-                        die.fill_tile((col, row), "IO.E");
+                    if self.kind.has_ioi_we() && col == self.col_w() {
+                        die.fill_tile((col, row), self.kind.tile_class_ioi(Dir::W).unwrap());
+                        if self.kind.has_iob_we() {
+                            die.add_tile(
+                                (col, row),
+                                self.kind.tile_class_iob(Dir::W).unwrap(),
+                                &[(col, row)],
+                            );
+                        }
+                    } else if self.kind.has_ioi_we() && col == self.col_e() {
+                        die.fill_tile((col, row), self.kind.tile_class_ioi(Dir::E).unwrap());
+                        if self.kind.has_iob_we() {
+                            die.add_tile(
+                                (col, row),
+                                self.kind.tile_class_iob(Dir::E).unwrap(),
+                                &[(col, row)],
+                            );
+                        }
                     } else if self.cols_bram.contains(&col) {
-                        die.fill_tile((col, row), "INT.BRAM");
+                        die.fill_tile((col, row), "INT_BRAM");
                         if (row.to_idx() - 1) % 2 == 0 {
-                            die.add_tile((col, row), "BRAM", &[(col, row), (col, row + 1)]);
+                            die.add_tile(
+                                (col, row),
+                                self.kind.tile_class_bram(),
+                                &[(col, row), (col, row + 1)],
+                            );
                         }
                     } else {
-                        die.fill_tile((col, row), "PLB");
+                        die.fill_tile((col, row), self.kind.tile_class_plb());
                     }
                 }
             }
@@ -49,27 +78,67 @@ impl Chip {
 
         die.add_tile(
             (self.col_w(), self.row_s()),
-            "GB_OUT",
+            self.kind.tile_class_gb_root(),
             &[(self.col_w(), self.row_s())],
         );
 
         for (&loc, node) in &self.extra_nodes {
+            if matches!(loc, ExtraNodeLoc::GbIo(..)) {
+                continue;
+            }
             die.add_tile(
                 *node.tiles.first().unwrap(),
-                &loc.node_kind(),
+                &loc.tile_class(self.kind),
                 &Vec::from_iter(node.tiles.values().copied()),
             );
         }
 
-        die.fill_main_passes();
+        for col in die.cols() {
+            for row in die.rows() {
+                if col != self.col_w() {
+                    die.fill_conn_pair((col - 1, row), (col, row), "PASS_E", "PASS_W");
+                }
+                if row != self.row_s() {
+                    die.fill_conn_pair((col, row - 1), (col, row), "PASS_N", "PASS_S");
+                }
+            }
+        }
 
         for col in die.cols() {
             for row in die.rows() {
                 die[(col, row)].region_root[REGION_GLOBAL] = (self.col_w(), self.row_s());
+                die[(col, row)].region_root[REGION_COLBUF] = (self.col_w(), self.row_s());
             }
         }
 
-        if self.kind.has_io_we() {
+        for &(row_m, row_b, row_t) in &self.rows_colbuf {
+            for col in die.cols() {
+                for row in row_b.range(row_t) {
+                    let row_cb = if row < row_m {
+                        if self.cols_bram.contains(&col) && !self.kind.has_ice40_bramv2() {
+                            row_m - 2
+                        } else {
+                            row_m - 1
+                        }
+                    } else {
+                        row_m
+                    };
+                    die[(col, row)].region_root[REGION_COLBUF] = (col, row_cb);
+                    if row == row_cb {
+                        let tcls = if self.kind.has_ioi_we() && col == self.col_w() {
+                            "COLBUF_IO_W"
+                        } else if self.kind.has_ioi_we() && col == self.col_e() {
+                            "COLBUF_IO_E"
+                        } else {
+                            self.kind.tile_class_colbuf().unwrap()
+                        };
+                        die.add_tile((col, row), tcls, &[(col, row)]);
+                    }
+                }
+            }
+        }
+
+        if self.kind.has_ioi_we() {
             for i in 0..4 {
                 for j in 0..4 {
                     let wh = egrid

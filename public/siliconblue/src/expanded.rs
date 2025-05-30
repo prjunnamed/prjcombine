@@ -10,6 +10,7 @@ use crate::{
 };
 
 pub const REGION_GLOBAL: RegionSlotId = RegionSlotId::from_idx_const(0);
+pub const REGION_COLBUF: RegionSlotId = RegionSlotId::from_idx_const(1);
 
 pub struct ExpandedDevice<'a> {
     pub chip: &'a Chip,
@@ -165,7 +166,7 @@ impl ExpandedDevice<'_> {
                 self.btile_main(col, row + 1),
                 self.btile_bram(col, row),
             ]
-        } else if kind == "GB_OUT" {
+        } else if kind == "GB_ROOT" {
             self.btile_clock().to_vec()
         } else if kind == "PLL_S" && self.chip.kind.is_ice65() {
             self.btile_pll().to_vec()

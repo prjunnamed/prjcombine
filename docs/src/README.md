@@ -29,7 +29,7 @@ Project Combine consists of:
    The public crates include:
 
    - `prjcombine-types`: common data types used across multiple targets
-     - `tiledb`: bitstream format description (for the databases)
+     - `bsdata`: bitstream format description (for the databases)
      - `speed`: raw speed data description (for the databases)
      - `units`: newtypes over `f64` associated with physical units (used for speed data)
      - `bscan`: boundary scan chain description
@@ -47,19 +47,9 @@ Project Combine consists of:
 
 The currently supported top-level FPGA targets and their corresponding crates are:
 
-- `prjcombine-siliconblue`: SiliconBlue / Lattice iCE40 and iCE65 FPGAs; has one database per chip:
+- `prjcombine-siliconblue`: SiliconBlue / Lattice iCE40 and iCE65 FPGAs; has one database:
 
-  - `ice65l01`: iCE65L01
-  - `ice65l04`: iCE65L04
-  - `ice65p04`: iCE65P04
-  - `ice65l08`: iCE65L08
-  - `ice40p01`: iCE40LP1K, iCE40LP640, iCE40HX1K, iCE40HX640
-  - `ice40p08`: iCE40LP8K, iCE40LP4K, iCE40HX8K, iCE40HX4K
-  - `ice40p03`: iCE40LP384
-  - `ice40r04`: iCE40LM4K, iCE40LM2K, iCE40LM1K
-  - `ice40t04`: iCE5LP4K, iCE5LP2K, iCE5LP1K
-  - `ice40t05`: iCE40UP5K, iCE40UP3K
-  - `ice40t01`: iCE40UL1K, iCE40UL640
+  - `siliconblue`: iCE65, iCE40
 
   Status:
 

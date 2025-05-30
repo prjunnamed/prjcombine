@@ -15,7 +15,7 @@ use prjcombine_siliconblue::{
     chip::{ChipKind, ExtraNodeLoc},
     expanded::{BitOwner, ExpandedDevice},
 };
-use prjcombine_types::bsdata::{TileBit, BsData, TileItem};
+use prjcombine_types::bsdata::{BsData, TileBit, TileItem};
 use unnamed_entity::EntityId;
 
 pub fn collect_iob(
@@ -50,7 +50,8 @@ pub fn collect_iob(
                 }));
                 let edge = anchor.edge();
                 let iob = anchor.iob();
-                harvester.force_tiled(format!("IO.{edge}:IOB{iob}:{attrval}"), bits);
+                let tile = edev.chip.kind.tile_class_iob(edge).unwrap();
+                harvester.force_tiled(format!("{tile}:IOB{iob}:{attrval}"), bits);
             }
         }
         let mut res = BTreeMap::new();
@@ -80,7 +81,8 @@ pub fn collect_iob(
                 };
                 for iob in 0..2 {
                     let iob = TileIobId::from_idx(iob);
-                    if harvester.known_tiled[&format!("IO.{edge}:IOB{iob}:{attrval}")] == bits {
+                    let tile = edev.chip.kind.tile_class_iob(edge).unwrap();
+                    if harvester.known_tiled[&format!("{tile}:IOB{iob}:{attrval}")] == bits {
                         let loc = match edge {
                             Dir::W => {
                                 assert_eq!(col, edev.chip.col_w());
@@ -185,7 +187,10 @@ pub fn collect(
             let wtn = edev.egrid.db.wires.key(wt);
             let mux_name = format!("MUX.{wtn}");
             let mut values = vec![];
-            if tile == "PLB" && wtn.starts_with("IMUX.LC") && wtn.ends_with(".I3") {
+            if tile == edev.chip.kind.tile_class_plb()
+                && wtn.starts_with("IMUX.LC")
+                && wtn.ends_with(".I3")
+            {
                 values.push("CI");
             }
             for &(_, wf) in &mux.ins {
@@ -250,18 +255,17 @@ pub fn collect(
                 .insert(tile, bel, &mux_name, xlat_enum_ocd(diffs, OcdMode::Mux));
         }
     }
-    if edev.chip.kind.has_colbuf() {
+    if let Some(tcls) = edev.chip.kind.tile_class_colbuf() {
         for i in 0..8 {
-            collector.collect_bit("PLB", "COLBUF", &format!("GLOBAL.{i}"), "");
-            collector.collect_bit("INT.BRAM", "COLBUF", &format!("GLOBAL.{i}"), "");
-            if edev.chip.kind.has_io_we() {
-                collector.collect_bit("IO.W", "COLBUF", &format!("GLOBAL.{i}"), "");
-                collector.collect_bit("IO.E", "COLBUF", &format!("GLOBAL.{i}"), "");
+            collector.collect_bit(tcls, "COLBUF", &format!("GLOBAL.{i}"), "");
+            if edev.chip.kind.has_ioi_we() {
+                collector.collect_bit("COLBUF_IO_W", "COLBUF", &format!("GLOBAL.{i}"), "");
+                collector.collect_bit("COLBUF_IO_E", "COLBUF", &format!("GLOBAL.{i}"), "");
             }
         }
     }
     for lc in 0..8 {
-        let tile = "PLB";
+        let tile = edev.chip.kind.tile_class_plb();
         let bel = &format!("LC{lc}");
         if edev.chip.kind.is_ice40() {
             collector.collect_enum_default(tile, bel, "MUX.I2", &["LTIN"], "INT");
@@ -276,7 +280,7 @@ pub fn collect(
         }
     }
     if !edev.chip.cols_bram.is_empty() {
-        let tile = "BRAM";
+        let tile = edev.chip.kind.tile_class_bram();
         let bel = "BRAM";
         let mut item = collector.extract_bitvec("BRAM_DATA", "BRAM", "INIT", "");
         for bit in &mut item.bits {
@@ -294,10 +298,10 @@ pub fn collect(
             collector.collect_enum(tile, bel, "WRITE_MODE", &["0", "1", "2", "3"]);
         }
     }
-    for tile in ["IO.W", "IO.E", "IO.S", "IO.N"] {
-        if matches!(tile, "IO.W" | "IO.E") && !edev.chip.kind.has_io_we() {
+    for edge in Dir::DIRS {
+        let Some(tile) = edev.chip.kind.tile_class_ioi(edge) else {
             continue;
-        }
+        };
         collector.collect_bit(tile, "INT", "INV.IMUX.IO.ICLK", "");
         collector.collect_bit(tile, "INT", "INV.IMUX.IO.OCLK", "");
         for io in 0..2 {
@@ -305,25 +309,27 @@ pub fn collect(
             collector.collect_bitvec(tile, bel, "PIN_TYPE", "");
             if edev.chip.kind.is_ultra() {
                 collector.collect_bit(tile, bel, "OUTPUT_ENABLE", "");
-                if !(tile == "IO.N" && edev.chip.kind == ChipKind::Ice40T01) {
+            }
+        }
+        let Some(tile) = edev.chip.kind.tile_class_iob(edge) else {
+            continue;
+        };
+        for iob in 0..2 {
+            let bel = &format!("IOB{iob}");
+            if edev.chip.kind.is_ice40() || (edev.chip.kind.has_vref() && edge == Dir::W) {
+                collector.collect_bit(tile, bel, "IBUF_ENABLE", "");
+            }
+            if edev.chip.kind.is_ultra() {
+                if !(edge == Dir::N && edev.chip.kind == ChipKind::Ice40T01) {
                     collector.collect_bit(tile, bel, "HARDIP_FABRIC_IN", "");
                     collector.collect_bit(tile, bel, "HARDIP_DEDICATED_OUT", "");
-                    if (edev.chip.kind == ChipKind::Ice40T01 && io == 0) || tile == "IO.N" {
+                    if (edev.chip.kind == ChipKind::Ice40T01 && iob == 0) || edge == Dir::N {
                         collector.collect_bit(tile, bel, "SDA_INPUT_DELAYED", "");
                         collector.collect_bit(tile, bel, "SDA_OUTPUT_DELAYED", "");
                     }
                 }
             }
-        }
-        if matches!(tile, "IO.W" | "IO.E") && !edev.chip.kind.has_actual_io_we() {
-            continue;
-        }
-        for iob in 0..2 {
-            let bel = &format!("IOB{iob}");
-            if edev.chip.kind.is_ice40() || (edev.chip.kind.has_vref() && tile == "IO.W") {
-                collector.collect_bit(tile, bel, "IBUF_ENABLE", "");
-            }
-            if tile == "IO.W" && edev.chip.kind.has_vref() {
+            if edge == Dir::W && edev.chip.kind.has_vref() {
                 let diff_cmos = collector
                     .state
                     .peek_diff(tile, bel, "IOSTD", "SB_LVCMOS18_10")
@@ -409,10 +415,10 @@ pub fn collect(
         }
         let has_lvds = if edev.chip.kind == ChipKind::Ice65L01 {
             false
-        } else if edev.chip.kind.has_actual_io_we() {
-            tile == "IO.W"
+        } else if edev.chip.kind.has_iob_we() {
+            edge == Dir::W
         } else if edev.chip.kind == ChipKind::Ice40R04 {
-            tile == "IO.N"
+            edge == Dir::N
         } else {
             true
         };
@@ -438,7 +444,7 @@ pub fn collect(
             }
         }
         let mut has_latch_global_out = edev.chip.kind.has_latch_global_out();
-        if tile == "IO.S"
+        if edge == Dir::S
             && (edev
                 .chip
                 .extra_nodes
@@ -447,11 +453,11 @@ pub fn collect(
                     .chip
                     .extra_nodes
                     .contains_key(&ExtraNodeLoc::PllStub(DirV::S)))
-            && edev.chip.kind.has_actual_io_we()
+            && edev.chip.kind.has_iob_we()
         {
             has_latch_global_out = false;
         }
-        if tile == "IO.N"
+        if edge == Dir::N
             && (edev
                 .chip
                 .extra_nodes
@@ -470,14 +476,14 @@ pub fn collect(
             collector.collect_bit(tile, "IOB", "LATCH_GLOBAL_OUT", "");
         }
         if edev.chip.kind == ChipKind::Ice40R04 {
-            collector.collect_bit(tile, "IO", "HARDIP_FABRIC_IN", "");
-            collector.collect_bit(tile, "IO", "HARDIP_DEDICATED_OUT", "");
+            collector.collect_bit(tile, "IOB", "HARDIP_FABRIC_IN", "");
+            collector.collect_bit(tile, "IOB", "HARDIP_DEDICATED_OUT", "");
         }
     }
     for side in [DirV::S, DirV::N] {
         let xnloc = ExtraNodeLoc::Pll(side);
-        let tile = &xnloc.node_kind();
         if edev.chip.extra_nodes.contains_key(&xnloc) {
+            let tile = &xnloc.tile_class(edev.chip.kind);
             let bel = "PLL";
             if edev.chip.kind.is_ice65() {
                 for (attr, vals, default) in [
@@ -587,7 +593,7 @@ pub fn collect(
             }
         }
         let xnloc = ExtraNodeLoc::PllStub(side);
-        let tile = &xnloc.node_kind();
+        let tile = &xnloc.tile_class(edev.chip.kind);
         if edev.chip.extra_nodes.contains_key(&xnloc) {
             let bel = "PLL";
             for attr in ["LATCH_GLOBAL_OUT_A", "LATCH_GLOBAL_OUT_B"] {
@@ -597,7 +603,7 @@ pub fn collect(
     }
 
     if edev.chip.kind.is_ultra() {
-        let tile = "TRIM";
+        let tile = &ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
         let bel = "LFOSC";
         collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
         let bel = "HFOSC";
@@ -606,7 +612,7 @@ pub fn collect(
         let bel = "LED_DRV_CUR";
         collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
         if edev.chip.kind == ChipKind::Ice40T04 {
-            let tile = "LED_DRV_CUR";
+            let tile = "LED_DRV_CUR_T04";
             let bel = "LED_DRV_CUR";
             collector.collect_bit(tile, bel, "ENABLE", "");
             let tile = "RGB_DRV";
@@ -624,7 +630,7 @@ pub fn collect(
                 .insert(tile, bel, "IR_CURRENT", xlat_bitvec(diffs));
             collector.tiledb.insert(tile, bel, "ENABLE", xlat_bit(en));
         } else {
-            let tile = "RGBA_DRV";
+            let tile = &ExtraNodeLoc::RgbaDrv.tile_class(edev.chip.kind);
             let bel = "RGBA_DRV";
             collector.collect_bit(tile, bel, "ENABLE", "");
             collector.collect_bit(tile, bel, "CURRENT_MODE", "");
@@ -690,8 +696,8 @@ pub fn collect(
     }
 
     {
-        let tile = "GB_OUT";
-        let bel = "GB_OUT";
+        let tile = edev.chip.kind.tile_class_gb_root();
+        let bel = "GB_ROOT";
         for i in 0..8 {
             collector.collect_enum_default(
                 tile,

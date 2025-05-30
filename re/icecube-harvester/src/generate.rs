@@ -80,7 +80,8 @@ impl Generator<'_> {
 
     fn get_maybe_global(&mut self, is_plb: bool, mask: u8) -> (InstId, InstPin) {
         let idx = self.rng.random_range(0..8);
-        let globals_ready = !self.design.kind.has_colbuf() || !self.cfg.rows_colbuf.is_empty();
+        let globals_ready =
+            self.design.kind.tile_class_colbuf().is_none() || !self.cfg.rows_colbuf.is_empty();
         if ((mask >> idx) & 1) == 0
             || !self.cfg.allow_global
             || (!is_plb && !globals_ready)
@@ -150,15 +151,14 @@ impl Generator<'_> {
         if self.rng.random() {
             global_idx = None;
         }
-        let is_i3c = self
-            .cfg
-            .edev
-            .chip
-            .extra_nodes
-            .contains_key(&ExtraNodeLoc::IoI3c(crd))
-            && global_idx.is_none()
-            && self.cfg.allow_global
-            && self.rng.random();
+        let is_i3c = if let Some(xnode) = self.cfg.edev.chip.extra_nodes.get(&ExtraNodeLoc::IoI3c) {
+            xnode.io.values().any(|&x| x == crd)
+                && global_idx.is_none()
+                && self.cfg.allow_global
+                && self.rng.random()
+        } else {
+            false
+        };
         let mut lvds = self.cfg.allow_global
             && self.rng.random()
             && !is_od

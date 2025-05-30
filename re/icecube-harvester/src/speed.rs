@@ -1062,7 +1062,7 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
             );
         }
 
-        if kind.has_actual_io_we() {
+        if kind.has_iob_we() {
             for v in ["1.8", "2.5", "3.3"] {
                 collector.want(format!("IOB_W_{v}:PAD_TO_PADIN"));
                 collector.want(format!("IOB_W_{v}:PADOUT_TO_PAD"));
@@ -1095,7 +1095,7 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
             );
         }
 
-        if !kind.has_io_we() {
+        if !kind.has_ioi_we() {
             for v in ["1.8", "2.5", "3.3"] {
                 collector.want(format!("IOB_OD_{v}:PAD_TO_PADIN"));
                 collector.want(format!("IOB_OD_{v}:PADOUT_TO_PAD"));

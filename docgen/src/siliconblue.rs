@@ -3,7 +3,9 @@ use std::collections::HashSet;
 use unnamed_entity::EntityPartVec;
 
 use crate::{
-    speed::{gen_speed, SpeedData}, tiledb::{check_misc_data, gen_misc_table, gen_tiles, FrameDirection, TileOrientation}, DocgenContext
+    DocgenContext,
+    speed::{SpeedData, gen_speed},
+    tiledb::{FrameDirection, TileOrientation, check_misc_data, gen_misc_table, gen_tiles},
 };
 
 pub fn gen_siliconblue(ctx: &mut DocgenContext) {
@@ -12,53 +14,46 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
         flip_frame: false,
         flip_bit: false,
     };
-    for kind in [
-        "ice65l04", "ice65p04", "ice65l08", "ice65l01", "ice40p01", "ice40p03", "ice40p08",
-        "ice40r04", "ice40t04", "ice40t05", "ice40t01",
-    ] {
-        let db = prjcombine_siliconblue::db::Database::from_file(
-            ctx.ctx.root.join(format!("../databases/{kind}.zstd")),
-        )
-        .unwrap();
-        gen_tiles(ctx, kind, &db.bsdata, |_| tile_orientation);
-        let mut speeds = EntityPartVec::new();
-        for part in &db.parts {
-            for (sname, &speedid) in &part.speeds {
-                let speed = &db.speeds[speedid];
-                if !speeds.contains_id(speedid) {
-                    speeds.insert(
-                        speedid,
-                        SpeedData {
-                            names: vec![],
-                            speed,
-                        },
-                    );
-                }
-                speeds[speedid]
-                    .names
-                    .push(format!("{pname}{sname}", pname = part.name));
+    let db = prjcombine_siliconblue::db::Database::from_file(
+        ctx.ctx.root.join("../databases/siliconblue.zstd"),
+    )
+    .unwrap();
+    gen_tiles(ctx, "siliconblue", &db.bsdata, |_| tile_orientation);
+    let mut speeds = EntityPartVec::new();
+    for part in &db.parts {
+        for (sname, &speedid) in &part.speeds {
+            let speed = &db.speeds[speedid];
+            if !speeds.contains_id(speedid) {
+                speeds.insert(
+                    speedid,
+                    SpeedData {
+                        names: vec![],
+                        speed,
+                    },
+                );
             }
+            speeds[speedid]
+                .names
+                .push(format!("{pname}{sname}", pname = part.name));
         }
-        gen_speed(ctx, kind, &Vec::from_iter(speeds.into_values()));
-        let mut misc_used = HashSet::new();
-        if matches!(kind, "ice65l04" | "ice65p04" | "ice65l08") {
-            gen_misc_table(
-                ctx,
-                &db.bsdata,
-                &mut misc_used,
-                kind,
-                "iostd-drive",
-                &["IOSTD:DRIVE"],
-            );
-            gen_misc_table(
-                ctx,
-                &db.bsdata,
-                &mut misc_used,
-                kind,
-                "iostd-misc",
-                &["IOSTD:IOSTD_MISC"],
-            );
-        }
-        check_misc_data(&db.bsdata, kind, &misc_used);
     }
+    gen_speed(ctx, "siliconblue", &Vec::from_iter(speeds.into_values()));
+    let mut misc_used = HashSet::new();
+    gen_misc_table(
+        ctx,
+        &db.bsdata,
+        &mut misc_used,
+        "siliconblue",
+        "iostd-drive",
+        &["IOSTD:DRIVE"],
+    );
+    gen_misc_table(
+        ctx,
+        &db.bsdata,
+        &mut misc_used,
+        "siliconblue",
+        "iostd-misc",
+        &["IOSTD:IOSTD_MISC"],
+    );
+    check_misc_data(&db.bsdata, "siliconblue", &misc_used);
 }

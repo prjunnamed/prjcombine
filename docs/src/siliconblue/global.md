@@ -7,7 +7,7 @@ The SiliconBlue devices have 8 global nets, `GLOBAL.[0-7]`, that can be used to 
 
 Each global net can be driven by one of two possible sources:
 
-- fabric (driven from an `IMUX.IO.EXTRA` wire in a particular `IO` tile)
+- fabric (driven from an `IMUX.IO.EXTRA` wire in a particular `IOI` tile)
 - IO, which can resolve to:
 
   - `HSOSC` (for `GLOBAL.4` on `iCE40R04`)
@@ -45,7 +45,7 @@ And for `iCE40R04` and `iCE40T0*`:
 
 The exact locations of fabric and IO pad sources can be obtained from the `GB{i}_FABRIC` and `GB{i}_IO` extra nodes in the database.
 
-The 8 muxes selecting the active global net sources are located in a special `GB_OUT` tile located in the very center of the device.
+The 8 muxes selecting the active global net sources are located in a special `GB_ROOT` tile located in the very center of the device.
 
 
 ## Column buffers
@@ -70,3 +70,27 @@ The following devices do not have column buffers:
 - `iCE40P03`
 
 On these devices, the global nets are permanently connected to all consumers, and the column buffer enable bits don't have to be set.
+
+## Bitstream — GB_ROOT_L04
+
+{{ tile siliconblue GB_ROOT_L04 }}
+
+## Bitstream — GB_ROOT_L08
+
+{{ tile siliconblue GB_ROOT_L08 }}
+
+## Bitstream — COLBUF_L01
+
+{{ tile siliconblue COLBUF_L01 }}
+
+## Bitstream — COLBUF_P08
+
+{{ tile siliconblue COLBUF_P08 }}
+
+## Bitstream — COLBUF_IO_W
+
+{{ tile siliconblue COLBUF_IO_W }}
+
+## Bitstream — COLBUF_IO_E
+
+{{ tile siliconblue COLBUF_IO_E }}

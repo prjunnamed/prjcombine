@@ -2,8 +2,8 @@
 
 The SiliconBlue general interconnect structure involves the following tile types:
 
-- `PLB` and `INT.RAM`: the "center" tiles of the interconnect, connecting to four neighbouring tiles
-- `IO.W`, `IO.E`, `IO.S`, `IO.N`: the "edge" tiles of the interconnect, connecting to three neighbouring tiles
+- `PLB` and `INT_BRAM`: the "center" tiles of the interconnect, connecting to four neighbouring tiles
+- `IOI_W`, `IOI_E`, `IOI_S`, `IOI_N`: the "edge" tiles of the interconnect, connecting to three neighbouring tiles
 
 
 ## `GLOBAL` wires
@@ -25,8 +25,8 @@ are driven by the various bels within the FPGA:
 - `OUT.LC[0-7]`: bel output wires; note that, depending on tile type, some of them may actually alias other `OUT` wires, effectively making for fewer than 8 distinct outputs per tile:
 
   - `PLB`: all 8 wires are distinct; `OUT.LC{i}` corresponds directly to the output of LC `i`
-  - `INT.RAM`: all 8 wires are distinct
-  - `IO.*`: there are 4 distinct wires; `OUT.LC[4-7]` are aliased to `OUT.LC[0-3]`:
+  - `INT_BRAM`: all 8 wires are distinct
+  - `IOI_*`: there are 4 distinct wires; `OUT.LC[4-7]` are aliased to `OUT.LC[0-3]`:
     - `OUT.LC[04]` is `IO0.DIN0`
     - `OUT.LC[15]` is `IO0.DIN1`
     - `OUT.LC[26]` is `IO1.DIN0`
@@ -68,14 +68,14 @@ The long-distance backbone of the interconnect consists of the `QUAD` (span-4) a
 
 The interconnect in `IO` tiles is special:
 
-- in the `IO.W` and `IO.E` tiles:
+- in the `IOI_W` and `IOI_E` tiles:
   - there are no vertical `LONG` wires
   - there are only 4 sets of vertical `QUAD` wires (`QUAD.V[0-3].*`)
-- in the `IO.S` and `IO.N` tiles:
+- in the `IOI_S` and `IOI_N` tiles:
   - there are no horizontal `LONG` wires
   - there are only 4 sets of horizontal `QUAD` wires (`QUAD.H[0-3].*`)
 
-Further, the corner tiles are special: the `QUAD.H*.*` wires of the horizontally adjacent `IO.[WE]` tile are connected directly to the `QUAD.V*.*` wires of the vertically adjacent `IO.[SN]` or `PLB` tile.
+Further, the corner tiles are special: the `QUAD.H*.*` wires of the horizontally adjacent `IOI_[WE]` tile are connected directly to the `QUAD.V*.*` wires of the vertically adjacent `IOI_[SN]` or `PLB` tile.
 
 The `LONG` wires can be driven:
 
@@ -92,11 +92,11 @@ The `QUAD` wires can be driven:
 
 ## `LOCAL` wires
 
-Every tile has 32 (`PLB`, `INT.RAM`) or 16 (`IO.*`) local wires:
+Every tile has 32 (`PLB`, `INT_BRAM`) or 16 (`IOI_*`) local wires:
 
 - `LOCAL.[0-3].[0-7]`: local wires
 
-  - `IO.*` tiles only have `LOCAL.[0-1].[0-7]`
+  - `IOI_*` tiles only have `LOCAL.[0-1].[0-7]`
 
 The `LOCAL` wires are an intermediate step between `IMUX.*` wires and other interconnect — every signal routed to `IMUX.*` must first pass through a `LOCAL` wire, except for some multiplexers that can also be directly driven by `GLOBAL` wires.  They can be driven by:
 
@@ -108,14 +108,14 @@ The `LOCAL` wires are an intermediate step between `IMUX.*` wires and other inte
 
 ## `IMUX` wires
 
-`IMUX` wires directly drive bel inputs.  `PLB` and `INT.RAM` tiles contain the following wires:
+`IMUX` wires directly drive bel inputs.  `PLB` and `INT_BRAM` tiles contain the following wires:
 
 - `IMUX.LC[0-7].I[0-3]`: "normal" inputs; in `PLB` tiles, they correspond to LCs in the obvious way
 - `IMUX.CLK`: a clock input; freely invertible, can be driven directly by all `GLOBAL` wires
 - `IMUX.CE`: a clock enable input; gates the `IMUX.CLK` input, can be driven directly by some `GLOBAL` wires
 - `IMUX.RST`: a reset input; can be driven directly by some `GLOBAL` wires
 
-`IO.*` tiles contain the following wires:
+`IOI_*` tiles contain the following wires:
 
 - `IMUX.IO[0-1].DOUT[0-1]`: "normal" inputs, I/O data
 - `IMUX.IO[0-1].OE`: "normal" inputs, I/O output enable

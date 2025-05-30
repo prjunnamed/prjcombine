@@ -97,3 +97,14 @@ end else begin
 end
 ```
 
+## Bitstream — PLB_L04
+
+{{ tile siliconblue PLB_L04 }}
+
+## Bitstream — PLB_L08
+
+{{ tile siliconblue PLB_L08 }}
+
+## Bitstream — PLB_P01
+
+{{ tile siliconblue PLB_P01 }}

@@ -14,7 +14,7 @@ bels![
     BRAM,
     IO_LATCH,
     GB_FABRIC,
-    GB_OUT,
+    GB_ROOT,
     WARMBOOT,
     PLL,
     MAC16,

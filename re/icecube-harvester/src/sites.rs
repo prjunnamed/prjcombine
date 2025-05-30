@@ -3,8 +3,8 @@ use std::collections::BTreeMap;
 use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::PinDir,
-    dir::DirPartMap,
-    grid::{ColId, DieId, WireCoord, RowId},
+    dir::{Dir, DirPartMap},
+    grid::{ColId, DieId, RowId, WireCoord},
 };
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
@@ -676,13 +676,13 @@ pub fn find_bel_pins(
     prims: &BTreeMap<&'static str, Primitive>,
     part: &Part,
     edev: &ExpandedDevice,
-    tiledb: Option<&BsData>,
+    bsdata: Option<&BsData>,
     pkg: &'static str,
     kind: &str,
     site: &SiteInfo,
 ) -> BelPins {
     let mut result = BelPins::default();
-    if edev.chip.kind.has_actual_io_we() {
+    if edev.chip.kind.has_iob_we() {
         for (k, &v) in &site.fabout_wires {
             let iw = (
                 DieId::from_idx(0),
@@ -1003,27 +1003,27 @@ pub fn find_bel_pins(
             }
         }
 
-        let tiledb = tiledb.unwrap();
+        let tiledb = bsdata.unwrap();
         for col in edev.chip.columns() {
             for row in edev.chip.rows() {
                 let tile_kind = if row == edev.chip.row_s() {
                     if col == edev.chip.col_w() || col == edev.chip.col_e() {
                         continue;
                     }
-                    "IO.S"
+                    ChipKind::Ice40P01.tile_class_ioi(Dir::S).unwrap()
                 } else if row == edev.chip.row_n() {
                     if col == edev.chip.col_w() || col == edev.chip.col_e() {
                         continue;
                     }
-                    "IO.N"
-                } else if col == edev.chip.col_w() && edev.chip.kind.has_io_we() {
-                    "IO.W"
-                } else if col == edev.chip.col_e() && edev.chip.kind.has_io_we() {
-                    "IO.E"
+                    ChipKind::Ice40P01.tile_class_ioi(Dir::N).unwrap()
+                } else if col == edev.chip.col_w() && edev.chip.kind.has_ioi_we() {
+                    ChipKind::Ice40P01.tile_class_ioi(Dir::W).unwrap()
+                } else if col == edev.chip.col_e() && edev.chip.kind.has_ioi_we() {
+                    ChipKind::Ice40P01.tile_class_ioi(Dir::E).unwrap()
                 } else if edev.chip.cols_bram.contains(&col) {
-                    "INT.BRAM"
+                    "INT_BRAM"
                 } else {
-                    "PLB"
+                    ChipKind::Ice40P01.tile_class_plb()
                 };
                 let tile = &tiledb.tiles[tile_kind];
                 let btile = edev.btile_main(col, row);
@@ -1090,7 +1090,7 @@ pub fn find_bel_pins(
                                 Vec::from_iter((0..8).map(|idx| {
                                     (wf.0, wf.1, edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))
                                 }))
-                            } else if (is_lr && edev.chip.kind.has_io_we()) || is_bt {
+                            } else if (is_lr && edev.chip.kind.has_ioi_we()) || is_bt {
                                 let wfn = edev.egrid.db.wires.key(wf.2);
                                 let idx: usize =
                                     wfn.strip_prefix("OUT.LC").unwrap().parse().unwrap();

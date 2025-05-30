@@ -245,7 +245,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 let (a, b) = suf.split_once('_').unwrap();
                 let a: usize = a.parse().unwrap();
                 let b: usize = b.parse().unwrap();
-                if (edev.chip.kind.has_io_we()
+                if (edev.chip.kind.has_ioi_we()
                     && (col == edev.chip.col_w() || col == edev.chip.col_e()))
                     || row == edev.chip.row_s()
                     || row == edev.chip.row_n()
@@ -560,8 +560,8 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 wire.2 = edev.egrid.db.get_wire("OUT.LC0");
             } else if wire.1.1 == edev.chip.row_s()
                 || wire.1.1 == edev.chip.row_n()
-                || (wire.1.0 == edev.chip.col_w() && edev.chip.kind.has_io_we())
-                || (wire.1.0 == edev.chip.col_e() && edev.chip.kind.has_io_we())
+                || (wire.1.0 == edev.chip.col_w() && edev.chip.kind.has_ioi_we())
+                || (wire.1.0 == edev.chip.col_e() && edev.chip.kind.has_ioi_we())
             {
                 idx %= 4;
                 wire.2 = edev.egrid.db.get_wire(&format!("OUT.LC{idx}"));
@@ -590,7 +590,7 @@ pub fn xlat_mux_in(
         let is_bt = wa.1.1 == edev.chip.row_s() || wa.1.1 == edev.chip.row_n();
         if is_lr && is_bt {
             // could be anything
-        } else if (is_lr && edev.chip.kind.has_io_we()) || is_bt {
+        } else if (is_lr && edev.chip.kind.has_ioi_we()) || is_bt {
             assert_eq!(out_idx & 3, local_idx & 3);
         } else {
             assert_eq!(out_idx, local_idx);
