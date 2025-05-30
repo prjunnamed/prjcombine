@@ -6,7 +6,7 @@ use prjcombine_coolrunner2::{Chip, Database};
 use prjcombine_jed::JedFile;
 use prjcombine_types::{
     FbId, FbMcId, IoId,
-    tiledb::{Tile, TileItemKind},
+    bsdata::{Tile, TileItemKind},
 };
 use unnamed_entity::EntityId;
 

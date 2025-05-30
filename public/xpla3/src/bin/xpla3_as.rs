@@ -5,7 +5,7 @@ use clap::{Arg, Command, value_parser};
 use prjcombine_jed::JedFile;
 use prjcombine_types::{
     FbMcId,
-    tiledb::{Tile, TileItemKind},
+    bsdata::{Tile, TileItemKind},
 };
 use prjcombine_xpla3::{Chip, Database};
 use unnamed_entity::EntityId;

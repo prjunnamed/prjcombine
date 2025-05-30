@@ -5,7 +5,7 @@ use clap::{Arg, Command, value_parser};
 use prjcombine_jed::JedFile;
 use prjcombine_xc9500::{Chip, ChipKind, Database};
 
-use prjcombine_types::tiledb::{Tile, TileBit, TileItemKind};
+use prjcombine_types::bsdata::{Tile, TileBit, TileItemKind};
 
 struct Bitstream {
     fbs: Vec<Vec<[u8; 15]>>,

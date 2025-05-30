@@ -3,7 +3,7 @@ use std::{error::Error, path::PathBuf};
 use bitvec::vec::BitVec;
 use clap::{Arg, Command, value_parser};
 use prjcombine_jed::{JedFile, JedParserOptions};
-use prjcombine_types::tiledb::{Tile, TileBit, TileItemKind};
+use prjcombine_types::bsdata::{Tile, TileBit, TileItemKind};
 use prjcombine_xc9500::{Chip, ChipKind, Database};
 
 struct Bitstream {
