@@ -171,7 +171,7 @@ which = "7"
 derive-where = "1.2"
 bytes = "1.8.0"
 hex = "0.4.3"
-zip = "3.0"
+zip = "4.0"
 walkdir = "2.5"
 
 [profile.dev]
