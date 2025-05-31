@@ -741,8 +741,11 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
     let ok_path = cache_dir.join("ok").join(format!("{key}.zip"));
     if let Ok(ok_zip) = File::open(&ok_path) {
         if let Ok(mut ok_zip) = ZipArchive::new(ok_zip) {
-            let design_file = ok_zip.by_name("design").unwrap();
-            let cur_design: Design = bincode::deserialize_from(design_file).unwrap();
+            let mut design_file = ok_zip.by_name("design").unwrap();
+            let config = bincode::config::legacy();
+            let cur_design: Design =
+                bincode::serde::decode_from_std_read(&mut design_file, config).unwrap();
+            core::mem::drop(design_file);
             if cur_design == *design {
                 return Ok(get_result(&mut ok_zip));
             }
@@ -751,8 +754,11 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
     let fail_path = cache_dir.join("fail").join(format!("{key}.zip"));
     if let Ok(fail_zip) = File::open(&fail_path) {
         if let Ok(mut fail_zip) = ZipArchive::new(fail_zip) {
-            let design_file = fail_zip.by_name("design").unwrap();
-            let cur_design: Design = bincode::deserialize_from(design_file).unwrap();
+            let mut design_file = fail_zip.by_name("design").unwrap();
+            let config = bincode::config::legacy();
+            let cur_design: Design =
+                bincode::serde::decode_from_std_read(&mut design_file, config).unwrap();
+            core::mem::drop(design_file);
             if cur_design == *design {
                 let mut stdout = String::new();
                 let mut stderr = String::new();
@@ -874,8 +880,9 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
     cmd.stdin(Stdio::null());
     let status = cmd.output().unwrap();
     {
-        let design_file = File::create(work_dir.join("design")).unwrap();
-        bincode::serialize_into(design_file, design).unwrap();
+        let mut design_file = File::create(work_dir.join("design")).unwrap();
+        let config = bincode::config::legacy();
+        bincode::serde::encode_into_std_write(design, &mut design_file, config).unwrap();
     }
     std::fs::write(work_dir.join("stdout"), &status.stdout).unwrap();
     std::fs::write(work_dir.join("stderr"), &status.stderr).unwrap();
@@ -947,8 +954,11 @@ pub fn get_cached_designs(
     keys.into_par_iter().map(move |key| {
         let zip = ok_dir.join(format!("{key}.zip"));
         let mut zip = ZipArchive::new(File::open(zip).unwrap()).unwrap();
-        let design_file = zip.by_name("design").unwrap();
-        let design: Design = bincode::deserialize_from(design_file).unwrap();
+        let mut design_file = zip.by_name("design").unwrap();
+        let config = bincode::config::legacy();
+        let design: Design =
+            bincode::serde::decode_from_std_read(&mut design_file, config).unwrap();
+        core::mem::drop(design_file);
         (key, design, get_result(&mut zip))
     })
 }

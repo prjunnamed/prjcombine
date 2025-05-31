@@ -84,14 +84,16 @@ pub struct Part {
 impl Db {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
         let f = File::open(path)?;
-        let cf = zstd::stream::Decoder::new(f)?;
-        Ok(bincode::deserialize_from(cf).unwrap())
+        let mut cf = zstd::stream::Decoder::new(f)?;
+        let config = bincode::config::legacy();
+        Ok(bincode::serde::decode_from_std_read(&mut cf, config)?)
     }
 
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn Error>> {
         let f = File::create(path)?;
         let mut cf = zstd::stream::Encoder::new(f, 9)?;
-        bincode::serialize_into(&mut cf, self).unwrap();
+        let config = bincode::config::legacy();
+        bincode::serde::encode_into_std_write(self, &mut cf, config)?;
         cf.finish()?;
         Ok(())
     }
