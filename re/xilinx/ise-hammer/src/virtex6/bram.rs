@@ -1,7 +1,7 @@
-use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_types::bits;
 use prjcombine_virtex4::{bels, chip::ChipKind};
 
 use crate::{
@@ -824,13 +824,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let item_l = xlat_bitvec(diffs_l);
         let item_u = xlat_bitvec(diffs_u);
-        present_ramb36.apply_bitvec_diff(&item_l, &bitvec![0; 18], &bitvec![1; 18]);
-        present_ramb36.apply_bitvec_diff(&item_u, &bitvec![0; 18], &bitvec![1; 18]);
-        present_fifo36.apply_bitvec_diff(&item_l, &bitvec![0; 18], &bitvec![1; 18]);
-        present_fifo36.apply_bitvec_diff(&item_u, &bitvec![0; 18], &bitvec![1; 18]);
-        present_ramb18_l.apply_bitvec_diff(&item_l, &bitvec![0; 18], &bitvec![1; 18]);
-        present_ramb18_u.apply_bitvec_diff(&item_u, &bitvec![0; 18], &bitvec![1; 18]);
-        present_fifo18.apply_bitvec_diff(&item_l, &bitvec![0; 18], &bitvec![1; 18]);
+        present_ramb36.apply_bitvec_diff(&item_l, &bits![0; 18], &bits![1; 18]);
+        present_ramb36.apply_bitvec_diff(&item_u, &bits![0; 18], &bits![1; 18]);
+        present_fifo36.apply_bitvec_diff(&item_l, &bits![0; 18], &bits![1; 18]);
+        present_fifo36.apply_bitvec_diff(&item_u, &bits![0; 18], &bits![1; 18]);
+        present_ramb18_l.apply_bitvec_diff(&item_l, &bits![0; 18], &bits![1; 18]);
+        present_ramb18_u.apply_bitvec_diff(&item_u, &bits![0; 18], &bits![1; 18]);
+        present_fifo18.apply_bitvec_diff(&item_l, &bits![0; 18], &bits![1; 18]);
         ctx.tiledb.insert(tile, "BRAM", format!("{attr}_L"), item_l);
         ctx.tiledb.insert(tile, "BRAM", format!("{attr}_U"), item_u);
     }
@@ -928,10 +928,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for attr in ["ALMOST_FULL_OFFSET", "ALMOST_EMPTY_OFFSET"] {
         let item = ctx.tiledb.item(tile, "BRAM", attr);
-        present_ramb36.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_fifo36.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_ramb18_l.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_fifo18.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
+        present_ramb36.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_fifo36.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_ramb18_l.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_fifo18.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
     }
 
     for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {

@@ -1,8 +1,7 @@
-use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{OcdMode, extract_bitvec_val, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bits, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_virtex4::bels;
 use prjcombine_xilinx_bitstream::Reg;
 
@@ -766,10 +765,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bits: vec![TileBit::new(0, 0, 21), TileBit::new(0, 0, 22)],
                 kind: TileItemKind::Enum {
                     values: [
-                        ("8".to_string(), bitvec![0, 0]),
-                        ("4".to_string(), bitvec![1, 0]),
-                        ("2".to_string(), bitvec![0, 1]),
-                        ("1".to_string(), bitvec![1, 1]),
+                        ("8".to_string(), bits![0, 0]),
+                        ("4".to_string(), bits![1, 0]),
+                        ("2".to_string(), bits![0, 1]),
+                        ("1".to_string(), bits![1, 1]),
                     ]
                     .into_iter()
                     .collect(),
@@ -858,8 +857,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bits: vec![TileBit::new(0, 0, 30)],
                 kind: TileItemKind::Enum {
                     values: [
-                        ("TOP".to_string(), bitvec![0]),
-                        ("BOTTOM".to_string(), bitvec![1]),
+                        ("TOP".to_string(), bits![0]),
+                        ("BOTTOM".to_string(), bits![1]),
                     ]
                     .into_iter()
                     .collect(),
@@ -901,17 +900,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .assert_empty();
         let type1 = extract_bitvec_val(
             &item,
-            &bitvec![0; 16],
+            &bits![0; 16],
             ctx.state.get_diff(tile, bel, "BPI_SYNC_MODE", "TYPE1"),
         );
         let type2 = extract_bitvec_val(
             &item,
-            &bitvec![0; 16],
+            &bits![0; 16],
             ctx.state.get_diff(tile, bel, "BPI_SYNC_MODE", "TYPE2"),
         );
         item.kind = TileItemKind::Enum {
             values: [
-                ("NONE".to_string(), bitvec![0; 16]),
+                ("NONE".to_string(), bits![0; 16]),
                 ("TYPE1".to_string(), type1),
                 ("TYPE2".to_string(), type2),
             ]

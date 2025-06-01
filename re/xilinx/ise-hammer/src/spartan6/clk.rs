@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-use bitvec::vec::BitVec;
 use prjcombine_interconnect::{dir::DirV, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{
     FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum,
@@ -9,7 +8,7 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::{bels, chip::Gts};
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}};
 use unnamed_entity::EntityId;
 
 use crate::{

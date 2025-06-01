@@ -1,5 +1,6 @@
-use bitvec::vec::BitVec;
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, BelCoord, WireCoord, NodeLoc, RowId};
+use prjcombine_interconnect::grid::{
+    BelCoord, ColId, DieId, ExpandedGrid, NodeLoc, RowId, WireCoord,
+};
 use prjcombine_re_fpga_hammer::{Diff, FeatureData, FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_toolchain::Toolchain;
@@ -10,6 +11,7 @@ use prjcombine_re_xilinx_naming::grid::ExpandedGridNaming;
 use prjcombine_re_xilinx_xdl::{
     Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement, run_bitgen,
 };
+use prjcombine_types::bitvec::BitVec;
 use prjcombine_types::bsdata::TileBit;
 use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xilinx_bitstream::{KeyData, KeyDataAes, KeyDataDes, KeySeq, parse};
@@ -776,9 +778,10 @@ impl<'a> Backend for IseBackend<'a> {
                 }
                 if delta > 0 {
                     for _ in 0..delta {
-                        for mut bit in &mut y {
-                            bit.set(!*bit);
-                            if *bit {
+                        for i in 0..y.len() {
+                            let bit = y[i];
+                            y.set(i, !bit);
+                            if y[i] {
                                 break;
                             }
                         }
@@ -786,9 +789,10 @@ impl<'a> Backend for IseBackend<'a> {
                 }
                 if delta < 0 {
                     for _ in 0..-delta {
-                        for mut bit in &mut y {
-                            bit.set(!*bit);
-                            if !*bit {
+                        for i in 0..y.len() {
+                            let bit = y[i];
+                            y.set(i, !bit);
+                            if !y[i] {
                                 break;
                             }
                         }
@@ -823,22 +827,10 @@ impl<'a> Backend for IseBackend<'a> {
                 }
                 Value::String(v)
             }
-            MultiValue::Bin => {
-                let mut v = String::new();
-                for bit in y.iter().rev() {
-                    write!(v, "{}", if *bit { "1" } else { "0" }).unwrap();
-                }
-                Value::String(v)
-            }
+            MultiValue::Bin => Value::String(y.to_string()),
             MultiValue::Dec(delta) => {
-                let mut val: u64 = 0;
-                assert!(y.len() <= 64);
-                for (i, v) in y.iter().enumerate() {
-                    if *v {
-                        val |= 1 << i;
-                    }
-                }
-                val = val.checked_add_signed(delta.into()).unwrap();
+                let val = y.as_u64();
+                let val = val.checked_add_signed(delta.into()).unwrap();
                 Value::String(val.to_string())
             }
         }

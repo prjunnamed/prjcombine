@@ -1,4 +1,3 @@
-use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::BelSlotId,
     grid::{DieId, NodeLoc, RowId, TileIobId},
@@ -10,7 +9,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bits, bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_virtex4::{bels, expanded::IoCoord};
 use unnamed_entity::EntityId;
 
@@ -1770,8 +1769,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .get_diff(tile, bel, "SRTYPE", "ASYNC")
             .assert_empty();
         let mut diff = ctx.state.get_diff(tile, bel, "SRTYPE", "SYNC");
-        diff.apply_bitvec_diff(&item_oq, &bitvec![1; 4], &bitvec![0; 4]);
-        diff.apply_bitvec_diff(&item_tq, &bitvec![1; 2], &bitvec![0; 2]);
+        diff.apply_bitvec_diff(&item_oq, &bits![1; 4], &bits![0; 4]);
+        diff.apply_bitvec_diff(&item_tq, &bits![1; 2], &bits![0; 2]);
         diff.assert_empty();
         ctx.tiledb.insert(tile, bel, "OFF_SR_SYNC", item_oq);
         ctx.tiledb.insert(tile, bel, "TFF_SR_SYNC", item_tq);
@@ -1915,11 +1914,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bits: oprog.bits[5..8].to_vec(),
             kind: TileItemKind::Enum {
                 values: [
-                    ("NONE".into(), bitvec![0, 0, 0]),
-                    ("OUTPUT".into(), bitvec![1, 0, 0]),
-                    ("OUTPUT_HALF".into(), bitvec![0, 1, 0]),
-                    ("TERM_VCC".into(), bitvec![1, 1, 0]),
-                    ("TERM_SPLIT".into(), bitvec![0, 0, 1]),
+                    ("NONE".into(), bits![0, 0, 0]),
+                    ("OUTPUT".into(), bits![1, 0, 0]),
+                    ("OUTPUT_HALF".into(), bits![0, 1, 0]),
+                    ("TERM_VCC".into(), bits![1, 1, 0]),
+                    ("TERM_SPLIT".into(), bits![0, 0, 1]),
                 ]
                 .into_iter()
                 .collect(),
@@ -1976,8 +1975,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ],
             )
         };
-        let pslew_invert = bitvec![0, 0, 0, 0];
-        let nslew_invert = bitvec![0, 1, 0, 0];
+        let pslew_invert = bits![0, 0, 0, 0];
+        let nslew_invert = bits![0, 1, 0, 0];
 
         let mut ibuf_mode = vec![("OFF", Diff::default())];
 
@@ -1987,7 +1986,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 DciKind::None | DciKind::Output | DciKind::OutputHalf => {}
                 DciKind::InputVcc | DciKind::BiVcc => {
                     diff.apply_enum_diff(&dci_mode, "TERM_VCC", "NONE");
-                    diff.apply_bitvec_diff(&dci_misc, &bitvec![1, 1], &bitvec![0, 0]);
+                    diff.apply_bitvec_diff(&dci_misc, &bits![1, 1], &bits![0, 0]);
                 }
                 DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
                     diff.apply_enum_diff(&dci_mode, "TERM_SPLIT", "NONE");
@@ -2005,13 +2004,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if std.diff == DiffKind::True {
                 let stdname = std.name;
                 let diff = ctx.state.get_diff(tile, bel, "OSTD", std.name);
-                let value = extract_bitvec_val(&lvds, &bitvec![0; 4], diff);
+                let value = extract_bitvec_val(&lvds, &bits![0; 4], diff);
                 let tc = ['C', 'T'][i];
                 ctx.tiledb
                     .insert_misc_data(format!("IOSTD:LVDS_{tc}:OUTPUT_{stdname}"), value);
                 if std.dci == DciKind::None {
                     let diff = ctx.state.get_diff(tile, bel, "DIFF_TERM", std.name);
-                    let value = extract_bitvec_val(&lvds, &bitvec![0; 4], diff);
+                    let value = extract_bitvec_val(&lvds, &bits![0; 4], diff);
                     let tc = ['C', 'T'][i];
                     ctx.tiledb
                         .insert_misc_data(format!("IOSTD:LVDS_{tc}:TERM_{stdname}"), value);
@@ -2041,7 +2040,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     .zip(invert.iter())
                                     .map(|(&bit, inv)| match diff.bits.remove(&bit) {
                                         Some(val) => {
-                                            assert_eq!(val, !*inv);
+                                            assert_eq!(val, !inv);
                                             true
                                         }
                                         None => false,
@@ -2064,8 +2063,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 .iter()
                                 .zip(invert.iter())
                                 .map(|(&bit, inv)| match diff.bits.remove(&bit) {
-                                    Some(true) => !*inv,
-                                    None => *inv,
+                                    Some(true) => !inv,
+                                    None => inv,
                                     _ => unreachable!(),
                                 })
                                 .collect();
@@ -2098,7 +2097,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             }
                             DciKind::BiVcc => {
                                 diff.apply_enum_diff(&dci_mode, "TERM_VCC", "NONE");
-                                diff.apply_bitvec_diff(&dci_misc, &bitvec![1, 1], &bitvec![0, 0]);
+                                diff.apply_bitvec_diff(&dci_misc, &bits![1, 1], &bits![0, 0]);
                             }
                             DciKind::BiSplit => {
                                 diff.apply_enum_diff(&dci_mode, "TERM_SPLIT", "NONE");
@@ -2126,8 +2125,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .iter()
                 .zip(invert.iter())
                 .map(|(&bit, inv)| match present_vr.bits.remove(&bit) {
-                    Some(true) => !*inv,
-                    None => *inv,
+                    Some(true) => !inv,
+                    None => inv,
                     _ => unreachable!(),
                 })
                 .collect();
@@ -2151,8 +2150,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .iter()
                     .zip(invert.iter())
                     .map(|(&bit, inv)| match present_vref.bits.remove(&bit) {
-                        Some(true) => !*inv,
-                        None => *inv,
+                        Some(true) => !inv,
+                        None => inv,
                         _ => unreachable!(),
                     })
                     .collect();
@@ -2163,15 +2162,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         ctx.tiledb
-            .insert_misc_data("IOSTD:OUTPUT_MISC:OFF", bitvec![0; 2]);
+            .insert_misc_data("IOSTD:OUTPUT_MISC:OFF", bits![0; 2]);
         ctx.tiledb
-            .insert_misc_data("IOSTD:LVDS_T:OFF", bitvec![0; 4]);
+            .insert_misc_data("IOSTD:LVDS_T:OFF", bits![0; 4]);
         ctx.tiledb
-            .insert_misc_data("IOSTD:LVDS_C:OFF", bitvec![0; 4]);
+            .insert_misc_data("IOSTD:LVDS_C:OFF", bits![0; 4]);
         ctx.tiledb
-            .insert_misc_data("IOSTD:PDRIVE:OFF", bitvec![0; 5]);
+            .insert_misc_data("IOSTD:PDRIVE:OFF", bits![0; 5]);
         ctx.tiledb
-            .insert_misc_data("IOSTD:NDRIVE:OFF", bitvec![0; 5]);
+            .insert_misc_data("IOSTD:NDRIVE:OFF", bits![0; 5]);
         ctx.tiledb
             .insert_misc_data("IOSTD:PSLEW:OFF", pslew_invert.clone());
         ctx.tiledb
@@ -2251,14 +2250,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for std in IOSTDS {
         if std.diff == DiffKind::True {
             let diff = ctx.state.get_diff(tile, bel, "STD", std.name);
-            let val = extract_bitvec_val(&item, &bitvec![0; 10], diff);
+            let val = extract_bitvec_val(&item, &bits![0; 10], diff);
             ctx.tiledb
                 .insert_misc_data(format!("IOSTD:LVDSBIAS:{}", std.name), val);
         }
     }
     ctx.tiledb.insert(tile, bel, "LVDSBIAS", item);
     ctx.tiledb
-        .insert_misc_data("IOSTD:LVDSBIAS:OFF", bitvec![0; 10]);
+        .insert_misc_data("IOSTD:LVDSBIAS:OFF", bits![0; 10]);
 
     let hclk_center_cnt =
         ctx.edev.egrid().tile_index[ctx.edev.egrid().db.get_tile_class("HCLK_CENTER")].len();
@@ -2385,7 +2384,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             DciKind::OutputHalf => {
                 let val = extract_bitvec_val_part(
                     ctx.tiledb.item(tile, bel, "LVDIV2"),
-                    &bitvec![0; 2],
+                    &bits![0; 2],
                     &mut diff,
                 );
                 ctx.tiledb
@@ -2394,7 +2393,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             DciKind::InputVcc | DciKind::BiVcc => {
                 let val = extract_bitvec_val_part(
                     ctx.tiledb.item(tile, bel, "PMASK_TERM_VCC"),
-                    &bitvec![0; 5],
+                    &bits![0; 5],
                     &mut diff,
                 );
                 ctx.tiledb
@@ -2403,14 +2402,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
                 let val = extract_bitvec_val_part(
                     ctx.tiledb.item(tile, bel, "PMASK_TERM_SPLIT"),
-                    &bitvec![0; 5],
+                    &bits![0; 5],
                     &mut diff,
                 );
                 ctx.tiledb
                     .insert_misc_data(format!("IOSTD:DCI:PMASK_TERM_SPLIT:{stdname}"), val);
                 let val = extract_bitvec_val_part(
                     ctx.tiledb.item(tile, bel, "NMASK_TERM_SPLIT"),
-                    &bitvec![0; 5],
+                    &bits![0; 5],
                     &mut diff,
                 );
                 ctx.tiledb
@@ -2421,13 +2420,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(diff));
     }
     ctx.tiledb
-        .insert_misc_data("IOSTD:DCI:LVDIV2:OFF", bitvec![0; 2]);
+        .insert_misc_data("IOSTD:DCI:LVDIV2:OFF", bits![0; 2]);
     ctx.tiledb
-        .insert_misc_data("IOSTD:DCI:PMASK_TERM_VCC:OFF", bitvec![0; 5]);
+        .insert_misc_data("IOSTD:DCI:PMASK_TERM_VCC:OFF", bits![0; 5]);
     ctx.tiledb
-        .insert_misc_data("IOSTD:DCI:PMASK_TERM_SPLIT:OFF", bitvec![0; 5]);
+        .insert_misc_data("IOSTD:DCI:PMASK_TERM_SPLIT:OFF", bits![0; 5]);
     ctx.tiledb
-        .insert_misc_data("IOSTD:DCI:NMASK_TERM_SPLIT:OFF", bitvec![0; 5]);
+        .insert_misc_data("IOSTD:DCI:NMASK_TERM_SPLIT:OFF", bits![0; 5]);
     let tile = "CFG";
     let bel = "MISC";
     ctx.collect_bit_wide(tile, bel, "DCI_CLK_ENABLE", "1");

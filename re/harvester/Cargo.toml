@@ -5,7 +5,6 @@ version.workspace = true
 
 [dependencies]
 unnamed_entity.workspace = true
-bitvec.workspace = true
 prjcombine-types.workspace = true
 
 [lints]

@@ -4,7 +4,6 @@ edition.workspace = true
 version.workspace = true
 
 [dependencies]
-bitvec.workspace = true
 itertools.workspace = true
 rand.workspace = true
 unnamed_entity.workspace = true

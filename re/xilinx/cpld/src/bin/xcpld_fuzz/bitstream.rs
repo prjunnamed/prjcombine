@@ -1,4 +1,3 @@
-use bitvec::vec::BitVec;
 use prjcombine_re_hammer::{Backend, Fuzzer, Session};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_cpld::{
@@ -7,6 +6,7 @@ use prjcombine_re_xilinx_cpld::{
     device::DeviceKind,
     impact::run_impact,
 };
+use prjcombine_types::bitvec::BitVec;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -64,7 +64,7 @@ impl Backend for BitstreamBackend<'_> {
         State::default()
     }
 
-    fn assemble_multi(v: &Self::MultiValue, _b: &bitvec::vec::BitVec) -> Self::Value {
+    fn assemble_multi(v: &Self::MultiValue, _b: &BitVec) -> Self::Value {
         match *v {}
     }
 
@@ -132,7 +132,7 @@ impl Backend for BitstreamBackend<'_> {
             if w1 != w2 {
                 for (i, v) in w2.iter().enumerate() {
                     if w1[i] != v {
-                        res.insert(((a1, i), false), *v);
+                        res.insert(((a1, i), false), v);
                     }
                 }
             }
@@ -346,12 +346,14 @@ pub fn reverse_bitstream(
         for (_, w) in &bs.words {
             tw |= w;
         }
-        for i in tw.iter_zeros() {
-            transfer.push(i);
+        for (i, bit) in tw.iter().enumerate() {
+            if !bit {
+                transfer.push(i);
+            }
         }
         for &(a, ref w) in &bs.words {
-            for i in w.iter_zeros() {
-                if tw[i] {
+            for (i, bit) in w.iter().enumerate() {
+                if !bit && tw[i] {
                     assert!(done.is_none());
                     done = Some((a, i));
                 }

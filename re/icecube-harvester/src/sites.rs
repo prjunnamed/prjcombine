@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{Dir, DirPartMap},
@@ -8,7 +7,9 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
-use prjcombine_types::bsdata::{BsData, TileItemKind};
+use prjcombine_types::{
+    bits, bitvec::BitVec, bsdata::{BsData, TileItemKind}
+};
 use unnamed_entity::{EntityId, EntityPartVec};
 
 use crate::{
@@ -267,7 +268,7 @@ pub fn find_sites_misc(
                     let PropKind::BitvecBinStr(len) = *pval else {
                         unreachable!()
                     };
-                    inst.prop_bin_str(pname, &bitvec![1; len]);
+                    inst.prop_bin_str(pname, &BitVec::repeat(true, len));
                     continue;
                 }
                 if pname == "BUS_ADDR74" {
@@ -287,13 +288,13 @@ pub fn find_sites_misc(
                     continue;
                 }
                 if kind == "SB_MAC16" && pname == "MODE_8x8" {
-                    inst.prop_bin(pname, bits![1]);
+                    inst.prop_bin(pname, &bits![1]);
                     continue;
                 }
                 if kind == "SB_MAC16"
                     && (pname == "BOTOUTPUT_SELECT" || pname == "TOPOUTPUT_SELECT")
                 {
-                    inst.prop_bin(pname, bits![0, 1]);
+                    inst.prop_bin(pname, &bits![0, 1]);
                     continue;
                 }
 
@@ -302,13 +303,13 @@ pub fn find_sites_misc(
                         inst.prop(pname, vals[0]);
                     }
                     PropKind::BitvecHex(l) => {
-                        inst.prop_bin(pname, &bitvec![0; *l]);
+                        inst.prop_bin(pname, &BitVec::repeat(false, *l));
                     }
                     PropKind::BitvecBin(l) => {
-                        inst.prop_bin(pname, &bitvec![0; *l]);
+                        inst.prop_bin(pname, &BitVec::repeat(false, *l));
                     }
                     PropKind::BitvecBinStr(l) => {
-                        inst.prop_bin_str(pname, &bitvec![0; *l]);
+                        inst.prop_bin_str(pname, &BitVec::repeat(false, *l));
                     }
                 }
             }
@@ -831,7 +832,7 @@ pub fn find_bel_pins(
                     let PropKind::BitvecBinStr(len) = *pval else {
                         unreachable!()
                     };
-                    inst.prop_bin_str(pname, &bitvec![1; len]);
+                    inst.prop_bin_str(pname, &BitVec::repeat(true, len));
                     continue;
                 }
                 if pname == "BUS_ADDR74" {
@@ -853,13 +854,13 @@ pub fn find_bel_pins(
                     continue;
                 }
                 if kind == "SB_MAC16" && pname == "MODE_8x8" {
-                    inst.prop_bin(pname, bits![1]);
+                    inst.prop_bin(pname, &bits![1]);
                     continue;
                 }
                 if kind == "SB_MAC16"
                     && (pname == "BOTOUTPUT_SELECT" || pname == "TOPOUTPUT_SELECT")
                 {
-                    inst.prop_bin(pname, bits![0, 1]);
+                    inst.prop_bin(pname, &bits![0, 1]);
                     continue;
                 }
 
@@ -868,13 +869,13 @@ pub fn find_bel_pins(
                         inst.prop(pname, vals[0]);
                     }
                     PropKind::BitvecHex(l) => {
-                        inst.prop_bin(pname, &bitvec![0; *l]);
+                        inst.prop_bin(pname, &BitVec::repeat(false, *l));
                     }
                     PropKind::BitvecBin(l) => {
-                        inst.prop_bin(pname, &bitvec![0; *l]);
+                        inst.prop_bin(pname, &BitVec::repeat(false, *l));
                     }
                     PropKind::BitvecBinStr(l) => {
-                        inst.prop_bin_str(pname, &bitvec![0; *l]);
+                        inst.prop_bin_str(pname, &BitVec::repeat(false, *l));
                     }
                 }
             }
@@ -1032,7 +1033,7 @@ pub fn find_bel_pins(
                         let TileItemKind::Enum { values } = &item.kind else {
                             unreachable!()
                         };
-                        let mut bv = bitvec![];
+                        let mut bv = BitVec::new();
                         for &bit in &item.bits {
                             let bit = btile.xlat_pos_fwd((bit.frame, bit.bit));
                             let val = res.bitstream.get(bit);

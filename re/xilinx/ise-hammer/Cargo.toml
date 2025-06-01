@@ -9,7 +9,6 @@ path = "src/main.rs"
 
 [dependencies]
 unnamed_entity.workspace = true
-bitvec.workspace = true
 clap.workspace = true
 rand.workspace = true
 simple-error.workspace = true

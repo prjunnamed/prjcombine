@@ -1,11 +1,10 @@
 use std::{collections::BTreeMap, ops::Range};
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::grid::NodeLoc;
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bits, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_virtex4::bels;
 
 use crate::{
@@ -1906,14 +1905,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ],
                 kind: TileItemKind::Enum {
                     values: BTreeMap::from_iter([
-                        ("NONE".to_string(), bitvec![0, 0, 0]),
-                        ("GTREFCLK0".to_string(), bitvec![1, 0, 0]),
-                        ("GTREFCLK1".to_string(), bitvec![0, 1, 0]),
-                        ("GTEASTREFCLK0".to_string(), bitvec![1, 1, 0]),
-                        ("GTEASTREFCLK1".to_string(), bitvec![0, 0, 1]),
-                        ("GTWESTREFCLK0".to_string(), bitvec![1, 0, 1]),
-                        ("GTWESTREFCLK1".to_string(), bitvec![0, 1, 1]),
-                        ("GTGREFCLK0".to_string(), bitvec![1, 1, 1]),
+                        ("NONE".to_string(), bits![0, 0, 0]),
+                        ("GTREFCLK0".to_string(), bits![1, 0, 0]),
+                        ("GTREFCLK1".to_string(), bits![0, 1, 0]),
+                        ("GTEASTREFCLK0".to_string(), bits![1, 1, 0]),
+                        ("GTEASTREFCLK1".to_string(), bits![0, 0, 1]),
+                        ("GTWESTREFCLK0".to_string(), bits![1, 0, 1]),
+                        ("GTWESTREFCLK1".to_string(), bits![0, 1, 1]),
+                        ("GTGREFCLK0".to_string(), bits![1, 1, 1]),
                     ]),
                 },
             },
@@ -1926,8 +1925,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bits: vec![common_drp_bit(tile == "GTP_COMMON_MID", 0x03, 31)],
                 kind: TileItemKind::Enum {
                     values: BTreeMap::from_iter([
-                        ("STATIC".to_string(), bitvec![0]),
-                        ("DYNAMIC".to_string(), bitvec![1]),
+                        ("STATIC".to_string(), bits![0]),
+                        ("DYNAMIC".to_string(), bits![1]),
                     ]),
                 },
             },
@@ -1944,14 +1943,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ],
                 kind: TileItemKind::Enum {
                     values: BTreeMap::from_iter([
-                        ("NONE".to_string(), bitvec![0, 0, 0]),
-                        ("GTREFCLK0".to_string(), bitvec![1, 0, 0]),
-                        ("GTREFCLK1".to_string(), bitvec![0, 1, 0]),
-                        ("GTEASTREFCLK0".to_string(), bitvec![1, 1, 0]),
-                        ("GTEASTREFCLK1".to_string(), bitvec![0, 0, 1]),
-                        ("GTWESTREFCLK0".to_string(), bitvec![1, 0, 1]),
-                        ("GTWESTREFCLK1".to_string(), bitvec![0, 1, 1]),
-                        ("GTGREFCLK1".to_string(), bitvec![1, 1, 1]),
+                        ("NONE".to_string(), bits![0, 0, 0]),
+                        ("GTREFCLK0".to_string(), bits![1, 0, 0]),
+                        ("GTREFCLK1".to_string(), bits![0, 1, 0]),
+                        ("GTEASTREFCLK0".to_string(), bits![1, 1, 0]),
+                        ("GTEASTREFCLK1".to_string(), bits![0, 0, 1]),
+                        ("GTWESTREFCLK0".to_string(), bits![1, 0, 1]),
+                        ("GTWESTREFCLK1".to_string(), bits![0, 1, 1]),
+                        ("GTGREFCLK1".to_string(), bits![1, 1, 1]),
                     ]),
                 },
             },
@@ -1964,8 +1963,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bits: vec![common_drp_bit(tile == "GTP_COMMON_MID", 0x2d, 31)],
                 kind: TileItemKind::Enum {
                     values: BTreeMap::from_iter([
-                        ("STATIC".to_string(), bitvec![0]),
-                        ("DYNAMIC".to_string(), bitvec![1]),
+                        ("STATIC".to_string(), bits![0]),
+                        ("DYNAMIC".to_string(), bits![1]),
                     ]),
                 },
             },

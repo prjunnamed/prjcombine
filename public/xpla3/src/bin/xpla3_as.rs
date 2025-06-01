@@ -1,11 +1,9 @@
 use std::{collections::BTreeMap, error::Error, fs::read_to_string, path::PathBuf};
 
-use bitvec::vec::BitVec;
 use clap::{Arg, Command, value_parser};
 use prjcombine_jed::JedFile;
 use prjcombine_types::{
-    FbMcId,
-    bsdata::{Tile, TileItemKind},
+    bitvec::BitVec, bsdata::{Tile, TileItemKind}, FbMcId
 };
 use prjcombine_xpla3::{Chip, Database};
 use unnamed_entity::EntityId;

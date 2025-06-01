@@ -8,12 +8,12 @@ use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::process::Stdio;
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::db::PinDir;
 use prjcombine_re_sdf::Sdf;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::bitstream::Bitstream;
 use prjcombine_siliconblue::chip::ChipKind;
+use prjcombine_types::bitvec::BitVec;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
@@ -71,27 +71,13 @@ impl Instance {
         self.props.insert(prop.into(), value.into());
     }
 
-    pub fn prop_bin(&mut self, prop: &str, val: &BitSlice) {
-        let mut value = String::new();
-        for bit in val.iter().rev() {
-            if *bit {
-                write!(value, "1").unwrap();
-            } else {
-                write!(value, "0").unwrap();
-            }
-        }
-        self.props.insert(prop.into(), value);
+    pub fn prop_bin(&mut self, prop: &str, val: &BitVec) {
+        self.props.insert(prop.into(), val.to_string());
     }
 
-    pub fn prop_bin_str(&mut self, prop: &str, val: &BitSlice) {
+    pub fn prop_bin_str(&mut self, prop: &str, val: &BitVec) {
         let mut value = "0b".to_string();
-        for bit in val.iter().rev() {
-            if *bit {
-                write!(value, "1").unwrap();
-            } else {
-                write!(value, "0").unwrap();
-            }
-        }
+        write!(value, "{val}").unwrap();
         self.props.insert(prop.into(), value);
     }
 }

@@ -1,7 +1,7 @@
 use std::fmt::Write;
 use std::path::Path;
 
-use bitvec::vec::BitVec;
+use prjcombine_types::bitvec::BitVec;
 
 /// Represents the contents of a JESD3 file.
 #[derive(Clone, Debug, Default)]
@@ -125,7 +125,7 @@ impl JedFile {
     pub fn fuse_checksum(&self) -> u16 {
         let mut checksum: u16 = 0;
         for (i, fuse) in self.fuses.as_ref().unwrap().iter().enumerate() {
-            if *fuse {
+            if fuse {
                 checksum = checksum.wrapping_add(1 << (i % 8));
             }
         }
@@ -144,10 +144,15 @@ impl JedFile {
         if let Some(ref fuses) = self.fuses {
             writeln!(out, "QF{n}*", n = fuses.len()).unwrap();
             writeln!(out, "F0*").unwrap();
-            for (i, c) in fuses.chunks(80).enumerate() {
-                write!(out, "L{ii:06} ", ii = i * 80).unwrap();
-                for bit in c {
-                    write!(out, "{x}", x = u32::from(*bit)).unwrap();
+            let mut pos = 0;
+            while pos < fuses.len() {
+                write!(out, "L{pos:06} ").unwrap();
+                for _ in 0..80 {
+                    if pos >= fuses.len() {
+                        break;
+                    }
+                    write!(out, "{x}", x = u32::from(fuses[pos])).unwrap();
+                    pos += 1;
                 }
                 writeln!(out, "*").unwrap();
             }
@@ -157,18 +162,10 @@ impl JedFile {
             }
         }
         if !self.electrical.is_empty() {
-            write!(out, "E").unwrap();
-            for bit in self.electrical.iter().rev() {
-                write!(out, "{x}", x = u32::from(*bit)).unwrap();
-            }
-            writeln!(out, "*").unwrap();
+            writeln!(out, "E{}*", self.electrical).unwrap();
         }
         if !self.user.is_empty() {
-            write!(out, "U").unwrap();
-            for bit in self.user.iter().rev() {
-                write!(out, "{x}", x = u32::from(*bit)).unwrap();
-            }
-            writeln!(out, "*").unwrap();
+            writeln!(out, "U{}*", self.user).unwrap();
         }
         if let Some(security) = self.security {
             writeln!(out, "G{security}*", security = u32::from(security)).unwrap();

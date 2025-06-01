@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::grid::NodeLoc;
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum_default,
@@ -8,7 +7,11 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_spartan6::bels;
-use prjcombine_types::bsdata::{TileItem, TileItemKind};
+use prjcombine_types::{
+    bits,
+    bitvec::BitVec,
+    bsdata::{TileItem, TileItemKind},
+};
 
 use crate::{
     backend::{IseBackend, MultiValue, PinFromKind},
@@ -746,7 +749,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 TileItem {
                     bits: bits.to_vec(),
                     kind: TileItemKind::BitVec {
-                        invert: bitvec![0; bits.len()],
+                        invert: BitVec::repeat(false, bits.len()),
                     },
                 },
             );
@@ -759,8 +762,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bits: cfg_dll_c.bits[17..18].to_vec(),
                 kind: TileItemKind::Enum {
                     values: BTreeMap::from_iter([
-                        ("HALF".to_string(), bitvec![0]),
-                        ("INT".to_string(), bitvec![1]),
+                        ("HALF".to_string(), bits![0]),
+                        ("INT".to_string(), bits![1]),
                     ]),
                 },
             },
@@ -822,7 +825,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let TileItemKind::Enum { ref mut values } = item.kind else {
             unreachable!()
         };
-        values.insert("NONE".into(), bitvec![0; 3]);
+        values.insert("NONE".into(), BitVec::repeat(false, 3));
         ctx.tiledb.insert(tile, bel, "CLKFXDV_DIVIDE", item);
 
         ctx.tiledb.insert(tile, bel, "DLL_C", cfg_dll_c);
@@ -859,23 +862,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         present_dcm.apply_bitvec_diff(
             ctx.tiledb.item(tile, "CMT", "REG"),
-            &bitvec![1, 1, 0, 0, 0, 0, 1, 0, 1],
-            &bitvec![0, 0, 0, 0, 0, 0, 0, 0, 0],
+            &bits![1, 1, 0, 0, 0, 0, 1, 0, 1],
+            &bits![0, 0, 0, 0, 0, 0, 0, 0, 0],
         );
         present_dcm_clkgen.apply_bitvec_diff(
             ctx.tiledb.item(tile, "CMT", "REG"),
-            &bitvec![1, 1, 0, 0, 0, 0, 1, 0, 1],
-            &bitvec![0, 0, 0, 0, 0, 0, 0, 0, 0],
+            &bits![1, 1, 0, 0, 0, 0, 1, 0, 1],
+            &bits![0, 0, 0, 0, 0, 0, 0, 0, 0],
         );
         present_dcm.apply_bitvec_diff(
             ctx.tiledb.item(tile, "CMT", "BG"),
-            &bitvec![0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
-            &bitvec![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            &bits![0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+            &bits![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         );
         present_dcm_clkgen.apply_bitvec_diff(
             ctx.tiledb.item(tile, "CMT", "BG"),
-            &bitvec![0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
-            &bitvec![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            &bits![0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+            &bits![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         );
 
         // ???
@@ -898,12 +901,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present_dcm.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "DFS_S"),
             &base_dfs_s,
-            &bitvec![0; 87],
+            &BitVec::repeat(false, 87),
         );
         present_dcm_clkgen.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "DFS_S"),
             &base_dfs_s,
-            &bitvec![0; 87],
+            &BitVec::repeat(false, 87),
         );
 
         let mut base_dll_s = BitVec::repeat(false, 32);
@@ -913,12 +916,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present_dcm.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "DLL_S"),
             &base_dll_s,
-            &bitvec![0; 32],
+            &BitVec::repeat(false, 32),
         );
         present_dcm_clkgen.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "DLL_S"),
             &base_dll_s,
-            &bitvec![0; 32],
+            &BitVec::repeat(false, 32),
         );
 
         present_dcm = present_dcm.combine(&!&cfg_interface[9]);

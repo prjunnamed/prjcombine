@@ -1,7 +1,6 @@
-use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{OcdMode, xlat_bit, xlat_bitvec, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bits, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_virtex4::bels;
 use prjcombine_xilinx_bitstream::Reg;
 
@@ -690,7 +689,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "PERSIST",
         TileItem {
             bits: vec![TileBit::new(0, 0, 3)],
-            kind: TileItemKind::BitVec { invert: bitvec![0] },
+            kind: TileItemKind::BitVec { invert: bits![0] },
         },
     );
     ctx.tiledb.insert(
@@ -701,8 +700,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bits: vec![TileBit::new(0, 0, 30)],
             kind: TileItemKind::Enum {
                 values: [
-                    ("TOP".to_string(), bitvec![0]),
-                    ("BOTTOM".to_string(), bitvec![1]),
+                    ("TOP".to_string(), bits![0]),
+                    ("BOTTOM".to_string(), bits![1]),
                 ]
                 .into_iter()
                 .collect(),

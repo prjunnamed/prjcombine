@@ -6,14 +6,14 @@ use std::{
     ops::Range,
 };
 
-use bitvec::{slice::BitSlice, vec::BitVec};
 use itertools::Itertools;
 use prjcombine_interconnect::{
     db::TileClassId,
     grid::{ColId, DieId, ExpandedGrid, LayerId, NodeLoc, RowId},
 };
 use prjcombine_re_hammer::{Backend, BatchValue, Fuzzer, FuzzerGen, FuzzerId};
-use prjcombine_types::bsdata::{TileBit, BsData, TileItem, TileItemKind};
+use prjcombine_types::bitvec::BitVec;
+use prjcombine_types::bsdata::{BsData, TileBit, TileItem, TileItemKind};
 use rand::seq::IndexedRandom;
 use unnamed_entity::EntityId;
 
@@ -287,7 +287,7 @@ impl Diff {
         }
     }
 
-    pub fn apply_bitvec_diff(&mut self, item: &TileItem, from: &BitSlice, to: &BitSlice) {
+    pub fn apply_bitvec_diff(&mut self, item: &TileItem, from: &BitVec, to: &BitVec) {
         let TileItemKind::BitVec { ref invert } = item.kind else {
             unreachable!()
         };
@@ -670,10 +670,9 @@ pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> Til
             btree_map::Entry::Occupied(e) => {
                 if *e.get() != value {
                     eprintln!(
-                        "MISMATCH FOR {n}: {cur:?} {new:?}",
+                        "MISMATCH FOR {n}: {cur:?} {value:?}",
                         n = e.key(),
-                        cur = Vec::from_iter(e.get().iter().map(|x| *x)),
-                        new = Vec::from_iter(value.into_iter())
+                        cur = e.get(),
                     );
                     panic!("OOPS");
                 }
@@ -1185,7 +1184,7 @@ impl Collector<'_> {
         let v0 = &values["0"];
         let v1 = &values["1"];
         for (b0, b1) in v0.iter().zip(v1) {
-            assert_eq!(*b0, !*b1);
+            assert_eq!(b0, !b1);
         }
         let invert = v0.clone();
         TileItem {

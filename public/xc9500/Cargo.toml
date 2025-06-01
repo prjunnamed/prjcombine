@@ -6,7 +6,6 @@ version.workspace = true
 [dependencies]
 unnamed_entity.workspace = true
 serde.workspace = true
-bitvec.workspace = true
 zstd.workspace = true
 bincode.workspace = true
 clap.workspace = true

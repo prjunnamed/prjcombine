@@ -1,7 +1,7 @@
-use bitvec::vec::BitVec;
 use prjcombine_interconnect::db::PinDir;
 use prjcombine_re_fpga_hammer::{OcdMode, extract_bitvec_val};
 use prjcombine_re_hammer::Session;
+use prjcombine_types::bitvec::BitVec;
 use prjcombine_virtex2::bels;
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};

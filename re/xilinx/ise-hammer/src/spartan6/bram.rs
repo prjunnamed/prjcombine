@@ -1,11 +1,13 @@
 use std::collections::BTreeMap;
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::grid::NodeLoc;
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_spartan6::bels;
-use prjcombine_types::bsdata::{TileItem, TileItemKind};
+use prjcombine_types::{
+    bits,
+    bsdata::{TileItem, TileItemKind},
+};
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -546,8 +548,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bits: vec![bit],
                 kind: TileItemKind::Enum {
                     values: BTreeMap::from_iter([
-                        ("RAMB8BWER".to_string(), bitvec![0]),
-                        ("RAMB16BWER".to_string(), bitvec![1]),
+                        ("RAMB8BWER".to_string(), bits![0]),
+                        ("RAMB16BWER".to_string(), bits![1]),
                     ]),
                 },
             },

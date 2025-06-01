@@ -1,11 +1,10 @@
 use std::{error::Error, fs::read_to_string, path::PathBuf};
 
-use bitvec::vec::BitVec;
 use clap::{Arg, Command, value_parser};
 use prjcombine_jed::JedFile;
 use prjcombine_xc9500::{Chip, ChipKind, Database};
 
-use prjcombine_types::bsdata::{Tile, TileBit, TileItemKind};
+use prjcombine_types::{bitvec::BitVec, bsdata::{Tile, TileBit, TileItemKind}};
 
 struct Bitstream {
     fbs: Vec<Vec<[u8; 15]>>,
@@ -132,7 +131,7 @@ fn set_tile_item(tile: &Tile, chip: &Chip, item: &str, mut put_bit: impl FnMut(T
             TileItemKind::Enum { values } => {
                 let val = &values[val];
                 for (k, v) in item.bits.iter().zip(val.iter()) {
-                    put_bit(*k, *v);
+                    put_bit(*k, v);
                 }
             }
             TileItemKind::BitVec { invert } => {

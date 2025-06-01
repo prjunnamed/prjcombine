@@ -6,12 +6,16 @@ use std::{
     path::Path,
 };
 
-use bitvec::vec::BitVec;
+use bincode::{Decode, Encode};
 use itertools::*;
 use jzon::JsonValue;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+use crate::bitvec::BitVec;
+
+#[derive(
+    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, Encode, Decode,
+)]
 pub struct TileBit {
     pub tile: usize,
     pub frame: usize,
@@ -30,7 +34,7 @@ impl core::fmt::Debug for TileBit {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Encode, Decode, Default)]
 pub struct Tile {
     pub items: BTreeMap<String, TileItem>,
 }
@@ -75,7 +79,7 @@ impl Tile {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
 pub struct TileItem {
     pub bits: Vec<TileBit>,
     pub kind: TileItemKind,
@@ -159,13 +163,13 @@ impl TileItem {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize, Encode, Decode)]
 pub enum TileItemKind {
     Enum { values: BTreeMap<String, BitVec> },
     BitVec { invert: BitVec },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Encode, Decode)]
 pub enum DbValue {
     String(String),
     BitVec(BitVec),
@@ -200,13 +204,13 @@ impl DbValue {
     pub fn to_json(&self) -> JsonValue {
         match self {
             DbValue::String(s) => s.as_str().into(),
-            DbValue::BitVec(bv) => Vec::from_iter(bv.iter().map(|x| *x)).into(),
+            DbValue::BitVec(bv) => bv.into(),
             DbValue::Int(i) => (*i).into(),
         }
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
 pub struct BsData {
     pub tiles: BTreeMap<String, Tile>,
     pub device_data: BTreeMap<String, BTreeMap<String, DbValue>>,
@@ -225,15 +229,15 @@ impl BsData {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
         let f = File::open(path)?;
         let mut cf = zstd::stream::Decoder::new(f)?;
-        let config = bincode::config::legacy();
-        Ok(bincode::serde::decode_from_std_read(&mut cf, config)?)
+        let config = bincode::config::standard();
+        Ok(bincode::decode_from_std_read(&mut cf, config)?)
     }
 
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn Error>> {
         let f = File::create(path)?;
         let mut cf = zstd::stream::Encoder::new(f, 9)?;
-        let config = bincode::config::legacy();
-        bincode::serde::encode_into_std_write(self, &mut cf, config)?;
+        let config = bincode::config::standard();
+        bincode::encode_into_std_write(self, &mut cf, config)?;
         cf.finish()?;
         Ok(())
     }
@@ -301,18 +305,18 @@ impl From<&TileItem> for JsonValue {
                 bits: item.bits.clone(),
                 values: jzon::object::Object::from_iter(
                     values.iter().map(|(value_name, value_bits)| {
-                        (value_name.clone(), Vec::from_iter(value_bits.iter().map(|x| *x)))
+                        (value_name.clone(), value_bits)
                     })
                 ),
             },
             TileItemKind::BitVec { invert } => jzon::object! {
                 bits: item.bits.clone(),
-                invert: if invert.iter().all(|x| !*x) {
+                invert: if !invert.any() {
                     JsonValue::from(false)
-                } else if invert.iter().all(|x| *x) {
+                } else if invert.all() {
                     JsonValue::from(true)
                 } else {
-                    JsonValue::from(Vec::from_iter(invert.iter().map(|x| *x)))
+                    JsonValue::from(invert)
                 },
             },
         }

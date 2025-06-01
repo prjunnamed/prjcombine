@@ -1,9 +1,8 @@
-use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{OcdMode, concat_bitvec, xlat_bit};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::bels;
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bits, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
@@ -824,9 +823,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bits: vec![TileBit::new(0, 0, 11), TileBit::new(0, 0, 12)],
                 kind: TileItemKind::Enum {
                     values: [
-                        ("1".to_string(), bitvec![0, 0]),
-                        ("2".to_string(), bitvec![1, 0]),
-                        ("4".to_string(), bitvec![0, 1]),
+                        ("1".to_string(), bits![0, 0]),
+                        ("2".to_string(), bits![1, 0]),
+                        ("4".to_string(), bits![0, 1]),
                     ]
                     .into_iter()
                     .collect(),

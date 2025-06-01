@@ -1,9 +1,8 @@
-use bitvec::vec::BitVec;
 use prjcombine_interconnect::{db::PinDir, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::TileItemKind;
+use prjcombine_types::{bitvec::BitVec, bsdata::TileItemKind};
 use prjcombine_virtex2::{bels, chip::ChipKind};
 
 use crate::{

@@ -7,11 +7,11 @@ use crate::types::{
     IBufMode, ImuxId, ImuxInput, OeMode, OeMuxVal, OePadId, PTermId, RegMode, Slew, SrMuxVal,
     TermMode, Ut, Xc9500McPt, XorMuxVal,
 };
-use bitvec::vec::BitVec;
 use enum_map::EnumMap;
 use itertools::Itertools;
 use prjcombine_types::{
     FbId, FbMcId, IoId, IpadId,
+    bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
 use serde::{Deserialize, Serialize};
@@ -1092,12 +1092,6 @@ impl Bits {
         fn write_invbit(o: &mut dyn std::io::Write, bit: InvBit) -> std::io::Result<()> {
             write!(o, "{b:6}{p}", b = bit.0, p = if bit.1 { "+" } else { "-" })
         }
-        fn write_bitvec(o: &mut dyn std::io::Write, bv: &BitVec) -> std::io::Result<()> {
-            for b in bv {
-                write!(o, "{}", if *b { '1' } else { '0' })?;
-            }
-            Ok(())
-        }
         fn write_enum<K: Debug + Clone + PartialEq + Eq + PartialOrd + Ord + Hash>(
             o: &mut dyn std::io::Write,
             indent: &str,
@@ -1110,12 +1104,10 @@ impl Bits {
             writeln!(o)?;
             for (k, v) in data.items.iter().sorted() {
                 write!(o, "{indent}\t")?;
-                write_bitvec(o, v)?;
-                writeln!(o, ": {kk}", kk = f(k))?;
+                writeln!(o, "{v}: {kk}", kk = f(k))?;
             }
             write!(o, "{indent}\t")?;
-            write_bitvec(o, &data.default)?;
-            writeln!(o, ": EMPTY")?;
+            writeln!(o, "{}: EMPTY", data.default)?;
             Ok(())
         }
         Ok(())

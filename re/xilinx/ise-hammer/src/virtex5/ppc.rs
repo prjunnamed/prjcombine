@@ -1,6 +1,6 @@
-use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::extract_bitvec_val;
 use prjcombine_re_hammer::Session;
+use prjcombine_types::bits;
 use prjcombine_virtex4::bels;
 
 use crate::{
@@ -178,7 +178,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let diff = ctx.state.get_diff(tile, bel, "CLOCK_DELAY", "FALSE");
     let val = extract_bitvec_val(
         ctx.tiledb.item(tile, bel, "CLOCK_DELAY"),
-        &bitvec![0; 5],
+        &bits![0; 5],
         diff,
     );
     ctx.insert_device_data("PPC:CLOCK_DELAY", val);

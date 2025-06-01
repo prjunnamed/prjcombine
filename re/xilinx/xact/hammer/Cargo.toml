@@ -8,7 +8,6 @@ name = "xact_hammer"
 path = "src/main.rs"
 
 [dependencies]
-bitvec.workspace = true
 itertools.workspace = true
 clap.workspace = true
 tempfile.workspace = true

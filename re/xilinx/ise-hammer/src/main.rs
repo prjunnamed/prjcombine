@@ -1,12 +1,12 @@
 #![recursion_limit = "1024"]
 
-use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_interconnect::dir::DirV;
 use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_hammer::{Backend, Session};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
+use prjcombine_types::bitvec::BitVec;
 use prjcombine_types::bsdata::BsData;
 use prjcombine_xilinx_bitstream::Reg;
 use std::collections::HashMap;

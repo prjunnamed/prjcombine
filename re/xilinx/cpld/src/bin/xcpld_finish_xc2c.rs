@@ -1,6 +1,5 @@
 use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
-use bitvec::vec::BitVec;
 use clap::Parser;
 use coolrunner2::BsLayout;
 use prjcombine_coolrunner2 as coolrunner2;
@@ -18,8 +17,7 @@ use prjcombine_re_xilinx_cpld::{
     speeddb::SpeedDb,
 };
 use prjcombine_types::{
-    FbId, FbMcId, IoId,
-    bsdata::{Tile, TileBit, TileItem, TileItemKind},
+    bitvec::BitVec, bsdata::{Tile, TileBit, TileItem, TileItemKind}, FbId, FbMcId, IoId
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -702,7 +700,7 @@ fn extract_imux_bits(
                 };
                 let mut vbits = BitVec::repeat(true, dd.imux_width);
                 for (i, bit) in bits.iter().enumerate() {
-                    vbits.set(xlat[i], *bit);
+                    vbits.set(xlat[i], bit);
                 }
                 data[i].insert(vname, vbits);
             }

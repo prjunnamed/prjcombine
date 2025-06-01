@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet};
 
-use bitvec::vec::BitVec;
 use prjcombine_interconnect::{
     db::BelSlotId,
     grid::{DieId, NodeLoc},
@@ -10,7 +9,7 @@ use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,
 };
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_virtex::{bels, chip::ChipKind};
 use unnamed_entity::EntityId;
 

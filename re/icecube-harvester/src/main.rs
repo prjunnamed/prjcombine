@@ -1883,7 +1883,7 @@ impl PartContext<'_> {
                 for (idx, (&bit, inv)) in item.bits.iter().zip(invert.iter()).enumerate() {
                     harvester.force_tiled(
                         format!("{tcls}:{name}:BIT{idx}"),
-                        BTreeMap::from_iter([(bit, !*inv)]),
+                        BTreeMap::from_iter([(bit, !inv)]),
                     );
                 }
             }
@@ -1902,7 +1902,7 @@ impl PartContext<'_> {
                     for (idx, (&bit, inv)) in item.bits.iter().zip(invert.iter()).enumerate() {
                         harvester.force_tiled(
                             format!("{tile}:{name}:BIT{idx}"),
-                            BTreeMap::from_iter([(bit, !*inv)]),
+                            BTreeMap::from_iter([(bit, !inv)]),
                         );
                     }
                 } else if name.starts_with("INT:MUX") {
@@ -1919,7 +1919,7 @@ impl PartContext<'_> {
                                 item.bits
                                     .iter()
                                     .zip(val.iter())
-                                    .filter(|(_, bval)| **bval)
+                                    .filter(|&(_, bval)| bval)
                                     .map(|(&bit, _)| (bit, true)),
                             ),
                         );
@@ -1936,7 +1936,7 @@ impl PartContext<'_> {
                             item.bits
                                 .iter()
                                 .zip(invert.iter())
-                                .map(|(&bit, inv)| (bit, !*inv)),
+                                .map(|(&bit, inv)| (bit, !inv)),
                         ),
                     );
                 }

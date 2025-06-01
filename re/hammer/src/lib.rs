@@ -1,4 +1,4 @@
-use bitvec::vec::BitVec;
+use prjcombine_types::bitvec::BitVec;
 use core::fmt::Debug;
 use core::hash::Hash;
 use derive_where::derive_where;

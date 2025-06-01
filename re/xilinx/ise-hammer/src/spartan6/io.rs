@@ -1,4 +1,3 @@
-use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::BelSlotId,
     dir::DirV,
@@ -11,7 +10,9 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
 use prjcombine_spartan6::bels;
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{
+    bits, bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}
+};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -2608,8 +2609,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let nslew_bits: Vec<_> = (0..4)
             .map(|j| TileBit::new(0, 0, i * 64 + 36 + j))
             .collect();
-        let pslew_invert = bitvec![0, 0, 1, 0];
-        let nslew_invert = bitvec![0, 0, 1, 0];
+        let pslew_invert = bits![0, 0, 1, 0];
+        let nslew_invert = bits![0, 0, 1, 0];
         let pslew = TileItem {
             bits: pslew_bits,
             kind: TileItemKind::BitVec {
@@ -2626,33 +2627,33 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, bel, "NSLEW", nslew);
 
         ctx.tiledb
-            .insert_misc_data("IOSTD:PSLEW:OFF", bitvec![0; 4]);
+            .insert_misc_data("IOSTD:PSLEW:OFF", BitVec::repeat(false, 4));
         ctx.tiledb
-            .insert_misc_data("IOSTD:NSLEW:OFF", bitvec![0; 4]);
+            .insert_misc_data("IOSTD:NSLEW:OFF", BitVec::repeat(false, 4));
         ctx.tiledb
             .insert_misc_data("IOSTD:PSLEW:IN_TERM", pslew_invert.clone());
         ctx.tiledb
             .insert_misc_data("IOSTD:NSLEW:IN_TERM", nslew_invert.clone());
         ctx.tiledb
-            .insert_misc_data("IOSTD:PDRIVE:OFF", bitvec![0; 6]);
+            .insert_misc_data("IOSTD:PDRIVE:OFF", BitVec::repeat(false, 6));
         ctx.tiledb
-            .insert_misc_data("IOSTD:NDRIVE:OFF", bitvec![0; 7]);
+            .insert_misc_data("IOSTD:NDRIVE:OFF", BitVec::repeat(false, 7));
         ctx.tiledb
-            .insert_misc_data("IOSTD:PTERM:OFF", bitvec![0; 6]);
+            .insert_misc_data("IOSTD:PTERM:OFF", BitVec::repeat(false, 6));
         ctx.tiledb
-            .insert_misc_data("IOSTD:NTERM:OFF", bitvec![0; 7]);
+            .insert_misc_data("IOSTD:NTERM:OFF", BitVec::repeat(false, 7));
 
         if i == 0 {
             let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "NOTVREF");
             diff.apply_bitvec_diff(
                 ctx.tiledb.item(tile, bel, "PSLEW"),
                 &pslew_invert,
-                &bitvec![0; 4],
+                &BitVec::repeat(false, 4),
             );
             diff.apply_bitvec_diff(
                 ctx.tiledb.item(tile, bel, "NSLEW"),
                 &nslew_invert,
-                &bitvec![0; 4],
+                &BitVec::repeat(false, 4),
             );
             ctx.tiledb.insert(tile, bel, "VREF", xlat_bit(!diff));
         }
@@ -2725,12 +2726,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let (diff_lvds, diff_tmds, mut diff) = Diff::split(diff_lvds, diff_tmds);
             diff.apply_bitvec_diff(
                 ctx.tiledb.item(tile, bel, "PSLEW"),
-                &bitvec![0; 4],
+                &BitVec::repeat(false, 4),
                 &pslew_invert,
             );
             diff.apply_bitvec_diff(
                 ctx.tiledb.item(tile, bel, "NSLEW"),
-                &bitvec![0; 4],
+                &BitVec::repeat(false, 4),
                 &nslew_invert,
             );
             ctx.tiledb
@@ -2748,12 +2749,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut diff = ctx.state.get_diff(tile, bel, "DIFF_TERM", "1");
             diff.apply_bitvec_diff(
                 ctx.tiledb.item(tile, bel, "PSLEW"),
-                &bitvec![0; 4],
+                &BitVec::repeat(false, 4),
                 &pslew_invert,
             );
             diff.apply_bitvec_diff(
                 ctx.tiledb.item(tile, bel, "NSLEW"),
-                &bitvec![0; 4],
+                &BitVec::repeat(false, 4),
                 &nslew_invert,
             );
             diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "DIFF_MODE"), "LVDS", "NONE");
@@ -2762,12 +2763,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut diff = ctx.state.get_diff(tile, bel, "DIFF_TERM", "1");
             diff.apply_bitvec_diff(
                 ctx.tiledb.item(tile, bel, "PSLEW"),
-                &bitvec![0; 4],
+                &BitVec::repeat(false, 4),
                 &pslew_invert,
             );
             diff.apply_bitvec_diff(
                 ctx.tiledb.item(tile, bel, "NSLEW"),
-                &bitvec![0; 4],
+                &BitVec::repeat(false, 4),
                 &nslew_invert,
             );
             ctx.tiledb.insert(tile, bel, "DIFF_TERM", xlat_bit(diff));
@@ -2837,14 +2838,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             let name = format!("{term}.{vcco}.{vccaux}");
                             let val = extract_bitvec_val_part(
                                 ctx.tiledb.item(tile, bel, "PTERM"),
-                                &bitvec![0; 6],
+                                &BitVec::repeat(false, 6),
                                 &mut diff,
                             );
                             ctx.tiledb
                                 .insert_misc_data(format!("IOSTD:PTERM:{name}"), val);
                             let val = extract_bitvec_val_part(
                                 ctx.tiledb.item(tile, bel, "NTERM"),
-                                &bitvec![0; 7],
+                                &BitVec::repeat(false, 7),
                                 &mut diff,
                             );
                             ctx.tiledb
@@ -2916,10 +2917,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                         if std.name == "TML_33" {
                             for (attr, base) in [
-                                ("PDRIVE", &bitvec![0; 6]),
-                                ("NDRIVE", &bitvec![0; 7]),
-                                ("PTERM", &bitvec![0; 6]),
-                                ("NTERM", &bitvec![0; 7]),
+                                ("PDRIVE", &BitVec::repeat(false, 6)),
+                                ("NDRIVE", &BitVec::repeat(false, 7)),
+                                ("PTERM", &BitVec::repeat(false, 6)),
+                                ("NTERM", &BitVec::repeat(false, 7)),
                                 ("PSLEW", &pslew_invert),
                                 ("NSLEW", &nslew_invert),
                             ] {
@@ -2942,12 +2943,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             diff0.apply_bitvec_diff(
                                 ctx.tiledb.item(tile, bel, "PSLEW"),
-                                &bitvec![0; 4],
+                                &BitVec::repeat(false, 4),
                                 &pslew_invert,
                             );
                             diff0.apply_bitvec_diff(
                                 ctx.tiledb.item(tile, bel, "NSLEW"),
-                                &bitvec![0; 4],
+                                &BitVec::repeat(false, 4),
                                 &nslew_invert,
                             );
                             diff0.assert_empty();
@@ -2982,9 +2983,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         false,
                                     );
                                 }
-                                for (attr, base) in
-                                    [("PDRIVE", bitvec![0; 6]), ("NDRIVE", bitvec![0; 7])]
-                                {
+                                for (attr, base) in [
+                                    ("PDRIVE", BitVec::repeat(false, 6)),
+                                    ("NDRIVE", BitVec::repeat(false, 7)),
+                                ] {
                                     let val = extract_bitvec_val_part(
                                         ctx.tiledb.item(tile, bel, attr),
                                         &base,
@@ -3043,9 +3045,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         );
                                     }
                                 }
-                                for (attr, base) in
-                                    [("PDRIVE", bitvec![0; 6]), ("NDRIVE", bitvec![0; 7])]
-                                {
+                                for (attr, base) in [
+                                    ("PDRIVE", BitVec::repeat(false, 6)),
+                                    ("NDRIVE", BitVec::repeat(false, 7)),
+                                ] {
                                     let val = extract_bitvec_val_part(
                                         ctx.tiledb.item(tile, bel, attr),
                                         &base,
@@ -3165,8 +3168,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             for attr in ["LVDSBIAS_0", "LVDSBIAS_1"] {
                 let diff = ctx.state.get_diff(tile, bel, attr, std.name);
-                let val =
-                    extract_bitvec_val(ctx.tiledb.item(tile, bel, attr), &bitvec![0; 12], diff);
+                let val = extract_bitvec_val(
+                    ctx.tiledb.item(tile, bel, attr),
+                    &BitVec::repeat(false, 12),
+                    diff,
+                );
                 ctx.tiledb
                     .insert_misc_data(format!("IOSTD:LVDSBIAS:{}", std.name), val);
             }
@@ -3185,10 +3191,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bits: vec![bit_25, bit_75],
             kind: TileItemKind::Enum {
                 values: [
-                    ("NONE".to_string(), bitvec![0, 0]),
-                    ("0.25".to_string(), bitvec![1, 0]),
-                    ("0.75".to_string(), bitvec![0, 1]),
-                    ("0.5".to_string(), bitvec![1, 1]),
+                    ("NONE".to_string(), bits![0, 0]),
+                    ("0.25".to_string(), bits![1, 0]),
+                    ("0.75".to_string(), bits![0, 1]),
+                    ("0.5".to_string(), bits![1, 1]),
                 ]
                 .into_iter()
                 .collect(),

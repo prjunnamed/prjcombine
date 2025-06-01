@@ -7,6 +7,7 @@ pub mod bscan;
 pub mod speed;
 pub mod bsdata;
 pub mod units;
+pub mod bitvec;
 
 entity_id! {
     pub id FbId u8;

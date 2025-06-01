@@ -1,10 +1,10 @@
-use bitvec::vec::BitVec;
 use prjcombine_interconnect::{
     db::{BelSlotId, TileClassId},
     grid::NodeLoc,
 };
 use prjcombine_re_fpga_hammer::{FeatureId, FpgaFuzzerGen, FuzzerProp};
 use prjcombine_re_hammer::Session;
+use prjcombine_types::bitvec::BitVec;
 
 use crate::{
     backend::{Key, Value, XactBackend},

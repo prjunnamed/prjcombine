@@ -1,12 +1,10 @@
 use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
-use bitvec::vec::BitVec;
 use clap::{Arg, Command, value_parser};
 use prjcombine_coolrunner2::{Chip, Database};
 use prjcombine_jed::{JedFile, JedParserOptions};
 use prjcombine_types::{
-    FbId, FbMcId, IoId,
-    bsdata::{Tile, TileItemKind},
+    bitvec::BitVec, bsdata::{Tile, TileItemKind}, FbId, FbMcId, IoId
 };
 use unnamed_entity::EntityId;
 
@@ -44,7 +42,7 @@ impl Bitstream {
             };
             for i in 0..40 {
                 let n = format!("IM[{i}].MUX");
-                let data = fuses[pos..(pos + chip.imux_width)].to_bitvec();
+                let data = fuses.slice(pos..(pos + chip.imux_width));
                 pos += chip.imux_width;
                 fbd.imux.insert(n, data);
             }
@@ -113,13 +111,13 @@ fn print_tile(data: &BTreeMap<String, BitVec>, tile: &Tile) {
                 }
                 if !found {
                     for bit in v.iter().rev() {
-                        print!("{}", u8::from(*bit));
+                        print!("{}", u8::from(bit));
                     }
                 }
             }
             TileItemKind::BitVec { invert } => {
                 for (i, bit) in v.iter().enumerate().rev() {
-                    print!("{}", u8::from(*bit ^ invert[i]));
+                    print!("{}", u8::from(bit ^ invert[i]));
                 }
             }
         }

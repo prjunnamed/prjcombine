@@ -1,9 +1,8 @@
-use bitvec::prelude::*;
 use prjcombine_interconnect::{dir::DirH, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileBit, TileItem};
+use prjcombine_types::{bits, bitvec::BitVec, bsdata::{TileBit, TileItem}};
 use prjcombine_virtex4::bels;
 
 use crate::{
@@ -722,7 +721,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let mut diff = ctx.state.get_diff(tile, bel, "COMPENSATION", "ZHOLD");
             let dly_val = extract_bitvec_val_part(
                 ctx.tiledb.item(tile, bel, "IN_DLY_SET"),
-                &bitvec![0; 5],
+                &bits![0; 5],
                 &mut diff,
             );
             ctx.insert_device_data("MMCM:IN_DLY_SET", dly_val);
@@ -1107,7 +1106,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "IN_DLY_MX_CVDD"), 0x18, 0);
         let dly_val = extract_bitvec_val_part(
             ctx.tiledb.item(tile, bel, "IN_DLY_SET"),
-            &bitvec![0; 5],
+            &bits![0; 5],
             &mut diff,
         );
         ctx.insert_device_data("MMCM:IN_DLY_SET", dly_val);
@@ -1119,9 +1118,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     ctx.state
                         .get_diff(tile, bel, "TABLES", format!("{mult}.{bandwidth}"));
                 for (attr, base) in [
-                    ("CP", bitvec![1, 0, 1, 0]),
-                    ("RES", bitvec![1, 1, 1, 1]),
-                    ("LFHF", bitvec![0, 0]),
+                    ("CP", bits![1, 0, 1, 0]),
+                    ("RES", bits![1, 1, 1, 1]),
+                    ("LFHF", bits![0, 0]),
                 ] {
                     let val =
                         extract_bitvec_val_part(ctx.tiledb.item(tile, bel, attr), &base, &mut diff);

@@ -1,9 +1,8 @@
-use bitvec::prelude::*;
 use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::TileItemKind;
+use prjcombine_types::{bits, bsdata::TileItemKind};
 use prjcombine_xc2000::bels::xc5200 as bels;
 use unnamed_entity::EntityId;
 
@@ -315,7 +314,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let TileItemKind::Enum { ref mut values } = item.kind else {
                     unreachable!()
                 };
-                values.insert("DONE_IN".to_string(), bitvec![0; 2]);
+                values.insert("DONE_IN".to_string(), bits![0; 2]);
             }
             ctx.tiledb.insert(tile, bel, attr, item);
         }

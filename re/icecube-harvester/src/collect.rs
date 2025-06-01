@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::{MuxInfo, TileClassId, TileClassWire},
     dir::{Dir, DirV},
@@ -15,7 +14,9 @@ use prjcombine_siliconblue::{
     chip::{ChipKind, ExtraNodeLoc},
     expanded::{BitOwner, ExpandedDevice},
 };
-use prjcombine_types::bsdata::{BsData, TileBit, TileItem};
+use prjcombine_types::{
+    bits, bsdata::{BsData, TileBit, TileItem}
+};
 use unnamed_entity::EntityId;
 
 pub fn collect_iob(
@@ -378,7 +379,7 @@ pub fn collect(
                     }
                     let drive = extract_bitvec_val_part(
                         collector.tiledb.item(tile, bel, "DRIVE"),
-                        &bitvec![0, 0],
+                        &bits![0, 0],
                         &mut diff,
                     );
                     collector
@@ -386,7 +387,7 @@ pub fn collect(
                         .insert_misc_data(format!("IOSTD:DRIVE:{std}"), drive);
                     let misc = extract_bitvec_val_part(
                         collector.tiledb.item(tile, bel, "IOSTD_MISC"),
-                        &bitvec![0],
+                        &bits![0],
                         &mut diff,
                     );
                     collector
@@ -431,7 +432,7 @@ pub fn collect(
                     for bel in ["IOB0", "IOB1"] {
                         let misc = extract_bitvec_val_part(
                             collector.tiledb.item(tile, bel, "IOSTD_MISC"),
-                            &bitvec![0],
+                            &bits![0],
                             &mut diff,
                         );
                         collector

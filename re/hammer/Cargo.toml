@@ -6,7 +6,7 @@ edition.workspace = true
 [dependencies]
 unnamed_entity.workspace = true
 serde.workspace = true
-bitvec.workspace = true
+prjcombine-types.workspace = true
 bimap.workspace = true
 rand.workspace = true
 std-semaphore.workspace = true

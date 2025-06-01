@@ -1,11 +1,9 @@
 use std::collections::{BTreeMap, HashSet};
 
-use bitvec::prelude::*;
-
 use prjcombine_re_fpga_hammer::{Diff, extract_bitvec_val, xlat_bit, xlat_bitvec};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileItem, TileItemKind};
+use prjcombine_types::{bits, bitvec::BitVec, bsdata::{TileItem, TileItemKind}};
 use prjcombine_virtex2::{bels, chip::Dcms};
 
 use crate::{
@@ -347,7 +345,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let item = ctx.tiledb.item(tile, bel, "DESKEW_ADJUST");
         let val = extract_bitvec_val(
             item,
-            &bitvec![0; 4],
+            &bits![0; 4],
             present.split_bits(&item.bits.iter().copied().collect()),
         );
         ctx.insert_device_data("DCM:DESKEW_ADJUST", val);
@@ -434,8 +432,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
             vreg_enable.apply_bitvec_diff(
                 ctx.tiledb.item(tile, "DCM_VREG", "VBG_SEL"),
-                &bitvec![0, 1, 0, 1],
-                &bitvec![0; 4],
+                &bits![0, 1, 0, 1],
+                &bits![0; 4],
             );
 
             let mut base_vreg = BitVec::repeat(false, 20);
@@ -444,7 +442,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             vreg_enable.apply_bitvec_diff(
                 ctx.tiledb.item(tile, "DCM_VREG", "VREG"),
                 &base_vreg,
-                &bitvec![0; 20],
+                &bits![0; 20],
             );
 
             vreg_enable.assert_empty();
@@ -527,7 +525,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let item = ctx.tiledb.item(tile, bel, "DESKEW_ADJUST");
         let val = extract_bitvec_val(
             item,
-            &bitvec![0; 4],
+            &bits![0; 4],
             present.split_bits(&item.bits.iter().copied().collect()),
         );
         ctx.insert_device_data("DCM:DESKEW_ADJUST", val);
@@ -567,7 +565,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 TileItem {
                     bits: bits.to_vec(),
                     kind: TileItemKind::BitVec {
-                        invert: bitvec![0; bits.len()],
+                        invert: bits![0; bits.len()],
                     },
                 },
             );
@@ -580,8 +578,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 bits: cfg_dll_c.bits[17..18].to_vec(),
                 kind: TileItemKind::Enum {
                     values: BTreeMap::from_iter([
-                        ("HALF".to_string(), bitvec![0]),
-                        ("INT".to_string(), bitvec![1]),
+                        ("HALF".to_string(), bits![0]),
+                        ("INT".to_string(), bits![1]),
                     ]),
                 },
             },
@@ -646,8 +644,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let mut diff_c = diff_c.combine(&!&diff_b);
             diff_c.apply_bitvec_diff(
                 ctx.tiledb.item(tile, "DCM_VREG", "VBG_SEL"),
-                &bitvec![0, 1, 1, 0],
-                &bitvec![0, 1, 0, 1],
+                &bits![0, 1, 1, 0],
+                &bits![0, 1, 0, 1],
             );
             diff_c.assert_empty();
         }
@@ -661,14 +659,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             TileItem {
                 bits: vec![cfg_dll_s.bits[7], cfg_dll_s.bits[17]],
                 kind: TileItemKind::BitVec {
-                    invert: bitvec![0; 2],
+                    invert: bits![0; 2],
                 },
             },
         );
         diff_b.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "PERIOD_LF"),
-            &bitvec![1; 2],
-            &bitvec![0; 2],
+            &bits![1; 2],
+            &bits![0; 2],
         );
         diff_b.assert_empty();
 
@@ -694,7 +692,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         present.apply_bitvec_diff(
             ctx.tiledb.item(tile, "DCM", "INTERFACE"),
             &base_interface,
-            &bitvec![0; 16],
+            &bits![0; 16],
         );
 
         let mut base_dfs_s = BitVec::repeat(false, 76);
@@ -712,7 +710,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         present.apply_bitvec_diff(
             ctx.tiledb.item(tile, "DCM", "DFS_S"),
             &base_dfs_s,
-            &bitvec![0; 76],
+            &bits![0; 76],
         );
 
         let mut base_dll_s = BitVec::repeat(false, 32);
@@ -721,7 +719,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         present.apply_bitvec_diff(
             ctx.tiledb.item(tile, "DCM", "DLL_S"),
             &base_dll_s,
-            &bitvec![0; 32],
+            &bits![0; 32],
         );
 
         present.assert_empty();

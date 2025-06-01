@@ -1,7 +1,7 @@
-use bitvec::prelude::*;
 use prjcombine_interconnect::db::PinDir;
 use prjcombine_re_fpga_hammer::OcdMode;
 use prjcombine_re_hammer::Session;
+use prjcombine_types::{bits, bitvec::BitVec};
 use prjcombine_virtex2::bels;
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
@@ -230,9 +230,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "RX_BUFFER_LIMIT", "");
         let item = ctx.collector.tiledb.item(tile, bel, "RX_BUFFER_LIMIT");
         for (name, val) in [
-            ("15.MASTER", bitvec![0, 0, 1, 1]),
-            ("15.SLAVE_1_HOP", bitvec![0, 0, 1, 0]),
-            ("15.SLAVE_2_HOPS", bitvec![0, 0, 1, 0]),
+            ("15.MASTER", bits![0, 0, 1, 1]),
+            ("15.SLAVE_1_HOP", bits![0, 0, 1, 0]),
+            ("15.SLAVE_2_HOPS", bits![0, 0, 1, 0]),
         ] {
             let mut diff = ctx
                 .collector

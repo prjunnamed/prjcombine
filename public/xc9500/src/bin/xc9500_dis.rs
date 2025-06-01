@@ -1,9 +1,11 @@
 use std::{error::Error, path::PathBuf};
 
-use bitvec::vec::BitVec;
 use clap::{Arg, Command, value_parser};
 use prjcombine_jed::{JedFile, JedParserOptions};
-use prjcombine_types::bsdata::{Tile, TileBit, TileItemKind};
+use prjcombine_types::{
+    bitvec::BitVec,
+    bsdata::{Tile, TileBit, TileItemKind},
+};
 use prjcombine_xc9500::{Chip, ChipKind, Database};
 
 struct Bitstream {
@@ -24,13 +26,12 @@ impl Bitstream {
                     let mut row = [0; 15];
                     for col in 0..15 {
                         let sz = if col < 9 { 8 } else { 6 };
-                        let f = &fuses[pos..pos + sz];
-                        pos += sz;
                         for j in 0..sz {
-                            if f[j] {
+                            if fuses[pos + j] {
                                 row[col] |= 1 << j;
                             }
                         }
+                        pos += sz;
                     }
                     rows.push(row);
                 }
@@ -42,13 +43,12 @@ impl Bitstream {
                         let mut row = [0; 5];
                         for col in 0..5 {
                             let sz = if col == 0 { 8 } else { 7 };
-                            let f = &fuses[pos..pos + sz];
-                            pos += sz;
                             for j in 0..sz {
-                                if f[j] {
+                                if fuses[pos + j] {
                                     row[col] |= 1 << j;
                                 }
                             }
+                            pos += sz;
                         }
                         rows.push(row);
                     }
@@ -64,13 +64,12 @@ impl Bitstream {
                 for col in 0..15 {
                     for fb in 0..chip.fbs {
                         let sz = if col < 9 { 8 } else { 6 };
-                        let f = &fuses[pos..pos + sz];
-                        pos += sz;
                         for j in 0..sz {
-                            if f[j] {
+                            if fuses[pos + j] {
                                 fbs[fb][row][col] |= 1 << j;
                             }
                         }
+                        pos += sz;
                     }
                 }
             }
@@ -133,9 +132,7 @@ fn print_tile(tile: &Tile, chip: &Chip, get_bit: impl Fn(TileBit) -> bool) {
                     }
                 }
                 if !found {
-                    for bit in bits.iter().rev() {
-                        print!("{}", u8::from(*bit));
-                    }
+                    print!("{bits}");
                 }
             }
             TileItemKind::BitVec { invert } => {
@@ -152,10 +149,7 @@ fn print_tile(tile: &Tile, chip: &Chip, get_bit: impl Fn(TileBit) -> bool) {
                         print!(" !{name}");
                     }
                 } else {
-                    print!(" {name}=");
-                    for bit in bits.iter().rev() {
-                        print!("{}", u8::from(*bit));
-                    }
+                    print!(" {name}={bits}");
                 }
             }
         }

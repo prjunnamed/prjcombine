@@ -1,6 +1,6 @@
 use std::{error::Error, fs::File, path::Path};
 
-use bitvec::vec::BitVec;
+use prjcombine_types::bitvec::BitVec;
 use serde::{Deserialize, Serialize};
 
 use crate::bits::{Bits, BitstreamMap};

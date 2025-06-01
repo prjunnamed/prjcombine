@@ -5,7 +5,6 @@ use std::{
     path::PathBuf,
 };
 
-use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_re_xilinx_cpld::{
     bits::{IBufOut, McOut, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
@@ -20,6 +19,7 @@ use prjcombine_re_xilinx_cpld::{
 };
 use prjcombine_types::{
     FbId, FbMcId, IoId,
+    bitvec::BitVec,
     bsdata::{Tile, TileBit, TileItem, TileItemKind},
 };
 use prjcombine_xpla3 as xpla3;
@@ -452,7 +452,7 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
                     kind: TileItemKind::Enum {
                         values: values
                             .iter()
-                            .map(|(k, v)| (k.clone(), v[split * i..split * (i + 1)].to_bitvec()))
+                            .map(|(k, v)| (k.clone(), v.slice(split * i..split * (i + 1))))
                             .collect(),
                     },
                 };
@@ -562,7 +562,7 @@ fn extract_imux_bits(
                 };
                 let mut vbits = BitVec::repeat(true, dd.imux_width);
                 for (i, bit) in bits.iter().enumerate() {
-                    vbits.set(xlat[i], *bit);
+                    vbits.set(xlat[i], bit);
                 }
                 data[i].insert(vname, vbits);
             }

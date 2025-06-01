@@ -1,7 +1,7 @@
-use bitvec::vec::BitVec;
 use prjcombine_interconnect::{db::BelSlotId, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
+use prjcombine_types::bitvec::BitVec;
 
 use crate::backend::{Key, MultiValue, Value, XactBackend};
 

@@ -1,4 +1,3 @@
-use bitvec::prelude::*;
 use prjcombine_interconnect::{
     dir::{DirH, DirV},
     grid::{DieId, NodeLoc},
@@ -8,7 +7,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bits, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_virtex4::bels;
 use prjcombine_xilinx_bitstream::Reg;
 use unnamed_entity::EntityId;
@@ -778,7 +777,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "PERSIST",
         TileItem {
             bits: vec![TileBit::new(0, 0, 3)],
-            kind: TileItemKind::BitVec { invert: bitvec![0] },
+            kind: TileItemKind::BitVec { invert: bits![0] },
         },
     );
     ctx.tiledb.insert(
@@ -787,7 +786,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "GLUTMASK",
         TileItem {
             bits: vec![TileBit::new(0, 0, 8)],
-            kind: TileItemKind::BitVec { invert: bitvec![1] },
+            kind: TileItemKind::BitVec { invert: bits![1] },
         },
     );
     ctx.tiledb.insert(
@@ -798,8 +797,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bits: vec![TileBit::new(0, 0, 30)],
             kind: TileItemKind::Enum {
                 values: [
-                    ("TOP".to_string(), bitvec![0]),
-                    ("BOTTOM".to_string(), bitvec![1]),
+                    ("TOP".to_string(), bits![0]),
+                    ("BOTTOM".to_string(), bits![1]),
                 ]
                 .into_iter()
                 .collect(),

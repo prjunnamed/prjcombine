@@ -1,9 +1,9 @@
-use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{
     Diff, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bitvec, xlat_enum,
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_types::bits;
 use prjcombine_virtex2::{bels, chip::ChipKind};
 
 use crate::{
@@ -343,14 +343,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let mut diff = present_base.combine(&!all_0);
             let adef = extract_bitvec_val_part(
                 ctx.tiledb.item(tile, "BRAM", "DDEL_A"),
-                &bitvec![0, 0],
+                &bits![0, 0],
                 &mut diff,
             );
             ctx.insert_device_data("BRAM:DDEL_A_DEFAULT", adef);
             if grid_kind != ChipKind::Spartan3 {
                 let bdef = extract_bitvec_val_part(
                     ctx.tiledb.item(tile, "BRAM", "DDEL_B"),
-                    &bitvec![0, 0],
+                    &bits![0, 0],
                     &mut diff,
                 );
                 ctx.insert_device_data("BRAM:DDEL_B_DEFAULT", bdef);
@@ -358,14 +358,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
             let adef = extract_bitvec_val_part(
                 ctx.tiledb.item(tile, "BRAM", "WDEL_A"),
-                &bitvec![0, 0, 0],
+                &bits![0, 0, 0],
                 &mut diff,
             );
             ctx.insert_device_data("BRAM:WDEL_A_DEFAULT", adef);
             if grid_kind != ChipKind::Spartan3 {
                 let bdef = extract_bitvec_val_part(
                     ctx.tiledb.item(tile, "BRAM", "WDEL_B"),
-                    &bitvec![0, 0, 0],
+                    &bits![0, 0, 0],
                     &mut diff,
                 );
                 ctx.insert_device_data("BRAM:WDEL_B_DEFAULT", bdef);
@@ -391,7 +391,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let (a1, b1) = filter_ab(diff1);
         let (adef, bdef) = filter_ab(diff_def);
         let ddel_a = xlat_bitvec(vec![a0, a1]);
-        let adef = extract_bitvec_val(&ddel_a, &bitvec![0, 0], adef);
+        let adef = extract_bitvec_val(&ddel_a, &bits![0, 0], adef);
         ctx.tiledb.insert(tile, "BRAM", "DDEL_A", ddel_a);
         ctx.insert_device_data("BRAM:DDEL_A_DEFAULT", adef);
         present.discard_bits(ctx.tiledb.item(tile, "BRAM", "DDEL_A"));
@@ -401,7 +401,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             bdef.assert_empty();
         } else {
             let ddel_b = xlat_bitvec(vec![b0, b1]);
-            let bdef = extract_bitvec_val(&ddel_b, &bitvec![0, 0], bdef);
+            let bdef = extract_bitvec_val(&ddel_b, &bits![0, 0], bdef);
             ctx.tiledb.insert(tile, "BRAM", "DDEL_B", ddel_b);
             ctx.insert_device_data("BRAM:DDEL_B_DEFAULT", bdef);
             present.discard_bits(ctx.tiledb.item(tile, "BRAM", "DDEL_B"));
@@ -426,7 +426,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let (a2, b2) = filter_ab(diff2);
         let (adef, bdef) = filter_ab(diff_def);
         let wdel_a = xlat_bitvec(vec![a0, a1, a2]);
-        let adef = extract_bitvec_val(&wdel_a, &bitvec![0, 0, 0], adef);
+        let adef = extract_bitvec_val(&wdel_a, &bits![0, 0, 0], adef);
         ctx.insert_device_data("BRAM:WDEL_A_DEFAULT", adef);
         ctx.tiledb.insert(tile, "BRAM", "WDEL_A", wdel_a);
         present.discard_bits(ctx.tiledb.item(tile, "BRAM", "WDEL_A"));
@@ -437,7 +437,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             bdef.assert_empty();
         } else {
             let wdel_b = xlat_bitvec(vec![b0, b1, b2]);
-            let bdef = extract_bitvec_val(&wdel_b, &bitvec![0, 0, 0], bdef);
+            let bdef = extract_bitvec_val(&wdel_b, &bits![0, 0, 0], bdef);
             ctx.tiledb.insert(tile, "BRAM", "WDEL_B", wdel_b);
             ctx.insert_device_data("BRAM:WDEL_B_DEFAULT", bdef);
             present.discard_bits(ctx.tiledb.item(tile, "BRAM", "WDEL_B"));

@@ -1,7 +1,6 @@
-use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{Diff, xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::bsdata::{TileBit, TileItem};
+use prjcombine_types::{bits, bsdata::{TileBit, TileItem}};
 use prjcombine_xc2000::bels::xc2000 as bels;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
@@ -59,7 +58,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 .cfg(lut, "D")
                 .commit();
             for i in 0..16 {
-                let mut bits = bitvec![0; 16];
+                let mut bits = bits![0; 16];
                 bits.set(i, true);
                 bctx.mode("FG").test_equate_fixed(
                     lut,
@@ -76,7 +75,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 &["A", "B", "QY", "D"],
             ] {
                 for i in [0, 1, 2, 4, 8] {
-                    let mut bits = bitvec![0; 16];
+                    let mut bits = bits![0; 16];
                     bits.set(i, true);
                     bctx.mode("FG").test_equate_fixed(
                         lut,
@@ -102,7 +101,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             .cfg("F", "E")
             .commit();
         for i in [0, 1, 2, 4, 8, 16] {
-            let mut bits = bitvec![0; 32];
+            let mut bits = bits![0; 32];
             bits.set(i, true);
             bctx.mode("F").test_equate_fixed(
                 "F",
@@ -281,12 +280,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let diff_abcde = ctx.state.get_diff(tile, bel, "F", "ABCDE");
         for i in [0, 1, 2, 4, 8, 16] {
-            let mut bits = bitvec![0; 32];
+            let mut bits = bits![0; 32];
             bits.set(i, true);
             let mut diff = ctx.state.get_diff(tile, bel, "F", format!("EQ_ABCDE_{i}"));
             diff = diff.combine(&!&diff_abcde);
-            diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, "F"), &bits[..16], bits![0; 16]);
-            diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, "G"), &bits[16..], bits![0; 16]);
+            diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, "F"), &bits.slice(..16), &bits![0; 16]);
+            diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, "G"), &bits.slice(16..), &bits![0; 16]);
             diff.assert_empty();
         }
         let mut diff = diff_abcde;

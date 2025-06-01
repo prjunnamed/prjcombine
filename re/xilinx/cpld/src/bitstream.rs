@@ -1,7 +1,8 @@
 use std::collections::HashSet;
 
+use prjcombine_types::bitvec::BitVec;
+
 use crate::device::DeviceKind;
-use bitvec::{field::BitField, vec::BitVec};
 
 #[derive(Clone, Debug)]
 pub struct Bitstream {
@@ -87,8 +88,8 @@ fn parse_coolrunner_word(kind: DeviceKind, data: &BitVec) -> ((u32, BitVec), usi
         _ => unreachable!(),
     };
     let wlen = data.len() - alen;
-    let word = data[..wlen].to_bitvec();
-    let addr: u32 = data[wlen..].load_le();
+    let word = data.slice(..wlen);
+    let addr = data.slice(wlen..).as_u32();
     let addr = if kind == DeviceKind::Xpla3 {
         ungray(addr >> 1, alen - 1) | (addr & 1) << (alen - 1)
     } else {
@@ -114,8 +115,8 @@ pub fn parse_svf(kind: DeviceKind, svf: &str) -> Bitstream {
         if line.starts_with("SDR") {
             let line = parse_shift_line(line);
             assert_eq!(line.len, 32);
-            idcode = line.tdo.unwrap().load_le();
-            idcode_mask = line.mask.unwrap().load_le();
+            idcode = line.tdo.unwrap().as_u32();
+            idcode_mask = line.mask.unwrap().as_u32();
             break;
         }
     }
@@ -152,15 +153,15 @@ pub fn parse_svf(kind: DeviceKind, svf: &str) -> Bitstream {
             match kind {
                 DeviceKind::Xc9500 => {
                     assert_eq!(data.len(), 27);
-                    let word = data[2..10].to_bitvec();
-                    let addr = data[10..].load_le();
+                    let word = data.slice(2..10);
+                    let addr = data.slice(10..).as_u32();
                     words.push((addr, word));
                 }
                 DeviceKind::Xc9500Xl | DeviceKind::Xc9500Xv => {
                     let wlen = data.len() - 18;
                     assert!(matches!(wlen, 16 | 32 | 64 | 128));
-                    let word = data[2..wlen + 2].to_bitvec();
-                    let addr = data[wlen + 2..].load_le();
+                    let word = data.slice(2..wlen + 2);
+                    let addr = data.slice(wlen + 2..).as_u32();
                     words.push((addr, word));
                 }
                 DeviceKind::Xpla3 | DeviceKind::Coolrunner2 => {
@@ -175,7 +176,7 @@ pub fn parse_svf(kind: DeviceKind, svf: &str) -> Bitstream {
         // xa2c* bug workaround
         let idx = words.len() - 2;
         let w = words[idx].1.clone();
-        words[idx + 1].1 |= w;
+        words[idx + 1].1 |= &w;
     }
     let mut fixups = HashSet::new();
     loop {
@@ -195,8 +196,8 @@ pub fn parse_svf(kind: DeviceKind, svf: &str) -> Bitstream {
             match kind {
                 DeviceKind::Xc9500 => {
                     assert_eq!(data.len(), 27);
-                    let word = data[2..10].to_bitvec();
-                    let addr = data[10..].load_le();
+                    let word = data.slice(2..10);
+                    let addr = data.slice(10..).as_u32();
                     let idx = words.iter().position(|w| w.0 == addr).unwrap();
                     let oword = &words[idx].1;
                     for (i, b) in word.into_iter().enumerate() {
@@ -208,8 +209,8 @@ pub fn parse_svf(kind: DeviceKind, svf: &str) -> Bitstream {
                 DeviceKind::Xc9500Xl | DeviceKind::Xc9500Xv => {
                     let wlen = data.len() - 18;
                     assert!(matches!(wlen, 16 | 32 | 64 | 128));
-                    let word = data[2..wlen + 2].to_bitvec();
-                    let addr = data[wlen + 2..].load_le();
+                    let word = data.slice(2..wlen + 2);
+                    let addr = data.slice(wlen + 2..).as_u32();
                     let idx = words.iter().position(|w| w.0 == addr).unwrap();
                     let oword = &words[idx].1;
                     for (i, b) in word.into_iter().enumerate() {

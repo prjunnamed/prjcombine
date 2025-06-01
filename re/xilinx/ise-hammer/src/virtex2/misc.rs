@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::grid::{DieId, NodeLoc};
 use prjcombine_re_fpga_hammer::{
     Diff, FuzzerProp, OcdMode, concat_bitvec, extract_bitvec_val, extract_bitvec_val_part,
@@ -8,7 +7,11 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{
+    bits,
+    bitvec::BitVec,
+    bsdata::{TileBit, TileItem, TileItemKind},
+};
 use prjcombine_virtex2::{
     bels,
     chip::{ChipKind, IoDiffKind},
@@ -2141,7 +2144,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             if edev.chip.kind.is_virtex2() {
                 diff.apply_bitvec_diff(
                     ctx.tiledb.item(tile, "MISC", "ZCLK_DIV2"),
-                    &bitvec![0, 0, 0, 1, 0],
+                    &bits![0, 0, 0, 1, 0],
                     &BitVec::repeat(false, 5),
                 );
             }

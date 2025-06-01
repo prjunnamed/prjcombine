@@ -5,9 +5,9 @@ use std::{
     process::Stdio,
 };
 
-use bitvec::vec::BitVec;
 use prjcombine_jed::JedFile;
 use prjcombine_re_toolchain::Toolchain;
+use prjcombine_types::bitvec::BitVec;
 use simple_error::bail;
 
 #[allow(clippy::too_many_arguments)]

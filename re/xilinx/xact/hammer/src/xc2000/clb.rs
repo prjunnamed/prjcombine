@@ -1,7 +1,9 @@
-use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::bsdata::{TileBit, TileItem};
+use prjcombine_types::{
+    bits,
+    bsdata::{TileBit, TileItem},
+};
 use prjcombine_xc2000::bels::xc2000 as bels;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
@@ -121,106 +123,106 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 lut,
                 "EQ_ABC",
                 &["A", "B", "C"],
-                bitvec![1, 0, 0, 0, 0, 0, 0, 0],
+                bits![1, 0, 0, 0, 0, 0, 0, 0],
             );
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_ABC_NA",
                 &["A", "B", "C"],
-                bitvec![0, 1, 0, 0, 0, 0, 0, 0],
+                bits![0, 1, 0, 0, 0, 0, 0, 0],
             );
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_ABC_NB",
                 &["A", "B", "C"],
-                bitvec![0, 0, 1, 0, 0, 0, 0, 0],
+                bits![0, 0, 1, 0, 0, 0, 0, 0],
             );
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_ABC_NC",
                 &["A", "B", "C"],
-                bitvec![0, 0, 0, 0, 1, 0, 0, 0],
+                bits![0, 0, 0, 0, 1, 0, 0, 0],
             );
 
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_BCD",
                 &["B", "C", "D"],
-                bitvec![1, 0, 0, 0, 0, 0, 0, 0],
+                bits![1, 0, 0, 0, 0, 0, 0, 0],
             );
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_BCD_NB",
                 &["B", "C", "D"],
-                bitvec![0, 1, 0, 0, 0, 0, 0, 0],
+                bits![0, 1, 0, 0, 0, 0, 0, 0],
             );
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_BCD_NC",
                 &["B", "C", "D"],
-                bitvec![0, 0, 1, 0, 0, 0, 0, 0],
+                bits![0, 0, 1, 0, 0, 0, 0, 0],
             );
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_BCD_ND",
                 &["B", "C", "D"],
-                bitvec![0, 0, 0, 0, 1, 0, 0, 0],
+                bits![0, 0, 0, 0, 1, 0, 0, 0],
             );
 
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_BCQ",
                 &["B", "C", "Q"],
-                bitvec![1, 0, 0, 0, 0, 0, 0, 0],
+                bits![1, 0, 0, 0, 0, 0, 0, 0],
             );
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_BCQ_NB",
                 &["B", "C", "Q"],
-                bitvec![0, 1, 0, 0, 0, 0, 0, 0],
+                bits![0, 1, 0, 0, 0, 0, 0, 0],
             );
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_BCQ_NC",
                 &["B", "C", "Q"],
-                bitvec![0, 0, 1, 0, 0, 0, 0, 0],
+                bits![0, 0, 1, 0, 0, 0, 0, 0],
             );
             bctx.mode("FG").test_equate_fixed(
                 lut,
                 "EQ_BCQ_NQ",
                 &["B", "C", "Q"],
-                bitvec![0, 0, 0, 0, 1, 0, 0, 0],
+                bits![0, 0, 0, 0, 1, 0, 0, 0],
             );
         }
         bctx.mode("F").test_equate_fixed(
             "F",
             "EQ_ABCD",
             &["A", "B", "C", "D"],
-            bitvec![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            bits![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         );
         bctx.mode("F").test_equate_fixed(
             "F",
             "EQ_ABCD_NA",
             &["A", "B", "C", "D"],
-            bitvec![0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            bits![0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         );
         bctx.mode("F").test_equate_fixed(
             "F",
             "EQ_ABCD_NB",
             &["A", "B", "C", "D"],
-            bitvec![0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            bits![0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         );
         bctx.mode("F").test_equate_fixed(
             "F",
             "EQ_ABCD_NC",
             &["A", "B", "C", "D"],
-            bitvec![0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            bits![0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         );
         bctx.mode("F").test_equate_fixed(
             "F",
             "EQ_ABCD_ND",
             &["A", "B", "C", "D"],
-            bitvec![0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            bits![0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
         );
 
         bctx.mode("FG").test_enum("SET", &["A", "F"]);
@@ -343,7 +345,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("EQ_BCQ_NQ", bits![0, 0, 0, 0, 1, 0, 0, 0]),
             ] {
                 let mut diff = ctx.state.get_diff(tile, bel, lut, val);
-                diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, lut), bits, &bitvec![0; 8]);
+                diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, lut), &bits, &bits![0; 8]);
                 if val.starts_with("EQ_ABC") {
                     diff.apply_enum_diff(
                         ctx.tiledb.item(tile, bel, &format!("MUX.{lut}1")),
@@ -394,8 +396,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ),
         ] {
             let mut diff = ctx.state.get_diff(tile, bel, "F", val);
-            diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, "G"), &bits[..8], &bitvec![0; 8]);
-            diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, "F"), &bits[8..], &bitvec![0; 8]);
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "G"),
+                &bits.slice(..8),
+                &bits![0; 8],
+            );
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "F"),
+                &bits.slice(8..),
+                &bits![0; 8],
+            );
             diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "MUX.F1"), "A", "B");
             diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "MUX.G1"), "A", "B");
             diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "MUX.F3"), "D", "Q");

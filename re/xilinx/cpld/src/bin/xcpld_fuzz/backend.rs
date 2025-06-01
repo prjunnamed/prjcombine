@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet};
 
-use bitvec::vec::BitVec;
 use itertools::Itertools;
 use prjcombine_re_hammer::{Backend, FuzzerId, Session};
 use prjcombine_re_toolchain::Toolchain;
@@ -19,6 +18,7 @@ use prjcombine_re_xilinx_cpld::{
     db::{DeviceInfo, ImuxData, Part},
     hprep6::run_hprep6,
 };
+use prjcombine_types::bitvec::BitVec;
 use prjcombine_types::{FbId, IoId, IpadId, McId};
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -289,7 +289,7 @@ impl Backend for CpldBackend<'_> {
         }
     }
 
-    fn assemble_multi(v: &MultiValue, _b: &bitvec::vec::BitVec) -> Value {
+    fn assemble_multi(v: &MultiValue, _b: &BitVec) -> Value {
         match *v {}
     }
 
@@ -1262,7 +1262,7 @@ impl Backend for CpldBackend<'_> {
         let mut res = HashMap::new();
         for (i, b2) in bs2.iter().enumerate() {
             if bs1[i] != b2 {
-                res.insert(i, *b2);
+                res.insert(i, b2);
             }
         }
         res

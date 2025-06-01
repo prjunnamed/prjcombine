@@ -1,11 +1,10 @@
 use std::collections::BTreeMap;
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::grid::NodeLoc;
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bits, bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_virtex4::bels;
 
 use crate::{
@@ -821,7 +820,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
         let mut enable = ctx.state.get_diff(tile, bel, "ENABLE", "1");
         let dly_val = extract_bitvec_val_part(
             ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"),
-            &bitvec![0; 9],
+            &bits![0; 9],
             &mut enable,
         );
         ctx.insert_device_data("PLL:PLL_IN_DLY_SET", dly_val);
@@ -1082,8 +1081,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
                     bits: vec![dcm_drp_bit(i, 0x54, 0)],
                     kind: TileItemKind::Enum {
                         values: BTreeMap::from_iter([
-                            ("HALF".to_string(), bitvec![0]),
-                            ("INT".to_string(), bitvec![1]),
+                            ("HALF".to_string(), bits![0]),
+                            ("INT".to_string(), bits![1]),
                         ]),
                     },
                 },
@@ -1651,7 +1650,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
         enable.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT5_LT"), 1, 0);
         let dly_val = extract_bitvec_val_part(
             ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"),
-            &bitvec![0; 9],
+            &bits![0; 9],
             &mut enable,
         );
         enable.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_EN_DLY"), 1, 0);
@@ -1682,14 +1681,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
             .get_diff(tile, bel, "COMPENSATION", "SOURCE_SYNCHRONOUS");
         diff.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"),
-            &bitvec![0; 9],
+            &bits![0; 9],
             &dly_val,
         );
         diff.assert_empty();
         let mut diff = ctx.state.get_diff(tile, bel, "COMPENSATION", "EXTERNAL");
         diff.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"),
-            &bitvec![0; 9],
+            &bits![0; 9],
             &dly_val,
         );
         diff.assert_empty();
@@ -1697,21 +1696,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
         diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_INTFB"), 2, 0);
         diff.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"),
-            &bitvec![0; 9],
+            &bits![0; 9],
             &dly_val,
         );
         diff.assert_empty();
         let mut diff = ctx.state.get_diff(tile, bel, "COMPENSATION", "DCM2PLL");
         diff.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"),
-            &bitvec![0; 9],
+            &bits![0; 9],
             &dly_val,
         );
         diff.assert_empty();
         let mut diff = ctx.state.get_diff(tile, bel, "COMPENSATION", "PLL2DCM");
         diff.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"),
-            &bitvec![0; 9],
+            &bits![0; 9],
             &dly_val,
         );
         diff.assert_empty();

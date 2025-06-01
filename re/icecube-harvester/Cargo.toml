@@ -9,7 +9,6 @@ path = "src/main.rs"
 
 [dependencies]
 tempfile.workspace = true
-bitvec.workspace = true
 clap.workspace = true
 rayon.workspace = true
 rand.workspace = true

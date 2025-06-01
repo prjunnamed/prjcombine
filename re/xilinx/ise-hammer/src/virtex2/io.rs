@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet, hash_map};
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::{BelSlotId, TileCellId},
     grid::NodeLoc,
@@ -14,7 +13,7 @@ use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,
 };
 use prjcombine_re_xilinx_naming::db::RawTileId;
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_virtex2::{
     bels,
     chip::{ChipKind, IoDiffKind},

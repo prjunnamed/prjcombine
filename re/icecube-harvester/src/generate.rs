@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{Dir, DirH, DirV},
@@ -11,6 +10,7 @@ use prjcombine_siliconblue::{
     chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
     expanded::ExpandedDevice,
 };
+use prjcombine_types::bitvec::BitVec;
 use rand::prelude::*;
 use unnamed_entity::EntityId;
 
@@ -232,7 +232,7 @@ impl Generator<'_> {
                 io.prop("PULLUP", "1'b1");
             }
         }
-        let mut pin_type = bitvec![0; 6];
+        let mut pin_type = BitVec::repeat(false, 6);
         for i in 0..6 {
             if self.rng.random_bool(0.5) {
                 pin_type.set(i, true);

@@ -6,13 +6,12 @@ use std::{
     process::Command,
 };
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::grid::{ExpandedGrid, BelCoord, WireCoord, NodeLoc};
 use prjcombine_re_fpga_hammer::{Diff, FeatureData, FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_xilinx_xact_geom::Device;
 use prjcombine_re_xilinx_xact_naming::grid::{ExpandedGridNaming, PipCoords};
-use prjcombine_types::bsdata::TileBit;
+use prjcombine_types::{bitvec::BitVec, bsdata::TileBit};
 use prjcombine_xc2000::expanded::ExpandedDevice;
 use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom, KeyData, parse};
 
@@ -169,7 +168,7 @@ impl<'a> Backend for XactBackend<'a> {
                         let mut terms = vec![];
                         assert_eq!(bits.len(), 1 << inps.len());
                         for (idx, bval) in bits.iter().enumerate() {
-                            if *bval {
+                            if bval {
                                 let mut term = vec![];
                                 for (j, &inp) in inps.iter().enumerate() {
                                     if (idx & 1 << j) != 0 {
@@ -319,7 +318,9 @@ impl<'a> Backend for XactBackend<'a> {
                 panic!("FAILED TO GET BITS FILE");
             }
         };
-        let mut bs: BitVec<u8, Msb0> = BitVec::new();
+        let mut data = vec![];
+        let mut bitpos = 7;
+        let mut byte: u8 = 0;
         let mut got_bits = false;
         for line in rbt.lines() {
             if line.starts_with(|c: char| c.is_alphabetic()) {
@@ -328,16 +329,23 @@ impl<'a> Backend for XactBackend<'a> {
             }
             got_bits = true;
             for c in line.trim().chars() {
-                match c {
-                    '0' => bs.push(false),
-                    '1' => bs.push(true),
+                let bit = match c {
+                    '0' => 0,
+                    '1' => 1,
                     _ => panic!("weird char {c:?} in bitstream"),
+                };
+                byte |= bit << bitpos;
+                if bitpos == 0 {
+                    data.push(byte);
+                    bitpos = 7;
+                    byte = 0;
+                } else {
+                    bitpos -= 1;
                 }
             }
         }
-        assert_eq!(bs.len() % 8, 0);
-        let data = bs.as_raw_slice();
-        parse(self.bs_geom, data, &KeyData::None)
+        assert_eq!(bitpos, 7);
+        parse(self.bs_geom, &data, &KeyData::None)
     }
 
     fn diff(bs1: &Bitstream, bs2: &Bitstream) -> HashMap<BitPos, bool> {

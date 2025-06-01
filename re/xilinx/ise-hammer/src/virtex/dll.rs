@@ -1,7 +1,5 @@
 use std::collections::BTreeMap;
 
-use bitvec::prelude::*;
-
 use prjcombine_interconnect::{
     db::BelSlotId,
     dir::DirH,
@@ -10,7 +8,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bits, bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_virtex::bels;
 use prjcombine_xilinx_bitstream::Reg;
 use unnamed_entity::EntityId;
@@ -278,7 +276,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
 
         let item = ctx.extract_enum_bool_wide(tile, bel, "DUTY_ATTR", "FALSE", "TRUE");
-        present.apply_bitvec_diff(&item, &bitvec![1; 4], &bitvec![0; 4]);
+        present.apply_bitvec_diff(&item, &BitVec::repeat(true, 4), &BitVec::repeat(false, 4));
         ctx.tiledb.insert(tile, bel, "DUTY_CYCLE_CORRECTION", item);
 
         ctx.collect_bit(tile, bel, "HIGH_FREQUENCY", "1");
@@ -324,8 +322,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bits: vec![TileBit::new(0, 16, 15)],
             kind: TileItemKind::Enum {
                 values: BTreeMap::from_iter([
-                    ("HALF".to_string(), bitvec![0]),
-                    ("INT".to_string(), bitvec![1]),
+                    ("HALF".to_string(), bits![0]),
+                    ("INT".to_string(), bits![1]),
                 ]),
             },
         };

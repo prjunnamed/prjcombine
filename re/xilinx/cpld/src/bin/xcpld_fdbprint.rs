@@ -21,7 +21,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             if let Some(s) = known_bits.get(&i) {
                 println!("BIT L{i} ({r}, {c}): {s}");
             } else {
-                println!("BIT L{i} ({r}, {c}): UNK{v}", v = if *b { 1 } else { 0 });
+                println!("BIT L{i} ({r}, {c}): UNK{v}", v = if b { 1 } else { 0 });
             }
         }
         if let Some(uc) = part.map.usercode {

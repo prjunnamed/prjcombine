@@ -19,7 +19,6 @@ clap.workspace = true
 tempfile.workspace = true
 simple-error.workspace = true
 itertools.workspace = true
-bitvec.workspace = true
 rand.workspace = true
 rayon.workspace = true
 serde.workspace = true

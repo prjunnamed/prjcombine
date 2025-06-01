@@ -4,7 +4,6 @@ use std::{
     path::PathBuf,
 };
 
-use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_re_xilinx_cpld::{
     bits::{BitPos, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
@@ -20,8 +19,7 @@ use prjcombine_re_xilinx_cpld::{
     speeddb::SpeedDb,
 };
 use prjcombine_types::{
-    FbId, FbMcId, IoId,
-    bsdata::{Tile, TileBit, TileItem, TileItemKind},
+    bitvec::BitVec, bsdata::{Tile, TileBit, TileItem, TileItemKind}, FbId, FbMcId, IoId
 };
 use prjcombine_xc9500 as xc9500;
 use unnamed_entity::{EntityId, EntityVec};
@@ -365,7 +363,7 @@ fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem {
     if device.kind != DeviceKind::Xc9500 {
         let data = fpart.bits.term_mode.as_ref().unwrap();
         for (bit, val) in data.bits.iter().copied().zip(data.default.iter()) {
-            blank_expected.set(bit, *val);
+            blank_expected.set(bit, val);
         }
     }
     for (fb, mc) in device.mcs() {
@@ -379,7 +377,7 @@ fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem {
                 .copied()
                 .zip(data.items[&OeMode::Gnd].iter())
             {
-                blank_expected.set(bit, *val);
+                blank_expected.set(bit, val);
             }
         }
     }

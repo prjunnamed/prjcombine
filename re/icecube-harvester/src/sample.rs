@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use bitvec::prelude::*;
 use prjcombine_interconnect::{
     db::{PinDir, TileClassId, TileClassWire, WireId},
     dir::{Dir, DirH, DirV},
@@ -13,6 +12,7 @@ use prjcombine_siliconblue::{
     chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
     expanded::{BitOwner, ExpandedDevice},
 };
+use prjcombine_types::bitvec::BitVec;
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -487,7 +487,7 @@ pub fn make_sample(
                     let is_lvds = matches!(iostd, Some("SB_LVDS_INPUT" | "SB_SUBLVDS_INPUT"));
 
                     if let Some(pin_type) = inst.props.get("PIN_TYPE") {
-                        let mut value = bitvec![];
+                        let mut value = BitVec::new();
                         for (i, c) in pin_type.chars().rev().enumerate() {
                             if i >= 6 {
                                 break;

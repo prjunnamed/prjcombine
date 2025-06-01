@@ -1,10 +1,10 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt::Write;
 
-use bitvec::vec::BitVec;
 use indexmap::IndexMap;
 use itertools::Itertools;
-use prjcombine_types::bsdata::{DbValue, Tile, TileBit, BsData, TileItemKind};
+use prjcombine_types::bitvec::BitVec;
+use prjcombine_types::bsdata::{BsData, DbValue, Tile, TileBit, TileItemKind};
 
 use crate::DocgenContext;
 
@@ -186,7 +186,7 @@ pub fn gen_tile(
                 {
                     writeln!(buf, r#"<tr><td>{vname}</td>"#).unwrap();
                     for vbit in value.iter().rev() {
-                        let vbit = u8::from(*vbit);
+                        let vbit = u8::from(vbit);
                         writeln!(buf, r#"<td>{vbit}</td>"#).unwrap();
                     }
                     writeln!(buf, r#"</tr>"#).unwrap();
@@ -203,7 +203,7 @@ pub fn gen_tile(
                 }
                 writeln!(buf, r#"</td>"#).unwrap();
                 for (idx, inv) in invert.iter().enumerate().rev() {
-                    if *inv {
+                    if inv {
                         writeln!(buf, r#"<td>~[{idx}]</td>"#).unwrap();
                     } else {
                         writeln!(buf, r#"<td>[{idx}]</td>"#).unwrap();
@@ -310,7 +310,7 @@ pub fn gen_misc_table(
                     };
                     assert_eq!(bv.len(), l);
                     for bit in bv.iter().rev() {
-                        let bit = u8::from(*bit);
+                        let bit = u8::from(bit);
                         writeln!(buf, r#"<td>{bit}</td>"#).unwrap();
                     }
                 }
@@ -414,7 +414,7 @@ pub fn gen_devdata_table(
                     if let Some(DbValue::BitVec(bv)) = val {
                         assert_eq!(bv.len(), l);
                         for bit in bv.iter().rev() {
-                            let bit = u8::from(*bit);
+                            let bit = u8::from(bit);
                             writeln!(buf, r#"<td>{bit}</td>"#).unwrap();
                         }
                     } else {

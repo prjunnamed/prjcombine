@@ -1,6 +1,6 @@
-use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
 use prjcombine_re_hammer::Session;
+use prjcombine_types::bits;
 use prjcombine_virtex4::bels;
 
 use crate::{
@@ -784,15 +784,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for attr in ["ALMOST_FULL_OFFSET", "ALMOST_EMPTY_OFFSET"] {
         let item = ctx.tiledb.item(tile, bel, attr);
-        present_rambfifo36.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_ramb18x2.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_ramb18x2sdp.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_ramb36.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_ramb36sdp.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_rambfifo18.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_rambfifo18_36.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_fifo36.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
-        present_fifo36_72.apply_bitvec_diff(item, &bitvec![0; 13], &bitvec![1; 13]);
+        present_rambfifo36.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_ramb18x2.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_ramb18x2sdp.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_ramb36.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_ramb36sdp.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_rambfifo18.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_rambfifo18_36.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_fifo36.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
+        present_fifo36_72.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
     }
 
     for (attr, attr_l, attr_u) in [
@@ -889,14 +889,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         .insert(tile, bel, format!("{attr}_{ab}_{ul}"), item);
                 }
                 let item = ctx.tiledb.item(tile, bel, &format!("{attr}_{ab}_{ul}"));
-                present_rambfifo36.apply_bitvec_diff(item, &bitvec![0; 18], &bitvec![1; 18]);
-                present_ramb18x2.apply_bitvec_diff(item, &bitvec![0; 18], &bitvec![1; 18]);
-                present_ramb18x2sdp.apply_bitvec_diff(item, &bitvec![0; 18], &bitvec![1; 18]);
-                present_ramb36.apply_bitvec_diff(item, &bitvec![0; 18], &bitvec![1; 18]);
-                present_rambfifo18.apply_bitvec_diff(item, &bitvec![0; 18], &bitvec![1; 18]);
-                present_rambfifo18_36.apply_bitvec_diff(item, &bitvec![0; 18], &bitvec![1; 18]);
-                present_fifo36.apply_bitvec_diff(item, &bitvec![0; 18], &bitvec![1; 18]);
-                present_fifo36_72.apply_bitvec_diff(item, &bitvec![0; 18], &bitvec![1; 18]);
+                present_rambfifo36.apply_bitvec_diff(item, &bits![0; 18], &bits![1; 18]);
+                present_ramb18x2.apply_bitvec_diff(item, &bits![0; 18], &bits![1; 18]);
+                present_ramb18x2sdp.apply_bitvec_diff(item, &bits![0; 18], &bits![1; 18]);
+                present_ramb36.apply_bitvec_diff(item, &bits![0; 18], &bits![1; 18]);
+                present_rambfifo18.apply_bitvec_diff(item, &bits![0; 18], &bits![1; 18]);
+                present_rambfifo18_36.apply_bitvec_diff(item, &bits![0; 18], &bits![1; 18]);
+                present_fifo36.apply_bitvec_diff(item, &bits![0; 18], &bits![1; 18]);
+                present_fifo36_72.apply_bitvec_diff(item, &bits![0; 18], &bits![1; 18]);
             }
             let diffs = ctx
                 .state
@@ -1097,8 +1097,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ] {
         d0.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, attr),
-            &bitvec![1; 18],
-            &bitvec![0; 18],
+            &bits![1; 18],
+            &bits![0; 18],
         );
     }
     d0.assert_empty();
@@ -1140,24 +1140,24 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for ab in ['A', 'B'] {
         for (val, isr) in [
             // ????????? the fuck were they smoking
-            ("0", bitvec![1; 18]),
+            ("0", bits![1; 18]),
             (
                 "1",
-                bitvec![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                bits![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             ),
             (
                 "2",
-                bitvec![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                bits![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
             ),
             (
                 "4",
-                bitvec![1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                bits![1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
             ),
             (
                 "9",
-                bitvec![1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                bits![1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
             ),
-            ("18", bitvec![1; 18]),
+            ("18", bits![1; 18]),
         ] {
             let diff = ctx
                 .state
@@ -1173,12 +1173,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff.apply_bitvec_diff(
                 ctx.tiledb.item(tile, bel, &format!("INIT_{ab}_L")),
                 &isr,
-                &bitvec![1; 18],
+                &bits![1; 18],
             );
             diff.apply_bitvec_diff(
                 ctx.tiledb.item(tile, bel, &format!("SRVAL_{ab}_L")),
                 &isr,
-                &bitvec![1; 18],
+                &bits![1; 18],
             );
             assert_eq!(
                 &diff,

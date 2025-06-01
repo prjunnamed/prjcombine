@@ -1,9 +1,8 @@
 use std::collections::BTreeMap;
 
-use bitvec::prelude::*;
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::bsdata::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bits, bsdata::{TileBit, TileItem, TileItemKind}};
 use prjcombine_virtex4::bels;
 
 use crate::{
@@ -761,8 +760,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bits: vec![reg_bit(0x4c, 15)],
             kind: TileItemKind::Enum {
                 values: BTreeMap::from_iter([
-                    ("HALF".to_string(), bitvec![0]),
-                    ("INT".to_string(), bitvec![1]),
+                    ("HALF".to_string(), bits![0]),
+                    ("INT".to_string(), bits![1]),
                 ]),
             },
         },
