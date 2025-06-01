@@ -13,7 +13,10 @@ use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,
 };
 use prjcombine_re_xilinx_naming::db::RawTileId;
-use prjcombine_types::{bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}};
+use prjcombine_types::{
+    bitvec::BitVec,
+    bsdata::{TileBit, TileItem, TileItemKind},
+};
 use prjcombine_virtex2::{
     bels,
     chip::{ChipKind, IoDiffKind},
@@ -410,7 +413,12 @@ impl NodeRelation for IobBrefclkClkBT {
         let Some((layer, _)) = backend
             .egrid
             .find_tile_loc(nloc.0, (nloc.1, nloc.2), |node| {
-                backend.egrid.db.tile_classes.key(node.class).starts_with("CLK")
+                backend
+                    .egrid
+                    .db
+                    .tile_classes
+                    .key(node.class)
+                    .starts_with("CLK")
             })
         else {
             unreachable!()

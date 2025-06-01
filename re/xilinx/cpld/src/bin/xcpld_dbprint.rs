@@ -5,7 +5,6 @@ use itertools::Itertools;
 use prjcombine_re_xilinx_cpld::db::Database;
 use prjcombine_re_xilinx_cpld::device::{DeviceKind, PkgPin};
 use prjcombine_re_xilinx_cpld::types::ImuxInput;
-use prjcombine_types::IoId;
 use unnamed_entity::EntityId;
 
 #[derive(Parser)]
@@ -45,12 +44,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             println!("\tHAS VREF: {:?}", device.device.has_vref);
         }
         for (&ioid, io) in device.device.io.iter().sorted_by_key(|a| a.0) {
-            match ioid {
-                IoId::Ipad(ip) => print!("\tIPAD{ip}:"),
-                IoId::Mc((fb, mc)) => print!("\tIO{fb}_{mc}:"),
-            }
             print!(
-                " PAD{pad} BANK {bank}",
+                "\t{ioid}: PAD{pad} BANK {bank}",
                 pad = io.pad,
                 bank = io.bank.to_idx()
             );
@@ -78,17 +73,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             print!("\tIMUX {imid}:", imid = imid.to_idx());
             for (inp, idx) in inps.iter().sorted() {
                 let finp = match inp {
-                    ImuxInput::Ibuf(IoId::Mc(mc)) => {
-                        format!("MCIO{f}_{m}({idx})", f = mc.0.to_idx(), m = mc.1.to_idx())
-                    }
-                    ImuxInput::Ibuf(IoId::Ipad(ip)) => {
-                        format!("IPAD{ip}({idx})", ip = ip.to_idx())
+                    ImuxInput::Ibuf(io) => {
+                        format!("{io}({idx})")
                     }
                     ImuxInput::Fbk(mc) => {
-                        format!("FBK{m}({idx})", m = mc.to_idx())
+                        format!("FBK_{mc}({idx})")
                     }
                     ImuxInput::Mc(mc) => {
-                        format!("MC{f}_{m}({idx})", f = mc.0.to_idx(), m = mc.1.to_idx())
+                        format!("{mc}({idx})")
                     }
                     ImuxInput::Pup => format!("PUP({idx})"),
                     ImuxInput::Uim => "UIM".to_string(),
@@ -107,17 +99,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         }
         println!();
         for (&f, &t) in &pkg.spec_remap {
-            print!("\tREMAP ");
-            match f {
-                IoId::Ipad(ip) => print!("IPAD{ip}", ip = ip.to_idx()),
-                IoId::Mc(mc) => print!("IO{f}_{m}", f = mc.0.to_idx(), m = mc.1.to_idx()),
-            }
-            print!(" -> ");
-            match t {
-                IoId::Ipad(ip) => print!("IPAD{ip}", ip = ip.to_idx()),
-                IoId::Mc(mc) => print!("IO{f}_{m}", f = mc.0.to_idx(), m = mc.1.to_idx()),
-            }
-            println!();
+            println!("\tREMAP {f} -> {t}");
         }
         for (bid, &bank) in &pkg.banks {
             if let Some(bank) = bank {
@@ -136,10 +118,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 PkgPin::VccAux => print!("VCCAUX"),
                 PkgPin::Jtag(pin) => print!("{pin:?}"),
                 PkgPin::PortEn => print!("PORT_EN"),
-                PkgPin::Io(IoId::Mc(mc)) => {
-                    print!("IO{f}_{m}", f = mc.0.to_idx(), m = mc.1.to_idx())
-                }
-                PkgPin::Io(IoId::Ipad(ip)) => print!("IPAD{ip}", ip = ip.to_idx()),
+                PkgPin::Io(io) => print!("{io}"),
             }
             println!();
         }

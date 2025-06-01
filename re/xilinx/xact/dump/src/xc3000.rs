@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, IntDb, TileClass, TileCellId, PinDir, ConnectorWire, ConnectorClass, ConnectorSlotId,
-        ConnectorSlot, WireKind,
+        BelInfo, BelPin, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire, IntDb,
+        PinDir, TileCellId, TileClass, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{DieId, EdgeIoCoord, LayerId},
@@ -11,11 +11,14 @@ use prjcombine_interconnect::{
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
 use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
-use prjcombine_xc2000::{chip::{Chip, ChipKind}, expanded::REGION_GLOBAL};
 use prjcombine_xc2000::{
     bels::xc2000 as bels,
     bond::{Bond, BondPin, CfgPin},
     chip::SharedCfgPin,
+};
+use prjcombine_xc2000::{
+    chip::{Chip, ChipKind},
+    expanded::REGION_GLOBAL,
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -183,7 +186,8 @@ pub fn make_intdb() -> IntDb {
         "GCLK", "ACLK", "IOCLK.B0", "IOCLK.B1", "IOCLK.T0", "IOCLK.T1", "IOCLK.L0", "IOCLK.L1",
         "IOCLK.R0", "IOCLK.R1",
     ] {
-        db.wires.insert(name.into(), WireKind::Regional(REGION_GLOBAL));
+        db.wires
+            .insert(name.into(), WireKind::Regional(REGION_GLOBAL));
     }
 
     for name in [
@@ -278,7 +282,9 @@ pub fn make_intdb() -> IntDb {
                     .wires
                     .insert(format!("{name}.{dir}S"), WireKind::Branch(slot_n))
                     .0;
-                main_terms[Dir::N].wires.insert(wos, ConnectorWire::Pass(wo));
+                main_terms[Dir::N]
+                    .wires
+                    .insert(wos, ConnectorWire::Pass(wo));
             }
         }
     }
@@ -444,9 +450,11 @@ pub fn make_intdb() -> IntDb {
             if subkind == 3 && name != "CLB.R" {
                 continue;
             }
-            db.tile_classes.insert(format!("{name}.{subkind}"), node.clone());
+            db.tile_classes
+                .insert(format!("{name}.{subkind}"), node.clone());
             if matches!(name, "CLB.BL" | "CLB.BR" | "CLB.TL" | "CLB.TR" | "CLB.T") {
-                db.tile_classes.insert(format!("{name}S.{subkind}"), node.clone());
+                db.tile_classes
+                    .insert(format!("{name}S.{subkind}"), node.clone());
             }
         }
     }

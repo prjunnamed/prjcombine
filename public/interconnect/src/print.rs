@@ -1,4 +1,4 @@
-use crate::db::{IntDb, IntfInfo, IriPin, PinDir, ConnectorWire};
+use crate::db::{ConnectorWire, IntDb, IntfInfo, IriPin, PinDir};
 use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
 

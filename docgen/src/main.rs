@@ -141,7 +141,11 @@ impl Preprocessor for Docgen {
                 let tag = &content[..pos];
                 let tag = tag.trim().replace(" ", "-");
                 content = &content[pos + 2..];
-                new_content.push_str(&ctx.items[&tag]);
+                new_content.push_str(
+                    ctx.items
+                        .get(&tag)
+                        .unwrap_or_else(|| panic!("no item {tag}")),
+                );
                 items_used.insert(tag);
             }
             new_content.push_str(content);

@@ -328,19 +328,19 @@ The register works as follows:
 case(FB[i].MC[j].CLK_MUX)
     PT: FB[i].MC[j].CLK = FB[i].PT[9 + j * 2]. ^ FB[i].MC[j].CLK_INV;
     LCTx: FB[i].MC[j].CLK = FB[i].LCTx ^ FB[i].MC[j].CLK_INV;
-    UCT3: FB[i].MC[j].CLK = FB_GROUP[fb_to_fb_group(i)].UCT3 ^ FB[i].MC[j].CLK_INV;
+    UCT3: FB[i].MC[j].CLK = FB_GROUP[block_to_block_group(i)].UCT3 ^ FB[i].MC[j].CLK_INV;
     FCLKx: FB[i].MC[j].CLK = FB[i].FCLKx ^ FB[i].MC[j].CLK_INV;
 endcase
 
 case(FB[i].MC[j].RST_MUX)
     LCTx: FB[i].MC[j].RST = FB[i].LCTx;
-    UCT1: FB[i].MC[j].RST = FB_GROUP[fb_to_fb_group(i)].UCT1;
+    UCT1: FB[i].MC[j].RST = FB_GROUP[block_to_block_group(i)].UCT1;
     GND: FB[i].MC[j].RST = 0;
 endcase
 
 case(FB[i].MC[j].SET_MUX)
     LCTx: FB[i].MC[j].SET = FB[i].LCTx;
-    UCT2: FB[i].MC[j].SET = FB_GROUP[fb_to_fb_group(i)].UCT2;
+    UCT2: FB[i].MC[j].SET = FB_GROUP[block_to_block_group(i)].UCT2;
     GND: FB[i].MC[j].SET = 0;
 endcase
 

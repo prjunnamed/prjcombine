@@ -1,5 +1,5 @@
 use jzon::JsonValue;
-use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, BelCoord, RowId, TileIobId};
+use prjcombine_interconnect::grid::{BelCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};

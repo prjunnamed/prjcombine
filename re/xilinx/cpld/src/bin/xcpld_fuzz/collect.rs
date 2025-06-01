@@ -2,9 +2,9 @@
 
 use core::fmt::Debug;
 use core::hash::Hash;
+use enum_map::Enum;
 use std::collections::{HashMap, hash_map::Entry};
 
-use enum_map::EnumMap;
 use itertools::Itertools;
 use prjcombine_re_xilinx_cpld::{
     bits::{
@@ -14,12 +14,14 @@ use prjcombine_re_xilinx_cpld::{
     device::DeviceKind,
     types::{
         CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FclkId, FoeId, FoeMuxVal, IBufMode,
-        ImuxId, ImuxInput, OeMode, OeMuxVal, OePadId, PTermId, RegMode, Slew, SrMuxVal, TermMode,
-        Ut, Xc9500McPt, XorMuxVal,
+        ImuxId, ImuxInput, OeMode, OeMuxVal, OePadId, RegMode, Slew, SrMuxVal, TermMode, Ut,
+        Xc9500McPt, XorMuxVal,
     },
     vm6::NodeKind,
 };
-use prjcombine_types::{FbId, FbMcId, IoId};
+use prjcombine_types::cpld::{
+    BlockId, ClusterId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId,
+};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::backend::{CpldBackend, FuzzerInfo, Iostd, State};
@@ -217,12 +219,12 @@ impl Collector<'_> {
             DeviceKind::Xpla3 => {
                 res.push(ClkMuxVal::Ut);
                 for i in 4..8 {
-                    let pt = PTermId::from_idx(i);
+                    let pt = ProductTermId::from_idx(i);
                     res.push(ClkMuxVal::Ct(pt));
                 }
             }
             DeviceKind::Coolrunner2 => {
-                let pt = PTermId::from_idx(4);
+                let pt = ProductTermId::from_idx(4);
                 res.push(ClkMuxVal::Ct(pt));
             }
             _ => (),
@@ -249,7 +251,7 @@ impl Collector<'_> {
                     items.push((FuzzerInfo::Imux(fbid, imid, ImuxInput::Uim), ImuxInput::Uim));
                 }
                 let data = self.state.collect_enum(&items);
-                self.bits.fbs[fbid].imux.push(data);
+                self.bits.blocks[fbid].imux.push(data);
             }
         }
     }
@@ -269,7 +271,7 @@ impl Collector<'_> {
                                 let bit = self.state.collect_single(FuzzerInfo::ImuxUimMc(
                                     fbid,
                                     imid,
-                                    (ifbid, imcid),
+                                    MacrocellCoord::simple(ifbid, imcid),
                                 ));
                                 self.state.kill_fuzzer_bit(
                                     FuzzerInfo::Imux(fbid, imid, ImuxInput::Uim),
@@ -280,14 +282,15 @@ impl Collector<'_> {
                             .collect()
                     })
                     .collect();
-                self.bits.fbs[fbid].uim_mc.push(data);
+                self.bits.blocks[fbid].uim_mc.push(data);
             }
         }
     }
 
     fn collect_pt(&mut self) {
         for mc in self.backend.device.mcs() {
-            let mcd = EnumMap::from_fn(|pt| {
+            let mcd = core::array::from_fn(|pt| {
+                let pt = Xc9500McPt::from_usize(pt);
                 let and: EntityVec<ImuxId, (InvBit, InvBit)> = self
                     .backend
                     .device
@@ -350,13 +353,13 @@ impl Collector<'_> {
                 }
                 let f = FuzzerInfo::McSiSpec(mc, pt);
                 self.state
-                    .kill_fuzzer_bits_enum(f, &mcd[pt].alloc, &PtAlloc::Special);
+                    .kill_fuzzer_bits_enum(f, &mcd[pt.into_usize()].alloc, &PtAlloc::Special);
             }
 
             {
                 // Clean up CLK.
                 let f = FuzzerInfo::McClk(mc, ClkMuxVal::Pt, false);
-                let pt = &mcd[Xc9500McPt::Clk];
+                let pt = &mcd[Xc9500McPt::Clk.into_usize()];
                 self.state.kill_fuzzer_bit(f, pt.and[ImuxId::from_idx(0)].0);
                 self.state.kill_fuzzer_bit(f, pt.hp);
                 self.state
@@ -370,7 +373,7 @@ impl Collector<'_> {
             {
                 // Clean up RST and SET.
                 let f = FuzzerInfo::McRst(mc, SrMuxVal::Pt);
-                let pt = &mcd[Xc9500McPt::Rst];
+                let pt = &mcd[Xc9500McPt::Rst.into_usize()];
                 self.state.kill_fuzzer_bit(f, pt.and[ImuxId::from_idx(0)].0);
                 self.state.kill_fuzzer_bit(f, pt.hp);
                 self.state
@@ -385,7 +388,7 @@ impl Collector<'_> {
                 }
 
                 let f = FuzzerInfo::McSet(mc, SrMuxVal::Pt);
-                let pt = &mcd[Xc9500McPt::Set];
+                let pt = &mcd[Xc9500McPt::Set.into_usize()];
                 self.state.kill_fuzzer_bit(f, pt.and[ImuxId::from_idx(0)].0);
                 self.state.kill_fuzzer_bit(f, pt.hp);
                 self.state
@@ -403,13 +406,13 @@ impl Collector<'_> {
             {
                 // Clean up OE.
                 let f = FuzzerInfo::McOe(mc, OeMuxVal::Pt, false);
-                let pt = &mcd[Xc9500McPt::Oe];
+                let pt = &mcd[Xc9500McPt::Oe.into_usize()];
                 self.state.kill_fuzzer_bit(f, pt.and[ImuxId::from_idx(0)].0);
                 self.state.kill_fuzzer_bit(f, pt.hp);
                 self.state
                     .kill_fuzzer_bits_enum(f, &pt.alloc, &PtAlloc::Special);
                 if self.backend.device.kind == DeviceKind::Xc9500
-                    && self.backend.pin_map.contains_key(&IoId::Mc(mc))
+                    && self.backend.pin_map.contains_key(&IoCoord::Macrocell(mc))
                 {
                     let fo = FuzzerInfo::OBufOe(mc, OeMuxVal::Pt, false);
                     self.state
@@ -431,32 +434,49 @@ impl Collector<'_> {
                 self.state.kill_fuzzer_bits_from(f3, f1);
                 self.state.kill_fuzzer_bits_from(f4, f2);
                 self.state.collect_empty(f4);
-                self.state.kill_fuzzer_bit(f3, mcd[Xc9500McPt::Xor].hp);
                 self.state
-                    .kill_fuzzer_bit(f3, mcd[Xc9500McPt::Xor].and[ImuxId::from_idx(0)].0);
+                    .kill_fuzzer_bit(f3, mcd[Xc9500McPt::Xor.into_usize()].hp);
+                self.state.kill_fuzzer_bit(
+                    f3,
+                    mcd[Xc9500McPt::Xor.into_usize()].and[ImuxId::from_idx(0)].0,
+                );
                 self.state.kill_fuzzer_bits_enum(
                     f3,
-                    &mcd[Xc9500McPt::Xor].alloc,
+                    &mcd[Xc9500McPt::Xor.into_usize()].alloc,
                     &PtAlloc::Special,
                 );
                 self.state.collect_empty(f3);
+                self.state.kill_fuzzer_bit(
+                    f1,
+                    mcd[Xc9500McPt::Clk.into_usize()].and[ImuxId::from_idx(0)].0,
+                );
                 self.state
-                    .kill_fuzzer_bit(f1, mcd[Xc9500McPt::Clk].and[ImuxId::from_idx(0)].0);
-                self.state.kill_fuzzer_bit(f1, mcd[Xc9500McPt::Clk].hp);
-                self.state
-                    .kill_fuzzer_bits_enum(f1, &mcd[Xc9500McPt::Clk].alloc, &PtAlloc::OrMain);
+                    .kill_fuzzer_bit(f1, mcd[Xc9500McPt::Clk.into_usize()].hp);
+                self.state.kill_fuzzer_bits_enum(
+                    f1,
+                    &mcd[Xc9500McPt::Clk.into_usize()].alloc,
+                    &PtAlloc::OrMain,
+                );
                 self.state.collect_empty(f1);
             }
 
-            self.bits.fbs[mc.0].mcs[mc.1].pt = Some(mcd);
+            self.bits.blocks[mc.block].mcs[mc.macrocell].pt = Some(mcd);
         }
     }
 
     fn collect_exp_en(&mut self) {
         for fb in self.backend.device.fbs() {
-            self.bits.fbs[fb].exp_en = Some(self.state.extract_single_common_keep(&[
-                FuzzerInfo::McOrExp((fb, FbMcId::from_idx(0)), NodeKind::McSiD2, ExportDir::Up),
-                FuzzerInfo::McOrExp((fb, FbMcId::from_idx(0)), NodeKind::McSiD2, ExportDir::Down),
+            self.bits.blocks[fb].exp_en = Some(self.state.extract_single_common_keep(&[
+                FuzzerInfo::McOrExp(
+                    MacrocellCoord::simple(fb, MacrocellId::from_idx(0)),
+                    NodeKind::McSiD2,
+                    ExportDir::Up,
+                ),
+                FuzzerInfo::McOrExp(
+                    MacrocellCoord::simple(fb, MacrocellId::from_idx(0)),
+                    NodeKind::McSiD2,
+                    ExportDir::Down,
+                ),
             ]));
         }
     }
@@ -471,7 +491,10 @@ impl Collector<'_> {
             let mcd = self.backend.device.export_target(smc, ExportDir::Down);
             let mcu = self.backend.device.export_target(smc, ExportDir::Up);
             for f in [fmu, feu] {
-                let ptd = &self.bits.fbs[mcd.0].mcs[mcd.1].pt.as_ref().unwrap()[Xc9500McPt::Clk];
+                let ptd = &self.bits.blocks[mcd.block].mcs[mcd.macrocell]
+                    .pt
+                    .as_ref()
+                    .unwrap()[Xc9500McPt::Clk.into_usize()];
                 self.state
                     .kill_fuzzer_bit(f, ptd.and[ImuxId::from_idx(0)].0);
                 self.state.kill_fuzzer_bit(f, ptd.hp);
@@ -479,7 +502,10 @@ impl Collector<'_> {
                     .kill_fuzzer_bits_enum(f, &ptd.alloc, &PtAlloc::OrExport);
             }
             for f in [fmd, fed] {
-                let ptu = &self.bits.fbs[mcu.0].mcs[mcu.1].pt.as_ref().unwrap()[Xc9500McPt::Clk];
+                let ptu = &self.bits.blocks[mcu.block].mcs[mcu.macrocell]
+                    .pt
+                    .as_ref()
+                    .unwrap()[Xc9500McPt::Clk.into_usize()];
                 self.state
                     .kill_fuzzer_bit(f, ptu.and[ImuxId::from_idx(0)].0);
                 self.state.kill_fuzzer_bit(f, ptu.hp);
@@ -493,16 +519,17 @@ impl Collector<'_> {
             self.state
                 .kill_fuzzer_bits_enum(fmd, &dir, &ExportDir::Down);
             self.state
-                .kill_fuzzer_bit(fmu, self.bits.fbs[mc.0].exp_en.unwrap());
+                .kill_fuzzer_bit(fmu, self.bits.blocks[mc.block].exp_en.unwrap());
             self.state
-                .kill_fuzzer_bit(fmd, self.bits.fbs[mc.0].exp_en.unwrap());
-            self.bits.fbs[mc.0].mcs[mc.1].exp_dir = Some(dir);
+                .kill_fuzzer_bit(fmd, self.bits.blocks[mc.block].exp_en.unwrap());
+            self.bits.blocks[mc.block].mcs[mc.macrocell].exp_dir = Some(dir);
         }
     }
 
     fn collect_import(&mut self) {
         for mc in self.backend.device.mcs() {
-            self.bits.fbs[mc.0].mcs[mc.1].import = Some(EnumMap::from_fn(|k| {
+            self.bits.blocks[mc.block].mcs[mc.macrocell].import = Some(core::array::from_fn(|k| {
+                let k = ExportDir::from_usize(k);
                 self.state
                     .collect_single(FuzzerInfo::McOrExp(mc, NodeKind::McSiD2, k))
             }));
@@ -511,14 +538,14 @@ impl Collector<'_> {
 
     fn collect_mc_inv(&mut self) {
         for mc in self.backend.device.mcs() {
-            self.bits.fbs[mc.0].mcs[mc.1].inv =
+            self.bits.blocks[mc.block].mcs[mc.macrocell].inv =
                 Some(self.state.collect_single(FuzzerInfo::McInputD2B(mc)));
         }
     }
 
     fn collect_mc_lp(&mut self) {
         for mc in self.backend.device.mcs() {
-            self.bits.fbs[mc.0].mcs[mc.1].hp = Some(invbit(
+            self.bits.blocks[mc.block].mcs[mc.macrocell].hp = Some(invbit(
                 self.state.collect_single(FuzzerInfo::McLowPower(mc)),
             ));
         }
@@ -532,7 +559,7 @@ impl Collector<'_> {
                 .map(|src| FuzzerInfo::McClk(mc, src, false))
                 .collect();
             let bit = self.state.extract_single_common(&f);
-            self.bits.fbs[mc.0].mcs[mc.1].ff_en = Some(bit);
+            self.bits.blocks[mc.block].mcs[mc.macrocell].ff_en = Some(bit);
         }
     }
 
@@ -565,7 +592,7 @@ impl Collector<'_> {
                         );
                     }
                 }
-                self.bits.fbs[fbid].pla_and.push(term);
+                self.bits.blocks[fbid].pla_and.push(term);
             }
         }
     }
@@ -574,7 +601,9 @@ impl Collector<'_> {
         for mc in self.backend.device.mcs() {
             for pt in self.backend.device.fb_pterms() {
                 let bit = self.state.collect_single(FuzzerInfo::McOrPla(mc, pt));
-                self.bits.fbs[mc.0].mcs[mc.1].pla_or.push(bit);
+                self.bits.blocks[mc.block].mcs[mc.macrocell]
+                    .pla_or
+                    .push(bit);
             }
         }
     }
@@ -582,9 +611,9 @@ impl Collector<'_> {
     fn collect_ct_invert(&mut self) {
         for fb in self.backend.device.fbs() {
             for idx in 0..8 {
-                let ptid = PTermId::from_idx(idx);
+                let ptid = ProductTermId::from_idx(idx);
                 let bit = self.state.collect_single(FuzzerInfo::CtInvert(fb, ptid));
-                self.bits.fbs[fb].ct_invert.insert(ptid, bit);
+                self.bits.blocks[fb].ct_invert.insert(ptid, bit);
             }
         }
     }
@@ -600,7 +629,7 @@ impl Collector<'_> {
             for f in [f2, f2b, fx, fxb] {
                 self.state.kill_fuzzer_bit(
                     f,
-                    self.bits.fbs[mc.0].mcs[mc.1].pla_or[PTermId::from_idx(0)],
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].pla_or[ProductTermId::from_idx(0)],
                 );
             }
             let bits = [
@@ -612,7 +641,7 @@ impl Collector<'_> {
             for f in [f1, f1b, f2, f2b, fx, fxb] {
                 self.state.collect_empty(f);
             }
-            self.bits.fbs[mc.0].mcs[mc.1].lut = Some(bits);
+            self.bits.blocks[mc.block].mcs[mc.macrocell].lut = Some(bits);
         }
     }
 
@@ -625,11 +654,13 @@ impl Collector<'_> {
                 (FuzzerInfo::McInputXorB(mc), XorMuxVal::PtInv),
             ];
             for &(fi, _) in &f {
-                let bit = self.bits.fbs[mc.0].mcs[mc.1].pla_or[PTermId::from_idx(0)];
+                let bit =
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].pla_or[ProductTermId::from_idx(0)];
 
                 self.state.kill_fuzzer_bit(fi, bit);
             }
-            self.bits.fbs[mc.0].mcs[mc.1].xor_mux = Some(self.state.collect_enum(&f));
+            self.bits.blocks[mc.block].mcs[mc.macrocell].xor_mux =
+                Some(self.state.collect_enum(&f));
         }
     }
 
@@ -662,7 +693,7 @@ impl Collector<'_> {
                 let bits = self.state.peek_union(&cmf);
                 assert_eq!(
                     !bits.is_empty(),
-                    self.backend.pin_map.contains_key(&IoId::Mc(mc))
+                    self.backend.pin_map.contains_key(&IoCoord::Macrocell(mc))
                 );
                 if !bits.is_empty() {
                     let odata = extract_enum(&[(McOut::Reg, bits), (McOut::Comb, HashMap::new())]);
@@ -670,10 +701,10 @@ impl Collector<'_> {
                         self.state
                             .kill_fuzzer_bits_enum_diff(f, &odata, &McOut::Comb, &McOut::Reg);
                     }
-                    self.bits.fbs[mc.0].mcs[mc.1].mc_obuf_out = Some(odata);
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].mc_obuf_out = Some(odata);
                 }
             }
-            self.bits.fbs[mc.0].mcs[mc.1].mc_uim_out = Some(data);
+            self.bits.blocks[mc.block].mcs[mc.macrocell].mc_uim_out = Some(data);
         }
     }
 
@@ -687,11 +718,12 @@ impl Collector<'_> {
                 let f = FuzzerInfo::McClk(mc, src, false);
                 let fb = FuzzerInfo::McClk(mc, src, true);
                 self.state.kill_fuzzer_bits_from(fb, f);
-                if let Some(bit) = self.bits.fbs[mc.0].mcs[mc.1].clk_inv {
+                if let Some(bit) = self.bits.blocks[mc.block].mcs[mc.macrocell].clk_inv {
                     self.state.kill_fuzzer_bit(fb, bit);
                     self.state.collect_empty(fb);
                 } else {
-                    self.bits.fbs[mc.0].mcs[mc.1].clk_inv = Some(self.state.collect_single(fb));
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].clk_inv =
+                        Some(self.state.collect_single(fb));
                 }
             }
         }
@@ -707,17 +739,18 @@ impl Collector<'_> {
                 let f = FuzzerInfo::McOe(mc, src, false);
                 let fb = FuzzerInfo::McOe(mc, src, true);
                 self.state.kill_fuzzer_bits_from(fb, f);
-                if let Some(bit) = self.bits.fbs[mc.0].mcs[mc.1].oe_inv {
+                if let Some(bit) = self.bits.blocks[mc.block].mcs[mc.macrocell].oe_inv {
                     self.state.kill_fuzzer_bit(fb, bit);
                     self.state.collect_empty(fb);
                 } else {
-                    self.bits.fbs[mc.0].mcs[mc.1].oe_inv = Some(self.state.collect_single(fb));
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].oe_inv =
+                        Some(self.state.collect_single(fb));
                 }
 
-                if self.backend.pin_map.contains_key(&IoId::Mc(mc)) {
+                if self.backend.pin_map.contains_key(&IoCoord::Macrocell(mc)) {
                     let fo = FuzzerInfo::OBufOe(mc, src, false);
                     let fob = FuzzerInfo::OBufOe(mc, src, true);
-                    let bit = self.bits.fbs[mc.0].mcs[mc.1].oe_inv.unwrap();
+                    let bit = self.bits.blocks[mc.block].mcs[mc.macrocell].oe_inv.unwrap();
                     self.state.kill_fuzzer_bit(fo, invbit(bit));
                     self.state.kill_fuzzer_bits_from(fo, f);
                     self.state.kill_fuzzer_bits_from(fob, f);
@@ -735,7 +768,7 @@ impl Collector<'_> {
                 .into_iter()
                 .map(|src| (FuzzerInfo::McClk(mc, src, false), src))
                 .collect();
-            self.bits.fbs[mc.0].mcs[mc.1].clk_mux = self.state.collect_enum(&fs);
+            self.bits.blocks[mc.block].mcs[mc.macrocell].clk_mux = self.state.collect_enum(&fs);
         }
     }
 
@@ -747,17 +780,17 @@ impl Collector<'_> {
                         vec![SrMuxVal::Pt, SrMuxVal::Fsr]
                     }
                     DeviceKind::Xpla3 => vec![
-                        SrMuxVal::Ct(PTermId::from_idx(0)),
-                        SrMuxVal::Ct(PTermId::from_idx(1)),
-                        SrMuxVal::Ct(PTermId::from_idx(2)),
-                        SrMuxVal::Ct(PTermId::from_idx(3)),
-                        SrMuxVal::Ct(PTermId::from_idx(4)),
-                        SrMuxVal::Ct(PTermId::from_idx(5)),
+                        SrMuxVal::Ct(ProductTermId::from_idx(0)),
+                        SrMuxVal::Ct(ProductTermId::from_idx(1)),
+                        SrMuxVal::Ct(ProductTermId::from_idx(2)),
+                        SrMuxVal::Ct(ProductTermId::from_idx(3)),
+                        SrMuxVal::Ct(ProductTermId::from_idx(4)),
+                        SrMuxVal::Ct(ProductTermId::from_idx(5)),
                         SrMuxVal::Ut,
                     ],
                     DeviceKind::Coolrunner2 => vec![
                         SrMuxVal::Pt,
-                        SrMuxVal::Ct(PTermId::from_idx(if is_set { 6 } else { 5 })),
+                        SrMuxVal::Ct(ProductTermId::from_idx(if is_set { 6 } else { 5 })),
                         SrMuxVal::Fsr,
                     ],
                 };
@@ -779,9 +812,9 @@ impl Collector<'_> {
                 }
                 let data = extract_enum(&fs);
                 if is_set {
-                    self.bits.fbs[mc.0].mcs[mc.1].set_mux = data;
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].set_mux = data;
                 } else {
-                    self.bits.fbs[mc.0].mcs[mc.1].rst_mux = data;
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].rst_mux = data;
                 }
             }
         }
@@ -789,14 +822,14 @@ impl Collector<'_> {
 
     fn collect_mc_init(&mut self) {
         for mc in self.backend.device.mcs() {
-            self.bits.fbs[mc.0].mcs[mc.1].init =
+            self.bits.blocks[mc.block].mcs[mc.macrocell].init =
                 Some(self.state.collect_single(FuzzerInfo::McInit(mc)));
         }
     }
 
     fn collect_mc_ddr(&mut self) {
         for mc in self.backend.device.mcs() {
-            self.bits.fbs[mc.0].mcs[mc.1].ddr =
+            self.bits.blocks[mc.block].mcs[mc.macrocell].ddr =
                 Some(self.state.collect_single(FuzzerInfo::McDdr(mc)));
         }
     }
@@ -818,7 +851,7 @@ impl Collector<'_> {
                     f.push((RegMode::DffCe, self.state.collect(FuzzerInfo::McCePt(mc))));
                 }
             }
-            self.bits.fbs[mc.0].mcs[mc.1].reg_mode = extract_enum(&f);
+            self.bits.blocks[mc.block].mcs[mc.macrocell].reg_mode = extract_enum(&f);
         }
     }
 
@@ -828,7 +861,7 @@ impl Collector<'_> {
                 (FuzzerInfo::McCeRst(mc), CeMuxVal::PtRst),
                 (FuzzerInfo::McCeSet(mc), CeMuxVal::PtSet),
             ];
-            self.bits.fbs[mc.0].mcs[mc.1].ce_mux = Some(self.state.collect_enum(&f));
+            self.bits.blocks[mc.block].mcs[mc.macrocell].ce_mux = Some(self.state.collect_enum(&f));
         }
     }
 
@@ -836,57 +869,71 @@ impl Collector<'_> {
         for mc in self.backend.device.mcs() {
             let f = vec![
                 (FuzzerInfo::McCePt(mc), CeMuxVal::Pt),
-                (FuzzerInfo::McCeCt(mc), CeMuxVal::Ct(PTermId::from_idx(4))),
+                (
+                    FuzzerInfo::McCeCt(mc),
+                    CeMuxVal::Ct(ProductTermId::from_idx(4)),
+                ),
             ];
             for &(fi, _) in &f {
                 self.state.kill_fuzzer_bits_enum(
                     fi,
-                    &self.bits.fbs[mc.0].mcs[mc.1].reg_mode,
+                    &self.bits.blocks[mc.block].mcs[mc.macrocell].reg_mode,
                     &RegMode::DffCe,
                 );
             }
-            self.bits.fbs[mc.0].mcs[mc.1].ce_mux = Some(self.state.collect_enum(&f));
+            self.bits.blocks[mc.block].mcs[mc.macrocell].ce_mux = Some(self.state.collect_enum(&f));
         }
     }
 
     fn collect_use_ireg(&mut self) {
         for mc in self.backend.device.mcs() {
-            if self.backend.pin_map.contains_key(&IoId::Mc(mc)) {
-                self.bits.fbs[mc.0].mcs[mc.1].use_ireg =
+            if self.backend.pin_map.contains_key(&IoCoord::Macrocell(mc)) {
+                self.bits.blocks[mc.block].mcs[mc.macrocell].use_ireg =
                     Some(self.state.collect_single(FuzzerInfo::McInputIreg(mc)));
             }
         }
     }
 
     fn collect_ut(&mut self) {
-        let ut = EnumMap::from_fn(|ut| {
+        let ut = core::array::from_fn(|ut| {
+            let ut = Ut::from_usize(ut);
             let mut f = vec![];
             for fb in self.backend.device.fbs() {
-                for pt in [PTermId::from_idx(6), PTermId::from_idx(7)] {
+                for pt in [ProductTermId::from_idx(6), ProductTermId::from_idx(7)] {
                     if pt.to_idx() == 6 && self.backend.device.fbs != 2 {
                         continue;
                     }
                     let fi = FuzzerInfo::Ut(ut, fb, pt);
-                    let bit = self.bits.fbs[fb].ct_invert[pt];
+                    let bit = self.bits.blocks[fb].ct_invert[pt];
                     self.state.kill_fuzzer_bit(fi, invbit(bit));
-                    let mc = (FbId::from_idx(fb.to_idx() ^ 1), FbMcId::from_idx(0));
+                    let mc = MacrocellCoord {
+                        cluster: ClusterId::from_idx(0),
+                        block: BlockId::from_idx(fb.to_idx() ^ 1),
+                        macrocell: MacrocellId::from_idx(0),
+                    };
                     match ut {
                         Ut::Clk => {
                             self.state.kill_fuzzer_bits_enum(
                                 fi,
-                                &self.bits.fbs[mc.0].mcs[mc.1].clk_mux,
+                                &self.bits.blocks[mc.block].mcs[mc.macrocell].clk_mux,
                                 &ClkMuxVal::Ut,
                             );
                             self.state.kill_fuzzer_bits_enum_diff(
                                 fi,
-                                self.bits.fbs[mc.0].mcs[mc.1].mc_uim_out.as_ref().unwrap(),
+                                self.bits.blocks[mc.block].mcs[mc.macrocell]
+                                    .mc_uim_out
+                                    .as_ref()
+                                    .unwrap(),
                                 &McOut::Comb,
                                 &McOut::Reg,
                             );
-                            if self.backend.pin_map.contains_key(&IoId::Mc(mc)) {
+                            if self.backend.pin_map.contains_key(&IoCoord::Macrocell(mc)) {
                                 self.state.kill_fuzzer_bits_enum_diff(
                                     fi,
-                                    self.bits.fbs[mc.0].mcs[mc.1].mc_obuf_out.as_ref().unwrap(),
+                                    self.bits.blocks[mc.block].mcs[mc.macrocell]
+                                        .mc_obuf_out
+                                        .as_ref()
+                                        .unwrap(),
                                     &McOut::Comb,
                                     &McOut::Reg,
                                 );
@@ -896,14 +943,14 @@ impl Collector<'_> {
                         Ut::Set => {
                             self.state.kill_fuzzer_bits_enum(
                                 fi,
-                                &self.bits.fbs[mc.0].mcs[mc.1].set_mux,
+                                &self.bits.blocks[mc.block].mcs[mc.macrocell].set_mux,
                                 &SrMuxVal::Ut,
                             );
                         }
                         Ut::Rst => {
                             self.state.kill_fuzzer_bits_enum(
                                 fi,
-                                &self.bits.fbs[mc.0].mcs[mc.1].rst_mux,
+                                &self.bits.blocks[mc.block].mcs[mc.macrocell].rst_mux,
                                 &SrMuxVal::Ut,
                             );
                         }
@@ -933,45 +980,53 @@ impl Collector<'_> {
             .map(|[a, b]| (FuzzerInfo::FbClk(fb, a, b), (a, b)));
             for (fi, (a, b)) in f {
                 for (mc, gclk, fclk) in [
-                    (FbMcId::from_idx(0), a, FclkId::from_idx(0)),
-                    (FbMcId::from_idx(1), b, FclkId::from_idx(1)),
+                    (MacrocellId::from_idx(0), a, FclkId::from_idx(0)),
+                    (MacrocellId::from_idx(1), b, FclkId::from_idx(1)),
                 ] {
                     if gclk.is_some() {
                         self.state.kill_fuzzer_bits_enum_diff(
                             fi,
-                            self.bits.fbs[fb].mcs[mc].mc_uim_out.as_ref().unwrap(),
+                            self.bits.blocks[fb].mcs[mc].mc_uim_out.as_ref().unwrap(),
                             &McOut::Comb,
                             &McOut::Reg,
                         );
-                        if self.backend.pin_map.contains_key(&IoId::Mc((fb, mc))) {
+                        if self
+                            .backend
+                            .pin_map
+                            .contains_key(&IoCoord::Macrocell(MacrocellCoord {
+                                cluster: ClusterId::from_idx(0),
+                                block: fb,
+                                macrocell: mc,
+                            }))
+                        {
                             self.state.kill_fuzzer_bits_enum_diff(
                                 fi,
-                                self.bits.fbs[fb].mcs[mc].mc_obuf_out.as_ref().unwrap(),
+                                self.bits.blocks[fb].mcs[mc].mc_obuf_out.as_ref().unwrap(),
                                 &McOut::Comb,
                                 &McOut::Reg,
                             );
                         }
                         self.state.kill_fuzzer_bits_enum(
                             fi,
-                            &self.bits.fbs[fb].mcs[mc].clk_mux,
+                            &self.bits.blocks[fb].mcs[mc].clk_mux,
                             &ClkMuxVal::Fclk(fclk),
                         );
                     }
                 }
             }
-            self.bits.fbs[fb].fbclk = Some(self.state.collect_enum(&f));
+            self.bits.blocks[fb].fbclk = Some(self.state.collect_enum(&f));
         }
     }
 
     fn collect_ipad_uim_out(&mut self) {
         for ipad in self.backend.device.ipads() {
-            let io = IoId::Ipad(ipad);
+            let io = IoCoord::Ipad(ipad);
             let mut bits = EntityPartVec::new();
             for fb in self.backend.device.fbs() {
                 let f = FuzzerInfo::IpadUimOutFb(ipad, fb);
                 self.state.kill_fuzzer_bits_enum(
                     f,
-                    &self.bits.fbs[fb].imux[self.backend.ibuf_test_imux[&io]],
+                    &self.bits.blocks[fb].imux[self.backend.ibuf_test_imux[&io]],
                     &ImuxInput::Ibuf(io),
                 );
                 let fbg = self.backend.device.fb_group[fb];
@@ -995,34 +1050,34 @@ impl Collector<'_> {
 
             self.state.kill_fuzzer_bits_enum(
                 fp,
-                &self.bits.fbs[FbId::from_idx(0)].imux[self.backend.ibuf_test_imux[&io]],
+                &self.bits.blocks[BlockId::from_idx(0)].imux[self.backend.ibuf_test_imux[&io]],
                 &ImuxInput::Ibuf(io),
             );
 
             if self.backend.device.kind != DeviceKind::Xpla3 {
                 self.state.kill_fuzzer_bits_enum(
                     fpg,
-                    &self.bits.fbs[FbId::from_idx(0)].imux[self.backend.ibuf_test_imux[&io]],
+                    &self.bits.blocks[BlockId::from_idx(0)].imux[self.backend.ibuf_test_imux[&io]],
                     &ImuxInput::Ibuf(io),
                 );
             }
             if !self.backend.device.kind.is_xc9500() {
                 self.state.kill_fuzzer_bits_enum(
                     fpp,
-                    &self.bits.fbs[FbId::from_idx(0)].imux[self.backend.ibuf_test_imux[&io]],
+                    &self.bits.blocks[BlockId::from_idx(0)].imux[self.backend.ibuf_test_imux[&io]],
                     &ImuxInput::Ibuf(io),
                 );
             }
             if self.backend.device.kind == DeviceKind::Coolrunner2 {
                 self.state.kill_fuzzer_bits_enum(
                     fpk,
-                    &self.bits.fbs[FbId::from_idx(0)].imux[self.backend.ibuf_test_imux[&io]],
+                    &self.bits.blocks[BlockId::from_idx(0)].imux[self.backend.ibuf_test_imux[&io]],
                     &ImuxInput::Ibuf(io),
                 );
             }
 
             match io {
-                IoId::Ipad(ip) => {
+                IoCoord::Ipad(ip) => {
                     if self.backend.device.kind == DeviceKind::Coolrunner2 {
                         self.state.collect_empty(fp);
                         self.state.collect_empty(fpg);
@@ -1047,8 +1102,8 @@ impl Collector<'_> {
                         self.state.collect_empty(fpp);
                     }
                 }
-                IoId::Mc(mc) => {
-                    let mcd = &mut self.bits.fbs[mc.0].mcs[mc.1];
+                IoCoord::Macrocell(mc) => {
+                    let mcd = &mut self.bits.blocks[mc.block].mcs[mc.macrocell];
                     if self.backend.device.kind.is_xc9500() {
                         self.state.kill_fuzzer_bits_from(fpg, fp);
                         if self.backend.device.kind == DeviceKind::Xc9500
@@ -1106,14 +1161,15 @@ impl Collector<'_> {
             }
         }
         for mc in self.backend.device.mcs() {
-            if self.backend.pin_map.contains_key(&IoId::Mc(mc)) {
+            if self.backend.pin_map.contains_key(&IoCoord::Macrocell(mc)) {
                 continue;
             }
             if !self.backend.device.kind.is_xc9500() {
                 let fc = FuzzerInfo::McComb(mc);
-                if self.backend.device.io.contains_key(&IoId::Mc(mc)) {
+                if self.backend.device.io.contains_key(&IoCoord::Macrocell(mc)) {
                     let f = [(fc, IBufOut::Reg)];
-                    self.bits.fbs[mc.0].mcs[mc.1].ibuf_uim_out = Some(self.state.collect_enum(&f));
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].ibuf_uim_out =
+                        Some(self.state.collect_enum(&f));
                 } else {
                     self.state.collect_empty(fc);
                 }
@@ -1166,7 +1222,10 @@ impl Collector<'_> {
                         let f = FuzzerInfo::IBufIostd(bank, iostd);
                         self.state.kill_fuzzer_bits_enum(
                             f,
-                            self.bits.fbs[mc.0].mcs[mc.1].ibuf_mode.as_ref().unwrap(),
+                            self.bits.blocks[mc.block].mcs[mc.macrocell]
+                                .ibuf_mode
+                                .as_ref()
+                                .unwrap(),
                             &IBufMode::UseVref,
                         );
                         if let Some(bit) = self.bits.vref_en {
@@ -1180,12 +1239,14 @@ impl Collector<'_> {
                 }
             }
             if let Some(io) = self.backend.device.dge_pad {
-                let IoId::Mc(mc) = io else {
+                let IoCoord::Macrocell(mc) = io else {
                     unreachable!();
                 };
                 let f = FuzzerInfo::Dge;
-                self.state
-                    .kill_fuzzer_bit(f, self.bits.fbs[mc.0].mcs[mc.1].dge_en.unwrap());
+                self.state.kill_fuzzer_bit(
+                    f,
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].dge_en.unwrap(),
+                );
                 self.bits.dge_en = Some(self.state.collect_single(f));
             }
         }
@@ -1218,7 +1279,7 @@ impl Collector<'_> {
                         &OeMode::McOe,
                     );
                 }
-                if self.backend.pin_map.contains_key(&IoId::Mc(mc)) {
+                if self.backend.pin_map.contains_key(&IoCoord::Macrocell(mc)) {
                     for &src in &srcs {
                         self.state.kill_fuzzer_bits_from(
                             FuzzerInfo::OBufOe(mc, src, false),
@@ -1226,8 +1287,8 @@ impl Collector<'_> {
                         );
                     }
                 }
-                self.bits.fbs[mc.0].mcs[mc.1].uim_oe_mode = Some(uim_oe_mode);
-                self.bits.fbs[mc.0].mcs[mc.1].uim_out_inv =
+                self.bits.blocks[mc.block].mcs[mc.macrocell].uim_oe_mode = Some(uim_oe_mode);
+                self.bits.blocks[mc.block].mcs[mc.macrocell].uim_out_inv =
                     Some(self.state.collect_single(FuzzerInfo::McUimOutInv(mc)));
             } else {
                 self.state.collect_empty(FuzzerInfo::McUimOut(mc));
@@ -1236,13 +1297,13 @@ impl Collector<'_> {
                 .iter()
                 .map(|&src| (FuzzerInfo::McOe(mc, src, false), src))
                 .collect();
-            self.bits.fbs[mc.0].mcs[mc.1].oe_mux = Some(self.state.collect_enum(&f));
+            self.bits.blocks[mc.block].mcs[mc.macrocell].oe_mux = Some(self.state.collect_enum(&f));
         }
     }
 
     fn collect_obuf(&mut self) {
         for &io in self.backend.pin_map.keys() {
-            let IoId::Mc(mc) = io else {
+            let IoCoord::Macrocell(mc) = io else {
                 continue;
             };
             let slew = extract_enum(&[
@@ -1258,14 +1319,14 @@ impl Collector<'_> {
                     .kill_fuzzer_bits_enum_diff(fpc, &slew, &Slew::Fast, &Slew::Slow);
             }
             if self.backend.device.kind == DeviceKind::Coolrunner2 {
-                self.bits.fbs[mc.0].mcs[mc.1].mc_obuf_out = Some(extract_enum(&[
+                self.bits.blocks[mc.block].mcs[mc.macrocell].mc_obuf_out = Some(extract_enum(&[
                     (McOut::Comb, HashMap::new()),
                     (McOut::Reg, self.state.collect(fpr)),
                 ]));
             } else {
                 self.state.collect_empty(fpr);
             }
-            self.bits.fbs[mc.0].mcs[mc.1].slew = Some(slew);
+            self.bits.blocks[mc.block].mcs[mc.macrocell].slew = Some(slew);
 
             match self.backend.device.kind {
                 DeviceKind::Xc9500 => {
@@ -1293,10 +1354,10 @@ impl Collector<'_> {
                         );
                         self.state.collect_empty(fi);
                     }
-                    self.bits.fbs[mc.0].mcs[mc.1].obuf_oe_mode = Some(obuf_oe_mode);
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].obuf_oe_mode = Some(obuf_oe_mode);
                 }
                 DeviceKind::Xc9500Xl | DeviceKind::Xc9500Xv => {
-                    let bit = self.bits.fbs[mc.0].mcs[mc.1].oe_inv.unwrap();
+                    let bit = self.bits.blocks[mc.block].mcs[mc.macrocell].oe_inv.unwrap();
                     self.state.kill_fuzzer_bit(fpc, bit);
                     self.state.collect_empty(fpc);
                 }
@@ -1308,17 +1369,17 @@ impl Collector<'_> {
                             OeMuxVal::Pullup,
                             invbits(
                                 self.state
-                                    .collect(FuzzerInfo::IBufPresentPullup(IoId::Mc(mc))),
+                                    .collect(FuzzerInfo::IBufPresentPullup(IoCoord::Macrocell(mc))),
                             ),
                         ),
                         (OeMuxVal::Vcc, bpc.clone()),
                     ];
                     for v in [
                         OeMuxVal::Ut,
-                        OeMuxVal::Ct(PTermId::from_idx(0)),
-                        OeMuxVal::Ct(PTermId::from_idx(1)),
-                        OeMuxVal::Ct(PTermId::from_idx(2)),
-                        OeMuxVal::Ct(PTermId::from_idx(6)),
+                        OeMuxVal::Ct(ProductTermId::from_idx(0)),
+                        OeMuxVal::Ct(ProductTermId::from_idx(1)),
+                        OeMuxVal::Ct(ProductTermId::from_idx(2)),
+                        OeMuxVal::Ct(ProductTermId::from_idx(6)),
                     ] {
                         let mut b = bpc.clone();
                         apply_diff(
@@ -1327,7 +1388,7 @@ impl Collector<'_> {
                         );
                         f.push((v, b));
                     }
-                    self.bits.fbs[mc.0].mcs[mc.1].oe_mux = Some(extract_enum(&f));
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].oe_mux = Some(extract_enum(&f));
                 }
                 DeviceKind::Coolrunner2 => {
                     let bpc = self.state.collect(fpc);
@@ -1337,14 +1398,17 @@ impl Collector<'_> {
                         (OeMuxVal::Gnd, HashMap::new()),
                         (
                             OeMuxVal::IsGround,
-                            invbits(self.state.collect(FuzzerInfo::IBufPresentGnd(IoId::Mc(mc)))),
+                            invbits(
+                                self.state
+                                    .collect(FuzzerInfo::IBufPresentGnd(IoCoord::Macrocell(mc))),
+                            ),
                         ),
                         (OeMuxVal::OpenDrain, od),
                         (OeMuxVal::Vcc, bpc.clone()),
                     ];
                     for v in [
                         OeMuxVal::Pt,
-                        OeMuxVal::Ct(PTermId::from_idx(7)),
+                        OeMuxVal::Ct(ProductTermId::from_idx(7)),
                         OeMuxVal::Foe(FoeId::from_idx(0)),
                         OeMuxVal::Foe(FoeId::from_idx(1)),
                         OeMuxVal::Foe(FoeId::from_idx(2)),
@@ -1357,7 +1421,7 @@ impl Collector<'_> {
                         );
                         f.push((v, b));
                     }
-                    self.bits.fbs[mc.0].mcs[mc.1].oe_mux = Some(extract_enum(&f));
+                    self.bits.blocks[mc.block].mcs[mc.macrocell].oe_mux = Some(extract_enum(&f));
                 }
             }
         }
@@ -1374,8 +1438,12 @@ impl Collector<'_> {
     }
 
     fn collect_fclk(&mut self) {
-        let mc = (FbId::from_idx(0), FbMcId::from_idx(0));
-        let mc = &self.bits.fbs[mc.0].mcs[mc.1];
+        let mc = MacrocellCoord {
+            cluster: ClusterId::from_idx(0),
+            block: BlockId::from_idx(0),
+            macrocell: MacrocellId::from_idx(0),
+        };
+        let mc = &self.bits.blocks[mc.block].mcs[mc.macrocell];
         if self.backend.device.kind == DeviceKind::Xc9500 {
             for (tgt, srcs) in [[0, 1], [1, 2], [2, 0]].into_iter().enumerate() {
                 let tgt = FclkId::from_idx(tgt);
@@ -1422,11 +1490,15 @@ impl Collector<'_> {
     }
 
     fn collect_fsr(&mut self) {
-        let mc = (FbId::from_idx(0), FbMcId::from_idx(0));
+        let mc = MacrocellCoord {
+            cluster: ClusterId::from_idx(0),
+            block: BlockId::from_idx(0),
+            macrocell: MacrocellId::from_idx(0),
+        };
         for inv in [false, true] {
             self.state.kill_fuzzer_bits_enum(
                 FuzzerInfo::Fsr(inv),
-                &self.bits.fbs[mc.0].mcs[mc.1].rst_mux,
+                &self.bits.blocks[mc.block].mcs[mc.macrocell].rst_mux,
                 &SrMuxVal::Fsr,
             );
         }
@@ -1445,10 +1517,10 @@ impl Collector<'_> {
 
     fn collect_foe(&mut self) {
         let io = *self.backend.device.clk_pads.first().unwrap();
-        let IoId::Mc(mc) = io else {
+        let IoCoord::Macrocell(mc) = io else {
             unreachable!();
         };
-        let mc = &self.bits.fbs[mc.0].mcs[mc.1];
+        let mc = &self.bits.blocks[mc.block].mcs[mc.macrocell];
         let num = self.backend.device.oe_pads.len();
         for tgt in 0..num {
             match self.backend.device.kind {
@@ -1524,8 +1596,8 @@ impl Collector<'_> {
         for fb in self.backend.device.fbs() {
             let f = FuzzerInfo::FbPresent(fb);
             if self.backend.device.kind == DeviceKind::Xc9500 {
-                for mc in self.bits.fbs[fb].mcs.values() {
-                    for pt in mc.pt.as_ref().unwrap().values() {
+                for mc in self.bits.blocks[fb].mcs.values() {
+                    for pt in mc.pt.as_ref().unwrap().iter() {
                         for &(a, b) in pt.and.values() {
                             self.state.kill_fuzzer_bit(f, invbit(a));
                             self.state.kill_fuzzer_bit(f, invbit(b));
@@ -1533,14 +1605,14 @@ impl Collector<'_> {
                     }
                 }
             }
-            self.bits.fbs[fb].en = Some(self.state.collect_single(f));
+            self.bits.blocks[fb].en = Some(self.state.collect_single(f));
         }
     }
 }
 
 pub fn collect_fuzzers(backend: &CpldBackend, mut state: State) -> Bits {
     let mut res = Bits {
-        fbs: backend
+        blocks: backend
             .device
             .fbs()
             .map(|_| FbBits {

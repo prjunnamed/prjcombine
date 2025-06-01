@@ -4,7 +4,10 @@ use prjcombine_interconnect::grid::NodeLoc;
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::{bits, bsdata::{TileBit, TileItem, TileItemKind}};
+use prjcombine_types::{
+    bits,
+    bsdata::{TileBit, TileItem, TileItemKind},
+};
 use prjcombine_virtex4::bels;
 
 use crate::{

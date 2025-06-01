@@ -216,7 +216,7 @@ impl Extend<bool> for BitVec {
 }
 
 mod bincode {
-    use bincode::{de::read::Reader, enc::write::Writer, Decode, BorrowDecode, Encode};
+    use bincode::{BorrowDecode, Decode, Encode, de::read::Reader, enc::write::Writer};
 
     use super::BitVec;
 

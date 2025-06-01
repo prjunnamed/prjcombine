@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use prjcombine_interconnect::{
     db::WireId,
     dir::Dir,
-    grid::{ColId, DieId, WireCoord, RowId},
+    grid::{ColId, DieId, RowId, WireCoord},
 };
 use prjcombine_siliconblue::{
     chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},

@@ -614,7 +614,13 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         for val in vals {
             let val = val.as_ref();
             let feature = FeatureId {
-                tile: self.backend.egrid.db.tile_classes.key(self.node_kind).clone(),
+                tile: self
+                    .backend
+                    .egrid
+                    .db
+                    .tile_classes
+                    .key(self.node_kind)
+                    .clone(),
                 bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
                 attr: attr.into(),
                 val: val.into(),
@@ -646,7 +652,13 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         for val in vals {
             let val = val.as_ref();
             let feature = FeatureId {
-                tile: self.backend.egrid.db.tile_classes.key(self.node_kind).clone(),
+                tile: self
+                    .backend
+                    .egrid
+                    .db
+                    .tile_classes
+                    .key(self.node_kind)
+                    .clone(),
                 bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
                 attr: format!("{attr}.{suffix}"),
                 val: val.into(),
@@ -726,7 +738,13 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let attr = attr.as_ref();
         let val = val.as_ref();
         let feature = FeatureId {
-            tile: self.backend.egrid.db.tile_classes.key(self.node_kind).clone(),
+            tile: self
+                .backend
+                .egrid
+                .db
+                .tile_classes
+                .key(self.node_kind)
+                .clone(),
             bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
             attr: attr.into(),
             val: val.into(),

@@ -2,7 +2,10 @@ use prjcombine_re_fpga_hammer::{OcdMode, concat_bitvec, xlat_bit};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::bels;
-use prjcombine_types::{bits, bsdata::{TileBit, TileItem, TileItemKind}};
+use prjcombine_types::{
+    bits,
+    bsdata::{TileBit, TileItem, TileItemKind},
+};
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{

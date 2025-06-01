@@ -4,7 +4,10 @@ use clap::{Arg, Command, value_parser};
 use prjcombine_jed::JedFile;
 use prjcombine_xc9500::{Chip, ChipKind, Database};
 
-use prjcombine_types::{bitvec::BitVec, bsdata::{Tile, TileBit, TileItemKind}};
+use prjcombine_types::{
+    bitvec::BitVec,
+    bsdata::{Tile, TileBit, TileItemKind},
+};
 
 struct Bitstream {
     fbs: Vec<Vec<[u8; 15]>>,
@@ -18,7 +21,7 @@ impl Bitstream {
         } else {
             108
         };
-        let fbs = (0..chip.fbs)
+        let fbs = (0..chip.blocks)
             .map(|_| {
                 vec![
                     if chip.kind == ChipKind::Xc9500 {
@@ -33,8 +36,8 @@ impl Bitstream {
             })
             .collect();
         let uim = if chip.kind == ChipKind::Xc9500 {
-            (0..chip.fbs)
-                .map(|_| (0..chip.fbs).map(|_| vec![[0; 5]; 18]).collect())
+            (0..chip.blocks)
+                .map(|_| (0..chip.blocks).map(|_| vec![[0; 5]; 18]).collect())
                 .collect()
         } else {
             vec![]
@@ -236,9 +239,9 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         let (pref, suf) = line.split_once(':').unwrap();
         let pref: Vec<_> = pref.split_ascii_whitespace().collect();
         let suf: Vec<_> = suf.trim().split_ascii_whitespace().collect();
-        let mut fb_bits = db.fb_bits.clone();
+        let mut block_bits = db.block_bits.clone();
         for (k, v) in chip.imux_bits.clone().items {
-            fb_bits.items.insert(k, v);
+            block_bits.items.insert(k, v);
         }
         match pref[..] {
             ["GLOBAL"] => {
@@ -251,7 +254,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             ["FB", fb] => {
                 let fb: usize = fb.parse()?;
                 for item in suf {
-                    set_tile_item(&fb_bits, chip, item, |crd, val| bs.put_fb(fb, crd, val));
+                    set_tile_item(&block_bits, chip, item, |crd, val| bs.put_fb(fb, crd, val));
                 }
             }
             ["MC", fb, mc] => {

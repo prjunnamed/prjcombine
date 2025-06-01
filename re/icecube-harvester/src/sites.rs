@@ -8,7 +8,9 @@ use prjcombine_interconnect::{
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
 use prjcombine_types::{
-    bits, bitvec::BitVec, bsdata::{BsData, TileItemKind}
+    bits,
+    bitvec::BitVec,
+    bsdata::{BsData, TileItemKind},
 };
 use unnamed_entity::{EntityId, EntityPartVec};
 

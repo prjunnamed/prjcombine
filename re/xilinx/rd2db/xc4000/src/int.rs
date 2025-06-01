@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
 use prjcombine_interconnect::{
-    db::{IntDb, TileCellId, TileClassWire, ConnectorWire, ConnectorClass, WireId, WireKind},
+    db::{ConnectorClass, ConnectorWire, IntDb, TileCellId, TileClassWire, WireId, WireKind},
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{NamingDb, TileClassNamingId};
@@ -2622,8 +2622,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     if !matches!(&*rd.family, "xc4000e" | "spartanxl") {
         builder.db.conn_classes.insert("LLHQ.W".to_owned(), llhq_w);
         builder.db.conn_classes.insert("LLHQ.E".to_owned(), llhq_e);
-        builder.db.conn_classes.insert("LLHQ.IO.W".to_owned(), llhq_io_w);
-        builder.db.conn_classes.insert("LLHQ.IO.E".to_owned(), llhq_io_e);
+        builder
+            .db
+            .conn_classes
+            .insert("LLHQ.IO.W".to_owned(), llhq_io_w);
+        builder
+            .db
+            .conn_classes
+            .insert("LLHQ.IO.E".to_owned(), llhq_io_e);
         builder.db.conn_classes.insert("LLVQ.S".to_owned(), llvq_s);
         builder.db.conn_classes.insert("LLVQ.N".to_owned(), llvq_n);
     }

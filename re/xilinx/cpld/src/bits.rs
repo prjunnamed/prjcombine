@@ -4,22 +4,22 @@ use std::collections::{BTreeMap, HashMap, btree_map, hash_map::Entry};
 
 use crate::types::{
     BankId, CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FbnId, FclkId, FoeId, FoeMuxVal,
-    IBufMode, ImuxId, ImuxInput, OeMode, OeMuxVal, OePadId, PTermId, RegMode, Slew, SrMuxVal,
-    TermMode, Ut, Xc9500McPt, XorMuxVal,
+    IBufMode, ImuxId, ImuxInput, OeMode, OeMuxVal, OePadId, RegMode, Slew, SrMuxVal, TermMode, Ut,
+    Xc9500McPt, XorMuxVal,
 };
-use enum_map::EnumMap;
+use bincode::{Decode, Encode};
+use enum_map::Enum;
 use itertools::Itertools;
 use prjcombine_types::{
-    FbId, FbMcId, IoId, IpadId,
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
+    cpld::{BlockId, IpadId, MacrocellId, ProductTermId},
 };
-use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 pub type BitPos = (u32, usize);
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct BitstreamMap {
     pub main: Vec<BitPos>,
     pub usercode: Option<[BitPos; 32]>,
@@ -34,10 +34,10 @@ pub struct BitstreamMap {
 
 pub type InvBit = (usize, bool);
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Bits {
     // common
-    pub fbs: EntityVec<FbId, FbBits>,
+    pub blocks: EntityVec<BlockId, FbBits>,
     pub ipads: EntityVec<IpadId, IPadBits>,
     pub fclk_mux: EntityVec<FclkId, EnumData<ClkPadId>>,
     pub fclk_en: EntityVec<FclkId, InvBit>,
@@ -57,41 +57,41 @@ pub struct Bits {
     pub clkdiv_div: Option<EnumData<u8>>,
     pub clkdiv_dly_en: Option<InvBit>,
     // XPLA3
-    pub ut: Option<EnumMap<Ut, EnumData<(FbId, PTermId)>>>,
+    pub ut: Option<[EnumData<(BlockId, ProductTermId)>; 4]>,
     pub no_isp: Option<InvBit>,
     // XC9500
     pub usercode: Option<[InvBit; 32]>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct FbBits {
     // common
     pub imux: EntityVec<ImuxId, EnumData<ImuxInput>>,
     // OG XC9500
-    pub uim_mc: EntityVec<ImuxId, EntityVec<FbId, EntityVec<FbMcId, InvBit>>>,
+    pub uim_mc: EntityVec<ImuxId, EntityVec<BlockId, EntityVec<MacrocellId, InvBit>>>,
     // XC9500*
     pub en: Option<InvBit>,
     pub exp_en: Option<InvBit>,
     // XPLA3, XBR
-    pub pla_and: EntityVec<PTermId, PlaAndTerm>,
+    pub pla_and: EntityVec<ProductTermId, PlaAndTerm>,
     // XPLA3
-    pub ct_invert: EntityPartVec<PTermId, InvBit>,
+    pub ct_invert: EntityPartVec<ProductTermId, InvBit>,
     pub fbclk: Option<EnumData<(Option<ClkPadId>, Option<ClkPadId>)>>,
     // common
-    pub mcs: EntityVec<FbMcId, McBits>,
+    pub mcs: EntityVec<MacrocellId, McBits>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct McBits {
     // XC9500*
-    pub pt: Option<EnumMap<Xc9500McPt, PtData>>,
+    pub pt: Option<[PtData; 5]>,
     pub exp_dir: Option<EnumData<ExportDir>>,
-    pub import: Option<EnumMap<ExportDir, InvBit>>,
+    pub import: Option<[InvBit; 2]>,
     pub inv: Option<InvBit>,
     pub hp: Option<InvBit>,
     pub ff_en: Option<InvBit>,
     // XPLA3, XBR
-    pub pla_or: EntityVec<PTermId, InvBit>,
+    pub pla_or: EntityVec<ProductTermId, InvBit>,
     // XPLA3
     pub lut: Option<[InvBit; 4]>,
     // XBR
@@ -131,7 +131,7 @@ pub struct McBits {
     pub ibuf_uim_en: Vec<InvBit>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct IPadBits {
     // XPLA3
     pub uim_out_en: EntityVec<FbGroupId, InvBit>,
@@ -140,13 +140,13 @@ pub struct IPadBits {
     pub ibuf_mode: Option<EnumData<IBufMode>>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct BankBits {
     pub ibuf_hv: InvBit,
     pub obuf_hv: InvBit,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct EnumData<K: Clone + Debug + Eq + PartialEq + Hash> {
     pub bits: Vec<usize>,
     pub items: HashMap<K, BitVec>,
@@ -163,32 +163,32 @@ impl<K: Clone + Debug + Eq + PartialEq + Hash> EnumData<K> {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct PlaAndTerm {
     pub imux: EntityVec<ImuxId, (InvBit, InvBit)>,
     pub fbn: EntityVec<FbnId, InvBit>,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum PtAlloc {
     OrMain,
     OrExport,
     Special,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum McOut {
     Comb,
     Reg,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum IBufOut {
     Pad,
     Reg,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct PtData {
     pub and: EntityVec<ImuxId, (InvBit, InvBit)>,
     pub hp: InvBit,
@@ -204,7 +204,7 @@ impl Bits {
                 e.insert(s);
             }
         };
-        for (fbid, fb) in &self.fbs {
+        for (fbid, fb) in &self.blocks {
             let f = fbid.to_idx();
             for (imid, im) in &fb.imux {
                 for (i, &bit) in im.bits.iter().enumerate() {
@@ -257,7 +257,8 @@ impl Bits {
             for (mcid, mc) in &fb.mcs {
                 let m = mcid.to_idx();
                 if let Some(ref pts) = mc.pt {
-                    for (ptid, pt) in pts {
+                    for (ptid, pt) in pts.iter().enumerate() {
+                        let ptid = Xc9500McPt::from_usize(ptid);
                         let p = match ptid {
                             Xc9500McPt::Clk => "CLK",
                             Xc9500McPt::Oe => "OE",
@@ -282,7 +283,8 @@ impl Bits {
                     }
                 }
                 if let Some(ref imp) = mc.import {
-                    for (k, v) in imp {
+                    for (k, v) in imp.iter().enumerate() {
+                        let k = ExportDir::from_usize(k);
                         let d = match k {
                             ExportDir::Up => "UP",
                             ExportDir::Down => "DOWN",
@@ -497,7 +499,8 @@ impl Bits {
             }
         }
         if let Some(ref uts) = self.ut {
-            for (ut, data) in uts {
+            for (ut, data) in uts.iter().enumerate() {
+                let ut = Ut::from_usize(ut);
                 for (i, &bit) in data.bits.iter().enumerate() {
                     set(
                         bit,
@@ -527,16 +530,15 @@ impl Bits {
     }
 
     pub fn print(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
-        for (fbid, fb) in &self.fbs {
+        for (fbid, fb) in &self.blocks {
             writeln!(o, "FB{fbid}:", fbid = fbid.to_idx())?;
 
             for (imid, data) in &fb.imux {
                 write!(o, "\tIMUX IM{imid}: ", imid = imid.to_idx())?;
                 write_enum(o, "\t", data, |k| match k {
-                    ImuxInput::Ibuf(IoId::Mc((fb, mc))) => format!("MC IBUF FB{fb} MC{mc}"),
-                    ImuxInput::Ibuf(IoId::Ipad(ip)) => format!("IPAD{ip}"),
-                    ImuxInput::Fbk(mc) => format!("FBK MC{mc}"),
-                    ImuxInput::Mc((fb, mc)) => format!("MC FB{fb} MC{mc}"),
+                    ImuxInput::Ibuf(io) => format!("IBUF {io}"),
+                    ImuxInput::Fbk(mc) => format!("FBK {mc}"),
+                    ImuxInput::Mc(mc) => format!("MC {mc}"),
                     ImuxInput::Pup => "PUP".to_string(),
                     ImuxInput::Uim => "UIM".to_string(),
                 })?;
@@ -616,7 +618,8 @@ impl Bits {
                 writeln!(o, "\tMC{mcid}:", mcid = mcid.to_idx())?;
 
                 if let Some(ref pts) = mc.pt {
-                    for (ptid, data) in pts {
+                    for (ptid, data) in pts.iter().enumerate() {
+                        let ptid = Xc9500McPt::from_usize(ptid);
                         let pt = match ptid {
                             Xc9500McPt::Clk => "CLK",
                             Xc9500McPt::Oe => "OE ",
@@ -667,7 +670,8 @@ impl Bits {
 
                 if let Some(dirs) = mc.import {
                     write!(o, "\t\tIMPORT:",)?;
-                    for (dir, b) in dirs {
+                    for (dir, &b) in dirs.iter().enumerate() {
+                        let dir = ExportDir::from_usize(dir);
                         write!(
                             o,
                             " {dir}: ",
@@ -1054,7 +1058,8 @@ impl Bits {
         }
 
         if let Some(ref uts) = self.ut {
-            for (ut, data) in uts {
+            for (ut, data) in uts.iter().enumerate() {
+                let ut = Ut::from_usize(ut);
                 write!(
                     o,
                     "UT {ut}: ",

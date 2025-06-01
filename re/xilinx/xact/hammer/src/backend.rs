@@ -6,7 +6,7 @@ use std::{
     process::Command,
 };
 
-use prjcombine_interconnect::grid::{ExpandedGrid, BelCoord, WireCoord, NodeLoc};
+use prjcombine_interconnect::grid::{BelCoord, ExpandedGrid, NodeLoc, WireCoord};
 use prjcombine_re_fpga_hammer::{Diff, FeatureData, FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_xilinx_xact_geom::Device;

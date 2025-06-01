@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashSet};
 
 use prjcombine_interconnect::{
     db::{TileCellId, TileClassWire},
-    grid::{WireCoord, LayerId, NodeLoc},
+    grid::{LayerId, NodeLoc, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd,

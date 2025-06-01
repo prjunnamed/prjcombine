@@ -6,7 +6,10 @@ use prjcombine_re_xilinx_rawdump::{Coord, Part};
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
-use prjcombine_virtex4::{bels, expanded::{REGION_HCLK, REGION_LEAF}};
+use prjcombine_virtex4::{
+    bels,
+    expanded::{REGION_HCLK, REGION_LEAF},
+};
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);

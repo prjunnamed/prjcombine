@@ -20,7 +20,7 @@ impl Bitstream {
         let mut uim = vec![];
         let mut pos = 0;
         if chip.kind == ChipKind::Xc9500 {
-            for _ in 0..chip.fbs {
+            for _ in 0..chip.blocks {
                 let mut rows = vec![];
                 for _ in 0..72 {
                     let mut row = [0; 15];
@@ -37,7 +37,7 @@ impl Bitstream {
                 }
                 fbs.push(rows);
                 let mut uim_fb = vec![];
-                for _ in 0..chip.fbs {
+                for _ in 0..chip.blocks {
                     let mut rows = vec![];
                     for _ in 0..18 {
                         let mut row = [0; 5];
@@ -57,12 +57,12 @@ impl Bitstream {
                 uim.push(uim_fb);
             }
         } else {
-            for _ in 0..chip.fbs {
+            for _ in 0..chip.blocks {
                 fbs.push(vec![[0; 15]; 108]);
             }
             for row in 0..108 {
                 for col in 0..15 {
-                    for fb in 0..chip.fbs {
+                    for fb in 0..chip.blocks {
                         let sz = if col < 9 { 8 } else { 6 };
                         for j in 0..sz {
                             if fuses[pos + j] {
@@ -163,23 +163,23 @@ fn print_globals(bs: &Bitstream, db: &Database, chip: &Chip) {
 }
 
 fn print_fb(bs: &Bitstream, db: &Database, chip: &Chip) {
-    for fb in 0..chip.fbs {
+    for fb in 0..chip.blocks {
         print!("FB {fb}:");
-        print_tile(&db.fb_bits, chip, |crd| bs.get_fb(fb, crd));
+        print_tile(&db.block_bits, chip, |crd| bs.get_fb(fb, crd));
         print_tile(&chip.imux_bits, chip, |crd| bs.get_fb(fb, crd));
         println!();
     }
 }
 
 fn print_uim(bs: &Bitstream, _db: &Database, chip: &Chip) {
-    for fb in 0..chip.fbs {
+    for fb in 0..chip.blocks {
         for imux in 0..36 {
-            let found = (0..chip.fbs).any(|sfb| (0..18).any(|mc| bs.get_uim(fb, sfb, imux, mc)));
+            let found = (0..chip.blocks).any(|sfb| (0..18).any(|mc| bs.get_uim(fb, sfb, imux, mc)));
             if !found {
                 continue;
             }
             print!("UIM {fb} {imux}:");
-            for sfb in 0..chip.fbs {
+            for sfb in 0..chip.blocks {
                 for mc in 0..18 {
                     if bs.get_uim(fb, sfb, imux, mc) {
                         print!(" {sfb}.{mc}");
@@ -197,7 +197,7 @@ fn print_pt(bs: &Bitstream, _db: &Database, chip: &Chip) {
     } else {
         54
     };
-    for fb in 0..chip.fbs {
+    for fb in 0..chip.blocks {
         for mc in 0..18 {
             for pt in 0..5 {
                 let found = (0..num_imux)
@@ -221,7 +221,7 @@ fn print_pt(bs: &Bitstream, _db: &Database, chip: &Chip) {
 }
 
 fn print_mc(bs: &Bitstream, db: &Database, chip: &Chip) {
-    for fb in 0..chip.fbs {
+    for fb in 0..chip.blocks {
         for mc in 0..18 {
             print!("MC {fb} {mc}:");
             print_tile(&db.mc_bits, chip, |crd| bs.get_mc(fb, mc, crd));

@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashSet, btree_map};
 
 use prjcombine_interconnect::{
     db::{TileCellId, TileClassWire},
-    grid::{WireCoord, LayerId, NodeLoc},
+    grid::{LayerId, NodeLoc, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -614,7 +614,13 @@ struct ClbSpecialMux {
 }
 
 impl ClbSpecialMux {
-    fn new(attr: &'static str, val: &'static str, wire: TileClassWire, dx: isize, dy: isize) -> Self {
+    fn new(
+        attr: &'static str,
+        val: &'static str,
+        wire: TileClassWire,
+        dx: isize,
+        dy: isize,
+    ) -> Self {
         Self {
             attr,
             val,

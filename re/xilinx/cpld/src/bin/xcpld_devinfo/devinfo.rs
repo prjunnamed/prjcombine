@@ -3,7 +3,7 @@ use prjcombine_re_xilinx_cpld::device::{Device, DeviceKind, Io, JtagPin, Package
 use prjcombine_re_xilinx_cpld::types::{BankId, FbGroupId, OePadId};
 use prjcombine_re_xilinx_cpld::v2vm6::{FitOpts, v2vm6};
 use prjcombine_re_xilinx_ise_dump::partgen::PartgenPkg;
-use prjcombine_types::{FbId, FbMcId, IoId};
+use prjcombine_types::cpld::{BlockId, ClusterId, IoCoord, MacrocellCoord, MacrocellId};
 use unnamed_entity::{EntityId, EntitySet, EntityVec};
 
 use std::collections::HashMap;
@@ -12,7 +12,10 @@ use std::fmt::Write;
 
 use super::DevInfo;
 
-fn get_io_pins(dev: &PartgenPkg, pin_crd: &HashMap<String, IoId>) -> (HashMap<IoId, Io>, Package) {
+fn get_io_pins(
+    dev: &PartgenPkg,
+    pin_crd: &HashMap<String, IoCoord>,
+) -> (HashMap<IoCoord, Io>, Package) {
     let mut io = HashMap::new();
     let mut pins = HashMap::new();
 
@@ -262,15 +265,20 @@ pub fn get_devinfo(
     let mut pin_crd = HashMap::new();
     for (fbid, fb) in &vm6.fbs {
         for (mcid, pin) in &fb.pins {
+            let mc = MacrocellCoord {
+                cluster: ClusterId::from_idx(0),
+                block: fbid,
+                macrocell: mcid,
+            };
             if let Some(ref pad) = pin.pad {
-                pin_crd.insert(pad.0.clone(), IoId::Mc((fbid, mcid)));
+                pin_crd.insert(pad.0.clone(), IoCoord::Macrocell(mc));
             }
         }
     }
     if let Some(ref ifb) = vm6.ipad_fb {
         for (ipid, pin) in &ifb.pins {
             if let Some(ref pad) = pin.pad {
-                pin_crd.insert(pad.0.clone(), IoId::Ipad(ipid));
+                pin_crd.insert(pad.0.clone(), IoCoord::Ipad(ipid));
             }
         }
     }
@@ -286,6 +294,11 @@ pub fn get_devinfo(
     let mut cdr_pad = None;
     for (fbid, fb) in &vm6.fbs {
         for (mcid, pin) in &fb.pins {
+            let mc = MacrocellCoord {
+                cluster: ClusterId::from_idx(0),
+                block: fbid,
+                macrocell: mcid,
+            };
             if let Some((_, flags)) = pin.pad {
                 if (flags & 0x2000) != 0 {
                     nfclk += 1;
@@ -300,7 +313,7 @@ pub fn get_devinfo(
                     has_dge = true;
                 }
                 if (flags & 0x200) != 0 {
-                    cdr_pad = Some(IoId::Mc((fbid, mcid)));
+                    cdr_pad = Some(IoCoord::Macrocell(mc));
                 }
             }
         }
@@ -321,7 +334,7 @@ pub fn get_devinfo(
                     has_dge = true;
                 }
                 if (flags & 0x200) != 0 {
-                    cdr_pad = Some(IoId::Ipad(ipid));
+                    cdr_pad = Some(IoCoord::Ipad(ipid));
                 }
             }
         }
@@ -370,15 +383,21 @@ pub fn get_devinfo(
     let mut nxlat = HashMap::new();
     for (fbid, fb) in &t_fclk.fbs {
         for (mcid, pin) in &fb.pins {
+            let mc = MacrocellCoord {
+                cluster: ClusterId::from_idx(0),
+                block: fbid,
+                macrocell: mcid,
+            };
+
             if let Some(ib) = pin.ibuf {
                 let ibuf = &t_fclk.ibufs[ib];
                 for n in &ibuf.inodes {
                     let node = &t_fclk.nodes[n.node];
-                    nxlat.insert(&*node.name, IoId::Mc((fbid, mcid)));
+                    nxlat.insert(&*node.name, IoCoord::Macrocell(mc));
                 }
                 for &n in &ibuf.onodes {
                     let node = &t_fclk.nodes[n];
-                    nxlat.insert(&*node.name, IoId::Mc((fbid, mcid)));
+                    nxlat.insert(&*node.name, IoCoord::Macrocell(mc));
                 }
             }
         }
@@ -389,11 +408,11 @@ pub fn get_devinfo(
                 let ibuf = &t_fclk.ibufs[ib];
                 for n in &ibuf.inodes {
                     let node = &t_fclk.nodes[n.node];
-                    nxlat.insert(&*node.name, IoId::Ipad(ipid));
+                    nxlat.insert(&*node.name, IoCoord::Ipad(ipid));
                 }
                 for &n in &ibuf.onodes {
                     let node = &t_fclk.nodes[n];
-                    nxlat.insert(&*node.name, IoId::Ipad(ipid));
+                    nxlat.insert(&*node.name, IoCoord::Ipad(ipid));
                 }
             }
         }
@@ -413,7 +432,7 @@ pub fn get_devinfo(
     let sr_pad = t_fclk.global_fsr.map(|x| nxlat[&*x]);
     let dge_pad = t_fclk.dge.map(|x| nxlat[&*x]);
 
-    let ipads = io.keys().filter(|x| matches!(x, IoId::Ipad(_))).count();
+    let ipads = io.keys().filter(|x| matches!(x, IoCoord::Ipad(_))).count();
 
     let mut fb_groups = 0;
     let mut fb_group = EntityVec::new();
@@ -425,7 +444,11 @@ pub fn get_devinfo(
         }
     }
 
-    let oe0_9572 = IoId::Mc((FbId::from_idx(1), FbMcId::from_idx(6)));
+    let oe0_9572 = IoCoord::Macrocell(MacrocellCoord {
+        cluster: ClusterId::from_idx(0),
+        block: BlockId::from_idx(1),
+        macrocell: MacrocellId::from_idx(6),
+    });
     let oe0 = OePadId::from_idx(0);
     if kind.is_xc9500() && fbs == 4 && oe_pads[oe0] != oe0_9572 {
         pkg.spec_remap.insert(oe0_9572, oe_pads[oe0]);

@@ -8,7 +8,11 @@ use prjcombine_interconnect::{
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::{bits, bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}};
+use prjcombine_types::{
+    bits,
+    bitvec::BitVec,
+    bsdata::{TileBit, TileItem, TileItemKind},
+};
 use prjcombine_virtex::bels;
 use prjcombine_xilinx_bitstream::Reg;
 use unnamed_entity::EntityId;

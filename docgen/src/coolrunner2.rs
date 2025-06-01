@@ -3,7 +3,7 @@ use std::{collections::HashMap, fmt::Write};
 use indexmap::IndexSet;
 use itertools::Itertools;
 use prjcombine_coolrunner2::{BankId, BondPin, BsLayout, Database};
-use prjcombine_types::IoId;
+use prjcombine_types::cpld::IoCoord;
 use unnamed_entity::{EntityId, EntityPartVec};
 
 use crate::{
@@ -34,7 +34,7 @@ fn gen_devlist(ctx: &mut DocgenContext, db: &Database) {
         writeln!(buf, r#"<tr>"#).unwrap();
         writeln!(buf, r#"<td>{}</td>"#, part.name).unwrap();
         writeln!(buf, r#"<td>0xX{:04x}093</td>"#, chip.idcode_part).unwrap();
-        writeln!(buf, r#"<td>{}</td>"#, chip.fbs().len()).unwrap();
+        writeln!(buf, r#"<td>{}</td>"#, chip.blocks().len()).unwrap();
         writeln!(buf, r#"<td>{}</td>"#, chip.banks).unwrap();
         writeln!(buf, r#"<td>{}</td>"#, chip.ipads).unwrap();
         for cond in [
@@ -187,7 +187,12 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
         )
         .unwrap();
         let to_bool = |val| if val { "✅" } else { "❌" };
-        writeln!(buf, r#"|FB count|{fbs}|"#, fbs = chip.fbs().len()).unwrap();
+        writeln!(
+            buf,
+            r#"|Block count|{blocks}|"#,
+            blocks = chip.blocks().len()
+        )
+        .unwrap();
         writeln!(buf, r#"|I/O banks|{banks}|"#, banks = chip.banks).unwrap();
         writeln!(buf, r#"|Input-only pads|{ipads}|"#, ipads = chip.ipads).unwrap();
         writeln!(buf, r#"|Has VREF|{vref}|"#, vref = to_bool(chip.has_vref)).unwrap();
@@ -202,9 +207,14 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
             }
         )
         .unwrap();
-        writeln!(buf, r#"|FB rows|{rows}|"#, rows = chip.fb_rows).unwrap();
-        writeln!(buf, r#"|MC width|{width}|"#, width = chip.mc_width).unwrap();
-        writeln!(buf, r#"|FB columns|{cols}|"#, cols = chip.fb_cols.len()).unwrap();
+        writeln!(buf, r#"|Block rows|{rows}|"#, rows = chip.block_rows).unwrap();
+        writeln!(buf, r#"|Macrocell width|{width}|"#, width = chip.mc_width).unwrap();
+        writeln!(
+            buf,
+            r#"|Block columns|{cols}|"#,
+            cols = chip.block_cols.len()
+        )
+        .unwrap();
         writeln!(buf).unwrap();
 
         writeln!(buf, r#"## Bitstream columns"#).unwrap();
@@ -215,36 +225,36 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
         for &bit in &chip.xfer_cols {
             items.push((bit, 1, "transfer".to_string()));
         }
-        for (idx, &(mut col)) in chip.fb_cols.iter().enumerate() {
-            items.push((col, chip.mc_width, format!("FB column {idx} even MCs")));
+        for (idx, &(mut col)) in chip.block_cols.iter().enumerate() {
+            items.push((col, chip.mc_width, format!("Block column {idx} even MCs")));
             col += chip.mc_width;
             match chip.bs_layout {
                 BsLayout::Narrow => {
-                    items.push((col, 32, format!("FB column {idx} even PTs OR")));
+                    items.push((col, 32, format!("Block column {idx} even PTs OR")));
                     col += 32;
-                    items.push((col, 112, format!("FB column {idx} even PTs AND")));
+                    items.push((col, 112, format!("Block column {idx} even PTs AND")));
                     col += 112;
                 }
                 BsLayout::Wide => {
-                    items.push((col, 112, format!("FB column {idx} even PTs")));
+                    items.push((col, 112, format!("Block column {idx} even PTs")));
                     col += 112;
                 }
             }
-            items.push((col, chip.imux_width * 2, format!("FB column {idx} IMUX")));
+            items.push((col, chip.imux_width * 2, format!("Block column {idx} IMUX")));
             col += chip.imux_width * 2;
             match chip.bs_layout {
                 BsLayout::Narrow => {
-                    items.push((col, 112, format!("FB column {idx} odd PTs AND")));
+                    items.push((col, 112, format!("Block column {idx} odd PTs AND")));
                     col += 112;
-                    items.push((col, 32, format!("FB column {idx} odd PTs OR")));
+                    items.push((col, 32, format!("Block column {idx} odd PTs OR")));
                     col += 32;
                 }
                 BsLayout::Wide => {
-                    items.push((col, 112, format!("FB column {idx} odd PTs")));
+                    items.push((col, 112, format!("Block column {idx} odd PTs")));
                     col += 112;
                 }
             }
-            items.push((col, chip.mc_width, format!("FB column {idx} odd MCs")));
+            items.push((col, chip.mc_width, format!("Block column {idx} odd MCs")));
         }
         items.sort();
         for (bit, width, item) in items {
@@ -252,11 +262,8 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
         }
         writeln!(buf).unwrap();
 
-        let io_special_rev: HashMap<_, _> = HashMap::from_iter(
-            chip.io_special
-                .iter()
-                .map(|(k, &v)| (BondPin::Iob(v.0, v.1), k)),
-        );
+        let io_special_rev: HashMap<_, _> =
+            HashMap::from_iter(chip.io_special.iter().map(|(k, &mc)| (BondPin::Iob(mc), k)));
 
         writeln!(buf, r#"## I/O pins"#).unwrap();
         writeln!(buf).unwrap();
@@ -284,8 +291,8 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
         writeln!(buf, r#"</tr>"#).unwrap();
         for (&io, io_data) in &chip.io {
             let pin = match io {
-                IoId::Ipad(ipad) => BondPin::Ipad(ipad),
-                IoId::Mc((fb, mc)) => BondPin::Iob(fb, mc),
+                IoCoord::Ipad(ipad) => BondPin::Ipad(ipad),
+                IoCoord::Macrocell(mc) => BondPin::Iob(mc),
             };
             writeln!(buf, r#"<tr>"#).unwrap();
             writeln!(buf, r#"<td>{pin}</td>"#).unwrap();
@@ -365,7 +372,7 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
         writeln!(buf).unwrap();
 
         gen_tile(ctx, &parts[0].name, "mc", &chip.mc_bits, orientation);
-        writeln!(buf, r#"## MC bits"#).unwrap();
+        writeln!(buf, r#"## Macrocell bits"#).unwrap();
         writeln!(buf).unwrap();
         let item = ctx
             .items

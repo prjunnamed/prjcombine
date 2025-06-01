@@ -2,12 +2,17 @@ use std::{collections::HashMap, fmt::Write};
 
 use indexmap::IndexSet;
 use itertools::Itertools;
-use prjcombine_types::bsdata::{Tile, TileItemKind};
+use prjcombine_types::{
+    bsdata::{Tile, TileItemKind},
+    cpld::{ClusterId, MacrocellCoord},
+};
 use prjcombine_xpla3::{BondPin, Database};
-use unnamed_entity::EntityPartVec;
+use unnamed_entity::{EntityId, EntityPartVec};
 
 use crate::{
-    speed::{gen_speed, SpeedData}, tiledb::{gen_tile, FrameDirection, TileOrientation}, DocgenContext
+    DocgenContext,
+    speed::{SpeedData, gen_speed},
+    tiledb::{FrameDirection, TileOrientation, gen_tile},
 };
 
 fn gen_devlist(ctx: &mut DocgenContext, db: &Database) {
@@ -26,7 +31,7 @@ fn gen_devlist(ctx: &mut DocgenContext, db: &Database) {
         writeln!(buf, r#"<tr>"#).unwrap();
         writeln!(buf, r#"<td>{}</td>"#, part.name).unwrap();
         writeln!(buf, r#"<td>0xX{:04x}XXX</td>"#, chip.idcode_part).unwrap();
-        writeln!(buf, r#"<td>{}</td>"#, chip.fbs().len()).unwrap();
+        writeln!(buf, r#"<td>{}</td>"#, chip.blocks().len()).unwrap();
         writeln!(buf, r#"</tr>"#).unwrap();
     }
     writeln!(buf, r#"</tbody>"#).unwrap();
@@ -189,11 +194,21 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
             idcode = chip.idcode_part
         )
         .unwrap();
-        writeln!(buf, r#"|FB count|{fbs}|"#, fbs = chip.fbs().len()).unwrap();
+        writeln!(
+            buf,
+            r#"|Block count|{blocks}|"#,
+            blocks = chip.blocks().len()
+        )
+        .unwrap();
         writeln!(buf, r#"|BS columns|{cols}|"#, cols = chip.bs_cols).unwrap();
         writeln!(buf, r#"|IMUX width|{width}|"#, width = chip.imux_width).unwrap();
-        writeln!(buf, r#"|FB rows|{rows}|"#, rows = chip.fb_rows).unwrap();
-        writeln!(buf, r#"|FB columns|{cols}|"#, cols = chip.fb_cols.len()).unwrap();
+        writeln!(buf, r#"|Block rows|{rows}|"#, rows = chip.block_rows).unwrap();
+        writeln!(
+            buf,
+            r#"|Block columns|{cols}|"#,
+            cols = chip.block_cols.len()
+        )
+        .unwrap();
         writeln!(buf).unwrap();
 
         writeln!(buf, r#"## Bitstream columns"#).unwrap();
@@ -201,16 +216,16 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
         writeln!(buf, r#"|Column range|Bits|"#).unwrap();
         writeln!(buf, r#"|-|-|"#).unwrap();
         let mut items = vec![];
-        for (idx, fbc) in chip.fb_cols.iter().enumerate() {
+        for (idx, bcol) in chip.block_cols.iter().enumerate() {
             items.push((
-                fbc.imux_col,
+                bcol.imux_col,
                 chip.imux_width,
-                format!("FB column {idx} IMUX"),
+                format!("Block column {idx} IMUX"),
             ));
-            items.push((fbc.pt_col, 48, format!("FB column {idx} even PTs")));
-            items.push((fbc.pt_col + 48, 48, format!("FB column {idx} odd PTs")));
-            items.push((fbc.mc_col, 5, format!("FB column {idx} even MCs")));
-            items.push((fbc.mc_col + 5, 5, format!("FB column {idx} odd MCs")));
+            items.push((bcol.pt_col, 48, format!("Block column {idx} even PTs")));
+            items.push((bcol.pt_col + 48, 48, format!("Block column {idx} odd PTs")));
+            items.push((bcol.mc_col, 5, format!("Block column {idx} even MCs")));
+            items.push((bcol.mc_col + 5, 5, format!("Block column {idx} odd MCs")));
         }
         items.sort();
         for (bit, width, item) in items {
@@ -218,11 +233,8 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
         }
         writeln!(buf).unwrap();
 
-        let io_special_rev: HashMap<_, _> = HashMap::from_iter(
-            chip.io_special
-                .iter()
-                .map(|(k, &v)| (BondPin::Iob(v.0, v.1), k)),
-        );
+        let io_special_rev: HashMap<_, _> =
+            HashMap::from_iter(chip.io_special.iter().map(|(k, &mc)| (BondPin::Iob(mc), k)));
 
         writeln!(buf, r#"## I/O pins"#).unwrap();
         writeln!(buf).unwrap();
@@ -244,14 +256,19 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
             writeln!(buf, r#"<td>{:#06x}</td>"#, bond.idcode_part).unwrap();
         }
         writeln!(buf, r#"</tr>"#).unwrap();
-        for fb in chip.fbs() {
+        for block in chip.blocks() {
             for &mc in &chip.io_mcs {
+                let mc = MacrocellCoord {
+                    cluster: ClusterId::from_idx(0),
+                    block,
+                    macrocell: mc,
+                };
                 writeln!(buf, r#"<tr>"#).unwrap();
-                writeln!(buf, r#"<td>IOB_{fb}_{mc}</td>"#).unwrap();
+                writeln!(buf, r#"<td>IOB_{block}_{mc}</td>"#).unwrap();
                 for bond in bonds.values() {
-                    if let Some(pin) = bond.pins.get(&BondPin::Iob(fb, mc)) {
+                    if let Some(pin) = bond.pins.get(&BondPin::Iob(mc)) {
                         let pins = pin.pins.join(", ");
-                        if let Some(spec) = io_special_rev.get(&BondPin::Iob(fb, mc)) {
+                        if let Some(spec) = io_special_rev.get(&BondPin::Iob(mc)) {
                             writeln!(buf, r#"<td>{pins} ({spec})</td>"#).unwrap();
                         } else {
                             writeln!(buf, r#"<td>{pins}</td>"#).unwrap();
@@ -353,7 +370,7 @@ pub fn gen_xpla3(ctx: &mut DocgenContext) {
     let db = prjcombine_xpla3::Database::from_file(ctx.ctx.root.join("../databases/xpla3.zstd"))
         .unwrap();
     gen_tile(ctx, "xpla3", "mc", &db.mc_bits, orientation);
-    gen_tile(ctx, "xpla3", "fb", &db.fb_bits, orientation);
+    gen_tile(ctx, "xpla3", "block", &db.block_bits, orientation);
     gen_jed(
         ctx,
         "xpla3",
@@ -370,7 +387,14 @@ pub fn gen_xpla3(ctx: &mut DocgenContext) {
         "mc-buried",
         &db.jed_mc_bits_buried,
     );
-    gen_jed(ctx, "xpla3", "fb", &db.fb_bits, "fb", &db.jed_fb_bits);
+    gen_jed(
+        ctx,
+        "xpla3",
+        "block",
+        &db.block_bits,
+        "block",
+        &db.jed_block_bits,
+    );
     gen_devlist(ctx, &db);
     gen_devpkg(ctx, &db);
     gen_devices(ctx, &db);

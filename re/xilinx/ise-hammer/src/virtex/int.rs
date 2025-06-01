@@ -154,7 +154,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
         let mut nloc = (nloc.0, ColId::from_idx(0), node.cells[self.0.0].1, nloc.3);
         loop {
             if let Some((layer, _)) = backend.egrid.find_tile_loc(nloc.0, (nloc.1, nloc.2), |n| {
-                matches!(&backend.egrid.db.tile_classes.key(n.class)[..], "IO.B" | "IO.T")
+                matches!(
+                    &backend.egrid.db.tile_classes.key(n.class)[..],
+                    "IO.B" | "IO.T"
+                )
             }) {
                 nloc.3 = layer;
                 for i in [0, 6] {

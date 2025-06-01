@@ -1,10 +1,10 @@
-use prjcombine_types::FbId;
+use prjcombine_types::cpld::{BlockId, ProductTermId};
 use unnamed_entity::EntityId;
 
-use prjcombine_re_xilinx_cpld::types::{FbnId, PTermId};
+use prjcombine_re_xilinx_cpld::types::FbnId;
 use prjcombine_re_xilinx_cpld::vm6::{
-    BufOe, Fbnand, IBuf, InputNode, InputNodeKind, Macrocell, MacrocellId, Node, NodeId,
-    NodeIoKind, NodeKind, OBuf, PTerm, Signal, Srff, Vm6,
+    BufOe, Fbnand, IBuf, InputNode, InputNodeKind, Macrocell, Node, NodeId, NodeIoKind, NodeKind,
+    OBuf, PTerm, Signal, Srff, Vm6, Vm6MacrocellId,
 };
 use prjcombine_re_xilinx_cpld::vm6_util::insert_node;
 
@@ -73,7 +73,7 @@ pub fn insert_ibuf(vm6: &mut Vm6, name: &str, kind: NodeKind, flags: u32) -> Nod
     node
 }
 
-pub fn insert_mc(vm6: &mut Vm6, name: &str, flags: u32) -> MacrocellId {
+pub fn insert_mc(vm6: &mut Vm6, name: &str, flags: u32) -> Vm6MacrocellId {
     vm6.macrocells
         .insert(
             name.into(),
@@ -94,7 +94,12 @@ pub fn insert_mc(vm6: &mut Vm6, name: &str, flags: u32) -> MacrocellId {
         .0
 }
 
-pub fn insert_mc_si(vm6: &mut Vm6, mcid: MacrocellId, kind: NodeKind, srcs: &[NodeId]) -> NodeId {
+pub fn insert_mc_si(
+    vm6: &mut Vm6,
+    mcid: Vm6MacrocellId,
+    kind: NodeKind,
+    srcs: &[NodeId],
+) -> NodeId {
     let n = vm6.macrocells.key(mcid).clone();
     let suf = match kind {
         NodeKind::McSiD1 => "D1",
@@ -131,7 +136,7 @@ pub fn insert_mc_si(vm6: &mut Vm6, mcid: MacrocellId, kind: NodeKind, srcs: &[No
     node
 }
 
-pub fn insert_srff(vm6: &mut Vm6, mcid: MacrocellId) {
+pub fn insert_srff(vm6: &mut Vm6, mcid: Vm6MacrocellId) {
     let n = vm6.macrocells.key(mcid).clone();
     let node_d = insert_node_simple(vm6, &format!("{n}.D"), &format!("{n}.XOR"), NodeKind::AluF);
     let node_q = insert_node_simple(vm6, &format!("{n}.Q"), &format!("{n}.REG"), NodeKind::SrffQ);
@@ -146,7 +151,7 @@ pub fn insert_srff(vm6: &mut Vm6, mcid: MacrocellId) {
     })
 }
 
-pub fn insert_srff_ireg(vm6: &mut Vm6, mcid: MacrocellId, node_d: NodeId) {
+pub fn insert_srff_ireg(vm6: &mut Vm6, mcid: Vm6MacrocellId, node_d: NodeId) {
     let n = vm6.macrocells.key(mcid).clone();
     let node_q = insert_node_simple(vm6, &format!("{n}.Q"), &format!("{n}.REG"), NodeKind::SrffQ);
     let mc = &mut vm6.macrocells[mcid];
@@ -164,7 +169,7 @@ pub fn insert_srff_ireg(vm6: &mut Vm6, mcid: MacrocellId, node_d: NodeId) {
     })
 }
 
-pub fn insert_srff_inp(vm6: &mut Vm6, mcid: MacrocellId, kind: InputNodeKind, node: NodeId) {
+pub fn insert_srff_inp(vm6: &mut Vm6, mcid: Vm6MacrocellId, kind: InputNodeKind, node: NodeId) {
     let mc = &mut vm6.macrocells[mcid];
     if !mc.signal.as_ref().unwrap().onodes.contains(&node) {
         mc.inodes.push(InputNode {
@@ -179,7 +184,7 @@ pub fn insert_srff_inp(vm6: &mut Vm6, mcid: MacrocellId, kind: InputNodeKind, no
         .push(InputNode { kind, node });
 }
 
-pub fn insert_bufoe(vm6: &mut Vm6, mcid: MacrocellId, node: NodeId) {
+pub fn insert_bufoe(vm6: &mut Vm6, mcid: Vm6MacrocellId, node: NodeId) {
     let n = vm6.macrocells.key(mcid).clone();
     let name = format!("{n}.BUFOE");
     let node_buf = insert_node_simple(vm6, &format!("{name}.OUT"), &name, NodeKind::BufOut);
@@ -200,7 +205,7 @@ pub fn insert_bufoe(vm6: &mut Vm6, mcid: MacrocellId, node: NodeId) {
     });
 }
 
-pub fn insert_mc_out(vm6: &mut Vm6, mcid: MacrocellId, kind: NodeKind) -> NodeId {
+pub fn insert_mc_out(vm6: &mut Vm6, mcid: Vm6MacrocellId, kind: NodeKind) -> NodeId {
     let n = vm6.macrocells.key(mcid).clone();
     let suf = match kind {
         NodeKind::McQ => "Q",
@@ -216,7 +221,7 @@ pub fn insert_mc_out(vm6: &mut Vm6, mcid: MacrocellId, kind: NodeKind) -> NodeId
     node
 }
 
-pub fn insert_obuf(vm6: &mut Vm6, mcid: MacrocellId, flags: u32) {
+pub fn insert_obuf(vm6: &mut Vm6, mcid: Vm6MacrocellId, flags: u32) {
     let n = vm6.macrocells.key(mcid).clone();
     let mut inodes = vec![];
     let q = insert_mc_out(vm6, mcid, NodeKind::McQ);
@@ -273,7 +278,7 @@ pub fn insert_fbn(vm6: &mut Vm6, name: &str, inps: &[NodeId]) -> NodeId {
     node
 }
 
-pub fn insert_ct(vm6: &mut Vm6, fb: FbId, pt: PTermId, inps: &[NodeId]) -> NodeId {
+pub fn insert_ct(vm6: &mut Vm6, fb: BlockId, pt: ProductTermId, inps: &[NodeId]) -> NodeId {
     let ctn = vm6.fbs[fb].ct.as_ref().unwrap().name.clone();
     let kind = [
         NodeKind::CtSi0,

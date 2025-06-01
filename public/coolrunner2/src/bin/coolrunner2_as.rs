@@ -4,7 +4,9 @@ use clap::{Arg, Command, value_parser};
 use prjcombine_coolrunner2::{Chip, Database};
 use prjcombine_jed::JedFile;
 use prjcombine_types::{
-    bitvec::BitVec, bsdata::{Tile, TileItemKind}, FbId, FbMcId, IoId
+    bitvec::BitVec,
+    bsdata::{Tile, TileItemKind},
+    cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId},
 };
 use unnamed_entity::EntityId;
 
@@ -34,7 +36,7 @@ fn init_tile(tile: &Tile) -> BTreeMap<String, BitVec> {
 
 impl Bitstream {
     fn new(chip: &Chip) -> Self {
-        let fbs = (0..(chip.fb_rows * chip.fb_cols.len() * 2))
+        let fbs = (0..(chip.block_rows * chip.block_cols.len() * 2))
             .map(|_| FbData {
                 imux: init_tile(&chip.imux_bits),
                 mcs: core::array::from_fn(|_| init_tile(&chip.mc_bits)),
@@ -74,7 +76,10 @@ impl Bitstream {
             for mc in 0..16 {
                 let iobful = chip
                     .io
-                    .contains_key(&IoId::Mc((FbId::from_idx(fb), FbMcId::from_idx(mc))));
+                    .contains_key(&IoCoord::Macrocell(MacrocellCoord::simple(
+                        BlockId::from_idx(fb),
+                        MacrocellId::from_idx(mc),
+                    )));
                 let mcd = &fbd.mcs[mc];
                 let jed_bits = if !chip.has_vref {
                     &db.jed_mc_bits_small

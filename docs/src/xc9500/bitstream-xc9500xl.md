@@ -130,8 +130,8 @@ The exact bit assignments are irregular and should be obtained from the database
 
 Per-FB bits are stored in row 78, columns 0-8, bits 6-7.  The bits are (row, bit, column):
 
-{{tile xc9500xl fb}}
-{{tile xc9500xv fb}}
+{{tile xc9500xl block}}
+{{tile xc9500xv block}}
 
 Global bits are stored in rows (2, 6, 7), columns 0-8, bits 6-7 of FB 0.  The bits are (fb, row, bit, column):
 

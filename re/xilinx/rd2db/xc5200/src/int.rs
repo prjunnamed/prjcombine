@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{IntDb, ConnectorWire, ConnectorClass, WireKind},
+    db::{ConnectorClass, ConnectorWire, IntDb, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_rawdump::Part;

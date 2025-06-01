@@ -4,16 +4,16 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, BelSlotId, IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, TileIriId, TileClass,
-        TileClassId, TileCellId, TileClassWire, PinDir, ConnectorWire, ConnectorClass, ConnectorSlotId, ConnectorSlot,
-        WireId, WireKind,
+        BelInfo, BelPin, BelSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire,
+        IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, PinDir, TileCellId, TileClass, TileClassId,
+        TileClassWire, TileIriId, WireId, WireKind,
     },
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{
-    BelNaming, BelPinNaming, IntfWireInNaming, IntfWireOutNaming, IriNaming, NamingDb,
-    PipNaming, TileClassNaming, TileClassNamingId, RawTileId, ConnectorClassNamingId, ConnectorWireInFarNaming,
-    ConnectorWireOutNaming,
+    BelNaming, BelPinNaming, ConnectorClassNamingId, ConnectorWireInFarNaming,
+    ConnectorWireOutNaming, IntfWireInNaming, IntfWireOutNaming, IriNaming, NamingDb, PipNaming,
+    RawTileId, TileClassNaming, TileClassNamingId,
 };
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -102,7 +102,12 @@ impl ExtrBelInfo {
         self
     }
 
-    pub fn pin_force_int(mut self, name: &str, wire: TileClassWire, wname: impl Into<String>) -> Self {
+    pub fn pin_force_int(
+        mut self,
+        name: &str,
+        wire: TileClassWire,
+        wname: impl Into<String>,
+    ) -> Self {
         self.pins
             .insert(name.to_string(), BelPinInfo::ForceInt(wire, wname.into()));
         self
@@ -258,7 +263,12 @@ impl XNodeInfo<'_, '_> {
         self
     }
 
-    pub fn ref_xlat(mut self, xy: Coord, slots: &[Option<usize>], naming: TileClassNamingId) -> Self {
+    pub fn ref_xlat(
+        mut self,
+        xy: Coord,
+        slots: &[Option<usize>],
+        naming: TileClassNamingId,
+    ) -> Self {
         self.refs.push(XNodeRef {
             xy,
             naming: Some(naming),
@@ -321,7 +331,10 @@ impl XNodeInfo<'_, '_> {
         self
     }
 
-    pub fn optin_muxes_tile<'a>(mut self, wires: impl IntoIterator<Item = &'a TileClassWire>) -> Self {
+    pub fn optin_muxes_tile<'a>(
+        mut self,
+        wires: impl IntoIterator<Item = &'a TileClassWire>,
+    ) -> Self {
         self.optin_muxes_tile.extend(wires.into_iter().copied());
         self
     }
@@ -2447,7 +2460,12 @@ impl<'a> IntBuilder<'a> {
 
     fn insert_node_naming(&mut self, name: &str, naming: TileClassNaming) -> TileClassNamingId {
         match self.ndb.tile_class_namings.get_mut(name) {
-            None => self.ndb.tile_class_namings.insert(name.to_string(), naming).0,
+            None => {
+                self.ndb
+                    .tile_class_namings
+                    .insert(name.to_string(), naming)
+                    .0
+            }
             Some((id, cnaming)) => {
                 assert_eq!(naming.ext_pips, cnaming.ext_pips);
                 assert_eq!(naming.wire_bufs, cnaming.wire_bufs);
@@ -3348,7 +3366,10 @@ impl<'a> IntBuilder<'a> {
         }
         let term = ConnectorClass {
             slot: self.term_slots[dir],
-            wires: wires.iter().map(|&w| (w, ConnectorWire::BlackHole)).collect(),
+            wires: wires
+                .iter()
+                .map(|&w| (w, ConnectorWire::BlackHole))
+                .collect(),
         };
         match self.db.conn_classes.get_mut(name.as_ref()) {
             None => {

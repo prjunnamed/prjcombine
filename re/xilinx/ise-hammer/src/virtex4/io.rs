@@ -9,7 +9,11 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
-use prjcombine_types::{bits, bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}};
+use prjcombine_types::{
+    bits,
+    bitvec::BitVec,
+    bsdata::{TileBit, TileItem, TileItemKind},
+};
 use prjcombine_virtex4::{bels, expanded::IoCoord};
 use unnamed_entity::EntityId;
 
@@ -2163,14 +2167,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         ctx.tiledb
             .insert_misc_data("IOSTD:OUTPUT_MISC:OFF", bits![0; 2]);
-        ctx.tiledb
-            .insert_misc_data("IOSTD:LVDS_T:OFF", bits![0; 4]);
-        ctx.tiledb
-            .insert_misc_data("IOSTD:LVDS_C:OFF", bits![0; 4]);
-        ctx.tiledb
-            .insert_misc_data("IOSTD:PDRIVE:OFF", bits![0; 5]);
-        ctx.tiledb
-            .insert_misc_data("IOSTD:NDRIVE:OFF", bits![0; 5]);
+        ctx.tiledb.insert_misc_data("IOSTD:LVDS_T:OFF", bits![0; 4]);
+        ctx.tiledb.insert_misc_data("IOSTD:LVDS_C:OFF", bits![0; 4]);
+        ctx.tiledb.insert_misc_data("IOSTD:PDRIVE:OFF", bits![0; 5]);
+        ctx.tiledb.insert_misc_data("IOSTD:NDRIVE:OFF", bits![0; 5]);
         ctx.tiledb
             .insert_misc_data("IOSTD:PSLEW:OFF", pslew_invert.clone());
         ctx.tiledb

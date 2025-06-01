@@ -14,8 +14,8 @@ The top level of the database is an object, with the following fields:
 - `speeds` (list of object): list of [speed](#speed)
 - `parts` (list of object): list of [part](#part)
 - `mc_bits` (object): a [tile](#tile) describing per-MC bits
-- `fb_bits` (object): a [tile](#tile) describing per-FB bits
-- `jed_fb_bits` (array): a [jed bits list](#jed-bits) describing per-FB bits
+- `block_bits` (object): a [tile](#tile) describing per-FB bits
+- `jed_block_bits` (array): a [jed bits list](#jed-bits) describing per-FB bits
 - `jed_mc_bits_iob` (array) a [jed bits list](#jed-bits) describing per-MC bits for MCs with IOBs
 - `jed_mc_bits_buried` (array) a [jed bits list](#jed-bits) describing per-MC bits for MCs without IOBs
 
@@ -28,8 +28,8 @@ from a [part](#part).  A chip is an object with the following fields:
 - `idcode_part` (number): bit 12-27 of the JTAG IDCODE of the chip, with low 3 bits (package type) masked to 0
 - `bs_cols` (number): bitstream width in columns
 - `imux_width` (number): width of the IMUX bitstream area in columns (and also the size of a single IMUX selector in bits)
-- `fb_rows` (number): the number of FB rows
-- `fb_cols` (array of object): list of FB columns; each item is an object with the following fields:
+- `block_rows` (number): the number of FB rows
+- `block_cols` (array of object): list of FB columns; each item is an object with the following fields:
 
   - `pt_col` (number): first column of the PT area in bitstream
   - `imux_col` (number): first column of the IMUX area in bitstream
@@ -44,7 +44,7 @@ from a [part](#part).  A chip is an object with the following fields:
   - `"TDI"`
   - `"TDO"`
 
-  The values are of the form `"IOB_{fb_idx}_{mc_idx}"`.
+  The values are of the form `"IOB_{block_idx}_{mc_idx}"`.
 
 - `imux_bits` (object) : a [tile](#tile) describing per-FB bits corresponding to IMUX
 - `global_bits` (object) : a [tile](#tile) describing global bits
@@ -62,7 +62,7 @@ with the following fields:
 
   - `NC`: unconnected pin
   - `GND`, `VCC`: power and ground pins
-  - `IOB_{fb}_{mc}`: an I/O pin
+  - `IOB_{block}_{mc}`: an I/O pin
   - `GCLK{i}`: dedicated clock input pins
   - `PORT_EN`: JTAG enable pin
 

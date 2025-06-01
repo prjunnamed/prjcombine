@@ -2,7 +2,10 @@ use std::collections::BTreeMap;
 
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::{bits, bsdata::{TileBit, TileItem, TileItemKind}};
+use prjcombine_types::{
+    bits,
+    bsdata::{TileBit, TileItem, TileItemKind},
+};
 use prjcombine_virtex4::bels;
 
 use crate::{

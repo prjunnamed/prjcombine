@@ -2,26 +2,22 @@ use std::{collections::HashMap, error::Error, fs::File, path::Path};
 
 use crate::device::{Device, Package};
 use crate::types::{ImuxId, ImuxInput};
-use serde::{Deserialize, Serialize};
-use unnamed_entity::{EntityVec, entity_id};
+use bincode::{Decode, Encode};
+use prjcombine_types::db::{BondId, ChipId};
+use unnamed_entity::EntityVec;
 
 pub type ImuxData = EntityVec<ImuxId, HashMap<ImuxInput, u32>>;
 
-entity_id! {
-    pub id DevId u32;
-    pub id PkgId u32;
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct DeviceInfo {
     pub device: Device,
     pub imux: ImuxData,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Part {
-    pub device: DevId,
-    pub package: PkgId,
+    pub device: ChipId,
+    pub package: BondId,
     pub dev_name: String,
     pub pkg_name: String,
     pub speeds: Vec<String>,
@@ -31,10 +27,10 @@ pub struct Part {
     pub vm6_devpkg: String,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Database {
-    pub devices: EntityVec<DevId, DeviceInfo>,
-    pub packages: EntityVec<PkgId, Package>,
+    pub devices: EntityVec<ChipId, DeviceInfo>,
+    pub packages: EntityVec<BondId, Package>,
     pub parts: Vec<Part>,
 }
 
@@ -43,7 +39,7 @@ impl Database {
         let f = File::create(path)?;
         let mut cf = zstd::stream::Encoder::new(f, 9)?;
         let config = bincode::config::legacy();
-        bincode::serde::encode_into_std_write(self, &mut cf, config)?;
+        bincode::encode_into_std_write(self, &mut cf, config)?;
         cf.finish()?;
         Ok(())
     }
@@ -52,6 +48,6 @@ impl Database {
         let f = File::open(path)?;
         let mut cf = zstd::stream::Decoder::new(f)?;
         let config = bincode::config::legacy();
-        Ok(bincode::serde::decode_from_std_read(&mut cf, config)?)
+        Ok(bincode::decode_from_std_read(&mut cf, config)?)
     }
 }

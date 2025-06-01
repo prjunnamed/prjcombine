@@ -1,22 +1,29 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
+use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use prjcombine_types::{FbId, FbMcId, IoId, IpadId, speed::Speed, bsdata::Tile};
-use serde::{Deserialize, Serialize};
-use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
+use prjcombine_types::{
+    bsdata::Tile,
+    cpld::{BlockId, IoCoord, IpadId, MacrocellCoord},
+    db::{BondId, ChipId, SpeedId},
+    speed::Speed,
+};
+use unnamed_entity::{
+    EntityId, EntityIds, EntityVec,
+    id::{EntityIdU8, EntityTag},
+};
 
-entity_id! {
-    pub id ChipId u32;
-    pub id BondId u32;
-    pub id SpeedId u32;
-    pub id BankId u8;
+pub struct BankTag;
+impl EntityTag for BankTag {
+    const PREFIX: &'static str = "BANK";
 }
+pub type BankId = EntityIdU8<BankTag>;
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Chip {
     pub idcode_part: u32,
     pub ipads: usize,
-    pub io: BTreeMap<IoId, Io>,
+    pub io: BTreeMap<IoCoord, Io>,
     pub banks: usize,
     pub has_vref: bool,
     pub bs_layout: BsLayout,
@@ -24,9 +31,9 @@ pub struct Chip {
     pub imux_width: usize,
     pub xfer_cols: Vec<usize>,
     pub mc_width: usize,
-    pub fb_rows: usize,
-    pub fb_cols: Vec<usize>,
-    pub io_special: BTreeMap<String, (FbId, FbMcId)>,
+    pub block_rows: usize,
+    pub block_cols: Vec<usize>,
+    pub io_special: BTreeMap<String, MacrocellCoord>,
     pub mc_bits: Tile,
     pub global_bits: Tile,
     pub jed_global_bits: Vec<(String, usize)>,
@@ -34,31 +41,31 @@ pub struct Chip {
 }
 
 impl Chip {
-    pub fn fbs(&self) -> EntityIds<FbId> {
-        EntityIds::new(self.fb_rows * self.fb_cols.len() * 2)
+    pub fn blocks(&self) -> EntityIds<BlockId> {
+        EntityIds::new(self.block_rows * self.block_cols.len() * 2)
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Encode, Decode)]
 pub enum BsLayout {
     Narrow,
     Wide,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Io {
     pub bank: BankId,
     pub pad_distance: u32,
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum BondPin {
     Nc,
     Gnd,
     VccInt,
     VccIo(BankId),
     VccAux,
-    Iob(FbId, FbMcId),
+    Iob(MacrocellCoord),
     Ipad(IpadId),
     Tms,
     Tck,
@@ -72,10 +79,10 @@ impl std::fmt::Display for BondPin {
             BondPin::Nc => write!(f, "NC"),
             BondPin::Gnd => write!(f, "GND"),
             BondPin::VccInt => write!(f, "VCCINT"),
-            BondPin::VccIo(bank) => write!(f, "VCCIO{bank}"),
+            BondPin::VccIo(bank) => write!(f, "VCCIO{bank:#}"),
             BondPin::VccAux => write!(f, "VCCAUX"),
-            BondPin::Iob(fb, mc) => write!(f, "IOB_{fb}_{mc}"),
-            BondPin::Ipad(ipad) => write!(f, "IPAD{ipad}"),
+            BondPin::Iob(mc) => write!(f, "IOB_{mc}"),
+            BondPin::Ipad(ipad) => write!(f, "{ipad}"),
             BondPin::Tck => write!(f, "TCK"),
             BondPin::Tms => write!(f, "TMS"),
             BondPin::Tdi => write!(f, "TDI"),
@@ -84,13 +91,13 @@ impl std::fmt::Display for BondPin {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Bond {
     pub idcode_part: u32,
     pub pins: BTreeMap<String, BondPin>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Part {
     pub name: String,
     pub chip: ChipId,
@@ -98,7 +105,7 @@ pub struct Part {
     pub speeds: BTreeMap<String, SpeedId>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Database {
     pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
@@ -114,7 +121,7 @@ impl Database {
         let f = File::create(path)?;
         let mut cf = zstd::stream::Encoder::new(f, 9)?;
         let config = bincode::config::legacy();
-        bincode::serde::encode_into_std_write(self, &mut cf, config)?;
+        bincode::encode_into_std_write(self, &mut cf, config)?;
         cf.finish()?;
         Ok(())
     }
@@ -123,7 +130,7 @@ impl Database {
         let f = File::open(path)?;
         let mut cf = zstd::stream::Decoder::new(f)?;
         let config = bincode::config::legacy();
-        Ok(bincode::serde::decode_from_std_read(&mut cf, config)?)
+        Ok(bincode::decode_from_std_read(&mut cf, config)?)
     }
 }
 
@@ -151,20 +158,17 @@ impl Chip {
                 BsLayout::Narrow => "NARROW",
                 BsLayout::Wide => "WIDE",
             },
-            fb_rows: self.fb_rows,
-            fb_cols: self.fb_cols.clone(),
+            block_rows: self.block_rows,
+            block_cols: self.block_cols.clone(),
             ios: jzon::object::Object::from_iter(
-                self.io.iter().map(|(&crd, io_data)| (match crd {
-                    IoId::Mc((fb, mc)) => format!("IOB_{fb}_{mc}"),
-                    IoId::Ipad(ip) => format!("IPAD{ip}"),
-                }, jzon::object! {
+                self.io.iter().map(|(&crd, io_data)| (crd.to_string(), jzon::object! {
                     bank: io_data.bank.to_idx(),
                     pad_distance: io_data.pad_distance,
                 }))
             ),
             io_special: jzon::object::Object::from_iter(
-                self.io_special.iter().map(|(key, (fb, mc))| {
-                    (key, format!("IOB_{fb}_{mc}"))
+                self.io_special.iter().map(|(key, mc)| {
+                    (key, format!("IOB_{mc}"))
                 })
             ),
             mc_bits: &self.mc_bits,

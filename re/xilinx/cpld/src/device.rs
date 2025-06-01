@@ -1,30 +1,32 @@
 use std::collections::HashMap;
 
-use prjcombine_types::{FbId, FbMcId, IoId, IpadId, McId};
-use serde::{Deserialize, Serialize};
+use bincode::{Decode, Encode};
+use prjcombine_types::cpld::{
+    BlockId, ClusterId, IoCoord, IpadId, MacrocellCoord, MacrocellId, ProductTermId,
+};
 use unnamed_entity::{EntityId, EntityIds, EntityVec};
 
-use crate::types::{BankId, ClkPadId, ExportDir, FbGroupId, FbnId, ImuxId, OePadId, PTermId};
+use crate::types::{BankId, ClkPadId, ExportDir, FbGroupId, FbnId, ImuxId, OePadId};
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Device {
     pub kind: DeviceKind,
     pub fbs: usize,
     pub ipads: usize,
     pub has_fbk: bool,
     pub has_vref: bool,
-    pub io: HashMap<IoId, Io>,
+    pub io: HashMap<IoCoord, Io>,
     pub banks: usize,
     pub fb_groups: usize,
-    pub fb_group: EntityVec<FbId, FbGroupId>,
-    pub clk_pads: EntityVec<ClkPadId, IoId>,
-    pub oe_pads: EntityVec<OePadId, IoId>,
-    pub sr_pad: Option<IoId>,
-    pub dge_pad: Option<IoId>,
-    pub cdr_pad: Option<IoId>,
+    pub fb_group: EntityVec<BlockId, FbGroupId>,
+    pub clk_pads: EntityVec<ClkPadId, IoCoord>,
+    pub oe_pads: EntityVec<OePadId, IoCoord>,
+    pub sr_pad: Option<IoCoord>,
+    pub dge_pad: Option<IoCoord>,
+    pub cdr_pad: Option<IoCoord>,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Encode, Decode)]
 pub enum DeviceKind {
     Xc9500,
     Xc9500Xl,
@@ -33,21 +35,21 @@ pub enum DeviceKind {
     Coolrunner2,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Io {
     pub pad: u32,
     pub bank: BankId,
     pub jtag: Option<JtagPin>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Package {
     pub pins: HashMap<String, PkgPin>,
     pub banks: EntityVec<BankId, Option<u32>>,
-    pub spec_remap: HashMap<IoId, IoId>,
+    pub spec_remap: HashMap<IoCoord, IoCoord>,
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Encode, Decode)]
 pub enum PkgPin {
     Nc,
     Gnd,
@@ -56,10 +58,10 @@ pub enum PkgPin {
     VccAux,
     Jtag(JtagPin),
     PortEn,
-    Io(IoId),
+    Io(IoCoord),
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Encode, Decode)]
 pub enum JtagPin {
     Tdi,
     Tdo,
@@ -68,7 +70,7 @@ pub enum JtagPin {
 }
 
 impl Device {
-    pub fn fbs(&self) -> EntityIds<FbId> {
+    pub fn fbs(&self) -> EntityIds<BlockId> {
         EntityIds::new(self.fbs)
     }
 
@@ -80,7 +82,7 @@ impl Device {
         EntityIds::new(self.banks)
     }
 
-    pub fn fb_mcs(&self) -> EntityIds<FbMcId> {
+    pub fn fb_mcs(&self) -> EntityIds<MacrocellId> {
         EntityIds::new(self.kind.mcs_per_fb())
     }
 
@@ -88,7 +90,7 @@ impl Device {
         EntityIds::new(self.kind.imux_per_fb())
     }
 
-    pub fn fb_pterms(&self) -> EntityIds<PTermId> {
+    pub fn fb_pterms(&self) -> EntityIds<ProductTermId> {
         EntityIds::new(self.kind.pterms_per_fb())
     }
 
@@ -97,33 +99,38 @@ impl Device {
         EntityIds::new(8)
     }
 
-    pub fn mcs(&self) -> impl Iterator<Item = McId> + '_ {
-        self.fbs()
-            .flat_map(|fb| self.fb_mcs().map(move |mc| (fb, mc)))
+    pub fn mcs(&self) -> impl Iterator<Item = MacrocellCoord> + '_ {
+        self.fbs().flat_map(|fb| {
+            self.fb_mcs().map(move |mc| MacrocellCoord {
+                cluster: ClusterId::from_idx(0),
+                block: fb,
+                macrocell: mc,
+            })
+        })
     }
 
-    pub fn export_target(&self, mcid: McId, dir: ExportDir) -> McId {
+    pub fn export_target(&self, mcid: MacrocellCoord, dir: ExportDir) -> MacrocellCoord {
         self.export_source(mcid, !dir)
     }
 
-    pub fn export_source(&self, mcid: McId, dir: ExportDir) -> McId {
+    pub fn export_source(&self, mcid: MacrocellCoord, dir: ExportDir) -> MacrocellCoord {
         match dir {
-            ExportDir::Up => (
-                mcid.0,
-                if mcid.1.to_idx() == 0 {
-                    FbMcId::from_idx(self.kind.mcs_per_fb() - 1)
+            ExportDir::Up => MacrocellCoord {
+                macrocell: if mcid.macrocell.to_idx() == 0 {
+                    MacrocellId::from_idx(self.kind.mcs_per_fb() - 1)
                 } else {
-                    FbMcId::from_idx(mcid.1.to_idx() - 1)
+                    MacrocellId::from_idx(mcid.macrocell.to_idx() - 1)
                 },
-            ),
-            ExportDir::Down => (
-                mcid.0,
-                if mcid.1.to_idx() == self.kind.mcs_per_fb() - 1 {
-                    FbMcId::from_idx(0)
+                ..mcid
+            },
+            ExportDir::Down => MacrocellCoord {
+                macrocell: if mcid.macrocell.to_idx() == self.kind.mcs_per_fb() - 1 {
+                    MacrocellId::from_idx(0)
                 } else {
-                    FbMcId::from_idx(mcid.1.to_idx() + 1)
+                    MacrocellId::from_idx(mcid.macrocell.to_idx() + 1)
                 },
-            ),
+                ..mcid
+            },
         }
     }
 }

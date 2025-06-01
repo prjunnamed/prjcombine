@@ -12,7 +12,7 @@ use prjcombine_re_xilinx_cpld::{
     db::ImuxData,
     v2vm6::{FitOpts, v2vm6},
 };
-use prjcombine_types::IoId;
+use prjcombine_types::cpld::{ClusterId, IoCoord, MacrocellCoord};
 use rand::prelude::*;
 use rayon::prelude::*;
 use unnamed_entity::{EntityId, EntityVec};
@@ -46,13 +46,21 @@ fn gather_imux_once(
         if dev.kind == DeviceKind::Xc9500 {
             if dev.has_fbk {
                 for mc in dev.fb_mcs() {
-                    cands.push(ImuxInput::Mc((fb, mc)));
+                    cands.push(ImuxInput::Mc(MacrocellCoord {
+                        cluster: ClusterId::from_idx(0),
+                        block: fb,
+                        macrocell: mc,
+                    }));
                 }
             }
         } else {
             for ofb in dev.fbs() {
                 for omc in dev.fb_mcs() {
-                    cands.push(ImuxInput::Mc((ofb, omc)));
+                    cands.push(ImuxInput::Mc(MacrocellCoord {
+                        cluster: ClusterId::from_idx(0),
+                        block: ofb,
+                        macrocell: omc,
+                    }));
                 }
             }
         }
@@ -65,10 +73,10 @@ fn gather_imux_once(
             .io
             .keys()
             .filter_map(|x| match x {
-                IoId::Ipad(_) => None,
-                IoId::Mc(mc) => {
-                    if mc.0 == fb {
-                        Some(mc.1)
+                IoCoord::Ipad(_) => None,
+                IoCoord::Macrocell(mc) => {
+                    if mc.block == fb {
+                        Some(mc.macrocell)
                     } else {
                         None
                     }
@@ -84,8 +92,12 @@ fn gather_imux_once(
         if let &PkgPin::Io(io) = info {
             writeln!(vlog, "    (* LOC = \"{pin}\" *)")?;
             let name = match io {
-                IoId::Ipad(ip) => format!("IPAD{ip}", ip = ip.to_idx()),
-                IoId::Mc(mc) => format!("IO{f}_{m}", f = mc.0.to_idx(), m = mc.1.to_idx()),
+                IoCoord::Ipad(ip) => format!("IPAD{ip}", ip = ip.to_idx()),
+                IoCoord::Macrocell(mc) => format!(
+                    "IO{f}_{m}",
+                    f = mc.block.to_idx(),
+                    m = mc.macrocell.to_idx()
+                ),
             };
             writeln!(vlog, "    inout {name},",)?;
             io_names.insert(io, name);
@@ -120,7 +132,11 @@ fn gather_imux_once(
                 format!("I_{n}", n = io_names[&io])
             }
             ImuxInput::Mc(mc) => {
-                format!("MC{f}_{m}", f = mc.0.to_idx(), m = mc.1.to_idx())
+                format!(
+                    "MC{f}_{m}",
+                    f = mc.block.to_idx(),
+                    m = mc.macrocell.to_idx()
+                )
             }
             _ => unreachable!(),
         };
@@ -140,7 +156,11 @@ fn gather_imux_once(
                             format!("I_{n}", n = io_names[&io])
                         }
                         ImuxInput::Mc(mc) => {
-                            format!("MC{f}_{m}", f = mc.0.to_idx(), m = mc.1.to_idx())
+                            format!(
+                                "MC{f}_{m}",
+                                f = mc.block.to_idx(),
+                                m = mc.macrocell.to_idx()
+                            )
                         }
                         _ => unreachable!(),
                     })
@@ -205,18 +225,23 @@ fn gather_imux_once(
             let mut nxlat = HashMap::new();
             for (fbid, fb) in &vm6.fbs {
                 for (mcid, pin) in &fb.pins {
+                    let mc = MacrocellCoord {
+                        cluster: ClusterId::from_idx(0),
+                        block: fbid,
+                        macrocell: mcid,
+                    };
                     if let Some(ib) = pin.ibuf {
                         let ib = &vm6.ibufs[ib];
                         for n in &ib.inodes {
                             nxlat.insert(
                                 &*vm6.nodes[n.node].name,
-                                ImuxInput::Ibuf(IoId::Mc((fbid, mcid))),
+                                ImuxInput::Ibuf(IoCoord::Macrocell(mc)),
                             );
                         }
                     }
-                    if let Some(mc) = pin.mc {
-                        let mcn = vm6.macrocells.key(mc);
-                        mcxlat.insert(&**mcn, (fbid, mcid));
+                    if let Some(vm6mc) = pin.mc {
+                        let mcn = vm6.macrocells.key(vm6mc);
+                        mcxlat.insert(&**mcn, mc);
                     }
                 }
             }
@@ -227,7 +252,7 @@ fn gather_imux_once(
                         for n in &ib.inodes {
                             nxlat.insert(
                                 &*vm6.nodes[n.node].name,
-                                ImuxInput::Ibuf(IoId::Ipad(ipid)),
+                                ImuxInput::Ibuf(IoCoord::Ipad(ipid)),
                             );
                         }
                     }
@@ -242,7 +267,7 @@ fn gather_imux_once(
                     }
                     NodeKind::McFbk => {
                         let nd = n.driver.as_ref().unwrap();
-                        nxlat.insert(&*n.name, ImuxInput::Fbk(mcxlat[&**nd].1));
+                        nxlat.insert(&*n.name, ImuxInput::Fbk(mcxlat[&**nd].macrocell));
                     }
 
                     _ => (),

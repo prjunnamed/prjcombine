@@ -1,6 +1,9 @@
 use std::collections::BTreeSet;
 
-use prjcombine_interconnect::{db::RegionSlotId, grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, NodeLoc, RowId}};
+use prjcombine_interconnect::{
+    db::RegionSlotId,
+    grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, NodeLoc, RowId},
+};
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 

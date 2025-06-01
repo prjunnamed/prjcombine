@@ -1,11 +1,13 @@
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_cpld::device::DeviceKind;
 use prjcombine_re_xilinx_cpld::types::{
-    ClkMuxVal, ClkPadId, ExportDir, FclkId, FoeId, ImuxId, ImuxInput, OeMuxVal, OePadId, PTermId,
-    SrMuxVal, Ut, Xc9500McPt,
+    ClkMuxVal, ClkPadId, ExportDir, FclkId, FoeId, ImuxId, ImuxInput, OeMuxVal, OePadId, SrMuxVal,
+    Ut, Xc9500McPt,
 };
 use prjcombine_re_xilinx_cpld::vm6::{InputNodeKind, NodeKind};
-use prjcombine_types::{FbId, FbMcId, IoId, McId};
+use prjcombine_types::cpld::{
+    BlockId, ClusterId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId,
+};
 use unnamed_entity::EntityId;
 
 use crate::backend::{CpldBackend, FuzzerInfo, Iostd, Key, Value, Voltage};
@@ -13,7 +15,7 @@ use crate::backend::{CpldBackend, FuzzerInfo, Iostd, Key, Value, Voltage};
 fn ensure_ibuf<'a>(
     backend: &CpldBackend,
     mut fuzzer: Fuzzer<CpldBackend<'a>>,
-    io: IoId,
+    io: IoCoord,
     nk: NodeKind,
 ) -> Fuzzer<CpldBackend<'a>> {
     fuzzer = fuzzer
@@ -34,7 +36,7 @@ fn ensure_ibuf<'a>(
 fn ensure_fclk<'a>(
     backend: &CpldBackend,
     mut fuzzer: Fuzzer<CpldBackend<'a>>,
-    mc: McId,
+    mc: MacrocellCoord,
     idx: FclkId,
 ) -> Fuzzer<CpldBackend<'a>> {
     let pad = ClkPadId::from_idx(idx.to_idx());
@@ -54,7 +56,7 @@ fn ensure_fclk<'a>(
         DeviceKind::Xpla3 => {
             fuzzer = fuzzer
                 .base(Key::Fclk(idx), true)
-                .base(Key::FbClk(mc.0, idx), Value::ClkPad(pad));
+                .base(Key::FbClk(mc.block, idx), Value::ClkPad(pad));
         }
         _ => {
             fuzzer = fuzzer.base(Key::Fclk(idx), true);
@@ -77,15 +79,24 @@ fn add_imux_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                         if !backend.pin_map.contains_key(&io) {
                             continue;
                         }
-                        let altfb = FbId::from_idx(ifb.to_idx() ^ 1);
+                        let altfb = BlockId::from_idx(ifb.to_idx() ^ 1);
                         fuzzer = fuzzer.base(Key::FbImux(altfb, imid), k);
                         fuzzer = ensure_ibuf(backend, fuzzer, io, NodeKind::IiImux);
                     }
                     ImuxInput::Fbk(omc) => {
                         fuzzer = fuzzer
-                            .base(Key::McPresent((ifb, omc)), true)
-                            .base(Key::McHasOut((ifb, omc), NodeKind::McFbk), true)
-                            .base(Key::McOutUseMutex((ifb, omc), NodeKind::McFbk), true);
+                            .base(Key::McPresent(MacrocellCoord::simple(ifb, omc)), true)
+                            .base(
+                                Key::McHasOut(MacrocellCoord::simple(ifb, omc), NodeKind::McFbk),
+                                true,
+                            )
+                            .base(
+                                Key::McOutUseMutex(
+                                    MacrocellCoord::simple(ifb, omc),
+                                    NodeKind::McFbk,
+                                ),
+                                true,
+                            );
                     }
                     ImuxInput::Mc(omc) => {
                         fuzzer = fuzzer
@@ -100,12 +111,18 @@ fn add_imux_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
             }
             if backend.device.kind == DeviceKind::Xc9500 {
                 let fuzzer = Fuzzer::new(FuzzerInfo::Imux(ifb, imid, ImuxInput::Uim))
-                    .base(Key::McPresent((ifb, FbMcId::from_idx(0))), true)
+                    .base(
+                        Key::McPresent(MacrocellCoord::simple(ifb, MacrocellId::from_idx(0))),
+                        true,
+                    )
                     .fuzz(Key::FbImux(ifb, imid), Value::None, ImuxInput::Uim);
                 hammer.add_fuzzer_simple(fuzzer);
                 for omc in backend.device.mcs() {
                     let fuzzer = Fuzzer::new(FuzzerInfo::ImuxUimMc(ifb, imid, omc))
-                        .base(Key::McPresent((ifb, FbMcId::from_idx(0))), true)
+                        .base(
+                            Key::McPresent(MacrocellCoord::simple(ifb, MacrocellId::from_idx(0))),
+                            true,
+                        )
                         .base(Key::McPresent(omc), true)
                         .base(Key::McHasOut(omc, NodeKind::McUim), true)
                         .base(Key::McOutUseMutex(omc, NodeKind::McUim), true)
@@ -121,12 +138,15 @@ fn add_imux_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
 fn pin_imux_inps<'a>(
     backend: &CpldBackend,
     mut fuzzer: Fuzzer<CpldBackend<'a>>,
-    fb: FbId,
+    fb: BlockId,
 ) -> Fuzzer<CpldBackend<'a>> {
     if backend.device.kind == DeviceKind::Xc9500 {
         for imid in backend.device.fb_imuxes() {
             fuzzer = fuzzer
-                .base(Key::McPresent((fb, FbMcId::from_idx(0))), true)
+                .base(
+                    Key::McPresent(MacrocellCoord::simple(fb, MacrocellId::from_idx(0))),
+                    true,
+                )
                 .base(Key::FbImux(fb, imid), ImuxInput::Uim);
         }
     } else {
@@ -178,7 +198,7 @@ fn add_pterm_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                                 Value::None,
                                 Value::Bool(pol),
                             );
-                        let fuzzer = pin_imux_inps(backend, fuzzer, mc.0);
+                        let fuzzer = pin_imux_inps(backend, fuzzer, mc.block);
                         hammer.add_fuzzer_simple(fuzzer);
                     }
                 }
@@ -219,7 +239,7 @@ fn add_pterm_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
 fn pin_pterms<'a>(
     backend: &CpldBackend,
     mut fuzzer: Fuzzer<CpldBackend<'a>>,
-    fb: FbId,
+    fb: BlockId,
 ) -> Fuzzer<CpldBackend<'a>> {
     fuzzer = pin_imux_inps(backend, fuzzer, fb);
     for pt in backend.device.fb_pterms() {
@@ -256,7 +276,7 @@ fn add_or_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                         let dir = ExportDir::Down;
                         let tmcid = backend.device.export_target(mc, dir);
                         fuzzer = fuzzer
-                            .base(Key::FbImportMutex(mc.0), Value::Bool(false))
+                            .base(Key::FbImportMutex(mc.block), Value::Bool(false))
                             .base(Key::McHasOut(mc, NodeKind::McExport), true)
                             .base(Key::McSiHasOut(mc, NodeKind::McSiD2), true)
                             .base(Key::McSiHasTerm(mc, NodeKind::McSiD2), false)
@@ -276,7 +296,7 @@ fn add_or_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                             .base(Key::McSiHasTerm(mc, altikind), true)
                             .base(Key::McSiTermImux(mc, altikind, ImuxId::from_idx(1)), true);
                     }
-                    let fuzzer = pin_imux_inps(backend, fuzzer, mc.0);
+                    let fuzzer = pin_imux_inps(backend, fuzzer, mc.block);
                     hammer.add_fuzzer_simple(fuzzer);
                 }
                 for dir in [ExportDir::Up, ExportDir::Down] {
@@ -299,7 +319,7 @@ fn add_or_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                         .base(Key::McSiHasOut(smcid, XC9500_SI_KINDS[0].1), false)
                         .base(Key::McSiHasOut(smcid, NodeKind::McSiD2), false)
                         .base(Key::McHasOut(smcid, NodeKind::McUim), true)
-                        .fuzz(Key::FbImportMutex(mc.0), false, true)
+                        .fuzz(Key::FbImportMutex(mc.block), false, true)
                         .fuzz(Key::McHasOut(smcid, NodeKind::McExport), false, true)
                         .fuzz(Key::McSiImport(mc, okind, dir), false, true)
                         .fuzz(Key::McSiHasOut(smcid, NodeKind::McSiExport), false, true)
@@ -333,7 +353,7 @@ fn add_or_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                                 true,
                             );
                     }
-                    let fuzzer = pin_imux_inps(backend, fuzzer, mc.0);
+                    let fuzzer = pin_imux_inps(backend, fuzzer, mc.block);
                     hammer.add_fuzzer_simple(fuzzer);
                 }
             }
@@ -351,21 +371,21 @@ fn add_or_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                         Value::None,
                         true,
                     );
-                let fuzzer = pin_imux_inps(backend, fuzzer, mc.0);
+                let fuzzer = pin_imux_inps(backend, fuzzer, mc.block);
                 hammer.add_fuzzer_simple(fuzzer);
             }
         }
     } else {
         for mc in backend.device.mcs() {
             for pt in backend.device.fb_pterms() {
-                let opt = PTermId::from_idx(pt.to_idx() ^ 1);
+                let opt = ProductTermId::from_idx(pt.to_idx() ^ 1);
                 let fuzzer = Fuzzer::new(FuzzerInfo::McOrPla(mc, pt))
                     .base(Key::McPresent(mc), true)
                     .base(Key::McSiPresent(mc), true)
                     .base(Key::McSiHasOut(mc, NodeKind::McSiD2), true)
                     .base(Key::McSiPla(mc, NodeKind::McSiD2, opt), true)
                     .fuzz(Key::McSiPla(mc, NodeKind::McSiD2, pt), false, true);
-                let fuzzer = pin_pterms(backend, fuzzer, mc.0);
+                let fuzzer = pin_pterms(backend, fuzzer, mc.block);
                 hammer.add_fuzzer_simple(fuzzer);
             }
         }
@@ -375,14 +395,14 @@ fn add_or_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
 fn add_ct_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
     if backend.device.kind == DeviceKind::Xpla3 {
         for fb in backend.device.fbs() {
-            let mc = (fb, FbMcId::from_idx(0));
+            let mc = MacrocellCoord::simple(fb, MacrocellId::from_idx(0));
             for i in 0..8 {
                 let ikind = if i < 6 {
                     InputNodeKind::SrffR
                 } else {
                     InputNodeKind::SrffC
                 };
-                let pt = PTermId::from_idx(i);
+                let pt = ProductTermId::from_idx(i);
                 let mut fuzzer = Fuzzer::new(FuzzerInfo::CtInvert(fb, pt))
                     .base(Key::CtPresent(fb, pt), true)
                     .base(Key::CtUseMutex(fb, pt), Value::CtUseCt)
@@ -393,7 +413,7 @@ fn add_ct_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     .base(Key::McSiHasOut(mc, NodeKind::McSiD1), true)
                     .base(Key::McSiHasOut(mc, NodeKind::McSiD2), true)
                     .base(
-                        Key::McSiPla(mc, NodeKind::McSiD2, PTermId::from_idx(9)),
+                        Key::McSiPla(mc, NodeKind::McSiD2, ProductTermId::from_idx(9)),
                         true,
                     )
                     .base(Key::McFfPresent(mc), true)
@@ -403,10 +423,13 @@ fn add_ct_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     fuzzer = fuzzer
                         .base(
                             Key::McFfInput(mc, InputNodeKind::SrffC),
-                            Value::InputCt(PTermId::from_idx(7)),
+                            Value::InputCt(ProductTermId::from_idx(7)),
                         )
-                        .base(Key::CtPresent(fb, PTermId::from_idx(7)), true)
-                        .base(Key::CtUseMutex(fb, PTermId::from_idx(7)), Value::CtUseCt);
+                        .base(Key::CtPresent(fb, ProductTermId::from_idx(7)), true)
+                        .base(
+                            Key::CtUseMutex(fb, ProductTermId::from_idx(7)),
+                            Value::CtUseCt,
+                        );
                 }
                 let fuzzer = pin_pterms(backend, fuzzer, fb);
                 hammer.add_fuzzer_simple(fuzzer);
@@ -418,17 +441,23 @@ fn add_ct_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
 fn pin_ibuf_in<'a>(
     backend: &CpldBackend,
     mut fuzzer: Fuzzer<CpldBackend<'a>>,
-    io: IoId,
-    fb: FbId,
+    io: IoCoord,
+    fb: BlockId,
 ) -> Fuzzer<CpldBackend<'a>> {
     fuzzer = fuzzer
         .base(
             Key::FbImux(fb, backend.ibuf_test_imux[&io]),
             ImuxInput::Ibuf(io),
         )
-        .base(Key::McPresent((fb, FbMcId::from_idx(0))), true)
         .base(
-            Key::McHasOut((fb, FbMcId::from_idx(0)), NodeKind::McUim),
+            Key::McPresent(MacrocellCoord::simple(fb, MacrocellId::from_idx(0))),
+            true,
+        )
+        .base(
+            Key::McHasOut(
+                MacrocellCoord::simple(fb, MacrocellId::from_idx(0)),
+                NodeKind::McUim,
+            ),
             true,
         );
     ensure_ibuf(backend, fuzzer, io, NodeKind::IiImux)
@@ -437,11 +466,11 @@ fn pin_ibuf_in<'a>(
 fn pin_ibuf<'a>(
     backend: &CpldBackend,
     fuzzer: Fuzzer<CpldBackend<'a>>,
-    io: IoId,
+    io: IoCoord,
 ) -> Fuzzer<CpldBackend<'a>> {
     let fbid = match io {
-        IoId::Ipad(_) => FbId::from_idx(0),
-        IoId::Mc(mc) => FbId::from_idx(mc.0.to_idx() ^ 1),
+        IoCoord::Ipad(_) => BlockId::from_idx(0),
+        IoCoord::Macrocell(mc) => BlockId::from_idx(mc.block.to_idx() ^ 1),
     };
     pin_ibuf_in(backend, fuzzer, io, fbid)
 }
@@ -468,7 +497,7 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                 .base(Key::McHasOut(mc, NodeKind::McUim), true)
                 .base(Key::McOutUseMutex(mc, NodeKind::McUim), Value::None)
                 .base(
-                    Key::IBufOutUseMutex(IoId::Mc(mc), NodeKind::IiImux),
+                    Key::IBufOutUseMutex(IoCoord::Macrocell(mc), NodeKind::IiImux),
                     Value::None,
                 )
                 .fuzz(Key::McSiMutex(mc), false, true)
@@ -488,7 +517,7 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
             .base(Key::McPresent(mc), true)
             .base(Key::McOutUseMutex(mc, NodeKind::McUim), Value::None)
             .base(
-                Key::IBufOutUseMutex(IoId::Mc(mc), NodeKind::IiImux),
+                Key::IBufOutUseMutex(IoCoord::Macrocell(mc), NodeKind::IiImux),
                 Value::None,
             )
             .fuzz(Key::McSiMutex(mc), false, true)
@@ -504,12 +533,12 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
             .fuzz(Key::McHasOut(mc, NodeKind::McUim), false, true);
         hammer.add_fuzzer_simple(fuzzer);
         if backend.device.kind == DeviceKind::Xc9500 {
-            let imid = ImuxId::from_idx(mc.1.to_idx());
+            let imid = ImuxId::from_idx(mc.macrocell.to_idx());
             let fuzzer = Fuzzer::new(FuzzerInfo::McUimOutInv(mc))
                 .base(Key::McPresent(mc), true)
                 .fuzz(Key::McOutUseMutex(mc, NodeKind::McUim), true, false)
                 .base(
-                    Key::IBufOutUseMutex(IoId::Mc(mc), NodeKind::IiImux),
+                    Key::IBufOutUseMutex(IoCoord::Macrocell(mc), NodeKind::IiImux),
                     Value::None,
                 )
                 .fuzz(Key::McSiMutex(mc), false, true)
@@ -523,8 +552,8 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     Value::InputSi(NodeKind::McSiClkf),
                 )
                 .base(Key::McHasOut(mc, NodeKind::McUim), true)
-                .base(Key::FbImux(mc.0, imid), ImuxInput::Uim)
-                .fuzz(Key::UimPath(mc.0, imid, mc), true, false);
+                .base(Key::FbImux(mc.block, imid), ImuxInput::Uim)
+                .fuzz(Key::UimPath(mc.block, imid, mc), true, false);
             hammer.add_fuzzer_simple(fuzzer);
         }
         // CLK mux
@@ -537,7 +566,7 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
             }
             DeviceKind::Xpla3 => {
                 for i in 4..8 {
-                    srcs.push(ClkMuxVal::Ct(PTermId::from_idx(i)));
+                    srcs.push(ClkMuxVal::Ct(ProductTermId::from_idx(i)));
                 }
                 for i in 0..2 {
                     srcs.push(ClkMuxVal::Fclk(FclkId::from_idx(i)));
@@ -545,7 +574,7 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                 srcs.push(ClkMuxVal::Ut);
             }
             DeviceKind::Coolrunner2 => {
-                srcs.push(ClkMuxVal::Ct(PTermId::from_idx(4)));
+                srcs.push(ClkMuxVal::Ct(ProductTermId::from_idx(4)));
                 for i in 0..3 {
                     srcs.push(ClkMuxVal::Fclk(FclkId::from_idx(i)));
                 }
@@ -584,19 +613,19 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                                     Value::None,
                                     true,
                                 );
-                            fuzzer = pin_imux_inps(backend, fuzzer, mc.0);
+                            fuzzer = pin_imux_inps(backend, fuzzer, mc.block);
                         } else {
                             let pt = if backend.device.kind == DeviceKind::Xpla3 {
-                                PTermId::from_idx(9 + mc.1.to_idx() * 2)
+                                ProductTermId::from_idx(9 + mc.macrocell.to_idx() * 2)
                             } else {
-                                PTermId::from_idx(10 + mc.1.to_idx() * 3)
+                                ProductTermId::from_idx(10 + mc.macrocell.to_idx() * 3)
                             };
-                            fuzzer = fuzzer.base(Key::PlaHasTerm(mc.0, pt), true).fuzz(
+                            fuzzer = fuzzer.base(Key::PlaHasTerm(mc.block, pt), true).fuzz(
                                 Key::McSiPla(mc, NodeKind::McSiClkf, pt),
                                 false,
                                 true,
                             );
-                            fuzzer = pin_pterms(backend, fuzzer, mc.0);
+                            fuzzer = pin_pterms(backend, fuzzer, mc.block);
                         }
                     }
                     ClkMuxVal::Fclk(idx) => {
@@ -604,9 +633,9 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                             let pad = ClkPadId::from_idx(idx.to_idx());
                             fuzzer = fuzzer
                                 .base(Key::Fclk(FclkId::from_idx(pad.to_idx())), true)
-                                .base(Key::FbClk(mc.0, idx), Value::ClkPad(pad))
+                                .base(Key::FbClk(mc.block, idx), Value::ClkPad(pad))
                                 .base(
-                                    Key::FbClk(mc.0, FclkId::from_idx(idx.to_idx() ^ 1)),
+                                    Key::FbClk(mc.block, FclkId::from_idx(idx.to_idx() ^ 1)),
                                     Value::None,
                                 );
                             backend.device.clk_pads[pad]
@@ -643,9 +672,9 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     }
                     ClkMuxVal::Ct(pt) => {
                         fuzzer = fuzzer
-                            .base(Key::PlaHasTerm(mc.0, pt), true)
-                            .base(Key::CtPresent(mc.0, pt), true)
-                            .base(Key::CtUseMutex(mc.0, pt), Value::CtUseCt)
+                            .base(Key::PlaHasTerm(mc.block, pt), true)
+                            .base(Key::CtPresent(mc.block, pt), true)
+                            .base(Key::CtUseMutex(mc.block, pt), Value::CtUseCt)
                             .base(Key::Ut(Ut::Clk), Value::None)
                             .fuzz(
                                 Key::McFfInput(mc, InputNodeKind::SrffC),
@@ -655,12 +684,12 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                         do_sibling = Some(Value::InputCt(pt));
                     }
                     ClkMuxVal::Ut => {
-                        let pt = PTermId::from_idx(7);
+                        let pt = ProductTermId::from_idx(7);
                         fuzzer = fuzzer
-                            .base(Key::PlaHasTerm(mc.0, pt), true)
-                            .base(Key::CtPresent(mc.0, pt), true)
-                            .base(Key::CtUseMutex(mc.0, pt), Value::CtUseUt(Ut::Clk))
-                            .base(Key::Ut(Ut::Clk), Value::Ut(mc.0, pt))
+                            .base(Key::PlaHasTerm(mc.block, pt), true)
+                            .base(Key::CtPresent(mc.block, pt), true)
+                            .base(Key::CtUseMutex(mc.block, pt), Value::CtUseUt(Ut::Clk))
+                            .base(Key::Ut(Ut::Clk), Value::Ut(mc.block, pt))
                             .fuzz(
                                 Key::McFfInput(mc, InputNodeKind::SrffC),
                                 Value::None,
@@ -670,7 +699,10 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     }
                 }
                 if let Some(inp) = do_sibling {
-                    let omc = (mc.0, FbMcId::from_idx(mc.1.to_idx() ^ 1));
+                    let omc = MacrocellCoord::simple(
+                        mc.block,
+                        MacrocellId::from_idx(mc.macrocell.to_idx() ^ 1),
+                    );
                     fuzzer = fuzzer
                         .base(Key::McPresent(omc), true)
                         .base(Key::McHasOut(omc, NodeKind::McUim), true)
@@ -693,17 +725,17 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     vec![SrMuxVal::Pt, SrMuxVal::Fsr]
                 }
                 DeviceKind::Xpla3 => vec![
-                    SrMuxVal::Ct(PTermId::from_idx(0)),
-                    SrMuxVal::Ct(PTermId::from_idx(1)),
-                    SrMuxVal::Ct(PTermId::from_idx(2)),
-                    SrMuxVal::Ct(PTermId::from_idx(3)),
-                    SrMuxVal::Ct(PTermId::from_idx(4)),
-                    SrMuxVal::Ct(PTermId::from_idx(5)),
+                    SrMuxVal::Ct(ProductTermId::from_idx(0)),
+                    SrMuxVal::Ct(ProductTermId::from_idx(1)),
+                    SrMuxVal::Ct(ProductTermId::from_idx(2)),
+                    SrMuxVal::Ct(ProductTermId::from_idx(3)),
+                    SrMuxVal::Ct(ProductTermId::from_idx(4)),
+                    SrMuxVal::Ct(ProductTermId::from_idx(5)),
                     SrMuxVal::Ut,
                 ],
                 DeviceKind::Coolrunner2 => vec![
                     SrMuxVal::Pt,
-                    SrMuxVal::Ct(PTermId::from_idx(if is_set { 6 } else { 5 })),
+                    SrMuxVal::Ct(ProductTermId::from_idx(if is_set { 6 } else { 5 })),
                     SrMuxVal::Fsr,
                 ],
             };
@@ -756,15 +788,15 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                                 Value::None,
                                 true,
                             );
-                            fuzzer = pin_imux_inps(backend, fuzzer, mc.0);
+                            fuzzer = pin_imux_inps(backend, fuzzer, mc.block);
                         } else {
-                            let pt = PTermId::from_idx(8 + mc.1.to_idx() * 3);
-                            fuzzer = fuzzer.base(Key::PlaHasTerm(mc.0, pt), true).fuzz(
+                            let pt = ProductTermId::from_idx(8 + mc.macrocell.to_idx() * 3);
+                            fuzzer = fuzzer.base(Key::PlaHasTerm(mc.block, pt), true).fuzz(
                                 Key::McSiPla(mc, nk, pt),
                                 false,
                                 true,
                             );
-                            fuzzer = pin_pterms(backend, fuzzer, mc.0);
+                            fuzzer = pin_pterms(backend, fuzzer, mc.block);
                         }
                     }
                     SrMuxVal::Fsr => {
@@ -787,29 +819,32 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     }
                     SrMuxVal::Ct(pt) => {
                         fuzzer = fuzzer
-                            .base(Key::PlaHasTerm(mc.0, pt), true)
-                            .base(Key::CtPresent(mc.0, pt), true)
-                            .base(Key::CtUseMutex(mc.0, pt), Value::CtUseCt)
+                            .base(Key::PlaHasTerm(mc.block, pt), true)
+                            .base(Key::CtPresent(mc.block, pt), true)
+                            .base(Key::CtUseMutex(mc.block, pt), Value::CtUseCt)
                             .base(Key::Ut(Ut::Rst), Value::None)
                             .base(Key::Ut(Ut::Set), Value::None)
                             .fuzz(Key::McFfInput(mc, ink), Value::None, Value::InputCt(pt));
                         do_sibling = Some(Value::InputCt(pt));
                     }
                     SrMuxVal::Ut => {
-                        let pt = PTermId::from_idx(7);
+                        let pt = ProductTermId::from_idx(7);
                         let ut = if is_set { Ut::Set } else { Ut::Rst };
                         fuzzer = fuzzer
-                            .base(Key::PlaHasTerm(mc.0, pt), true)
-                            .base(Key::CtPresent(mc.0, pt), true)
-                            .base(Key::CtUseMutex(mc.0, pt), Value::CtUseUt(ut))
-                            .base(Key::Ut(ut), Value::Ut(mc.0, pt))
+                            .base(Key::PlaHasTerm(mc.block, pt), true)
+                            .base(Key::CtPresent(mc.block, pt), true)
+                            .base(Key::CtUseMutex(mc.block, pt), Value::CtUseUt(ut))
+                            .base(Key::Ut(ut), Value::Ut(mc.block, pt))
                             .fuzz(Key::McFfInput(mc, ink), Value::None, Value::InputCt(pt));
                         do_sibling = Some(Value::InputCt(pt));
                     }
                     _ => unreachable!(),
                 }
                 if let Some(inp) = do_sibling {
-                    let omc = (mc.0, FbMcId::from_idx(mc.1.to_idx() ^ 1));
+                    let omc = MacrocellCoord::simple(
+                        mc.block,
+                        MacrocellId::from_idx(mc.macrocell.to_idx() ^ 1),
+                    );
                     fuzzer = fuzzer
                         .base(Key::McPresent(omc), true)
                         .base(Key::McHasOut(omc, NodeKind::McUim), true)
@@ -888,7 +923,7 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                             Value::None,
                             Value::InputSi(NodeKind::McSiCe),
                         );
-                    fuzzer = pin_imux_inps(backend, fuzzer, mc.0);
+                    fuzzer = pin_imux_inps(backend, fuzzer, mc.block);
                 }
                 CeIn::Pt => {
                     fuzzer = fuzzer
@@ -899,29 +934,32 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                             Value::InputSi(NodeKind::McSiCe),
                         );
                     let pt = if backend.device.kind == DeviceKind::Xpla3 {
-                        PTermId::from_idx(9 + mc.1.to_idx() * 2)
+                        ProductTermId::from_idx(9 + mc.macrocell.to_idx() * 2)
                     } else {
-                        PTermId::from_idx(10 + mc.1.to_idx() * 3)
+                        ProductTermId::from_idx(10 + mc.macrocell.to_idx() * 3)
                     };
-                    fuzzer = fuzzer.base(Key::PlaHasTerm(mc.0, pt), true).fuzz(
+                    fuzzer = fuzzer.base(Key::PlaHasTerm(mc.block, pt), true).fuzz(
                         Key::McSiPla(mc, NodeKind::McSiCe, pt),
                         false,
                         true,
                     );
-                    fuzzer = pin_pterms(backend, fuzzer, mc.0);
+                    fuzzer = pin_pterms(backend, fuzzer, mc.block);
                 }
                 CeIn::Ct => {
-                    let pt = PTermId::from_idx(4);
+                    let pt = ProductTermId::from_idx(4);
                     fuzzer = fuzzer
-                        .base(Key::PlaHasTerm(mc.0, pt), true)
-                        .base(Key::CtPresent(mc.0, pt), true)
-                        .base(Key::CtUseMutex(mc.0, pt), Value::CtUseCt)
+                        .base(Key::PlaHasTerm(mc.block, pt), true)
+                        .base(Key::CtPresent(mc.block, pt), true)
+                        .base(Key::CtUseMutex(mc.block, pt), Value::CtUseCt)
                         .fuzz(
                             Key::McFfInput(mc, InputNodeKind::SrffCe),
                             Value::None,
                             Value::InputCt(pt),
                         );
-                    let omc = (mc.0, FbMcId::from_idx(mc.1.to_idx() ^ 1));
+                    let omc = MacrocellCoord::simple(
+                        mc.block,
+                        MacrocellId::from_idx(mc.macrocell.to_idx() ^ 1),
+                    );
                     fuzzer = fuzzer
                         .base(Key::McPresent(omc), true)
                         .base(Key::McHasOut(omc, NodeKind::McUim), true)
@@ -997,15 +1035,19 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
         }
 
         // D mux
-        if !backend.device.kind.is_xc9500() && backend.pin_map.contains_key(&IoId::Mc(mc)) {
+        if !backend.device.kind.is_xc9500() && backend.pin_map.contains_key(&IoCoord::Macrocell(mc))
+        {
             let mut fuzzer = Fuzzer::new(FuzzerInfo::McInputIreg(mc))
-                .base(Key::IBufHasOut(IoId::Mc(mc), NodeKind::IiReg), true)
+                .base(
+                    Key::IBufHasOut(IoCoord::Macrocell(mc), NodeKind::IiReg),
+                    true,
+                )
                 .base(Key::McPresent(mc), true)
                 .base(Key::McHasOut(mc, NodeKind::McUim), true)
                 .fuzz(Key::McSiMutex(mc), false, true)
                 .base(Key::McSiPresent(mc), true)
                 .fuzz(Key::McFfPresent(mc), false, Value::Ireg);
-            fuzzer = pin_ibuf(backend, fuzzer, IoId::Mc(mc));
+            fuzzer = pin_ibuf(backend, fuzzer, IoCoord::Macrocell(mc));
             hammer.add_fuzzer_simple(fuzzer);
         }
     }
@@ -1059,23 +1101,23 @@ fn add_xor_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                             Value::None
                         },
                     );
-                fuzzer = pin_imux_inps(backend, fuzzer, mc.0);
+                fuzzer = pin_imux_inps(backend, fuzzer, mc.block);
             } else {
                 let (ptd1, ptd2) = if backend.device.kind == DeviceKind::Xpla3 {
                     (
-                        PTermId::from_idx(8 + mc.1.to_idx() * 2),
-                        PTermId::from_idx(0),
+                        ProductTermId::from_idx(8 + mc.macrocell.to_idx() * 2),
+                        ProductTermId::from_idx(0),
                     )
                 } else {
                     (
-                        PTermId::from_idx(10 + mc.1.to_idx() * 3),
-                        PTermId::from_idx(0),
+                        ProductTermId::from_idx(10 + mc.macrocell.to_idx() * 3),
+                        ProductTermId::from_idx(0),
                     )
                 };
                 fuzzer = fuzzer
                     .fuzz(Key::McSiPla(mc, NodeKind::McSiD1, ptd1), false, has_d1)
                     .fuzz(Key::McSiPla(mc, NodeKind::McSiD2, ptd2), false, has_d2);
-                fuzzer = pin_pterms(backend, fuzzer, mc.0);
+                fuzzer = pin_pterms(backend, fuzzer, mc.block);
             }
             hammer.add_fuzzer_simple(fuzzer);
         }
@@ -1115,12 +1157,12 @@ fn add_ibuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                 .fuzz(Key::IBufPresent(io), false, true)
                 .fuzz(Key::IBufHasOut(io, NodeKind::IiImux), false, true)
                 .fuzz(
-                    Key::FbImux(FbId::from_idx(0), backend.ibuf_test_imux[&io]),
+                    Key::FbImux(BlockId::from_idx(0), backend.ibuf_test_imux[&io]),
                     Value::None,
                     ImuxInput::Ibuf(io),
                 )
                 .base(Key::IBufOutUseMutex(io, NodeKind::IiImux), true);
-            if let IoId::Mc(mc) = io {
+            if let IoCoord::Macrocell(mc) = io {
                 fuzzer = fuzzer
                     .base(Key::OBufPresent(mc), false)
                     .base(Key::McPresent(mc), false);
@@ -1131,7 +1173,7 @@ fn add_ibuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     .fuzz(Key::Iostd(io), Value::None, Iostd::Lvcmos18)
                     .base(Key::BankVoltage(bank), Voltage::V18)
                     .base(Key::BankMutex(bank), Value::None);
-                if matches!(io, IoId::Mc(_)) {
+                if matches!(io, IoCoord::Macrocell(_)) {
                     fuzzer = fuzzer.fuzz(Key::IBufFlag(io, 2), false, true);
                 }
             }
@@ -1153,9 +1195,9 @@ fn add_ibuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                 let omc1 = pins.next().unwrap();
                 let omc2 = pins.next().unwrap();
                 let mut fuzzer = Fuzzer::new(FuzzerInfo::IBufUseVref(io));
-                fuzzer = pin_ibuf_in(backend, fuzzer, io, FbId::from_idx(0));
-                fuzzer = pin_ibuf_in(backend, fuzzer, omc1, FbId::from_idx(1));
-                fuzzer = pin_ibuf_in(backend, fuzzer, omc2, FbId::from_idx(2));
+                fuzzer = pin_ibuf_in(backend, fuzzer, io, BlockId::from_idx(0));
+                fuzzer = pin_ibuf_in(backend, fuzzer, omc1, BlockId::from_idx(1));
+                fuzzer = pin_ibuf_in(backend, fuzzer, omc2, BlockId::from_idx(2));
                 fuzzer.kv.remove(&Key::Iostd(io));
                 fuzzer.kv.remove(&Key::Iostd(omc1));
                 fuzzer.kv.remove(&Key::Iostd(omc2));
@@ -1181,7 +1223,7 @@ fn add_ibuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     .base(Key::Iostd(omc1), Iostd::Sstl2I)
                     .base(Key::BankVoltage(bank), Voltage::V25)
                     .base(Key::VrefMutex, Value::None);
-                if let IoId::Mc(mc) = io {
+                if let IoCoord::Macrocell(mc) = io {
                     fuzzer = fuzzer.base(Key::OBufPresent(mc), false);
                 }
                 hammer.add_fuzzer_simple(fuzzer);
@@ -1194,11 +1236,11 @@ fn add_ibuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     .find(|&omc| omc != emc && omc != io && backend.pin_map.contains_key(&omc))
                     .unwrap();
                 let mut fuzzer = Fuzzer::new(FuzzerInfo::IBufDge(io));
-                fuzzer = pin_ibuf_in(backend, fuzzer, io, FbId::from_idx(0));
+                fuzzer = pin_ibuf_in(backend, fuzzer, io, BlockId::from_idx(0));
                 if io != emc {
-                    fuzzer = pin_ibuf_in(backend, fuzzer, emc, FbId::from_idx(1));
+                    fuzzer = pin_ibuf_in(backend, fuzzer, emc, BlockId::from_idx(1));
                 }
-                fuzzer = pin_ibuf_in(backend, fuzzer, omc, FbId::from_idx(2));
+                fuzzer = pin_ibuf_in(backend, fuzzer, omc, BlockId::from_idx(2));
                 fuzzer = fuzzer
                     .base(Key::Dge, true)
                     .base(Key::IBufFlag(emc, 6), true)
@@ -1238,14 +1280,14 @@ fn add_ibuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     continue;
                 }
                 let mut fuzzer = Fuzzer::new(FuzzerInfo::IBufIostd(bank, iostd));
-                fuzzer = pin_ibuf(backend, fuzzer, IoId::Mc(mc));
-                fuzzer.kv.remove(&Key::Iostd(IoId::Mc(mc)));
+                fuzzer = pin_ibuf(backend, fuzzer, IoCoord::Macrocell(mc));
+                fuzzer.kv.remove(&Key::Iostd(IoCoord::Macrocell(mc)));
                 fuzzer.kv.remove(&Key::BankVoltage(bank));
                 fuzzer.kv.remove(&Key::BankMutex(bank));
                 fuzzer = fuzzer
                     .fuzz(Key::BankMutex(bank), false, true)
                     .fuzz(Key::BankVoltage(bank), Voltage::V18, iostd.voltage())
-                    .fuzz(Key::Iostd(IoId::Mc(mc)), Iostd::Lvcmos18, iostd);
+                    .fuzz(Key::Iostd(IoCoord::Macrocell(mc)), Iostd::Lvcmos18, iostd);
                 if iostd.is_vref() {
                     fuzzer = fuzzer.fuzz(Key::VrefMutex, false, true);
                 }
@@ -1266,7 +1308,7 @@ fn add_ibuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
 
 fn add_obuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
     for &io in backend.pin_map.keys() {
-        let IoId::Mc(mc) = io else {
+        let IoCoord::Macrocell(mc) = io else {
             continue;
         };
         let clkpad = ClkPadId::from_idx(0);
@@ -1338,15 +1380,15 @@ fn add_obuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                 OeMuxVal::Foe(FoeId::from_idx(3)),
             ],
             DeviceKind::Xpla3 => vec![
-                OeMuxVal::Ct(PTermId::from_idx(0)),
-                OeMuxVal::Ct(PTermId::from_idx(1)),
-                OeMuxVal::Ct(PTermId::from_idx(2)),
-                OeMuxVal::Ct(PTermId::from_idx(6)),
+                OeMuxVal::Ct(ProductTermId::from_idx(0)),
+                OeMuxVal::Ct(ProductTermId::from_idx(1)),
+                OeMuxVal::Ct(ProductTermId::from_idx(2)),
+                OeMuxVal::Ct(ProductTermId::from_idx(6)),
                 OeMuxVal::Ut,
             ],
             DeviceKind::Coolrunner2 => vec![
                 OeMuxVal::Pt,
-                OeMuxVal::Ct(PTermId::from_idx(7)),
+                OeMuxVal::Ct(ProductTermId::from_idx(7)),
                 OeMuxVal::Foe(FoeId::from_idx(0)),
                 OeMuxVal::Foe(FoeId::from_idx(1)),
                 OeMuxVal::Foe(FoeId::from_idx(2)),
@@ -1390,15 +1432,15 @@ fn add_obuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                                     Value::None,
                                     true,
                                 );
-                            fuzzer = pin_imux_inps(backend, fuzzer, mc.0);
+                            fuzzer = pin_imux_inps(backend, fuzzer, mc.block);
                         } else {
-                            let pt = PTermId::from_idx(9 + mc.1.to_idx() * 3);
-                            fuzzer = fuzzer.base(Key::PlaHasTerm(mc.0, pt), true).fuzz(
+                            let pt = ProductTermId::from_idx(9 + mc.macrocell.to_idx() * 3);
+                            fuzzer = fuzzer.base(Key::PlaHasTerm(mc.block, pt), true).fuzz(
                                 Key::McSiPla(mc, NodeKind::McSiTrst, pt),
                                 false,
                                 true,
                             );
-                            fuzzer = pin_pterms(backend, fuzzer, mc.0);
+                            fuzzer = pin_pterms(backend, fuzzer, mc.block);
                         }
                     }
                     OeMuxVal::Foe(idx) => {
@@ -1432,20 +1474,20 @@ fn add_obuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     }
                     OeMuxVal::Ct(pt) => {
                         fuzzer = fuzzer
-                            .base(Key::PlaHasTerm(mc.0, pt), true)
-                            .base(Key::CtPresent(mc.0, pt), true)
-                            .base(Key::CtUseMutex(mc.0, pt), Value::CtUseCt)
+                            .base(Key::PlaHasTerm(mc.block, pt), true)
+                            .base(Key::CtPresent(mc.block, pt), true)
+                            .base(Key::CtUseMutex(mc.block, pt), Value::CtUseCt)
                             .base(Key::Ut(Ut::Oe), Value::None)
                             .fuzz(Key::McOe(mc), Value::None, Value::InputCt(pt));
                         do_sibling = Some(Value::InputCt(pt));
                     }
                     OeMuxVal::Ut => {
-                        let pt = PTermId::from_idx(7);
+                        let pt = ProductTermId::from_idx(7);
                         fuzzer = fuzzer
-                            .base(Key::PlaHasTerm(mc.0, pt), true)
-                            .base(Key::CtPresent(mc.0, pt), true)
-                            .base(Key::CtUseMutex(mc.0, pt), Value::CtUseUt(Ut::Clk))
-                            .base(Key::Ut(Ut::Oe), Value::Ut(mc.0, pt))
+                            .base(Key::PlaHasTerm(mc.block, pt), true)
+                            .base(Key::CtPresent(mc.block, pt), true)
+                            .base(Key::CtUseMutex(mc.block, pt), Value::CtUseUt(Ut::Clk))
+                            .base(Key::Ut(Ut::Oe), Value::Ut(mc.block, pt))
                             .fuzz(Key::McOe(mc), Value::None, Value::InputCt(pt));
                         do_sibling = Some(Value::InputCt(pt));
                     }
@@ -1457,9 +1499,9 @@ fn add_obuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                         .keys()
                         .copied()
                         .find_map(|oio| match oio {
-                            IoId::Ipad(_) => None,
-                            IoId::Mc(omc) => {
-                                if omc.0 == mc.0 && omc != mc {
+                            IoCoord::Ipad(_) => None,
+                            IoCoord::Macrocell(omc) => {
+                                if omc.block == mc.block && omc != mc {
                                     Some(omc)
                                 } else {
                                     None
@@ -1478,7 +1520,7 @@ fn add_obuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                         .base(Key::McFlag(omc, 29), inv)
                         .base(Key::McOe(omc), inp);
                 }
-                fuzzer = pin_ibuf(backend, fuzzer, IoId::Mc(mc));
+                fuzzer = pin_ibuf(backend, fuzzer, IoCoord::Macrocell(mc));
                 hammer.add_fuzzer_simple(fuzzer);
             }
         }
@@ -1526,7 +1568,7 @@ fn add_obuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                                     Value::None,
                                     true,
                                 );
-                            fuzzer = pin_imux_inps(backend, fuzzer, mc.0);
+                            fuzzer = pin_imux_inps(backend, fuzzer, mc.block);
                         }
                         OeMuxVal::Foe(idx) => {
                             if idx.to_idx() >= backend.device.oe_pads.len() {
@@ -1561,7 +1603,10 @@ fn add_obuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                         _ => unreachable!(),
                     }
                     if let Some(inp) = do_sibling {
-                        let omc = (mc.0, FbMcId::from_idx(mc.1.to_idx() ^ 1));
+                        let omc = MacrocellCoord::simple(
+                            mc.block,
+                            MacrocellId::from_idx(mc.macrocell.to_idx() ^ 1),
+                        );
                         fuzzer = fuzzer
                             .base(Key::McPresent(omc), true)
                             .base(Key::McHasOut(omc, NodeKind::McUim), true)
@@ -1605,11 +1650,11 @@ fn add_obuf_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     .base(Key::McSiHasOut(mc, NodeKind::McSiD2), true)
                     .base(Key::McFfPresent(mc), true)
                     .base(Key::McHasOut(mc, NodeKind::McQ), Value::CopyQ)
-                    .base(Key::IBufPresent(IoId::Mc(mc)), false)
+                    .base(Key::IBufPresent(IoCoord::Macrocell(mc)), false)
                     .base(Key::OBufPresent(mc), true)
                     .fuzz(Key::BankMutex(bank), false, true)
                     .fuzz(Key::BankVoltage(bank), Voltage::V18, iostd.voltage())
-                    .fuzz(Key::Iostd(IoId::Mc(mc)), Iostd::Lvcmos18, iostd);
+                    .fuzz(Key::Iostd(IoCoord::Macrocell(mc)), Iostd::Lvcmos18, iostd);
                 hammer.add_fuzzer_simple(fuzzer);
             }
         }
@@ -1623,7 +1668,7 @@ fn add_cdr_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
     let Some(cdr) = backend.device.cdr_pad else {
         return;
     };
-    let IoId::Mc(cdrmc) = cdr else {
+    let IoCoord::Macrocell(cdrmc) = cdr else {
         unreachable!();
     };
     let clkpad = ClkPadId::from_idx(2);
@@ -1687,11 +1732,15 @@ fn add_ut_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
     }
     for ut in [Ut::Clk, Ut::Oe, Ut::Rst, Ut::Set] {
         for fb in backend.device.fbs() {
-            for pt in [PTermId::from_idx(6), PTermId::from_idx(7)] {
+            for pt in [ProductTermId::from_idx(6), ProductTermId::from_idx(7)] {
                 if pt.to_idx() == 6 && backend.device.fbs != 2 {
                     continue;
                 }
-                let mc = (FbId::from_idx(fb.to_idx() ^ 1), FbMcId::from_idx(0));
+                let mc = MacrocellCoord {
+                    cluster: ClusterId::from_idx(0),
+                    block: BlockId::from_idx(fb.to_idx() ^ 1),
+                    macrocell: MacrocellId::from_idx(0),
+                };
                 let mut fuzzer = Fuzzer::new(FuzzerInfo::Ut(ut, fb, pt))
                     .base(Key::PlaHasTerm(fb, pt), true)
                     .fuzz(Key::CtPresent(fb, pt), false, true)
@@ -1751,7 +1800,7 @@ fn add_ipad_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
         return;
     }
     for ipad in backend.device.ipads() {
-        let io = IoId::Ipad(ipad);
+        let io = IoCoord::Ipad(ipad);
         for fb in backend.device.fbs() {
             let fuzzer = Fuzzer::new(FuzzerInfo::IpadUimOutFb(ipad, fb))
                 .fuzz(Key::IBufPresent(io), false, true)
@@ -1792,7 +1841,7 @@ fn add_fbclk_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     continue;
                 };
                 let pad = backend.device.clk_pads[gclk];
-                let mc = (fb, FbMcId::from_idx(fbclk.to_idx()));
+                let mc = MacrocellCoord::simple(fb, MacrocellId::from_idx(fbclk.to_idx()));
                 fuzzer = fuzzer
                     .base(Key::McPresent(mc), true)
                     .base(Key::McHasOut(mc, NodeKind::McUim), true)
@@ -1845,7 +1894,7 @@ fn add_fclk_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
             }
             let mut fuzzer = Fuzzer::new(FuzzerInfo::Fclk(tgt, src, inv));
             let pad = backend.device.clk_pads[src];
-            let mc = (FbId::from_idx(0), FbMcId::from_idx(0));
+            let mc = MacrocellCoord::simple(BlockId::from_idx(0), MacrocellId::from_idx(0));
             let nk = if inv {
                 NodeKind::IiFclkInv
             } else {
@@ -1902,7 +1951,11 @@ fn add_fsr_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
         let fclk = FclkId::from_idx(0);
         let clk = backend.device.clk_pads[clkpad];
         let pad = backend.device.sr_pad.unwrap();
-        let mc = (FbId::from_idx(0), FbMcId::from_idx(0));
+        let mc = MacrocellCoord {
+            cluster: ClusterId::from_idx(0),
+            block: BlockId::from_idx(0),
+            macrocell: MacrocellId::from_idx(0),
+        };
         let nk = if inv {
             NodeKind::IiFsrInv
         } else {
@@ -1976,7 +2029,7 @@ fn add_foe_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
             }
             let mut fuzzer = Fuzzer::new(FuzzerInfo::Foe(tgt, src, inv));
             let pad = backend.oe_pads_remapped[src];
-            let IoId::Mc(mc) = backend.device.clk_pads[ClkPadId::from_idx(0)] else {
+            let IoCoord::Macrocell(mc) = backend.device.clk_pads[ClkPadId::from_idx(0)] else {
                 unreachable!();
             };
             let nk = if inv {
@@ -2003,7 +2056,7 @@ fn add_foe_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                 .fuzz(Key::IBufHasOut(pad, nk), false, true)
                 .base(Key::OBufPresent(mc), true);
 
-            fuzzer = pin_ibuf(backend, fuzzer, IoId::Mc(mc));
+            fuzzer = pin_ibuf(backend, fuzzer, IoCoord::Macrocell(mc));
 
             if backend.device.kind == DeviceKind::Xc9500 {
                 fuzzer = fuzzer.fuzz(
@@ -2026,10 +2079,10 @@ fn add_foe_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
         }
         if backend.device.kind == DeviceKind::Coolrunner2 {
             let mut fuzzer = Fuzzer::new(FuzzerInfo::FoeMc(tgt));
-            let IoId::Mc(oemc) = backend.device.oe_pads[src] else {
+            let IoCoord::Macrocell(oemc) = backend.device.oe_pads[src] else {
                 unreachable!();
             };
-            let IoId::Mc(mc) = backend.device.clk_pads[ClkPadId::from_idx(0)] else {
+            let IoCoord::Macrocell(mc) = backend.device.clk_pads[ClkPadId::from_idx(0)] else {
                 unreachable!();
             };
             fuzzer = fuzzer
@@ -2055,7 +2108,7 @@ fn add_foe_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                 .fuzz(Key::Foe(tgt), Value::None, Value::McGlb)
                 .base(Key::OBufPresent(mc), true);
 
-            fuzzer = pin_ibuf(backend, fuzzer, IoId::Mc(mc));
+            fuzzer = pin_ibuf(backend, fuzzer, IoCoord::Macrocell(mc));
             hammer.add_fuzzer_simple(fuzzer);
         }
     }
@@ -2066,12 +2119,15 @@ fn add_fb_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
         return;
     }
     for fb in backend.device.fbs() {
-        let tmc = FbMcId::from_idx(0);
-        let mut fuzzer =
-            Fuzzer::new(FuzzerInfo::FbPresent(fb)).fuzz(Key::McPresent((fb, tmc)), false, true);
+        let tmc = MacrocellId::from_idx(0);
+        let mut fuzzer = Fuzzer::new(FuzzerInfo::FbPresent(fb)).fuzz(
+            Key::McPresent(MacrocellCoord::simple(fb, tmc)),
+            false,
+            true,
+        );
         for mc in backend.device.fb_mcs() {
             if mc != tmc {
-                fuzzer = fuzzer.base(Key::McPresent((fb, mc)), false);
+                fuzzer = fuzzer.base(Key::McPresent(MacrocellCoord::simple(fb, mc)), false);
             }
         }
         hammer.add_fuzzer_simple(fuzzer);

@@ -5,7 +5,7 @@ use std::{
 
 use prjcombine_interconnect::{
     db::{BelSlotId, TileClassWire},
-    grid::{ExpandedGrid, BelCoord, NodeLoc},
+    grid::{BelCoord, ExpandedGrid, NodeLoc},
 };
 use unnamed_entity::{EntityPartVec, EntityVec};
 
@@ -89,7 +89,12 @@ impl<'a> ExpandedGridNaming<'a> {
         ))
     }
 
-    pub fn int_pip(&self, nloc: NodeLoc, wire_to: TileClassWire, wire_from: TileClassWire) -> PipCoords {
+    pub fn int_pip(
+        &self,
+        nloc: NodeLoc,
+        wire_to: TileClassWire,
+        wire_from: TileClassWire,
+    ) -> PipCoords {
         let nnode = &self.nodes[&nloc];
         let naming = &self.db.node_namings[nnode.naming].int_pips[&(wire_to, wire_from)];
         match naming {

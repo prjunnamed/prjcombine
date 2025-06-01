@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashSet, btree_map};
 use prjcombine_interconnect::{
     db::{BelSlotId, TileCellId, TileClassWire},
     dir::DirH,
-    grid::{WireCoord, LayerId, NodeLoc},
+    grid::{LayerId, NodeLoc, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -536,7 +536,12 @@ fn drive_xc4000_wire<'a>(
             layer = backend
                 .egrid
                 .find_tile_loc(die, (col, row), |node| {
-                    backend.egrid.db.tile_classes.key(node.class).starts_with("LLVQ")
+                    backend
+                        .egrid
+                        .db
+                        .tile_classes
+                        .key(node.class)
+                        .starts_with("LLVQ")
                 })
                 .unwrap()
                 .0;
@@ -548,7 +553,12 @@ fn drive_xc4000_wire<'a>(
                 layer = backend
                     .egrid
                     .find_tile_loc(die, (col, row), |node| {
-                        backend.egrid.db.tile_classes.key(node.class).starts_with("LLVC")
+                        backend
+                            .egrid
+                            .db
+                            .tile_classes
+                            .key(node.class)
+                            .starts_with("LLVC")
                     })
                     .unwrap()
                     .0;
@@ -557,7 +567,12 @@ fn drive_xc4000_wire<'a>(
                 layer = backend
                     .egrid
                     .find_tile_loc(die, (col, row), |node| {
-                        backend.egrid.db.tile_classes.key(node.class).starts_with("LLVC")
+                        backend
+                            .egrid
+                            .db
+                            .tile_classes
+                            .key(node.class)
+                            .starts_with("LLVC")
                     })
                     .unwrap()
                     .0;
@@ -1424,7 +1439,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let mut mux_diffs: BTreeMap<TileClassWire, BTreeMap<TileClassWire, Diff>> = BTreeMap::new();
-        let mut obuf_diffs: BTreeMap<TileClassWire, BTreeMap<TileClassWire, Diff>> = BTreeMap::new();
+        let mut obuf_diffs: BTreeMap<TileClassWire, BTreeMap<TileClassWire, Diff>> =
+            BTreeMap::new();
         for (&wire_to, mux) in &node.muxes {
             let out_name = intdb.wires.key(wire_to.1);
             let mux_name = if tile.starts_with("LL") {

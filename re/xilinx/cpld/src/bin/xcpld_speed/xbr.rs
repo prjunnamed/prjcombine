@@ -4,12 +4,13 @@ use prjcombine_re_xilinx_cpld::{
     db::Part,
     device::{Device, Package},
     tsim::run_tsim,
-    types::PTermId,
     vm6::{InputNodeKind, NodeKind},
     vm6_util::prep_vm6,
 };
 use prjcombine_types::{
-    speed::{SetupHold, Speed, SpeedVal}, units::Time, FbId
+    cpld::{BlockId, ProductTermId},
+    speed::{SetupHold, Speed, SpeedVal},
+    units::Time,
 };
 use unnamed_entity::EntityId;
 
@@ -267,10 +268,30 @@ fn test_ff_ct(
     let node_e = insert_ibuf(&mut vm6, "E", NodeKind::IiImux, 0);
     let node_ce = insert_ibuf(&mut vm6, "CE", NodeKind::IiImux, 0);
 
-    let node_sc = insert_ct(&mut vm6, FbId::from_idx(0), PTermId::from_idx(4), &[node_c]);
-    let node_sr = insert_ct(&mut vm6, FbId::from_idx(0), PTermId::from_idx(5), &[node_r]);
-    let node_ss = insert_ct(&mut vm6, FbId::from_idx(0), PTermId::from_idx(6), &[node_s]);
-    let node_se = insert_ct(&mut vm6, FbId::from_idx(0), PTermId::from_idx(7), &[node_e]);
+    let node_sc = insert_ct(
+        &mut vm6,
+        BlockId::from_idx(0),
+        ProductTermId::from_idx(4),
+        &[node_c],
+    );
+    let node_sr = insert_ct(
+        &mut vm6,
+        BlockId::from_idx(0),
+        ProductTermId::from_idx(5),
+        &[node_r],
+    );
+    let node_ss = insert_ct(
+        &mut vm6,
+        BlockId::from_idx(0),
+        ProductTermId::from_idx(6),
+        &[node_s],
+    );
+    let node_se = insert_ct(
+        &mut vm6,
+        BlockId::from_idx(0),
+        ProductTermId::from_idx(7),
+        &[node_e],
+    );
 
     let mcid = insert_mc(&mut vm6, "MC", 0x4000);
     insert_mc_si(&mut vm6, mcid, NodeKind::McSiD1, &[node_d]);
@@ -432,9 +453,24 @@ fn test_latch(
     let mcid = insert_mc(&mut vm6, "MC", 0x4040);
     insert_mc_si(&mut vm6, mcid, NodeKind::McSiD1, &[node_d]);
     insert_mc_si(&mut vm6, mcid, NodeKind::McSiD2, &[]);
-    let node_sc = insert_ct(&mut vm6, FbId::from_idx(0), PTermId::from_idx(4), &[node_c]);
-    let node_sr = insert_ct(&mut vm6, FbId::from_idx(0), PTermId::from_idx(5), &[node_r]);
-    let node_ss = insert_ct(&mut vm6, FbId::from_idx(0), PTermId::from_idx(6), &[node_s]);
+    let node_sc = insert_ct(
+        &mut vm6,
+        BlockId::from_idx(0),
+        ProductTermId::from_idx(4),
+        &[node_c],
+    );
+    let node_sr = insert_ct(
+        &mut vm6,
+        BlockId::from_idx(0),
+        ProductTermId::from_idx(5),
+        &[node_r],
+    );
+    let node_ss = insert_ct(
+        &mut vm6,
+        BlockId::from_idx(0),
+        ProductTermId::from_idx(6),
+        &[node_s],
+    );
     insert_srff(&mut vm6, mcid);
     insert_srff_inp(&mut vm6, mcid, InputNodeKind::SrffC, node_sc);
     insert_srff_inp(&mut vm6, mcid, InputNodeKind::SrffR, node_sr);

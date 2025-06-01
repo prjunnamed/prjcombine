@@ -4,7 +4,9 @@ use clap::{Arg, Command, value_parser};
 use prjcombine_coolrunner2::{Chip, Database};
 use prjcombine_jed::{JedFile, JedParserOptions};
 use prjcombine_types::{
-    bitvec::BitVec, bsdata::{Tile, TileItemKind}, FbId, FbMcId, IoId
+    bitvec::BitVec,
+    bsdata::{Tile, TileItemKind},
+    cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId},
 };
 use unnamed_entity::EntityId;
 
@@ -30,7 +32,7 @@ impl Bitstream {
         let fuses = jed.fuses.as_ref().unwrap();
         let mut fbs = vec![];
         let mut pos = 0;
-        for fb in 0..(chip.fb_cols.len() * chip.fb_rows * 2) {
+        for fb in 0..(chip.block_cols.len() * chip.block_rows * 2) {
             let mut fbd = FbData {
                 imux: BTreeMap::new(),
                 mcs: core::array::from_fn(|_| BTreeMap::new()),
@@ -64,7 +66,10 @@ impl Bitstream {
             for mc in 0..16 {
                 let iobful = chip
                     .io
-                    .contains_key(&IoId::Mc((FbId::from_idx(fb), FbMcId::from_idx(mc))));
+                    .contains_key(&IoCoord::Macrocell(MacrocellCoord::simple(
+                        BlockId::from_idx(fb),
+                        MacrocellId::from_idx(mc),
+                    )));
                 let mcd = &mut fbd.mcs[mc];
                 let jed_bits = if !chip.has_vref {
                     &db.jed_mc_bits_small

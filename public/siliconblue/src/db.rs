@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use jzon::JsonValue;
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_types::{speed::Speed, bsdata::BsData};
+use prjcombine_types::{bsdata::BsData, speed::Speed};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityVec, entity_id};
 

@@ -1,7 +1,7 @@
 use prjcombine_interconnect::{
-    db::{TileCellId, TileClassWire, ConnectorWire, WireId},
+    db::{ConnectorWire, TileCellId, TileClassWire, WireId},
     dir::Dir,
-    grid::{WireCoord, LayerId, NodeLoc},
+    grid::{LayerId, NodeLoc, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd,
@@ -432,7 +432,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 {
                     let (dir, wire) = if mux_name.ends_with(".E") {
                         let term = intdb.get_conn_class("MAIN.W");
-                        let ConnectorWire::Pass(wire) = intdb.conn_classes[term].wires[wire_to.1] else {
+                        let ConnectorWire::Pass(wire) = intdb.conn_classes[term].wires[wire_to.1]
+                        else {
                             unreachable!()
                         };
                         (Dir::W, wire)
@@ -454,7 +455,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 {
                     let (dir, wire) = if mux_name.ends_with(".S") {
                         let term = intdb.get_conn_class("MAIN.N");
-                        let ConnectorWire::Pass(wire) = intdb.conn_classes[term].wires[wire_to.1] else {
+                        let ConnectorWire::Pass(wire) = intdb.conn_classes[term].wires[wire_to.1]
+                        else {
                             unreachable!()
                         };
                         (Dir::N, wire)

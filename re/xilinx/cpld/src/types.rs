@@ -1,31 +1,34 @@
+use bincode::{Decode, Encode};
 use enum_map::Enum;
-use prjcombine_types::{FbMcId, IoId, McId};
-use serde::{Deserialize, Serialize};
-use unnamed_entity::entity_id;
+use prjcombine_types::cpld::{IoCoord, MacrocellCoord, MacrocellId, ProductTermId};
+use unnamed_entity::id::{EntityIdU8, EntityTag};
 
-entity_id! {
-    pub id FbGroupId u8;
-    pub id ImuxId u8;
-    pub id PTermId u8;
-    pub id FbnId u8;
-    pub id ClkPadId u8;
-    pub id FclkId u8;
-    pub id OePadId u8;
-    pub id FoeId u8;
-    pub id BankId u8;
+macro_rules! entity_id_u8 {
+    ($ty:ident, $tag:ident, $prefix:literal) => {
+        pub struct $tag;
+        impl EntityTag for $tag {
+            const PREFIX: &'static str = $prefix;
+        }
+        pub type $ty = EntityIdU8<$tag>;
+    };
 }
 
-#[derive(
-    Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize, Enum,
-)]
+entity_id_u8!(FbGroupId, FbGroupTag, "BG");
+entity_id_u8!(ImuxId, ImuxTag, "IM");
+entity_id_u8!(FbnId, FbnTag, "FBN");
+entity_id_u8!(ClkPadId, ClkPadTag, "CLKPAD");
+entity_id_u8!(FclkId, FclkTag, "FCLK");
+entity_id_u8!(OePadId, OePadTag, "OEPAD");
+entity_id_u8!(FoeId, FoeTag, "FOE");
+entity_id_u8!(BankId, BankTag, "BANK");
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode, Enum)]
 pub enum ExportDir {
     Up,
     Down,
 }
 
-#[derive(
-    Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize, Enum,
-)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode, Enum)]
 pub enum Xc9500McPt {
     Clk,
     Oe,
@@ -34,9 +37,7 @@ pub enum Xc9500McPt {
     Xor,
 }
 
-#[derive(
-    Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize, Enum,
-)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode, Enum)]
 pub enum Ut {
     Clk,
     Oe,
@@ -44,24 +45,24 @@ pub enum Ut {
     Set,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum ClkMuxVal {
     Pt,
     Fclk(FclkId),
-    Ct(PTermId),
+    Ct(ProductTermId),
     Ut,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum SrMuxVal {
     Pt,
     Fsr,
-    Ct(PTermId),
+    Ct(ProductTermId),
     Ut,
     Gnd,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum RegMode {
     Dff,
     Tff,
@@ -69,15 +70,15 @@ pub enum RegMode {
     DffCe,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum CeMuxVal {
     PtRst,
     PtSet,
     Pt,
-    Ct(PTermId),
+    Ct(ProductTermId),
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum XorMuxVal {
     Gnd,
     Vcc,
@@ -85,26 +86,26 @@ pub enum XorMuxVal {
     PtInv,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum OeMuxVal {
     Gnd,
     Vcc,
     Pt,
     Foe(FoeId),
-    Ct(PTermId),
+    Ct(ProductTermId),
     Ut,
     OpenDrain,
     Pullup,
     IsGround,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum TermMode {
     Pullup,
     Keeper,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum IBufMode {
     Plain,
     Schmitt,
@@ -112,29 +113,29 @@ pub enum IBufMode {
     IsVref,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum OeMode {
     Gnd,
     Vcc,
     McOe,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ImuxInput {
-    Ibuf(IoId),
-    Fbk(FbMcId),
-    Mc(McId),
+    Ibuf(IoCoord),
+    Fbk(MacrocellId),
+    Mc(MacrocellCoord),
     Pup,
     Uim,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum Slew {
     Slow,
     Fast,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum FoeMuxVal {
     Ibuf,
     IbufInv,

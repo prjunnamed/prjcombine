@@ -6,7 +6,9 @@ use prjcombine_xc9500::{BankId, BondPin, ChipKind, Database};
 use unnamed_entity::{EntityId, EntityPartVec};
 
 use crate::{
-    speed::{gen_speed, SpeedData}, tiledb::{gen_tile, FrameDirection, TileOrientation}, DocgenContext
+    DocgenContext,
+    speed::{SpeedData, gen_speed},
+    tiledb::{FrameDirection, TileOrientation, gen_tile},
 };
 
 fn gen_devlist(ctx: &mut DocgenContext, dbs: &[Database]) {
@@ -27,11 +29,11 @@ fn gen_devlist(ctx: &mut DocgenContext, dbs: &[Database]) {
     for db in dbs {
         for part in &db.parts {
             let chip = &db.chips[part.chip];
-            let notes = if chip.kind == ChipKind::Xc9500 && chip.fbs == 2 {
-                "Does not have FB input feedback"
+            let notes = if chip.kind == ChipKind::Xc9500 && chip.blocks == 2 {
+                "Does not have block input feedback"
             } else if chip.uim_ibuf_bits.is_some() {
                 "Has special input buffer enable fuses"
-            } else if chip.fbs == 4 {
+            } else if chip.blocks == 4 {
                 "GOE mapping to pads varies with package"
             } else {
                 ""
@@ -45,7 +47,7 @@ fn gen_devlist(ctx: &mut DocgenContext, dbs: &[Database]) {
             writeln!(buf, r#"<td>{}</td>"#, part.name).unwrap();
             writeln!(buf, r#"<td>{}</td>"#, chip.kind).unwrap();
             writeln!(buf, r#"<td>{:#010x}</td>"#, chip.idcode).unwrap();
-            writeln!(buf, r#"<td>{}</td>"#, chip.fbs).unwrap();
+            writeln!(buf, r#"<td>{}</td>"#, chip.blocks).unwrap();
             writeln!(buf, r#"<td>{goe_num}</td>"#).unwrap();
             writeln!(buf, r#"<td>{}</td>"#, chip.banks).unwrap();
             writeln!(buf, r#"<td>{notes}</td>"#).unwrap();
@@ -133,7 +135,7 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
                             io_special.insert(k.clone(), v);
                         }
                         let io_special_rev: HashMap<_, _> = HashMap::from_iter(
-                            io_special.iter().map(|(k, &v)| (BondPin::Iob(v.0, v.1), k)),
+                            io_special.iter().map(|(k, &mc)| (BondPin::Iob(mc), k)),
                         );
                         for (k, &v) in &bond.pins {
                             pins.entry(v)
@@ -185,7 +187,7 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
             writeln!(buf, r#"|Parameter|Value|"#).unwrap();
             writeln!(buf, r#"|-|-|"#).unwrap();
             writeln!(buf, r#"|IDCODE|{idcode:#010x}|"#, idcode = chip.idcode).unwrap();
-            writeln!(buf, r#"|FB count|{fbs}|"#, fbs = chip.fbs).unwrap();
+            writeln!(buf, r#"|Block count|{blocks}|"#, blocks = chip.blocks).unwrap();
             writeln!(buf, r#"|I/O bank count|{banks}|"#, banks = chip.banks).unwrap();
             writeln!(buf, r#"|FPGM/FPGMI time|{time}|"#, time = chip.program_time).unwrap();
             writeln!(buf, r#"|FERASE/FBULK time|{time}|"#, time = chip.erase_time).unwrap();
@@ -205,12 +207,12 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
             writeln!(buf, r#"</tr>"#).unwrap();
             writeln!(buf, r#"</thead>"#).unwrap();
             writeln!(buf, r#"<tbody>"#).unwrap();
-            for (&(fb, mc), &bank) in &chip.io {
+            for (&mc, &bank) in &chip.io {
                 writeln!(buf, r#"<tr>"#).unwrap();
-                writeln!(buf, r#"<td>IOB_{fb}_{mc}</td>"#).unwrap();
+                writeln!(buf, r#"<td>IOB_{mc}</td>"#).unwrap();
                 writeln!(buf, r#"<td>{bank}</td>"#).unwrap();
                 for bond in bonds.values() {
-                    if let Some(pin) = bond.pins.get(&BondPin::Iob(fb, mc)) {
+                    if let Some(pin) = bond.pins.get(&BondPin::Iob(mc)) {
                         let pins = pin.pins.join(", ");
                         if let Some(ref spec) = pin.special {
                             writeln!(buf, r#"<td>{pins} ({spec})</td>"#).unwrap();
@@ -317,7 +319,7 @@ pub fn gen_xc9500(ctx: &mut DocgenContext) {
         let db =
             Database::from_file(ctx.ctx.root.join(format!("../databases/{kind}.zstd"))).unwrap();
         gen_tile(ctx, kind, "mc", &db.mc_bits, orientation);
-        gen_tile(ctx, kind, "fb", &db.fb_bits, orientation);
+        gen_tile(ctx, kind, "block", &db.block_bits, orientation);
         gen_tile(ctx, kind, "global", &db.global_bits, orientation);
         dbs.push(db);
     }

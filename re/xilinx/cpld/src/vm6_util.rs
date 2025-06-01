@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
-use prjcombine_types::IoId;
+use prjcombine_types::cpld::{ClusterId, IoCoord, MacrocellCoord};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::db::Part;
@@ -100,7 +100,11 @@ pub fn prep_vm6(part: &Part, device: &Device, package: &Package, speed: &str) ->
             }
         }
         for mc in device.fb_mcs() {
-            let io = IoId::Mc((fbid, mc));
+            let io = IoCoord::Macrocell(MacrocellCoord {
+                cluster: ClusterId::from_idx(0),
+                block: fbid,
+                macrocell: mc,
+            });
             fb.pins.insert(
                 mc,
                 FbPin {
@@ -148,7 +152,7 @@ pub fn prep_vm6(part: &Part, device: &Device, package: &Package, speed: &str) ->
             pins: EntityPartVec::new(),
         };
         for ipad in device.ipads() {
-            let io = IoId::Ipad(ipad);
+            let io = IoCoord::Ipad(ipad);
             ipad_fb.pins.insert(
                 ipad,
                 IpadFbPin {

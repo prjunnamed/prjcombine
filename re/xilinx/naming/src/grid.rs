@@ -10,7 +10,8 @@ use prjcombine_interconnect::{
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::db::{
-    NamingDb, TileClassNamingId, RawTileId, ConnectorClassNamingId, ConnectorWireInFarNaming, ConnectorWireOutNaming,
+    ConnectorClassNamingId, ConnectorWireInFarNaming, ConnectorWireOutNaming, NamingDb, RawTileId,
+    TileClassNamingId,
 };
 
 #[derive(Clone, Debug)]
@@ -190,48 +191,48 @@ impl<'a> ExpandedGridNaming<'a> {
                                     let n = &self.db.conn_class_namings[naming.naming];
                                     match n.wires_out.get(wire.2) {
                                         None => (),
-                                        Some(ConnectorWireOutNaming::Simple { name: name_fout }) => {
-                                            match n.wires_in_far[wf] {
-                                                ConnectorWireInFarNaming::Simple { ref name } => {
-                                                    trace.push(TracePip {
-                                                        tile: &naming.tile,
-                                                        wire_to: name_fout,
-                                                        wire_from: name,
-                                                    });
-                                                }
-                                                ConnectorWireInFarNaming::Buf {
-                                                    ref name_out,
-                                                    ref name_in,
-                                                } => {
-                                                    trace.push(TracePip {
-                                                        tile: &naming.tile,
-                                                        wire_to: name_fout,
-                                                        wire_from: name_out,
-                                                    });
-                                                    trace.push(TracePip {
-                                                        tile: &naming.tile,
-                                                        wire_to: name_out,
-                                                        wire_from: name_in,
-                                                    });
-                                                }
-                                                ConnectorWireInFarNaming::BufFar {
-                                                    ref name,
-                                                    ref name_far_out,
-                                                    ref name_far_in,
-                                                } => {
-                                                    trace.push(TracePip {
-                                                        tile: &naming.tile,
-                                                        wire_to: name_fout,
-                                                        wire_from: name,
-                                                    });
-                                                    trace.push(TracePip {
-                                                        tile: naming.tile_far.as_ref().unwrap(),
-                                                        wire_to: name_far_out,
-                                                        wire_from: name_far_in,
-                                                    });
-                                                }
+                                        Some(ConnectorWireOutNaming::Simple {
+                                            name: name_fout,
+                                        }) => match n.wires_in_far[wf] {
+                                            ConnectorWireInFarNaming::Simple { ref name } => {
+                                                trace.push(TracePip {
+                                                    tile: &naming.tile,
+                                                    wire_to: name_fout,
+                                                    wire_from: name,
+                                                });
                                             }
-                                        }
+                                            ConnectorWireInFarNaming::Buf {
+                                                ref name_out,
+                                                ref name_in,
+                                            } => {
+                                                trace.push(TracePip {
+                                                    tile: &naming.tile,
+                                                    wire_to: name_fout,
+                                                    wire_from: name_out,
+                                                });
+                                                trace.push(TracePip {
+                                                    tile: &naming.tile,
+                                                    wire_to: name_out,
+                                                    wire_from: name_in,
+                                                });
+                                            }
+                                            ConnectorWireInFarNaming::BufFar {
+                                                ref name,
+                                                ref name_far_out,
+                                                ref name_far_in,
+                                            } => {
+                                                trace.push(TracePip {
+                                                    tile: &naming.tile,
+                                                    wire_to: name_fout,
+                                                    wire_from: name,
+                                                });
+                                                trace.push(TracePip {
+                                                    tile: naming.tile_far.as_ref().unwrap(),
+                                                    wire_to: name_far_out,
+                                                    wire_from: name_far_in,
+                                                });
+                                            }
+                                        },
                                         Some(ConnectorWireOutNaming::Buf { name_out, name_in }) => {
                                             trace.push(TracePip {
                                                 tile: &naming.tile,

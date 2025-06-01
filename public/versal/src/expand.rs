@@ -7,7 +7,7 @@ use unnamed_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
 use crate::chip::{
     Chip, CleKind, ColumnKind, DisabledPart, GtRowKind, HardRowKind, Interposer, RightKind,
 };
-use crate::expanded::{ExpandedDevice, SllConns, UbumpId, REGION_LEAF};
+use crate::expanded::{ExpandedDevice, REGION_LEAF, SllConns, UbumpId};
 
 struct DieInfo {
     col_cfrm: ColId,

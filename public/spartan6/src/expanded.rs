@@ -1,5 +1,7 @@
 use prjcombine_interconnect::{
-    db::RegionSlotId, dir::{Dir, DirMap}, grid::{ColId, DieId, ExpandedGrid, NodeLoc, Rect, RowId}
+    db::RegionSlotId,
+    dir::{Dir, DirMap},
+    grid::{ColId, DieId, ExpandedGrid, NodeLoc, Rect, RowId},
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};

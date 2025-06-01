@@ -2,11 +2,11 @@
 
 The raw XPLA3 bitstream is a three-dimensional array of bits. The bitstream is arranged into:
 
-- `fb_rows * 52 + 2` rows
+- `block_rows * 52 + 2` rows
 - 2 planes
 - `bs_cols` columns
 
-The `fb_rows` and `bs_cols` variables are per-device and can be obtained from the database.
+The `block_rows` and `bs_cols` variables are per-device and can be obtained from the database.
 
 The bitstream is roughly divided into areas as follows:
 
@@ -50,10 +50,10 @@ Note that the UES bits and read protection bit are not included in the JED file,
 The size of every `FB[i].IM[j].MUX` fuse set in the device is the same, and is given by the database `imux_width` field. The position of bit `k` of `FB[i].IM[j].MUX` in the fuse array can be computed as follows:
 
 - row is:
-  - if `j < 20`: `fb_row(i) * 52 + 2 + j`
-  - if `j >= 20`: `fb_row(i) * 52 + 2 + j + 8`
+  - if `j < 20`: `block_row(i) * 52 + 2 + j`
+  - if `j >= 20`: `block_row(i) * 52 + 2 + j + 8`
 - plane is: `(i & 1) ^ 1`
-- column is `fb_cols[fb_col(i)].imux_col + imux_width - 1 - k`
+- column is `block_cols[block_col(i)].imux_col + imux_width - 1 - k`
 
 
 ## Fuses — product and sum terms
@@ -61,20 +61,20 @@ The size of every `FB[i].IM[j].MUX` fuse set in the device is the same, and is g
 The position of `FB[i].PT[j].IM[k].P` and `FB[i].PT[j].IM[k].N` can be computed as follows:
 
 - row is:
-  - if `k < 20`: `fb_row(i) * 52 + 2 + k`
-  - if `k >= 20`: `fb_row(i) * 52 + 2 + k + 8`
+  - if `k < 20`: `block_row(i) * 52 + 2 + k`
+  - if `k >= 20`: `block_row(i) * 52 + 2 + k + 8`
 - plane is `0` for `.P` bit, `1` for `.N` bit
 - column is:
-  - if `i` is even: `fb_cols[fb_col(i)].pt_col + j`
-  - if `i` is odd: `fb_cols[fb_col(i)].pt_col + 95 - j`
+  - if `i` is even: `block_cols[block_col(i)].pt_col + j`
+  - if `i` is odd: `block_cols[block_col(i)].pt_col + 95 - j`
 
 The position of `FB[i].PT[j].FBN[k]` can be computed as follows:
 
-- row is `fb_row(i) * 52 + dr`, where `dr` is given in the table below
+- row is `block_row(i) * 52 + dr`, where `dr` is given in the table below
 - plane is given in the table below
 - column is:
-  - if `i` is even: `fb_cols[fb_col(i)].pt_col + j`
-  - if `i` is odd: `fb_cols[fb_col(i)].pt_col + 95 - j`
+  - if `i` is even: `block_cols[block_col(i)].pt_col + j`
+  - if `i` is odd: `block_cols[block_col(i)].pt_col + 95 - j`
 
 | `k` | `dr` | `plane` |
 | --- | ---- | ------- |
@@ -89,11 +89,11 @@ The position of `FB[i].PT[j].FBN[k]` can be computed as follows:
 
 The position of `FB[i].MC[j].SUM.PT[k]` can be computed as follows:
 
-- row is `fb_row(i) * 52 + 22 + (j // 2)`
+- row is `block_row(i) * 52 + 22 + (j // 2)`
 - plane is `1 - (j % 2)`
 - column is:
-  - if `i` is even: `fb_cols[fb_col(i)].pt_col + k`
-  - if `i` is odd: `fb_cols[fb_col(i)].pt_col + 95 - k`
+  - if `i` is even: `block_cols[block_col(i)].pt_col + k`
+  - if `i` is odd: `block_cols[block_col(i)].pt_col + 95 - k`
 
 
 ## Fuses — macrocells
@@ -101,12 +101,12 @@ The position of `FB[i].MC[j].SUM.PT[k]` can be computed as follows:
 The per-MC bits are listed in the table below. The per-MC coordinates should be translated to global coordinates as follows:
 
 - row is:
-  if `mc < 8`: `fb_row(fb) * 52 + mc * 3 + table_row`
-  if `mc >= 8`: `fb_row(fb) * 52 + 4 + mc * 3 + table_row`
+  if `mc < 8`: `block_row(block) * 52 + mc * 3 + table_row`
+  if `mc >= 8`: `block_row(block) * 52 + 4 + mc * 3 + table_row`
 - plane is: `table_plane`
 - column is:
-  - if `fb` is even: `fb_cols[fb_col(fb)].mc_col + table_column`
-  - if `fb` is odd: `fb_cols[fb_col(fb)].mc_col + 9 - table_column`
+  - if `block` is even: `block_cols[block_col(block)].mc_col + table_column`
+  - if `block` is odd: `block_cols[block_col(block)].mc_col + 9 - table_column`
 
 {{tile xpla3 mc}}
 
@@ -125,18 +125,18 @@ The per-MC bits are listed in the table below. The per-MC coordinates should be 
 
 The per-FB bits are listed in the table below. The per-FB coordinates should be translated to global coordinates as follows:
 
-- row is: `fb_row(fb) * 52 + 24 + table_row`
+- row is: `block_row(block) * 52 + 24 + table_row`
 - plane is: `table_plane`
 - column is:
-  - if `fb` is even: `fb_cols[fb_col(fb)].mc_col + table_column`
-  - if `fb` is odd: `fb_cols[fb_col(fb)].mc_col + 9 - table_column`
+  - if `block` is even: `block_cols[block_col(block)].mc_col + table_column`
+  - if `block` is odd: `block_cols[block_col(block)].mc_col + 9 - table_column`
 
-{{tile xpla3 fb}}
+{{tile xpla3 block}}
 
 
 ### JED mapping
 
-{{jed xpla3 fb}}
+{{jed xpla3 block}}
 
 
 ## Fuses — global bits

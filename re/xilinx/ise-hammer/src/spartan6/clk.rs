@@ -8,7 +8,10 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::{bels, chip::Gts};
-use prjcombine_types::{bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}};
+use prjcombine_types::{
+    bitvec::BitVec,
+    bsdata::{TileBit, TileItem, TileItemKind},
+};
 use unnamed_entity::EntityId;
 
 use crate::{

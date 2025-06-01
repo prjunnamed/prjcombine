@@ -3,7 +3,9 @@ use std::{collections::BTreeMap, error::Error, fs::read_to_string, path::PathBuf
 use clap::{Arg, Command, value_parser};
 use prjcombine_jed::JedFile;
 use prjcombine_types::{
-    bitvec::BitVec, bsdata::{Tile, TileItemKind}, FbMcId
+    bitvec::BitVec,
+    bsdata::{Tile, TileItemKind},
+    cpld::MacrocellId,
 };
 use prjcombine_xpla3::{Chip, Database};
 use unnamed_entity::EntityId;
@@ -35,9 +37,9 @@ fn init_tile(tile: &Tile) -> BTreeMap<String, BitVec> {
 
 impl Bitstream {
     fn new(chip: &Chip, db: &Database) -> Self {
-        let fbs = (0..(chip.fb_rows * chip.fb_cols.len() * 2))
+        let fbs = (0..(chip.block_rows * chip.block_cols.len() * 2))
             .map(|_| {
-                let mut misc = init_tile(&db.fb_bits);
+                let mut misc = init_tile(&db.block_bits);
                 for i in 0..40 {
                     misc.insert(
                         format!("IM[{i}].MUX"),
@@ -85,12 +87,12 @@ impl Bitstream {
                     res.push(!fbd.pla_or[j][i]);
                 }
             }
-            for (bn, bi) in &db.jed_fb_bits {
+            for (bn, bi) in &db.jed_block_bits {
                 res.push(fbd.misc[bn][*bi]);
             }
             for iobful in [true, false] {
                 for mc in 0..16 {
-                    if chip.io_mcs.contains(&FbMcId::from_idx(mc)) != iobful {
+                    if chip.io_mcs.contains(&MacrocellId::from_idx(mc)) != iobful {
                         continue;
                     }
                     let mcd = &fbd.mcs[mc];
@@ -203,9 +205,9 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     };
     let chip = &db.chips[part.chip];
     let mut bs = Bitstream::new(chip, &db);
-    let mut fb_bits = db.fb_bits.clone();
+    let mut block_bits = db.block_bits.clone();
     for (k, v) in chip.imux_bits.clone().items {
-        fb_bits.items.insert(k, v);
+        block_bits.items.insert(k, v);
     }
     for mut line in lines {
         if let Some(pos) = line.find('#') {
@@ -227,7 +229,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             ["FB", fb] => {
                 let fb: usize = fb.parse()?;
                 for item in suf {
-                    set_tile_item(&mut bs.fbs[fb].misc, &fb_bits, item);
+                    set_tile_item(&mut bs.fbs[fb].misc, &block_bits, item);
                 }
             }
             ["MC", fb, mc] => {

@@ -4,7 +4,10 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::{bitvec::BitVec, bsdata::{TileBit, TileItem}};
+use prjcombine_types::{
+    bitvec::BitVec,
+    bsdata::{TileBit, TileItem},
+};
 use prjcombine_virtex4::bels;
 
 use crate::{

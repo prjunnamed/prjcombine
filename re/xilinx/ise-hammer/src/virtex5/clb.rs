@@ -34,11 +34,12 @@ impl NodeRelation for ClbCinDown {
                 return None;
             }
             nloc.2 -= 1;
-            if let Some(nnloc) = backend
-                .egrid
-                .find_tile_by_class(nloc.0, (nloc.1, nloc.2), |kind| {
-                    kind.starts_with("CLB") || kind.starts_with("CLEX")
-                })
+            if let Some(nnloc) =
+                backend
+                    .egrid
+                    .find_tile_by_class(nloc.0, (nloc.1, nloc.2), |kind| {
+                        kind.starts_with("CLB") || kind.starts_with("CLEX")
+                    })
             {
                 return Some(nnloc);
             }

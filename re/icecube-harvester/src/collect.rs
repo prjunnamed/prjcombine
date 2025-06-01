@@ -15,7 +15,8 @@ use prjcombine_siliconblue::{
     expanded::{BitOwner, ExpandedDevice},
 };
 use prjcombine_types::{
-    bits, bsdata::{BsData, TileBit, TileItem}
+    bits,
+    bsdata::{BsData, TileBit, TileItem},
 };
 use unnamed_entity::EntityId;
 

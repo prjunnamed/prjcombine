@@ -1,7 +1,10 @@
 use prjcombine_re_fpga_hammer::{OcdMode, extract_bitvec_val, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::{bits, bsdata::{TileBit, TileItem, TileItemKind}};
+use prjcombine_types::{
+    bits,
+    bsdata::{TileBit, TileItem, TileItemKind},
+};
 use prjcombine_virtex4::bels;
 use prjcombine_xilinx_bitstream::Reg;
 

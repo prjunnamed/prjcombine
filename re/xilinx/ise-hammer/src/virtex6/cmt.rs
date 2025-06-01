@@ -2,7 +2,11 @@ use prjcombine_interconnect::{dir::DirH, grid::NodeLoc};
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::{bits, bitvec::BitVec, bsdata::{TileBit, TileItem}};
+use prjcombine_types::{
+    bits,
+    bitvec::BitVec,
+    bsdata::{TileBit, TileItem},
+};
 use prjcombine_virtex4::bels;
 
 use crate::{

@@ -7,7 +7,7 @@ use ndarray::Array2;
 use prjcombine_interconnect::{
     db::{BelSlotId, IntDb, MuxInfo, MuxKind, TileClassId, TileClassWire, WireId, WireKind},
     dir::Dir,
-    grid::{ColId, DieId, ExpandedGrid, BelCoord, WireCoord, NodeLoc, RowId},
+    grid::{BelCoord, ColId, DieId, ExpandedGrid, NodeLoc, RowId, WireCoord},
 };
 use prjcombine_re_xilinx_xact_data::die::{BoxId, Die, PrimId};
 use prjcombine_re_xilinx_xact_naming::{
@@ -60,7 +60,8 @@ pub struct Extractor<'a> {
     pub used_pips: BTreeSet<(NetId, NetId)>,
     pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
     pub node_muxes: EntityPartVec<TileClassId, BTreeMap<TileClassWire, MuxInfo>>,
-    pub int_pips: EntityPartVec<NodeNamingId, BTreeMap<(TileClassWire, TileClassWire), IntPipNaming>>,
+    pub int_pips:
+        EntityPartVec<NodeNamingId, BTreeMap<(TileClassWire, TileClassWire), IntPipNaming>>,
     pub net_by_tile_override: BTreeMap<(ColId, RowId), BTreeMap<NetId, WireId>>,
     pub junk_prim_names: BTreeSet<String>,
 }
@@ -68,7 +69,8 @@ pub struct Extractor<'a> {
 pub struct Finisher {
     pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
     pub node_muxes: EntityPartVec<TileClassId, BTreeMap<TileClassWire, MuxInfo>>,
-    pub int_pips: EntityPartVec<NodeNamingId, BTreeMap<(TileClassWire, TileClassWire), IntPipNaming>>,
+    pub int_pips:
+        EntityPartVec<NodeNamingId, BTreeMap<(TileClassWire, TileClassWire), IntPipNaming>>,
 }
 
 #[derive(Debug)]
@@ -514,7 +516,13 @@ impl<'a> Extractor<'a> {
         self.tbuf_pseudos.insert((net_t, net_f));
     }
 
-    pub fn force_int_pip_dst(&mut self, net_t: NetId, net_f: NetId, nloc: NodeLoc, nw: TileClassWire) {
+    pub fn force_int_pip_dst(
+        &mut self,
+        net_t: NetId,
+        net_f: NetId,
+        nloc: NodeLoc,
+        nw: TileClassWire,
+    ) {
         self.pip_owner.insert((net_t, net_f), nloc);
         self.int_pip_force_dst.insert((net_t, net_f), nw);
     }

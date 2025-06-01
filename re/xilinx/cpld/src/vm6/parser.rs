@@ -4,9 +4,9 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-use crate::types::{ClkPadId, FbnId, ImuxId, PTermId};
+use crate::types::{ClkPadId, FbnId, ImuxId};
 use enum_map::EnumMap;
-use prjcombine_types::{FbId, FbMcId, IpadId};
+use prjcombine_types::cpld::{BlockId, IpadId, MacrocellId, ProductTermId};
 use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
 
 use crate::vm6::{
@@ -131,7 +131,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_fbid(&self, s: &str) -> Result<FbId, ParseError> {
+    fn parse_fbid(&self, s: &str) -> Result<BlockId, ParseError> {
         let Some(s) = s.strip_prefix("FOOBAR") else {
             self.error(ParseErrorKind::UnknownFb)?
         };
@@ -142,7 +142,7 @@ impl<'a> Parser<'a> {
         if n == 0 {
             self.error(ParseErrorKind::UnknownFb)?
         }
-        Ok(FbId::from_idx(n - 1))
+        Ok(BlockId::from_idx(n - 1))
     }
 
     fn parse_input_node(
@@ -756,7 +756,7 @@ pub fn parse(s: &str) -> Result<Vm6, ParseError> {
                             Some((line[8].to_string(), parser.parse_u32(line[9])?))
                         };
                         pins.insert(
-                            FbMcId::from_idx(index),
+                            MacrocellId::from_idx(index),
                             FbPin {
                                 mc,
                                 ibuf,
@@ -867,7 +867,7 @@ pub fn parse(s: &str) -> Result<Vm6, ParseError> {
                     if line[0] != "PLA_TERM" || line.len() != 3 || !line[2].is_empty() {
                         parser.error(ParseErrorKind::MalformedVerb)?;
                     }
-                    let index = PTermId::from_idx(parser.parse_usize(line[1])?);
+                    let index = ProductTermId::from_idx(parser.parse_usize(line[1])?);
                     let term = parser.parse_pterm()?;
                     let Some(term) = term else {
                         parser.error(ParseErrorKind::MalformedVerb)?

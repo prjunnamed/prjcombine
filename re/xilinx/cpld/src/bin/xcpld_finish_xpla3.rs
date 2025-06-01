@@ -6,21 +6,19 @@ use std::{
 };
 
 use clap::Parser;
+use enum_map::Enum;
 use prjcombine_re_xilinx_cpld::{
     bits::{IBufOut, McOut, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
     db::Database,
     device::{Device, JtagPin, PkgPin},
     fuzzdb::{FuzzDb, FuzzDbPart},
     speeddb::SpeedDb,
-    types::{
-        CeMuxVal, ClkMuxVal, FbnId, ImuxId, ImuxInput, OeMuxVal, PTermId, RegMode, Slew, SrMuxVal,
-        Ut,
-    },
+    types::{CeMuxVal, ClkMuxVal, FbnId, ImuxId, ImuxInput, OeMuxVal, RegMode, Slew, SrMuxVal, Ut},
 };
 use prjcombine_types::{
-    FbId, FbMcId, IoId,
     bitvec::BitVec,
     bsdata::{Tile, TileBit, TileItem, TileItemKind},
+    cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId},
 };
 use prjcombine_xpla3 as xpla3;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -110,8 +108,8 @@ struct DevData {
     fb_rows: usize,
     fb_cols: Vec<FbColumn>,
     imux_width: usize,
-    io_mcs: BTreeSet<FbMcId>,
-    io_special: BTreeMap<String, (FbId, FbMcId)>,
+    io_mcs: BTreeSet<MacrocellId>,
+    io_special: BTreeMap<String, MacrocellCoord>,
 }
 
 fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
@@ -122,8 +120,10 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
         _ => unreachable!(),
     };
     let mut tile = Tile::new();
-    for (fb, mc) in device.mcs() {
-        let mcb = &fpart.bits.fbs[fb].mcs[mc];
+    for fbmc in device.mcs() {
+        let fb = fbmc.block;
+        let mc = fbmc.macrocell;
+        let mcb = &fpart.bits.blocks[fb].mcs[mc];
         let fbc = fb.to_idx() / (dd.fb_rows * 2);
         let fbr = fb.to_idx() / 2 % dd.fb_rows;
         let xlat_bit = |bit| {
@@ -155,8 +155,8 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
                 &mcb.clk_mux,
                 |val| match val {
                     ClkMuxVal::Pt => "PT".to_string(),
-                    ClkMuxVal::Fclk(which) => format!("FCLK{which}"),
-                    ClkMuxVal::Ct(which) => format!("LCT{which}"),
+                    ClkMuxVal::Fclk(which) => format!("FCLK{which:#}"),
+                    ClkMuxVal::Ct(which) => format!("LCT{which:#}"),
                     ClkMuxVal::Ut => "UCT3".to_string(),
                 },
                 xlat_bit,
@@ -169,7 +169,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
             extract_enum(
                 &mcb.rst_mux,
                 |val| match val {
-                    SrMuxVal::Ct(which) => format!("LCT{which}"),
+                    SrMuxVal::Ct(which) => format!("LCT{which:#}"),
                     SrMuxVal::Ut => "UCT1".to_string(),
                     SrMuxVal::Gnd => "GND".to_string(),
                     _ => unreachable!(),
@@ -184,7 +184,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
             extract_enum(
                 &mcb.set_mux,
                 |val| match val {
-                    SrMuxVal::Ct(which) => format!("LCT{which}"),
+                    SrMuxVal::Ct(which) => format!("LCT{which:#}"),
                     SrMuxVal::Ut => "UCT2".to_string(),
                     SrMuxVal::Gnd => "GND".to_string(),
                     _ => unreachable!(),
@@ -200,7 +200,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
                 mcb.ce_mux.as_ref().unwrap(),
                 |val| match val {
                     CeMuxVal::Pt => "PT".to_string(),
-                    CeMuxVal::Ct(which) => format!("LCT{which}"),
+                    CeMuxVal::Ct(which) => format!("LCT{which:#}"),
                     _ => unreachable!(),
                 },
                 xlat_bit,
@@ -273,7 +273,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
             extract_enum(
                 mcb.oe_mux.as_ref().unwrap(),
                 |val| match val {
-                    OeMuxVal::Ct(which) => format!("LCT{which}"),
+                    OeMuxVal::Ct(which) => format!("LCT{which:#}"),
                     OeMuxVal::Ut => "UCT0".to_string(),
                     OeMuxVal::Gnd => "GND".to_string(),
                     OeMuxVal::Pullup => "PULLUP".to_string(),
@@ -345,8 +345,8 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile {
         _ => unreachable!(),
     };
     let mut tile = Tile::new();
-    for fb in fpart.bits.fbs.ids() {
-        let fbb = &fpart.bits.fbs[fb];
+    for fb in fpart.bits.blocks.ids() {
+        let fbb = &fpart.bits.blocks[fb];
         let fbc = fb.to_idx() / (dd.fb_rows * 2);
         let fbr = fb.to_idx() / 2 % dd.fb_rows;
         let xlat_bit = |bit| {
@@ -372,9 +372,9 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile {
             extract_enum(
                 fbb.fbclk.as_ref().unwrap(),
                 |val| match val {
-                    (Some(a), Some(b)) => format!("GCLK{a}_GCLK{b}"),
-                    (Some(a), None) => format!("GCLK{a}_NONE"),
-                    (None, Some(b)) => format!("NONE_GCLK{b}"),
+                    (Some(a), Some(b)) => format!("GCLK{a:#}_GCLK{b:#}"),
+                    (Some(a), None) => format!("GCLK{a:#}_NONE"),
+                    (None, Some(b)) => format!("NONE_GCLK{b:#}"),
                     (None, None) => "NONE".to_string(),
                 },
                 xlat_bit,
@@ -385,7 +385,7 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile {
         for i in 0..8 {
             tile.insert(
                 format!("LCT{i}_INV"),
-                extract_bool(fbb.ct_invert[PTermId::from_idx(i)], xlat_bit),
+                extract_bool(fbb.ct_invert[ProductTermId::from_idx(i)], xlat_bit),
                 |_| true,
             );
         }
@@ -425,10 +425,12 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
     };
     let mut tile = Tile::new();
     for (gclk, &io) in &device.clk_pads {
-        let IoId::Ipad(ipad) = io else { unreachable!() };
+        let IoCoord::Ipad(ipad) = io else {
+            unreachable!()
+        };
         for (fbg, &bit) in &fpart.bits.ipads[ipad].uim_out_en {
             tile.insert(
-                format!("FB_COL[{fbg}].ZIA_GCLK{gclk}_ENABLE"),
+                format!("FB_COL[{fbg:#}].ZIA_GCLK{gclk:#}_ENABLE"),
                 extract_bool(bit, xlat_bit),
                 |_| true,
             );
@@ -436,8 +438,8 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
     }
     for (idx, ut) in [(0, Ut::Oe), (1, Ut::Rst), (2, Ut::Set), (3, Ut::Clk)] {
         let item = extract_enum(
-            &fpart.bits.ut.as_ref().unwrap()[ut],
-            |(fb, pt)| format!("FB{fb}_LCT{pt}"),
+            &fpart.bits.ut.as_ref().unwrap()[ut.into_usize()],
+            |(fb, pt)| format!("FB{fb:#}_LCT{pt:#}"),
             xlat_bit,
             "NONE",
         );
@@ -500,7 +502,10 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
 fn extract_jed_global_bits(device: &Device, fpart: &FuzzDbPart) -> Vec<(String, usize)> {
     let mut res = vec![];
     if device.fbs == 32 {
-        let bits = fpart.bits.ut.as_ref().unwrap()[Ut::Clk].bits.len() / 2;
+        let bits = fpart.bits.ut.as_ref().unwrap()[Ut::Clk.into_usize()]
+            .bits
+            .len()
+            / 2;
         for i in 0..2 {
             for j in 0..4 {
                 for k in 0..bits {
@@ -509,7 +514,9 @@ fn extract_jed_global_bits(device: &Device, fpart: &FuzzDbPart) -> Vec<(String, 
             }
         }
     } else {
-        let bits = fpart.bits.ut.as_ref().unwrap()[Ut::Clk].bits.len();
+        let bits = fpart.bits.ut.as_ref().unwrap()[Ut::Clk.into_usize()]
+            .bits
+            .len();
         for j in 0..4 {
             for k in 0..bits {
                 res.push((format!("FB_GROUP[0].UCT{j}"), k));
@@ -533,14 +540,16 @@ fn extract_imux_bits(
 ) {
     let mut ipad_to_gclk = EntityPartVec::new();
     for (gclk, &io) in &device.clk_pads {
-        let IoId::Ipad(ipad) = io else { unreachable!() };
+        let IoCoord::Ipad(ipad) = io else {
+            unreachable!()
+        };
         ipad_to_gclk.insert(ipad, gclk);
     }
     for fb in device.fbs() {
         let fbc = fb.to_idx() / 2 / dd.fb_rows;
         for i in 0..40 {
             let imux = ImuxId::from_idx(i);
-            let enum_ = &fpart.bits.fbs[fb].imux[imux];
+            let enum_ = &fpart.bits.blocks[fb].imux[imux];
             let xlat: Vec<_> = enum_
                 .bits
                 .iter()
@@ -554,9 +563,9 @@ fn extract_imux_bits(
                 .collect();
             for (&val, bits) in &enum_.items {
                 let vname = match val {
-                    ImuxInput::Ibuf(IoId::Ipad(ipad)) => format!("GCLK{}", ipad_to_gclk[ipad]),
-                    ImuxInput::Ibuf(IoId::Mc((fb, mc))) => format!("IOB_{fb}_{mc}"),
-                    ImuxInput::Mc((fb, mc)) => format!("MC_{fb}_{mc}"),
+                    ImuxInput::Ibuf(IoCoord::Ipad(ipad)) => format!("GCLK{:#}", ipad_to_gclk[ipad]),
+                    ImuxInput::Ibuf(io) => io.to_string(),
+                    ImuxInput::Mc(mc) => format!("MC_{mc}"),
                     ImuxInput::Pup => "STARTUP".to_string(),
                     _ => unreachable!(),
                 };
@@ -629,14 +638,16 @@ fn verify_jed(
             for imux in 0..40 {
                 let exp_row = fbr * 52 + if imux < 20 { 2 + imux } else { 2 + imux + 8 };
                 assert_eq!(
-                    fpart.bits.fbs[fb].pla_and[PTermId::from_idx(pt)].imux[ImuxId::from_idx(imux)]
-                        .0,
+                    fpart.bits.blocks[fb].pla_and[ProductTermId::from_idx(pt)].imux
+                        [ImuxId::from_idx(imux)]
+                    .0,
                     (pos, false)
                 );
                 check_bit(&mut pos, exp_col, exp_row, 0);
                 assert_eq!(
-                    fpart.bits.fbs[fb].pla_and[PTermId::from_idx(pt)].imux[ImuxId::from_idx(imux)]
-                        .1,
+                    fpart.bits.blocks[fb].pla_and[ProductTermId::from_idx(pt)].imux
+                        [ImuxId::from_idx(imux)]
+                    .1,
                     (pos, false)
                 );
                 check_bit(&mut pos, exp_col, exp_row, 1);
@@ -654,7 +665,8 @@ fn verify_jed(
                 ][fbn];
                 let exp_row = fbr * 52 + row;
                 assert_eq!(
-                    fpart.bits.fbs[fb].pla_and[PTermId::from_idx(pt)].fbn[FbnId::from_idx(fbn)],
+                    fpart.bits.blocks[fb].pla_and[ProductTermId::from_idx(pt)].fbn
+                        [FbnId::from_idx(fbn)],
                     (pos, false)
                 );
                 check_bit(&mut pos, exp_col, exp_row, exp_plane);
@@ -666,7 +678,7 @@ fn verify_jed(
                 let exp_row = fbr * 52 + 22 + mc.to_idx() / 2;
                 let exp_plane = 1 - mc.to_idx() % 2;
                 assert_eq!(
-                    fpart.bits.fbs[fb].mcs[mc].pla_or[PTermId::from_idx(pt)],
+                    fpart.bits.blocks[fb].mcs[mc].pla_or[ProductTermId::from_idx(pt)],
                     (pos, false)
                 );
                 check_bit(&mut pos, exp_col, exp_row, exp_plane);
@@ -681,7 +693,7 @@ fn verify_jed(
             check_bit(&mut pos, exp_col, exp_row, exp_plane);
         }
         for mc in device.fb_mcs() {
-            if !dd.io_mcs.contains(&FbMcId::from_idx(mc.to_idx())) {
+            if !dd.io_mcs.contains(&MacrocellId::from_idx(mc.to_idx())) {
                 continue;
             }
             for &(name, bit) in JED_MC_BITS_IOB {
@@ -701,7 +713,7 @@ fn verify_jed(
             }
         }
         for mc in device.fb_mcs() {
-            if dd.io_mcs.contains(&FbMcId::from_idx(mc.to_idx())) {
+            if dd.io_mcs.contains(&MacrocellId::from_idx(mc.to_idx())) {
                 continue;
             }
             for &(name, bit) in JED_MC_BITS_BURIED {
@@ -751,8 +763,9 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             .find(|p| p.dev_name == fpart.dev_name && p.pkg_name == fpart.pkg_name)
             .unwrap();
         let device = &db.devices[part.device].device;
-        let imux_width = fpart.bits.fbs[FbId::from_idx(0)].pla_and[PTermId::from_idx(0)].imux
-            [ImuxId::from_idx(0)]
+        let imux_width = fpart.bits.blocks[BlockId::from_idx(0)].pla_and
+            [ProductTermId::from_idx(0)]
+        .imux[ImuxId::from_idx(0)]
         .0
         .0 / 40;
         let bs_cols = fpart.map.dims.unwrap().0;
@@ -761,15 +774,15 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         assert_eq!(bs_rows, (fb_rows * 52 + 2) * 2);
         let fb_cols: Vec<_> = (0..device.fb_groups)
             .map(|i| {
-                let fb = FbId::from_idx(i * fb_rows * 2);
-                let pt_bit = fpart.bits.fbs[fb].pla_and[PTermId::from_idx(0)].imux
+                let fb = BlockId::from_idx(i * fb_rows * 2);
+                let pt_bit = fpart.bits.blocks[fb].pla_and[ProductTermId::from_idx(0)].imux
                     [ImuxId::from_idx(0)]
                 .0
                 .0;
                 let pt_col = bs_cols - 1 - fpart.map.main[pt_bit].1;
-                let imux_bit = fpart.bits.fbs[fb].imux[ImuxId::from_idx(0)].bits[0];
+                let imux_bit = fpart.bits.blocks[fb].imux[ImuxId::from_idx(0)].bits[0];
                 let imux_col = bs_cols - imux_width - fpart.map.main[imux_bit].1;
-                let mc_bit = fpart.bits.fbs[fb].ct_invert[PTermId::from_idx(0)].0;
+                let mc_bit = fpart.bits.blocks[fb].ct_invert[ProductTermId::from_idx(0)].0;
                 let mc_col = bs_cols - 1 - fpart.map.main[mc_bit].1;
                 FbColumn {
                     pt_col,
@@ -781,8 +794,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         let mut io_special = BTreeMap::new();
         let mut io_mcs = BTreeSet::new();
         for (k, v) in &device.io {
-            let IoId::Mc((fb, mc)) = *k else { continue };
-            io_mcs.insert(mc);
+            let IoCoord::Macrocell(mc) = *k else { continue };
+            io_mcs.insert(mc.macrocell);
             if let Some(jtag) = v.jtag {
                 let spec = match jtag {
                     JtagPin::Tdi => "TDI",
@@ -791,7 +804,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                     JtagPin::Tms => "TMS",
                 }
                 .to_string();
-                io_special.insert(spec, (fb, mc));
+                io_special.insert(spec, mc);
             }
         }
         let dd = DevData {
@@ -891,8 +904,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 io_special: dd.io_special.clone(),
                 bs_cols: dd.bs_cols,
                 imux_width: dd.imux_width,
-                fb_rows: dd.fb_rows,
-                fb_cols: dd.fb_cols.clone(),
+                block_rows: dd.fb_rows,
+                block_cols: dd.fb_cols.clone(),
                 global_bits: global_bits[did].0.clone(),
                 jed_global_bits: global_bits[did].1.clone(),
                 imux_bits,
@@ -905,7 +918,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let mut parts: Vec<xpla3::Part> = vec![];
     'parts: for spart in &db.parts {
         let package = &db.packages[spart.package];
-        let chip = xpla3::ChipId::from_idx(spart.device.to_idx());
+        let chip = spart.device;
         let bond = xpla3::Bond {
             idcode_part: bond_idcode[spart.package],
             pins: package
@@ -919,8 +932,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                             PkgPin::Gnd => xpla3::BondPin::Gnd,
                             PkgPin::VccInt => xpla3::BondPin::Vcc,
                             PkgPin::PortEn => xpla3::BondPin::PortEn,
-                            PkgPin::Io(IoId::Mc((fb, mc))) => xpla3::BondPin::Iob(fb, mc),
-                            PkgPin::Io(IoId::Ipad(pad)) => {
+                            PkgPin::Io(IoCoord::Macrocell(mc)) => xpla3::BondPin::Iob(mc),
+                            PkgPin::Io(IoCoord::Ipad(pad)) => {
                                 xpla3::BondPin::Gclk(xpla3::GclkId::from_idx(3 - pad.to_idx()))
                             }
                             _ => unreachable!(),
@@ -980,7 +993,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         speeds,
         parts,
         mc_bits,
-        fb_bits,
+        block_bits: fb_bits,
         jed_mc_bits_iob: JED_MC_BITS_IOB
             .iter()
             .map(|&(item, bit)| (item.to_string(), bit))
@@ -989,7 +1002,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             .iter()
             .map(|&(item, bit)| (item.to_string(), bit))
             .collect(),
-        jed_fb_bits: JED_FB_BITS
+        jed_block_bits: JED_FB_BITS
             .iter()
             .map(|&(item, bit)| (item.to_string(), bit))
             .collect(),

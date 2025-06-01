@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, IntDb, TileClass, TileCellId, PinDir, ConnectorWire, ConnectorClass, ConnectorSlotId,
-        ConnectorSlot, WireKind,
+        BelInfo, BelPin, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire, IntDb,
+        PinDir, TileCellId, TileClass, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{DieId, EdgeIoCoord},

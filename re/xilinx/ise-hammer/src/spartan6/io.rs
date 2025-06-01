@@ -11,7 +11,9 @@ use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
 use prjcombine_spartan6::bels;
 use prjcombine_types::{
-    bits, bitvec::BitVec, bsdata::{TileBit, TileItem, TileItemKind}
+    bits,
+    bitvec::BitVec,
+    bsdata::{TileBit, TileItem, TileItemKind},
 };
 use unnamed_entity::EntityId;
 

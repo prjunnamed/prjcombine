@@ -4,16 +4,16 @@ use std::{
     fmt::{self, Write},
 };
 
-use crate::types::{ClkPadId, FbnId, FclkId, FoeId, ImuxId, PTermId, Ut};
+use crate::types::{ClkPadId, FbnId, FclkId, FoeId, ImuxId, Ut};
 use enum_map::EnumMap;
 pub use parser::{ParseError, ParseErrorKind};
-use prjcombine_types::{FbId, FbMcId, IoId, IpadId};
+use prjcombine_types::cpld::{BlockId, IoCoord, IpadId, MacrocellId, ProductTermId};
 use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
 
 entity_id! {
     pub id NodeId u32, reserve 1;
     pub id IBufId u32, reserve 1;
-    pub id MacrocellId u32, reserve 1;
+    pub id Vm6MacrocellId u32, reserve 1;
     pub id OBufId u32, reserve 1;
     pub id UimId u32, reserve 1;
 }
@@ -30,10 +30,10 @@ pub struct Vm6 {
     pub network_flags2: Option<u32>,
     pub nodes: EntityMap<NodeId, u32, Node>,
     pub ibufs: EntityMap<IBufId, String, IBuf>,
-    pub macrocells: EntityMap<MacrocellId, String, Macrocell>,
+    pub macrocells: EntityMap<Vm6MacrocellId, String, Macrocell>,
     pub obufs: EntityMap<OBufId, String, OBuf>,
     pub uims: EntityMap<UimId, String, Uim>,
-    pub fbs: EntityVec<FbId, Fb>,
+    pub fbs: EntityVec<BlockId, Fb>,
     pub ipad_fb: Option<IpadFb>,
     pub global_fclk: EntityPartVec<FclkId, GlobalSig>,
     pub global_fsr: Option<String>,
@@ -194,7 +194,7 @@ pub struct Uim {
 #[derive(Debug, Clone)]
 pub struct Fb {
     pub module: String,
-    pub pins: EntityPartVec<FbMcId, FbPin>,
+    pub pins: EntityPartVec<MacrocellId, FbPin>,
     pub inputs: Vec<FbInput>,
     pub imux: EntityVec<ImuxId, FbImux>,
     pub ct: Option<Ct>,
@@ -211,7 +211,7 @@ pub struct IpadFb {
 
 #[derive(Debug, Clone)]
 pub struct FbPin {
-    pub mc: Option<MacrocellId>,
+    pub mc: Option<Vm6MacrocellId>,
     pub ibuf: Option<IBufId>,
     pub obuf: Option<OBufId>,
     pub mc_used: bool,
@@ -261,7 +261,7 @@ pub struct Fbnand {
 
 #[derive(Debug, Clone)]
 pub struct Pla {
-    pub terms: EntityPartVec<PTermId, PTerm>,
+    pub terms: EntityPartVec<ProductTermId, PTerm>,
 }
 
 #[derive(Debug, Clone)]
@@ -360,10 +360,10 @@ impl Vm6 {
         parser::parse(s)
     }
 
-    pub fn get_ibuf_id(&self, io: IoId) -> Option<IBufId> {
+    pub fn get_ibuf_id(&self, io: IoCoord) -> Option<IBufId> {
         match io {
-            IoId::Ipad(ip) => self.ipad_fb.as_ref()?.pins.get(ip)?.ibuf,
-            IoId::Mc(mc) => self.fbs[mc.0].pins.get(mc.1)?.ibuf,
+            IoCoord::Ipad(ip) => self.ipad_fb.as_ref()?.pins.get(ip)?.ibuf,
+            IoCoord::Macrocell(mc) => self.fbs[mc.block].pins.get(mc.macrocell)?.ibuf,
         }
     }
 

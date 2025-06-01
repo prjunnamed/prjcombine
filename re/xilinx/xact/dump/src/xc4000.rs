@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, IntDb, TileClass, TileCellId, PinDir, ConnectorWire, ConnectorClass, ConnectorSlotId,
-        ConnectorSlot, WireKind,
+        BelInfo, BelPin, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire, IntDb,
+        PinDir, TileCellId, TileClass, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{DieId, EdgeIoCoord, LayerId},
@@ -187,9 +187,10 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                     .wires
                     .insert(wires[dir][j + 1], ConnectorWire::Pass(wires[dir][j]));
             }
-            cnr_ul_n
-                .wires
-                .insert(wires[Dir::W][j], ConnectorWire::Reflect(wires[Dir::N][j + 1]));
+            cnr_ul_n.wires.insert(
+                wires[Dir::W][j],
+                ConnectorWire::Reflect(wires[Dir::N][j + 1]),
+            );
         }
         cnr_ll_w
             .wires

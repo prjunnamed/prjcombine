@@ -7,7 +7,7 @@ use prjcombine_re_xilinx_cpld::bits::Bits;
 use prjcombine_re_xilinx_cpld::device::{Device, DeviceKind, Package, PkgPin};
 use prjcombine_re_xilinx_cpld::types::{
     BankId, ClkMuxVal, ClkPadId, ExportDir, FbnId, FclkId, FoeId, ImuxId, ImuxInput, OeMuxVal,
-    OePadId, PTermId, SrMuxVal, Ut, Xc9500McPt,
+    OePadId, SrMuxVal, Ut, Xc9500McPt,
 };
 use prjcombine_re_xilinx_cpld::vm6::{
     BufOe, Cdr, CdrReset, FbImux, FbInput, Fbnand, GlobalSig, IBuf, InputNode, InputNodeKind,
@@ -19,7 +19,7 @@ use prjcombine_re_xilinx_cpld::{
     hprep6::run_hprep6,
 };
 use prjcombine_types::bitvec::BitVec;
-use prjcombine_types::{FbId, IoId, IpadId, McId};
+use prjcombine_types::cpld::{BlockId, IoCoord, IpadId, MacrocellCoord, ProductTermId};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::{collect::collect_fuzzers, fuzzers::add_fuzzers};
@@ -32,57 +32,57 @@ pub struct CpldBackend<'a> {
     pub imux: &'a ImuxData,
     pub package: &'a Package,
     pub part: &'a Part,
-    pub pin_map: HashMap<IoId, &'a str>,
+    pub pin_map: HashMap<IoCoord, &'a str>,
     pub imux_pinning: EntityVec<ImuxId, ImuxInput>,
-    pub ibuf_test_imux: HashMap<IoId, ImuxId>,
-    pub bank_test_iob: EntityVec<BankId, McId>,
-    pub oe_pads_remapped: EntityVec<OePadId, IoId>,
+    pub ibuf_test_imux: HashMap<IoCoord, ImuxId>,
+    pub bank_test_iob: EntityVec<BankId, MacrocellCoord>,
+    pub oe_pads_remapped: EntityVec<OePadId, IoCoord>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum Key {
-    McPresent(McId),
-    McHasOut(McId, NodeKind),
-    McOutUseMutex(McId, NodeKind),
-    McFlag(McId, u8),
-    McSiPresent(McId),
-    McSiHasOut(McId, NodeKind),
-    McSiHasTerm(McId, NodeKind),
-    McSiTermImux(McId, NodeKind, ImuxId),
-    McSiImport(McId, NodeKind, ExportDir),
-    McSiPla(McId, NodeKind, PTermId),
-    McSiMutex(McId),
-    McOe(McId),
-    McFfPresent(McId),
-    McFfInput(McId, InputNodeKind),
-    FbImportMutex(FbId),
-    IBufPresent(IoId),
-    IBufFlag(IoId, u8),
-    IBufHasOut(IoId, NodeKind),
-    IBufOutUseMutex(IoId, NodeKind),
-    OBufPresent(McId),
-    OBufFlag(McId, u8),
-    FbImux(FbId, ImuxId),
-    UimPath(FbId, ImuxId, McId),
-    FbnPresent(FbId, FbnId),
+    McPresent(MacrocellCoord),
+    McHasOut(MacrocellCoord, NodeKind),
+    McOutUseMutex(MacrocellCoord, NodeKind),
+    McFlag(MacrocellCoord, u8),
+    McSiPresent(MacrocellCoord),
+    McSiHasOut(MacrocellCoord, NodeKind),
+    McSiHasTerm(MacrocellCoord, NodeKind),
+    McSiTermImux(MacrocellCoord, NodeKind, ImuxId),
+    McSiImport(MacrocellCoord, NodeKind, ExportDir),
+    McSiPla(MacrocellCoord, NodeKind, ProductTermId),
+    McSiMutex(MacrocellCoord),
+    McOe(MacrocellCoord),
+    McFfPresent(MacrocellCoord),
+    McFfInput(MacrocellCoord, InputNodeKind),
+    FbImportMutex(BlockId),
+    IBufPresent(IoCoord),
+    IBufFlag(IoCoord, u8),
+    IBufHasOut(IoCoord, NodeKind),
+    IBufOutUseMutex(IoCoord, NodeKind),
+    OBufPresent(MacrocellCoord),
+    OBufFlag(MacrocellCoord, u8),
+    FbImux(BlockId, ImuxId),
+    UimPath(BlockId, ImuxId, MacrocellCoord),
+    FbnPresent(BlockId, FbnId),
     Usercode(u8),
     UsercodePresent,
     NetworkFlag(u8),
-    PlaHasTerm(FbId, PTermId),
-    PlaTermImux(FbId, PTermId, ImuxId),
-    PlaTermFbn(FbId, PTermId, FbnId),
-    PlaTermMutex(FbId),
-    CtPresent(FbId, PTermId),
-    CtInvert(FbId, PTermId),
-    CtUseMutex(FbId, PTermId),
+    PlaHasTerm(BlockId, ProductTermId),
+    PlaTermImux(BlockId, ProductTermId, ImuxId),
+    PlaTermFbn(BlockId, ProductTermId, FbnId),
+    PlaTermMutex(BlockId),
+    CtPresent(BlockId, ProductTermId),
+    CtInvert(BlockId, ProductTermId),
+    CtUseMutex(BlockId, ProductTermId),
     Fclk(FclkId),
     Fsr,
     Foe(FoeId),
     Dge,
-    FbClk(FbId, FclkId),
+    FbClk(BlockId, FclkId),
     Ut(Ut),
-    IsVref(IoId),
-    Iostd(IoId),
+    IsVref(IoCoord),
+    Iostd(IoCoord),
     BankVoltage(BankId),
     BankMutex(BankId),
     VrefMutex,
@@ -95,10 +95,10 @@ pub enum Value {
     Bool(bool),
     ImuxInput(ImuxInput),
     InputSi(NodeKind),
-    InputCt(PTermId),
-    InputUt(FbId, PTermId),
-    InputPad(IoId, NodeKind),
-    InputMc(McId, NodeKind),
+    InputCt(ProductTermId),
+    InputUt(BlockId, ProductTermId),
+    InputPad(IoCoord, NodeKind),
+    InputMc(MacrocellCoord, NodeKind),
     CopyQ,
     MutexFuzz,
     MutexPin,
@@ -107,7 +107,7 @@ pub enum Value {
     SrPadNode(NodeKind),
     ClkPad(ClkPadId),
     McGlb,
-    Ut(FbId, PTermId),
+    Ut(BlockId, ProductTermId),
     Ireg,
     CtUseCt,
     CtUseUt(Ut),
@@ -186,68 +186,68 @@ pub enum MultiValue {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub enum FuzzerInfo {
-    Imux(FbId, ImuxId, ImuxInput),
-    ImuxUimMc(FbId, ImuxId, McId),
-    PlaPTermImux(FbId, PTermId, ImuxId, bool),
-    PlaPTermFbn(FbId, PTermId, FbnId),
-    McPTermImux(McId, Xc9500McPt, ImuxId, bool),
-    McOrTerm(McId, NodeKind, Xc9500McPt),
-    McOrExp(McId, NodeKind, ExportDir),
-    McOrPla(McId, PTermId),
-    McSiSpec(McId, Xc9500McPt),
-    CtInvert(FbId, PTermId),
-    McLowPower(McId),
-    McInputD2(McId),
-    McInputD2B(McId),
-    McInputXor(McId),
-    McInputXorB(McId),
-    McInputD1(McId),
-    McInputD1B(McId),
-    McInputIreg(McId),
-    McComb(McId),
-    McUimOut(McId),
-    McUimOutInv(McId),
-    McClk(McId, ClkMuxVal, bool),
-    McRst(McId, SrMuxVal),
-    McSet(McId, SrMuxVal),
-    McTff(McId),
-    McLatch(McId),
-    McDdr(McId),
-    McInit(McId),
-    McCeRst(McId),
-    McCeSet(McId),
-    McCePt(McId),
-    McCeCt(McId),
-    McOe(McId, OeMuxVal, bool),
-    IBufPresent(IoId),
-    IBufPresentGnd(IoId),
-    IBufPresentPullup(IoId),
-    IBufPresentKeeper(IoId),
-    IBufSchmitt(IoId),
-    IBufUseVref(IoId),
-    IBufIsVref(IoId),
-    IBufDge(IoId),
+    Imux(BlockId, ImuxId, ImuxInput),
+    ImuxUimMc(BlockId, ImuxId, MacrocellCoord),
+    PlaPTermImux(BlockId, ProductTermId, ImuxId, bool),
+    PlaPTermFbn(BlockId, ProductTermId, FbnId),
+    McPTermImux(MacrocellCoord, Xc9500McPt, ImuxId, bool),
+    McOrTerm(MacrocellCoord, NodeKind, Xc9500McPt),
+    McOrExp(MacrocellCoord, NodeKind, ExportDir),
+    McOrPla(MacrocellCoord, ProductTermId),
+    McSiSpec(MacrocellCoord, Xc9500McPt),
+    CtInvert(BlockId, ProductTermId),
+    McLowPower(MacrocellCoord),
+    McInputD2(MacrocellCoord),
+    McInputD2B(MacrocellCoord),
+    McInputXor(MacrocellCoord),
+    McInputXorB(MacrocellCoord),
+    McInputD1(MacrocellCoord),
+    McInputD1B(MacrocellCoord),
+    McInputIreg(MacrocellCoord),
+    McComb(MacrocellCoord),
+    McUimOut(MacrocellCoord),
+    McUimOutInv(MacrocellCoord),
+    McClk(MacrocellCoord, ClkMuxVal, bool),
+    McRst(MacrocellCoord, SrMuxVal),
+    McSet(MacrocellCoord, SrMuxVal),
+    McTff(MacrocellCoord),
+    McLatch(MacrocellCoord),
+    McDdr(MacrocellCoord),
+    McInit(MacrocellCoord),
+    McCeRst(MacrocellCoord),
+    McCeSet(MacrocellCoord),
+    McCePt(MacrocellCoord),
+    McCeCt(MacrocellCoord),
+    McOe(MacrocellCoord, OeMuxVal, bool),
+    IBufPresent(IoCoord),
+    IBufPresentGnd(IoCoord),
+    IBufPresentPullup(IoCoord),
+    IBufPresentKeeper(IoCoord),
+    IBufSchmitt(IoCoord),
+    IBufUseVref(IoCoord),
+    IBufIsVref(IoCoord),
+    IBufDge(IoCoord),
     IBufIostd(BankId, Iostd),
-    IpadUimOutFb(IpadId, FbId),
-    OBufPresentReg(McId),
-    OBufPresentComb(McId),
-    OBufSlew(McId),
-    OBufOpenDrain(McId),
-    OBufOe(McId, OeMuxVal, bool),
+    IpadUimOutFb(IpadId, BlockId),
+    OBufPresentReg(MacrocellCoord),
+    OBufPresentComb(MacrocellCoord),
+    OBufSlew(MacrocellCoord),
+    OBufOpenDrain(MacrocellCoord),
+    OBufOe(MacrocellCoord, OeMuxVal, bool),
     OBufIostd(BankId, Iostd),
     Usercode(u8),
     NoIsp,
-    Ut(Ut, FbId, PTermId),
+    Ut(Ut, BlockId, ProductTermId),
     GlobalKeeper,
     Dge,
     ClkDiv(u8),
     ClkDivDelay,
-    FbClk(FbId, Option<ClkPadId>, Option<ClkPadId>),
+    FbClk(BlockId, Option<ClkPadId>, Option<ClkPadId>),
     Fclk(FclkId, ClkPadId, bool),
     Fsr(bool),
     Foe(FoeId, OePadId, bool),
     FoeMc(FoeId),
-    FbPresent(FbId),
+    FbPresent(BlockId),
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -354,13 +354,17 @@ impl Backend for CpldBackend<'_> {
                     if !v {
                         continue;
                     }
-                    let name = format!("OBUF_{}_{}", mcid.0.to_idx(), mcid.1.to_idx());
+                    let name = format!("OBUF_{}_{}", mcid.block.to_idx(), mcid.macrocell.to_idx());
 
                     let node_pad = insert_node(
                         &mut vm6,
                         Node {
                             is_signal: false,
-                            name: format!("PAD_{}_{}", mcid.0.to_idx(), mcid.1.to_idx()),
+                            name: format!(
+                                "PAD_{}_{}",
+                                mcid.block.to_idx(),
+                                mcid.macrocell.to_idx()
+                            ),
                             io_kind: NodeIoKind::Inout,
                             flags: 0,
                             module: "top".to_string(),
@@ -370,7 +374,7 @@ impl Backend for CpldBackend<'_> {
                             terms: vec![],
                         },
                     );
-                    pad_lut.insert(IoId::Mc(mcid), node_pad);
+                    pad_lut.insert(IoCoord::Macrocell(mcid), node_pad);
                     let ob = vm6
                         .obufs
                         .insert(
@@ -383,8 +387,8 @@ impl Backend for CpldBackend<'_> {
                             },
                         )
                         .0;
-                    vm6.fbs[mcid.0].pins[mcid.1].obuf = Some(ob);
-                    vm6.fbs[mcid.0].pins[mcid.1].obuf_used = true;
+                    vm6.fbs[mcid.block].pins[mcid.macrocell].obuf = Some(ob);
+                    vm6.fbs[mcid.block].pins[mcid.macrocell].obuf_used = true;
                 }
                 Key::McPresent(mcid) => {
                     let Value::Bool(v) = v else { unreachable!() };
@@ -394,7 +398,7 @@ impl Backend for CpldBackend<'_> {
                     let mc = vm6
                         .macrocells
                         .insert(
-                            format!("MC_{}_{}", mcid.0.to_idx(), mcid.1.to_idx()),
+                            format!("MC_{}_{}", mcid.block.to_idx(), mcid.macrocell.to_idx()),
                             Macrocell {
                                 module: "top".to_string(),
                                 flags: 0,
@@ -406,8 +410,8 @@ impl Backend for CpldBackend<'_> {
                             },
                         )
                         .0;
-                    vm6.fbs[mcid.0].pins[mcid.1].mc = Some(mc);
-                    vm6.fbs[mcid.0].pins[mcid.1].mc_used = true;
+                    vm6.fbs[mcid.block].pins[mcid.macrocell].mc = Some(mc);
+                    vm6.fbs[mcid.block].pins[mcid.macrocell].mc_used = true;
                 }
                 Key::FbImux(fbid, imid) => {
                     if *v != Value::ImuxInput(ImuxInput::Uim) {
@@ -548,7 +552,7 @@ impl Backend for CpldBackend<'_> {
                     if !v {
                         continue;
                     }
-                    let rmcid = vm6.fbs[mcid.0].pins[mcid.1].mc.unwrap();
+                    let rmcid = vm6.fbs[mcid.block].pins[mcid.macrocell].mc.unwrap();
                     let name = format!("{}.SI", vm6.macrocells.key(rmcid));
                     vm6.macrocells[rmcid].signal = Some(Signal {
                         name,
@@ -562,9 +566,13 @@ impl Backend for CpldBackend<'_> {
                         continue;
                     }
                     let name = match ioid {
-                        IoId::Ipad(ip) => format!("IBUF_IPAD_{ip}", ip = ip.to_idx()),
-                        IoId::Mc(mc) => {
-                            format!("IBUF_{f}_{m}", f = mc.0.to_idx(), m = mc.1.to_idx())
+                        IoCoord::Ipad(ip) => format!("IBUF_IPAD_{ip}", ip = ip.to_idx()),
+                        IoCoord::Macrocell(mc) => {
+                            format!(
+                                "IBUF_{f}_{m}",
+                                f = mc.block.to_idx(),
+                                m = mc.macrocell.to_idx()
+                            )
                         }
                     };
                     let node_pad = pad_lut.get(&ioid).copied().unwrap_or_else(|| {
@@ -601,13 +609,13 @@ impl Backend for CpldBackend<'_> {
                         )
                         .0;
                     match ioid {
-                        IoId::Ipad(ip) => {
+                        IoCoord::Ipad(ip) => {
                             let pin = &mut vm6.ipad_fb.as_mut().unwrap().pins[ip];
                             pin.ibuf = Some(ib);
                             pin.ibuf_used = true;
                         }
-                        IoId::Mc(mc) => {
-                            let pin = &mut vm6.fbs[mc.0].pins[mc.1];
+                        IoCoord::Macrocell(mc) => {
+                            let pin = &mut vm6.fbs[mc.block].pins[mc.macrocell];
                             pin.ibuf = Some(ib);
                             pin.ibuf_used = true;
                         }
@@ -663,7 +671,7 @@ impl Backend for CpldBackend<'_> {
                         Value::CopyOe => Some("BUFOE.OUT"),
                         _ => unreachable!(),
                     };
-                    let rmcid = vm6.fbs[mcid.0].pins[mcid.1].mc.unwrap();
+                    let rmcid = vm6.fbs[mcid.block].pins[mcid.macrocell].mc.unwrap();
                     let mcname = vm6.macrocells.key(rmcid).clone();
                     let k = match kind {
                         NodeKind::McQ => "Q",
@@ -679,12 +687,20 @@ impl Backend for CpldBackend<'_> {
                         &mut vm6,
                         Node {
                             is_signal: false,
-                            name: format!("MC_{k}_{}_{}", mcid.0.to_idx(), mcid.1.to_idx()),
+                            name: format!(
+                                "MC_{k}_{}_{}",
+                                mcid.block.to_idx(),
+                                mcid.macrocell.to_idx()
+                            ),
                             io_kind: NodeIoKind::Inout,
                             flags: 0,
                             module: "top".to_string(),
                             copy_of: suf.map(|s| {
-                                format!("MC_{f}_{m}.{s}", f = mcid.0.to_idx(), m = mcid.1.to_idx())
+                                format!(
+                                    "MC_{f}_{m}.{s}",
+                                    f = mcid.block.to_idx(),
+                                    m = mcid.macrocell.to_idx()
+                                )
                             }),
                             driver: Some(mcname),
                             kind,
@@ -693,7 +709,7 @@ impl Backend for CpldBackend<'_> {
                     );
                     vm6.macrocells[rmcid].onodes.push(node);
                     mc_out_lut.insert((mcid, kind), node);
-                    if let Some(obid) = vm6.fbs[mcid.0].pins[mcid.1].obuf {
+                    if let Some(obid) = vm6.fbs[mcid.block].pins[mcid.macrocell].obuf {
                         let ik = match kind {
                             NodeKind::McQ => InputNodeKind::OiIn,
                             NodeKind::McOe => InputNodeKind::OiOe,
@@ -707,7 +723,7 @@ impl Backend for CpldBackend<'_> {
                     if !v {
                         continue;
                     }
-                    let rmcid = vm6.fbs[mcid.0].pins[mcid.1].mc.unwrap();
+                    let rmcid = vm6.fbs[mcid.block].pins[mcid.macrocell].mc.unwrap();
                     let siname = vm6.macrocells[rmcid].signal.as_ref().unwrap().name.clone();
                     let k = match kind {
                         NodeKind::McSiD1 => "SI_D1",
@@ -724,7 +740,11 @@ impl Backend for CpldBackend<'_> {
                         &mut vm6,
                         Node {
                             is_signal: true,
-                            name: format!("MC_{k}_{}_{}", mcid.0.to_idx(), mcid.1.to_idx()),
+                            name: format!(
+                                "MC_{k}_{}_{}",
+                                mcid.block.to_idx(),
+                                mcid.macrocell.to_idx()
+                            ),
                             io_kind: NodeIoKind::Inout,
                             flags: 0x1000,
                             module: "top".to_string(),
@@ -755,7 +775,7 @@ impl Backend for CpldBackend<'_> {
                     if !v {
                         continue;
                     }
-                    let robid = vm6.fbs[mcid.0].pins[mcid.1].obuf.unwrap();
+                    let robid = vm6.fbs[mcid.block].pins[mcid.macrocell].obuf.unwrap();
                     vm6.obufs[robid].flags |= 1 << bit;
                 }
 
@@ -764,7 +784,7 @@ impl Backend for CpldBackend<'_> {
                     if !v {
                         continue;
                     }
-                    let rmcid = vm6.fbs[mcid.0].pins[mcid.1].mc.unwrap();
+                    let rmcid = vm6.fbs[mcid.block].pins[mcid.macrocell].mc.unwrap();
                     vm6.macrocells[rmcid].flags |= 1 << bit;
                 }
                 Key::Iostd(mc) => {
@@ -813,7 +833,7 @@ impl Backend for CpldBackend<'_> {
                             None,
                         ),
                         ImuxInput::Fbk(mcid) => (
-                            mc_out_lut[&((fbid, mcid), NodeKind::McFbk)],
+                            mc_out_lut[&(MacrocellCoord::simple(fbid, mcid), NodeKind::McFbk)],
                             FbImux::Plain(self.imux[imid][&inp]),
                             None,
                         ),
@@ -821,15 +841,18 @@ impl Backend for CpldBackend<'_> {
                             pad_lut[&ioid],
                             FbImux::Plain(self.imux[imid][&inp]),
                             Some(match ioid {
-                                IoId::Ipad(ip) => vm6.ipad_fb.as_ref().unwrap().pins[ip]
+                                IoCoord::Ipad(ip) => vm6.ipad_fb.as_ref().unwrap().pins[ip]
                                     .pad
                                     .as_ref()
                                     .unwrap()
                                     .0
                                     .clone(),
-                                IoId::Mc(mc) => {
-                                    vm6.fbs[mc.0].pins[mc.1].pad.as_ref().unwrap().0.clone()
-                                }
+                                IoCoord::Macrocell(mc) => vm6.fbs[mc.block].pins[mc.macrocell]
+                                    .pad
+                                    .as_ref()
+                                    .unwrap()
+                                    .0
+                                    .clone(),
                             }),
                         ),
                         ImuxInput::Pup => {
@@ -860,14 +883,14 @@ impl Backend for CpldBackend<'_> {
                         Value::Ireg => true,
                         _ => unreachable!(),
                     };
-                    let rmcid = vm6.fbs[mcid.0].pins[mcid.1].mc.unwrap();
+                    let rmcid = vm6.fbs[mcid.block].pins[mcid.macrocell].mc.unwrap();
                     let mcname = vm6.macrocells.key(rmcid);
                     let name = format!("{mcname}.REG");
                     let nname = format!("{mcname}.Q");
                     let aname = format!("{mcname}.XOR");
                     let iname = format!("{mcname}.D");
                     let inode = if is_ireg {
-                        ibuf_out_lut[&(IoId::Mc(mcid), NodeKind::IiReg)]
+                        ibuf_out_lut[&(IoCoord::Macrocell(mcid), NodeKind::IiReg)]
                     } else {
                         insert_node(
                             &mut vm6,
@@ -923,7 +946,9 @@ impl Backend for CpldBackend<'_> {
                     };
                     let node = match inp {
                         ImuxInput::Mc(mc) => mc_out_lut[&(mc, NodeKind::McUim)],
-                        ImuxInput::Fbk(mc) => mc_out_lut[&((fb, mc), NodeKind::McFbk)],
+                        ImuxInput::Fbk(mc) => {
+                            mc_out_lut[&(MacrocellCoord::simple(fb, mc), NodeKind::McFbk)]
+                        }
                         ImuxInput::Ibuf(io) => ibuf_out_lut[&(io, NodeKind::IiImux)],
                         ImuxInput::Uim => uim_node_lut[&(fb, imid)],
                         ImuxInput::Pup => pup_out.unwrap(),
@@ -947,14 +972,16 @@ impl Backend for CpldBackend<'_> {
                         continue;
                     }
                     let &Value::Bool(v) = v else { unreachable!() };
-                    let Value::ImuxInput(inp) = kv[&Key::FbImux(mc.0, imid)] else {
+                    let Value::ImuxInput(inp) = kv[&Key::FbImux(mc.block, imid)] else {
                         panic!("imux not set properly");
                     };
                     let node = match inp {
                         ImuxInput::Mc(mc) => mc_out_lut[&(mc, NodeKind::McUim)],
-                        ImuxInput::Fbk(omc) => mc_out_lut[&((mc.0, omc), NodeKind::McFbk)],
+                        ImuxInput::Fbk(omc) => {
+                            mc_out_lut[&(MacrocellCoord::simple(mc.block, omc), NodeKind::McFbk)]
+                        }
                         ImuxInput::Ibuf(io) => ibuf_out_lut[&(io, NodeKind::IiImux)],
-                        ImuxInput::Uim => uim_node_lut[&(mc.0, imid)],
+                        ImuxInput::Uim => uim_node_lut[&(mc.block, imid)],
                         ImuxInput::Pup => pup_out.unwrap(),
                     };
                     let name = vm6.nodes[node].name.to_owned();
@@ -985,7 +1012,7 @@ impl Backend for CpldBackend<'_> {
                     if !v {
                         continue;
                     }
-                    let pterm = vm6.fbs[mcid.0].pla.as_ref().unwrap().terms[pt].clone();
+                    let pterm = vm6.fbs[mcid.block].pla.as_ref().unwrap().terms[pt].clone();
                     let node = mc_out_lut[&(mcid, kind)];
                     vm6.nodes[node].terms.push(pterm);
                 }
@@ -1049,13 +1076,13 @@ impl Backend for CpldBackend<'_> {
                 Key::McFfInput(mcid, ikind) => {
                     let (node, is_inp) = match *v {
                         Value::None => continue,
-                        Value::InputCt(pt) => (ct_lut[&(mcid.0, pt)], true),
+                        Value::InputCt(pt) => (ct_lut[&(mcid.block, pt)], true),
                         Value::InputUt(fb, pt) => (ct_lut[&(fb, pt)], true),
                         Value::InputSi(kind) => (mc_out_lut[&(mcid, kind)], false),
                         Value::InputPad(imc, kind) => (ibuf_out_lut[&(imc, kind)], true),
                         _ => unreachable!(),
                     };
-                    let rmcid = vm6.fbs[mcid.0].pins[mcid.1].mc.unwrap();
+                    let rmcid = vm6.fbs[mcid.block].pins[mcid.macrocell].mc.unwrap();
                     vm6.macrocells[rmcid]
                         .srff
                         .as_mut()
@@ -1072,14 +1099,14 @@ impl Backend for CpldBackend<'_> {
                 Key::McOe(mcid) => {
                     let (node, is_inp) = match *v {
                         Value::None => continue,
-                        Value::InputCt(pt) => (ct_lut[&(mcid.0, pt)], true),
+                        Value::InputCt(pt) => (ct_lut[&(mcid.block, pt)], true),
                         Value::InputUt(fb, pt) => (ct_lut[&(fb, pt)], true),
                         Value::InputSi(kind) => (mc_out_lut[&(mcid, kind)], false),
                         Value::InputPad(imc, kind) => (ibuf_out_lut[&(imc, kind)], true),
                         Value::InputMc(mc, kind) => (mc_out_lut[&(mc, kind)], true),
                         _ => unreachable!(),
                     };
-                    let rmcid = vm6.fbs[mcid.0].pins[mcid.1].mc.unwrap();
+                    let rmcid = vm6.fbs[mcid.block].pins[mcid.macrocell].mc.unwrap();
                     let mcn = vm6.macrocells.key(rmcid).clone();
                     let name = format!("{mcn}.BUFOE");
                     let onode = insert_node(
@@ -1170,7 +1197,8 @@ impl Backend for CpldBackend<'_> {
                         );
                     }
                     Value::McGlb => {
-                        let IoId::Mc(mc) = self.device.oe_pads[OePadId::from_idx(idx.to_idx())]
+                        let IoCoord::Macrocell(mc) =
+                            self.device.oe_pads[OePadId::from_idx(idx.to_idx())]
                         else {
                             unreachable!();
                         };
@@ -1293,7 +1321,7 @@ impl Backend for CpldBackend<'_> {
 fn imux_inps_pinning(
     device: &Device,
     imux: &ImuxData,
-    pin_map: &HashMap<IoId, &str>,
+    pin_map: &HashMap<IoCoord, &str>,
 ) -> EntityVec<ImuxId, ImuxInput> {
     let mut inps_used = HashSet::new();
     let mut res = EntityVec::new();
@@ -1329,7 +1357,7 @@ fn imux_inps_pinning(
     res
 }
 
-fn ibuf_test_imux(device: &Device, imux: &ImuxData) -> HashMap<IoId, ImuxId> {
+fn ibuf_test_imux(device: &Device, imux: &ImuxData) -> HashMap<IoCoord, ImuxId> {
     device
         .io
         .keys()
@@ -1378,8 +1406,8 @@ pub fn reverse_cpld(
                         return None;
                     }
                     match io {
-                        IoId::Ipad(_) => None,
-                        IoId::Mc(mc) => Some(mc),
+                        IoCoord::Ipad(_) => None,
+                        IoCoord::Macrocell(mc) => Some(mc),
                     }
                 })
                 .unwrap()

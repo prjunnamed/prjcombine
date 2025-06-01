@@ -1,6 +1,9 @@
 use prjcombine_re_fpga_hammer::{Diff, xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::{bits, bsdata::{TileBit, TileItem}};
+use prjcombine_types::{
+    bits,
+    bsdata::{TileBit, TileItem},
+};
 use prjcombine_xc2000::bels::xc2000 as bels;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
@@ -284,8 +287,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bits.set(i, true);
             let mut diff = ctx.state.get_diff(tile, bel, "F", format!("EQ_ABCDE_{i}"));
             diff = diff.combine(&!&diff_abcde);
-            diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, "F"), &bits.slice(..16), &bits![0; 16]);
-            diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, "G"), &bits.slice(16..), &bits![0; 16]);
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "F"),
+                &bits.slice(..16),
+                &bits![0; 16],
+            );
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "G"),
+                &bits.slice(16..),
+                &bits![0; 16],
+            );
             diff.assert_empty();
         }
         let mut diff = diff_abcde;

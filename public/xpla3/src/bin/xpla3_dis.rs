@@ -3,9 +3,9 @@ use std::{collections::BTreeMap, error::Error, path::PathBuf};
 use clap::{Arg, Command, value_parser};
 use prjcombine_jed::{JedFile, JedParserOptions};
 use prjcombine_types::{
-    FbMcId,
     bitvec::BitVec,
     bsdata::{Tile, TileItemKind},
+    cpld::MacrocellId,
 };
 use prjcombine_xpla3::{Chip, Database};
 use unnamed_entity::EntityId;
@@ -33,7 +33,7 @@ impl Bitstream {
         let fuses = jed.fuses.as_ref().unwrap();
         let mut fbs = vec![];
         let mut pos = 0;
-        for _ in 0..(chip.fb_cols.len() * chip.fb_rows * 2) {
+        for _ in 0..(chip.block_cols.len() * chip.block_rows * 2) {
             let mut fbd = FbData {
                 misc: BTreeMap::new(),
                 mcs: core::array::from_fn(|_| BTreeMap::new()),
@@ -69,17 +69,17 @@ impl Bitstream {
                     pos += 1;
                 }
             }
-            for (bn, bi) in &db.jed_fb_bits {
+            for (bn, bi) in &db.jed_block_bits {
                 let bits = fbd
                     .misc
                     .entry(bn.clone())
-                    .or_insert_with(|| BitVec::repeat(false, db.fb_bits.items[bn].bits.len()));
+                    .or_insert_with(|| BitVec::repeat(false, db.block_bits.items[bn].bits.len()));
                 bits.set(*bi, fuses[pos]);
                 pos += 1;
             }
             for iobful in [true, false] {
                 for mc in 0..16 {
-                    if chip.io_mcs.contains(&FbMcId::from_idx(mc)) != iobful {
+                    if chip.io_mcs.contains(&MacrocellId::from_idx(mc)) != iobful {
                         continue;
                     }
                     let mcd = &mut fbd.mcs[mc];
@@ -186,7 +186,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     print_tile(&bs.globals, &chip.global_bits);
     for (i, fbd) in bs.fbs.iter().enumerate() {
         print!("FB {i}:");
-        let mut bits = db.fb_bits.clone();
+        let mut bits = db.block_bits.clone();
         for (k, v) in &chip.imux_bits.items {
             bits.items.insert(k.clone(), v.clone());
         }

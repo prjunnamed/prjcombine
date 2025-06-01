@@ -1,4 +1,7 @@
-use prjcombine_interconnect::{db::RegionSlotId, grid::{ColId, DieId, ExpandedGrid, RowId}};
+use prjcombine_interconnect::{
+    db::RegionSlotId,
+    grid::{ColId, DieId, ExpandedGrid, RowId},
+};
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityBitVec, EntityVec, entity_id};
 

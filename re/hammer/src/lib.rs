@@ -1,7 +1,7 @@
-use prjcombine_types::bitvec::BitVec;
 use core::fmt::Debug;
 use core::hash::Hash;
 use derive_where::derive_where;
+use prjcombine_types::bitvec::BitVec;
 use std::collections::{HashMap, HashSet, hash_map::Entry};
 use unnamed_entity::{EntityVec, entity_id};
 

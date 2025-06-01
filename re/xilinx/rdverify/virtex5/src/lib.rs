@@ -1437,9 +1437,7 @@ pub fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
             RowId::from_idx(0),
             LayerId::from_idx(0),
         )];
-        let crd = vrf
-            .xlat_tile(&nnode.names[RawTileId::from_idx(0)])
-            .unwrap();
+        let crd = vrf.xlat_tile(&nnode.names[RawTileId::from_idx(0)]).unwrap();
         vrf.claim_node(&[(crd, "ER2BEG0")]);
     }
     vrf.kill_stub_out_cond("IOI_BYP_INT_B0");

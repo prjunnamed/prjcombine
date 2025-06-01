@@ -1,16 +1,15 @@
 #![allow(clippy::unnecessary_unwrap)]
 
 use prjcombine_interconnect::db::{
-    BelInfo, BelSlotId, IntDb, IntfInfo, IriPin, TileClassId, TileClassWire, PinDir, ConnectorWire,
-    ConnectorSlotId, WireId, WireKind,
+    BelInfo, BelSlotId, ConnectorSlotId, ConnectorWire, IntDb, IntfInfo, IriPin, PinDir,
+    TileClassId, TileClassWire, WireId, WireKind,
 };
 use prjcombine_interconnect::grid::{
-    ColId, DieId, ExpandedGrid, Tile, Connector, BelCoord, WireCoord, LayerId,
-    NodeLoc, RowId,
+    BelCoord, ColId, Connector, DieId, ExpandedGrid, LayerId, NodeLoc, RowId, Tile, WireCoord,
 };
 use prjcombine_re_xilinx_naming::db::{
-    BelNaming, IntfWireInNaming, IntfWireOutNaming, NamingDb, RawTileId, ConnectorWireInFarNaming,
-    ConnectorWireOutNaming,
+    BelNaming, ConnectorWireInFarNaming, ConnectorWireOutNaming, IntfWireInNaming,
+    IntfWireOutNaming, NamingDb, RawTileId,
 };
 use prjcombine_re_xilinx_naming::grid::{ExpandedGridNaming, TileNaming};
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
@@ -634,10 +633,7 @@ impl<'a> Verifier<'a> {
         self.tile_lut.get(tname).copied()
     }
 
-    pub fn get_node_crds(
-        &self,
-        nloc: NodeLoc,
-    ) -> Option<EntityPartVec<RawTileId, rawdump::Coord>> {
+    pub fn get_node_crds(&self, nloc: NodeLoc) -> Option<EntityPartVec<RawTileId, rawdump::Coord>> {
         let mut crds = EntityPartVec::new();
         if let Some(nnode) = self.ngrid.tiles.get(&nloc) {
             for (k, name) in &nnode.names {

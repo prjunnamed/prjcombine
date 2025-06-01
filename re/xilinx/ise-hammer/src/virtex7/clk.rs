@@ -85,11 +85,12 @@ impl NodeRelation for ClkRebuf {
                     }
                 }
             }
-            if let Some(nnloc) = backend
-                .egrid
-                .find_tile_by_class(nloc.0, (nloc.1, nloc.2), |kind| {
-                    matches!(kind, "CLK_BUFG_REBUF" | "CLK_BALI_REBUF")
-                })
+            if let Some(nnloc) =
+                backend
+                    .egrid
+                    .find_tile_by_class(nloc.0, (nloc.1, nloc.2), |kind| {
+                        matches!(kind, "CLK_BUFG_REBUF" | "CLK_BALI_REBUF")
+                    })
             {
                 return Some(nnloc);
             }

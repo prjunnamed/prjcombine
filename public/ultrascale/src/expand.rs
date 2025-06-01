@@ -13,7 +13,9 @@ use crate::chip::{
     Chip, ChipKind, CleMKind, Column, ColumnKind, DisabledPart, DspKind, HardKind, HardRowKind,
     Interposer, IoRowKind, RegId,
 };
-use crate::expanded::{ClkSrc, ExpandedDevice, GtCoord, HdioCoord, HpioCoord, IoCoord, REGION_LEAF};
+use crate::expanded::{
+    ClkSrc, ExpandedDevice, GtCoord, HdioCoord, HpioCoord, IoCoord, REGION_LEAF,
+};
 
 use crate::bond::SharedCfgPin;
 

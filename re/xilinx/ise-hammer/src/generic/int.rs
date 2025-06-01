@@ -183,7 +183,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDstFilter {
                     }
                 }
                 if matches!(&wire_name[..], "IMUX.DATA15" | "IMUX.DATA31")
-                    && ndb.tile_class_namings.key(nnode.naming).starts_with("INT.MACC")
+                    && ndb
+                        .tile_class_namings
+                        .key(nnode.naming)
+                        .starts_with("INT.MACC")
                 {
                     // ISE bug.
                     return None;
@@ -431,7 +434,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                         backend
                             .egrid
                             .find_tile_loc(nloc.0, (src_col, nloc.2), |src_node| {
-                                backend.egrid.db.tile_classes.key(src_node.class).starts_with("IO")
+                                backend
+                                    .egrid
+                                    .db
+                                    .tile_classes
+                                    .key(src_node.class)
+                                    .starts_with("IO")
                                     || backend.egrid.db.tile_classes.key(src_node.class) == "CLB"
                             })
                     {
@@ -479,7 +487,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                         backend
                             .egrid
                             .find_tile_loc(nloc.0, (src_col, nloc.2), |src_node| {
-                                backend.egrid.db.tile_classes.key(src_node.class).starts_with("INT")
+                                backend
+                                    .egrid
+                                    .db
+                                    .tile_classes
+                                    .key(src_node.class)
+                                    .starts_with("INT")
                             })
                     {
                         let src_node_kind = &backend.egrid.db.tile_classes[src_node.class];
@@ -563,7 +576,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                         backend
                             .egrid
                             .find_tile_loc(nloc.0, (nloc.1, src_row), |src_node| {
-                                backend.egrid.db.tile_classes.key(src_node.class).starts_with("IO")
+                                backend
+                                    .egrid
+                                    .db
+                                    .tile_classes
+                                    .key(src_node.class)
+                                    .starts_with("IO")
                                     || backend.egrid.db.tile_classes.key(src_node.class) == "CLB"
                             })
                     {
@@ -611,7 +629,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                         backend
                             .egrid
                             .find_tile_loc(nloc.0, (nloc.1, src_row), |src_node| {
-                                backend.egrid.db.tile_classes.key(src_node.class).starts_with("INT")
+                                backend
+                                    .egrid
+                                    .db
+                                    .tile_classes
+                                    .key(src_node.class)
+                                    .starts_with("INT")
                             })
                     {
                         let src_node_kind = &backend.egrid.db.tile_classes[src_node.class];

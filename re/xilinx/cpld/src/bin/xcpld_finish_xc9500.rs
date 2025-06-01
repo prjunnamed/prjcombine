@@ -5,6 +5,7 @@ use std::{
 };
 
 use clap::Parser;
+use enum_map::Enum;
 use prjcombine_re_xilinx_cpld::{
     bits::{BitPos, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
     device::{Device, DeviceKind, JtagPin, PkgPin},
@@ -19,7 +20,9 @@ use prjcombine_re_xilinx_cpld::{
     speeddb::SpeedDb,
 };
 use prjcombine_types::{
-    bitvec::BitVec, bsdata::{Tile, TileBit, TileItem, TileItemKind}, FbId, FbMcId, IoId
+    bitvec::BitVec,
+    bsdata::{Tile, TileBit, TileItem, TileItemKind},
+    cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId},
 };
 use prjcombine_xc9500 as xc9500;
 use unnamed_entity::{EntityId, EntityVec};
@@ -65,7 +68,7 @@ fn map_bit_raw(device: &Device, bit: BitPos) -> TileBit {
     }
 }
 
-fn map_fb_bit_raw(device: &Device, fb: FbId, bit: BitPos) -> TileBit {
+fn map_fb_bit_raw(device: &Device, fb: BlockId, bit: BitPos) -> TileBit {
     let glob_bit = map_bit_raw(device, bit);
     assert_eq!(glob_bit.tile, fb.to_idx());
     TileBit {
@@ -79,11 +82,17 @@ fn map_bit(device: &Device, fpart: &FuzzDbPart, bit: usize) -> TileBit {
     map_bit_raw(device, fpart.map.main[bit])
 }
 
-fn map_fb_bit(device: &Device, fpart: &FuzzDbPart, fb: FbId, bit: usize) -> TileBit {
+fn map_fb_bit(device: &Device, fpart: &FuzzDbPart, fb: BlockId, bit: usize) -> TileBit {
     map_fb_bit_raw(device, fb, fpart.map.main[bit])
 }
 
-fn map_mc_bit(device: &Device, fpart: &FuzzDbPart, fb: FbId, mc: FbMcId, bit: usize) -> TileBit {
+fn map_mc_bit(
+    device: &Device,
+    fpart: &FuzzDbPart,
+    fb: BlockId,
+    mc: MacrocellId,
+    bit: usize,
+) -> TileBit {
     let fb_bit = map_fb_bit(device, fpart, fb, bit);
     assert_eq!(fb_bit.bit, mc.to_idx());
     TileBit {
@@ -97,8 +106,10 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
-    for (fb, mc) in device.mcs() {
-        let mcbits = &fpart.bits.fbs[fb].mcs[mc];
+    for fbmc in device.mcs() {
+        let fb = fbmc.block;
+        let mc = fbmc.macrocell;
+        let mcbits = &fpart.bits.blocks[fb].mcs[mc];
         let xlat_bit = |bit| map_mc_bit(device, fpart, fb, mc, bit);
         for (i, pt) in [
             Xc9500McPt::Clk,
@@ -113,7 +124,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
             tile.insert(
                 format!("PT[{i}].ALLOC"),
                 extract_enum(
-                    &mcbits.pt.as_ref().unwrap()[pt].alloc,
+                    &mcbits.pt.as_ref().unwrap()[pt.into_usize()].alloc,
                     |alloc| match alloc {
                         prjcombine_re_xilinx_cpld::bits::PtAlloc::OrMain => "SUM".to_string(),
                         prjcombine_re_xilinx_cpld::bits::PtAlloc::OrExport => "EXPORT".to_string(),
@@ -126,7 +137,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
             );
             tile.insert(
                 format!("PT[{i}].HP"),
-                extract_bool(mcbits.pt.as_ref().unwrap()[pt].hp, xlat_bit),
+                extract_bool(mcbits.pt.as_ref().unwrap()[pt.into_usize()].hp, xlat_bit),
                 neutral,
             );
         }
@@ -137,7 +148,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
             tile.insert(
                 name,
                 extract_bool_to_enum(
-                    mcbits.import.as_ref().unwrap()[dir],
+                    mcbits.import.as_ref().unwrap()[dir.into_usize()],
                     xlat_bit,
                     "SUM",
                     "EXPORT",
@@ -366,11 +377,13 @@ fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem {
             blank_expected.set(bit, val);
         }
     }
-    for (fb, mc) in device.mcs() {
+    for fbmc in device.mcs() {
+        let fb = fbmc.block;
+        let mc = fbmc.macrocell;
         if device.kind == DeviceKind::Xc9500 {
-            let (bit, pol) = fpart.bits.fbs[fb].mcs[mc].ff_en.unwrap();
+            let (bit, pol) = fpart.bits.blocks[fb].mcs[mc].ff_en.unwrap();
             blank_expected.set(bit, !pol);
-            let data = fpart.bits.fbs[fb].mcs[mc].uim_oe_mode.as_ref().unwrap();
+            let data = fpart.bits.blocks[fb].mcs[mc].uim_oe_mode.as_ref().unwrap();
             for (bit, val) in data
                 .bits
                 .iter()
@@ -437,7 +450,7 @@ fn extract_fb_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     );
 
     for fb in device.fbs() {
-        let fbbits = &fpart.bits.fbs[fb];
+        let fbbits = &fpart.bits.blocks[fb];
         let xlat_bit = |bit| map_fb_bit(device, fpart, fb, bit);
         tile.insert(
             "ENABLE",
@@ -490,14 +503,14 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     );
     if device.kind == DeviceKind::Xc9500 {
         for (i, &bit) in &fpart.bits.fclk_inv {
-            tile.insert(format!("FCLK{i}_INV"), extract_bool(bit, xlat_bit), neutral);
+            tile.insert(format!("FCLK{i:#}_INV"), extract_bool(bit, xlat_bit), neutral);
         }
         for (i, &bit) in &fpart.bits.foe_inv {
-            tile.insert(format!("FOE{i}_INV"), extract_bool(bit, xlat_bit), neutral);
+            tile.insert(format!("FOE{i:#}_INV"), extract_bool(bit, xlat_bit), neutral);
         }
         for (i, enum_) in &fpart.bits.fclk_mux {
             tile.insert(
-                format!("FCLK{i}_MUX"),
+                format!("FCLK{i:#}_MUX"),
                 extract_enum(enum_, |val| format!("GCLK{val}"), xlat_bit, "NONE"),
                 neutral,
             );
@@ -509,7 +522,7 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
                 _ => unreachable!(),
             };
             tile.insert(
-                format!("FOE{i}_MUX.{kind}"),
+                format!("FOE{i:#}_MUX.{kind}"),
                 extract_enum(enum_, |val| format!("GOE{val}"), xlat_bit, "NONE"),
                 neutral,
             );
@@ -517,14 +530,14 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     } else {
         for (i, &bit) in &fpart.bits.fclk_en {
             tile.insert(
-                format!("FCLK{i}_ENABLE"),
+                format!("FCLK{i:#}_ENABLE"),
                 extract_bool(bit, xlat_bit),
                 neutral,
             );
         }
         for (i, &bit) in &fpart.bits.foe_en {
             tile.insert(
-                format!("FOE{i}_ENABLE"),
+                format!("FOE{i:#}_ENABLE"),
                 extract_bool(bit, xlat_bit),
                 neutral,
             );
@@ -570,17 +583,17 @@ fn extract_imux_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     let neutral = |_| neutral;
 
     for fb in device.fbs() {
-        let fbbits = &fpart.bits.fbs[fb];
+        let fbbits = &fpart.bits.blocks[fb];
         let xlat_bit = |bit| map_fb_bit(device, fpart, fb, bit);
         for im in device.fb_imuxes() {
             tile.insert(
-                format!("IM[{im}].MUX"),
+                format!("IM[{im:#}].MUX"),
                 extract_enum(
                     &fbbits.imux[im],
                     |val| match val {
                         ImuxInput::Fbk(mc) => format!("FBK_{mc}"),
-                        ImuxInput::Mc((fb, mc)) => format!("MC_{fb}_{mc}"),
-                        ImuxInput::Ibuf(IoId::Mc((fb, mc))) => format!("IOB_{fb}_{mc}"),
+                        ImuxInput::Mc(mc) => format!("MC_{mc}"),
+                        ImuxInput::Ibuf(io) => io.to_string(),
                         ImuxInput::Uim => "UIM".to_string(),
                         _ => unreachable!(),
                     },
@@ -598,8 +611,10 @@ fn extract_ibuf_uim_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     let mut tile = Tile::new();
     let neutral = device.kind == DeviceKind::Xc9500;
     let neutral = |_| neutral;
-    for (fb, mc) in device.mcs() {
-        let bits = &fpart.bits.fbs[fb].mcs[mc].ibuf_uim_en;
+    for fbmc in device.mcs() {
+        let fb = fbmc.block;
+        let mc = fbmc.macrocell;
+        let bits = &fpart.bits.blocks[fb].mcs[mc].ibuf_uim_en;
         if bits.is_empty() {
             continue;
         }
@@ -697,7 +712,7 @@ fn validate_imux_uim(device: &Device, fpart: &FuzzDbPart) {
         for im in device.fb_imuxes() {
             for sfb in device.fbs() {
                 for smc in device.fb_mcs() {
-                    let (fuse, pol) = fpart.bits.fbs[fb].uim_mc[im][sfb][smc];
+                    let (fuse, pol) = fpart.bits.blocks[fb].uim_mc[im][sfb][smc];
                     assert!(pol);
                     let (r_addr, r_bit) = fpart.map.main[fuse];
                     let r_addr = r_addr as usize;
@@ -728,7 +743,7 @@ fn validate_pterm(device: &Device, fpart: &FuzzDbPart) {
             {
                 for im in device.fb_imuxes() {
                     let ((fuse_t, pol_t), (fuse_f, pol_f)) =
-                        fpart.bits.fbs[fb].mcs[mc].pt.as_ref().unwrap()[pt].and[im];
+                        fpart.bits.blocks[fb].mcs[mc].pt.as_ref().unwrap()[pt.into_usize()].and[im];
                     assert!(pol_t);
                     assert!(pol_f);
                     for (neg, fuse) in [(0, fuse_t), (1, fuse_f)] {
@@ -753,11 +768,11 @@ fn validate_pterm(device: &Device, fpart: &FuzzDbPart) {
     }
 }
 
-fn convert_io(io: IoId) -> (FbId, FbMcId) {
-    let IoId::Mc((fb, mc)) = io else {
+fn convert_io(io: IoCoord) -> MacrocellCoord {
+    let IoCoord::Macrocell(mc) = io else {
         unreachable!();
     };
-    (fb, mc)
+    mc
 }
 
 pub fn main() -> Result<(), Box<dyn Error>> {
@@ -826,8 +841,10 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 ibuf_uim_bits = Some(cur_bits);
             }
         } else {
-            for (fb, mc) in device.mcs() {
-                assert!(fpart.bits.fbs[fb].mcs[mc].ibuf_uim_en.is_empty());
+            for fbmc in device.mcs() {
+                let fb = fbmc.block;
+                let mc = fbmc.macrocell;
+                assert!(fpart.bits.blocks[fb].mcs[mc].ibuf_uim_en.is_empty());
             }
         }
     }
@@ -857,10 +874,10 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             let mut io_special = BTreeMap::new();
             io_special.insert("GSR".to_string(), convert_io(device.sr_pad.unwrap()));
             for (i, &io) in &device.clk_pads {
-                io_special.insert(format!("GCLK{i}"), convert_io(io));
+                io_special.insert(format!("GCLK{i:#}"), convert_io(io));
             }
             for (i, &io) in &device.oe_pads {
-                io_special.insert(format!("GOE{i}"), convert_io(io));
+                io_special.insert(format!("GOE{i:#}"), convert_io(io));
             }
             xc9500::Chip {
                 kind: match device.kind {
@@ -870,7 +887,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                     _ => unreachable!(),
                 },
                 idcode,
-                fbs: device.fbs,
+                blocks: device.fbs,
                 io: device
                     .io
                     .iter()
@@ -905,7 +922,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let mut parts: Vec<xc9500::Part> = vec![];
     'parts: for spart in &db.parts {
         let package = &db.packages[spart.package];
-        let chip = xc9500::ChipId::from_idx(spart.device.to_idx());
+        let chip = spart.device;
         let mut io_special_override = BTreeMap::new();
         for (func, &pad) in &chips[chip].io_special {
             for (&from, &to) in &package.spec_remap {
@@ -933,7 +950,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                             PkgPin::Jtag(JtagPin::Tms) => xc9500::BondPin::Tms,
                             PkgPin::Jtag(JtagPin::Tdi) => xc9500::BondPin::Tdi,
                             PkgPin::Jtag(JtagPin::Tdo) => xc9500::BondPin::Tdo,
-                            PkgPin::Io(IoId::Mc((fb, mc))) => xc9500::BondPin::Iob(fb, mc),
+                            PkgPin::Io(IoCoord::Macrocell(mc)) => xc9500::BondPin::Iob(mc),
                             _ => unreachable!(),
                         },
                     )
@@ -991,7 +1008,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         speeds,
         parts,
         mc_bits,
-        fb_bits,
+        block_bits: fb_bits,
         global_bits,
     };
     database.to_file(args.out)?;

@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     db::{TileCellId, TileClassWire, WireKind},
-    grid::{WireCoord, LayerId, NodeLoc},
+    grid::{LayerId, NodeLoc, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd,
