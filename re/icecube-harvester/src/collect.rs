@@ -53,7 +53,7 @@ pub fn collect_iob(
                 let edge = anchor.edge();
                 let iob = anchor.iob();
                 let tile = edev.chip.kind.tile_class_iob(edge).unwrap();
-                harvester.force_tiled(format!("{tile}:IOB{iob}:{attrval}"), bits);
+                harvester.force_tiled(format!("{tile}:IOB{iob:#}:{attrval}"), bits);
             }
         }
         let mut res = BTreeMap::new();
@@ -84,7 +84,7 @@ pub fn collect_iob(
                 for iob in 0..2 {
                     let iob = TileIobId::from_idx(iob);
                     let tile = edev.chip.kind.tile_class_iob(edge).unwrap();
-                    if harvester.known_tiled[&format!("{tile}:IOB{iob}:{attrval}")] == bits {
+                    if harvester.known_tiled[&format!("{tile}:IOB{iob:#}:{attrval}")] == bits {
                         let loc = match edge {
                             Dir::W => {
                                 assert_eq!(col, edev.chip.col_w());

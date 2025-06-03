@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
+use bincode::{Decode, Encode};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum DirH {
     W,
     E,
@@ -29,7 +29,7 @@ impl std::fmt::Display for DirH {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum DirV {
     S,
     N,
@@ -58,7 +58,7 @@ impl std::fmt::Display for DirV {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum Dir {
     H(DirH),
     V(DirV),
@@ -100,7 +100,7 @@ impl std::fmt::Display for Dir {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct DirHV {
     pub h: DirH,
     pub v: DirV,
@@ -140,9 +140,7 @@ impl std::fmt::Display for DirHV {
     }
 }
 
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, Default,
-)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode, Default)]
 pub struct DirMap<T> {
     w: T,
     e: T,
@@ -249,7 +247,7 @@ impl<'a, T> IntoIterator for &'a DirMap<T> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct DirPartMap<T> {
     inner: DirMap<Option<T>>,
 }

@@ -697,7 +697,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             }
             for &wire_from in &mux.ins {
                 let wire_from_name = intdb.wires.key(wire_from.1);
-                let in_name = format!("{}.{}", wire_from.0, wire_from_name);
+                let in_name = format!("{:#}.{}", wire_from.0, wire_from_name);
                 if is_iob_o {
                     if backend.edev.chip.kind == ChipKind::Xc4000H {
                         for i in 0..2 {
@@ -854,7 +854,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let mut inps = vec![];
                     let mut got_empty = false;
                     for &wire_from in &mux.ins {
-                        let in_name = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                        let in_name = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                         let diff0 =
                             ctx.state
                                 .get_diff(tile, "INT", &mux_name, format!("{in_name}.HIOB0"));
@@ -912,7 +912,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         let mut inps = vec![];
                         for &wire_from in &mux.ins {
                             let in_name =
-                                format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                                format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                             let diff = ctx.state.get_diff(
                                 tile,
                                 "INT",
@@ -982,7 +982,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 };
                 let mut t_inps = vec![];
                 for &wire_from in &mux.ins {
-                    let in_name = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                    let in_name = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                     t_inps.push((
                         in_name.to_string(),
                         ctx.state.get_diff(tile, "INT", &mux_name, &in_name),
@@ -996,7 +996,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let mux_i = &node.muxes[&imux_i];
                 let mut i_inps = vec![];
                 for &wire_from in &mux_i.ins {
-                    let in_name = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                    let in_name = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                     i_inps.push((
                         in_name.to_string(),
                         ctx.state.get_diff(tile, "INT", &mux_name_i, &in_name),
@@ -1045,7 +1045,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             {
                 for &wire_from in &mux.ins {
                     let wfname = intdb.wires.key(wire_from.1);
-                    let in_name = format!("{}.{}", wire_from.0, wfname);
+                    let in_name = format!("{:#}.{}", wire_from.0, wfname);
                     let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
                     if diff.bits.is_empty() {
                         panic!("weird lack of bits: {tile} {out_name} {wfname}");
@@ -1059,7 +1059,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let mut inps = vec![];
                 let mut got_empty = false;
                 for &wire_from in &mux.ins {
-                    let in_name = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                    let in_name = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                     let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
                     if diff.bits.is_empty() {
                         got_empty = true;
@@ -1147,7 +1147,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             let diff = diff.clone();
                             let name = if tile.starts_with("LL") {
                                 format!(
-                                    "BIPASS.{}.{}.{}.{}",
+                                    "BIPASS.{:#}.{}.{:#}.{}",
                                     wire_to.0, wtname, wire_from.0, wfname
                                 )
                             } else {
@@ -1176,11 +1176,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 handled.insert((wire_to, wire_from));
                 let diff = diff.clone();
                 let oname = if tile.starts_with("LL") {
-                    format!("{}.{}", wire_to.0, wtname)
+                    format!("{:#}.{}", wire_to.0, wtname)
                 } else {
                     wtname.to_string()
                 };
-                let iname = format!("{}.{}", wire_from.0, wfname);
+                let iname = format!("{:#}.{}", wire_from.0, wfname);
                 if wtname.starts_with("SINGLE")
                     || wtname.starts_with("DOUBLE")
                     || wtname.starts_with("IO.DOUBLE")
@@ -1210,7 +1210,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     continue;
                 }
                 let wfname = intdb.wires.key(wire_from.1);
-                let in_name = format!("{}.{}", wire_from.0, wfname);
+                let in_name = format!("{:#}.{}", wire_from.0, wfname);
                 if diff.bits.is_empty() {
                     got_empty = true;
                 }

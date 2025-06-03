@@ -1,10 +1,10 @@
+use bincode::{Decode, Encode};
 use itertools::Itertools;
 use jzon::JsonValue;
 use prjcombine_interconnect::grid::{DieId, TileIobId};
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum CfgPin {
     Tck,
     Tdi,
@@ -47,7 +47,7 @@ impl std::fmt::Display for CfgPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum GtPin {
     RxP(u8),
     RxN(u8),
@@ -78,7 +78,7 @@ impl std::fmt::Display for GtPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum GtRegion {
     All,
     L,
@@ -115,7 +115,7 @@ impl std::fmt::Display for GtRegion {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum GtRegionPin {
     AVtt,
     AVcc,
@@ -134,7 +134,7 @@ impl std::fmt::Display for GtRegionPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SysMonPin {
     VP,
     VN,
@@ -149,7 +149,7 @@ impl std::fmt::Display for SysMonPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum PsPin {
     Mio(u32),
     Clk,
@@ -226,7 +226,7 @@ impl std::fmt::Display for PsPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum HbmPin {
     Vcc,
     VccIo,
@@ -247,7 +247,7 @@ impl std::fmt::Display for HbmPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum RfDacPin {
     VOutP(u8),
     VOutN(u8),
@@ -272,7 +272,7 @@ impl std::fmt::Display for RfDacPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum RfAdcPin {
     VInP(u8),
     VInN(u8),
@@ -303,7 +303,7 @@ impl std::fmt::Display for RfAdcPin {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum BondPin {
     // bank, bel idx
     Hpio(u32, TileIobId),
@@ -369,9 +369,9 @@ pub enum BondPin {
 impl std::fmt::Display for BondPin {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BondPin::Hpio(bank, idx) => write!(f, "HPIOB_{bank}_{idx}"),
-            BondPin::Hdio(bank, idx) => write!(f, "HDIOB_{bank}_{idx}"),
-            BondPin::HdioLc(bank, idx) => write!(f, "HDIOBLC_{bank}_{idx}"),
+            BondPin::Hpio(bank, idx) => write!(f, "HPIOB_{bank}_{idx:#}"),
+            BondPin::Hdio(bank, idx) => write!(f, "HDIOB_{bank}_{idx:#}"),
+            BondPin::HdioLc(bank, idx) => write!(f, "HDIOBLC_{bank}_{idx:#}"),
             BondPin::IoVref(bank) => write!(f, "IO_{bank}_VREF"),
             BondPin::Gt(bank, gtpin) => write!(f, "GT{bank}_{gtpin}"),
             BondPin::GtRegion(reg, gtpin) => write!(f, "GT_{reg}_{gtpin}"),
@@ -387,7 +387,7 @@ impl std::fmt::Display for BondPin {
             BondPin::Dxp => write!(f, "DXP"),
             BondPin::Rsvd => write!(f, "RSVD"),
             BondPin::RsvdGnd => write!(f, "RSVDGND"),
-            BondPin::SysMon(bank, pin) => write!(f, "SYSMON{bank}_{pin}"),
+            BondPin::SysMon(bank, pin) => write!(f, "SYSMON_{bank}_{pin}"),
             BondPin::VccPsAux => write!(f, "VCC_PS_AUX"),
             BondPin::VccPsPll => write!(f, "VCC_PS_PLL"),
             BondPin::IoPs(bank, pin) => write!(f, "PS{bank}_{pin}"),
@@ -427,12 +427,12 @@ impl std::fmt::Display for BondPin {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Bond {
     pub pins: BTreeMap<String, BondPin>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SharedCfgPin {
     // ×32 total, but 0-3 are dedicated; high 16 bits are also low 16 bits of Addr
     Data(u8),

@@ -218,7 +218,7 @@ impl HarvestContext<'_> {
 
                 for (idx, bits) in plb_bits.iter().enumerate() {
                     let bits = bits.as_ref().unwrap();
-                    let key = format!("COLBUF:{col}.{row}.{idx}");
+                    let key = format!("COLBUF:{col:#}.{row:#}.{idx}");
                     let bits = bits
                         .iter()
                         .map(|(&bit, &val)| ((BitOwner::Main(col, trow), bit.frame, bit.bit), val))

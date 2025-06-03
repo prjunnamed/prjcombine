@@ -3,14 +3,14 @@ use std::{
     fmt::Display,
 };
 
+use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::grid::{BelCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId};
-use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityIds};
 
 use crate::bels;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SharedCfgPin {
     Addr(u8),
     Data(u8),
@@ -56,7 +56,7 @@ impl std::fmt::Display for SharedCfgPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ChipKind {
     Xc2000,
     Xc3000,
@@ -103,7 +103,7 @@ impl ChipKind {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Chip {
     pub kind: ChipKind,
     pub columns: usize,

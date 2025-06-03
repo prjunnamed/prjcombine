@@ -1,9 +1,9 @@
+use bincode::{Decode, Encode};
 use itertools::Itertools;
 use jzon::JsonValue;
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum CfgPin {
     Tck,
     Tdi,
@@ -53,7 +53,7 @@ impl std::fmt::Display for CfgPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum GtPin {
     RxP(u8),
     RxN(u8),
@@ -108,7 +108,7 @@ impl std::fmt::Display for GtPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum GtRegion {
     All,
     S,
@@ -145,7 +145,7 @@ impl std::fmt::Display for GtRegion {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum GtRegionPin {
     AVtt,
     AGnd,
@@ -170,7 +170,7 @@ impl std::fmt::Display for GtRegionPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SysMonPin {
     VP,
     VN,
@@ -193,7 +193,7 @@ impl std::fmt::Display for SysMonPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum GtzPin {
     RxP(u8),
     RxN(u8),
@@ -246,7 +246,7 @@ impl std::fmt::Display for GtzPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum PsPin {
     Mio(u32),
     Clk,
@@ -299,7 +299,7 @@ impl std::fmt::Display for PsPin {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum BondPin {
     // bank, pin within bank
     Io(u32, u32),
@@ -359,12 +359,12 @@ impl std::fmt::Display for BondPin {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Bond {
     pub pins: BTreeMap<String, BondPin>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SharedCfgPin {
     // ×32
     // [V5+] high 16 bits are also low 16 bits of Addr

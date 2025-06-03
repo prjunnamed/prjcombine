@@ -66,14 +66,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let mux_name = if node.cells.len() == 1 {
                 format!("MUX.{}", intdb.wires.key(wire_to.1))
             } else {
-                format!("MUX.{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
+                format!("MUX.{:#}.{}", wire_to.0, intdb.wires.key(wire_to.1))
             };
             for &wire_from in &mux.ins {
                 let wire_from_name = intdb.wires.key(wire_from.1);
                 let in_name = if node.cells.len() == 1 {
                     wire_from_name.to_string()
                 } else {
-                    format!("{}.{}", wire_from.0, wire_from_name)
+                    format!("{:#}.{}", wire_from.0, wire_from_name)
                 };
                 if (name == "IO.B" || name == "IO.T")
                     && mux_name.contains("IMUX.IO")
@@ -184,13 +184,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let out_name = if node.cells.len() == 1 {
                     intdb.wires.key(wire_to.1).to_string()
                 } else {
-                    format!("{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
+                    format!("{:#}.{}", wire_to.0, intdb.wires.key(wire_to.1))
                 };
                 for &wire_from in &mux.ins {
                     let in_name = if node.cells.len() == 1 {
                         intdb.wires.key(wire_from.1).to_string()
                     } else {
-                        format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
+                        format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1))
                     };
                     let mut diff =
                         ctx.state
@@ -227,7 +227,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let out_name = if node.cells.len() == 1 {
                     intdb.wires.key(wire_to.1).to_string()
                 } else {
-                    format!("{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
+                    format!("{:#}.{}", wire_to.0, intdb.wires.key(wire_to.1))
                 };
                 let mux_name = format!("MUX.{out_name}");
 
@@ -237,7 +237,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let in_name = if node.cells.len() == 1 {
                         intdb.wires.key(wire_from.1).to_string()
                     } else {
-                        format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
+                        format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1))
                     };
                     if (tile == "IO.B" || tile == "IO.T")
                         && mux_name.contains("IMUX.IO")

@@ -1,11 +1,12 @@
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_xilinx_geom::{
-    Bond, BondId, Chip, ChipId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo,
-    DeviceNaming, DeviceNamingId, DisabledPart, GeomDb, Interposer, InterposerId,
+    Bond, Chip, Device, DeviceBond, DeviceCombo, DeviceNaming, DeviceNamingId, DisabledPart,
+    GeomDb, Interposer,
 };
 use prjcombine_re_xilinx_naming::db::{IntfWireOutNaming, NamingDb};
 use prjcombine_re_xilinx_rawdump::Part;
+use prjcombine_types::db::{BondId, ChipId, DevBondId, DevSpeedId, InterposerId};
 use prjcombine_virtex4::gtz::GtzDb;
 use std::collections::{BTreeMap, BTreeSet, btree_map};
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};

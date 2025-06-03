@@ -1,14 +1,20 @@
+use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
+use unnamed_entity::{
+    EntityId, EntityIds, EntityVec,
+    id::{EntityIdU8, EntityTag, EntityTagArith},
+};
 
-entity_id! {
-    pub id RegId u32, delta;
+pub struct RegTag;
+impl EntityTag for RegTag {
+    const PREFIX: &'static str = "REG";
 }
+impl EntityTagArith for RegTag {}
+pub type RegId = EntityIdU8<RegTag>;
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Chip {
     pub kind: ChipKind,
     pub columns: EntityVec<ColId, ColumnKind>,
@@ -31,7 +37,7 @@ pub struct Chip {
     pub has_no_tbuturn: bool,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ChipKind {
     Virtex4,
     Virtex5,
@@ -39,7 +45,7 @@ pub enum ChipKind {
     Virtex7,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ColumnKind {
     ClbLL,
     ClbLM,
@@ -52,60 +58,60 @@ pub enum ColumnKind {
     Clk,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum CfgRowKind {
     Dcm,
     Ccm,
     Sysmon,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum GtKind {
     Gtp,
     Gtx,
     Gth,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum IoKind {
     Hpio,
     Hrio,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct IoColumn {
     pub col: ColId,
     pub regs: EntityVec<RegId, Option<IoKind>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct GtColumn {
     pub col: ColId,
     pub is_middle: bool,
     pub regs: EntityVec<RegId, Option<GtKind>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct HardColumn {
     pub col: ColId,
     pub rows_emac: Vec<RowId>,
     pub rows_pcie: Vec<RowId>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum Pcie2Kind {
     Left,
     Right,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Pcie2 {
     pub kind: Pcie2Kind,
     pub col: ColId,
     pub row: RowId,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub enum DisabledPart {
     Emac(RowId),
     GtxRow(RegId),
@@ -124,14 +130,14 @@ impl std::fmt::Display for DisabledPart {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub struct Interposer {
     pub primary: DieId,
     pub gtz_bot: bool,
     pub gtz_top: bool,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Encode, Decode)]
 pub enum XadcIoLoc {
     Left,
     Right,

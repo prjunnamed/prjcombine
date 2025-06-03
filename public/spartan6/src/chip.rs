@@ -1,16 +1,22 @@
+use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::grid::{BelCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId};
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
+use unnamed_entity::{
+    EntityId, EntityIds, EntityVec,
+    id::{EntityIdU8, EntityTag, EntityTagArith},
+};
 
 use crate::bels;
 
-entity_id! {
-    pub id RegId u32, delta;
+pub struct RegTag;
+impl EntityTag for RegTag {
+    const PREFIX: &'static str = "REG";
 }
+impl EntityTagArith for RegTag {}
+pub type RegId = EntityIdU8<RegTag>;
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Chip {
     pub columns: EntityVec<ColId, Column>,
     pub col_clk: ColId,
@@ -28,7 +34,9 @@ pub struct Chip {
     pub has_encrypt: bool,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode,
+)]
 pub enum SharedCfgPin {
     // ×16
     // 0 doubles as DIN, MISO, MISO1
@@ -85,14 +93,14 @@ impl std::fmt::Display for SharedCfgPin {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Column {
     pub kind: ColumnKind,
     pub bio: ColumnIoKind,
     pub tio: ColumnIoKind,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ColumnKind {
     Io,
     CleXL,
@@ -103,7 +111,7 @@ pub enum ColumnKind {
     DspPlus,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ColumnIoKind {
     None,
     Both,
@@ -111,13 +119,13 @@ pub enum ColumnIoKind {
     Outer,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Row {
     pub lio: bool,
     pub rio: bool,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum Gts {
     None,
     Single(ColId),
@@ -125,13 +133,13 @@ pub enum Gts {
     Quad(ColId, ColId),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct McbIo {
     pub row: RowId,
     pub iob: TileIobId,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Mcb {
     pub row_mcb: RowId,
     pub row_mui: [RowId; 8],
@@ -149,7 +157,9 @@ pub struct Mcb {
     pub io_reset: McbIo,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode,
+)]
 pub enum DisabledPart {
     Gtp,
     Mcb,
@@ -170,7 +180,9 @@ impl std::fmt::Display for DisabledPart {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode,
+)]
 pub enum DcmKind {
     Bot,
     BotMid,
@@ -178,7 +190,9 @@ pub enum DcmKind {
     TopMid,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode,
+)]
 pub enum PllKind {
     BotOut0,
     BotOut1,

@@ -2,12 +2,11 @@ use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use serde::{Deserialize, Serialize};
 
 use crate::units::{Resistance, Scalar, Temperature, Time, Voltage};
 
 /// A simple propagation delay, with minimum and maximum value.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct TimeRange {
     pub min: Time,
     pub max: Time,
@@ -50,7 +49,7 @@ impl std::fmt::Display for TimeRange {
 ///    for asynchronous resets with a configurable reset value.
 /// 4. When the path is a reset-to-out with a constant reset value, only one of the four
 ///    fields is applicable.  In this case, a simple [`Delay`] should be used.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct DelayRfBinate {
     pub rise_to_rise: Time,
     pub rise_to_fall: Time,
@@ -69,7 +68,7 @@ impl std::fmt::Display for DelayRfBinate {
 }
 
 /// A version of [`DelayRfBinate`] with min and max values.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct DelayRfBinateRange {
     pub rise_to_rise: TimeRange,
     pub rise_to_fall: TimeRange,
@@ -91,7 +90,7 @@ impl std::fmt::Display for DelayRfBinateRange {
 ///
 /// The `rise` field describes the input-to-output delay for a rising edge on the output,
 /// and the `fall` field describes the input-to-output delay for a falling edge on the output.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct DelayRfUnate {
     pub rise: Time,
     pub fall: Time,
@@ -103,7 +102,7 @@ impl std::fmt::Display for DelayRfUnate {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct DelayRfUnateRange {
     pub rise: TimeRange,
     pub fall: TimeRange,
@@ -137,7 +136,7 @@ impl std::fmt::Display for DelayRfUnateRange {
 ///
 /// Note that both `setup` and `hold` are simple `Time` values, not ranges — there is no use for
 /// a range, as only the `max` value would be actually meaningful for the setup and hold checks.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct SetupHold {
     pub setup: Time,
     pub hold: Time,
@@ -158,7 +157,7 @@ impl std::fmt::Display for SetupHold {
 ///   `[t - setup_rise, t + hold_rise]`
 /// - there must be no falling edge on the data input within the time window
 ///   `[t - setup_fall, t + hold_fall]`
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct SetupHoldRf {
     pub rise_setup: Time,
     pub rise_hold: Time,
@@ -198,7 +197,7 @@ impl std::fmt::Display for SetupHoldRf {
 ///
 /// Since only one edge of reset and only one edge of clock are applicable, there is no unate-aware
 /// variant of `RecRem`.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct RecRem {
     pub recovery: Time,
     pub removal: Time,
@@ -213,7 +212,7 @@ impl std::fmt::Display for RecRem {
 /// A linear derating factor equation for temperature-based derating.
 ///
 /// The factor is `a * t + b`.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct DerateFactorTemperatureLinear {
     pub a: Scalar,
     pub b: Scalar,
@@ -234,7 +233,7 @@ impl std::fmt::Display for DerateFactorTemperatureLinear {
 /// An inverse-quadratic derating factor equation for voltage-based derating.
 ///
 /// The factor is `1 / (a * V * V + b + V + c)`.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct DerateFactorVoltageInvQuadratic {
     pub a: Scalar,
     pub b: Scalar,
@@ -260,7 +259,7 @@ impl std::fmt::Display for DerateFactorVoltageInvQuadratic {
 }
 
 /// An unateness-aware resistance.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct ResistanceRf {
     pub rise: Resistance,
     pub fall: Resistance,
@@ -273,7 +272,7 @@ impl std::fmt::Display for ResistanceRf {
 }
 
 /// A single speed value in the speed database.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum SpeedVal {
     /// A simple propagation delay.
     ///
@@ -377,7 +376,7 @@ impl std::fmt::Display for SpeedVal {
 }
 
 /// A string-keyed database of speed values, describing a particular speed grade of a device.
-#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct Speed {
     pub vals: BTreeMap<String, SpeedVal>,
 }

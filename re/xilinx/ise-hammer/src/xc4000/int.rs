@@ -883,7 +883,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for (&wire_to, mux) in &node.muxes {
             let out_name = intdb.wires.key(wire_to.1);
             let mux_name = if tile.starts_with("LL") {
-                format!("MUX.{wtt}.{out_name}", wtt = wire_to.0)
+                format!("MUX.{wtt:#}.{out_name}", wtt = wire_to.0)
             } else {
                 assert_eq!(wire_to.0.to_idx(), 0);
                 format!("MUX.{out_name}")
@@ -899,7 +899,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             if out_name.starts_with("QBUF") || out_name.ends_with("EXCL") {
                 let wire_mid = wire_to;
                 for &wire_to in &mux.ins {
-                    let wtname = format!("{}.{}", wire_to.0, intdb.wires.key(wire_to.1));
+                    let wtname = format!("{:#}.{}", wire_to.0, intdb.wires.key(wire_to.1));
                     if wtname.contains("CLK") {
                         continue;
                     }
@@ -907,7 +907,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         if wire_to == wire_from {
                             continue;
                         }
-                        let wfname = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                        let wfname = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                         ctx.build()
                             .prop(IntMutex::new("MAIN".to_string()))
                             .test_manual(
@@ -923,7 +923,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
             for &wire_from in &mux.ins {
                 let wire_from_name = intdb.wires.key(wire_from.1);
-                let in_name = format!("{}.{}", wire_from.0, wire_from_name);
+                let in_name = format!("{:#}.{}", wire_from.0, wire_from_name);
 
                 let mut is_bidi = false;
                 if let Some(mux) = node.muxes.get(&wire_from) {
@@ -1444,7 +1444,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for (&wire_to, mux) in &node.muxes {
             let out_name = intdb.wires.key(wire_to.1);
             let mux_name = if tile.starts_with("LL") {
-                format!("MUX.{wtt}.{out_name}", wtt = wire_to.0)
+                format!("MUX.{wtt:#}.{out_name}", wtt = wire_to.0)
             } else {
                 format!("MUX.{out_name}")
             };
@@ -1452,13 +1452,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if out_name.starts_with("QBUF") {
                 let wire_mid = wire_to;
                 for &wire_to in &mux.ins {
-                    let wtname = format!("{}.{}", wire_to.0, intdb.wires.key(wire_to.1));
+                    let wtname = format!("{:#}.{}", wire_to.0, intdb.wires.key(wire_to.1));
                     let mut diffs = vec![];
                     for &wire_from in &mux.ins {
                         if wire_to == wire_from {
                             continue;
                         }
-                        let wfname = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                        let wfname = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                         let diff = ctx.state.get_diff(
                             tile,
                             "INT",
@@ -1493,7 +1493,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             if out_name.ends_with("EXCL") {
                 for &wire_to in &mux.ins {
-                    let wtname = format!("{}.{}", wire_to.0, intdb.wires.key(wire_to.1));
+                    let wtname = format!("{:#}.{}", wire_to.0, intdb.wires.key(wire_to.1));
                     if wtname.contains("CLK") {
                         continue;
                     }
@@ -1501,7 +1501,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         if wire_to == wire_from {
                             continue;
                         }
-                        let wfname = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                        let wfname = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                         let diff = ctx.state.get_diff(
                             tile,
                             "INT",
@@ -1531,7 +1531,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     if wfname.starts_with("QBUF") || wfname.ends_with("EXCL") {
                         continue;
                     }
-                    let in_name = format!("{}.{}", wire_from.0, wfname);
+                    let in_name = format!("{:#}.{}", wire_from.0, wfname);
                     let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
                     if out_name.contains("OCTAL")
                         && wfname.contains("OCTAL")
@@ -1571,7 +1571,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut inps = vec![];
             let mut got_empty = false;
             for &wire_from in &mux.ins {
-                let in_name = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                let in_name = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                 let mut diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
                 if edev.chip.kind == ChipKind::Xc4000E
                     && tile.starts_with("IO.L")
@@ -1769,7 +1769,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             for (wire_from, diff) in ins {
                 let wfname = edev.egrid.db.wires.key(wire_from.1);
-                let in_name = format!("{}.{}", wire_from.0, wfname);
+                let in_name = format!("{:#}.{}", wire_from.0, wfname);
                 let diff = diff.combine(&!&odiff);
                 ctx.tiledb
                     .insert(tile, "INT", format!("BUF.OBUF.{in_name}"), xlat_bit(diff));
@@ -1799,7 +1799,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             let diff = diff.clone();
                             let name = if tile.starts_with("LL") {
                                 format!(
-                                    "BIPASS.{}.{}.{}.{}",
+                                    "BIPASS.{:#}.{}.{:#}.{}",
                                     wire_to.0, wtname, wire_from.0, wfname
                                 )
                             } else {
@@ -1828,11 +1828,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 handled.insert((wire_to, wire_from));
                 let diff = diff.clone();
                 let oname = if tile.starts_with("LL") {
-                    format!("{}.{}", wire_to.0, wtname)
+                    format!("{:#}.{}", wire_to.0, wtname)
                 } else {
                     wtname.to_string()
                 };
-                let iname = format!("{}.{}", wire_from.0, wfname);
+                let iname = format!("{:#}.{}", wire_from.0, wfname);
                 if wtname.starts_with("SINGLE")
                     || wtname.starts_with("DOUBLE")
                     || wtname.starts_with("QUAD")
@@ -1855,7 +1855,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for (wire_to, ins) in mux_diffs {
             let out_name = edev.egrid.db.wires.key(wire_to.1);
             let mux_name = if tile.starts_with("LL") {
-                format!("MUX.{wtt}.{out_name}", wtt = wire_to.0)
+                format!("MUX.{wtt:#}.{out_name}", wtt = wire_to.0)
             } else {
                 format!("MUX.{out_name}")
             };
@@ -1866,7 +1866,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     continue;
                 }
                 let wfname = edev.egrid.db.wires.key(wire_from.1);
-                let in_name = format!("{}.{}", wire_from.0, wfname);
+                let in_name = format!("{:#}.{}", wire_from.0, wfname);
                 if diff.bits.is_empty() {
                     got_empty = true;
                 }

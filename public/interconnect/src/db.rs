@@ -1,20 +1,86 @@
+use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
-use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntitySet, EntityVec, entity_id};
+use unnamed_entity::{
+    EntityId, EntityMap, EntityPartVec, EntitySet, EntityVec,
+    id::{EntityIdU8, EntityIdU16, EntityTag},
+};
 
-entity_id! {
-    pub id WireId u16, reserve 1;
-    pub id TileClassId u16, reserve 1;
-    pub id RegionSlotId u8, reserve 1;
-    pub id BelSlotId u16, reserve 1;
-    pub id ConnectorSlotId u8, reserve 1;
-    pub id ConnectorClassId u16, reserve 1;
-    pub id TileCellId u16, reserve 1;
-    pub id TileIriId u16, reserve 1;
+impl EntityTag for WireKind {
+    const PREFIX: &'static str = "WIRE";
+}
+impl EntityTag for TileClass {
+    const PREFIX: &'static str = "TCLS";
+}
+impl EntityTag for ConnectorSlot {
+    const PREFIX: &'static str = "CSLOT";
+}
+pub struct RegionSlotTag;
+impl EntityTag for RegionSlotTag {
+    const PREFIX: &'static str = "RSLOT";
+}
+impl EntityTag for ConnectorClass {
+    const PREFIX: &'static str = "CCLS";
+}
+pub struct TileCellTag;
+impl EntityTag for TileCellTag {
+    const PREFIX: &'static str = "TCELL";
+}
+pub struct TileIriTag;
+impl EntityTag for TileIriTag {
+    const PREFIX: &'static str = "IRI";
+}
+pub type WireId = EntityIdU16<WireKind>;
+pub type TileClassId = EntityIdU16<TileClass>;
+pub type RegionSlotId = EntityIdU8<RegionSlotTag>;
+pub type ConnectorSlotId = EntityIdU8<ConnectorSlot>;
+pub type ConnectorClassId = EntityIdU16<ConnectorClass>;
+pub type TileCellId = EntityIdU16<TileCellTag>;
+pub type TileIriId = EntityIdU16<TileIriTag>;
+
+#[derive(
+    Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode,
+)]
+pub struct BelSlotId(u16);
+
+impl BelSlotId {
+    pub const fn from_idx_const(idx: usize) -> Self {
+        assert!(idx <= 0xffff);
+        Self(idx as u16)
+    }
+
+    pub const fn to_idx_const(self) -> usize {
+        self.0 as usize
+    }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+impl EntityId for BelSlotId {
+    fn from_idx(idx: usize) -> Self {
+        Self(idx.try_into().unwrap())
+    }
+
+    fn to_idx(self) -> usize {
+        self.0.into()
+    }
+}
+
+impl std::fmt::Debug for BelSlotId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "BEL{}", self.0)
+    }
+}
+
+impl std::fmt::Display for BelSlotId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if f.alternate() {
+            write!(f, "{}", self.0)
+        } else {
+            write!(f, "BEL{}", self.0)
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Encode, Decode)]
 pub struct IntDb {
     pub wires: EntityMap<WireId, String, WireKind>,
     pub bel_slots: EntitySet<BelSlotId, String>,
@@ -61,7 +127,7 @@ impl IntDb {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum WireKind {
     Tie0,
     Tie1,
@@ -108,7 +174,7 @@ impl WireKind {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct TileClass {
     pub cells: EntityVec<TileCellId, ()>,
     pub muxes: BTreeMap<TileClassWire, MuxInfo>,
@@ -119,39 +185,39 @@ pub struct TileClass {
 
 pub type TileClassWire = (TileCellId, WireId);
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct MuxInfo {
     pub kind: MuxKind,
     pub ins: BTreeSet<TileClassWire>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum MuxKind {
     Plain,
     Inv,
     OptInv,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct BelInfo {
     pub pins: BTreeMap<String, BelPin>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct BelPin {
     pub wires: BTreeSet<TileClassWire>,
     pub dir: PinDir,
     pub is_intf_in: bool,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum PinDir {
     Input,
     Output,
     Inout,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum IntfInfo {
     OutputTestMux(BTreeSet<TileClassWire>),
     OutputTestMuxPass(BTreeSet<TileClassWire>, TileClassWire),
@@ -160,7 +226,7 @@ pub enum IntfInfo {
     InputIriDelay(TileIriId, IriPin),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum IriPin {
     Clk,
     Rst,
@@ -179,20 +245,20 @@ impl std::fmt::Display for IriPin {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct ConnectorClass {
     pub slot: ConnectorSlotId,
     pub wires: EntityPartVec<WireId, ConnectorWire>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ConnectorWire {
     BlackHole,
     Reflect(WireId),
     Pass(WireId),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct ConnectorSlot {
     pub opposite: ConnectorSlotId,
 }
@@ -304,7 +370,7 @@ impl MuxInfo {
                 MuxKind::OptInv => "OPTINV",
             },
             ins: Vec::from_iter(self.ins.iter().map(|wf| format!(
-                "{}:{}", wf.0, db.wires.key(wf.1)
+                "{:#}:{}", wf.0, db.wires.key(wf.1)
             ))),
         }
     }
@@ -316,15 +382,15 @@ impl IntfInfo {
             IntfInfo::OutputTestMux(ins) => jzon::object! {
                 kind: "OUTPUT_TEST_MUX",
                 ins: Vec::from_iter(ins.iter().map(|wf| format!(
-                    "{}:{}", wf.0, db.wires.key(wf.1)
+                    "{:#}:{}", wf.0, db.wires.key(wf.1)
                 ))),
             },
             IntfInfo::OutputTestMuxPass(ins, def) => jzon::object! {
                 kind: "OUTPUT_TEST_MUX_PASS",
                 ins: Vec::from_iter(ins.iter().map(|wf| format!(
-                    "{}:{}", wf.0, db.wires.key(wf.1)
+                    "{:#}:{}", wf.0, db.wires.key(wf.1)
                 ))),
-                default: format!("{}:{}", def.0, db.wires.key(def.1)),
+                default: format!("{:#}:{}", def.0, db.wires.key(def.1)),
             },
             IntfInfo::InputDelay => jzon::object! {
                 kind: "INPUT_DELAY",
@@ -347,7 +413,7 @@ impl BelPin {
     pub fn to_json(&self, db: &IntDb) -> JsonValue {
         jzon::object! {
             wires: Vec::from_iter(self.wires.iter().map(|wf| format!(
-                "{}:{}", wf.0, db.wires.key(wf.1)
+                "{:#}:{}", wf.0, db.wires.key(wf.1)
             ))),
             dir: match self.dir {
                 PinDir::Input => "INPUT",
@@ -364,12 +430,12 @@ impl TileClass {
         jzon::object! {
             cells: self.cells.len(),
             muxes: jzon::object::Object::from_iter(self.muxes.iter().map(|(wt, mux)| (
-                format!("{}:{}", wt.0, db.wires.key(wt.1)),
+                format!("{:#}:{}", wt.0, db.wires.key(wt.1)),
                 mux.to_json(db),
             ))),
             iris: self.iris.len(),
             intfs: jzon::object::Object::from_iter(self.intfs.iter().map(|(wt, intf)| (
-                format!("{}:{}", wt.0, db.wires.key(wt.1)),
+                format!("{:#}:{}", wt.0, db.wires.key(wt.1)),
                 intf.to_json(db),
             ))),
             bels: jzon::object::Object::from_iter(self.bels.iter().map(|(slot, bel)| (

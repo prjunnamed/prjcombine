@@ -2,23 +2,50 @@
 
 use crate::{db::*, dir::Dir};
 use bimap::BiHashMap;
+use bincode::{Decode, Encode};
 use ndarray::Array2;
-use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     ops::{Deref, DerefMut},
 };
-use unnamed_entity::{EntityId, EntityIds, EntityPartVec, EntityVec, entity_id};
+use unnamed_entity::{
+    EntityId, EntityIds, EntityPartVec, EntityVec,
+    id::{EntityIdU8, EntityIdU16, EntityTag, EntityTagArith},
+};
 
-entity_id! {
-    pub id DieId u8, reserve 1, delta;
-    pub id ColId u16, reserve 1, delta;
-    pub id RowId u16, reserve 1, delta;
-    pub id LayerId u8;
-    pub id TileIobId u8;
+pub struct DieTag;
+pub struct ColTag;
+pub struct RowTag;
+
+impl EntityTag for DieTag {
+    const PREFIX: &'static str = "D";
+}
+impl EntityTag for ColTag {
+    const PREFIX: &'static str = "X";
+}
+impl EntityTag for RowTag {
+    const PREFIX: &'static str = "Y";
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+impl EntityTagArith for DieTag {}
+impl EntityTagArith for ColTag {}
+impl EntityTagArith for RowTag {}
+
+pub type DieId = EntityIdU8<DieTag>;
+pub type ColId = EntityIdU16<ColTag>;
+pub type RowId = EntityIdU16<RowTag>;
+
+pub struct LayerTag;
+impl EntityTag for LayerTag {}
+pub type LayerId = EntityIdU8<LayerTag>;
+
+pub struct IobTag;
+impl EntityTag for IobTag {
+    const PREFIX: &'static str = "IOB";
+}
+pub type TileIobId = EntityIdU8<IobTag>;
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum EdgeIoCoord {
     W(RowId, TileIobId),
     E(RowId, TileIobId),
@@ -58,10 +85,10 @@ impl EdgeIoCoord {
 impl std::fmt::Display for EdgeIoCoord {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            EdgeIoCoord::W(row, iob) => write!(f, "IOB_W{row}_{iob}"),
-            EdgeIoCoord::E(row, iob) => write!(f, "IOB_E{row}_{iob}"),
-            EdgeIoCoord::S(col, iob) => write!(f, "IOB_S{col}_{iob}"),
-            EdgeIoCoord::N(col, iob) => write!(f, "IOB_N{col}_{iob}"),
+            EdgeIoCoord::W(row, iob) => write!(f, "IOB_W{row:#}_{iob:#}"),
+            EdgeIoCoord::E(row, iob) => write!(f, "IOB_E{row:#}_{iob:#}"),
+            EdgeIoCoord::S(col, iob) => write!(f, "IOB_S{col:#}_{iob:#}"),
+            EdgeIoCoord::N(col, iob) => write!(f, "IOB_N{col:#}_{iob:#}"),
         }
     }
 }
@@ -71,7 +98,7 @@ pub type NodeLoc = (DieId, ColId, RowId, LayerId);
 pub type WireCoord = (DieId, Coord, WireId);
 pub type BelCoord = (DieId, Coord, BelSlotId);
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug)]
 pub struct Rect {
     pub col_l: ColId,
     pub col_r: ColId,
@@ -686,7 +713,7 @@ impl ExpandedGrid<'_> {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct Cell {
     pub tiles: EntityVec<LayerId, Tile>,
     pub conns: EntityPartVec<ConnectorSlotId, Connector>,
@@ -694,13 +721,13 @@ pub struct Cell {
     pub region_root: EntityVec<RegionSlotId, Coord>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct Tile {
     pub class: TileClassId,
     pub cells: EntityVec<TileCellId, Coord>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct Connector {
     pub class: ConnectorClassId,
     pub target: Option<Coord>,

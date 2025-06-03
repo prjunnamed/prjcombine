@@ -422,7 +422,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             let mux_name = format!("MUX.{}", intdb.wires.key(wire_to.1));
             for &wire_from in &mux.ins {
                 let wire_from_name = intdb.wires.key(wire_from.1);
-                let in_name = format!("{}.{}", wire_from.0, wire_from_name);
+                let in_name = format!("{:#}.{}", wire_from.0, wire_from_name);
                 let mut f = ctx
                     .build()
                     .test_manual("INT", &mux_name, &in_name)
@@ -497,7 +497,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let mux_name = format!("MUX.{wn}");
                     let mut diff_s = None;
                     for &wire_from in &mux.ins {
-                        let in_name = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                        let in_name = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                         let diff =
                             ctx.state
                                 .get_diff(stile, bel, &mux_name, format!("{in_name}.BIDI_S"));
@@ -543,7 +543,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let mut inps = vec![];
                 let mut got_empty = false;
                 for &wire_from in &mux.ins {
-                    let in_name = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                    let in_name = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
                     let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
                     if diff.bits.is_empty() {
                         got_empty = true;
@@ -591,7 +591,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 for &wire_from in &mux.ins {
                     let in_name = intdb.wires.key(wire_from.1);
                     assert_eq!(wire_from.0, TileCellId::from_idx(0));
-                    let val_name = format!("{}.{}", wire_from.0, in_name);
+                    let val_name = format!("{:#}.{}", wire_from.0, in_name);
                     let diff =
                         ctx.state
                             .get_diff(tile, "INT", format!("MUX.{out_name}"), &val_name);

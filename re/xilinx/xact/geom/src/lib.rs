@@ -1,35 +1,31 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
+use bincode::{Decode, Encode};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_xact_naming::db::NamingDb;
 use prjcombine_re_xilinx_xact_xc2000::ExpandedNamedDevice;
+use prjcombine_types::db::{BondId, ChipId};
 use prjcombine_xc2000::{
     bond::Bond,
     chip::{Chip, ChipKind},
     expanded::ExpandedDevice,
 };
-use serde::{Deserialize, Serialize};
-use unnamed_entity::{EntityVec, entity_id};
+use unnamed_entity::EntityVec;
 
-entity_id! {
-    pub id ChipId usize;
-    pub id BondId usize;
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct DeviceBond {
     pub name: String,
     pub bond: BondId,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct Device {
     pub name: String,
     pub chip: ChipId,
     pub bonds: Vec<DeviceBond>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct GeomDb {
     pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
@@ -42,15 +38,15 @@ impl GeomDb {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
         let f = File::open(path)?;
         let mut cf = zstd::stream::Decoder::new(f)?;
-        let config = bincode::config::legacy();
-        Ok(bincode::serde::decode_from_std_read(&mut cf, config)?)
+        let config = bincode::config::standard();
+        Ok(bincode::decode_from_std_read(&mut cf, config)?)
     }
 
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn Error>> {
         let f = File::create(path)?;
         let mut cf = zstd::stream::Encoder::new(f, 9)?;
-        let config = bincode::config::legacy();
-        bincode::serde::encode_into_std_write(self, &mut cf, config)?;
+        let config = bincode::config::standard();
+        bincode::encode_into_std_write(self, &mut cf, config)?;
         cf.finish()?;
         Ok(())
     }

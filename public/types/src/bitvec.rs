@@ -255,62 +255,6 @@ mod bincode {
     }
 }
 
-mod serde {
-    use serde::{
-        Deserialize, Deserializer, Serialize,
-        de::{SeqAccess, Visitor},
-        ser::SerializeSeq,
-    };
-
-    use super::BitVec;
-
-    impl Serialize for BitVec {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer,
-        {
-            let mut seq = serializer.serialize_seq(Some(self.len()))?;
-            for element in self {
-                seq.serialize_element(&element)?;
-            }
-            seq.end()
-        }
-    }
-
-    #[allow(clippy::type_complexity)]
-    struct DeserializeVisitor;
-
-    impl<'de> Visitor<'de> for DeserializeVisitor {
-        type Value = BitVec;
-
-        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-            formatter.write_str("bitvec")
-        }
-
-        fn visit_seq<S>(self, mut access: S) -> Result<Self::Value, S::Error>
-        where
-            S: SeqAccess<'de>,
-        {
-            let mut res = BitVec::with_capacity(access.size_hint().unwrap_or(0));
-
-            while let Some(value) = access.next_element()? {
-                res.push(value);
-            }
-
-            Ok(res)
-        }
-    }
-
-    impl<'de> Deserialize<'de> for BitVec {
-        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
-        {
-            deserializer.deserialize_seq(DeserializeVisitor)
-        }
-    }
-}
-
 mod jzon {
     use jzon::JsonValue;
 

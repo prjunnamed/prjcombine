@@ -1,15 +1,23 @@
 use std::collections::BTreeMap;
 
+use bincode::{Decode, Encode};
 use prjcombine_interconnect::db::{BelSlotId, IntDb, TileClassWire};
-use serde::{Deserialize, Serialize};
-use unnamed_entity::{EntityMap, entity_id};
+use unnamed_entity::{
+    EntityMap,
+    id::{EntityIdU16, EntityTag},
+};
 
-entity_id! {
-    pub id NodeNamingId u16, reserve 1;
-    pub id NodeRawTileId u16, reserve 1;
+pub struct NodeRawTileTag;
+impl EntityTag for NodeRawTileTag {
+    const PREFIX: &'static str = "RT";
 }
+impl EntityTag for NodeNaming {
+    const PREFIX: &'static str = "TNCLS";
+}
+pub type NodeNamingId = EntityIdU16<NodeNaming>;
+pub type NodeRawTileId = EntityIdU16<NodeRawTileTag>;
 
-#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct NamingDb {
     pub node_namings: EntityMap<NodeNamingId, String, NodeNaming>,
     pub tile_widths: BTreeMap<String, usize>,
@@ -26,19 +34,19 @@ impl NamingDb {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct NodeNaming {
     pub int_pips: BTreeMap<(TileClassWire, TileClassWire), IntPipNaming>,
     pub bel_pips: BTreeMap<(BelSlotId, String), PipNaming>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum IntPipNaming {
     Pip(PipNaming),
     Box(PipNaming, PipNaming),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct PipNaming {
     pub rt: NodeRawTileId,
     pub x: usize,

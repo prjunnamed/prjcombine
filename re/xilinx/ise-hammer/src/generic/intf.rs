@@ -183,13 +183,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let mux_name = if node.cells.len() == 1 {
                         format!("MUX.{}", intdb.wires.key(wire.1))
                     } else {
-                        format!("MUX.{}.{}", wire.0, intdb.wires.key(wire.1))
+                        format!("MUX.{:#}.{}", wire.0, intdb.wires.key(wire.1))
                     };
                     for &wire_from in inps {
                         let in_name = if node.cells.len() == 1 {
                             intdb.wires.key(wire_from.1).to_string()
                         } else {
-                            format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
+                            format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1))
                         };
                         ctx.build()
                             .prop(IntMutex::new("INTF".into()))
@@ -238,14 +238,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let mux_name = if node.cells.len() == 1 {
                         format!("MUX.{}", intdb.wires.key(wire.1))
                     } else {
-                        format!("MUX.{}.{}", wire.0, intdb.wires.key(wire.1))
+                        format!("MUX.{:#}.{}", wire.0, intdb.wires.key(wire.1))
                     };
                     let mut mux_inps = vec![];
                     for &wire_from in inps {
                         let in_name = if node.cells.len() == 1 {
                             intdb.wires.key(wire_from.1).to_string()
                         } else {
-                            format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
+                            format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1))
                         };
                         let diff = ctx.state.get_diff(name, "INTF", &mux_name, &in_name);
 

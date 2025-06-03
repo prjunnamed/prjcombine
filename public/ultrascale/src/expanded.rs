@@ -1,7 +1,7 @@
 use bimap::BiHashMap;
+use bincode::{Decode, Encode};
 use prjcombine_interconnect::db::RegionSlotId;
 use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId, TileIobId};
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -11,7 +11,7 @@ use crate::bond::SharedCfgPin;
 
 pub const REGION_LEAF: RegionSlotId = RegionSlotId::from_idx_const(0);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ClkSrc {
     DspSplitter(ColId),
     Gt(ColId),
@@ -20,7 +20,7 @@ pub enum ClkSrc {
     RightHdio(ColId),
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct HpioCoord {
     pub die: DieId,
     pub col: ColId,
@@ -28,7 +28,7 @@ pub struct HpioCoord {
     pub iob: TileIobId,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct HdioCoord {
     pub die: DieId,
     pub col: ColId,
@@ -36,35 +36,35 @@ pub struct HdioCoord {
     pub iob: TileIobId,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum IoCoord {
     Hpio(HpioCoord),
     Hdio(HdioCoord),
     HdioLc(HdioCoord),
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct GtCoord {
     pub die: DieId,
     pub col: ColId,
     pub reg: RegId,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum IoKind {
     Hpio,
     Hrio,
     Hdio,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum IoDiffKind {
     None,
     P(IoCoord),
     N(IoCoord),
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Encode, Decode)]
 pub struct IoInfo {
     pub kind: IoKind,
     pub bank: u32,
@@ -76,7 +76,7 @@ pub struct IoInfo {
     pub sm_pair: Option<u32>,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Encode, Decode)]
 pub struct GtInfo {
     pub kind: IoRowKind,
     pub bank: u32,

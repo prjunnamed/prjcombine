@@ -93,7 +93,6 @@ prjcombine-xc9500 = { path = "public/xc9500" }
 prjcombine-xpla3 = { path = "public/xpla3" }
 prjcombine-coolrunner2 = { path = "public/coolrunner2" }
 # dependencies shared with public crates (keep in sync)
-serde = { version = "1.0", features = ["derive"] }
 zstd = "0.13"
 bincode = { version = "2.0", features = ["serde"] }
 unnamed_entity = { version = "0.1.7", features = ["bitvec", "map", "serde", "bincode"] }
@@ -156,6 +155,7 @@ prjcombine-re-xilinx-xact-geom = { path = "re/xilinx/xact/geom" }
 prjcombine-re-xilinx-xact-data = { path = "re/xilinx/xact/data" }
 prjcombine-re-xilinx-cpld = { path = "re/xilinx/cpld" }
 prjcombine-re-lattice-rawdump = { path = "re/lattice/rawdump" }
+serde = { version = "1.0", features = ["derive"] }
 enum-map = { version = "2.4", features = ["serde"] }
 indexmap = { version = "2", features = ["serde"] }
 rand = { version = "0.9", features = ["small_rng"] }

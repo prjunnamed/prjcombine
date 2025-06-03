@@ -7,7 +7,6 @@ version.workspace = true
 clap.workspace = true
 bitvec.workspace = true
 itertools.workspace = true
-serde.workspace = true
 bincode.workspace = true
 zstd.workspace = true
 jzon.workspace = true

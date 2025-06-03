@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
+use bincode::{Decode, Encode};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub enum BScanPin {
     Input(usize),
     Output(usize),

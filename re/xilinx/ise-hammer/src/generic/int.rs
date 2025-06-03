@@ -692,13 +692,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let mux_name = if node.cells.len() == 1 {
                 format!("MUX.{}", intdb.wires.key(wire_to.1))
             } else {
-                format!("MUX.{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
+                format!("MUX.{:#}.{}", wire_to.0, intdb.wires.key(wire_to.1))
             };
             for &wire_from in &mux.ins {
                 let in_name = if node.cells.len() == 1 {
                     intdb.wires.key(wire_from.1).to_string()
                 } else {
-                    format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
+                    format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1))
                 };
                 let mut builder = ctx
                     .build()
@@ -767,7 +767,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mux_name = if node.cells.len() == 1 {
                 format!("MUX.{}", intdb.wires.key(wire_to.1))
             } else {
-                format!("MUX.{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
+                format!("MUX.{:#}.{}", wire_to.0, intdb.wires.key(wire_to.1))
             };
             let mut inps = vec![];
             let mut got_empty = false;
@@ -775,7 +775,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let in_name = if node.cells.len() == 1 {
                     intdb.wires.key(wire_from.1).to_string()
                 } else {
-                    format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
+                    format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1))
                 };
                 let diff = ctx.state.get_diff(name, "INT", &mux_name, &in_name);
                 if let ExpandedDevice::Virtex2(edev) = ctx.edev {

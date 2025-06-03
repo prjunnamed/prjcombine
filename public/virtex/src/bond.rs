@@ -1,10 +1,10 @@
+use bincode::{Decode, Encode};
 use itertools::Itertools;
 use jzon::JsonValue;
 use prjcombine_interconnect::grid::EdgeIoCoord;
-use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub enum CfgPin {
     Tck,
     Tdi,
@@ -35,7 +35,7 @@ impl std::fmt::Display for CfgPin {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub enum BondPin {
     Clk(u32),
     Io(EdgeIoCoord),
@@ -66,7 +66,7 @@ impl std::fmt::Display for BondPin {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub struct Bond {
     pub pins: BTreeMap<String, BondPin>,
     // device bank -> pkg bank

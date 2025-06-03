@@ -23,7 +23,6 @@ prjcombine-re-xilinx-naming-spartan6.workspace = true
 prjcombine-re-xilinx-naming-virtex4.workspace = true
 prjcombine-re-xilinx-naming-ultrascale.workspace = true
 prjcombine-re-xilinx-naming-versal.workspace = true
-serde.workspace = true
 bincode.workspace = true
 zstd.workspace = true
 clap.workspace = true

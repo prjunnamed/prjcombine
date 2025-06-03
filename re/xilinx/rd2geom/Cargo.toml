@@ -9,6 +9,7 @@ path = "src/main.rs"
 
 [dependencies]
 unnamed_entity.workspace = true
+prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-virtex2.workspace = true
 prjcombine-virtex4.workspace = true
@@ -51,7 +52,6 @@ prjcombine-re-xilinx-rdverify-ultrascale.workspace = true
 prjcombine-re-xilinx-rdverify-versal.workspace = true
 clap.workspace = true
 simple-error.workspace = true
-serde.workspace = true
 std-semaphore.workspace = true
 
 [lints]

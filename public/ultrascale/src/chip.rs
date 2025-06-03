@@ -1,28 +1,34 @@
+use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::{
     dir::DirH,
     grid::{ColId, DieId, RowId, TileIobId},
 };
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
+use unnamed_entity::{
+    EntityId, EntityIds, EntityVec,
+    id::{EntityIdU8, EntityTag, EntityTagArith},
+};
 
-entity_id! {
-    pub id RegId u32, delta;
+pub struct RegTag;
+impl EntityTag for RegTag {
+    const PREFIX: &'static str = "REG";
 }
+impl EntityTagArith for RegTag {}
+pub type RegId = EntityIdU8<RegTag>;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ChipKind {
     Ultrascale,
     UltrascalePlus,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Interposer {
     pub primary: DieId,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Chip {
     pub kind: ChipKind,
     pub columns: EntityVec<ColId, Column>,
@@ -38,7 +44,7 @@ pub struct Chip {
     pub is_alt_cfg: bool,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ColumnKind {
     // both W and E; W can only be plain
     CleL(CleLKind),
@@ -105,14 +111,14 @@ impl std::fmt::Display for ColumnKind {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum CleMKind {
     Plain,
     ClkBuf,
     Laguna,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum BramKind {
     Plain,
     AuxClmp,
@@ -122,32 +128,32 @@ pub enum BramKind {
     Td,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum CleLKind {
     Plain,
     Dcg10,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum HardKind {
     Clk,
     NonClk,
     Term,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum DspKind {
     Plain,
     ClkBuf,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Column {
     pub kind: ColumnKind,
     pub clk: [Option<u8>; 4],
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum HardRowKind {
     None,
     Cfg,
@@ -163,13 +169,13 @@ pub enum HardRowKind {
     DfeG,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct HardColumn {
     pub col: ColId,
     pub regs: EntityVec<RegId, HardRowKind>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum IoRowKind {
     None,
     Hpio,
@@ -185,20 +191,20 @@ pub enum IoRowKind {
     RfDac,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct IoColumn {
     pub col: ColId,
     pub regs: EntityVec<RegId, IoRowKind>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Ps {
     pub col: ColId,
     pub has_vcu: bool,
     pub intf_kind: PsIntfKind,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum PsIntfKind {
     Alto,
     Da6,
@@ -214,7 +220,7 @@ impl Ps {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Encode, Decode)]
 pub enum DisabledPart {
     Region(DieId, RegId),
     TopRow(DieId, RegId),

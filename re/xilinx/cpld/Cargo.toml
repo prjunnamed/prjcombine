@@ -21,7 +21,6 @@ simple-error.workspace = true
 itertools.workspace = true
 rand.workspace = true
 rayon.workspace = true
-serde.workspace = true
 bincode.workspace = true
 zstd.workspace = true
 enum-map.workspace = true

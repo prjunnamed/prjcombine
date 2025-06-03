@@ -1,30 +1,26 @@
 use std::{collections::BTreeSet, error::Error, fs::File, path::Path};
 
+use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_types::bsdata::BsData;
-use serde::{Deserialize, Serialize};
-use unnamed_entity::{EntityId, EntityMap, EntityVec, entity_id};
+use prjcombine_types::{
+    bsdata::BsData,
+    db::{BondId, ChipId, DevBondId, DevSpeedId},
+};
+use unnamed_entity::{EntityId, EntityMap, EntityVec};
 
 use crate::{
     bond::Bond,
     chip::{Chip, DisabledPart},
 };
 
-entity_id! {
-    pub id ChipId usize;
-    pub id BondId usize;
-    pub id DevBondId usize;
-    pub id DevSpeedId usize;
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct DeviceCombo {
     pub devbond: DevBondId,
     pub speed: DevSpeedId,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Part {
     pub name: String,
     pub chip: ChipId,
@@ -34,7 +30,7 @@ pub struct Part {
     pub disabled: BTreeSet<DisabledPart>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Database {
     pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
@@ -47,15 +43,15 @@ impl Database {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
         let f = File::open(path)?;
         let mut cf = zstd::stream::Decoder::new(f)?;
-        let config = bincode::config::legacy();
-        Ok(bincode::serde::decode_from_std_read(&mut cf, config)?)
+        let config = bincode::config::standard();
+        Ok(bincode::decode_from_std_read(&mut cf, config)?)
     }
 
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn Error>> {
         let f = File::create(path)?;
         let mut cf = zstd::stream::Encoder::new(f, 9)?;
-        let config = bincode::config::legacy();
-        bincode::serde::encode_into_std_write(self, &mut cf, config)?;
+        let config = bincode::config::standard();
+        bincode::encode_into_std_write(self, &mut cf, config)?;
         cf.finish()?;
         Ok(())
     }

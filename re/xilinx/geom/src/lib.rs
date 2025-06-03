@@ -1,26 +1,24 @@
+use bincode::{Decode, Encode};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::{DieId, ExpandedGrid, NodeLoc};
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming::grid::ExpandedGridNaming;
+use prjcombine_types::db::{BondId, ChipId, DevBondId, DevSpeedId, InterposerId};
 use prjcombine_virtex4::gtz::GtzDb;
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
-use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
-use unnamed_entity::{EntityVec, entity_id};
+use unnamed_entity::id::{EntityIdU16, EntityTag};
+use unnamed_entity::EntityVec;
 
-entity_id! {
-    pub id ChipId usize;
-    pub id InterposerId usize;
-    pub id BondId usize;
-    pub id DevBondId usize;
-    pub id DevSpeedId usize;
-    pub id DeviceNamingId usize;
+impl EntityTag for DeviceNaming {
+    const PREFIX: &'static str = "DEVNAMING";
 }
+pub type DeviceNamingId = EntityIdU16<DeviceNaming>;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum Chip {
     Xc2000(prjcombine_xc2000::chip::Chip),
     Virtex(prjcombine_virtex::chip::Chip),
@@ -45,13 +43,13 @@ impl std::fmt::Display for Chip {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct DeviceBond {
     pub name: String,
     pub bond: BondId,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Encode, Decode)]
 pub enum DisabledPart {
     Virtex(prjcombine_virtex::chip::DisabledPart),
     Spartan6(prjcombine_spartan6::chip::DisabledPart),
@@ -72,14 +70,14 @@ impl std::fmt::Display for DisabledPart {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct DeviceCombo {
     pub name: String,
     pub devbond_idx: DevBondId,
     pub speed_idx: DevSpeedId,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
 pub enum Interposer {
     None,
     Virtex4(prjcombine_virtex4::chip::Interposer),
@@ -98,7 +96,7 @@ impl std::fmt::Display for Interposer {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct Device {
     pub name: String,
     pub chips: EntityVec<DieId, ChipId>,
@@ -111,7 +109,7 @@ pub struct Device {
     pub naming: DeviceNamingId,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum Bond {
     Xc2000(prjcombine_xc2000::bond::Bond),
     Virtex(prjcombine_virtex::bond::Bond),
@@ -160,7 +158,7 @@ impl Bond {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct GeomDb {
     pub chips: EntityVec<ChipId, Chip>,
     pub interposers: EntityVec<InterposerId, Interposer>,
@@ -172,7 +170,7 @@ pub struct GeomDb {
     pub gtz: GtzDb,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum DeviceNaming {
     Dummy,
     Ultrascale(prjcombine_re_xilinx_naming_ultrascale::DeviceNaming),
@@ -255,15 +253,15 @@ impl GeomDb {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
         let f = File::open(path)?;
         let mut cf = zstd::stream::Decoder::new(f)?;
-        let config = bincode::config::legacy();
-        Ok(bincode::serde::decode_from_std_read(&mut cf, config)?)
+        let config = bincode::config::standard();
+        Ok(bincode::decode_from_std_read(&mut cf, config)?)
     }
 
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn Error>> {
         let f = File::create(path)?;
         let mut cf = zstd::stream::Encoder::new(f, 9)?;
-        let config = bincode::config::legacy();
-        bincode::serde::encode_into_std_write(self, &mut cf, config)?;
+        let config = bincode::config::standard();
+        bincode::encode_into_std_write(self, &mut cf, config)?;
         cf.finish()?;
         Ok(())
     }

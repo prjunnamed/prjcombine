@@ -1,16 +1,22 @@
+use bincode::{Decode, Encode};
 use prjcombine_interconnect::{
     dir::DirH,
     grid::{ColId, DieId, RowId},
 };
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use unnamed_entity::{EntityId, EntityIds, EntityVec, entity_id};
+use unnamed_entity::{
+    EntityId, EntityIds, EntityVec,
+    id::{EntityIdU8, EntityTag, EntityTagArith},
+};
 
-entity_id! {
-    pub id RegId u32, delta;
+pub struct RegTag;
+impl EntityTag for RegTag {
+    const PREFIX: &'static str = "REG";
 }
+impl EntityTagArith for RegTag {}
+pub type RegId = EntityIdU8<RegTag>;
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Chip {
     pub columns: EntityVec<ColId, Column>,
     pub cols_vbrk: BTreeSet<ColId>,
@@ -27,34 +33,34 @@ pub struct Chip {
     pub right: RightKind,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum InterposerKind {
     Single,
     Column,
     MirrorSquare,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Interposer {
     pub kind: InterposerKind,
     pub sll_columns: EntityVec<DieId, Vec<ColId>>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Column {
     pub kind: ColumnKind,
     pub has_bli_s: bool,
     pub has_bli_n: bool,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum CleKind {
     Plain,
     Sll,
     Sll2,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum BramKind {
     Plain,
     ClkBuf,
@@ -62,7 +68,7 @@ pub enum BramKind {
     MaybeClkBufNoPd,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ColumnKind {
     Cle(CleKind),
     Bram(BramKind),
@@ -80,14 +86,14 @@ pub enum ColumnKind {
     None,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum PsKind {
     Ps9,
     PsX,
     PsXc,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum CpmKind {
     None,
     Cpm4,
@@ -95,7 +101,7 @@ pub enum CpmKind {
     Cpm5N,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum HardRowKind {
     None,
     Hdio,
@@ -114,13 +120,13 @@ pub enum HardRowKind {
     CpmExt,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct HardColumn {
     pub col: ColId,
     pub regs: EntityVec<RegId, HardRowKind>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum GtRowKind {
     None,
     Gty,
@@ -136,13 +142,13 @@ pub enum GtRowKind {
     Vcu2T,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum BotKind {
     Xpio(usize),
     Ssit,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum TopKind {
     Xpio(usize),
     Ssit,
@@ -152,7 +158,7 @@ pub enum TopKind {
     Hbm,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum RightKind {
     Term,
     Term2,
@@ -161,7 +167,7 @@ pub enum RightKind {
     Cidb,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum NocEndpoint {
     // tile idx, switch idx, port idx
     BotNps(usize, usize, usize),
@@ -177,7 +183,7 @@ pub enum NocEndpoint {
     TopDmc(usize, usize),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Encode, Decode)]
 pub enum DisabledPart {
     HardIp(DieId, ColId, RegId),
     HardIpSite(DieId, ColId, RegId),

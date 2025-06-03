@@ -2,6 +2,7 @@
 
 use std::collections::BTreeMap;
 
+use bincode::{Decode, Encode};
 use prjcombine_interconnect::{
     dir::DirH,
     grid::{ColId, DieId, RowId},
@@ -15,10 +16,9 @@ use prjcombine_ultrascale::{
     },
     expanded::{ExpandedDevice, GtCoord, IoCoord},
 };
-use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct DeviceNaming {
     pub rclk_alt_pins: BTreeMap<String, bool>,
 }

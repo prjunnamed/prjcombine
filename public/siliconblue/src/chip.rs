@@ -1,17 +1,17 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::{
     db::TileCellId,
     dir::{Dir, DirH, DirV},
     grid::{BelCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
-use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityIds, EntityVec};
 
 use crate::bels;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub enum ChipKind {
     Ice65L01,
     Ice65L04,
@@ -276,7 +276,7 @@ impl std::fmt::Display for ChipKind {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SharedCfgPin {
     SpiSo,
     SpiSi,
@@ -299,13 +299,13 @@ impl std::fmt::Display for SharedCfgPin {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub struct ExtraNode {
     pub io: BTreeMap<ExtraNodeIo, EdgeIoCoord>,
     pub tiles: EntityVec<TileCellId, (ColId, RowId)>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub enum ExtraNodeLoc {
     GbFabric(usize),
     GbIo(usize),
@@ -453,8 +453,8 @@ impl std::fmt::Display for ExtraNodeLoc {
             ExtraNodeLoc::LeddIp => write!(f, "LEDD_IP"),
             ExtraNodeLoc::LeddaIp => write!(f, "LEDDA_IP"),
             ExtraNodeLoc::IrIp => write!(f, "IR_IP"),
-            ExtraNodeLoc::Mac16(col, row) => write!(f, "MAC16_X{col}Y{row}"),
-            ExtraNodeLoc::Mac16Trim(col, row) => write!(f, "MAC16_TRIM_X{col}Y{row}"),
+            ExtraNodeLoc::Mac16(col, row) => write!(f, "MAC16_{col}{row}"),
+            ExtraNodeLoc::Mac16Trim(col, row) => write!(f, "MAC16_TRIM_{col}{row}"),
             ExtraNodeLoc::SpramPair(edge) => write!(f, "SPRAM_{edge}"),
             ExtraNodeLoc::FilterPair => write!(f, "FILTER"),
             ExtraNodeLoc::SmcClk => write!(f, "SMCCLK"),
@@ -462,7 +462,7 @@ impl std::fmt::Display for ExtraNodeLoc {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ExtraNodeIo {
     GbIn,
     PllA,
@@ -507,7 +507,7 @@ impl std::fmt::Display for ExtraNodeIo {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub struct Chip {
     pub kind: ChipKind,
     pub columns: usize,

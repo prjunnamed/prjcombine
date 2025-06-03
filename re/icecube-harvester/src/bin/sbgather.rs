@@ -5,9 +5,9 @@ use prjcombine_interconnect::db::IntDb;
 use prjcombine_siliconblue::{
     bond::Bond,
     chip::Chip,
-    db::{BondId, ChipId, Database, Part, SpeedId},
+    db::{Database, Part},
 };
-use prjcombine_types::{bsdata::BsData, speed::Speed};
+use prjcombine_types::{bsdata::BsData, db::{BondId, ChipId, SpeedId}, speed::Speed};
 use unnamed_entity::EntityVec;
 
 fn merge_int(dst: &mut IntDb, src: &IntDb, dbname: &str) {

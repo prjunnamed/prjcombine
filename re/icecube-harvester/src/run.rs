@@ -8,6 +8,7 @@ use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::process::Stdio;
 
+use bincode::{Decode, Encode};
 use prjcombine_interconnect::db::PinDir;
 use prjcombine_re_sdf::Sdf;
 use prjcombine_re_toolchain::Toolchain;
@@ -15,8 +16,8 @@ use prjcombine_siliconblue::bitstream::Bitstream;
 use prjcombine_siliconblue::chip::ChipKind;
 use prjcombine_types::bitvec::BitVec;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use serde::{Deserialize, Serialize};
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
+use unnamed_entity::id::{EntityIdU32, EntityTag};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 use walkdir::WalkDir;
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
@@ -24,11 +25,7 @@ use zip::{CompressionMethod, ZipArchive, ZipWriter};
 use crate::parts::Part;
 use crate::prims::{Primitive, PropKind, get_prims};
 
-entity_id! {
-    pub id InstId u32;
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Encode, Decode)]
 pub struct Instance {
     pub kind: String,
     pub pins: BTreeMap<InstPin, InstPinSource>,
@@ -36,6 +33,11 @@ pub struct Instance {
     pub loc: Option<RawLoc>,
     pub io: BTreeMap<InstPin, String>,
 }
+
+impl EntityTag for Instance {
+    const PREFIX: &'static str = "";
+}
+pub type InstId = EntityIdU32<Instance>;
 
 impl Instance {
     pub fn new(kind: &str) -> Self {
@@ -82,7 +84,7 @@ impl Instance {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Encode, Decode)]
 pub enum InstPinSource {
     Gnd,
     Vcc,
@@ -90,13 +92,13 @@ pub enum InstPinSource {
     TopPort,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub enum InstPin {
     Simple(String),
     Indexed(String, usize),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Encode, Decode)]
 pub struct Design {
     pub kind: ChipKind,
     pub device: String,
@@ -135,7 +137,7 @@ pub struct RunResult {
     pub sdf: Sdf,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub struct RawLoc {
     pub x: u32,
     pub y: u32,
@@ -728,9 +730,9 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
     if let Ok(ok_zip) = File::open(&ok_path) {
         if let Ok(mut ok_zip) = ZipArchive::new(ok_zip) {
             let mut design_file = ok_zip.by_name("design").unwrap();
-            let config = bincode::config::legacy();
+            let config = bincode::config::standard();
             let cur_design: Design =
-                bincode::serde::decode_from_std_read(&mut design_file, config).unwrap();
+                bincode::decode_from_std_read(&mut design_file, config).unwrap();
             core::mem::drop(design_file);
             if cur_design == *design {
                 return Ok(get_result(&mut ok_zip));
@@ -741,9 +743,9 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
     if let Ok(fail_zip) = File::open(&fail_path) {
         if let Ok(mut fail_zip) = ZipArchive::new(fail_zip) {
             let mut design_file = fail_zip.by_name("design").unwrap();
-            let config = bincode::config::legacy();
+            let config = bincode::config::standard();
             let cur_design: Design =
-                bincode::serde::decode_from_std_read(&mut design_file, config).unwrap();
+                bincode::decode_from_std_read(&mut design_file, config).unwrap();
             core::mem::drop(design_file);
             if cur_design == *design {
                 let mut stdout = String::new();
@@ -867,8 +869,8 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
     let status = cmd.output().unwrap();
     {
         let mut design_file = File::create(work_dir.join("design")).unwrap();
-        let config = bincode::config::legacy();
-        bincode::serde::encode_into_std_write(design, &mut design_file, config).unwrap();
+        let config = bincode::config::standard();
+        bincode::encode_into_std_write(design, &mut design_file, config).unwrap();
     }
     std::fs::write(work_dir.join("stdout"), &status.stdout).unwrap();
     std::fs::write(work_dir.join("stderr"), &status.stderr).unwrap();
@@ -941,9 +943,9 @@ pub fn get_cached_designs(
         let zip = ok_dir.join(format!("{key}.zip"));
         let mut zip = ZipArchive::new(File::open(zip).unwrap()).unwrap();
         let mut design_file = zip.by_name("design").unwrap();
-        let config = bincode::config::legacy();
+        let config = bincode::config::standard();
         let design: Design =
-            bincode::serde::decode_from_std_read(&mut design_file, config).unwrap();
+            bincode::decode_from_std_read(&mut design_file, config).unwrap();
         core::mem::drop(design_file);
         (key, design, get_result(&mut zip))
     })

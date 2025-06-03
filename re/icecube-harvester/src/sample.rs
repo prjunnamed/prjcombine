@@ -184,7 +184,7 @@ pub fn make_sample(
                                 );
                             } else {
                                 sample
-                                    .add_global_pattern_single(format!("COLBUF:{col}.{row}.{idx}"));
+                                    .add_global_pattern_single(format!("COLBUF:{col:#}.{row:#}.{idx}"));
                             };
                         }
                         if io_hardip_outs.contains(&iwa) {
@@ -515,7 +515,7 @@ pub fn make_sample(
                                 let oiob = TileIobId::from_idx(iob.to_idx() ^ 1);
                                 sample.add_tiled_pattern(
                                     &[BitOwner::Main(col, row)],
-                                    format!("{tcls_ioi}:IO{oiob}:OUTPUT_ENABLE:BIT0"),
+                                    format!("{tcls_ioi}:IO{oiob:#}:OUTPUT_ENABLE:BIT0"),
                                 );
                             }
                         }
@@ -583,7 +583,7 @@ pub fn make_sample(
                         if weak_pullup.ends_with("0") {
                             sample.add_tiled_pattern_single(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls_iob}:IOB{iob}:WEAK_PULLUP:DISABLE"),
+                                format!("{tcls_iob}:IOB{iob:#}:WEAK_PULLUP:DISABLE"),
                             );
                         }
                         let pullup = &inst.props["PULLUP"];
@@ -591,12 +591,12 @@ pub fn make_sample(
                             let pullup_kind = &inst.props["PULLUP_RESISTOR"];
                             sample.add_tiled_pattern_single(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls_iob}:IOB{iob}:PULLUP:{pullup_kind}"),
+                                format!("{tcls_iob}:IOB{iob:#}:PULLUP:{pullup_kind}"),
                             );
                         } else {
                             sample.add_tiled_pattern_single(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls_iob}:IOB{iob}:PULLUP:DISABLE"),
+                                format!("{tcls_iob}:IOB{iob:#}:PULLUP:DISABLE"),
                             );
                         }
                     } else {
@@ -608,21 +608,21 @@ pub fn make_sample(
                             if !pullup {
                                 sample.add_tiled_pattern_single(
                                     &[BitOwner::Main(col, row)],
-                                    format!("{tcls_iob}:IOB{iob}:PULLUP:DISABLE"),
+                                    format!("{tcls_iob}:IOB{iob:#}:PULLUP:DISABLE"),
                                 );
                                 sample.add_tiled_pattern_single(
                                     &[BitOwner::Main(col, row)],
-                                    format!("{tcls_iob}:IOB{iob}:WEAK_PULLUP:DISABLE"),
+                                    format!("{tcls_iob}:IOB{iob:#}:WEAK_PULLUP:DISABLE"),
                                 );
                             } else if let Some(pullup_kind) = inst.props.get("PULLUP_RESISTOR") {
                                 if pullup_kind != "100K" {
                                     sample.add_tiled_pattern_single(
                                         &[BitOwner::Main(col, row)],
-                                        format!("{tcls_iob}:IOB{iob}:WEAK_PULLUP:DISABLE"),
+                                        format!("{tcls_iob}:IOB{iob:#}:WEAK_PULLUP:DISABLE"),
                                     );
                                     sample.add_tiled_pattern_single(
                                         &[BitOwner::Main(col, row)],
-                                        format!("{tcls_iob}:IOB{iob}:PULLUP:{pullup_kind}"),
+                                        format!("{tcls_iob}:IOB{iob:#}:PULLUP:{pullup_kind}"),
                                     );
                                 }
                             }
@@ -630,7 +630,7 @@ pub fn make_sample(
                             if !pullup && !(io.edge() == Dir::W && edev.chip.kind.has_vref()) {
                                 sample.add_tiled_pattern_single(
                                     &[BitOwner::Main(col, row)],
-                                    format!("{tcls_iob}:IOB{iob}:PULLUP:DISABLE"),
+                                    format!("{tcls_iob}:IOB{iob:#}:PULLUP:DISABLE"),
                                 );
                             }
                         } else {
@@ -642,7 +642,7 @@ pub fn make_sample(
                     if is_lvds && !edev.chip.kind.has_vref() {
                         sample.add_tiled_pattern_single(
                             &[BitOwner::Main(col, row)],
-                            format!("{tcls_iob}:IOB{iob}:LVDS_INPUT:BIT0"),
+                            format!("{tcls_iob}:IOB{iob:#}:LVDS_INPUT:BIT0"),
                         );
                         let oiob = TileIobId::from_idx(iob.to_idx() ^ 1);
                         let oio = io.with_iob(oiob);
@@ -651,12 +651,12 @@ pub fn make_sample(
                         } else {
                             sample.add_tiled_pattern_single(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls_iob}:IOB{oiob}:PULLUP:DISABLE"),
+                                format!("{tcls_iob}:IOB{oiob:#}:PULLUP:DISABLE"),
                             );
                             if edev.chip.kind.has_multi_pullup() {
                                 sample.add_tiled_pattern_single(
                                     &[BitOwner::Main(col, row)],
-                                    format!("{tcls_iob}:IOB{oiob}:WEAK_PULLUP:DISABLE"),
+                                    format!("{tcls_iob}:IOB{oiob:#}:WEAK_PULLUP:DISABLE"),
                                 );
                             }
                         }
@@ -665,7 +665,7 @@ pub fn make_sample(
                         if let Some(iostd) = iostd {
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls_iob}:IOB{iob}:IOSTD:{iostd}"),
+                                format!("{tcls_iob}:IOB{iob:#}:IOSTD:{iostd}"),
                             );
                         }
                     }
@@ -679,7 +679,7 @@ pub fn make_sample(
                         } else {
                             sample.add_tiled_pattern_single(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls_iob}:IOB{iob}:IBUF_ENABLE:BIT0"),
+                                format!("{tcls_iob}:IOB{iob:#}:IBUF_ENABLE:BIT0"),
                             );
                         }
                     }
@@ -885,11 +885,11 @@ pub fn make_sample(
                     } else if kind.ends_with("_PAD") && edev.chip.kind.is_ice40() {
                         sample.add_tiled_pattern_single(
                             &tiles_io_a,
-                            format!("{tcls_iob}:IOB{iob_a}:PULLUP:DISABLE", iob_a = io_a.iob()),
+                            format!("{tcls_iob}:IOB{iob_a:#}:PULLUP:DISABLE", iob_a = io_a.iob()),
                         );
                         sample.add_tiled_pattern_single(
                             &tiles_io_a,
-                            format!("{tcls_iob}:IOB{iob_a}:IBUF_ENABLE:BIT0", iob_a = io_a.iob()),
+                            format!("{tcls_iob}:IOB{iob_a:#}:IBUF_ENABLE:BIT0", iob_a = io_a.iob()),
                         );
                     }
                     if edev.chip.kind.is_ultra() {
@@ -1426,7 +1426,7 @@ pub fn make_sample(
                                         sample.add_tiled_pattern_single(
                                             &[BitOwner::Main(iocol, iorow)],
                                             format!(
-                                                "{tcls_iob}:IOB{iob}:HARDIP_DEDICATED_OUT:BIT0"
+                                                "{tcls_iob}:IOB{iob:#}:HARDIP_DEDICATED_OUT:BIT0"
                                             ),
                                         );
                                     }
@@ -1442,7 +1442,7 @@ pub fn make_sample(
                                     } else {
                                         sample.add_tiled_pattern_single(
                                             &[BitOwner::Main(iocol, iorow)],
-                                            format!("{tcls_iob}:IOB{iob}:HARDIP_FABRIC_IN:BIT0"),
+                                            format!("{tcls_iob}:IOB{iob:#}:HARDIP_FABRIC_IN:BIT0"),
                                         );
                                     }
                                     all_ded_ins = false;
@@ -1530,7 +1530,7 @@ pub fn make_sample(
                                             edev.chip.kind.tile_class_iob(crd.edge()).unwrap();
                                         sample.add_tiled_pattern_single(
                                             &[BitOwner::Main(iocol, iorow)],
-                                            format!("{tcls_iob}:IOB{iob}:{prop}:BIT0"),
+                                            format!("{tcls_iob}:IOB{iob:#}:{prop}:BIT0"),
                                         );
                                     }
                                 }

@@ -1,12 +1,10 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use serde::{Deserialize, Serialize};
 
 /// A f64 with proper equality and total ordering.
 ///
 /// This is needed for speed data deduplication.
-#[derive(Clone, Copy, Serialize, Deserialize, Encode, Decode)]
-#[serde(transparent)]
+#[derive(Clone, Copy, Encode, Decode)]
 pub struct Scalar(pub f64);
 
 impl PartialEq for Scalar {
@@ -112,9 +110,7 @@ impl From<Scalar> for JsonValue {
 }
 
 /// A time-dimension value for speed data.  The unit is ps.
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, Encode, Decode,
-)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Time(pub Scalar);
 
 impl Time {
@@ -150,9 +146,7 @@ impl From<Time> for JsonValue {
 }
 
 /// A temperature-dimension value for speed data.  The unit is °C.
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, Encode, Decode,
-)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Temperature(pub Scalar);
 
 impl std::fmt::Display for Temperature {
@@ -168,9 +162,7 @@ impl From<Temperature> for JsonValue {
 }
 
 /// A voltage-dimension value for speed data.  The unit is V.
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, Encode, Decode,
-)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Voltage(pub Scalar);
 
 impl std::fmt::Display for Voltage {
@@ -186,9 +178,7 @@ impl From<Voltage> for JsonValue {
 }
 
 /// A resistance-dimension value for speed data.  The unit is Ω.
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, Encode, Decode,
-)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Resistance(pub Scalar);
 
 impl std::fmt::Display for Resistance {
@@ -204,9 +194,7 @@ impl From<Resistance> for JsonValue {
 }
 
 /// A capacitance-dimension value for speed data.  The unit is pF.
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, Encode, Decode,
-)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Capacitance(pub Scalar);
 
 impl std::fmt::Display for Capacitance {

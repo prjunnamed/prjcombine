@@ -1,19 +1,19 @@
+use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::grid::{BelCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId};
-use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityIds};
 
 use crate::bels;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ChipKind {
     Virtex,
     VirtexE,
     VirtexEM,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SharedCfgPin {
     Data(u8), // ×8
     CsB,
@@ -34,7 +34,7 @@ impl std::fmt::Display for SharedCfgPin {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Chip {
     pub kind: ChipKind,
     pub columns: usize,
@@ -44,7 +44,7 @@ pub struct Chip {
     pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Encode, Decode)]
 pub enum DisabledPart {
     // Virtex-E: primary DLLs are disabled
     PrimaryDlls,

@@ -596,7 +596,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 ctx.tiledb.insert(
                     tile,
                     "INT",
-                    format!("INV.{}.{}", wire.0, intdb.wires.key(wire.1)),
+                    format!("INV.{:#}.{}", wire.0, intdb.wires.key(wire.1)),
                     sinv,
                 );
                 ctx.collect_enum(tile, bel, "DISABLE_ATTR", &["HIGH", "LOW"]);

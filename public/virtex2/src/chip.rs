@@ -1,8 +1,8 @@
+use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::db::TileCellId;
 use prjcombine_interconnect::dir::{Dir, DirH};
 use prjcombine_interconnect::grid::{BelCoord, ColId, Coord, DieId, EdgeIoCoord, RowId, TileIobId};
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -11,7 +11,9 @@ use crate::iob::{
     IobKind, IobTileData, get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w,
 };
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode,
+)]
 pub enum ChipKind {
     Virtex2,
     Virtex2P,
@@ -38,7 +40,7 @@ impl ChipKind {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Chip {
     pub kind: ChipKind,
     pub columns: EntityVec<ColId, Column>,
@@ -64,13 +66,13 @@ pub struct Chip {
     pub dci_io_alt: BTreeMap<u32, (EdgeIoCoord, EdgeIoCoord)>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Column {
     pub kind: ColumnKind,
     pub io: ColumnIoKind,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ColumnKind {
     Io,
     Clb,
@@ -79,7 +81,7 @@ pub enum ColumnKind {
     Dsp,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ColumnIoKind {
     None,
     Single,
@@ -95,7 +97,7 @@ pub enum ColumnIoKind {
     DoubleRightClk(u8),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum RowIoKind {
     None,
     Single,
@@ -106,14 +108,16 @@ pub enum RowIoKind {
     DoubleTop(u8),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum Dcms {
     Two,
     Four,
     Eight,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode,
+)]
 pub enum SharedCfgPin {
     Data(u8), // ×8
     CsiB,     // Called CS_B on Virtex 2 and Spartan 3.
@@ -161,7 +165,7 @@ impl std::fmt::Display for SharedCfgPin {
     }
 }
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Encode, Decode)]
 pub enum DcmPairKind {
     Bot,
     BotSingle,
@@ -174,14 +178,14 @@ pub enum DcmPairKind {
     Bram,
 }
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Encode, Decode)]
 pub struct DcmPair {
     pub kind: DcmPairKind,
     pub col: ColId,
     pub row: RowId,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum IoDiffKind {
     P(TileIobId),
     N(TileIobId),

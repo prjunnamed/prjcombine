@@ -31,9 +31,9 @@ prjcombine-interconnect = { path = "interconnect" }
 prjcombine-jed = { path = "jed" }
 prjcombine-xilinx-bitstream = { path = "xilinx-bitstream" }
 jzon = "0.12"
-bincode = { version = "2.0", features = ["serde"] }
-unnamed_entity = { version = "0.1.7", features = ["bitvec", "map", "serde", "bincode"] }
-bitvec = { version = "1.0", features = ["serde"] }
+bincode = "2.0"
+unnamed_entity = { version = "0.1.7", features = ["bitvec", "map", "bincode"] }
+bitvec = "1.0"
 itertools = "0.14"
 arrayvec = "0.7.6"
 ndarray = "0.16"
@@ -45,8 +45,6 @@ aes = "0.8.4"
 sha2 = "0.10.8"
 assert_matches = "1.5"
 clap = "4.1"
-# these are slated to be removed, one way or another
-serde = { version = "1.0", features = ["derive"] }
 zstd = "0.13"
 
 [profile.dev]

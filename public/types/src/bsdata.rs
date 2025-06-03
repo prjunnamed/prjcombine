@@ -9,13 +9,10 @@ use std::{
 use bincode::{Decode, Encode};
 use itertools::*;
 use jzon::JsonValue;
-use serde::{Deserialize, Serialize};
 
 use crate::bitvec::BitVec;
 
-#[derive(
-    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, Encode, Decode,
-)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct TileBit {
     pub tile: usize,
     pub frame: usize,
@@ -34,7 +31,7 @@ impl core::fmt::Debug for TileBit {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Encode, Decode, Default)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, Default)]
 pub struct Tile {
     pub items: BTreeMap<String, TileItem>,
 }
@@ -79,7 +76,7 @@ impl Tile {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct TileItem {
     pub bits: Vec<TileBit>,
     pub kind: TileItemKind,
@@ -163,13 +160,13 @@ impl TileItem {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize, Encode, Decode)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum TileItemKind {
     Enum { values: BTreeMap<String, BitVec> },
     BitVec { invert: BitVec },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum DbValue {
     String(String),
     BitVec(BitVec),
@@ -210,7 +207,7 @@ impl DbValue {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct BsData {
     pub tiles: BTreeMap<String, Tile>,
     pub device_data: BTreeMap<String, BTreeMap<String, DbValue>>,

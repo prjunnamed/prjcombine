@@ -1,16 +1,27 @@
 use std::collections::BTreeMap;
 
+use bincode::{Decode, Encode};
 use prjcombine_interconnect::db::{BelSlotId, IntDb, TileClassWire, TileIriId, WireId};
-use serde::{Deserialize, Serialize};
-use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
+use unnamed_entity::{
+    EntityId, EntityMap, EntityPartVec, EntityVec,
+    id::{EntityIdU16, EntityTag},
+};
 
-entity_id! {
-    pub id TileClassNamingId u16, reserve 1;
-    pub id ConnectorClassNamingId u16, reserve 1;
-    pub id RawTileId u16, reserve 1;
+pub struct RawTileTag;
+impl EntityTag for RawTileTag {
+    const PREFIX: &'static str = "RT";
 }
+impl EntityTag for TileClassNaming {
+    const PREFIX: &'static str = "TNCLS";
+}
+impl EntityTag for ConnectorClassNaming {
+    const PREFIX: &'static str = "CNCLS";
+}
+pub type TileClassNamingId = EntityIdU16<TileClassNaming>;
+pub type ConnectorClassNamingId = EntityIdU16<ConnectorClassNaming>;
+pub type RawTileId = EntityIdU16<RawTileTag>;
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Encode, Decode, Default)]
 pub struct NamingDb {
     pub tile_class_namings: EntityMap<TileClassNamingId, String, TileClassNaming>,
     pub conn_class_namings: EntityMap<ConnectorClassNamingId, String, ConnectorClassNaming>,
@@ -33,7 +44,7 @@ impl NamingDb {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct TileClassNaming {
     pub wires: BTreeMap<TileClassWire, String>,
     pub wire_bufs: BTreeMap<TileClassWire, PipNaming>,
@@ -44,20 +55,20 @@ pub struct TileClassNaming {
     pub intf_wires_in: BTreeMap<TileClassWire, IntfWireInNaming>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct PipNaming {
     pub tile: RawTileId,
     pub wire_to: String,
     pub wire_from: String,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct BelNaming {
     pub tile: RawTileId,
     pub pins: BTreeMap<String, BelPinNaming>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct BelPinNaming {
     pub name: String,
     pub name_far: String,
@@ -66,19 +77,19 @@ pub struct BelPinNaming {
     pub is_intf_out: bool,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct IriNaming {
     pub tile: RawTileId,
     pub kind: String,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum IntfWireOutNaming {
     Simple { name: String },
     Buf { name_out: String, name_in: String },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum IntfWireInNaming {
     Simple {
         name: String,
@@ -112,20 +123,20 @@ pub enum IntfWireInNaming {
     },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct ConnectorClassNaming {
     pub wires_out: EntityPartVec<WireId, ConnectorWireOutNaming>,
     pub wires_in_near: EntityPartVec<WireId, String>,
     pub wires_in_far: EntityPartVec<WireId, ConnectorWireInFarNaming>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum ConnectorWireOutNaming {
     Simple { name: String },
     Buf { name_out: String, name_in: String },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum ConnectorWireInFarNaming {
     Simple {
         name: String,

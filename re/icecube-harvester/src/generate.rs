@@ -144,7 +144,7 @@ impl Generator<'_> {
             }
         }
         if let Some(side) = pll {
-            if self.rng.random() {
+            if self.rng.random_bool(0.9) {
                 return self.emit_pll(side);
             }
         }
@@ -1688,9 +1688,19 @@ impl Generator<'_> {
         for &key in self.cfg.edev.chip.extra_nodes.keys() {
             match key {
                 ExtraNodeLoc::Spi(side) => {
+                    if matches!(self.design.device.as_str(), "iCE5LP1K" | "iCE40LM1K")
+                        && side == DirH::E
+                    {
+                        continue;
+                    }
                     things.push(Thing::Spi(side));
                 }
                 ExtraNodeLoc::I2c(side) => {
+                    if matches!(self.design.device.as_str(), "iCE5LP1K" | "iCE40LM1K")
+                        && side == DirH::E
+                    {
+                        continue;
+                    }
                     things.push(Thing::I2c(side));
                 }
                 ExtraNodeLoc::I2cFifo(side) => {

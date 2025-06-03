@@ -1,5 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 
+use bincode::{Decode, Encode};
 use prjcombine_interconnect::{
     db::{TileClass, TileClassId},
     dir::DirH,
@@ -11,18 +12,17 @@ use prjcombine_versal::{
     chip::{BramKind, CleKind, ColumnKind, HardRowKind, InterposerKind, RegId, RightKind},
     expanded::ExpandedDevice,
 };
-use serde::{Deserialize, Serialize};
 use std::{cmp::max, collections::BTreeMap};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
 pub struct DeviceNaming {
     pub die: EntityVec<DieId, DieNaming>,
     pub is_dsp_v2: bool,
     pub is_vnoc2_scan_offset: bool,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
 pub struct DieNaming {
     pub hdio: BTreeMap<(ColId, RegId), HdioNaming>,
     pub sysmon_sat_vnoc: BTreeMap<(ColId, RegId), (u32, u32)>,
@@ -31,13 +31,13 @@ pub struct DieNaming {
     pub vnoc2: BTreeMap<(ColId, RegId), VNoc2Naming>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
 pub struct HdioNaming {
     pub iob_xy: (u32, u32),
     pub dpll_xy: (u32, u32),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
 pub struct VNoc2Naming {
     pub nsu_xy: (u32, u32),
     pub nmu_xy: (u32, u32),

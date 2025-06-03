@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
+use bincode::{Decode, Encode};
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
 pub struct Bond {}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
