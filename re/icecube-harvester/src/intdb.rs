@@ -584,7 +584,7 @@ impl<'a> MiscNodeBuilder<'a> {
             self.node,
             ExtraNode {
                 io: self.io,
-                tiles: new_tiles,
+                cells: new_tiles,
             },
         )
     }

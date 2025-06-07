@@ -1163,7 +1163,7 @@ impl PartContext<'_> {
                 ExtraNodeLoc::LatchIo(edge),
                 ExtraNode {
                     io: Default::default(),
-                    tiles: EntityVec::from_iter([(
+                    cells: EntityVec::from_iter([(
                         ColId::from_idx(x as usize),
                         RowId::from_idx(y as usize),
                     )]),
@@ -1184,7 +1184,7 @@ impl PartContext<'_> {
                 ExtraNodeLoc::GbFabric(index as usize),
                 ExtraNode {
                     io: Default::default(),
-                    tiles: EntityVec::from_iter([crd]),
+                    cells: EntityVec::from_iter([crd]),
                 },
             );
         }
@@ -1243,7 +1243,7 @@ impl PartContext<'_> {
         for (index, io) in gb_io {
             let node = ExtraNode {
                 io: BTreeMap::from_iter([(ExtraNodeIo::GbIn, io)]),
-                tiles: Default::default(),
+                cells: Default::default(),
             };
             let loc = ExtraNodeLoc::GbIo(index);
             self.chip.extra_nodes.insert(loc, node);
@@ -1449,7 +1449,7 @@ impl PartContext<'_> {
                         self.chip.extra_nodes[&ExtraNodeLoc::GbIo(3)].io[&ExtraNodeIo::GbIn],
                     ),
                 ]),
-                tiles: EntityVec::from_iter([(self.chip.col_mid() + 1, self.chip.row_s())]),
+                cells: EntityVec::from_iter([(self.chip.col_mid() + 1, self.chip.row_s())]),
             };
             let xloc = ExtraNodeLoc::PllStub(DirV::S);
             self.chip.extra_nodes.insert(xloc, xnode);
@@ -1768,7 +1768,7 @@ impl PartContext<'_> {
             ExtraNodeLoc::SmcClk,
             ExtraNode {
                 io: Default::default(),
-                tiles: EntityVec::from_iter([(col, row)]),
+                cells: EntityVec::from_iter([(col, row)]),
             },
         );
     }

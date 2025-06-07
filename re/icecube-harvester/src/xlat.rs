@@ -162,7 +162,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 unreachable!()
             };
             if let Some(node) = edev.chip.extra_nodes.get(&ExtraNodeLoc::LatchIo(edge)) {
-                return GenericNet::Int((DieId::from_idx(0), *node.tiles.first().unwrap(), wire));
+                return GenericNet::Int((DieId::from_idx(0), *node.cells.first().unwrap(), wire));
             } else {
                 return GenericNet::DummyHold(col, row);
             }
@@ -277,7 +277,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 let idx: usize = idx.parse().unwrap();
                 let wire = edev.egrid.db.get_wire("IMUX.IO.EXTRA");
                 let node = &edev.chip.extra_nodes[&ExtraNodeLoc::GbFabric(idx)];
-                return GenericNet::Int((DieId::from_idx(0), *node.tiles.first().unwrap(), wire));
+                return GenericNet::Int((DieId::from_idx(0), *node.cells.first().unwrap(), wire));
             } else if let Some(idx) = name.strip_prefix("padin_") {
                 let idx: usize = idx.parse().unwrap();
                 if let Some(node) = edev.chip.extra_nodes.get(&ExtraNodeLoc::GbIo(idx)) {

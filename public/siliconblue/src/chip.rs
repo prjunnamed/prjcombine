@@ -302,7 +302,7 @@ impl std::fmt::Display for SharedCfgPad {
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub struct ExtraNode {
     pub io: BTreeMap<ExtraNodeIo, EdgeIoCoord>,
-    pub tiles: EntityVec<TileCellId, (ColId, RowId)>,
+    pub cells: EntityVec<TileCellId, (ColId, RowId)>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
@@ -643,7 +643,7 @@ impl From<&ExtraNode> for JsonValue {
     fn from(node: &ExtraNode) -> Self {
         jzon::object! {
             io: jzon::object::Object::from_iter(node.io.iter().map(|(slot, io)| (slot.to_string(), io.to_string()))),
-            tiles: Vec::from_iter(node.tiles.values().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
+            cells: Vec::from_iter(node.cells.values().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
         }
     }
 }
@@ -694,8 +694,8 @@ impl std::fmt::Display for Chip {
             for (slot, io) in &node.io {
                 writeln!(f, "\t\tIO {slot}: {io}")?;
             }
-            for (tile, (col, row)) in &node.tiles {
-                writeln!(f, "\t\tTILE {tile}: X{col}Y{row}")?;
+            for (tile, (col, row)) in &node.cells {
+                writeln!(f, "\t\tTILE {tile}: {col}{row}")?;
             }
         }
         writeln!(f, "\tIOB:")?;

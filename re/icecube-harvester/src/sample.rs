@@ -87,7 +87,7 @@ pub fn make_sample(
     let mut io_hardip_outs = HashSet::new();
     if edev.chip.kind == ChipKind::Ice40R04 {
         for key in [ExtraNodeLoc::LsOsc, ExtraNodeLoc::HsOsc] {
-            let crd = *edev.chip.extra_nodes[&key].tiles.first().unwrap();
+            let crd = *edev.chip.extra_nodes[&key].cells.first().unwrap();
             let nloc = edev
                 .egrid
                 .get_tile_by_class(die.die, crd, |kind| kind == key.tile_class(edev.chip.kind));
@@ -542,7 +542,7 @@ pub fn make_sample(
                                                 if edev.chip.kind.is_ice65() {
                                                     vec![BitOwner::Pll(0), BitOwner::Pll(1)]
                                                 } else {
-                                                    Vec::from_iter(xnode.tiles.values().map(
+                                                    Vec::from_iter(xnode.cells.values().map(
                                                         |&(col, row)| BitOwner::Main(col, row),
                                                     ))
                                                 };
@@ -865,7 +865,7 @@ pub fn make_sample(
                     } else {
                         Vec::from_iter(
                             xnode
-                                .tiles
+                                .cells
                                 .values()
                                 .map(|&(col, row)| BitOwner::Main(col, row)),
                         )
@@ -1011,7 +1011,7 @@ pub fn make_sample(
                     }
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&xnloc]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1066,7 +1066,7 @@ pub fn make_sample(
                 "SB_HFOSC" => {
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1096,7 +1096,7 @@ pub fn make_sample(
                 "SB_LFOSC" => {
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1113,7 +1113,7 @@ pub fn make_sample(
                 "SB_LED_DRV_CUR" => {
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::LedDrvCur]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1123,7 +1123,7 @@ pub fn make_sample(
                     );
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1140,7 +1140,7 @@ pub fn make_sample(
                 "SB_RGB_DRV" => {
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::RgbDrv]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1170,7 +1170,7 @@ pub fn make_sample(
                     has_led_v2 = true;
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::RgbaDrv]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1202,7 +1202,7 @@ pub fn make_sample(
                     if edev.chip.kind == ChipKind::Ice40T01 {
                         let tiles = Vec::from_iter(
                             edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
-                                .tiles
+                                .cells
                                 .values()
                                 .map(|&(col, row)| BitOwner::Main(col, row)),
                         );
@@ -1212,7 +1212,7 @@ pub fn make_sample(
                 "SB_IR_DRV" => {
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::IrDrv]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1241,7 +1241,7 @@ pub fn make_sample(
                     has_led_v2 = true;
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1279,7 +1279,7 @@ pub fn make_sample(
                     has_led_v2 = true;
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1305,7 +1305,7 @@ pub fn make_sample(
                     has_led_v2 = true;
                     let tiles = Vec::from_iter(
                         edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
-                            .tiles
+                            .cells
                             .values()
                             .map(|&(col, row)| BitOwner::Main(col, row)),
                     );
@@ -1339,7 +1339,7 @@ pub fn make_sample(
                             if loc.loc == sloc {
                                 let tiles = Vec::from_iter(
                                     edev.chip.extra_nodes[&key]
-                                        .tiles
+                                        .cells
                                         .values()
                                         .map(|&(col, row)| BitOwner::Main(col, row)),
                                 );
@@ -1357,7 +1357,7 @@ pub fn make_sample(
                         if loc.loc == sloc {
                             let tiles = Vec::from_iter(
                                 edev.chip.extra_nodes[&ExtraNodeLoc::FilterPair]
-                                    .tiles
+                                    .cells
                                     .values()
                                     .map(|&(col, row)| BitOwner::Main(col, row)),
                             );
@@ -1461,7 +1461,7 @@ pub fn make_sample(
                                 for (pin, pin_info) in &bel_info.pins {
                                     let (pin_tile, pin_wire) =
                                         *pin_info.wires.iter().next().unwrap();
-                                    let (pcol, prow) = xnode.tiles[pin_tile];
+                                    let (pcol, prow) = xnode.cells[pin_tile];
                                     if all_ded_outs
                                         && matches!(
                                             pin.as_str(),
@@ -1546,7 +1546,7 @@ pub fn make_sample(
         if led_v2_current_mode {
             let tiles = Vec::from_iter(
                 edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
-                    .tiles
+                    .cells
                     .values()
                     .map(|&(col, row)| BitOwner::Main(col, row)),
             );
@@ -1557,7 +1557,7 @@ pub fn make_sample(
             if val == "1" {
                 let tiles = Vec::from_iter(
                     edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
-                        .tiles
+                        .cells
                         .values()
                         .map(|&(col, row)| BitOwner::Main(col, row)),
                 );

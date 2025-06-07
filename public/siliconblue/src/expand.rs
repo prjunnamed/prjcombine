@@ -87,9 +87,9 @@ impl Chip {
                 continue;
             }
             die.add_tile(
-                *node.tiles.first().unwrap(),
+                *node.cells.first().unwrap(),
                 &loc.tile_class(self.kind),
-                &Vec::from_iter(node.tiles.values().copied()),
+                &Vec::from_iter(node.cells.values().copied()),
             );
         }
 
