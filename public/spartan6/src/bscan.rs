@@ -1,19 +1,19 @@
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::grid::{EdgeIoCoord, TileIobId};
-use prjcombine_types::bscan::{BScanBuilder, BScanPin};
+use prjcombine_types::bscan::{BScanBuilder, BScanPad};
 use unnamed_entity::EntityId;
 
 use crate::{
-    bond::CfgPin,
+    bond::CfgPad,
     chip::{Chip, ColumnIoKind},
 };
 
 #[derive(Debug)]
 pub struct BScan {
     pub bits: usize,
-    pub io: BTreeMap<EdgeIoCoord, BScanPin>,
-    pub cfg: BTreeMap<CfgPin, BScanPin>,
+    pub io: BTreeMap<EdgeIoCoord, BScanPad>,
+    pub cfg: BTreeMap<CfgPad, BScanPad>,
 }
 
 impl Chip {
@@ -49,7 +49,7 @@ impl Chip {
                 }
             }
         }
-        cfg.insert(CfgPin::ProgB, builder.get_toi());
+        cfg.insert(CfgPad::ProgB, builder.get_toi());
         // BIO
         for (col, &cd) in &self.columns {
             if cd.bio == ColumnIoKind::None {
@@ -69,9 +69,9 @@ impl Chip {
                 }
             }
         }
-        cfg.insert(CfgPin::Done, builder.get_toi());
-        cfg.insert(CfgPin::CmpCsB, builder.get_toi());
-        cfg.insert(CfgPin::Suspend, builder.get_toi());
+        cfg.insert(CfgPad::Done, builder.get_toi());
+        cfg.insert(CfgPad::CmpCsB, builder.get_toi());
+        cfg.insert(CfgPad::Suspend, builder.get_toi());
         // RIO
         for (row, &rd) in &self.rows {
             if rd.rio {

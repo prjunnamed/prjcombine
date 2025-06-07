@@ -1,17 +1,17 @@
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::grid::{EdgeIoCoord, TileIobId};
-use prjcombine_types::bscan::{BScanBuilder, BScanPin};
+use prjcombine_types::bscan::{BScanBuilder, BScanPad};
 use unnamed_entity::EntityId;
 
-use crate::{bond::CfgPin, chip::Chip};
+use crate::{bond::CfgPad, chip::Chip};
 
 #[derive(Debug)]
 pub struct BScan {
     pub bits: usize,
-    pub io: BTreeMap<EdgeIoCoord, BScanPin>,
-    pub clk: BTreeMap<u32, BScanPin>,
-    pub cfg: BTreeMap<CfgPin, BScanPin>,
+    pub io: BTreeMap<EdgeIoCoord, BScanPad>,
+    pub clk: BTreeMap<u32, BScanPad>,
+    pub cfg: BTreeMap<CfgPad, BScanPad>,
 }
 
 impl Chip {
@@ -45,7 +45,7 @@ impl Chip {
                 io.insert(crd, builder.get_toi());
             }
         }
-        for pin in [CfgPin::M1, CfgPin::M0, CfgPin::M2] {
+        for pin in [CfgPad::M1, CfgPad::M0, CfgPad::M2] {
             cfg.insert(pin, builder.get_i());
         }
         for col in self.columns() {
@@ -64,8 +64,8 @@ impl Chip {
                 io.insert(crd, builder.get_toi());
             }
         }
-        cfg.insert(CfgPin::Done, builder.get_toi());
-        cfg.insert(CfgPin::ProgB, builder.get_i());
+        cfg.insert(CfgPad::Done, builder.get_toi());
+        cfg.insert(CfgPad::ProgB, builder.get_i());
         for row in self.rows() {
             if row == self.row_s() || row == self.row_n() {
                 continue;
@@ -75,7 +75,7 @@ impl Chip {
                 io.insert(crd, builder.get_toi());
             }
         }
-        cfg.insert(CfgPin::Cclk, builder.get_toi());
+        cfg.insert(CfgPad::Cclk, builder.get_toi());
         BScan {
             bits: builder.bits,
             io,

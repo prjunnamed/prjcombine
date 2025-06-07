@@ -214,11 +214,11 @@ impl<'a> ExpandedDevice<'a> {
 
     pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
         match self {
-            ExpandedDevice::Xc2000(edev) => edev.node_bits(nloc),
-            ExpandedDevice::Virtex(edev) => edev.node_bits(nloc),
-            ExpandedDevice::Virtex2(edev) => edev.node_bits(nloc),
-            ExpandedDevice::Spartan6(edev) => edev.node_bits(nloc),
-            ExpandedDevice::Virtex4(edev) => edev.node_bits(nloc),
+            ExpandedDevice::Xc2000(edev) => edev.tile_bits(nloc),
+            ExpandedDevice::Virtex(edev) => edev.tile_bits(nloc),
+            ExpandedDevice::Virtex2(edev) => edev.tile_bits(nloc),
+            ExpandedDevice::Spartan6(edev) => edev.tile_bits(nloc),
+            ExpandedDevice::Virtex4(edev) => edev.tile_bits(nloc),
             ExpandedDevice::Ultrascale(_) => todo!(),
             ExpandedDevice::Versal(_) => todo!(),
         }

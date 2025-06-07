@@ -6,7 +6,7 @@ use prjcombine_types::{
     bsdata::{Tile, TileItemKind},
     cpld::{ClusterId, MacrocellCoord},
 };
-use prjcombine_xpla3::{BondPin, Database};
+use prjcombine_xpla3::{BondPad, Database};
 use unnamed_entity::{EntityId, EntityPartVec};
 
 use crate::{
@@ -115,7 +115,7 @@ pub fn gen_jed(
 fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
     struct BondData {
         names: Vec<String>,
-        pins: HashMap<BondPin, PinData>,
+        pins: HashMap<BondPad, PinData>,
     }
     struct PinData {
         pins: Vec<String>,
@@ -234,7 +234,7 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
         writeln!(buf).unwrap();
 
         let io_special_rev: HashMap<_, _> =
-            HashMap::from_iter(chip.io_special.iter().map(|(k, &mc)| (BondPin::Iob(mc), k)));
+            HashMap::from_iter(chip.io_special.iter().map(|(k, &mc)| (BondPad::Iob(mc), k)));
 
         writeln!(buf, r#"## I/O pins"#).unwrap();
         writeln!(buf).unwrap();
@@ -266,9 +266,9 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
                 writeln!(buf, r#"<tr>"#).unwrap();
                 writeln!(buf, r#"<td>IOB_{block}_{mc}</td>"#).unwrap();
                 for bond in bonds.values() {
-                    if let Some(pin) = bond.pins.get(&BondPin::Iob(mc)) {
+                    if let Some(pin) = bond.pins.get(&BondPad::Iob(mc)) {
                         let pins = pin.pins.join(", ");
-                        if let Some(spec) = io_special_rev.get(&BondPin::Iob(mc)) {
+                        if let Some(spec) = io_special_rev.get(&BondPad::Iob(mc)) {
                             writeln!(buf, r#"<td>{pins} ({spec})</td>"#).unwrap();
                         } else {
                             writeln!(buf, r#"<td>{pins}</td>"#).unwrap();
@@ -280,7 +280,7 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
                 writeln!(buf, r#"</tr>"#).unwrap();
             }
         }
-        for pin in [BondPin::PortEn, BondPin::Gnd, BondPin::Vcc, BondPin::Nc] {
+        for pin in [BondPad::PortEn, BondPad::Gnd, BondPad::Vcc, BondPad::Nc] {
             writeln!(buf, r#"<tr>"#).unwrap();
             writeln!(buf, r#"<td>{pin}</td>"#).unwrap();
             for bond in bonds.values() {

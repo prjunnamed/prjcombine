@@ -7,7 +7,7 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind, DisabledPart, HardRowKind, Interposer, IoRowKind, RegId};
 
-use crate::bond::SharedCfgPin;
+use crate::bond::SharedCfgPad;
 
 pub const REGION_LEAF: RegionSlotId = RegionSlotId::from_idx_const(0);
 
@@ -94,7 +94,7 @@ pub struct ExpandedDevice<'a> {
     pub is_cut: bool,
     pub is_cut_d: bool,
     pub io: Vec<IoCoord>,
-    pub cfg_io: EntityVec<DieId, BiHashMap<SharedCfgPin, IoCoord>>,
+    pub cfg_io: EntityVec<DieId, BiHashMap<SharedCfgPad, IoCoord>>,
     pub gt: Vec<GtCoord>,
     pub col_cfg_io: ColId,
     pub bankxlut: EntityPartVec<ColId, u32>,

@@ -277,7 +277,7 @@ impl std::fmt::Display for ChipKind {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum SharedCfgPin {
+pub enum SharedCfgPad {
     SpiSo,
     SpiSi,
     SpiSck,
@@ -286,15 +286,15 @@ pub enum SharedCfgPin {
     CbSel1,
 }
 
-impl std::fmt::Display for SharedCfgPin {
+impl std::fmt::Display for SharedCfgPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SharedCfgPin::SpiSo => write!(f, "SPI_SO"),
-            SharedCfgPin::SpiSi => write!(f, "SPI_SI"),
-            SharedCfgPin::SpiSck => write!(f, "SPI_SCK"),
-            SharedCfgPin::SpiCsB => write!(f, "SPI_CS_B"),
-            SharedCfgPin::CbSel0 => write!(f, "CBSEL0"),
-            SharedCfgPin::CbSel1 => write!(f, "CBSEL1"),
+            SharedCfgPad::SpiSo => write!(f, "SPI_SO"),
+            SharedCfgPad::SpiSi => write!(f, "SPI_SI"),
+            SharedCfgPad::SpiSck => write!(f, "SPI_SCK"),
+            SharedCfgPad::SpiCsB => write!(f, "SPI_CS_B"),
+            SharedCfgPad::CbSel0 => write!(f, "CBSEL0"),
+            SharedCfgPad::CbSel1 => write!(f, "CBSEL1"),
         }
     }
 }
@@ -517,7 +517,7 @@ pub struct Chip {
     pub row_mid: RowId,
     // (hclk row, start row, end row)
     pub rows_colbuf: Vec<(RowId, RowId, RowId)>,
-    pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPad, EdgeIoCoord>,
     pub io_iob: BTreeMap<EdgeIoCoord, EdgeIoCoord>,
     pub io_od: BTreeSet<EdgeIoCoord>,
     pub extra_nodes: BTreeMap<ExtraNodeLoc, ExtraNode>,

@@ -4,7 +4,7 @@ use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex2::{
     bels,
-    chip::{Chip, ChipKind, Column, ColumnIoKind, ColumnKind, Dcms, RowIoKind, SharedCfgPin},
+    chip::{Chip, ChipKind, Column, ColumnIoKind, ColumnKind, Dcms, RowIoKind, SharedCfgPad},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -460,29 +460,29 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
                     } else {
                         let cfg = match f {
                             "No_Pair" | "DIN" | "BUSY" | "MOSI" | "MISO" => continue,
-                            "CS_B" => SharedCfgPin::CsiB,
-                            "INIT_B" => SharedCfgPin::InitB,
-                            "RDWR_B" => SharedCfgPin::RdWrB,
-                            "DOUT" => SharedCfgPin::Dout,
+                            "CS_B" => SharedCfgPad::CsiB,
+                            "INIT_B" => SharedCfgPad::InitB,
+                            "RDWR_B" => SharedCfgPad::RdWrB,
+                            "DOUT" => SharedCfgPad::Dout,
                             // Spartan 3E, Spartan 3A only
-                            "M0" => SharedCfgPin::M0,
-                            "M1" => SharedCfgPin::M1,
-                            "M2" => SharedCfgPin::M2,
-                            "CSI_B" => SharedCfgPin::CsiB,
-                            "CSO_B" => SharedCfgPin::CsoB,
-                            "CCLK" => SharedCfgPin::Cclk,
-                            "HSWAP" | "PUDC_B" => SharedCfgPin::HswapEn,
-                            "LDC0" => SharedCfgPin::Ldc0,
-                            "LDC1" => SharedCfgPin::Ldc1,
-                            "LDC2" => SharedCfgPin::Ldc2,
-                            "HDC" => SharedCfgPin::Hdc,
-                            "AWAKE" => SharedCfgPin::Awake,
+                            "M0" => SharedCfgPad::M0,
+                            "M1" => SharedCfgPad::M1,
+                            "M2" => SharedCfgPad::M2,
+                            "CSI_B" => SharedCfgPad::CsiB,
+                            "CSO_B" => SharedCfgPad::CsoB,
+                            "CCLK" => SharedCfgPad::Cclk,
+                            "HSWAP" | "PUDC_B" => SharedCfgPad::HswapEn,
+                            "LDC0" => SharedCfgPad::Ldc0,
+                            "LDC1" => SharedCfgPad::Ldc1,
+                            "LDC2" => SharedCfgPad::Ldc2,
+                            "HDC" => SharedCfgPad::Hdc,
+                            "AWAKE" => SharedCfgPad::Awake,
                             _ => {
                                 if let Some((s, n)) = split_num(f) {
                                     match s {
                                         "VS" => continue,
-                                        "D" => SharedCfgPin::Data(n as u8),
-                                        "A" => SharedCfgPin::Addr(n as u8),
+                                        "D" => SharedCfgPad::Data(n as u8),
+                                        "A" => SharedCfgPad::Addr(n as u8),
                                         _ => {
                                             println!(
                                                 "UNK FUNC {f} {func} {coord:?}",

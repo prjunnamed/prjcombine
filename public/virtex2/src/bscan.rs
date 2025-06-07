@@ -1,17 +1,17 @@
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::grid::{EdgeIoCoord, TileIobId};
-use prjcombine_types::bscan::{BScanBuilder, BScanPin};
+use prjcombine_types::bscan::{BScanBuilder, BScanPad};
 use unnamed_entity::EntityId;
 
 use crate::{
-    bond::CfgPin,
+    bond::CfgPad,
     chip::{Chip, ChipKind, ColumnKind},
     iob::IobKind,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum FcCfgPin {
+pub enum FcCfgPad {
     Init,
     DoneO,
     DoneI,
@@ -26,9 +26,9 @@ pub enum FcCfgPin {
 #[derive(Debug)]
 pub struct BScan {
     pub bits: usize,
-    pub io: BTreeMap<EdgeIoCoord, BScanPin>,
-    pub cfg: BTreeMap<CfgPin, BScanPin>,
-    pub fc_cfg: BTreeMap<FcCfgPin, BScanPin>,
+    pub io: BTreeMap<EdgeIoCoord, BScanPad>,
+    pub cfg: BTreeMap<CfgPad, BScanPad>,
+    pub fc_cfg: BTreeMap<FcCfgPad, BScanPad>,
 }
 
 impl Chip {
@@ -48,7 +48,7 @@ impl Chip {
                     }
                 }
             }
-            cfg.insert(CfgPin::ProgB, builder.get_i());
+            cfg.insert(CfgPad::ProgB, builder.get_i());
             for row in self.rows.ids().rev() {
                 if row != self.row_s() && row != self.row_n() {
                     for i in (0..4).rev() {
@@ -59,7 +59,7 @@ impl Chip {
                     }
                 }
             }
-            for pin in [CfgPin::M1, CfgPin::M0, CfgPin::M2] {
+            for pin in [CfgPad::M1, CfgPad::M0, CfgPad::M2] {
                 cfg.insert(pin, builder.get_i());
             }
             for col in self.columns.ids() {
@@ -73,18 +73,18 @@ impl Chip {
                 }
             }
             for i in (0..8).rev() {
-                fc_cfg.insert(FcCfgPin::Dout(i), builder.get_o());
+                fc_cfg.insert(FcCfgPad::Dout(i), builder.get_o());
             }
-            fc_cfg.insert(FcCfgPin::Init, builder.get_o());
-            fc_cfg.insert(FcCfgPin::DoneO, builder.get_o());
-            fc_cfg.insert(FcCfgPin::PorEnB, builder.get_i());
+            fc_cfg.insert(FcCfgPad::Init, builder.get_o());
+            fc_cfg.insert(FcCfgPad::DoneO, builder.get_o());
+            fc_cfg.insert(FcCfgPad::PorEnB, builder.get_i());
             for i in (0..8).rev() {
-                fc_cfg.insert(FcCfgPin::Din(i), builder.get_i());
+                fc_cfg.insert(FcCfgPad::Din(i), builder.get_i());
             }
-            fc_cfg.insert(FcCfgPin::WriteB, builder.get_i());
-            fc_cfg.insert(FcCfgPin::DoneI, builder.get_i());
-            fc_cfg.insert(FcCfgPin::CsB, builder.get_i());
-            fc_cfg.insert(FcCfgPin::Cclk, builder.get_i());
+            fc_cfg.insert(FcCfgPad::WriteB, builder.get_i());
+            fc_cfg.insert(FcCfgPad::DoneI, builder.get_i());
+            fc_cfg.insert(FcCfgPad::CsB, builder.get_i());
+            fc_cfg.insert(FcCfgPad::Cclk, builder.get_i());
             for row in self.rows.ids() {
                 if row != self.row_s() && row != self.row_n() {
                     for i in 0..4 {
@@ -112,9 +112,9 @@ impl Chip {
                 }
             }
             if !self.kind.is_spartan3ea() {
-                cfg.insert(CfgPin::HswapEn, builder.get_i());
+                cfg.insert(CfgPad::HswapEn, builder.get_i());
             }
-            cfg.insert(CfgPin::ProgB, builder.get_i());
+            cfg.insert(CfgPad::ProgB, builder.get_i());
             for row in self.rows.ids().rev() {
                 let col = self.col_w();
                 if let Some((data, tidx)) = self.get_iob_tile_data((col, row)) {
@@ -131,7 +131,7 @@ impl Chip {
                 }
             }
             if !self.kind.is_spartan3ea() {
-                for pin in [CfgPin::M1, CfgPin::M0, CfgPin::M2] {
+                for pin in [CfgPad::M1, CfgPad::M0, CfgPad::M2] {
                     cfg.insert(pin, builder.get_i());
                 }
             }
@@ -150,15 +150,15 @@ impl Chip {
                     }
                 }
             }
-            cfg.insert(CfgPin::Done, builder.get_toi());
+            cfg.insert(CfgPad::Done, builder.get_toi());
             if self.kind.is_virtex2() {
-                cfg.insert(CfgPin::PwrdwnB, builder.get_i());
+                cfg.insert(CfgPad::PwrdwnB, builder.get_i());
             }
             if !self.kind.is_spartan3ea() {
-                cfg.insert(CfgPin::Cclk, builder.get_toi());
+                cfg.insert(CfgPad::Cclk, builder.get_toi());
             }
             if self.kind.is_spartan3a() {
-                cfg.insert(CfgPin::Suspend, builder.get_i());
+                cfg.insert(CfgPad::Suspend, builder.get_i());
             }
             for row in self.rows.ids() {
                 let col = self.col_e();

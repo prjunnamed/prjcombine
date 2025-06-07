@@ -77,7 +77,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeater {
                         attr: self.2.clone(),
                         val: self.3.into(),
                     },
-                    tiles: edev.node_bits(nnloc),
+                    tiles: edev.tile_bits(nnloc),
                 });
             }
         }

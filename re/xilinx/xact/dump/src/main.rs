@@ -10,7 +10,7 @@ use prjcombine_re_xilinx_xact_data::{
     pkg::get_pkg,
 };
 use prjcombine_re_xilinx_xact_geom::{Device, DeviceBond, GeomDb};
-use prjcombine_xc2000::{bond::BondPin, chip::ChipKind};
+use prjcombine_xc2000::{bond::BondPad, chip::ChipKind};
 
 mod extractor;
 mod xc2000;
@@ -132,8 +132,8 @@ fn main() {
                 let pin_xtl2 = &part.kv["OSCIOB2"][0];
                 let io_xtl1 = bond.pins[pin_xtl1];
                 let io_xtl2 = bond.pins[pin_xtl2];
-                assert_eq!(io_xtl1, BondPin::Io(endev.chip.io_xtl1()));
-                assert_eq!(io_xtl2, BondPin::Io(endev.chip.io_xtl2()));
+                assert_eq!(io_xtl1, BondPad::Io(endev.chip.io_xtl1()));
+                assert_eq!(io_xtl2, BondPad::Io(endev.chip.io_xtl2()));
                 if !cfg_io.is_empty() {
                     let chip = &mut db.chips[chip];
                     if chip.cfg_io.is_empty() {
@@ -150,8 +150,8 @@ fn main() {
                 let pin_xtl2 = &part.kv["OSCIOB2"][0];
                 let io_xtl1 = bond.pins[pin_xtl1];
                 let io_xtl2 = bond.pins[pin_xtl2];
-                assert_eq!(io_xtl1, BondPin::Io(endev.chip.io_xtl1()));
-                assert_eq!(io_xtl2, BondPin::Io(endev.chip.io_xtl2()));
+                assert_eq!(io_xtl1, BondPad::Io(endev.chip.io_xtl1()));
+                assert_eq!(io_xtl2, BondPad::Io(endev.chip.io_xtl2()));
                 let pad_tclk = &part.kv["TCLKIOB"][0];
                 assert_eq!(pad_tclk, endev.get_io_name(endev.chip.io_tclk()));
                 let pad_bclk = &part.kv["BCLKIOB"][0];

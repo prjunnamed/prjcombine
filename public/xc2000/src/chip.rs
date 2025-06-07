@@ -11,7 +11,7 @@ use unnamed_entity::{EntityId, EntityIds};
 use crate::bels;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum SharedCfgPin {
+pub enum SharedCfgPad {
     Addr(u8),
     Data(u8),
     Ldc,
@@ -33,25 +33,25 @@ pub enum SharedCfgPin {
     M1,
 }
 
-impl std::fmt::Display for SharedCfgPin {
+impl std::fmt::Display for SharedCfgPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SharedCfgPin::Addr(i) => write!(f, "A{i}"),
-            SharedCfgPin::Data(i) => write!(f, "D{i}"),
-            SharedCfgPin::Ldc => write!(f, "LDC"),
-            SharedCfgPin::Hdc => write!(f, "HDC"),
-            SharedCfgPin::RclkB => write!(f, "RCLK_B"),
-            SharedCfgPin::Dout => write!(f, "DOUT"),
-            SharedCfgPin::M2 => write!(f, "M2"),
-            SharedCfgPin::InitB => write!(f, "INIT_B"),
-            SharedCfgPin::Cs0B => write!(f, "CS0_B"),
-            SharedCfgPin::Cs1B => write!(f, "CS1_B"),
-            SharedCfgPin::Tck => write!(f, "TCK"),
-            SharedCfgPin::Tdi => write!(f, "TDI"),
-            SharedCfgPin::Tms => write!(f, "TMS"),
-            SharedCfgPin::Tdo => write!(f, "TDO"),
-            SharedCfgPin::M0 => write!(f, "M0"),
-            SharedCfgPin::M1 => write!(f, "M1"),
+            SharedCfgPad::Addr(i) => write!(f, "A{i}"),
+            SharedCfgPad::Data(i) => write!(f, "D{i}"),
+            SharedCfgPad::Ldc => write!(f, "LDC"),
+            SharedCfgPad::Hdc => write!(f, "HDC"),
+            SharedCfgPad::RclkB => write!(f, "RCLK_B"),
+            SharedCfgPad::Dout => write!(f, "DOUT"),
+            SharedCfgPad::M2 => write!(f, "M2"),
+            SharedCfgPad::InitB => write!(f, "INIT_B"),
+            SharedCfgPad::Cs0B => write!(f, "CS0_B"),
+            SharedCfgPad::Cs1B => write!(f, "CS1_B"),
+            SharedCfgPad::Tck => write!(f, "TCK"),
+            SharedCfgPad::Tdi => write!(f, "TDI"),
+            SharedCfgPad::Tms => write!(f, "TMS"),
+            SharedCfgPad::Tdo => write!(f, "TDO"),
+            SharedCfgPad::M0 => write!(f, "M0"),
+            SharedCfgPad::M1 => write!(f, "M1"),
         }
     }
 }
@@ -115,7 +115,7 @@ pub struct Chip {
     // XC2000 only
     pub cols_bidi: BTreeSet<ColId>,
     pub rows_bidi: BTreeSet<RowId>,
-    pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPad, EdgeIoCoord>,
     pub unbonded_io: BTreeSet<EdgeIoCoord>,
 }
 

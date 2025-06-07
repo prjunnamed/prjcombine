@@ -5,7 +5,7 @@ use prjcombine_interconnect::grid::EdgeIoCoord;
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum CfgPin {
+pub enum CfgPad {
     Tck,
     Tdi,
     Tdo,
@@ -16,23 +16,23 @@ pub enum CfgPin {
     Suspend,
 }
 
-impl std::fmt::Display for CfgPin {
+impl std::fmt::Display for CfgPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CfgPin::Done => write!(f, "DONE"),
-            CfgPin::ProgB => write!(f, "PROG_B"),
-            CfgPin::Tck => write!(f, "TCK"),
-            CfgPin::Tms => write!(f, "TMS"),
-            CfgPin::Tdi => write!(f, "TDI"),
-            CfgPin::Tdo => write!(f, "TDO"),
-            CfgPin::Suspend => write!(f, "SUSPEND"),
-            CfgPin::CmpCsB => write!(f, "CMP_CS_B"),
+            CfgPad::Done => write!(f, "DONE"),
+            CfgPad::ProgB => write!(f, "PROG_B"),
+            CfgPad::Tck => write!(f, "TCK"),
+            CfgPad::Tms => write!(f, "TMS"),
+            CfgPad::Tdi => write!(f, "TDI"),
+            CfgPad::Tdo => write!(f, "TDO"),
+            CfgPad::Suspend => write!(f, "SUSPEND"),
+            CfgPad::CmpCsB => write!(f, "CMP_CS_B"),
         }
     }
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum GtPin {
+pub enum GtPad {
     TxP(u8),
     TxN(u8),
     RxP(u8),
@@ -47,27 +47,27 @@ pub enum GtPin {
     AVttRCal,
 }
 
-impl std::fmt::Display for GtPin {
+impl std::fmt::Display for GtPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GtPin::RxP(idx) => write!(f, "RXP{idx}"),
-            GtPin::RxN(idx) => write!(f, "RXN{idx}"),
-            GtPin::TxP(idx) => write!(f, "TXP{idx}"),
-            GtPin::TxN(idx) => write!(f, "TXN{idx}"),
-            GtPin::VtRx => write!(f, "VTRX"),
-            GtPin::VtTx => write!(f, "VTTX"),
-            GtPin::ClkP(idx) => write!(f, "CLKP{idx}"),
-            GtPin::ClkN(idx) => write!(f, "CLKN{idx}"),
-            GtPin::AVcc => write!(f, "AVCC"),
-            GtPin::AVccPll(idx) => write!(f, "AVCCPLL{idx}"),
-            GtPin::RRef => write!(f, "RREF"),
-            GtPin::AVttRCal => write!(f, "AVTTRCAL"),
+            GtPad::RxP(idx) => write!(f, "RXP{idx}"),
+            GtPad::RxN(idx) => write!(f, "RXN{idx}"),
+            GtPad::TxP(idx) => write!(f, "TXP{idx}"),
+            GtPad::TxN(idx) => write!(f, "TXN{idx}"),
+            GtPad::VtRx => write!(f, "VTRX"),
+            GtPad::VtTx => write!(f, "VTTX"),
+            GtPad::ClkP(idx) => write!(f, "CLKP{idx}"),
+            GtPad::ClkN(idx) => write!(f, "CLKN{idx}"),
+            GtPad::AVcc => write!(f, "AVCC"),
+            GtPad::AVccPll(idx) => write!(f, "AVCCPLL{idx}"),
+            GtPad::RRef => write!(f, "RREF"),
+            GtPad::AVttRCal => write!(f, "AVTTRCAL"),
         }
     }
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum BondPin {
+pub enum BondPad {
     Io(EdgeIoCoord),
     Nc,
     Gnd,
@@ -77,31 +77,31 @@ pub enum BondPin {
     VccBatt,
     Vfs,
     RFuse,
-    Cfg(CfgPin),
-    Gt(u32, GtPin),
+    Cfg(CfgPad),
+    Gt(u32, GtPad),
 }
 
-impl std::fmt::Display for BondPin {
+impl std::fmt::Display for BondPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BondPin::Io(io) => write!(f, "{io}"),
-            BondPin::Gt(bank, gtpin) => write!(f, "GT{bank}_{gtpin}"),
-            BondPin::Nc => write!(f, "NC"),
-            BondPin::Gnd => write!(f, "GND"),
-            BondPin::VccInt => write!(f, "VCCINT"),
-            BondPin::VccAux => write!(f, "VCCAUX"),
-            BondPin::VccO(bank) => write!(f, "VCCO{bank}"),
-            BondPin::VccBatt => write!(f, "VCCBATT"),
-            BondPin::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
-            BondPin::Vfs => write!(f, "VFS"),
-            BondPin::RFuse => write!(f, "RFUSE"),
+            BondPad::Io(io) => write!(f, "{io}"),
+            BondPad::Gt(bank, gtpin) => write!(f, "GT{bank}_{gtpin}"),
+            BondPad::Nc => write!(f, "NC"),
+            BondPad::Gnd => write!(f, "GND"),
+            BondPad::VccInt => write!(f, "VCCINT"),
+            BondPad::VccAux => write!(f, "VCCAUX"),
+            BondPad::VccO(bank) => write!(f, "VCCO{bank}"),
+            BondPad::VccBatt => write!(f, "VCCBATT"),
+            BondPad::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
+            BondPad::Vfs => write!(f, "VFS"),
+            BondPad::RFuse => write!(f, "RFUSE"),
         }
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Bond {
-    pub pins: BTreeMap<String, BondPin>,
+    pub pins: BTreeMap<String, BondPad>,
     // device bank -> pkg bank
     pub io_banks: BTreeMap<u32, u32>,
     pub vref: BTreeSet<EdgeIoCoord>,
@@ -111,7 +111,7 @@ pub struct Bond {
 pub struct ExpandedBond<'a> {
     pub bond: &'a Bond,
     pub ios: BTreeMap<EdgeIoCoord, String>,
-    pub gts: BTreeMap<(u32, GtPin), String>,
+    pub gts: BTreeMap<(u32, GtPad), String>,
 }
 
 impl Bond {
@@ -120,10 +120,10 @@ impl Bond {
         let mut gts = BTreeMap::new();
         for (name, pad) in &self.pins {
             match *pad {
-                BondPin::Io(io) => {
+                BondPad::Io(io) => {
                     ios.insert(io, name.clone());
                 }
-                BondPin::Gt(bank, gtpin) => {
+                BondPad::Gt(bank, gtpin) => {
                     gts.insert((bank, gtpin), name.clone());
                 }
                 _ => (),

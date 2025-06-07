@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use prjcombine_interconnect::grid::{ColId, EdgeIoCoord, RowId, TileIobId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_spartan6::chip::{
-    Chip, Column, ColumnIoKind, ColumnKind, DisabledPart, Gts, Mcb, McbIo, RegId, Row, SharedCfgPin,
+    Chip, Column, ColumnIoKind, ColumnKind, DisabledPart, Gts, Mcb, McbIo, RegId, Row, SharedCfgPad,
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -303,7 +303,7 @@ fn has_encrypt(rd: &Part) -> bool {
     false
 }
 
-fn set_cfg(grid: &mut Chip, cfg: SharedCfgPin, coord: EdgeIoCoord) {
+fn set_cfg(grid: &mut Chip, cfg: SharedCfgPad, coord: EdgeIoCoord) {
     let old = grid.cfg_io.insert(cfg, coord);
     assert!(old.is_none() || old == Some(coord));
 }
@@ -362,27 +362,27 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                     f = &f[f.find('_').unwrap() + 1..];
                 }
                 for (p, c) in [
-                    ("M0_CMPMISO_", SharedCfgPin::M0),
-                    ("M1_", SharedCfgPin::M1),
-                    ("CCLK_", SharedCfgPin::Cclk),
-                    ("CSO_B_", SharedCfgPin::CsoB),
-                    ("INIT_B_", SharedCfgPin::InitB),
-                    ("RDWR_B_", SharedCfgPin::RdWrB),
-                    ("AWAKE_", SharedCfgPin::Awake),
-                    ("FCS_B_", SharedCfgPin::FcsB),
-                    ("FOE_B_", SharedCfgPin::FoeB),
-                    ("FWE_B_", SharedCfgPin::FweB),
-                    ("LDC_", SharedCfgPin::Ldc),
-                    ("HDC_", SharedCfgPin::Hdc),
-                    ("DOUT_BUSY_", SharedCfgPin::Dout),
-                    ("D0_DIN_MISO_MISO1_", SharedCfgPin::Data(0)),
-                    ("D1_MISO2_", SharedCfgPin::Data(1)),
-                    ("D2_MISO3_", SharedCfgPin::Data(2)),
-                    ("MOSI_CSI_B_MISO0_", SharedCfgPin::Mosi),
-                    ("CMPCLK_", SharedCfgPin::CmpClk),
-                    ("CMPMOSI_", SharedCfgPin::CmpMosi),
-                    ("USERCCLK_", SharedCfgPin::UserCclk),
-                    ("HSWAPEN_", SharedCfgPin::HswapEn),
+                    ("M0_CMPMISO_", SharedCfgPad::M0),
+                    ("M1_", SharedCfgPad::M1),
+                    ("CCLK_", SharedCfgPad::Cclk),
+                    ("CSO_B_", SharedCfgPad::CsoB),
+                    ("INIT_B_", SharedCfgPad::InitB),
+                    ("RDWR_B_", SharedCfgPad::RdWrB),
+                    ("AWAKE_", SharedCfgPad::Awake),
+                    ("FCS_B_", SharedCfgPad::FcsB),
+                    ("FOE_B_", SharedCfgPad::FoeB),
+                    ("FWE_B_", SharedCfgPad::FweB),
+                    ("LDC_", SharedCfgPad::Ldc),
+                    ("HDC_", SharedCfgPad::Hdc),
+                    ("DOUT_BUSY_", SharedCfgPad::Dout),
+                    ("D0_DIN_MISO_MISO1_", SharedCfgPad::Data(0)),
+                    ("D1_MISO2_", SharedCfgPad::Data(1)),
+                    ("D2_MISO3_", SharedCfgPad::Data(2)),
+                    ("MOSI_CSI_B_MISO0_", SharedCfgPad::Mosi),
+                    ("CMPCLK_", SharedCfgPad::CmpClk),
+                    ("CMPMOSI_", SharedCfgPad::CmpMosi),
+                    ("USERCCLK_", SharedCfgPad::UserCclk),
+                    ("HSWAPEN_", SharedCfgPad::HswapEn),
                 ] {
                     if let Some(nf) = f.strip_prefix(p) {
                         f = nf;
@@ -392,19 +392,19 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                 if f.starts_with('A') {
                     let pos = f.find('_').unwrap();
                     let a = f[1..pos].parse().unwrap();
-                    set_cfg(grid, SharedCfgPin::Addr(a), coord);
+                    set_cfg(grid, SharedCfgPad::Addr(a), coord);
                     f = &f[pos + 1..];
                 }
                 if f.starts_with('D') {
                     let pos = f.find('_').unwrap();
                     let a = f[1..pos].parse().unwrap();
-                    set_cfg(grid, SharedCfgPin::Data(a), coord);
+                    set_cfg(grid, SharedCfgPad::Data(a), coord);
                     f = &f[pos + 1..];
                 }
                 if f.starts_with("SCP") {
                     let pos = f.find('_').unwrap();
                     let a = f[3..pos].parse().unwrap();
-                    set_cfg(grid, SharedCfgPin::Scp(a), coord);
+                    set_cfg(grid, SharedCfgPad::Scp(a), coord);
                     f = &f[pos + 1..];
                 }
                 if let Some(nf) = f.strip_prefix("VREF_") {

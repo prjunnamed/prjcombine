@@ -1,4 +1,4 @@
-use crate::bond::{PsPin, SharedCfgPin};
+use crate::bond::{PsPad, SharedCfgPad};
 use crate::chip::{Chip, ChipKind, DisabledPart, GtKind, Interposer, IoKind, RegId, XadcIoLoc};
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use bimap::BiHashMap;
@@ -45,7 +45,7 @@ pub struct ExpandedDevice<'a> {
     pub io: Vec<IoCoord>,
     pub gt: Vec<(DieId, ColId, RowId)>,
     pub gtz: DirPartMap<ExpandedGtz>,
-    pub cfg_io: BiHashMap<SharedCfgPin, IoCoord>,
+    pub cfg_io: BiHashMap<SharedCfgPad, IoCoord>,
     pub banklut: EntityVec<DieId, u32>,
 }
 
@@ -708,75 +708,75 @@ impl ExpandedDevice<'_> {
         }
     }
 
-    pub fn get_ps_bank(&self, io: PsPin) -> u32 {
+    pub fn get_ps_bank(&self, io: PsPad) -> u32 {
         match io {
-            PsPin::Mio(idx) => {
+            PsPad::Mio(idx) => {
                 if idx < 16 {
                     500
                 } else {
                     501
                 }
             }
-            PsPin::Clk => 500,
-            PsPin::PorB => 500,
-            PsPin::SrstB => 501,
-            PsPin::DdrDq(_) => 502,
-            PsPin::DdrDm(_) => 502,
-            PsPin::DdrDqsP(_) => 502,
-            PsPin::DdrDqsN(_) => 502,
-            PsPin::DdrA(_) => 502,
-            PsPin::DdrBa(_) => 502,
-            PsPin::DdrVrP => 502,
-            PsPin::DdrVrN => 502,
-            PsPin::DdrCkP => 502,
-            PsPin::DdrCkN => 502,
-            PsPin::DdrCke => 502,
-            PsPin::DdrOdt => 502,
-            PsPin::DdrDrstB => 502,
-            PsPin::DdrCsB => 502,
-            PsPin::DdrRasB => 502,
-            PsPin::DdrCasB => 502,
-            PsPin::DdrWeB => 502,
+            PsPad::Clk => 500,
+            PsPad::PorB => 500,
+            PsPad::SrstB => 501,
+            PsPad::DdrDq(_) => 502,
+            PsPad::DdrDm(_) => 502,
+            PsPad::DdrDqsP(_) => 502,
+            PsPad::DdrDqsN(_) => 502,
+            PsPad::DdrA(_) => 502,
+            PsPad::DdrBa(_) => 502,
+            PsPad::DdrVrP => 502,
+            PsPad::DdrVrN => 502,
+            PsPad::DdrCkP => 502,
+            PsPad::DdrCkN => 502,
+            PsPad::DdrCke => 502,
+            PsPad::DdrOdt => 502,
+            PsPad::DdrDrstB => 502,
+            PsPad::DdrCsB => 502,
+            PsPad::DdrRasB => 502,
+            PsPad::DdrCasB => 502,
+            PsPad::DdrWeB => 502,
         }
     }
 
-    pub fn get_ps_pins(&self) -> Vec<PsPin> {
+    pub fn get_ps_pins(&self) -> Vec<PsPad> {
         let mut res = vec![];
         if self.chips.first().unwrap().has_ps {
             for i in 0..54 {
-                res.push(PsPin::Mio(i));
+                res.push(PsPad::Mio(i));
             }
             res.extend([
-                PsPin::Clk,
-                PsPin::PorB,
-                PsPin::SrstB,
-                PsPin::DdrWeB,
-                PsPin::DdrCasB,
-                PsPin::DdrRasB,
-                PsPin::DdrCsB,
-                PsPin::DdrOdt,
-                PsPin::DdrCke,
-                PsPin::DdrCkN,
-                PsPin::DdrCkP,
-                PsPin::DdrDrstB,
-                PsPin::DdrVrP,
-                PsPin::DdrVrN,
+                PsPad::Clk,
+                PsPad::PorB,
+                PsPad::SrstB,
+                PsPad::DdrWeB,
+                PsPad::DdrCasB,
+                PsPad::DdrRasB,
+                PsPad::DdrCsB,
+                PsPad::DdrOdt,
+                PsPad::DdrCke,
+                PsPad::DdrCkN,
+                PsPad::DdrCkP,
+                PsPad::DdrDrstB,
+                PsPad::DdrVrP,
+                PsPad::DdrVrN,
             ]);
             for i in 0..15 {
-                res.push(PsPin::DdrA(i));
+                res.push(PsPad::DdrA(i));
             }
             for i in 0..3 {
-                res.push(PsPin::DdrBa(i));
+                res.push(PsPad::DdrBa(i));
             }
             for i in 0..32 {
-                res.push(PsPin::DdrDq(i));
+                res.push(PsPad::DdrDq(i));
             }
             for i in 0..4 {
-                res.push(PsPin::DdrDm(i));
+                res.push(PsPad::DdrDm(i));
             }
             for i in 0..4 {
-                res.push(PsPin::DdrDqsP(i));
-                res.push(PsPin::DdrDqsN(i));
+                res.push(PsPad::DdrDqsP(i));
+                res.push(PsPad::DdrDqsN(i));
             }
         }
         res
@@ -911,7 +911,7 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+    pub fn tile_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
         let (die, col, row, _) = nloc;
         let node = self.egrid.tile(nloc);
         let kind = self.egrid.db.tile_classes.key(node.class).as_str();
@@ -1054,7 +1054,7 @@ impl ExpandedDevice<'_> {
         }
     }
 
-    pub fn node_cfg(&self, die: DieId) -> NodeLoc {
+    pub fn tile_cfg(&self, die: DieId) -> NodeLoc {
         let chip = self.chips[die];
         match self.kind {
             ChipKind::Virtex4 => {

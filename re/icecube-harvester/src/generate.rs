@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_siliconblue::{
-    bond::BondPin,
+    bond::BondPad,
     chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
     expanded::ExpandedDevice,
 };
@@ -1869,7 +1869,7 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
     let mut unused_io = vec![];
     let mut io_map = HashMap::new();
     for (pad, &pin) in &pkg_info.bond.pins {
-        let (BondPin::Io(crd) | BondPin::IoCDone(crd)) = pin else {
+        let (BondPad::Io(crd) | BondPad::IoCDone(crd)) = pin else {
             continue;
         };
         if !cfg.allow_global && cfg.edev.chip.kind.has_vref() && crd.edge() == Dir::W {

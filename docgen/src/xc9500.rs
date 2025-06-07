@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt::Write};
 
 use indexmap::IndexSet;
 use itertools::Itertools;
-use prjcombine_xc9500::{BankId, BondPin, ChipKind, Database};
+use prjcombine_xc9500::{BankId, BondPad, ChipKind, Database};
 use unnamed_entity::{EntityId, EntityPartVec};
 
 use crate::{
@@ -101,7 +101,7 @@ fn gen_devpkg(ctx: &mut DocgenContext, dbs: &[Database]) {
 fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
     struct BondData {
         names: Vec<String>,
-        pins: HashMap<BondPin, PinData>,
+        pins: HashMap<BondPad, PinData>,
     }
     struct PinData {
         pins: Vec<String>,
@@ -135,7 +135,7 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
                             io_special.insert(k.clone(), v);
                         }
                         let io_special_rev: HashMap<_, _> = HashMap::from_iter(
-                            io_special.iter().map(|(k, &mc)| (BondPin::Iob(mc), k)),
+                            io_special.iter().map(|(k, &mc)| (BondPad::Iob(mc), k)),
                         );
                         for (k, &v) in &bond.pins {
                             pins.entry(v)
@@ -212,7 +212,7 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
                 writeln!(buf, r#"<td>IOB_{mc}</td>"#).unwrap();
                 writeln!(buf, r#"<td>{bank}</td>"#).unwrap();
                 for bond in bonds.values() {
-                    if let Some(pin) = bond.pins.get(&BondPin::Iob(mc)) {
+                    if let Some(pin) = bond.pins.get(&BondPad::Iob(mc)) {
                         let pins = pin.pins.join(", ");
                         if let Some(ref spec) = pin.special {
                             writeln!(buf, r#"<td>{pins} ({spec})</td>"#).unwrap();
@@ -226,23 +226,23 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
                 writeln!(buf, r#"</tr>"#).unwrap();
             }
             let mut specs = vec![
-                BondPin::Tck,
-                BondPin::Tms,
-                BondPin::Tdi,
-                BondPin::Tdo,
-                BondPin::Gnd,
-                BondPin::VccInt,
+                BondPad::Tck,
+                BondPad::Tms,
+                BondPad::Tdi,
+                BondPad::Tdo,
+                BondPad::Gnd,
+                BondPad::VccInt,
             ];
             for bank in 0..chip.banks {
-                specs.push(BondPin::VccIo(BankId::from_idx(bank)));
+                specs.push(BondPad::VccIo(BankId::from_idx(bank)));
             }
-            specs.push(BondPin::Nc);
+            specs.push(BondPad::Nc);
             for pin in specs {
                 writeln!(buf, r#"<tr>"#).unwrap();
                 writeln!(buf, r#"<td>{pin}</td>"#).unwrap();
                 let bank = match pin {
-                    BondPin::Tdo => Some(chip.tdo_bank),
-                    BondPin::VccIo(bank) => Some(bank),
+                    BondPad::Tdo => Some(chip.tdo_bank),
+                    BondPad::VccIo(bank) => Some(bank),
                     _ => None,
                 };
                 if let Some(bank) = bank {

@@ -1,19 +1,19 @@
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::grid::{EdgeIoCoord, TileIobId};
-use prjcombine_types::bscan::{BScanBuilder, BScanPin};
+use prjcombine_types::bscan::{BScanBuilder, BScanPad};
 use unnamed_entity::EntityId;
 
 use crate::{
-    bond::CfgPin,
+    bond::CfgPad,
     chip::{Chip, ChipKind},
 };
 
 #[derive(Debug)]
 pub struct BScan {
     pub bits: usize,
-    pub io: BTreeMap<EdgeIoCoord, BScanPin>,
-    pub cfg: BTreeMap<CfgPin, BScanPin>,
+    pub io: BTreeMap<EdgeIoCoord, BScanPad>,
+    pub cfg: BTreeMap<CfgPad, BScanPad>,
     pub upd: usize,
 }
 
@@ -33,7 +33,7 @@ impl Chip {
         let mut cfg = BTreeMap::new();
         let mut builder = BScanBuilder::new();
         if self.kind.is_xc4000() {
-            cfg.insert(CfgPin::Tdo, builder.get_to());
+            cfg.insert(CfgPad::Tdo, builder.get_to());
         }
         // top edge, right-to-left
         for col in self.columns() {
@@ -62,10 +62,10 @@ impl Chip {
             }
         }
         if self.kind.is_xc4000() {
-            cfg.insert(CfgPin::M1, builder.get_toi());
-            cfg.insert(CfgPin::M0, builder.get_i());
+            cfg.insert(CfgPad::M1, builder.get_toi());
+            cfg.insert(CfgPad::M0, builder.get_i());
             if self.kind != ChipKind::SpartanXl {
-                cfg.insert(CfgPin::M2, builder.get_i());
+                cfg.insert(CfgPad::M2, builder.get_i());
             }
         }
         // bottom edge, left-to-right

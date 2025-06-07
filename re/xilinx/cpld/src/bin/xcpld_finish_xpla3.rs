@@ -928,13 +928,13 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                     (
                         k.clone(),
                         match *v {
-                            PkgPin::Nc => xpla3::BondPin::Nc,
-                            PkgPin::Gnd => xpla3::BondPin::Gnd,
-                            PkgPin::VccInt => xpla3::BondPin::Vcc,
-                            PkgPin::PortEn => xpla3::BondPin::PortEn,
-                            PkgPin::Io(IoCoord::Macrocell(mc)) => xpla3::BondPin::Iob(mc),
+                            PkgPin::Nc => xpla3::BondPad::Nc,
+                            PkgPin::Gnd => xpla3::BondPad::Gnd,
+                            PkgPin::VccInt => xpla3::BondPad::Vcc,
+                            PkgPin::PortEn => xpla3::BondPad::PortEn,
+                            PkgPin::Io(IoCoord::Macrocell(mc)) => xpla3::BondPad::Iob(mc),
                             PkgPin::Io(IoCoord::Ipad(pad)) => {
-                                xpla3::BondPin::Gclk(xpla3::GclkId::from_idx(3 - pad.to_idx()))
+                                xpla3::BondPad::Gclk(xpla3::GclkId::from_idx(3 - pad.to_idx()))
                             }
                             _ => unreachable!(),
                         },

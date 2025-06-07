@@ -6,7 +6,7 @@ use prjcombine_re_xilinx_naming_ultrascale::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
 use prjcombine_ultrascale::bels;
-use prjcombine_ultrascale::bond::SharedCfgPin;
+use prjcombine_ultrascale::bond::SharedCfgPad;
 use prjcombine_ultrascale::chip::{ChipKind, CleMKind, ColumnKind, DisabledPart, IoRowKind};
 use prjcombine_ultrascale::expanded::{ClkSrc, HdioCoord, HpioCoord, IoCoord};
 use unnamed_entity::EntityId;
@@ -501,7 +501,7 @@ fn verify_pcie(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
             endev,
             vrf,
             *endev.edev.cfg_io[bel.die]
-                .get_by_left(&SharedCfgPin::PerstN0)
+                .get_by_left(&SharedCfgPad::PerstN0)
                 .unwrap(),
         );
         vrf.verify_node(&[bel.fwire_far("MCAP_PERST0_B"), obel.fwire("DOUT")]);
@@ -510,8 +510,8 @@ fn verify_pcie(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
             vrf,
             *endev.edev.cfg_io[bel.die]
                 .get_by_left(&match endev.edev.kind {
-                    ChipKind::Ultrascale => SharedCfgPin::PerstN1,
-                    ChipKind::UltrascalePlus => SharedCfgPin::I2cSda,
+                    ChipKind::Ultrascale => SharedCfgPad::PerstN1,
+                    ChipKind::UltrascalePlus => SharedCfgPad::I2cSda,
                 })
                 .unwrap(),
         );
@@ -706,7 +706,7 @@ fn verify_sysmon(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
             endev,
             vrf,
             *endev.edev.cfg_io[bel.die]
-                .get_by_left(&SharedCfgPin::I2cSclk)
+                .get_by_left(&SharedCfgPad::I2cSclk)
                 .unwrap(),
         );
         vrf.verify_node(&[bel.fwire("I2C_SCLK_TS"), obel.fwire_far("TSDI")]);
@@ -715,7 +715,7 @@ fn verify_sysmon(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
             endev,
             vrf,
             *endev.edev.cfg_io[bel.die]
-                .get_by_left(&SharedCfgPin::I2cSda)
+                .get_by_left(&SharedCfgPad::I2cSda)
                 .unwrap(),
         );
         vrf.verify_node(&[bel.fwire("I2C_SDA_TS"), obel.fwire_far("TSDI")]);
@@ -3498,13 +3498,13 @@ fn verify_hpiob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
     });
     let cfg = endev.edev.cfg_io[bel.die].get_by_right(&crd);
     let is_cfg = match cfg {
-        Some(SharedCfgPin::PerstN0) => false,
-        Some(SharedCfgPin::PerstN1) => false,
-        Some(SharedCfgPin::EmCclk) => false,
+        Some(SharedCfgPad::PerstN0) => false,
+        Some(SharedCfgPad::PerstN1) => false,
+        Some(SharedCfgPad::EmCclk) => false,
         Some(_) => true,
         None => false,
     };
-    let is_ams = matches!(cfg, Some(SharedCfgPin::I2cSda | SharedCfgPin::I2cSclk))
+    let is_ams = matches!(cfg, Some(SharedCfgPad::I2cSda | SharedCfgPad::I2cSclk))
         && endev.edev.kind == ChipKind::Ultrascale;
     if is_ams {
         vrf.claim_node(&[bel.fwire("TSDI")]);
@@ -3785,13 +3785,13 @@ fn verify_hriob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
     });
     let cfg = endev.edev.cfg_io[bel.die].get_by_right(&crd);
     let is_cfg = match cfg {
-        Some(SharedCfgPin::PerstN0) => false,
-        Some(SharedCfgPin::PerstN1) => false,
-        Some(SharedCfgPin::EmCclk) => false,
+        Some(SharedCfgPad::PerstN0) => false,
+        Some(SharedCfgPad::PerstN1) => false,
+        Some(SharedCfgPad::EmCclk) => false,
         Some(_) => true,
         None => false,
     };
-    let is_ams = matches!(cfg, Some(SharedCfgPin::I2cSda | SharedCfgPin::I2cSclk))
+    let is_ams = matches!(cfg, Some(SharedCfgPad::I2cSda | SharedCfgPad::I2cSclk))
         && endev.edev.kind == ChipKind::Ultrascale;
     if is_ams {
         vrf.claim_pip(bel.crd(), bel.wire("TSDI"), bel.wire_far("TSDI"));

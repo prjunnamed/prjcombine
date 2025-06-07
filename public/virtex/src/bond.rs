@@ -5,7 +5,7 @@ use prjcombine_interconnect::grid::EdgeIoCoord;
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
-pub enum CfgPin {
+pub enum CfgPad {
     Tck,
     Tdi,
     Tdo,
@@ -18,25 +18,25 @@ pub enum CfgPin {
     M2,
 }
 
-impl std::fmt::Display for CfgPin {
+impl std::fmt::Display for CfgPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CfgPin::Cclk => write!(f, "CCLK"),
-            CfgPin::Done => write!(f, "DONE"),
-            CfgPin::ProgB => write!(f, "PROG_B"),
-            CfgPin::M0 => write!(f, "M0"),
-            CfgPin::M1 => write!(f, "M1"),
-            CfgPin::M2 => write!(f, "M2"),
-            CfgPin::Tck => write!(f, "TCK"),
-            CfgPin::Tms => write!(f, "TMS"),
-            CfgPin::Tdi => write!(f, "TDI"),
-            CfgPin::Tdo => write!(f, "TDO"),
+            CfgPad::Cclk => write!(f, "CCLK"),
+            CfgPad::Done => write!(f, "DONE"),
+            CfgPad::ProgB => write!(f, "PROG_B"),
+            CfgPad::M0 => write!(f, "M0"),
+            CfgPad::M1 => write!(f, "M1"),
+            CfgPad::M2 => write!(f, "M2"),
+            CfgPad::Tck => write!(f, "TCK"),
+            CfgPad::Tms => write!(f, "TMS"),
+            CfgPad::Tdi => write!(f, "TDI"),
+            CfgPad::Tdo => write!(f, "TDO"),
         }
     }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
-pub enum BondPin {
+pub enum BondPad {
     Clk(u32),
     Io(EdgeIoCoord),
     Nc,
@@ -44,31 +44,31 @@ pub enum BondPin {
     VccInt,
     VccAux,
     VccO(u32),
-    Cfg(CfgPin),
+    Cfg(CfgPad),
     Dxn,
     Dxp,
 }
 
-impl std::fmt::Display for BondPin {
+impl std::fmt::Display for BondPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BondPin::Io(io) => write!(f, "{io}"),
-            BondPin::Clk(idx) => write!(f, "CLK{idx}"),
-            BondPin::Nc => write!(f, "NC"),
-            BondPin::Gnd => write!(f, "GND"),
-            BondPin::VccInt => write!(f, "VCCINT"),
-            BondPin::VccAux => write!(f, "VCCAUX"),
-            BondPin::VccO(bank) => write!(f, "VCCO{bank}"),
-            BondPin::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
-            BondPin::Dxn => write!(f, "DXN"),
-            BondPin::Dxp => write!(f, "DXP"),
+            BondPad::Io(io) => write!(f, "{io}"),
+            BondPad::Clk(idx) => write!(f, "CLK{idx}"),
+            BondPad::Nc => write!(f, "NC"),
+            BondPad::Gnd => write!(f, "GND"),
+            BondPad::VccInt => write!(f, "VCCINT"),
+            BondPad::VccAux => write!(f, "VCCAUX"),
+            BondPad::VccO(bank) => write!(f, "VCCO{bank}"),
+            BondPad::Cfg(cfg_pad) => write!(f, "{cfg_pad}"),
+            BondPad::Dxn => write!(f, "DXN"),
+            BondPad::Dxp => write!(f, "DXP"),
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub struct Bond {
-    pub pins: BTreeMap<String, BondPin>,
+    pub pins: BTreeMap<String, BondPad>,
     // device bank -> pkg bank
     pub io_banks: BTreeMap<u32, u32>,
     pub vref: BTreeSet<EdgeIoCoord>,
@@ -89,10 +89,10 @@ impl Bond {
         let mut clks = BTreeMap::new();
         for (name, pad) in &self.pins {
             match *pad {
-                BondPin::Io(io) => {
+                BondPad::Io(io) => {
                     ios.insert(io, name.clone());
                 }
-                BondPin::Clk(bank) => {
+                BondPad::Clk(bank) => {
                     clks.insert(bank, name.clone());
                 }
                 _ => (),

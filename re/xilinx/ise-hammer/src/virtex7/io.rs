@@ -286,7 +286,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                         attr: "PRESENT".into(),
                         val: "VR".into(),
                     },
-                    tiles: edev.node_bits(vr_node),
+                    tiles: edev.tile_bits(vr_node),
                 });
             }
         }
@@ -311,7 +311,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                     attr: "STD".into(),
                     val: std.into(),
                 },
-                tiles: edev.node_bits(hclk_ioi),
+                tiles: edev.tile_bits(hclk_ioi),
             });
         }
 
@@ -2013,7 +2013,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .raw(Key::Package, &package.name)
                 .global("DCIUPDATEMODE", "ASREQUIRED")
                 .global("UNCONSTRAINEDPINS", "ALLOW")
-                .extra_tile_attr_fixed(edev.node_cfg(die), "MISC", "DCI_CLK_ENABLE", "1");
+                .extra_tile_attr_fixed(edev.tile_cfg(die), "MISC", "DCI_CLK_ENABLE", "1");
 
             let anchor_reg = if chip.has_ps {
                 RegId::from_idx(chip.regs - 2)

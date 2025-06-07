@@ -26,8 +26,8 @@ use prjcombine_re_harvester::Harvester;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{
     bels,
-    bond::{Bond, BondPin, CfgPin},
-    chip::{Chip, ChipKind, ExtraNode, ExtraNodeIo, ExtraNodeLoc, SharedCfgPin},
+    bond::{Bond, BondPad, CfgPad},
+    chip::{Chip, ChipKind, ExtraNode, ExtraNodeIo, ExtraNodeLoc, SharedCfgPad},
     db::Database,
     expanded::{BitOwner, ExpandedDevice},
 };
@@ -783,7 +783,7 @@ impl PartContext<'_> {
                 // will be fixed up later.
                 self.chip.io_iob.insert(io, io);
                 assert_eq!(
-                    pkg_info.bond.pins.insert(pin.clone(), BondPin::Io(io)),
+                    pkg_info.bond.pins.insert(pin.clone(), BondPad::Io(io)),
                     None
                 );
                 match pkg_info.xlat_io.entry(xy) {
@@ -815,7 +815,7 @@ impl PartContext<'_> {
                         };
                         self.chip.io_iob.insert(io, io);
                         assert_eq!(
-                            pkg_info.bond.pins.insert(pin.clone(), BondPin::Io(io)),
+                            pkg_info.bond.pins.insert(pin.clone(), BondPad::Io(io)),
                             None
                         );
                     }
@@ -850,7 +850,7 @@ impl PartContext<'_> {
                     self.chip.io_iob.insert(io, io);
                     self.chip.io_od.insert(io);
                     assert_eq!(
-                        pkg_info.bond.pins.insert(pin.clone(), BondPin::Io(io)),
+                        pkg_info.bond.pins.insert(pin.clone(), BondPad::Io(io)),
                         None
                     );
                     match pkg_info.xlat_io.entry(xy) {
@@ -867,10 +867,10 @@ impl PartContext<'_> {
                 // AAAAAAAAAAAAAAAAAAAaaaaaaaaaaaa
                 let io = EdgeIoCoord::W(RowId::from_idx(11), TileIobId::from_idx(0));
                 self.chip.io_iob.insert(io, io);
-                pkg_info.bond.pins.insert("G1".into(), BondPin::Io(io));
+                pkg_info.bond.pins.insert("G1".into(), BondPad::Io(io));
                 let io = EdgeIoCoord::W(RowId::from_idx(10), TileIobId::from_idx(1));
                 self.chip.io_iob.insert(io, io);
-                pkg_info.bond.pins.insert("H1".into(), BondPin::Io(io));
+                pkg_info.bond.pins.insert("H1".into(), BondPad::Io(io));
             }
             if self.chip.kind.is_ice65() {
                 for &io in self.chip.io_iob.keys() {
@@ -898,52 +898,52 @@ impl PartContext<'_> {
             for (pin, info) in &pkg_info.empty_run.pin_table {
                 let typ = &info.typ[..];
                 let pad = match typ {
-                    "GND" => BondPin::Gnd,
-                    "VCC" => BondPin::VccInt,
-                    "VCCIO_0" => BondPin::VccIo(0),
-                    "VCCIO_1" => BondPin::VccIo(1),
-                    "VCCIO_2" => BondPin::VccIo(2),
-                    "VCCIO_3" => BondPin::VccIo(3),
-                    "VDDIO_SPI" => BondPin::VccIoSpi,
-                    "VPP_DIRECT" | "VPP" => BondPin::VppDirect,
-                    "VPP_PUMP" | "VDDP" => BondPin::VppPump,
-                    "VREF" => BondPin::Vref,
-                    "VSSIO_LED" => BondPin::GndLed,
-                    "AGND" | "AGND_BOT" => BondPin::GndPll(DirV::S),
-                    "AVDD" | "AVDD_BOT" => BondPin::VccPll(DirV::S),
-                    "AGND_TOP" => BondPin::GndPll(DirV::N),
-                    "AVDD_TOP" => BondPin::VccPll(DirV::N),
-                    "CRESET_B" => BondPin::Cfg(CfgPin::CResetB),
-                    "CDONE" => BondPin::Cfg(CfgPin::CDone),
-                    "TCK" => BondPin::Cfg(CfgPin::Tck),
-                    "TMS" => BondPin::Cfg(CfgPin::Tms),
-                    "TDI" => BondPin::Cfg(CfgPin::Tdi),
-                    "TDO" => BondPin::Cfg(CfgPin::Tdo),
-                    "TRST_B" => BondPin::Cfg(CfgPin::TrstB),
-                    "POR_test" => BondPin::PorTest,
-                    "NC" => BondPin::Nc,
+                    "GND" => BondPad::Gnd,
+                    "VCC" => BondPad::VccInt,
+                    "VCCIO_0" => BondPad::VccIo(0),
+                    "VCCIO_1" => BondPad::VccIo(1),
+                    "VCCIO_2" => BondPad::VccIo(2),
+                    "VCCIO_3" => BondPad::VccIo(3),
+                    "VDDIO_SPI" => BondPad::VccIoSpi,
+                    "VPP_DIRECT" | "VPP" => BondPad::VppDirect,
+                    "VPP_PUMP" | "VDDP" => BondPad::VppPump,
+                    "VREF" => BondPad::Vref,
+                    "VSSIO_LED" => BondPad::GndLed,
+                    "AGND" | "AGND_BOT" => BondPad::GndPll(DirV::S),
+                    "AVDD" | "AVDD_BOT" => BondPad::VccPll(DirV::S),
+                    "AGND_TOP" => BondPad::GndPll(DirV::N),
+                    "AVDD_TOP" => BondPad::VccPll(DirV::N),
+                    "CRESET_B" => BondPad::Cfg(CfgPad::CResetB),
+                    "CDONE" => BondPad::Cfg(CfgPad::CDone),
+                    "TCK" => BondPad::Cfg(CfgPad::Tck),
+                    "TMS" => BondPad::Cfg(CfgPad::Tms),
+                    "TDI" => BondPad::Cfg(CfgPad::Tdi),
+                    "TDO" => BondPad::Cfg(CfgPad::Tdo),
+                    "TRST_B" => BondPad::Cfg(CfgPad::TrstB),
+                    "POR_test" => BondPad::PorTest,
+                    "NC" => BondPad::Nc,
                     "PIO" | "PIO_GBIN" | "PIO_GBIN_CDONE" | "PIO_LED" | "PIO_RGB"
                     | "PIO_BARCODE" | "PIO_I3C" => {
-                        let BondPin::Io(crd) = pkg_info.bond.pins[pin] else {
+                        let BondPad::Io(crd) = pkg_info.bond.pins[pin] else {
                             panic!("umm {pin} not really IO?");
                         };
                         if typ == "PIO_GBIN_CDONE" {
                             pkg_info
                                 .bond
                                 .pins
-                                .insert(pin.clone(), BondPin::IoCDone(crd));
+                                .insert(pin.clone(), BondPad::IoCDone(crd));
                         }
                         continue;
                     }
                     "SPI_SCK" | "SPI_SI" | "SPI_SO" | "SPI_SS_B" => {
-                        let BondPin::Io(crd) = pkg_info.bond.pins[pin] else {
+                        let BondPad::Io(crd) = pkg_info.bond.pins[pin] else {
                             panic!("umm {pin} not really IO?");
                         };
                         let cpin = match typ {
-                            "SPI_SCK" => SharedCfgPin::SpiSck,
-                            "SPI_SI" => SharedCfgPin::SpiSi,
-                            "SPI_SO" => SharedCfgPin::SpiSo,
-                            "SPI_SS_B" => SharedCfgPin::SpiCsB,
+                            "SPI_SCK" => SharedCfgPad::SpiSck,
+                            "SPI_SI" => SharedCfgPad::SpiSi,
+                            "SPI_SO" => SharedCfgPad::SpiSo,
+                            "SPI_SS_B" => SharedCfgPad::SpiCsB,
                             _ => unreachable!(),
                         };
                         match self.chip.cfg_io.entry(cpin) {
@@ -985,11 +985,11 @@ impl PartContext<'_> {
                 x3.insert(io, (ior0, ior1));
             }
             for bpin in pkg_info.bond.pins.values_mut() {
-                if let BondPin::Io(io) = *bpin {
+                if let BondPad::Io(io) = *bpin {
                     if let Some(&(ior0, ior1)) = x3.get(&io) {
                         let mut ior = [ior0, ior1];
                         ior.sort();
-                        *bpin = BondPin::IoTriple([io, ior[0], ior[1]]);
+                        *bpin = BondPad::IoTriple([io, ior[0], ior[1]]);
                     }
                 }
             }
@@ -997,7 +997,7 @@ impl PartContext<'_> {
                 let all_pins = get_pkg_pins(pkg);
                 for pin in &all_pins {
                     if let btree_map::Entry::Vacant(e) = pkg_info.bond.pins.entry(pin.to_string()) {
-                        e.insert(BondPin::Nc);
+                        e.insert(BondPad::Nc);
                     }
                 }
                 assert_eq!(pkg_info.bond.pins.len(), all_pins.len());
@@ -1006,7 +1006,7 @@ impl PartContext<'_> {
         self.chip.col_bio_split = match self.chip.kind {
             ChipKind::Ice40T04 | ChipKind::Ice40T05 => ColId::from_idx(12),
             _ => {
-                let EdgeIoCoord::S(col, _) = self.chip.cfg_io[&SharedCfgPin::SpiSo] else {
+                let EdgeIoCoord::S(col, _) = self.chip.cfg_io[&SharedCfgPad::SpiSo] else {
                     unreachable!()
                 };
                 col
@@ -1022,16 +1022,16 @@ impl PartContext<'_> {
         }
         for (&(_dev, pkg), pkg_info) in &self.pkgs {
             let balls = match pkg {
-                "CB132" => [(SharedCfgPin::CbSel0, "L9"), (SharedCfgPin::CbSel1, "P10")],
-                "CM36" | "CM36A" => [(SharedCfgPin::CbSel0, "E3"), (SharedCfgPin::CbSel1, "F3")],
-                "CM49" => [(SharedCfgPin::CbSel0, "F4"), (SharedCfgPin::CbSel1, "G4")],
-                "CB81" | "CM81" => [(SharedCfgPin::CbSel0, "G5"), (SharedCfgPin::CbSel1, "H5")],
-                "CB121" => [(SharedCfgPin::CbSel0, "H6"), (SharedCfgPin::CbSel1, "J6")],
-                "VQ100" => [(SharedCfgPin::CbSel0, "41"), (SharedCfgPin::CbSel1, "42")],
+                "CB132" => [(SharedCfgPad::CbSel0, "L9"), (SharedCfgPad::CbSel1, "P10")],
+                "CM36" | "CM36A" => [(SharedCfgPad::CbSel0, "E3"), (SharedCfgPad::CbSel1, "F3")],
+                "CM49" => [(SharedCfgPad::CbSel0, "F4"), (SharedCfgPad::CbSel1, "G4")],
+                "CB81" | "CM81" => [(SharedCfgPad::CbSel0, "G5"), (SharedCfgPad::CbSel1, "H5")],
+                "CB121" => [(SharedCfgPad::CbSel0, "H6"), (SharedCfgPad::CbSel1, "J6")],
+                "VQ100" => [(SharedCfgPad::CbSel0, "41"), (SharedCfgPad::CbSel1, "42")],
                 _ => continue,
             };
             for (cpin, ball) in balls {
-                let BondPin::Io(io) = pkg_info.bond.pins[ball] else {
+                let BondPad::Io(io) = pkg_info.bond.pins[ball] else {
                     unreachable!()
                 };
                 match self.chip.cfg_io.entry(cpin) {
@@ -1135,13 +1135,13 @@ impl PartContext<'_> {
                     .bond
                     .pins
                     .values()
-                    .filter(|&pin| matches!(pin, BondPin::Io(_) | BondPin::IoCDone(_)))
+                    .filter(|&pin| matches!(pin, BondPad::Io(_) | BondPad::IoCDone(_)))
                     .count()
             })
             .unwrap();
         let mut pkg_pins = DirPartMap::new();
         for (pkg_pin, &pin) in &pkg_info.bond.pins {
-            let (BondPin::Io(crd) | BondPin::IoCDone(crd)) = pin else {
+            let (BondPad::Io(crd) | BondPad::IoCDone(crd)) = pin else {
                 continue;
             };
             if self.chip.io_od.contains(&crd) {

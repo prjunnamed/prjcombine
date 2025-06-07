@@ -1,6 +1,6 @@
 use prjcombine_re_xilinx_naming_virtex::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::PkgPin;
-use prjcombine_virtex::bond::{Bond, BondPin, CfgPin};
+use prjcombine_virtex::bond::{Bond, BondPad, CfgPad};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
@@ -27,7 +27,7 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
                 };
                 let old = io_banks.insert(bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
-                BondPin::Clk(bank)
+                BondPad::Clk(bank)
             } else {
                 let io = io_lookup[&**pad];
                 let bank = endev.grid.get_io_bank(io);
@@ -46,30 +46,30 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
                         diffn.insert(io);
                     }
                 }
-                BondPin::Io(io)
+                BondPad::Io(io)
             }
         } else if pin.func.starts_with("VCCO_") {
             let bank = pin.func[5..].parse().unwrap();
-            BondPin::VccO(bank)
+            BondPad::VccO(bank)
         } else {
             match &pin.func[..] {
-                "NC" => BondPin::Nc,
-                "GND" => BondPin::Gnd,
-                "VCCINT" => BondPin::VccInt,
-                "VCCAUX" => BondPin::VccAux,
-                "VCCO" => BondPin::VccO(0),
-                "TCK" => BondPin::Cfg(CfgPin::Tck),
-                "TDI" => BondPin::Cfg(CfgPin::Tdi),
-                "TDO" => BondPin::Cfg(CfgPin::Tdo),
-                "TMS" => BondPin::Cfg(CfgPin::Tms),
-                "CCLK" => BondPin::Cfg(CfgPin::Cclk),
-                "DONE" => BondPin::Cfg(CfgPin::Done),
-                "PROGRAM" => BondPin::Cfg(CfgPin::ProgB),
-                "M0" => BondPin::Cfg(CfgPin::M0),
-                "M1" => BondPin::Cfg(CfgPin::M1),
-                "M2" => BondPin::Cfg(CfgPin::M2),
-                "DXN" => BondPin::Dxn,
-                "DXP" => BondPin::Dxp,
+                "NC" => BondPad::Nc,
+                "GND" => BondPad::Gnd,
+                "VCCINT" => BondPad::VccInt,
+                "VCCAUX" => BondPad::VccAux,
+                "VCCO" => BondPad::VccO(0),
+                "TCK" => BondPad::Cfg(CfgPad::Tck),
+                "TDI" => BondPad::Cfg(CfgPad::Tdi),
+                "TDO" => BondPad::Cfg(CfgPad::Tdo),
+                "TMS" => BondPad::Cfg(CfgPad::Tms),
+                "CCLK" => BondPad::Cfg(CfgPad::Cclk),
+                "DONE" => BondPad::Cfg(CfgPad::Done),
+                "PROGRAM" => BondPad::Cfg(CfgPad::ProgB),
+                "M0" => BondPad::Cfg(CfgPad::M0),
+                "M1" => BondPad::Cfg(CfgPad::M1),
+                "M2" => BondPad::Cfg(CfgPad::M2),
+                "DXN" => BondPad::Dxn,
+                "DXP" => BondPad::Dxp,
                 _ => panic!("UNK FUNC {}", pin.func),
             }
         };

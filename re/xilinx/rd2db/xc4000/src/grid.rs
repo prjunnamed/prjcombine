@@ -2,7 +2,7 @@ use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_xilinx_rawdump::{Part, TkSiteSlot};
 use prjcombine_xc2000::{
     bels::xc4000 as bels,
-    chip::{Chip, ChipKind, SharedCfgPin},
+    chip::{Chip, ChipKind, SharedCfgPad},
 };
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use unnamed_entity::EntityId;
@@ -49,9 +49,9 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
                 if let Some(&io) = io_lookup.get(pad) {
                     let cfg = match &pin.func[..] {
                         "IO" => continue,
-                        "IO_TCK" => SharedCfgPin::Tck,
-                        "IO_TDI" => SharedCfgPin::Tdi,
-                        "IO_TMS" => SharedCfgPin::Tms,
+                        "IO_TCK" => SharedCfgPad::Tck,
+                        "IO_TDI" => SharedCfgPad::Tdi,
+                        "IO_TMS" => SharedCfgPad::Tms,
                         _ => {
                             println!("UNK FUNC {}", pin.func);
                             continue;

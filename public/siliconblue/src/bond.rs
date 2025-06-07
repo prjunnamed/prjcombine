@@ -6,7 +6,7 @@ use jzon::JsonValue;
 use prjcombine_interconnect::{dir::DirV, grid::EdgeIoCoord};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum CfgPin {
+pub enum CfgPad {
     CResetB,
     CDone,
     Tck,
@@ -16,22 +16,22 @@ pub enum CfgPin {
     TrstB,
 }
 
-impl std::fmt::Display for CfgPin {
+impl std::fmt::Display for CfgPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CfgPin::Tck => write!(f, "TCK"),
-            CfgPin::Tms => write!(f, "TMS"),
-            CfgPin::Tdi => write!(f, "TDI"),
-            CfgPin::Tdo => write!(f, "TDO"),
-            CfgPin::TrstB => write!(f, "TRST_B"),
-            CfgPin::CDone => write!(f, "CDONE"),
-            CfgPin::CResetB => write!(f, "CRESET_B"),
+            CfgPad::Tck => write!(f, "TCK"),
+            CfgPad::Tms => write!(f, "TMS"),
+            CfgPad::Tdi => write!(f, "TDI"),
+            CfgPad::Tdo => write!(f, "TDO"),
+            CfgPad::TrstB => write!(f, "TRST_B"),
+            CfgPad::CDone => write!(f, "CDONE"),
+            CfgPad::CResetB => write!(f, "CRESET_B"),
         }
     }
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum BondPin {
+pub enum BondPad {
     Io(EdgeIoCoord),
     IoCDone(EdgeIoCoord),
     IoTriple([EdgeIoCoord; 3]),
@@ -46,29 +46,29 @@ pub enum BondPin {
     GndPll(DirV),
     VccPll(DirV),
     GndLed,
-    Cfg(CfgPin),
+    Cfg(CfgPad),
     PorTest,
 }
 
-impl std::fmt::Display for BondPin {
+impl std::fmt::Display for BondPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BondPin::Io(io) => write!(f, "{io}"),
-            BondPin::IoCDone(io) => write!(f, "{io}_CDONE"),
-            BondPin::Nc => write!(f, "NC"),
-            BondPin::Gnd => write!(f, "GND"),
-            BondPin::GndLed => write!(f, "GNDLED"),
-            BondPin::VccInt => write!(f, "VCCINT"),
-            BondPin::VccIo(bank) => write!(f, "VCCIO{bank}"),
-            BondPin::VccIoSpi => write!(f, "VCCIO_SPI"),
-            BondPin::VppPump => write!(f, "VPP_PUMP"),
-            BondPin::VppDirect => write!(f, "VPP_DIRECT"),
-            BondPin::GndPll(edge) => write!(f, "GNDPLL_{edge}"),
-            BondPin::VccPll(edge) => write!(f, "VCCPLL_{edge}"),
-            BondPin::Vref => write!(f, "VREF"),
-            BondPin::PorTest => write!(f, "POR_TEST"),
-            BondPin::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
-            BondPin::IoTriple(ios) => write!(
+            BondPad::Io(io) => write!(f, "{io}"),
+            BondPad::IoCDone(io) => write!(f, "{io}_CDONE"),
+            BondPad::Nc => write!(f, "NC"),
+            BondPad::Gnd => write!(f, "GND"),
+            BondPad::GndLed => write!(f, "GNDLED"),
+            BondPad::VccInt => write!(f, "VCCINT"),
+            BondPad::VccIo(bank) => write!(f, "VCCIO{bank}"),
+            BondPad::VccIoSpi => write!(f, "VCCIO_SPI"),
+            BondPad::VppPump => write!(f, "VPP_PUMP"),
+            BondPad::VppDirect => write!(f, "VPP_DIRECT"),
+            BondPad::GndPll(edge) => write!(f, "GNDPLL_{edge}"),
+            BondPad::VccPll(edge) => write!(f, "VCCPLL_{edge}"),
+            BondPad::Vref => write!(f, "VREF"),
+            BondPad::PorTest => write!(f, "POR_TEST"),
+            BondPad::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
+            BondPad::IoTriple(ios) => write!(
                 f,
                 "{io0}_{io1}_{io2}",
                 io0 = ios[0],
@@ -81,7 +81,7 @@ impl std::fmt::Display for BondPin {
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Bond {
-    pub pins: BTreeMap<String, BondPin>,
+    pub pins: BTreeMap<String, BondPad>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -95,10 +95,10 @@ impl Bond {
         let mut ios = BTreeMap::new();
         for (name, pad) in &self.pins {
             match *pad {
-                BondPin::Io(io) | BondPin::IoCDone(io) => {
+                BondPad::Io(io) | BondPad::IoCDone(io) => {
                     ios.insert(io, name.clone());
                 }
-                BondPin::IoTriple(iot) => {
+                BondPad::IoTriple(iot) => {
                     for io in iot {
                         ios.insert(io, name.clone());
                     }

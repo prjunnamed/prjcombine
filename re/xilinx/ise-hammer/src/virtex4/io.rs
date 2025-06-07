@@ -264,7 +264,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                 attr: "PRESENT".into(),
                 val: "VR".into(),
             },
-            tiles: edev.node_bits(node_vr),
+            tiles: edev.tile_bits(node_vr),
         });
         // Take exclusive mutex on bank DCI.
         let hclk_iois_dci = edev
@@ -283,7 +283,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                 attr: "STD".into(),
                 val: self.0.into(),
             },
-            tiles: edev.node_bits(hclk_iois_dci),
+            tiles: edev.tile_bits(hclk_iois_dci),
         });
         // Take shared mutex on global DCI.
         fuzzer = fuzzer.base(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
@@ -345,7 +345,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
                     attr: "STD".into(),
                     val: std.into(),
                 },
-                tiles: edev.node_bits(hclk_iois_lvds),
+                tiles: edev.tile_bits(hclk_iois_lvds),
             });
         }
         Some((fuzzer, false))
@@ -1167,7 +1167,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for bank in [1, 2, 3, 4] {
         let die = DieId::from_idx(0);
         let chip = edev.chips[die];
-        let cfg = edev.node_cfg(die);
+        let cfg = edev.tile_cfg(die);
         let mut builder = ctx
             .build()
             .raw(Key::Package, &package.name)

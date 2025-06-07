@@ -441,7 +441,7 @@ impl FpgaBackend for XactBackend<'_> {
     type BitTile = BitTile;
 
     fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
-        self.edev.node_bits(nloc)
+        self.edev.tile_bits(nloc)
     }
 
     fn egrid(&self) -> &ExpandedGrid {

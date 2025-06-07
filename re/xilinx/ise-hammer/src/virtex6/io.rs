@@ -237,7 +237,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                     attr: "PRESENT".into(),
                     val: "VR".into(),
                 },
-                tiles: edev.node_bits(vr_node),
+                tiles: edev.tile_bits(vr_node),
             });
         }
 
@@ -261,7 +261,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                     attr: "STD".into(),
                     val: std.into(),
                 },
-                tiles: edev.node_bits(hclk_ioi),
+                tiles: edev.tile_bits(hclk_ioi),
             });
         }
         // Take shared mutex on global DCI.
@@ -1219,7 +1219,7 @@ pub fn add_fuzzers<'a>(
         let mut builder = ctx
             .build()
             .raw(Key::Package, &package.name)
-            .extra_tile_attr_fixed(edev.node_cfg(die), "MISC", "DCI_CLK_ENABLE", "1");
+            .extra_tile_attr_fixed(edev.tile_cfg(die), "MISC", "DCI_CLK_ENABLE", "1");
 
         // Find VR and IO rows.
         let vr_bel = (

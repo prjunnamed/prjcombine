@@ -4,7 +4,7 @@ use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord};
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex::{
     bels,
-    chip::{Chip, ChipKind, DisabledPart, SharedCfgPin},
+    chip::{Chip, ChipKind, DisabledPart, SharedCfgPad},
 };
 use unnamed_entity::EntityId;
 
@@ -104,18 +104,18 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
                 } else {
                     let cfg = match func {
                         "IO" => continue,
-                        "IO_DIN_D0" => SharedCfgPin::Data(0),
-                        "IO_D1" => SharedCfgPin::Data(1),
-                        "IO_D2" => SharedCfgPin::Data(2),
-                        "IO_D3" => SharedCfgPin::Data(3),
-                        "IO_D4" => SharedCfgPin::Data(4),
-                        "IO_D5" => SharedCfgPin::Data(5),
-                        "IO_D6" => SharedCfgPin::Data(6),
-                        "IO_D7" => SharedCfgPin::Data(7),
-                        "IO_CS" => SharedCfgPin::CsB,
-                        "IO_INIT" => SharedCfgPin::InitB,
-                        "IO_WRITE" => SharedCfgPin::RdWrB,
-                        "IO_DOUT_BUSY" => SharedCfgPin::Dout,
+                        "IO_DIN_D0" => SharedCfgPad::Data(0),
+                        "IO_D1" => SharedCfgPad::Data(1),
+                        "IO_D2" => SharedCfgPad::Data(2),
+                        "IO_D3" => SharedCfgPad::Data(3),
+                        "IO_D4" => SharedCfgPad::Data(4),
+                        "IO_D5" => SharedCfgPad::Data(5),
+                        "IO_D6" => SharedCfgPad::Data(6),
+                        "IO_D7" => SharedCfgPad::Data(7),
+                        "IO_CS" => SharedCfgPad::CsB,
+                        "IO_INIT" => SharedCfgPad::InitB,
+                        "IO_WRITE" => SharedCfgPad::RdWrB,
+                        "IO_DOUT_BUSY" => SharedCfgPad::Dout,
                         "IO_IRDY" => {
                             match coord {
                                 EdgeIoCoord::W(row, iob) | EdgeIoCoord::E(row, iob) => {

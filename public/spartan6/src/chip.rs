@@ -30,14 +30,14 @@ pub struct Chip {
     pub row_mcb_split: Option<RowId>,
     pub gts: Gts,
     pub mcbs: Vec<Mcb>,
-    pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPad, EdgeIoCoord>,
     pub has_encrypt: bool,
 }
 
 #[derive(
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode,
 )]
-pub enum SharedCfgPin {
+pub enum SharedCfgPad {
     // ×16
     // 0 doubles as DIN, MISO, MISO1
     // 1 doubles as MISO2
@@ -65,30 +65,30 @@ pub enum SharedCfgPin {
     Scp(u8), // ×8
 }
 
-impl std::fmt::Display for SharedCfgPin {
+impl std::fmt::Display for SharedCfgPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SharedCfgPin::Data(i) => write!(f, "D{i}"),
-            SharedCfgPin::Addr(i) => write!(f, "A{i}"),
-            SharedCfgPin::Scp(i) => write!(f, "SCP{i}"),
-            SharedCfgPin::CsoB => write!(f, "CSO_B"),
-            SharedCfgPin::RdWrB => write!(f, "RDWR_B"),
-            SharedCfgPin::Dout => write!(f, "DOUT"),
-            SharedCfgPin::InitB => write!(f, "INIT_B"),
-            SharedCfgPin::Cclk => write!(f, "CCLK"),
-            SharedCfgPin::UserCclk => write!(f, "USER_CCLK"),
-            SharedCfgPin::Mosi => write!(f, "MOSI"),
-            SharedCfgPin::CmpMosi => write!(f, "CMP_MOSI"),
-            SharedCfgPin::CmpClk => write!(f, "CMP_CLK"),
-            SharedCfgPin::FcsB => write!(f, "FCS_B"),
-            SharedCfgPin::FoeB => write!(f, "FOE_B"),
-            SharedCfgPin::FweB => write!(f, "FWE_B"),
-            SharedCfgPin::Ldc => write!(f, "LDC"),
-            SharedCfgPin::M0 => write!(f, "M0"),
-            SharedCfgPin::M1 => write!(f, "M1"),
-            SharedCfgPin::Hdc => write!(f, "HDC"),
-            SharedCfgPin::HswapEn => write!(f, "HSWAP_EN"),
-            SharedCfgPin::Awake => write!(f, "AWAKE"),
+            SharedCfgPad::Data(i) => write!(f, "D{i}"),
+            SharedCfgPad::Addr(i) => write!(f, "A{i}"),
+            SharedCfgPad::Scp(i) => write!(f, "SCP{i}"),
+            SharedCfgPad::CsoB => write!(f, "CSO_B"),
+            SharedCfgPad::RdWrB => write!(f, "RDWR_B"),
+            SharedCfgPad::Dout => write!(f, "DOUT"),
+            SharedCfgPad::InitB => write!(f, "INIT_B"),
+            SharedCfgPad::Cclk => write!(f, "CCLK"),
+            SharedCfgPad::UserCclk => write!(f, "USER_CCLK"),
+            SharedCfgPad::Mosi => write!(f, "MOSI"),
+            SharedCfgPad::CmpMosi => write!(f, "CMP_MOSI"),
+            SharedCfgPad::CmpClk => write!(f, "CMP_CLK"),
+            SharedCfgPad::FcsB => write!(f, "FCS_B"),
+            SharedCfgPad::FoeB => write!(f, "FOE_B"),
+            SharedCfgPad::FweB => write!(f, "FWE_B"),
+            SharedCfgPad::Ldc => write!(f, "LDC"),
+            SharedCfgPad::M0 => write!(f, "M0"),
+            SharedCfgPad::M1 => write!(f, "M1"),
+            SharedCfgPad::Hdc => write!(f, "HDC"),
+            SharedCfgPad::HswapEn => write!(f, "HSWAP_EN"),
+            SharedCfgPad::Awake => write!(f, "AWAKE"),
         }
     }
 }

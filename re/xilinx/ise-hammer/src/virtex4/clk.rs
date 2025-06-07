@@ -174,7 +174,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
                         attr: self.2.clone(),
                         val: self.3.into(),
                     },
-                    tiles: edev.node_bits(nnloc),
+                    tiles: edev.tile_bits(nnloc),
                 });
                 sad = false;
             }
@@ -213,7 +213,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraMgtRepeaterAttr {
                         attr: self.1.clone(),
                         val: self.2.into(),
                     },
-                    tiles: edev.node_bits(nnloc),
+                    tiles: edev.tile_bits(nnloc),
                 });
             }
         }
@@ -322,7 +322,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let hclk = format!("HCLK_{lr}{i}");
                 for j in 0..32 {
                     let bel_bufg = bels::BUFGCTRL[j];
-                    let cfg = FixedRelation(edev.node_cfg(DieId::from_idx(0)));
+                    let cfg = FixedRelation(edev.tile_cfg(DieId::from_idx(0)));
                     bctx.build()
                         .global_mutex("BUFGCTRL_OUT", "USE")
                         .tile_mutex("MODE", "TEST")

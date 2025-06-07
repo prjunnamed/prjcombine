@@ -7,7 +7,7 @@ use prjcombine_xilinx_bitstream::{
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::bond::SharedCfgPin;
+use crate::bond::SharedCfgPad;
 use crate::chip::{CfgRowKind, Chip, ColumnKind, DisabledPart};
 use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord, REGION_HCLK, REGION_LEAF};
 use crate::gtz::GtzDb;
@@ -663,7 +663,7 @@ pub fn expand_grid<'a>(
     let mut cfg_io = BiHashMap::new();
     for i in 0..16 {
         cfg_io.insert(
-            SharedCfgPin::Data(i as u8),
+            SharedCfgPad::Data(i as u8),
             IoCoord {
                 die: DieId::from_idx(0),
                 col: col_cfg,
@@ -674,7 +674,7 @@ pub fn expand_grid<'a>(
     }
     for i in 0..16 {
         cfg_io.insert(
-            SharedCfgPin::Data(i as u8 + 16),
+            SharedCfgPad::Data(i as u8 + 16),
             IoCoord {
                 die: DieId::from_idx(0),
                 col: col_cfg,

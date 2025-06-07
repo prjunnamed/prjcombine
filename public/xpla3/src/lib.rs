@@ -52,7 +52,7 @@ pub struct FbColumn {
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Encode, Decode)]
-pub enum BondPin {
+pub enum BondPad {
     Nc,
     Gnd,
     Vcc,
@@ -61,15 +61,15 @@ pub enum BondPin {
     PortEn,
 }
 
-impl std::fmt::Display for BondPin {
+impl std::fmt::Display for BondPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BondPin::Nc => write!(f, "NC"),
-            BondPin::Gnd => write!(f, "GND"),
-            BondPin::Vcc => write!(f, "VCC"),
-            BondPin::Iob(mc) => write!(f, "IOB_{mc}"),
-            BondPin::Gclk(gclk) => write!(f, "{gclk}"),
-            BondPin::PortEn => write!(f, "PORT_EN"),
+            BondPad::Nc => write!(f, "NC"),
+            BondPad::Gnd => write!(f, "GND"),
+            BondPad::Vcc => write!(f, "VCC"),
+            BondPad::Iob(mc) => write!(f, "IOB_{mc}"),
+            BondPad::Gclk(gclk) => write!(f, "{gclk}"),
+            BondPad::PortEn => write!(f, "PORT_EN"),
         }
     }
 }
@@ -77,7 +77,7 @@ impl std::fmt::Display for BondPin {
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Bond {
     pub idcode_part: u32,
-    pub pins: BTreeMap<String, BondPin>,
+    pub pins: BTreeMap<String, BondPad>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]

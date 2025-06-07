@@ -52,7 +52,7 @@ pub struct Chip {
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Encode, Decode)]
-pub enum BondPin {
+pub enum BondPad {
     Nc,
     Gnd,
     VccInt,
@@ -64,18 +64,18 @@ pub enum BondPin {
     Tdo,
 }
 
-impl std::fmt::Display for BondPin {
+impl std::fmt::Display for BondPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BondPin::Nc => write!(f, "NC"),
-            BondPin::Gnd => write!(f, "GND"),
-            BondPin::VccInt => write!(f, "VCCINT"),
-            BondPin::VccIo(bank) => write!(f, "VCCIO{bank:#}"),
-            BondPin::Iob(mc) => write!(f, "IOB_{mc}"),
-            BondPin::Tms => write!(f, "TMS"),
-            BondPin::Tck => write!(f, "TCK"),
-            BondPin::Tdi => write!(f, "TDI"),
-            BondPin::Tdo => write!(f, "TDO"),
+            BondPad::Nc => write!(f, "NC"),
+            BondPad::Gnd => write!(f, "GND"),
+            BondPad::VccInt => write!(f, "VCCINT"),
+            BondPad::VccIo(bank) => write!(f, "VCCIO{bank:#}"),
+            BondPad::Iob(mc) => write!(f, "IOB_{mc}"),
+            BondPad::Tms => write!(f, "TMS"),
+            BondPad::Tck => write!(f, "TCK"),
+            BondPad::Tdi => write!(f, "TDI"),
+            BondPad::Tdo => write!(f, "TDO"),
         }
     }
 }
@@ -83,7 +83,7 @@ impl std::fmt::Display for BondPin {
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Bond {
     pub io_special_override: BTreeMap<String, MacrocellCoord>,
-    pub pins: BTreeMap<String, BondPin>,
+    pub pins: BTreeMap<String, BondPad>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]

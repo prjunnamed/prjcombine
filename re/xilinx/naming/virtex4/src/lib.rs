@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{
     bels,
-    bond::PsPin,
+    bond::PsPad,
     chip::{CfgRowKind, ChipKind, GtKind, RegId},
     expanded::{ExpandedDevice, IoCoord},
     gtz::GtzIntColId,
@@ -387,29 +387,29 @@ impl ExpandedNamedDevice<'_> {
         res
     }
 
-    pub fn get_ps_pin_name(&self, io: PsPin) -> &str {
+    pub fn get_ps_pin_name(&self, io: PsPad) -> &str {
         let slot = match io {
-            PsPin::Mio(i) => bels::IOPAD_MIO[i as usize],
-            PsPin::Clk => bels::IOPAD_PSCLK,
-            PsPin::PorB => bels::IOPAD_PSPORB,
-            PsPin::SrstB => bels::IOPAD_PSSRSTB,
-            PsPin::DdrDq(i) => bels::IOPAD_DDRDQ[i as usize],
-            PsPin::DdrDm(i) => bels::IOPAD_DDRDM[i as usize],
-            PsPin::DdrDqsP(i) => bels::IOPAD_DDRDQSP[i as usize],
-            PsPin::DdrDqsN(i) => bels::IOPAD_DDRDQSN[i as usize],
-            PsPin::DdrA(i) => bels::IOPAD_DDRA[i as usize],
-            PsPin::DdrBa(i) => bels::IOPAD_DDRBA[i as usize],
-            PsPin::DdrVrP => bels::IOPAD_DDRVRP,
-            PsPin::DdrVrN => bels::IOPAD_DDRVRN,
-            PsPin::DdrCkP => bels::IOPAD_DDRCKP,
-            PsPin::DdrCkN => bels::IOPAD_DDRCKN,
-            PsPin::DdrCke => bels::IOPAD_DDRCKE,
-            PsPin::DdrOdt => bels::IOPAD_DDRODT,
-            PsPin::DdrDrstB => bels::IOPAD_DDRDRSTB,
-            PsPin::DdrCsB => bels::IOPAD_DDRCSB,
-            PsPin::DdrRasB => bels::IOPAD_DDRRASB,
-            PsPin::DdrCasB => bels::IOPAD_DDRCASB,
-            PsPin::DdrWeB => bels::IOPAD_DDRWEB,
+            PsPad::Mio(i) => bels::IOPAD_MIO[i as usize],
+            PsPad::Clk => bels::IOPAD_PSCLK,
+            PsPad::PorB => bels::IOPAD_PSPORB,
+            PsPad::SrstB => bels::IOPAD_PSSRSTB,
+            PsPad::DdrDq(i) => bels::IOPAD_DDRDQ[i as usize],
+            PsPad::DdrDm(i) => bels::IOPAD_DDRDM[i as usize],
+            PsPad::DdrDqsP(i) => bels::IOPAD_DDRDQSP[i as usize],
+            PsPad::DdrDqsN(i) => bels::IOPAD_DDRDQSN[i as usize],
+            PsPad::DdrA(i) => bels::IOPAD_DDRA[i as usize],
+            PsPad::DdrBa(i) => bels::IOPAD_DDRBA[i as usize],
+            PsPad::DdrVrP => bels::IOPAD_DDRVRP,
+            PsPad::DdrVrN => bels::IOPAD_DDRVRN,
+            PsPad::DdrCkP => bels::IOPAD_DDRCKP,
+            PsPad::DdrCkN => bels::IOPAD_DDRCKN,
+            PsPad::DdrCke => bels::IOPAD_DDRCKE,
+            PsPad::DdrOdt => bels::IOPAD_DDRODT,
+            PsPad::DdrDrstB => bels::IOPAD_DDRDRSTB,
+            PsPad::DdrCsB => bels::IOPAD_DDRCSB,
+            PsPad::DdrRasB => bels::IOPAD_DDRRASB,
+            PsPad::DdrCasB => bels::IOPAD_DDRCASB,
+            PsPad::DdrWeB => bels::IOPAD_DDRWEB,
         };
         let die = DieId::from_idx(0);
         let chip = self.edev.chips[die];

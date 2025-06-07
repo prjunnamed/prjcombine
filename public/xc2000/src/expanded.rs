@@ -20,7 +20,7 @@ pub struct ExpandedDevice<'a> {
 }
 
 impl ExpandedDevice<'_> {
-    pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+    pub fn tile_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
         let (_, col, row, _) = nloc;
         let node = self.egrid.tile(nloc);
         let kind = self.egrid.db.tile_classes.key(node.class);

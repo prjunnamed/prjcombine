@@ -1,7 +1,7 @@
 use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::PkgPin;
 use prjcombine_virtex4::bond::{
-    Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, SharedCfgPin, SysMonPin,
+    Bond, BondPad, CfgPad, GtPad, GtRegion, GtRegionPad, SharedCfgPad, SysMonPad,
 };
 use prjcombine_virtex4::expanded::{IoCoord, IoDiffKind, IoVrKind};
 use std::collections::{BTreeMap, HashMap};
@@ -18,33 +18,33 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
         .copied()
         .map(|io| (endev.get_io_name(io), io))
         .collect();
-    let mut gt_lookup: HashMap<&str, (String, u32, GtPin)> = HashMap::new();
+    let mut gt_lookup: HashMap<&str, (String, u32, GtPad)> = HashMap::new();
     for gt in endev.get_gts() {
         let bank = gt.bank;
         for (i, (pp, pn)) in gt.pads_clk.iter().enumerate() {
             gt_lookup.insert(
                 pp,
-                (format!("MGTREFCLKP_{bank}"), bank, GtPin::ClkP(i as u8)),
+                (format!("MGTREFCLKP_{bank}"), bank, GtPad::ClkP(i as u8)),
             );
             gt_lookup.insert(
                 pn,
-                (format!("MGTREFCLKN_{bank}"), bank, GtPin::ClkN(i as u8)),
+                (format!("MGTREFCLKN_{bank}"), bank, GtPad::ClkN(i as u8)),
             );
         }
         for (i, (pp, pn)) in gt.pads_rx.iter().enumerate() {
-            gt_lookup.insert(pp, (format!("MGTRXP{i}_{bank}"), bank, GtPin::RxP(i as u8)));
-            gt_lookup.insert(pn, (format!("MGTRXN{i}_{bank}"), bank, GtPin::RxN(i as u8)));
+            gt_lookup.insert(pp, (format!("MGTRXP{i}_{bank}"), bank, GtPad::RxP(i as u8)));
+            gt_lookup.insert(pn, (format!("MGTRXN{i}_{bank}"), bank, GtPad::RxN(i as u8)));
         }
         for (i, (pp, pn)) in gt.pads_tx.iter().enumerate() {
-            gt_lookup.insert(pp, (format!("MGTTXP{i}_{bank}"), bank, GtPin::TxP(i as u8)));
-            gt_lookup.insert(pn, (format!("MGTTXN{i}_{bank}"), bank, GtPin::TxN(i as u8)));
+            gt_lookup.insert(pp, (format!("MGTTXP{i}_{bank}"), bank, GtPad::TxP(i as u8)));
+            gt_lookup.insert(pn, (format!("MGTTXN{i}_{bank}"), bank, GtPad::TxN(i as u8)));
         }
     }
-    let mut sm_lookup: HashMap<&str, (u32, SysMonPin)> = HashMap::new();
+    let mut sm_lookup: HashMap<&str, (u32, SysMonPad)> = HashMap::new();
     let mut vaux_lookup: HashMap<IoCoord, (usize, char)> = HashMap::new();
     for sysmon in &endev.get_sysmons() {
-        sm_lookup.insert(sysmon.pad_vp, (sysmon.bank, SysMonPin::VP));
-        sm_lookup.insert(sysmon.pad_vn, (sysmon.bank, SysMonPin::VN));
+        sm_lookup.insert(sysmon.pad_vp, (sysmon.bank, SysMonPad::VP));
+        sm_lookup.insert(sysmon.pad_vn, (sysmon.bank, SysMonPad::VN));
         for (i, vaux) in sysmon.vaux.iter().enumerate() {
             if let &Some((vauxp, vauxn)) = vaux {
                 vaux_lookup.insert(vauxp, (i, 'P'));
@@ -77,7 +77,7 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
                     IoVrKind::None => (),
                 }
                 match cfg_lookup.get(&io).copied() {
-                    Some(SharedCfgPin::Data(d)) => {
+                    Some(SharedCfgPad::Data(d)) => {
                         if d >= 16 {
                             write!(exp_func, "_A{}", d - 16).unwrap();
                         }
@@ -86,16 +86,16 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
                             write!(exp_func, "_FS{d}").unwrap();
                         }
                     }
-                    Some(SharedCfgPin::Addr(a)) => {
+                    Some(SharedCfgPad::Addr(a)) => {
                         write!(exp_func, "_A{a}").unwrap();
                     }
-                    Some(SharedCfgPin::Rs(a)) => {
+                    Some(SharedCfgPad::Rs(a)) => {
                         write!(exp_func, "_RS{a}").unwrap();
                     }
-                    Some(SharedCfgPin::CsoB) => exp_func += "_CSO_B",
-                    Some(SharedCfgPin::FweB) => exp_func += "_FWE_B",
-                    Some(SharedCfgPin::FoeB) => exp_func += "_FOE_B_MOSI",
-                    Some(SharedCfgPin::FcsB) => exp_func += "_FCS_B",
+                    Some(SharedCfgPad::CsoB) => exp_func += "_CSO_B",
+                    Some(SharedCfgPad::FweB) => exp_func += "_FWE_B",
+                    Some(SharedCfgPad::FoeB) => exp_func += "_FOE_B_MOSI",
+                    Some(SharedCfgPad::FcsB) => exp_func += "_FCS_B",
                     Some(_) => unreachable!(),
                     None => (),
                 }
@@ -108,69 +108,69 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
                 }
                 assert_eq!(pin.vref_bank, Some(io_info.bank));
                 assert_eq!(pin.vcco_bank, Some(io_info.bank));
-                BondPin::Io(io_info.bank, io_info.biob)
+                BondPad::Io(io_info.bank, io_info.biob)
             } else if let Some(&(ref exp_func, bank, gpin)) = gt_lookup.get(&**pad) {
                 if *exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
-                BondPin::Gt(bank, gpin)
+                BondPad::Gt(bank, gpin)
             } else if let Some(&(bank, spin)) = sm_lookup.get(&**pad) {
                 let exp_func = match spin {
-                    SysMonPin::VP => "VP_0",
-                    SysMonPin::VN => "VN_0",
+                    SysMonPad::VP => "VP_0",
+                    SysMonPad::VN => "VN_0",
                     _ => unreachable!(),
                 };
                 if exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
-                BondPin::SysMon(bank, spin)
+                BondPad::SysMon(bank, spin)
             } else {
                 println!("unk iopad {pad} {f}", f = pin.func);
                 continue;
             }
         } else {
             match &pin.func[..] {
-                "NC" => BondPin::Nc,
-                "GND" => BondPin::Gnd,
-                "RSVD" => BondPin::Rsvd,   // ??? on TXT devices
-                "RSVD_0" => BondPin::Rsvd, // actually VFS, R_FUSE
-                "VCCINT" => BondPin::VccInt,
-                "VCCAUX" => BondPin::VccAux,
-                "VBATT_0" => BondPin::VccBatt,
-                "TCK_0" => BondPin::Cfg(CfgPin::Tck),
-                "TDI_0" => BondPin::Cfg(CfgPin::Tdi),
-                "TDO_0" => BondPin::Cfg(CfgPin::Tdo),
-                "TMS_0" => BondPin::Cfg(CfgPin::Tms),
-                "CCLK_0" => BondPin::Cfg(CfgPin::Cclk),
-                "DONE_0" => BondPin::Cfg(CfgPin::Done),
-                "PROGRAM_B_0" => BondPin::Cfg(CfgPin::ProgB),
-                "INIT_B_0" => BondPin::Cfg(CfgPin::InitB),
-                "RDWR_B_0" => BondPin::Cfg(CfgPin::RdWrB),
-                "CS_B_0" => BondPin::Cfg(CfgPin::CsiB),
-                "D_IN_0" => BondPin::Cfg(CfgPin::Din),
-                "D_OUT_BUSY_0" => BondPin::Cfg(CfgPin::Dout),
-                "M0_0" => BondPin::Cfg(CfgPin::M0),
-                "M1_0" => BondPin::Cfg(CfgPin::M1),
-                "M2_0" => BondPin::Cfg(CfgPin::M2),
-                "HSWAPEN_0" => BondPin::Cfg(CfgPin::HswapEn),
-                "DXN_0" => BondPin::Dxn,
-                "DXP_0" => BondPin::Dxp,
-                "AVSS_0" => BondPin::SysMon(0, SysMonPin::AVss),
-                "AVDD_0" => BondPin::SysMon(0, SysMonPin::AVdd),
-                "VREFP_0" => BondPin::SysMon(0, SysMonPin::VRefP),
-                "VREFN_0" => BondPin::SysMon(0, SysMonPin::VRefN),
-                "MGTAVTTRXC" => BondPin::GtRegion(GtRegion::All, GtRegionPin::AVttRxC),
-                "MGTAVTTRXC_L" => BondPin::GtRegion(GtRegion::L, GtRegionPin::AVttRxC),
-                "MGTAVTTRXC_R" => BondPin::GtRegion(GtRegion::R, GtRegionPin::AVttRxC),
+                "NC" => BondPad::Nc,
+                "GND" => BondPad::Gnd,
+                "RSVD" => BondPad::Rsvd,   // ??? on TXT devices
+                "RSVD_0" => BondPad::Rsvd, // actually VFS, R_FUSE
+                "VCCINT" => BondPad::VccInt,
+                "VCCAUX" => BondPad::VccAux,
+                "VBATT_0" => BondPad::VccBatt,
+                "TCK_0" => BondPad::Cfg(CfgPad::Tck),
+                "TDI_0" => BondPad::Cfg(CfgPad::Tdi),
+                "TDO_0" => BondPad::Cfg(CfgPad::Tdo),
+                "TMS_0" => BondPad::Cfg(CfgPad::Tms),
+                "CCLK_0" => BondPad::Cfg(CfgPad::Cclk),
+                "DONE_0" => BondPad::Cfg(CfgPad::Done),
+                "PROGRAM_B_0" => BondPad::Cfg(CfgPad::ProgB),
+                "INIT_B_0" => BondPad::Cfg(CfgPad::InitB),
+                "RDWR_B_0" => BondPad::Cfg(CfgPad::RdWrB),
+                "CS_B_0" => BondPad::Cfg(CfgPad::CsiB),
+                "D_IN_0" => BondPad::Cfg(CfgPad::Din),
+                "D_OUT_BUSY_0" => BondPad::Cfg(CfgPad::Dout),
+                "M0_0" => BondPad::Cfg(CfgPad::M0),
+                "M1_0" => BondPad::Cfg(CfgPad::M1),
+                "M2_0" => BondPad::Cfg(CfgPad::M2),
+                "HSWAPEN_0" => BondPad::Cfg(CfgPad::HswapEn),
+                "DXN_0" => BondPad::Dxn,
+                "DXP_0" => BondPad::Dxp,
+                "AVSS_0" => BondPad::SysMon(0, SysMonPad::AVss),
+                "AVDD_0" => BondPad::SysMon(0, SysMonPad::AVdd),
+                "VREFP_0" => BondPad::SysMon(0, SysMonPad::VRefP),
+                "VREFN_0" => BondPad::SysMon(0, SysMonPad::VRefN),
+                "MGTAVTTRXC" => BondPad::GtRegion(GtRegion::All, GtRegionPad::AVttRxC),
+                "MGTAVTTRXC_L" => BondPad::GtRegion(GtRegion::L, GtRegionPad::AVttRxC),
+                "MGTAVTTRXC_R" => BondPad::GtRegion(GtRegion::R, GtRegionPad::AVttRxC),
                 _ => {
                     if let Some((n, b)) = split_num(&pin.func) {
                         match n {
-                            "VCCO_" => BondPin::VccO(b),
-                            "MGTAVCC_" => BondPin::Gt(b, GtPin::AVcc),
-                            "MGTAVCCPLL_" => BondPin::Gt(b, GtPin::AVccPll),
-                            "MGTAVTTRX_" => BondPin::Gt(b, GtPin::VtRx(0)),
-                            "MGTAVTTTX_" => BondPin::Gt(b, GtPin::VtTx(0)),
-                            "MGTRREF_" => BondPin::Gt(b, GtPin::RRef),
+                            "VCCO_" => BondPad::VccO(b),
+                            "MGTAVCC_" => BondPad::Gt(b, GtPad::AVcc),
+                            "MGTAVCCPLL_" => BondPad::Gt(b, GtPad::AVccPll),
+                            "MGTAVTTRX_" => BondPad::Gt(b, GtPad::VtRx(0)),
+                            "MGTAVTTTX_" => BondPad::Gt(b, GtPad::VtTx(0)),
+                            "MGTRREF_" => BondPad::Gt(b, GtPad::RRef),
                             _ => {
                                 println!("UNK FUNC {}", pin.func);
                                 continue;

@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_re_xilinx_rawdump::PkgPin;
-use prjcombine_spartan6::bond::{Bond, BondPin, CfgPin, GtPin};
+use prjcombine_spartan6::bond::{Bond, BondPad, CfgPad, GtPad};
 
 use prjcombine_re_xilinx_naming_spartan6::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rd2db_grid::split_num;
@@ -16,26 +16,26 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
         .into_iter()
         .map(|io| (endev.get_io_name(io), io))
         .collect();
-    let mut gt_lookup: HashMap<_, (String, u32, GtPin)> = HashMap::new();
+    let mut gt_lookup: HashMap<_, (String, u32, GtPad)> = HashMap::new();
     for gt in endev.get_gts() {
         let bank = gt.bank;
         for (i, &(pp, pn)) in gt.pads_clk.iter().enumerate() {
             gt_lookup.insert(
                 pp,
-                (format!("MGTREFCLK{i}P_{bank}"), bank, GtPin::ClkP(i as u8)),
+                (format!("MGTREFCLK{i}P_{bank}"), bank, GtPad::ClkP(i as u8)),
             );
             gt_lookup.insert(
                 pn,
-                (format!("MGTREFCLK{i}N_{bank}"), bank, GtPin::ClkN(i as u8)),
+                (format!("MGTREFCLK{i}N_{bank}"), bank, GtPad::ClkN(i as u8)),
             );
         }
         for (i, (pp, pn)) in gt.pads_rx.iter().enumerate() {
-            gt_lookup.insert(pp, (format!("MGTRXP{i}_{bank}"), bank, GtPin::RxP(i as u8)));
-            gt_lookup.insert(pn, (format!("MGTRXN{i}_{bank}"), bank, GtPin::RxN(i as u8)));
+            gt_lookup.insert(pp, (format!("MGTRXP{i}_{bank}"), bank, GtPad::RxP(i as u8)));
+            gt_lookup.insert(pn, (format!("MGTRXN{i}_{bank}"), bank, GtPad::RxN(i as u8)));
         }
         for (i, (pp, pn)) in gt.pads_tx.iter().enumerate() {
-            gt_lookup.insert(pp, (format!("MGTTXP{i}_{bank}"), bank, GtPin::TxP(i as u8)));
-            gt_lookup.insert(pn, (format!("MGTTXN{i}_{bank}"), bank, GtPin::TxN(i as u8)));
+            gt_lookup.insert(pp, (format!("MGTTXP{i}_{bank}"), bank, GtPad::TxP(i as u8)));
+            gt_lookup.insert(pn, (format!("MGTTXN{i}_{bank}"), bank, GtPad::TxN(i as u8)));
         }
     }
     for pin in pins {
@@ -48,44 +48,44 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
                 if pin.func.contains("VREF") {
                     vref.insert(io);
                 }
-                BondPin::Io(io)
+                BondPad::Io(io)
             } else if let Some(&(ref exp_func, bank, gpin)) = gt_lookup.get(&**pad) {
                 if *exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
-                BondPin::Gt(bank, gpin)
+                BondPad::Gt(bank, gpin)
             } else {
                 println!("unk iopad {pad} {f}", f = pin.func);
                 continue;
             }
         } else {
             match &pin.func[..] {
-                "NC" => BondPin::Nc,
-                "GND" => BondPin::Gnd,
-                "VCCINT" => BondPin::VccInt,
-                "VCCAUX" => BondPin::VccAux,
-                "VBATT" => BondPin::VccBatt,
-                "VFS" => BondPin::Vfs,
-                "RFUSE" => BondPin::RFuse,
-                "TCK" => BondPin::Cfg(CfgPin::Tck),
-                "TDI" => BondPin::Cfg(CfgPin::Tdi),
-                "TDO" => BondPin::Cfg(CfgPin::Tdo),
-                "TMS" => BondPin::Cfg(CfgPin::Tms),
-                "CMPCS_B_2" => BondPin::Cfg(CfgPin::CmpCsB),
-                "DONE_2" => BondPin::Cfg(CfgPin::Done),
-                "PROGRAM_B_2" => BondPin::Cfg(CfgPin::ProgB),
-                "SUSPEND" => BondPin::Cfg(CfgPin::Suspend),
+                "NC" => BondPad::Nc,
+                "GND" => BondPad::Gnd,
+                "VCCINT" => BondPad::VccInt,
+                "VCCAUX" => BondPad::VccAux,
+                "VBATT" => BondPad::VccBatt,
+                "VFS" => BondPad::Vfs,
+                "RFUSE" => BondPad::RFuse,
+                "TCK" => BondPad::Cfg(CfgPad::Tck),
+                "TDI" => BondPad::Cfg(CfgPad::Tdi),
+                "TDO" => BondPad::Cfg(CfgPad::Tdo),
+                "TMS" => BondPad::Cfg(CfgPad::Tms),
+                "CMPCS_B_2" => BondPad::Cfg(CfgPad::CmpCsB),
+                "DONE_2" => BondPad::Cfg(CfgPad::Done),
+                "PROGRAM_B_2" => BondPad::Cfg(CfgPad::ProgB),
+                "SUSPEND" => BondPad::Cfg(CfgPad::Suspend),
                 _ => {
                     if let Some((n, b)) = split_num(&pin.func) {
                         match n {
-                            "VCCO_" => BondPin::VccO(b),
-                            "MGTAVCC_" => BondPin::Gt(b, GtPin::AVcc),
-                            "MGTAVCCPLL0_" => BondPin::Gt(b, GtPin::AVccPll(0)),
-                            "MGTAVCCPLL1_" => BondPin::Gt(b, GtPin::AVccPll(1)),
-                            "MGTAVTTRX_" => BondPin::Gt(b, GtPin::VtRx),
-                            "MGTAVTTTX_" => BondPin::Gt(b, GtPin::VtTx),
-                            "MGTRREF_" => BondPin::Gt(b, GtPin::RRef),
-                            "MGTAVTTRCAL_" => BondPin::Gt(b, GtPin::AVttRCal),
+                            "VCCO_" => BondPad::VccO(b),
+                            "MGTAVCC_" => BondPad::Gt(b, GtPad::AVcc),
+                            "MGTAVCCPLL0_" => BondPad::Gt(b, GtPad::AVccPll(0)),
+                            "MGTAVCCPLL1_" => BondPad::Gt(b, GtPad::AVccPll(1)),
+                            "MGTAVTTRX_" => BondPad::Gt(b, GtPad::VtRx),
+                            "MGTAVTTTX_" => BondPad::Gt(b, GtPad::VtTx),
+                            "MGTRREF_" => BondPad::Gt(b, GtPad::RRef),
+                            "MGTAVTTRCAL_" => BondPad::Gt(b, GtPad::AVttRCal),
                             _ => {
                                 println!("UNK FUNC {}", pin.func);
                                 continue;

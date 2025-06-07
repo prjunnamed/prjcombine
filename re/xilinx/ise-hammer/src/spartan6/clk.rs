@@ -110,7 +110,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
                         attr: self.3.clone(),
                         val: self.4.clone(),
                     },
-                    tiles: edev.node_bits(nnloc),
+                    tiles: edev.tile_bits(nnloc),
                 });
                 return Some((fuzzer, false));
             }

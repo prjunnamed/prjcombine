@@ -4,7 +4,7 @@ use jzon::JsonValue;
 use std::collections::BTreeMap;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum CfgPin {
+pub enum CfgPad {
     Tck,
     Tdi,
     Tdo,
@@ -28,33 +28,33 @@ pub enum CfgPin {
     CfgBvs,
 }
 
-impl std::fmt::Display for CfgPin {
+impl std::fmt::Display for CfgPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CfgPin::Cclk => write!(f, "CCLK"),
-            CfgPin::Done => write!(f, "DONE"),
-            CfgPin::M0 => write!(f, "M0"),
-            CfgPin::M1 => write!(f, "M1"),
-            CfgPin::M2 => write!(f, "M2"),
-            CfgPin::ProgB => write!(f, "PROG_B"),
-            CfgPin::InitB => write!(f, "INIT_B"),
-            CfgPin::RdWrB => write!(f, "RDWR_B"),
-            CfgPin::CsiB => write!(f, "CSI_B"),
-            CfgPin::Tck => write!(f, "TCK"),
-            CfgPin::Tms => write!(f, "TMS"),
-            CfgPin::Tdi => write!(f, "TDI"),
-            CfgPin::Tdo => write!(f, "TDO"),
-            CfgPin::PwrdwnB => write!(f, "PWRDWN_B"),
-            CfgPin::HswapEn => write!(f, "HSWAP_EN"),
-            CfgPin::Din => write!(f, "DIN"),
-            CfgPin::Dout => write!(f, "DOUT"),
-            CfgPin::CfgBvs => write!(f, "CFGBVS"),
+            CfgPad::Cclk => write!(f, "CCLK"),
+            CfgPad::Done => write!(f, "DONE"),
+            CfgPad::M0 => write!(f, "M0"),
+            CfgPad::M1 => write!(f, "M1"),
+            CfgPad::M2 => write!(f, "M2"),
+            CfgPad::ProgB => write!(f, "PROG_B"),
+            CfgPad::InitB => write!(f, "INIT_B"),
+            CfgPad::RdWrB => write!(f, "RDWR_B"),
+            CfgPad::CsiB => write!(f, "CSI_B"),
+            CfgPad::Tck => write!(f, "TCK"),
+            CfgPad::Tms => write!(f, "TMS"),
+            CfgPad::Tdi => write!(f, "TDI"),
+            CfgPad::Tdo => write!(f, "TDO"),
+            CfgPad::PwrdwnB => write!(f, "PWRDWN_B"),
+            CfgPad::HswapEn => write!(f, "HSWAP_EN"),
+            CfgPad::Din => write!(f, "DIN"),
+            CfgPad::Dout => write!(f, "DOUT"),
+            CfgPad::CfgBvs => write!(f, "CFGBVS"),
         }
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum GtPin {
+pub enum GtPad {
     RxP(u8),
     RxN(u8),
     TxP(u8),
@@ -82,28 +82,28 @@ pub enum GtPin {
     RBias,
 }
 
-impl std::fmt::Display for GtPin {
+impl std::fmt::Display for GtPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GtPin::RxP(idx) => write!(f, "RXP{idx}"),
-            GtPin::RxN(idx) => write!(f, "RXN{idx}"),
-            GtPin::TxP(idx) => write!(f, "TXP{idx}"),
-            GtPin::TxN(idx) => write!(f, "TXN{idx}"),
-            GtPin::ClkP(idx) => write!(f, "CLKP{idx}"),
-            GtPin::ClkN(idx) => write!(f, "CLKN{idx}"),
-            GtPin::GndA => write!(f, "GNDA"),
-            GtPin::AVccAuxTx => write!(f, "AVCCAUXTX"),
-            GtPin::AVccAuxRx(idx) => write!(f, "AVCCAUXRX{idx}"),
-            GtPin::AVccAuxMgt => write!(f, "AVCCAUXMGT"),
-            GtPin::RTerm => write!(f, "RTERM"),
-            GtPin::MgtVRef => write!(f, "MGTVREF"),
-            GtPin::VtRx(idx) => write!(f, "VTRX{idx}"),
-            GtPin::VtTx(idx) => write!(f, "VTTX{idx}"),
-            GtPin::AVcc => write!(f, "AVCC"),
-            GtPin::AVccPll => write!(f, "AVCCPLL"),
-            GtPin::RRef => write!(f, "RREF"),
-            GtPin::AVttRCal => write!(f, "AVTTRCAL"),
-            GtPin::RBias => write!(f, "RBIAS"),
+            GtPad::RxP(idx) => write!(f, "RXP{idx}"),
+            GtPad::RxN(idx) => write!(f, "RXN{idx}"),
+            GtPad::TxP(idx) => write!(f, "TXP{idx}"),
+            GtPad::TxN(idx) => write!(f, "TXN{idx}"),
+            GtPad::ClkP(idx) => write!(f, "CLKP{idx}"),
+            GtPad::ClkN(idx) => write!(f, "CLKN{idx}"),
+            GtPad::GndA => write!(f, "GNDA"),
+            GtPad::AVccAuxTx => write!(f, "AVCCAUXTX"),
+            GtPad::AVccAuxRx(idx) => write!(f, "AVCCAUXRX{idx}"),
+            GtPad::AVccAuxMgt => write!(f, "AVCCAUXMGT"),
+            GtPad::RTerm => write!(f, "RTERM"),
+            GtPad::MgtVRef => write!(f, "MGTVREF"),
+            GtPad::VtRx(idx) => write!(f, "VTRX{idx}"),
+            GtPad::VtTx(idx) => write!(f, "VTTX{idx}"),
+            GtPad::AVcc => write!(f, "AVCC"),
+            GtPad::AVccPll => write!(f, "AVCCPLL"),
+            GtPad::RRef => write!(f, "RREF"),
+            GtPad::AVttRCal => write!(f, "AVTTRCAL"),
+            GtPad::RBias => write!(f, "RBIAS"),
         }
     }
 }
@@ -146,7 +146,7 @@ impl std::fmt::Display for GtRegion {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum GtRegionPin {
+pub enum GtRegionPad {
     AVtt,
     AGnd,
     AVcc,
@@ -156,22 +156,22 @@ pub enum GtRegionPin {
     VccAux,
 }
 
-impl std::fmt::Display for GtRegionPin {
+impl std::fmt::Display for GtRegionPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GtRegionPin::AVtt => write!(f, "AVTT"),
-            GtRegionPin::AGnd => write!(f, "AGND"),
-            GtRegionPin::AVcc => write!(f, "AVCC"),
-            GtRegionPin::AVccRx => write!(f, "AVCCRX"),
-            GtRegionPin::AVccPll => write!(f, "AVCCPLL"),
-            GtRegionPin::AVttRxC => write!(f, "AVTTRXC"),
-            GtRegionPin::VccAux => write!(f, "VCCAUX"),
+            GtRegionPad::AVtt => write!(f, "AVTT"),
+            GtRegionPad::AGnd => write!(f, "AGND"),
+            GtRegionPad::AVcc => write!(f, "AVCC"),
+            GtRegionPad::AVccRx => write!(f, "AVCCRX"),
+            GtRegionPad::AVccPll => write!(f, "AVCCPLL"),
+            GtRegionPad::AVttRxC => write!(f, "AVTTRXC"),
+            GtRegionPad::VccAux => write!(f, "VCCAUX"),
         }
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum SysMonPin {
+pub enum SysMonPad {
     VP,
     VN,
     AVss,
@@ -180,21 +180,21 @@ pub enum SysMonPin {
     VRefN,
 }
 
-impl std::fmt::Display for SysMonPin {
+impl std::fmt::Display for SysMonPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SysMonPin::VP => write!(f, "VP"),
-            SysMonPin::VN => write!(f, "VN"),
-            SysMonPin::AVss => write!(f, "AVSS"),
-            SysMonPin::AVdd => write!(f, "AVDD"),
-            SysMonPin::VRefP => write!(f, "VREFP"),
-            SysMonPin::VRefN => write!(f, "VREFN"),
+            SysMonPad::VP => write!(f, "VP"),
+            SysMonPad::VN => write!(f, "VN"),
+            SysMonPad::AVss => write!(f, "AVSS"),
+            SysMonPad::AVdd => write!(f, "AVDD"),
+            SysMonPad::VRefP => write!(f, "VREFP"),
+            SysMonPad::VRefN => write!(f, "VREFN"),
         }
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum GtzPin {
+pub enum GtzPad {
     RxP(u8),
     RxN(u8),
     TxP(u8),
@@ -218,36 +218,36 @@ pub enum GtzPin {
     SenseVccH,
 }
 
-impl std::fmt::Display for GtzPin {
+impl std::fmt::Display for GtzPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GtzPin::RxP(idx) => write!(f, "RXP{idx}"),
-            GtzPin::RxN(idx) => write!(f, "RXN{idx}"),
-            GtzPin::TxP(idx) => write!(f, "TXP{idx}"),
-            GtzPin::TxN(idx) => write!(f, "TXN{idx}"),
-            GtzPin::ClkP(idx) => write!(f, "CLKP{idx}"),
-            GtzPin::ClkN(idx) => write!(f, "CLKN{idx}"),
-            GtzPin::AGnd => write!(f, "AGND"),
-            GtzPin::AVcc => write!(f, "AVCC"),
-            GtzPin::VccH => write!(f, "VCCH"),
-            GtzPin::VccL => write!(f, "VCCL"),
-            GtzPin::ObsClkP => write!(f, "OBSCLKP"),
-            GtzPin::ObsClkN => write!(f, "OBSCLKN"),
-            GtzPin::ThermIn => write!(f, "THERM_IN"),
-            GtzPin::ThermOut => write!(f, "THERM_OUT"),
-            GtzPin::SenseAGnd => write!(f, "SENSE_AGND"),
-            GtzPin::SenseGnd => write!(f, "SENSE_GND"),
-            GtzPin::SenseGndL => write!(f, "SENSE_GNDL"),
-            GtzPin::SenseAVcc => write!(f, "SENSE_AVCC"),
-            GtzPin::SenseVcc => write!(f, "SENSE_VCC"),
-            GtzPin::SenseVccL => write!(f, "SENSE_VCCL"),
-            GtzPin::SenseVccH => write!(f, "SENSE_VCCH"),
+            GtzPad::RxP(idx) => write!(f, "RXP{idx}"),
+            GtzPad::RxN(idx) => write!(f, "RXN{idx}"),
+            GtzPad::TxP(idx) => write!(f, "TXP{idx}"),
+            GtzPad::TxN(idx) => write!(f, "TXN{idx}"),
+            GtzPad::ClkP(idx) => write!(f, "CLKP{idx}"),
+            GtzPad::ClkN(idx) => write!(f, "CLKN{idx}"),
+            GtzPad::AGnd => write!(f, "AGND"),
+            GtzPad::AVcc => write!(f, "AVCC"),
+            GtzPad::VccH => write!(f, "VCCH"),
+            GtzPad::VccL => write!(f, "VCCL"),
+            GtzPad::ObsClkP => write!(f, "OBSCLKP"),
+            GtzPad::ObsClkN => write!(f, "OBSCLKN"),
+            GtzPad::ThermIn => write!(f, "THERM_IN"),
+            GtzPad::ThermOut => write!(f, "THERM_OUT"),
+            GtzPad::SenseAGnd => write!(f, "SENSE_AGND"),
+            GtzPad::SenseGnd => write!(f, "SENSE_GND"),
+            GtzPad::SenseGndL => write!(f, "SENSE_GNDL"),
+            GtzPad::SenseAVcc => write!(f, "SENSE_AVCC"),
+            GtzPad::SenseVcc => write!(f, "SENSE_VCC"),
+            GtzPad::SenseVccL => write!(f, "SENSE_VCCL"),
+            GtzPad::SenseVccH => write!(f, "SENSE_VCCH"),
         }
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum PsPin {
+pub enum PsPad {
     Mio(u32),
     Clk,
     PorB,
@@ -271,36 +271,36 @@ pub enum PsPin {
     DdrWeB,
 }
 
-impl std::fmt::Display for PsPin {
+impl std::fmt::Display for PsPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PsPin::Mio(i) => write!(f, "MIO{i}"),
-            PsPin::Clk => write!(f, "CLK"),
-            PsPin::PorB => write!(f, "POR_B"),
-            PsPin::SrstB => write!(f, "SRST_B"),
-            PsPin::DdrDq(i) => write!(f, "DDR_DQ{i}"),
-            PsPin::DdrDm(i) => write!(f, "DDR_DM{i}"),
-            PsPin::DdrDqsP(i) => write!(f, "DDR_DQS_P{i}"),
-            PsPin::DdrDqsN(i) => write!(f, "DDR_DQS_N{i}"),
-            PsPin::DdrA(i) => write!(f, "DDR_A{i}"),
-            PsPin::DdrBa(i) => write!(f, "DDR_BA{i}"),
-            PsPin::DdrVrP => write!(f, "DDR_VRP"),
-            PsPin::DdrVrN => write!(f, "DDR_VRN"),
-            PsPin::DdrCkP => write!(f, "DDR_CKP"),
-            PsPin::DdrCkN => write!(f, "DDR_CKN"),
-            PsPin::DdrCke => write!(f, "DDR_CKE"),
-            PsPin::DdrOdt => write!(f, "DDR_ODT"),
-            PsPin::DdrDrstB => write!(f, "DDR_DRST_B"),
-            PsPin::DdrCsB => write!(f, "DDR_CS_B"),
-            PsPin::DdrRasB => write!(f, "DDR_RAS_B"),
-            PsPin::DdrCasB => write!(f, "DDR_CAS_B"),
-            PsPin::DdrWeB => write!(f, "DDR_WE_B"),
+            PsPad::Mio(i) => write!(f, "MIO{i}"),
+            PsPad::Clk => write!(f, "CLK"),
+            PsPad::PorB => write!(f, "POR_B"),
+            PsPad::SrstB => write!(f, "SRST_B"),
+            PsPad::DdrDq(i) => write!(f, "DDR_DQ{i}"),
+            PsPad::DdrDm(i) => write!(f, "DDR_DM{i}"),
+            PsPad::DdrDqsP(i) => write!(f, "DDR_DQS_P{i}"),
+            PsPad::DdrDqsN(i) => write!(f, "DDR_DQS_N{i}"),
+            PsPad::DdrA(i) => write!(f, "DDR_A{i}"),
+            PsPad::DdrBa(i) => write!(f, "DDR_BA{i}"),
+            PsPad::DdrVrP => write!(f, "DDR_VRP"),
+            PsPad::DdrVrN => write!(f, "DDR_VRN"),
+            PsPad::DdrCkP => write!(f, "DDR_CKP"),
+            PsPad::DdrCkN => write!(f, "DDR_CKN"),
+            PsPad::DdrCke => write!(f, "DDR_CKE"),
+            PsPad::DdrOdt => write!(f, "DDR_ODT"),
+            PsPad::DdrDrstB => write!(f, "DDR_DRST_B"),
+            PsPad::DdrCsB => write!(f, "DDR_CS_B"),
+            PsPad::DdrRasB => write!(f, "DDR_RAS_B"),
+            PsPad::DdrCasB => write!(f, "DDR_CAS_B"),
+            PsPad::DdrWeB => write!(f, "DDR_WE_B"),
         }
     }
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum BondPin {
+pub enum BondPad {
     // bank, pin within bank
     Io(u32, u32),
     Nc,
@@ -313,59 +313,59 @@ pub enum BondPin {
     VccBatt,
     VccAuxIo(u32),
     RsvdGnd,
-    Cfg(CfgPin),
-    Gt(u32, GtPin),
-    Gtz(u32, GtzPin),
-    GtRegion(GtRegion, GtRegionPin),
+    Cfg(CfgPad),
+    Gt(u32, GtPad),
+    Gtz(u32, GtzPad),
+    GtRegion(GtRegion, GtRegionPad),
     Dxp,
     Dxn,
     Vfs,
-    SysMon(u32, SysMonPin),
+    SysMon(u32, SysMonPad),
     VccPsInt,
     VccPsAux,
     VccPsPll,
     PsVref(u32, u32),
-    PsIo(u32, PsPin),
+    PsIo(u32, PsPad),
 }
 
-impl std::fmt::Display for BondPin {
+impl std::fmt::Display for BondPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BondPin::Io(bank, idx) => write!(f, "IOB_{bank}_{idx}"),
-            BondPin::Gt(bank, gtpin) => write!(f, "GT{bank}_{gtpin}"),
-            BondPin::Gtz(bank, gtpin) => write!(f, "GTZ{bank}_{gtpin}"),
-            BondPin::GtRegion(region, gtpin) => write!(f, "GTREG_{region}_{gtpin}"),
-            BondPin::Nc => write!(f, "NC"),
-            BondPin::Gnd => write!(f, "GND"),
-            BondPin::VccInt => write!(f, "VCCINT"),
-            BondPin::VccAux => write!(f, "VCCAUX"),
-            BondPin::VccAuxIo(idx) => write!(f, "VCCAUX_IO{idx}"),
-            BondPin::VccBram => write!(f, "VCCBRAM"),
-            BondPin::VccO(bank) => write!(f, "VCCO{bank}"),
-            BondPin::VccBatt => write!(f, "VCC_BATT"),
-            BondPin::Cfg(pin) => write!(f, "{pin}"),
-            BondPin::Dxn => write!(f, "DXN"),
-            BondPin::Dxp => write!(f, "DXP"),
-            BondPin::Rsvd => write!(f, "RSVD"),
-            BondPin::RsvdGnd => write!(f, "RSVDGND"),
-            BondPin::Vfs => write!(f, "VFS"),
-            BondPin::SysMon(bank, pin) => write!(f, "SYSMON{bank}_{pin}"),
-            BondPin::VccPsInt => write!(f, "VCC_PS_INT"),
-            BondPin::VccPsAux => write!(f, "VCC_PS_AUX"),
-            BondPin::VccPsPll => write!(f, "VCC_PS_PLL"),
-            BondPin::PsVref(bank, idx) => write!(f, "PS{bank}.VREF{idx}"),
-            BondPin::PsIo(bank, pin) => write!(f, "PS{bank}_{pin}"),
+            BondPad::Io(bank, idx) => write!(f, "IOB_{bank}_{idx}"),
+            BondPad::Gt(bank, gtpin) => write!(f, "GT{bank}_{gtpin}"),
+            BondPad::Gtz(bank, gtpin) => write!(f, "GTZ{bank}_{gtpin}"),
+            BondPad::GtRegion(region, gtpin) => write!(f, "GTREG_{region}_{gtpin}"),
+            BondPad::Nc => write!(f, "NC"),
+            BondPad::Gnd => write!(f, "GND"),
+            BondPad::VccInt => write!(f, "VCCINT"),
+            BondPad::VccAux => write!(f, "VCCAUX"),
+            BondPad::VccAuxIo(idx) => write!(f, "VCCAUX_IO{idx}"),
+            BondPad::VccBram => write!(f, "VCCBRAM"),
+            BondPad::VccO(bank) => write!(f, "VCCO{bank}"),
+            BondPad::VccBatt => write!(f, "VCC_BATT"),
+            BondPad::Cfg(pin) => write!(f, "{pin}"),
+            BondPad::Dxn => write!(f, "DXN"),
+            BondPad::Dxp => write!(f, "DXP"),
+            BondPad::Rsvd => write!(f, "RSVD"),
+            BondPad::RsvdGnd => write!(f, "RSVDGND"),
+            BondPad::Vfs => write!(f, "VFS"),
+            BondPad::SysMon(bank, pin) => write!(f, "SYSMON{bank}_{pin}"),
+            BondPad::VccPsInt => write!(f, "VCC_PS_INT"),
+            BondPad::VccPsAux => write!(f, "VCC_PS_AUX"),
+            BondPad::VccPsPll => write!(f, "VCC_PS_PLL"),
+            BondPad::PsVref(bank, idx) => write!(f, "PS{bank}.VREF{idx}"),
+            BondPad::PsIo(bank, pin) => write!(f, "PS{bank}_{pin}"),
         }
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Bond {
-    pub pins: BTreeMap<String, BondPin>,
+    pub pins: BTreeMap<String, BondPad>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum SharedCfgPin {
+pub enum SharedCfgPad {
     // ×32
     // [V5+] high 16 bits are also low 16 bits of Addr
     // [V5, V6] 0-2 double as FS
@@ -386,21 +386,21 @@ pub enum SharedCfgPin {
     AdvB,
 }
 
-impl std::fmt::Display for SharedCfgPin {
+impl std::fmt::Display for SharedCfgPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SharedCfgPin::Data(idx) => write!(f, "D{idx}"),
-            SharedCfgPin::Addr(idx) => write!(f, "A{idx}"),
-            SharedCfgPin::Rs(idx) => write!(f, "RS{idx}"),
-            SharedCfgPin::CsoB => write!(f, "CSO_B"),
-            SharedCfgPin::FweB => write!(f, "FWE_B"),
-            SharedCfgPin::FoeB => write!(f, "FOE_B"),
-            SharedCfgPin::FcsB => write!(f, "FCS_B"),
-            SharedCfgPin::CsiB => write!(f, "CSI_B"),
-            SharedCfgPin::RdWrB => write!(f, "RD_WR_B"),
-            SharedCfgPin::EmCclk => write!(f, "EM_CCLK"),
-            SharedCfgPin::PudcB => write!(f, "PUDC_B"),
-            SharedCfgPin::AdvB => write!(f, "ADV_B"),
+            SharedCfgPad::Data(idx) => write!(f, "D{idx}"),
+            SharedCfgPad::Addr(idx) => write!(f, "A{idx}"),
+            SharedCfgPad::Rs(idx) => write!(f, "RS{idx}"),
+            SharedCfgPad::CsoB => write!(f, "CSO_B"),
+            SharedCfgPad::FweB => write!(f, "FWE_B"),
+            SharedCfgPad::FoeB => write!(f, "FOE_B"),
+            SharedCfgPad::FcsB => write!(f, "FCS_B"),
+            SharedCfgPad::CsiB => write!(f, "CSI_B"),
+            SharedCfgPad::RdWrB => write!(f, "RD_WR_B"),
+            SharedCfgPad::EmCclk => write!(f, "EM_CCLK"),
+            SharedCfgPad::PudcB => write!(f, "PUDC_B"),
+            SharedCfgPad::AdvB => write!(f, "ADV_B"),
         }
     }
 }
@@ -409,9 +409,9 @@ impl std::fmt::Display for SharedCfgPin {
 pub struct ExpandedBond<'a> {
     pub bond: &'a Bond,
     pub ios: BTreeMap<(u32, u32), String>,
-    pub gts: BTreeMap<(u32, GtPin), String>,
-    pub gtzs: BTreeMap<(u32, GtzPin), String>,
-    pub sysmons: BTreeMap<(u32, SysMonPin), String>,
+    pub gts: BTreeMap<(u32, GtPad), String>,
+    pub gtzs: BTreeMap<(u32, GtzPad), String>,
+    pub sysmons: BTreeMap<(u32, SysMonPad), String>,
 }
 
 impl Bond {
@@ -422,16 +422,16 @@ impl Bond {
         let mut sysmons = BTreeMap::new();
         for (name, pad) in &self.pins {
             match *pad {
-                BondPin::Io(bank, idx) => {
+                BondPad::Io(bank, idx) => {
                     ios.insert((bank, idx), name.clone());
                 }
-                BondPin::Gt(bank, gtpin) => {
+                BondPad::Gt(bank, gtpin) => {
                     gts.insert((bank, gtpin), name.clone());
                 }
-                BondPin::Gtz(bank, gtpin) => {
+                BondPad::Gtz(bank, gtpin) => {
                     gtzs.insert((bank, gtpin), name.clone());
                 }
-                BondPin::SysMon(bank, smpin) => {
+                BondPad::SysMon(bank, smpin) => {
                     sysmons.insert((bank, smpin), name.clone());
                 }
                 _ => (),

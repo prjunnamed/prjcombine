@@ -13,8 +13,8 @@ use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
 use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
 use prjcombine_xc2000::{
     bels::xc2000 as bels,
-    bond::{Bond, BondPin, CfgPin},
-    chip::SharedCfgPin,
+    bond::{Bond, BondPad, CfgPad},
+    chip::SharedCfgPad,
 };
 use prjcombine_xc2000::{
     chip::{Chip, ChipKind},
@@ -966,7 +966,7 @@ pub fn make_bond(
     endev: &ExpandedNamedDevice,
     name: &str,
     pkg: &BTreeMap<String, String>,
-) -> (Bond, BTreeMap<SharedCfgPin, EdgeIoCoord>) {
+) -> (Bond, BTreeMap<SharedCfgPad, EdgeIoCoord>) {
     let io_lookup: BTreeMap<_, _> = endev
         .chip
         .get_bonded_ios()
@@ -978,7 +978,7 @@ pub fn make_bond(
     };
     for (pin, pad) in pkg {
         let io = io_lookup[&**pad];
-        bond.pins.insert(pin.to_ascii_uppercase(), BondPin::Io(io));
+        bond.pins.insert(pin.to_ascii_uppercase(), BondPad::Io(io));
     }
 
     let (pwrdwn, m1, m0, prog, done, cclk, gnd, vcc) = match name {
@@ -1171,28 +1171,28 @@ pub fn make_bond(
     };
     assert_eq!(
         bond.pins
-            .insert(pwrdwn.into(), BondPin::Cfg(CfgPin::PwrdwnB)),
+            .insert(pwrdwn.into(), BondPad::Cfg(CfgPad::PwrdwnB)),
         None
     );
-    assert_eq!(bond.pins.insert(m0.into(), BondPin::Cfg(CfgPin::M0)), None);
-    assert_eq!(bond.pins.insert(m1.into(), BondPin::Cfg(CfgPin::M1)), None);
+    assert_eq!(bond.pins.insert(m0.into(), BondPad::Cfg(CfgPad::M0)), None);
+    assert_eq!(bond.pins.insert(m1.into(), BondPad::Cfg(CfgPad::M1)), None);
     assert_eq!(
-        bond.pins.insert(prog.into(), BondPin::Cfg(CfgPin::ProgB)),
-        None
-    );
-    assert_eq!(
-        bond.pins.insert(done.into(), BondPin::Cfg(CfgPin::Done)),
+        bond.pins.insert(prog.into(), BondPad::Cfg(CfgPad::ProgB)),
         None
     );
     assert_eq!(
-        bond.pins.insert(cclk.into(), BondPin::Cfg(CfgPin::Cclk)),
+        bond.pins.insert(done.into(), BondPad::Cfg(CfgPad::Done)),
+        None
+    );
+    assert_eq!(
+        bond.pins.insert(cclk.into(), BondPad::Cfg(CfgPad::Cclk)),
         None
     );
     for &pin in gnd {
-        assert_eq!(bond.pins.insert(pin.into(), BondPin::Gnd), None);
+        assert_eq!(bond.pins.insert(pin.into(), BondPad::Gnd), None);
     }
     for &pin in vcc {
-        assert_eq!(bond.pins.insert(pin.into(), BondPin::Vcc), None);
+        assert_eq!(bond.pins.insert(pin.into(), BondPad::Vcc), None);
     }
 
     let len1d = match name {
@@ -1212,7 +1212,7 @@ pub fn make_bond(
     };
     if let Some(len1d) = len1d {
         for i in 1..=len1d {
-            bond.pins.entry(format!("P{i}")).or_insert(BondPin::Nc);
+            bond.pins.entry(format!("P{i}")).or_insert(BondPad::Nc);
         }
         assert_eq!(bond.pins.len(), len1d);
     }
@@ -1221,22 +1221,22 @@ pub fn make_bond(
         "pg84" => {
             for a in ["A", "B", "K", "L"] {
                 for i in 1..=11 {
-                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPad::Nc);
                 }
             }
             for a in ["C", "D", "E", "F", "G", "H", "J"] {
                 for i in (1..=2).chain(10..=11) {
-                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPad::Nc);
                 }
             }
             for a in ["C", "J"] {
                 for i in 5..=7 {
-                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPad::Nc);
                 }
             }
             for a in ["E", "F", "G"] {
                 for i in [3, 9] {
-                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPad::Nc);
                 }
             }
             assert_eq!(bond.pins.len(), 84);
@@ -1244,12 +1244,12 @@ pub fn make_bond(
         "pg132" | "pp132" => {
             for a in ["A", "B", "C", "M", "N", "P"] {
                 for i in 1..=14 {
-                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPad::Nc);
                 }
             }
             for a in ["D", "E", "F", "G", "H", "J", "K", "L"] {
                 for i in (1..=3).chain(12..=14) {
-                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPad::Nc);
                 }
             }
 
@@ -1257,32 +1257,32 @@ pub fn make_bond(
         }
         "pp175" | "pg175" => {
             for i in 2..=16 {
-                bond.pins.entry(format!("A{i}")).or_insert(BondPin::Nc);
+                bond.pins.entry(format!("A{i}")).or_insert(BondPad::Nc);
             }
             for a in ["B", "C", "D", "N", "P", "R", "T"] {
                 for i in 1..=16 {
-                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPad::Nc);
                 }
             }
             for a in ["E", "F", "G", "H", "J", "K", "L", "M"] {
                 for i in (1..=3).chain(14..=16) {
-                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPad::Nc);
                 }
             }
             assert_eq!(bond.pins.len(), 175);
         }
         "pg223" => {
             for i in 2..=18 {
-                bond.pins.entry(format!("A{i}")).or_insert(BondPin::Nc);
+                bond.pins.entry(format!("A{i}")).or_insert(BondPad::Nc);
             }
             for a in ["B", "C", "D", "R", "T", "U", "V"] {
                 for i in 1..=18 {
-                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPad::Nc);
                 }
             }
             for a in ["E", "F", "G", "H", "J", "K", "L", "M", "N", "P"] {
                 for i in (1..=4).chain(15..=18) {
-                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPad::Nc);
                 }
             }
             assert_eq!(bond.pins.len(), 223);
@@ -1293,160 +1293,160 @@ pub fn make_bond(
     let mut cfg_io = BTreeMap::new();
     if name == "pc68" {
         for (pin, fun) in [
-            ("P2", SharedCfgPin::Addr(13)),
-            ("P3", SharedCfgPin::Addr(6)),
-            ("P4", SharedCfgPin::Addr(12)),
-            ("P5", SharedCfgPin::Addr(7)),
-            ("P6", SharedCfgPin::Addr(11)),
-            ("P7", SharedCfgPin::Addr(8)),
-            ("P8", SharedCfgPin::Addr(10)),
-            ("P9", SharedCfgPin::Addr(9)),
-            ("P27", SharedCfgPin::M2),
-            ("P28", SharedCfgPin::Hdc),
-            ("P30", SharedCfgPin::Ldc),
-            ("P34", SharedCfgPin::InitB),
-            ("P46", SharedCfgPin::Data(7)),
-            ("P48", SharedCfgPin::Data(6)),
-            ("P49", SharedCfgPin::Data(5)),
-            ("P50", SharedCfgPin::Cs0B),
-            ("P51", SharedCfgPin::Data(4)),
-            ("P53", SharedCfgPin::Data(3)),
-            ("P54", SharedCfgPin::Cs1B),
-            ("P55", SharedCfgPin::Data(2)),
-            ("P56", SharedCfgPin::Data(1)),
-            ("P57", SharedCfgPin::RclkB),
-            ("P58", SharedCfgPin::Data(0)),
-            ("P59", SharedCfgPin::Dout),
-            ("P61", SharedCfgPin::Addr(0)),
-            ("P62", SharedCfgPin::Addr(1)),
-            ("P63", SharedCfgPin::Addr(2)),
-            ("P64", SharedCfgPin::Addr(3)),
-            ("P65", SharedCfgPin::Addr(15)),
-            ("P66", SharedCfgPin::Addr(4)),
-            ("P67", SharedCfgPin::Addr(14)),
-            ("P68", SharedCfgPin::Addr(5)),
+            ("P2", SharedCfgPad::Addr(13)),
+            ("P3", SharedCfgPad::Addr(6)),
+            ("P4", SharedCfgPad::Addr(12)),
+            ("P5", SharedCfgPad::Addr(7)),
+            ("P6", SharedCfgPad::Addr(11)),
+            ("P7", SharedCfgPad::Addr(8)),
+            ("P8", SharedCfgPad::Addr(10)),
+            ("P9", SharedCfgPad::Addr(9)),
+            ("P27", SharedCfgPad::M2),
+            ("P28", SharedCfgPad::Hdc),
+            ("P30", SharedCfgPad::Ldc),
+            ("P34", SharedCfgPad::InitB),
+            ("P46", SharedCfgPad::Data(7)),
+            ("P48", SharedCfgPad::Data(6)),
+            ("P49", SharedCfgPad::Data(5)),
+            ("P50", SharedCfgPad::Cs0B),
+            ("P51", SharedCfgPad::Data(4)),
+            ("P53", SharedCfgPad::Data(3)),
+            ("P54", SharedCfgPad::Cs1B),
+            ("P55", SharedCfgPad::Data(2)),
+            ("P56", SharedCfgPad::Data(1)),
+            ("P57", SharedCfgPad::RclkB),
+            ("P58", SharedCfgPad::Data(0)),
+            ("P59", SharedCfgPad::Dout),
+            ("P61", SharedCfgPad::Addr(0)),
+            ("P62", SharedCfgPad::Addr(1)),
+            ("P63", SharedCfgPad::Addr(2)),
+            ("P64", SharedCfgPad::Addr(3)),
+            ("P65", SharedCfgPad::Addr(15)),
+            ("P66", SharedCfgPad::Addr(4)),
+            ("P67", SharedCfgPad::Addr(14)),
+            ("P68", SharedCfgPad::Addr(5)),
         ] {
-            let BondPin::Io(io) = bond.pins[pin] else {
+            let BondPad::Io(io) = bond.pins[pin] else {
                 unreachable!()
             };
             cfg_io.insert(fun, io);
         }
     } else if name == "pc84" && endev.chip.columns < 14 {
         for (pin, fun) in [
-            ("P2", SharedCfgPin::Addr(13)),
-            ("P3", SharedCfgPin::Addr(6)),
-            ("P4", SharedCfgPin::Addr(12)),
-            ("P5", SharedCfgPin::Addr(7)),
-            ("P8", SharedCfgPin::Addr(11)),
-            ("P9", SharedCfgPin::Addr(8)),
-            ("P10", SharedCfgPin::Addr(10)),
-            ("P11", SharedCfgPin::Addr(9)),
-            ("P33", SharedCfgPin::M2),
-            ("P34", SharedCfgPin::Hdc),
-            ("P36", SharedCfgPin::Ldc),
-            ("P42", SharedCfgPin::InitB),
-            ("P56", SharedCfgPin::Data(7)),
-            ("P58", SharedCfgPin::Data(6)),
-            ("P60", SharedCfgPin::Data(5)),
-            ("P61", SharedCfgPin::Cs0B),
-            ("P62", SharedCfgPin::Data(4)),
-            ("P65", SharedCfgPin::Data(3)),
-            ("P66", SharedCfgPin::Cs1B),
-            ("P67", SharedCfgPin::Data(2)),
-            ("P70", SharedCfgPin::Data(1)),
-            ("P71", SharedCfgPin::RclkB),
-            ("P72", SharedCfgPin::Data(0)),
-            ("P73", SharedCfgPin::Dout),
-            ("P75", SharedCfgPin::Addr(0)),
-            ("P76", SharedCfgPin::Addr(1)),
-            ("P77", SharedCfgPin::Addr(2)),
-            ("P78", SharedCfgPin::Addr(3)),
-            ("P81", SharedCfgPin::Addr(15)),
-            ("P82", SharedCfgPin::Addr(4)),
-            ("P83", SharedCfgPin::Addr(14)),
-            ("P84", SharedCfgPin::Addr(5)),
+            ("P2", SharedCfgPad::Addr(13)),
+            ("P3", SharedCfgPad::Addr(6)),
+            ("P4", SharedCfgPad::Addr(12)),
+            ("P5", SharedCfgPad::Addr(7)),
+            ("P8", SharedCfgPad::Addr(11)),
+            ("P9", SharedCfgPad::Addr(8)),
+            ("P10", SharedCfgPad::Addr(10)),
+            ("P11", SharedCfgPad::Addr(9)),
+            ("P33", SharedCfgPad::M2),
+            ("P34", SharedCfgPad::Hdc),
+            ("P36", SharedCfgPad::Ldc),
+            ("P42", SharedCfgPad::InitB),
+            ("P56", SharedCfgPad::Data(7)),
+            ("P58", SharedCfgPad::Data(6)),
+            ("P60", SharedCfgPad::Data(5)),
+            ("P61", SharedCfgPad::Cs0B),
+            ("P62", SharedCfgPad::Data(4)),
+            ("P65", SharedCfgPad::Data(3)),
+            ("P66", SharedCfgPad::Cs1B),
+            ("P67", SharedCfgPad::Data(2)),
+            ("P70", SharedCfgPad::Data(1)),
+            ("P71", SharedCfgPad::RclkB),
+            ("P72", SharedCfgPad::Data(0)),
+            ("P73", SharedCfgPad::Dout),
+            ("P75", SharedCfgPad::Addr(0)),
+            ("P76", SharedCfgPad::Addr(1)),
+            ("P77", SharedCfgPad::Addr(2)),
+            ("P78", SharedCfgPad::Addr(3)),
+            ("P81", SharedCfgPad::Addr(15)),
+            ("P82", SharedCfgPad::Addr(4)),
+            ("P83", SharedCfgPad::Addr(14)),
+            ("P84", SharedCfgPad::Addr(5)),
         ] {
-            let BondPin::Io(io) = bond.pins[pin] else {
+            let BondPad::Io(io) = bond.pins[pin] else {
                 unreachable!()
             };
             cfg_io.insert(fun, io);
         }
     } else if name == "pg132" {
         for (pin, fun) in [
-            ("G2", SharedCfgPin::Addr(13)),
-            ("G1", SharedCfgPin::Addr(6)),
-            ("F2", SharedCfgPin::Addr(12)),
-            ("E1", SharedCfgPin::Addr(7)),
-            ("D1", SharedCfgPin::Addr(11)),
-            ("D2", SharedCfgPin::Addr(8)),
-            ("B1", SharedCfgPin::Addr(10)),
-            ("C2", SharedCfgPin::Addr(9)),
-            ("C13", SharedCfgPin::M2),
-            ("B14", SharedCfgPin::Hdc),
-            ("D14", SharedCfgPin::Ldc),
-            ("G14", SharedCfgPin::InitB),
-            ("M12", SharedCfgPin::Data(7)),
-            ("N11", SharedCfgPin::Data(6)),
-            ("M9", SharedCfgPin::Data(5)),
-            ("N9", SharedCfgPin::Cs0B),
-            ("N8", SharedCfgPin::Data(4)),
-            ("N7", SharedCfgPin::Data(3)),
-            ("P6", SharedCfgPin::Cs1B),
-            ("M6", SharedCfgPin::Data(2)),
-            ("M5", SharedCfgPin::Data(1)),
-            ("N4", SharedCfgPin::RclkB),
-            ("N2", SharedCfgPin::Data(0)),
-            ("M3", SharedCfgPin::Dout),
-            ("M2", SharedCfgPin::Addr(0)),
-            ("N1", SharedCfgPin::Addr(1)),
-            ("L2", SharedCfgPin::Addr(2)),
-            ("L1", SharedCfgPin::Addr(3)),
-            ("K1", SharedCfgPin::Addr(15)),
-            ("J2", SharedCfgPin::Addr(4)),
-            ("H1", SharedCfgPin::Addr(14)),
-            ("H2", SharedCfgPin::Addr(5)),
+            ("G2", SharedCfgPad::Addr(13)),
+            ("G1", SharedCfgPad::Addr(6)),
+            ("F2", SharedCfgPad::Addr(12)),
+            ("E1", SharedCfgPad::Addr(7)),
+            ("D1", SharedCfgPad::Addr(11)),
+            ("D2", SharedCfgPad::Addr(8)),
+            ("B1", SharedCfgPad::Addr(10)),
+            ("C2", SharedCfgPad::Addr(9)),
+            ("C13", SharedCfgPad::M2),
+            ("B14", SharedCfgPad::Hdc),
+            ("D14", SharedCfgPad::Ldc),
+            ("G14", SharedCfgPad::InitB),
+            ("M12", SharedCfgPad::Data(7)),
+            ("N11", SharedCfgPad::Data(6)),
+            ("M9", SharedCfgPad::Data(5)),
+            ("N9", SharedCfgPad::Cs0B),
+            ("N8", SharedCfgPad::Data(4)),
+            ("N7", SharedCfgPad::Data(3)),
+            ("P6", SharedCfgPad::Cs1B),
+            ("M6", SharedCfgPad::Data(2)),
+            ("M5", SharedCfgPad::Data(1)),
+            ("N4", SharedCfgPad::RclkB),
+            ("N2", SharedCfgPad::Data(0)),
+            ("M3", SharedCfgPad::Dout),
+            ("M2", SharedCfgPad::Addr(0)),
+            ("N1", SharedCfgPad::Addr(1)),
+            ("L2", SharedCfgPad::Addr(2)),
+            ("L1", SharedCfgPad::Addr(3)),
+            ("K1", SharedCfgPad::Addr(15)),
+            ("J2", SharedCfgPad::Addr(4)),
+            ("H1", SharedCfgPad::Addr(14)),
+            ("H2", SharedCfgPad::Addr(5)),
         ] {
-            let BondPin::Io(io) = bond.pins[pin] else {
+            let BondPad::Io(io) = bond.pins[pin] else {
                 unreachable!()
             };
             cfg_io.insert(fun, io);
         }
     } else if name == "pq160" {
         for (pin, fun) in [
-            ("P141", SharedCfgPin::Addr(13)),
-            ("P142", SharedCfgPin::Addr(6)),
-            ("P147", SharedCfgPin::Addr(12)),
-            ("P148", SharedCfgPin::Addr(7)),
-            ("P151", SharedCfgPin::Addr(11)),
-            ("P152", SharedCfgPin::Addr(8)),
-            ("P155", SharedCfgPin::Addr(10)),
-            ("P156", SharedCfgPin::Addr(9)),
-            ("P44", SharedCfgPin::M2),
-            ("P45", SharedCfgPin::Hdc),
-            ("P49", SharedCfgPin::Ldc),
-            ("P59", SharedCfgPin::InitB),
-            ("P81", SharedCfgPin::Data(7)),
-            ("P86", SharedCfgPin::Data(6)),
-            ("P92", SharedCfgPin::Data(5)),
-            ("P93", SharedCfgPin::Cs0B),
-            ("P98", SharedCfgPin::Data(4)),
-            ("P102", SharedCfgPin::Data(3)),
-            ("P103", SharedCfgPin::Cs1B),
-            ("P108", SharedCfgPin::Data(2)),
-            ("P114", SharedCfgPin::Data(1)),
-            ("P115", SharedCfgPin::RclkB),
-            ("P119", SharedCfgPin::Data(0)),
-            ("P120", SharedCfgPin::Dout),
-            ("P124", SharedCfgPin::Addr(0)),
-            ("P125", SharedCfgPin::Addr(1)),
-            ("P128", SharedCfgPin::Addr(2)),
-            ("P129", SharedCfgPin::Addr(3)),
-            ("P132", SharedCfgPin::Addr(15)),
-            ("P133", SharedCfgPin::Addr(4)),
-            ("P136", SharedCfgPin::Addr(14)),
-            ("P137", SharedCfgPin::Addr(5)),
+            ("P141", SharedCfgPad::Addr(13)),
+            ("P142", SharedCfgPad::Addr(6)),
+            ("P147", SharedCfgPad::Addr(12)),
+            ("P148", SharedCfgPad::Addr(7)),
+            ("P151", SharedCfgPad::Addr(11)),
+            ("P152", SharedCfgPad::Addr(8)),
+            ("P155", SharedCfgPad::Addr(10)),
+            ("P156", SharedCfgPad::Addr(9)),
+            ("P44", SharedCfgPad::M2),
+            ("P45", SharedCfgPad::Hdc),
+            ("P49", SharedCfgPad::Ldc),
+            ("P59", SharedCfgPad::InitB),
+            ("P81", SharedCfgPad::Data(7)),
+            ("P86", SharedCfgPad::Data(6)),
+            ("P92", SharedCfgPad::Data(5)),
+            ("P93", SharedCfgPad::Cs0B),
+            ("P98", SharedCfgPad::Data(4)),
+            ("P102", SharedCfgPad::Data(3)),
+            ("P103", SharedCfgPad::Cs1B),
+            ("P108", SharedCfgPad::Data(2)),
+            ("P114", SharedCfgPad::Data(1)),
+            ("P115", SharedCfgPad::RclkB),
+            ("P119", SharedCfgPad::Data(0)),
+            ("P120", SharedCfgPad::Dout),
+            ("P124", SharedCfgPad::Addr(0)),
+            ("P125", SharedCfgPad::Addr(1)),
+            ("P128", SharedCfgPad::Addr(2)),
+            ("P129", SharedCfgPad::Addr(3)),
+            ("P132", SharedCfgPad::Addr(15)),
+            ("P133", SharedCfgPad::Addr(4)),
+            ("P136", SharedCfgPad::Addr(14)),
+            ("P137", SharedCfgPad::Addr(5)),
         ] {
-            let BondPin::Io(io) = bond.pins[pin] else {
+            let BondPad::Io(io) = bond.pins[pin] else {
                 unreachable!()
             };
             cfg_io.insert(fun, io);

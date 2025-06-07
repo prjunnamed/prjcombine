@@ -61,7 +61,7 @@ pub struct Chip {
     pub dcms: Option<Dcms>,
     pub has_ll: bool,
     pub has_small_int: bool,
-    pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPad, EdgeIoCoord>,
     pub dci_io: BTreeMap<u32, (EdgeIoCoord, EdgeIoCoord)>,
     pub dci_io_alt: BTreeMap<u32, (EdgeIoCoord, EdgeIoCoord)>,
 }
@@ -118,7 +118,7 @@ pub enum Dcms {
 #[derive(
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode,
 )]
-pub enum SharedCfgPin {
+pub enum SharedCfgPad {
     Data(u8), // ×8
     CsiB,     // Called CS_B on Virtex 2 and Spartan 3.
     InitB,
@@ -141,26 +141,26 @@ pub enum SharedCfgPin {
     Awake,
 }
 
-impl std::fmt::Display for SharedCfgPin {
+impl std::fmt::Display for SharedCfgPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SharedCfgPin::Data(i) => write!(f, "D{i}"),
-            SharedCfgPin::Addr(i) => write!(f, "A{i}"),
-            SharedCfgPin::CsiB => write!(f, "CSI_B"),
-            SharedCfgPin::CsoB => write!(f, "CSO_B"),
-            SharedCfgPin::RdWrB => write!(f, "RDWR_B"),
-            SharedCfgPin::Dout => write!(f, "DOUT"),
-            SharedCfgPin::InitB => write!(f, "INIT_B"),
-            SharedCfgPin::Cclk => write!(f, "CCLK"),
-            SharedCfgPin::M0 => write!(f, "M0"),
-            SharedCfgPin::M1 => write!(f, "M1"),
-            SharedCfgPin::M2 => write!(f, "M2"),
-            SharedCfgPin::Ldc0 => write!(f, "LDC0"),
-            SharedCfgPin::Ldc1 => write!(f, "LDC1"),
-            SharedCfgPin::Ldc2 => write!(f, "LDC2"),
-            SharedCfgPin::Hdc => write!(f, "HDC"),
-            SharedCfgPin::HswapEn => write!(f, "HSWAP_EN"),
-            SharedCfgPin::Awake => write!(f, "AWAKE"),
+            SharedCfgPad::Data(i) => write!(f, "D{i}"),
+            SharedCfgPad::Addr(i) => write!(f, "A{i}"),
+            SharedCfgPad::CsiB => write!(f, "CSI_B"),
+            SharedCfgPad::CsoB => write!(f, "CSO_B"),
+            SharedCfgPad::RdWrB => write!(f, "RDWR_B"),
+            SharedCfgPad::Dout => write!(f, "DOUT"),
+            SharedCfgPad::InitB => write!(f, "INIT_B"),
+            SharedCfgPad::Cclk => write!(f, "CCLK"),
+            SharedCfgPad::M0 => write!(f, "M0"),
+            SharedCfgPad::M1 => write!(f, "M1"),
+            SharedCfgPad::M2 => write!(f, "M2"),
+            SharedCfgPad::Ldc0 => write!(f, "LDC0"),
+            SharedCfgPad::Ldc1 => write!(f, "LDC1"),
+            SharedCfgPad::Ldc2 => write!(f, "LDC2"),
+            SharedCfgPad::Hdc => write!(f, "HDC"),
+            SharedCfgPad::HswapEn => write!(f, "HSWAP_EN"),
+            SharedCfgPad::Awake => write!(f, "AWAKE"),
         }
     }
 }

@@ -253,7 +253,7 @@ impl<'a> Backend for IseBackend<'a> {
                 unreachable!()
             };
             for (k, v) in &bond.pins {
-                if let prjcombine_xc2000::bond::BondPin::Io(io) = v {
+                if let prjcombine_xc2000::bond::BondPad::Io(io) = v {
                     let name = endev.get_io_name(*io);
                     site_to_place.insert(name.to_string(), k.to_string());
                 }

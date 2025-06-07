@@ -14,7 +14,7 @@ pub enum ChipKind {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum SharedCfgPin {
+pub enum SharedCfgPad {
     Data(u8), // ×8
     CsB,
     InitB,
@@ -22,14 +22,14 @@ pub enum SharedCfgPin {
     Dout,
 }
 
-impl std::fmt::Display for SharedCfgPin {
+impl std::fmt::Display for SharedCfgPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SharedCfgPin::Data(i) => write!(f, "D{i}"),
-            SharedCfgPin::CsB => write!(f, "CS_B"),
-            SharedCfgPin::RdWrB => write!(f, "RDWR_B"),
-            SharedCfgPin::Dout => write!(f, "DOUT"),
-            SharedCfgPin::InitB => write!(f, "INIT_B"),
+            SharedCfgPad::Data(i) => write!(f, "D{i}"),
+            SharedCfgPad::CsB => write!(f, "CS_B"),
+            SharedCfgPad::RdWrB => write!(f, "RDWR_B"),
+            SharedCfgPad::Dout => write!(f, "DOUT"),
+            SharedCfgPad::InitB => write!(f, "INIT_B"),
         }
     }
 }
@@ -41,7 +41,7 @@ pub struct Chip {
     pub cols_bram: BTreeSet<ColId>,
     pub cols_clkv: Vec<(ColId, ColId, ColId)>,
     pub rows: usize,
-    pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPad, EdgeIoCoord>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Encode, Decode)]

@@ -191,7 +191,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllMcbIoi {
                         attr: self.1.into(),
                         val: self.2.into(),
                     },
-                    tiles: edev.node_bits(nnloc),
+                    tiles: edev.tile_bits(nnloc),
                 })
             }
         }

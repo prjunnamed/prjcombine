@@ -87,7 +87,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkBramMgtPrev {
                     attr: self.0.clone(),
                     val: self.1.into(),
                 },
-                tiles: edev.node_bits(nnloc),
+                tiles: edev.tile_bits(nnloc),
             });
             sad = false;
         }
@@ -126,7 +126,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
                         attr: self.2.clone(),
                         val: self.3.into(),
                     },
-                    tiles: edev.node_bits(nnloc),
+                    tiles: edev.tile_bits(nnloc),
                 });
                 sad = false;
             }
@@ -175,7 +175,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllIodelay {
                     attr: "IDELAYCTRL_MODE".into(),
                     val: self.1.into(),
                 },
-                tiles: edev.node_bits(nnloc),
+                tiles: edev.tile_bits(nnloc),
             });
         }
         Some((fuzzer, false))

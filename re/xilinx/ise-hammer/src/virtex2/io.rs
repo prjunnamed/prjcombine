@@ -515,7 +515,7 @@ fn has_any_vr<'a>(
             unreachable!()
         };
         for pin in bond.pins.values() {
-            if let prjcombine_virtex2::bond::BondPin::Io(io) = pin {
+            if let prjcombine_virtex2::bond::BondPad::Io(io) = pin {
                 bonded_ios.insert(io, &devbond.name[..]);
             }
         }

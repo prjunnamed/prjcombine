@@ -247,7 +247,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {
                 attr: "VREF".into(),
                 val: self.1.to_string(),
             },
-            tiles: edev.node_bits(hclk_ioi),
+            tiles: edev.tile_bits(hclk_ioi),
         });
         Some((fuzzer, false))
     }
@@ -301,7 +301,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                     attr: "PRESENT".into(),
                     val: "VR".into(),
                 },
-                tiles: edev.node_bits(node_vr),
+                tiles: edev.tile_bits(node_vr),
             });
         }
         // Take exclusive mutex on bank DCI.
@@ -324,7 +324,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                     attr: "STD".into(),
                     val: std.into(),
                 },
-                tiles: edev.node_bits(hclk_ioi),
+                tiles: edev.tile_bits(hclk_ioi),
             });
         }
         // Take shared mutex on global DCI.
@@ -387,7 +387,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
                 attr: self.0.into(),
                 val: self.1.into(),
             },
-            tiles: edev.node_bits(hclk_ioi),
+            tiles: edev.tile_bits(hclk_ioi),
         });
         Some((fuzzer, false))
     }
@@ -1182,7 +1182,7 @@ pub fn add_fuzzers<'a>(
             .build()
             .raw(Key::Package, &package.name)
             .extra_tile_attr(
-                FixedRelation(edev.node_cfg(die)),
+                FixedRelation(edev.tile_cfg(die)),
                 "MISC",
                 "DCI_CLK_ENABLE",
                 "1",

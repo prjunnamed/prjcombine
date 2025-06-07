@@ -83,7 +83,7 @@ impl ExpandedDevice<'_> {
         BitTile::Iob(DieId::from_idx(0), self.iob_frame[&(col, row)], 128)
     }
 
-    pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+    pub fn tile_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
         let (_, col, row, _) = nloc;
         let node = self.egrid.tile(nloc);
         let kind = self.egrid.db.tile_classes.key(node.class).as_str();
