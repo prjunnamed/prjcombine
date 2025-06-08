@@ -21,12 +21,15 @@ use xc2000::gen_xc2000;
 use xc9500::gen_xc9500;
 use xpla3::gen_xpla3;
 
+use crate::ultrascale::gen_ultrascale;
+
 mod bsdata;
 mod coolrunner2;
 mod interconnect;
 mod siliconblue;
 mod spartan6;
 mod speed;
+mod ultrascale;
 mod virtex;
 mod virtex2;
 mod virtex4;
@@ -119,6 +122,7 @@ impl Preprocessor for Docgen {
         gen_virtex2(&mut ctx);
         gen_spartan6(&mut ctx);
         gen_virtex4(&mut ctx);
+        gen_ultrascale(&mut ctx);
 
         gen_xc9500(&mut ctx);
         gen_xpla3(&mut ctx);
