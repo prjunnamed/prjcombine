@@ -151,7 +151,7 @@ impl Generator<'_> {
         if self.rng.random() {
             global_idx = None;
         }
-        let is_i3c = if let Some(xnode) = self.cfg.edev.chip.extra_nodes.get(&ExtraNodeLoc::IoI3c) {
+        let is_i3c = if let Some(xnode) = self.cfg.edev.chip.extra_nodes.get(&ExtraNodeLoc::I3c) {
             xnode.io.values().any(|&x| x == crd)
                 && global_idx.is_none()
                 && self.cfg.allow_global
@@ -1736,7 +1736,7 @@ impl Generator<'_> {
                 ExtraNodeLoc::SpramPair(side) => {
                     things.push(Thing::Spram(side));
                 }
-                ExtraNodeLoc::FilterPair => {
+                ExtraNodeLoc::I3c => {
                     let num = self.rng.random_range(0..=2);
                     for _ in 0..num {
                         things.push(Thing::Filter);

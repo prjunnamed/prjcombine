@@ -321,7 +321,7 @@ pub enum ExtraNodeLoc {
     LfOsc,
     HfOsc,
     Trim,
-    IoI3c,
+    I3c,
     IrDrv,
     RgbDrv,
     Ir500Drv,
@@ -333,7 +333,6 @@ pub enum ExtraNodeLoc {
     Mac16(ColId, RowId),
     Mac16Trim(ColId, RowId),
     SpramPair(DirH),
-    FilterPair,
     SmcClk,
 }
 
@@ -342,7 +341,7 @@ impl ExtraNodeLoc {
         match self {
             ExtraNodeLoc::GbFabric(_) => "GB_FABRIC".to_string(),
             ExtraNodeLoc::LatchIo(_) => "IO_LATCH".to_string(),
-            ExtraNodeLoc::IoI3c => "IO_I3C".to_string(),
+            ExtraNodeLoc::I3c => "I3C".to_string(),
             ExtraNodeLoc::Pll(dir) => match (dir, kind) {
                 (DirV::S, ChipKind::Ice65P04) => "PLL_S_P04",
                 (DirV::S, ChipKind::Ice40P01) => "PLL_S_P01",
@@ -444,7 +443,7 @@ impl std::fmt::Display for ExtraNodeLoc {
             ExtraNodeLoc::LfOsc => write!(f, "LFOSC"),
             ExtraNodeLoc::HfOsc => write!(f, "HFOSC"),
             ExtraNodeLoc::Trim => write!(f, "TRIM"),
-            ExtraNodeLoc::IoI3c => write!(f, "IO_I3C"),
+            ExtraNodeLoc::I3c => write!(f, "I3C"),
             ExtraNodeLoc::IrDrv => write!(f, "IR_DRV"),
             ExtraNodeLoc::RgbDrv => write!(f, "RGB_DRV"),
             ExtraNodeLoc::Ir500Drv => write!(f, "IR500_DRV"),
@@ -456,7 +455,6 @@ impl std::fmt::Display for ExtraNodeLoc {
             ExtraNodeLoc::Mac16(col, row) => write!(f, "MAC16_{col}{row}"),
             ExtraNodeLoc::Mac16Trim(col, row) => write!(f, "MAC16_TRIM_{col}{row}"),
             ExtraNodeLoc::SpramPair(edge) => write!(f, "SPRAM_{edge}"),
-            ExtraNodeLoc::FilterPair => write!(f, "FILTER"),
             ExtraNodeLoc::SmcClk => write!(f, "SMCCLK"),
         }
     }
@@ -695,7 +693,7 @@ impl std::fmt::Display for Chip {
                 writeln!(f, "\t\tIO {slot}: {io}")?;
             }
             for (tile, (col, row)) in &node.cells {
-                writeln!(f, "\t\tTILE {tile}: {col}{row}")?;
+                writeln!(f, "\t\t{tile}: {col}{row}")?;
             }
         }
         writeln!(f, "\tIOB:")?;

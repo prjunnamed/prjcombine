@@ -1466,41 +1466,65 @@ impl PartContext<'_> {
         }
     }
 
-    fn fill_io_i3c(&mut self) {
+    fn fill_i3c(&mut self) {
+        let Some(sites) = self.pkgs[&self.def_pkg()].bel_info.get("SB_FILTER_50NS") else {
+            return;
+        };
+        let mut filter_sites = sites.clone();
+        filter_sites.sort_by_key(|site| site.loc);
+        assert_eq!(filter_sites.len(), 2);
+        let loc = ExtraNodeLoc::I3c;
+        let mut nb = MiscNodeBuilder::new(&self.chip, &[]);
+
+        for (i, site) in filter_sites.iter().enumerate() {
+            let bel_pins = &self.bel_pins[&("SB_FILTER_50NS", site.loc)];
+            nb.add_bel(bels::FILTER[i], bel_pins);
+        }
+        nb.get_tile((ColId::from_idx(25), RowId::from_idx(30)));
+
+        let mut io_sites = None;
         for pkg_info in self.pkgs.values() {
             let Some(sites) = pkg_info.bel_info.get("SB_IO_I3C") else {
                 continue;
             };
             let mut sites = sites.clone();
             sites.sort_by_key(|site| site.loc);
-            let mut nb = MiscNodeBuilder::new(&self.chip, &[]);
-            for site in &sites {
+            let sites = Vec::from_iter(sites.into_iter().map(|site| {
                 let xy = (site.loc.x, site.loc.y, site.loc.bel);
                 let crd = pkg_info.xlat_io[&xy];
-                let mut bel_pins = self.bel_pins[&("SB_IO_I3C", site.loc)].clone();
-                bel_pins.outs.clear();
-                nb.add_bel(bels::IO_I3C[crd.iob().to_idx()], &bel_pins);
-                nb.io.insert(
-                    [ExtraNodeIo::I3c0, ExtraNodeIo::I3c1][crd.iob().to_idx()],
-                    crd,
-                );
-            }
-            let (int_node, extra_node) = nb.finish();
-            let loc = ExtraNodeLoc::IoI3c;
-            match self.chip.extra_nodes.entry(loc) {
-                btree_map::Entry::Vacant(entry) => {
-                    entry.insert(extra_node);
-                    self.intdb
-                        .tile_classes
-                        .insert(loc.tile_class(self.chip.kind), int_node);
-                    self.extra_node_locs
-                        .insert(loc, sites.iter().map(|x| x.loc).collect());
-                }
-                btree_map::Entry::Occupied(entry) => {
-                    assert_eq!(*entry.get(), extra_node);
-                }
+                (site.loc, crd)
+            }));
+            if io_sites.is_none() {
+                io_sites = Some(sites);
+            } else {
+                assert_eq!(io_sites, Some(sites));
             }
         }
+        let io_sites = io_sites.unwrap();
+        for &(site_loc, crd) in &io_sites {
+            let mut bel_pins = self.bel_pins[&("SB_IO_I3C", site_loc)].clone();
+            bel_pins.outs.clear();
+            nb.add_bel(bels::IO_I3C[crd.iob().to_idx()], &bel_pins);
+            nb.io.insert(
+                [ExtraNodeIo::I3c0, ExtraNodeIo::I3c1][crd.iob().to_idx()],
+                crd,
+            );
+        }
+
+        let (int_node, extra_node) = nb.finish();
+        self.intdb
+            .tile_classes
+            .insert(loc.tile_class(self.chip.kind), int_node);
+        self.chip.extra_nodes.insert(loc, extra_node);
+        self.extra_node_locs.insert(
+            loc,
+            vec![
+                filter_sites[0].loc,
+                filter_sites[1].loc,
+                io_sites[0].0,
+                io_sites[1].0,
+            ],
+        );
     }
 
     fn fill_drv(&mut self) {
@@ -1711,29 +1735,6 @@ impl PartContext<'_> {
             self.extra_node_locs
                 .insert(loc, vec![edge_sites[0].loc, edge_sites[1].loc]);
         }
-    }
-
-    fn fill_filter(&mut self) {
-        let Some(sites) = self.pkgs[&self.def_pkg()].bel_info.get("SB_FILTER_50NS") else {
-            return;
-        };
-        let mut sites = sites.clone();
-        sites.sort_by_key(|site| site.loc);
-        assert_eq!(sites.len(), 2);
-        let loc = ExtraNodeLoc::FilterPair;
-        let mut nb = MiscNodeBuilder::new(&self.chip, &[]);
-        for (i, site) in sites.iter().enumerate() {
-            let bel_pins = &self.bel_pins[&("SB_FILTER_50NS", site.loc)];
-            nb.add_bel(bels::FILTER[i], bel_pins);
-        }
-        nb.get_tile((ColId::from_idx(25), RowId::from_idx(30)));
-        let (int_node, extra_node) = nb.finish();
-        self.intdb
-            .tile_classes
-            .insert(loc.tile_class(self.chip.kind), int_node);
-        self.chip.extra_nodes.insert(loc, extra_node);
-        self.extra_node_locs
-            .insert(loc, vec![sites[0].loc, sites[1].loc]);
     }
 
     fn fill_smcclk(&mut self) {
@@ -2220,10 +2221,9 @@ fn main() {
         ctx.fill_trim();
         ctx.fill_extra_misc();
         ctx.fill_pll();
-        ctx.fill_io_i3c();
+        ctx.fill_i3c();
         ctx.fill_drv();
         ctx.fill_spram();
-        ctx.fill_filter();
         ctx.fill_smcclk();
 
         println!("{kind}: initial geometry done; starting harvest");

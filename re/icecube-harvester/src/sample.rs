@@ -1352,11 +1352,11 @@ pub fn make_sample(
                     }
                 }
                 "SB_FILTER_50NS" => {
-                    let filters = extra_node_locs.get(&ExtraNodeLoc::FilterPair).unwrap();
+                    let filters = &extra_node_locs.get(&ExtraNodeLoc::I3c).unwrap()[..2];
                     for (i, &sloc) in filters.iter().enumerate() {
                         if loc.loc == sloc {
                             let tiles = Vec::from_iter(
-                                edev.chip.extra_nodes[&ExtraNodeLoc::FilterPair]
+                                edev.chip.extra_nodes[&ExtraNodeLoc::I3c]
                                     .cells
                                     .values()
                                     .map(|&(col, row)| BitOwner::Main(col, row)),

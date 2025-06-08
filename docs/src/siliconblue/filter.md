@@ -3,4 +3,4 @@
 
 ## Bitstream
 
-{{ tile siliconblue FILTER }}
+{{ tile siliconblue I3C }}
