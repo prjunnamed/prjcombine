@@ -96,25 +96,16 @@ Every `SYSMON` present on the device can use up to seven IOB pairs from the left
 Row `r + 4` is not used as `SYSMON` input — the "analog function" of that pin is considered to be VREF instead (they are controlled by the same bit).
 
 
-## Bitstream
-
 {{tile virtex4 IO}}
 
 
 ## Tables
 
 {{misc virtex4 iostd-drive}}
-
 {{misc virtex4 iostd-slew}}
-
 {{misc virtex4 iostd-misc}}
-
 {{misc virtex4 iostd-lvds}}
-
 {{misc virtex4 iostd-lvdsbias}}
-
 {{misc virtex4 iostd-dci-lvdiv2}}
-
 {{misc virtex4 iostd-dci-mask-term-vcc}}
-
 {{misc virtex4 iostd-dci-mask-term-split}}

@@ -9,7 +9,7 @@ use unnamed_entity::{EntityId, EntityPartVec};
 use crate::{
     DocgenContext,
     speed::{SpeedData, gen_speed},
-    tiledb::{FrameDirection, TileOrientation, gen_tile},
+    bsdata::{FrameDirection, TileOrientation, gen_tile},
     xpla3::gen_jed,
 };
 

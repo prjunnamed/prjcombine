@@ -3,9 +3,9 @@
 TODO: reverse, document
 
 
-## `DCM.S3`
-
 {{tile spartan3 DCM.S3}}
+{{tile spartan3 DCMCONN.BOT}}
+{{tile spartan3 DCMCONN.TOP}}
 
 
 ## Device data

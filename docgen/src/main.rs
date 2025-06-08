@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, HashSet},
     io, process,
 };
 
@@ -21,11 +21,12 @@ use xc2000::gen_xc2000;
 use xc9500::gen_xc9500;
 use xpla3::gen_xpla3;
 
+mod bsdata;
 mod coolrunner2;
+mod interconnect;
 mod siliconblue;
 mod spartan6;
 mod speed;
-mod tiledb;
 mod virtex;
 mod virtex2;
 mod virtex4;
@@ -96,8 +97,8 @@ struct Docgen;
 
 struct DocgenContext<'a> {
     ctx: &'a PreprocessorContext,
-    items: HashMap<String, String>,
-    extra_docs: HashMap<String, Vec<(String, String, String)>>,
+    items: BTreeMap<String, String>,
+    extra_docs: BTreeMap<String, Vec<(String, String, String)>>,
 }
 
 impl Preprocessor for Docgen {
@@ -108,8 +109,8 @@ impl Preprocessor for Docgen {
     fn run(&self, ctx: &PreprocessorContext, mut book: Book) -> Result<Book> {
         let mut ctx = DocgenContext {
             ctx,
-            items: HashMap::new(),
-            extra_docs: HashMap::new(),
+            items: BTreeMap::new(),
+            extra_docs: BTreeMap::new(),
         };
 
         gen_siliconblue(&mut ctx);

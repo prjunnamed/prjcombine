@@ -186,3 +186,5 @@ The top and bottom of Spartan 3A BRAM columns don't have a terminator — the ou
 On larger Spartan 3E and Spartan 3A devices, the horizontal clock spine contains `LLV` tiles, which contain programmable buffers that can optionally join the top and bottom segments of `LV` lines (they can buffer each line top-to-bottom, bottom-to-top, or the two segments can be disconnected and used for different signals). Likewise, the primary vertical clock spine contains `LLH` tiles, which can optionally join the left and right segments of `LH` lines.
 
 The area of horizontal clock spine located within the inside of BRAM column doesn't contain `LLV` tiles. This is moot anyway, as the columns don't have enough interconnect tiles for the long lines to actually be useful (each long line only has at most one tap, making them useless).
+
+{{int-basics spartan3}}

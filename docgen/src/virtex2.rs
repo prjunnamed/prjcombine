@@ -1,11 +1,9 @@
 use std::collections::HashSet;
 
 use crate::{
-    DocgenContext,
-    tiledb::{
-        FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_devdata_table,
-        gen_misc_table, gen_tiles,
-    },
+    bsdata::{
+        check_devdata, check_misc_data, gen_bstiles, gen_devdata_table, gen_misc_table, FrameDirection, TileOrientation
+    }, interconnect::gen_intdb, DocgenContext
 };
 
 pub fn gen_virtex2(ctx: &mut DocgenContext) {
@@ -32,7 +30,8 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
         )
         .unwrap();
         let part_names = Vec::from_iter(db.parts.iter().map(|part| part.name.as_str()));
-        gen_tiles(ctx, kind, &db.bsdata, orientation);
+        gen_intdb(ctx, kind, &db.int);
+        gen_bstiles(ctx, kind, &db.bsdata, orientation);
         let mut misc_used = HashSet::new();
         let mut devdata_used = HashSet::new();
         match kind {

@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 
+use crate::interconnect::gen_intdb;
 use crate::DocgenContext;
 
-use crate::tiledb::{FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_tiles};
+use crate::bsdata::{FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_bstiles};
 
 pub fn gen_xc2000(ctx: &mut DocgenContext) {
     let tile_orientation = TileOrientation {
@@ -28,7 +29,8 @@ pub fn gen_xc2000(ctx: &mut DocgenContext) {
             ctx.ctx.root.join(format!("../databases/{kind}.zstd")),
         )
         .unwrap();
-        gen_tiles(ctx, kind, &db.bsdata, |_| tile_orientation);
+        gen_intdb(ctx, kind, &db.int);
+        gen_bstiles(ctx, kind, &db.bsdata, |_| tile_orientation);
         let misc_used = HashSet::new();
         let devdata_used = HashSet::new();
         check_misc_data(&db.bsdata, kind, &misc_used);

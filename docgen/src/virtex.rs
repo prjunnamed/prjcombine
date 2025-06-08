@@ -1,10 +1,9 @@
 use std::collections::HashSet;
 
 use crate::{
-    DocgenContext,
-    tiledb::{
-        FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_misc_table, gen_tiles,
-    },
+    bsdata::{
+        check_devdata, check_misc_data, gen_bstiles, gen_misc_table, FrameDirection, TileOrientation
+    }, interconnect::gen_intdb, DocgenContext
 };
 
 pub fn gen_virtex(ctx: &mut DocgenContext) {
@@ -30,7 +29,8 @@ pub fn gen_virtex(ctx: &mut DocgenContext) {
             ctx.ctx.root.join("../databases/virtex.zstd"),
         )
         .unwrap();
-        gen_tiles(ctx, "virtex", &db.bsdata, orientation);
+        gen_intdb(ctx, "virtex", &db.int);
+        gen_bstiles(ctx, "virtex", &db.bsdata, orientation);
         let mut misc_used = HashSet::new();
         let devdata_used = HashSet::new();
         gen_misc_table(

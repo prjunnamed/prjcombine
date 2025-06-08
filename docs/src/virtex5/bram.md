@@ -1,6 +1,4 @@
 # Block RAM
 
-
-## Bitstream
-
 {{tile virtex5 BRAM}}
+{{tile virtex5 PMVBRAM}}

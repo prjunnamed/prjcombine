@@ -2,6 +2,4 @@
 
 TODO: document
 
-### `GCLKH`
-
 {{tile virtex2 GCLKH}}

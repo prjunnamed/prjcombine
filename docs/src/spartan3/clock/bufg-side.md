@@ -8,14 +8,14 @@ TODO: document
 TODO: write
 
 
-### `CLKL.S3E`
+## `CLKL.S3E`
 
 This tile is used on Spartan 3E.
 
 {{tile spartan3 CLKL.S3E}}
 
 
-### `CLKL.S3A`
+## `CLKL.S3A`
 
 This tile is used on Spartan 3A.
 
@@ -27,14 +27,14 @@ This tile is used on Spartan 3A.
 TODO: write
 
 
-### `CLKR.S3E`
+## `CLKR.S3E`
 
 This tile is used on Spartan 3E.
 
 {{tile spartan3 CLKR.S3E}}
 
 
-### `CLKR.S3A`
+## `CLKR.S3A`
 
 This tile is used on Spartan 3A.
 

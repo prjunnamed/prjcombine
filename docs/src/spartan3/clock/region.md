@@ -7,6 +7,8 @@ The `CLKC` tile is located in the center of the FPGA (intersection of primary ve
 
 TODO: describe exact forwarding
 
+{{tile spartan3 CLKC}}
+
 
 ## The `CLKC_50A` clock center tile
 
@@ -22,16 +24,12 @@ The `GCLKVM` tiles are located on the intersection of secondary vertical clock s
 TODO: document 
 
 
-### `GCLKVM.S3`
-
 {{tile spartan3 GCLKVM.S3}}
-
-
-### `GCLKVM.S3E`
-
 {{tile spartan3 GCLKVM.S3E}}
 
 
 ## The `GCLKVC` clock spine distribution tiles
 
 TODO: document
+
+{{tile spartan3 GCLKVC}}

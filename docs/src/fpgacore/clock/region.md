@@ -4,6 +4,8 @@
 
 TODO: document
 
+{{tile fpgacore CLKC}}
+
 
 ## The `GCLKVM` secondary clock center tiles
 
@@ -11,12 +13,11 @@ The `GCLKVM` tiles are located on the intersection of secondary vertical clock s
 
 TODO: document
 
-
-### `GCLKVM.S3`
-
 {{tile fpgacore GCLKVM.S3}}
 
 
 ## The `GCLKVC` clock spine distribution tiles
 
 TODO: document
+
+{{tile fpgacore GCLKVC}}

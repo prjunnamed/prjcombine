@@ -13,21 +13,21 @@ The `CLKB.*` tiles use two bitstream tiles:
 On Spartan 3A devices that have long line splitters, bitstream tile 0 is shared with the `LLH.CLKB.S3A` tile.
 
 
-### `CLKB.S3`
+## `CLKB.S3`
 
 This tile is used on Spartan 3.
 
 {{tile spartan3 CLKB.S3}}
 
 
-### `CLKB.S3E`
+## `CLKB.S3E`
 
 This tile is used on Spartan 3E.
 
 {{tile spartan3 CLKB.S3E}}
 
 
-### `CLKB.S3A`
+## `CLKB.S3A`
 
 This tile is used on Spartan 3A and 3A DSP.
 
@@ -44,21 +44,21 @@ The `CLKT.*` tiles use two bitstream tiles:
 On Spartan 3A devices that have long line splitters, bitstream tile 0 is shared with the `LLH.CLKT.S3A` tile.
 
 
-### `CLKT.S3`
+## `CLKT.S3`
 
 This tile is used on Spartan 3.
 
 {{tile spartan3 CLKT.S3}}
 
 
-### `CLKT.S3E`
+## `CLKT.S3E`
 
 This tile is used on Spartan 3E.
 
 {{tile spartan3 CLKT.S3E}}
 
 
-### `CLKT.S3A`
+## `CLKT.S3A`
 
 This tile is used on Spartan 3A and 3A DSP.
 

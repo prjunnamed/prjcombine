@@ -1,11 +1,9 @@
 use std::collections::HashSet;
 
 use crate::{
-    DocgenContext,
-    tiledb::{
-        FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_devdata_table,
-        gen_misc_table, gen_tiles,
-    },
+    bsdata::{
+        check_devdata, check_misc_data, gen_bstiles, gen_devdata_table, gen_misc_table, FrameDirection, TileOrientation
+    }, interconnect::gen_intdb, DocgenContext
 };
 
 pub fn gen_spartan6(ctx: &mut DocgenContext) {
@@ -31,7 +29,8 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
     )
     .unwrap();
     let part_names = Vec::from_iter(db.parts.iter().map(|part| part.name.as_str()));
-    gen_tiles(ctx, "spartan6", &db.bsdata, orientation);
+    gen_intdb(ctx, "spartan6", &db.int);
+    gen_bstiles(ctx, "spartan6", &db.bsdata, orientation);
     let mut misc_used = HashSet::new();
     let mut devdata_used = HashSet::new();
     gen_misc_table(
@@ -67,20 +66,13 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
         &["IOSTD:LVDSBIAS"],
     );
 
-    gen_misc_table(
-        ctx,
-        &db.bsdata,
-        &mut misc_used,
-        "spartan6",
-        "pll-lock",
-        &[
-            "PLL:PLL_LOCK_REF_DLY",
-            "PLL:PLL_LOCK_FB_DLY",
-            "PLL:PLL_LOCK_CNT",
-            "PLL:PLL_LOCK_SAT_HIGH",
-            "PLL:PLL_UNLOCK_CNT",
-        ],
-    );
+    gen_misc_table(ctx, &db.bsdata, &mut misc_used, "spartan6", "pll-lock", &[
+        "PLL:PLL_LOCK_REF_DLY",
+        "PLL:PLL_LOCK_FB_DLY",
+        "PLL:PLL_LOCK_CNT",
+        "PLL:PLL_LOCK_SAT_HIGH",
+        "PLL:PLL_UNLOCK_CNT",
+    ]);
     gen_misc_table(
         ctx,
         &db.bsdata,

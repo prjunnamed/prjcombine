@@ -2,9 +2,6 @@
 
 TODO: describe this madness
 
-
-## `CMT`
-
 {{tile virtex5 CMT}}
 
 

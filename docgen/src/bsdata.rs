@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{btree_map, HashMap, HashSet};
 use std::fmt::Write;
 
 use indexmap::IndexMap;
@@ -123,14 +123,11 @@ pub fn gen_tile(
                 for &frame in &frames {
                     writeln!(buf, r#"<tr><td>{frame}</td>"#).unwrap();
                     for &bit in &bits {
-                        emit_bit(
-                            &mut buf,
-                            TileBit {
-                                tile: tidx,
-                                frame,
-                                bit,
-                            },
-                        );
+                        emit_bit(&mut buf, TileBit {
+                            tile: tidx,
+                            frame,
+                            bit,
+                        });
                     }
                     writeln!(buf, r#"</tr>"#).unwrap();
                 }
@@ -139,14 +136,11 @@ pub fn gen_tile(
                 for &bit in &bits {
                     writeln!(buf, r#"<tr><td>{bit}</td>"#).unwrap();
                     for &frame in &frames {
-                        emit_bit(
-                            &mut buf,
-                            TileBit {
-                                tile: tidx,
-                                frame,
-                                bit,
-                            },
-                        );
+                        emit_bit(&mut buf, TileBit {
+                            tile: tidx,
+                            frame,
+                            bit,
+                        });
                     }
                     writeln!(buf, r#"</tr>"#).unwrap();
                 }
@@ -215,10 +209,18 @@ pub fn gen_tile(
         writeln!(buf, r#"</tbody>"#).unwrap();
         writeln!(buf, r#"</table></div>"#).unwrap();
     }
-    ctx.items.insert(format!("tile-{dbname}-{tname}"), buf);
+    match ctx.items.entry(format!("tile-{dbname}-{tname}")) {
+        btree_map::Entry::Occupied(mut entry) => {
+            entry.get_mut().push_str("### Bitstream\n\n");
+            entry.get_mut().push_str(&buf);
+        }
+        btree_map::Entry::Vacant(entry) => {
+            entry.insert(buf);
+        }
+    }
 }
 
-pub fn gen_tiles(
+pub fn gen_bstiles(
     ctx: &mut DocgenContext,
     dbname: &str,
     tiledb: &BsData,

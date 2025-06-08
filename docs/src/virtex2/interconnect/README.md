@@ -356,3 +356,5 @@ They also have their own primitive outputs:
 - `CLK.OUT.[0-7]`: special `BUFGMUX` primitive outputs
 
 They have eight `OMUX` lines, multiplexed from the 8 primitive outputs above. The `OMUX` wires are connected to the neighbouring general interconnect tiles as-if they came from the otherwise out-of-bounds tiles above or below them.
+
+{{int-basics virtex2}}

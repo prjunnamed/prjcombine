@@ -1,8 +1,5 @@
 # PowerPC cores
 
-
-## Bitstream
-
 {{tile virtex5 PPC}}
 
 

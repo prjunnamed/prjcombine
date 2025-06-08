@@ -126,3 +126,6 @@ The `LOCAL` wires are an intermediate step between `IMUX.*` wires and other inte
 The `IMUX` wires can be driven by `LOCAL` wires.  Some of them can also be driven by `GLOBAL` wires.
 
 If an `IMUX` wire is not driven at all (the `MUX` field in the bitstream is set to `NONE`), it takes on a default value.  The default value is `1` for `IMUX.CE`, `0` for all other `IMUX` wires.
+
+
+{{int-basics siliconblue}}

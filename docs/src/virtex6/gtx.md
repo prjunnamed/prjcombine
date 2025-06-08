@@ -2,7 +2,4 @@
 
 TODO: document
 
-
-## Bitstream
-
 {{tile virtex6 GTX}}

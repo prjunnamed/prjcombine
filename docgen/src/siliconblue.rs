@@ -3,9 +3,7 @@ use std::collections::HashSet;
 use unnamed_entity::EntityPartVec;
 
 use crate::{
-    DocgenContext,
-    speed::{SpeedData, gen_speed},
-    tiledb::{FrameDirection, TileOrientation, check_misc_data, gen_misc_table, gen_tiles},
+    bsdata::{check_misc_data, gen_bstiles, gen_misc_table, FrameDirection, TileOrientation}, interconnect::gen_intdb, speed::{gen_speed, SpeedData}, DocgenContext
 };
 
 pub fn gen_siliconblue(ctx: &mut DocgenContext) {
@@ -18,19 +16,17 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
         ctx.ctx.root.join("../databases/siliconblue.zstd"),
     )
     .unwrap();
-    gen_tiles(ctx, "siliconblue", &db.bsdata, |_| tile_orientation);
+    gen_intdb(ctx, "siliconblue", &db.int);
+    gen_bstiles(ctx, "siliconblue", &db.bsdata, |_| tile_orientation);
     let mut speeds = EntityPartVec::new();
     for part in &db.parts {
         for (sname, &speedid) in &part.speeds {
             let speed = &db.speeds[speedid];
             if !speeds.contains_id(speedid) {
-                speeds.insert(
-                    speedid,
-                    SpeedData {
-                        names: vec![],
-                        speed,
-                    },
-                );
+                speeds.insert(speedid, SpeedData {
+                    names: vec![],
+                    speed,
+                });
             }
             speeds[speedid]
                 .names

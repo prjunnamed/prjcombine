@@ -2,12 +2,7 @@
 
 TODO: document
 
-
-## Bitstream
+{{int-basics virtex4}}
 
 {{tile virtex4 INT}}
-
-
-## Bitstream — interface tile
-
 {{tile virtex4 INTF}}

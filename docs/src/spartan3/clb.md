@@ -452,14 +452,14 @@ The data for a CLB is located in the same bitstream tile as the associated `INT.
 TODO: wtf is this even
 
 
-### `RANDOR`
+## `RANDOR`
 
 This tile overlaps `IOI.*`.
 
 {{tile spartan3 RANDOR}}
 
 
-### `RANDOR_INIT`
+## `RANDOR_INIT`
 
 This tile overlaps top-left interconnect tile.
 

@@ -141,8 +141,6 @@ The `SYSMON` present on the device can use up to 16 IOB pairs from the left I/O 
 - `VP15/VN15`: left I/O column, row `r + 9`
 
 
-## Bitstream
-
 {{tile virtex5 IO}}
 
 
@@ -151,17 +149,10 @@ The `SYSMON` present on the device can use up to 16 IOB pairs from the left I/O 
 {{devdata virtex5 iodelay-default}}
 
 {{misc virtex5 iostd-drive}}
-
 {{misc virtex5 iostd-slew}}
-
 {{misc virtex5 iostd-misc}}
-
 {{misc virtex5 iostd-lvds}}
-
 {{misc virtex5 iostd-lvdsbias}}
-
 {{misc virtex5 iostd-dci-lvdiv2}}
-
 {{misc virtex5 iostd-dci-mask-term-vcc}}
-
 {{misc virtex5 iostd-dci-mask-term-split}}

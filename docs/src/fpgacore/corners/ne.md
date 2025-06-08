@@ -2,7 +2,4 @@
 
 TODO: document
 
-
-## `UR.FC`
-
 {{tile fpgacore UR.FC}}

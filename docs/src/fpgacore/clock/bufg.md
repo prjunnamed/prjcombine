@@ -7,17 +7,11 @@ TODO: document
 
 TODO: document
 
-
-### `CLKB.FC`
-
 {{tile fpgacore CLKB.FC}}
 
 
 ## Bitstream — top tiles
 
 TODO: document
-
-
-### `CLKT.FC`
 
 {{tile fpgacore CLKT.FC}}

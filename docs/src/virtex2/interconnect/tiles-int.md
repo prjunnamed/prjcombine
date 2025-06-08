@@ -35,7 +35,6 @@ Used with the `IOI.CLK_B` tile (Virtex 2 Pro X special IOI tile used for the ded
 
 Used with the `IOI.CLK_T` tile (Virtex 2 Pro X special IOI tile used for the dedicated reference clock).
 
-
 {{tile virtex2 INT.IOI.CLK_T}}
 
 
@@ -49,7 +48,6 @@ Used with the Virtex 2 `DCM.V2` tile.
 ## `INT.DCM.V2P`
 
 Used with the Virtex 2 Pro `DCM.V2P` tile.
-
 
 {{tile virtex2 INT.DCM.V2P}}
 

@@ -176,73 +176,32 @@ The devices also have dedicated configuration bank 0, which has no user I/O and 
 - `TCK`, `TDI`, `TDO`, `TMS`
 
 
-## Bitstream — `IO_HP_PAIR`
-
 {{tile virtex7 IO_HP_PAIR}}
-
-
-## Bitstream — `IO_HP_BOT`
-
 {{tile virtex7 IO_HP_BOT}}
-
-
-## Bitstream — `IO_HP_TOP`
-
 {{tile virtex7 IO_HP_TOP}}
-
-
-## Bitstream — `IO_HR_PAIR`
-
 {{tile virtex7 IO_HR_PAIR}}
-
-
-## Bitstream — `IO_HR_BOT`
-
 {{tile virtex7 IO_HR_BOT}}
-
-
-## Bitstream — `IO_HR_TOP`
-
 {{tile virtex7 IO_HR_TOP}}
-
-
-## Bitstream — `HCLK_IOI_HP`
-
 {{tile virtex7 HCLK_IOI_HP}}
-
-
-## Bitstream — `HCLK_IOI_HR`
-
 {{tile virtex7 HCLK_IOI_HR}}
 
 
 ## Tables — HP IO
 
 {{misc virtex7 hp-iostd-drive}}
-
 {{misc virtex7 hp-iostd-slew}}
-
 {{misc virtex7 hp-iostd-lvds}}
-
 {{misc virtex7 hp-iostd-lvdsbias}}
-
 {{misc virtex7 hp-iostd-dci-output}}
-
 {{misc virtex7 hp-iostd-dci-output-half}}
-
 {{misc virtex7 hp-iostd-dci-term-split}}
 
 
 ## Tables — HR IO
 
 {{misc virtex7 hr-iostd-drive}}
-
 {{misc virtex7 hr-iostd-slew}}
-
 {{misc virtex7 hr-iostd-misc}}
-
 {{misc virtex7 hr-iostd-lvds}}
-
 {{misc virtex7 hr-iostd-driverbias}}
-
 {{misc virtex7 hr-iostd-lvdsbias}}

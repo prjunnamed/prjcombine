@@ -2,7 +2,4 @@
 
 TODO: document
 
-
-## `GCLKH`
-
 {{tile fpgacore GCLKH}}
