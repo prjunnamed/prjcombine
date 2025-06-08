@@ -1362,7 +1362,7 @@ pub fn make_sample(
                                     .map(|&(col, row)| BitOwner::Main(col, row)),
                             );
                             sample
-                                .add_tiled_pattern(&tiles, format!("FILTER:FILTER{i}:ENABLE:BIT0"));
+                                .add_tiled_pattern(&tiles, format!("I3C:FILTER{i}:ENABLE:BIT0"));
                         }
                     }
                 }
@@ -1948,8 +1948,8 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     if edev.chip.kind == ChipKind::Ice40T05 {
         result.push("SPRAM:SPRAM0:ENABLE:BIT0".into());
         result.push("SPRAM:SPRAM1:ENABLE:BIT0".into());
-        result.push("FILTER:FILTER0:ENABLE:BIT0".into());
-        result.push("FILTER:FILTER1:ENABLE:BIT0".into());
+        result.push("I3C:FILTER0:ENABLE:BIT0".into());
+        result.push("I3C:FILTER1:ENABLE:BIT0".into());
     }
     // misc
     let tcls_gb_root = edev.chip.kind.tile_class_gb_root();
