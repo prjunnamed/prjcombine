@@ -1,12 +1,12 @@
 use prjcombine_interconnect::{
     db::{TileCellId, TileClassWire, WireKind},
-    grid::{LayerId, NodeLoc, WireCoord},
+    grid::{NodeLoc, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
-use prjcombine_xc2000::bels::xc5200 as bels;
+use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
 use prjcombine_xilinx_bitstream::BitTile;
 use unnamed_entity::EntityId;
 
@@ -94,7 +94,7 @@ fn drive_wire<'a>(
             }
             _ => panic!("umm {wtn}"),
         };
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let nnode = &backend.ngrid.nodes[&nloc];
         return (
             fuzzer.base(Key::NodeMutex(wire_target), "SHARED_ROOT"),
@@ -102,7 +102,7 @@ fn drive_wire<'a>(
             pin,
         );
     } else if wtn == "GND" {
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let nnode = &backend.ngrid.nodes[&nloc];
         return (
             fuzzer.base(Key::NodeMutex(wire_target), "SHARED_ROOT"),
@@ -110,7 +110,7 @@ fn drive_wire<'a>(
             "O",
         );
     } else if matches!(wtn, "GLOBAL.B" | "GLOBAL.T" | "GLOBAL.L" | "GLOBAL.R") {
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let nwt = backend
             .egrid
             .resolve_tile_wire_nobuf(
@@ -127,7 +127,7 @@ fn drive_wire<'a>(
         let fuzzer = fuzzer.base(Key::Pip(crd), Value::FromPin(block, pin.into()));
         return (fuzzer, block, pin);
     } else if matches!(wtn, "GLOBAL.BL" | "GLOBAL.TL" | "GLOBAL.BR" | "GLOBAL.TR") {
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let nnode = &backend.ngrid.nodes[&nloc];
         return (
             fuzzer.base(Key::NodeMutex(wire_target), "SHARED_ROOT"),
@@ -136,13 +136,13 @@ fn drive_wire<'a>(
         );
     } else if wtn == "IMUX.GIN" {
         (
-            (die, col, row, LayerId::from_idx(0)),
+            (die, col, row, tslots::MAIN),
             (TileCellId::from_idx(0), wire_target.2),
             (TileCellId::from_idx(0), backend.egrid.db.get_wire("GND")),
         )
     } else if let Some(nwt) = wtn.strip_suffix(".BUF") {
         (
-            (die, col, row, LayerId::from_idx(0)),
+            (die, col, row, tslots::MAIN),
             (TileCellId::from_idx(0), wire_target.2),
             (TileCellId::from_idx(0), backend.egrid.db.get_wire(nwt)),
         )
@@ -157,7 +157,7 @@ fn drive_wire<'a>(
             "OUT.PWRGND"
         };
         (
-            (die, col, row, LayerId::from_idx(0)),
+            (die, col, row, tslots::MAIN),
             (TileCellId::from_idx(0), wire_target.2),
             (TileCellId::from_idx(0), backend.egrid.db.get_wire(nwt)),
         )
@@ -177,7 +177,7 @@ fn drive_wire<'a>(
         }
         let idx = wtn[6..].parse::<usize>().unwrap() % 4;
         (
-            (die, col, row, LayerId::from_idx(0)),
+            (die, col, row, tslots::MAIN),
             (TileCellId::from_idx(0), wire_target.2),
             (
                 TileCellId::from_idx(0),
@@ -185,7 +185,7 @@ fn drive_wire<'a>(
             ),
         )
     } else if wtn.starts_with("CLB.M") || wtn.starts_with("IO.M") {
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let node = backend.egrid.tile(nloc);
         let node_kind = &backend.egrid.db.tile_classes[node.class];
         'a: {
@@ -201,7 +201,7 @@ fn drive_wire<'a>(
     } else if wtn.starts_with("SINGLE") || wtn.starts_with("IO.SINGLE") || wtn.starts_with("DBL") {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, tslots::MAIN);
                 let node = backend.egrid.tile(nloc);
                 let node_kind = &backend.egrid.db.tile_classes[node.class];
                 if let Some(mux) = node_kind.muxes.get(&(TileCellId::from_idx(0), w.2)) {
@@ -288,7 +288,7 @@ fn apply_imux_finish<'a>(
         }
         _ => panic!("umm {wn}?"),
     };
-    let nloc = (die, col, row, LayerId::from_idx(0));
+    let nloc = (die, col, row, tslots::MAIN);
     let nnode = &backend.ngrid.nodes[&nloc];
     let block = &nnode.bels[slot][0];
     if wn.starts_with("IMUX.IO") && pin == "O" {

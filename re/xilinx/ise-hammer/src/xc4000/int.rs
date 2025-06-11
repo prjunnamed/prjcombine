@@ -3,13 +3,13 @@ use std::collections::{BTreeMap, HashSet, btree_map};
 use prjcombine_interconnect::{
     db::{BelSlotId, TileCellId, TileClassWire},
     dir::DirH,
-    grid::{LayerId, NodeLoc, WireCoord},
+    grid::{NodeLoc, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::TileBit;
-use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind};
+use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -56,7 +56,7 @@ fn drive_xc4000_wire<'a>(
         } else {
             bels::TBUF0
         };
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let nnode = &backend.ngrid.tiles[&nloc];
         let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
         let bel_naming = &node_naming.bels[bel];
@@ -75,7 +75,7 @@ fn drive_xc4000_wire<'a>(
             );
         (fuzzer, site_name, "O")
     } else if wname == "GND" {
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let nnode = &backend.ngrid.tiles[&nloc];
         let site_name = nnode.tie_name.as_ref().unwrap();
         let fuzzer = fuzzer
@@ -89,7 +89,7 @@ fn drive_xc4000_wire<'a>(
             drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
         let (tile, wt, wf) = resolve_int_pip(
             backend,
-            (die, col, row, LayerId::from_idx(0)),
+            (die, col, row, tslots::MAIN),
             (TileCellId::from_idx(0), wt),
             (TileCellId::from_idx(0), nwt.2),
         )
@@ -100,7 +100,7 @@ fn drive_xc4000_wire<'a>(
         );
         (fuzzer, site_name, pin_name)
     } else if wname.starts_with("OUT.CLB") {
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let nnode = &backend.ngrid.tiles[&nloc];
         let site_name = &nnode.bels[bels::CLB];
         let (pin, fuzzer) = match &wname[..] {
@@ -164,7 +164,7 @@ fn drive_xc4000_wire<'a>(
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
-                (die, col + 1, row, LayerId::from_idx(0)),
+                (die, col + 1, row, tslots::MAIN),
                 (
                     TileCellId::from_idx(0),
                     backend.egrid.db.get_wire(&format!("SINGLE.H{idx}.E")),
@@ -183,7 +183,7 @@ fn drive_xc4000_wire<'a>(
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
-                (die, col, row, LayerId::from_idx(0)),
+                (die, col, row, tslots::MAIN),
                 (TileCellId::from_idx(0), wt),
                 (
                     TileCellId::from_idx(0),
@@ -206,7 +206,7 @@ fn drive_xc4000_wire<'a>(
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
-                (die, col, row, LayerId::from_idx(0)),
+                (die, col, row, tslots::MAIN),
                 (TileCellId::from_idx(0), wt),
                 (
                     TileCellId::from_idx(0),
@@ -229,7 +229,7 @@ fn drive_xc4000_wire<'a>(
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
-                (die, col, row, LayerId::from_idx(0)),
+                (die, col, row, tslots::MAIN),
                 (TileCellId::from_idx(0), wt),
                 (TileCellId::from_idx(0), nwt.2),
             )
@@ -259,7 +259,7 @@ fn drive_xc4000_wire<'a>(
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
-                (die, col, row, LayerId::from_idx(0)),
+                (die, col, row, tslots::MAIN),
                 (TileCellId::from_idx(0), wt),
                 (TileCellId::from_idx(0), backend.egrid.db.get_wire(out)),
             )
@@ -279,7 +279,7 @@ fn drive_xc4000_wire<'a>(
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
-                (die, col, row, LayerId::from_idx(0)),
+                (die, col, row, tslots::MAIN),
                 (TileCellId::from_idx(0), wt),
                 (
                     TileCellId::from_idx(0),
@@ -301,7 +301,7 @@ fn drive_xc4000_wire<'a>(
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
-                (die, col, row - 1, LayerId::from_idx(0)),
+                (die, col, row - 1, tslots::MAIN),
                 (
                     TileCellId::from_idx(0),
                     backend.egrid.db.get_wire(&format!("SINGLE.V{idx}.S")),
@@ -324,7 +324,7 @@ fn drive_xc4000_wire<'a>(
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
-                (die, col, row, LayerId::from_idx(0)),
+                (die, col, row, tslots::MAIN),
                 (TileCellId::from_idx(0), wt),
                 (TileCellId::from_idx(0), nwt.2),
             )
@@ -344,7 +344,7 @@ fn drive_xc4000_wire<'a>(
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
-                (die, col, row, LayerId::from_idx(0)),
+                (die, col, row, tslots::MAIN),
                 (TileCellId::from_idx(0), wt),
                 (
                     TileCellId::from_idx(0),
@@ -377,7 +377,7 @@ fn drive_xc4000_wire<'a>(
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
-                (die, col, row, LayerId::from_idx(0)),
+                (die, col, row, tslots::MAIN),
                 (TileCellId::from_idx(0), wt),
                 (TileCellId::from_idx(0), backend.egrid.db.get_wire(out)),
             )
@@ -397,7 +397,7 @@ fn drive_xc4000_wire<'a>(
     {
         let mut filter = None;
         let mut twt = TileCellId::from_idx(0);
-        let mut layer = LayerId::from_idx(0);
+        let mut layer = tslots::MAIN;
         if wname.starts_with("LONG") {
             if wname.contains(".H") {
                 if col == edev.chip.col_w() {

@@ -35,10 +35,6 @@ pub type DieId = EntityIdU8<DieTag>;
 pub type ColId = EntityIdU16<ColTag>;
 pub type RowId = EntityIdU16<RowTag>;
 
-pub struct LayerTag;
-impl EntityTag for LayerTag {}
-pub type LayerId = EntityIdU8<LayerTag>;
-
 pub struct IobTag;
 impl EntityTag for IobTag {
     const PREFIX: &'static str = "IOB";
@@ -94,7 +90,7 @@ impl std::fmt::Display for EdgeIoCoord {
 }
 
 pub type Coord = (ColId, RowId);
-pub type NodeLoc = (DieId, ColId, RowId, LayerId);
+pub type NodeLoc = (DieId, ColId, RowId, TileSlotId);
 pub type WireCoord = (DieId, Coord, WireId);
 pub type BelCoord = (DieId, Coord, BelSlotId);
 
@@ -202,12 +198,13 @@ impl<'a> ExpandedGrid<'a> {
         tile.tiles.values().find(|x| f(x))
     }
 
+    // TODO: kill
     pub fn find_tile_loc(
         &self,
         die: DieId,
         coord: Coord,
         f: impl Fn(&Tile) -> bool,
-    ) -> Option<(LayerId, &Tile)> {
+    ) -> Option<(TileSlotId, &Tile)> {
         let die = self.die(die);
         let tile = die.tile(coord);
         for (id, val) in &tile.tiles {
@@ -218,12 +215,13 @@ impl<'a> ExpandedGrid<'a> {
         None
     }
 
+    // TODO: kill
     pub fn find_tile_layer(
         &self,
         die: DieId,
         coord: Coord,
         f: impl Fn(&str) -> bool,
-    ) -> Option<LayerId> {
+    ) -> Option<TileSlotId> {
         let die = self.die(die);
         let tile = die.tile(coord);
         for (layer, val) in &tile.tiles {
@@ -234,6 +232,7 @@ impl<'a> ExpandedGrid<'a> {
         None
     }
 
+    // TODO: kill
     pub fn find_tile_by_class(
         &self,
         die: DieId,
@@ -271,7 +270,7 @@ impl<'a> ExpandedGrid<'a> {
         self.find_tile_by_bel(bel).unwrap()
     }
 
-    pub fn find_bel_layer(&self, bel: BelCoord) -> Option<LayerId> {
+    pub fn find_bel_layer(&self, bel: BelCoord) -> Option<TileSlotId> {
         self.find_tile_by_bel(bel).map(|(_, _, _, layer)| layer)
     }
 
@@ -400,21 +399,22 @@ impl ExpandedDieRefMut<'_, '_> {
         let kind = self.grid.db.get_tile_class(kind);
         let cells: EntityVec<_, _> = cells.iter().copied().collect();
         let slot = self.grid.db.tile_classes[kind].slot;
-        for otile in self[crd].tiles.values() {
-            assert_ne!(self.grid.db.tile_classes[otile.class].slot, slot);
-        }
-        let layer = self[crd].tiles.push(Tile {
-            class: kind,
-            cells: cells.clone(),
-        });
+        assert!(!self[crd].tiles.contains_id(slot));
+        self[crd].tiles.insert(
+            slot,
+            Tile {
+                class: kind,
+                cells: cells.clone(),
+            },
+        );
         for (cid, ccrd) in cells {
-            self[ccrd].tile_index.push((crd, layer, cid))
+            self[ccrd].tile_index.push((crd, slot, cid))
         }
-        &mut self[crd].tiles[layer]
+        &mut self[crd].tiles[slot]
     }
 
     pub fn fill_tile(&mut self, xy: Coord, kind: &str) -> &mut Tile {
-        assert!(self[xy].tiles.is_empty());
+        assert!(self[xy].tiles.iter().count() == 0);
         self.add_tile(xy, kind, &[xy])
     }
 
@@ -463,7 +463,7 @@ impl ExpandedDieRefMut<'_, '_> {
         for row in self.rows() {
             let mut prev = None;
             for col in self.cols() {
-                if self[(col, row)].tiles.is_empty() {
+                if self[(col, row)].tiles.iter().count() == 0 {
                     continue;
                 }
                 if let Some(prev) = prev {
@@ -482,7 +482,7 @@ impl ExpandedDieRefMut<'_, '_> {
         for col in self.cols() {
             let mut prev = None;
             for row in self.rows() {
-                if self[(col, row)].tiles.is_empty() {
+                if self[(col, row)].tiles.iter().count() == 0 {
                     continue;
                 }
                 if let Some(prev) = prev {
@@ -509,7 +509,7 @@ pub struct NodePip {
 
     pub node_die: DieId,
     pub node_crd: Coord,
-    pub node_layer: LayerId,
+    pub node_slot: TileSlotId,
     pub node_wire_out: TileClassWire,
     pub node_wire_in: TileClassWire,
 }
@@ -673,7 +673,7 @@ impl ExpandedGrid<'_> {
                                 wire_in_raw,
                                 node_die: w.0,
                                 node_crd: crd,
-                                node_layer: layer,
+                                node_slot: layer,
                                 node_wire_out: tcw,
                                 node_wire_in: tcwi,
                             });
@@ -704,7 +704,7 @@ impl ExpandedGrid<'_> {
                                 wire_in_raw: w,
                                 node_die: w.0,
                                 node_crd: crd,
-                                node_layer: layer,
+                                node_slot: layer,
                                 node_wire_out: tcwo,
                                 node_wire_in: tcw,
                             });
@@ -719,9 +719,9 @@ impl ExpandedGrid<'_> {
 
 #[derive(Clone, Debug)]
 pub struct Cell {
-    pub tiles: EntityVec<LayerId, Tile>,
+    pub tiles: EntityPartVec<TileSlotId, Tile>,
     pub conns: EntityPartVec<ConnectorSlotId, Connector>,
-    pub tile_index: Vec<(Coord, LayerId, TileCellId)>,
+    pub tile_index: Vec<(Coord, TileSlotId, TileCellId)>,
     pub region_root: EntityVec<RegionSlotId, Coord>,
 }
 

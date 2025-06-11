@@ -1,13 +1,13 @@
 use prjcombine_interconnect::{
     db::{ConnectorWire, TileCellId, TileClassWire, WireId},
     dir::Dir,
-    grid::{LayerId, NodeLoc, WireCoord},
+    grid::{NodeLoc, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
-use prjcombine_xc2000::bels::xc2000 as bels;
+use prjcombine_xc2000::{bels::xc2000 as bels, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -90,7 +90,7 @@ fn drive_wire<'a>(
     {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, tslots::MAIN);
                 let node = backend.egrid.tile(nloc);
                 let node_kind = &backend.egrid.db.tile_classes[node.class];
                 if let Some(mux) = node_kind.muxes.get(&(TileCellId::from_idx(0), w.2)) {
@@ -105,7 +105,7 @@ fn drive_wire<'a>(
                 }
             }
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, tslots::MAIN);
                 let node = backend.egrid.tile(nloc);
                 let node_kind = &backend.egrid.db.tile_classes[node.class];
                 if let Some(mux) = node_kind.muxes.get(&(TileCellId::from_idx(0), w.2)) {
@@ -129,7 +129,7 @@ fn drive_wire<'a>(
     {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, tslots::MAIN);
                 let node = backend.egrid.tile(nloc);
                 let node_kind = &backend.egrid.db.tile_classes[node.class];
                 if let Some(mux) = node_kind.muxes.get(&(TileCellId::from_idx(0), w.2)) {
@@ -196,7 +196,7 @@ fn apply_imux_finish<'a>(
         _ => panic!("umm {wn}?"),
     };
     let bel = (die, (col, row), slot);
-    let nloc = (die, col, row, LayerId::from_idx(0));
+    let nloc = (die, col, row, tslots::MAIN);
     let nnode = &backend.ngrid.nodes[&nloc];
     let block = &nnode.bels[slot][0];
     if slot == bels::CLB && pin == "K" {

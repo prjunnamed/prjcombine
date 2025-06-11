@@ -1,11 +1,8 @@
-use prjcombine_interconnect::{
-    db::TileCellId,
-    grid::{DieId, LayerId},
-};
+use prjcombine_interconnect::{db::TileCellId, grid::DieId};
 use prjcombine_re_fpga_hammer::{Diff, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_xc2000::bels::xc2000 as bels;
+use prjcombine_xc2000::{bels::xc2000 as bels, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -62,12 +59,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             ctx.test_global("MISC", "REPROGRAM", &["ENABLE", "DISABLE"]);
             ctx.test_global("MISC", "DONETIME", &["BEFORE", "AFTER"]);
             ctx.test_global("MISC", "RESETTIME", &["BEFORE", "AFTER"]);
-            let nloc = (
-                DieId::from_idx(0),
-                grid.col_e(),
-                grid.row_s(),
-                LayerId::from_idx(0),
-            );
+            let nloc = (DieId::from_idx(0), grid.col_e(), grid.row_s(), tslots::MAIN);
             let wt = (
                 TileCellId::from_idx(0),
                 backend.egrid.db.get_wire("IMUX.BUFG"),

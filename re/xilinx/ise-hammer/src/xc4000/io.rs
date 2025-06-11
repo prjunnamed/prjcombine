@@ -1,12 +1,12 @@
 use prjcombine_interconnect::{
     db::{BelSlotId, TileCellId},
-    grid::{LayerId, NodeLoc},
+    grid::NodeLoc,
 };
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind};
+use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -53,7 +53,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
             .unwrap();
         fuzzer = fuzzer.fuzz(Key::NodeMutex(res_wire), None, "EXCLUSIVE");
         if self.drive {
-            let oloc = (res_wire.0, res_wire.1.0, res_wire.1.1, LayerId::from_idx(0));
+            let oloc = (res_wire.0, res_wire.1.0, res_wire.1.1, tslots::MAIN);
             let onode = backend.egrid.tile(oloc);
             let onode_data = &backend.egrid.db.tile_classes[onode.class];
             let wt = (TileCellId::from_idx(0), res_wire.2);

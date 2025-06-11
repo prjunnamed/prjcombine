@@ -2,12 +2,12 @@ use std::collections::{BTreeMap, HashSet, btree_map};
 
 use prjcombine_interconnect::{
     db::{TileCellId, TileClassWire},
-    grid::{LayerId, NodeLoc, WireCoord},
+    grid::{NodeLoc, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_types::bsdata::TileBit;
-use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind};
+use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -145,7 +145,7 @@ fn drive_wire<'a>(
         let slot_name = backend.egrid.db.bel_slots.key(slot).as_str();
         if slot_name.starts_with("IO") && grid.kind == ChipKind::Xc4000H {
             (
-                (die, col, row, LayerId::from_idx(0)),
+                (die, col, row, tslots::MAIN),
                 (TileCellId::from_idx(0), wire_target.2),
                 (
                     TileCellId::from_idx(0),
@@ -157,7 +157,7 @@ fn drive_wire<'a>(
                 ),
             )
         } else {
-            let nloc = (die, col, row, LayerId::from_idx(0));
+            let nloc = (die, col, row, tslots::MAIN);
             let nnode = &backend.ngrid.nodes[&nloc];
             let mut block = &nnode.bels[slot][0];
             if pin == "CLKIN" {
@@ -182,7 +182,7 @@ fn drive_wire<'a>(
             );
         }
     } else if wtn == "GND" {
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let nnode = &backend.ngrid.nodes[&nloc];
         return (
             fuzzer.base(Key::NodeMutex(wire_target), "SHARED_ROOT"),
@@ -220,7 +220,7 @@ fn drive_wire<'a>(
         }
         let idx: usize = wtn[5..].parse().unwrap();
         let pin = ["O1", "O2", "O3", "O4"][idx];
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let nnode = &backend.ngrid.nodes[&nloc];
         let bel = (die, (col, row), bels::DEC0);
         let block = &nnode.bels[bels::DEC0][0];
@@ -237,7 +237,7 @@ fn drive_wire<'a>(
         } else {
             bels::TBUF1
         };
-        let nloc = (die, col, row, LayerId::from_idx(0));
+        let nloc = (die, col, row, tslots::MAIN);
         let bel = (die, (col, row), slot);
         let nnode = &backend.ngrid.nodes[&nloc];
         let block = &nnode.bels[slot][0];
@@ -249,7 +249,7 @@ fn drive_wire<'a>(
     } else if wtn.starts_with("SINGLE") || wtn.starts_with("DOUBLE") {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, tslots::MAIN);
                 let node = backend.egrid.tile(nloc);
                 let node_kind = &backend.egrid.db.tile_classes[node.class];
                 if let Some(mux) = node_kind.muxes.get(&(TileCellId::from_idx(0), w.2)) {
@@ -268,7 +268,7 @@ fn drive_wire<'a>(
     } else if wtn.starts_with("LONG") || wtn.starts_with("IO.DOUBLE") {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, tslots::MAIN);
                 let node = backend.egrid.tile(nloc);
                 let node_kind = &backend.egrid.db.tile_classes[node.class];
                 if let Some(mux) = node_kind.muxes.get(&(TileCellId::from_idx(0), w.2)) {
@@ -287,7 +287,7 @@ fn drive_wire<'a>(
     } else if wtn.starts_with("IO.DBUF") {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1.0, w.1.1, LayerId::from_idx(0));
+                let nloc = (w.0, w.1.0, w.1.1, tslots::MAIN);
                 let node = backend.egrid.tile(nloc);
                 let node_kind = &backend.egrid.db.tile_classes[node.class];
                 if let Some(mux) = node_kind.muxes.get(&(TileCellId::from_idx(0), w.2)) {
@@ -463,7 +463,7 @@ fn apply_imux_finish<'a>(
         }
     }
     let bel = (die, (col, row), slot);
-    let nloc = (die, col, row, LayerId::from_idx(0));
+    let nloc = (die, col, row, tslots::MAIN);
     let node = backend.egrid.tile(nloc);
     let node_kind = &backend.egrid.db.tile_classes[node.class];
     let nnode = &backend.ngrid.nodes[&nloc];

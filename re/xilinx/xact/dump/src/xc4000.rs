@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
         PinDir, TileCellId, TileClass, WireKind,
     },
     dir::{Dir, DirMap},
-    grid::{DieId, EdgeIoCoord, LayerId},
+    grid::{DieId, EdgeIoCoord},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
@@ -896,7 +896,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 }
                 let tile =
                     &extractor.die.newtiles[&(endev.col_x[col].start, endev.row_y[row].start)];
-                if nloc.3 == LayerId::from_idx(0) {
+                if nloc.3 == tslots::MAIN {
                     for &box_id in &tile.boxes {
                         extractor.own_box(box_id, nloc);
                     }
@@ -1605,7 +1605,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                     .resolve_wire((die.die, (col, row), wire))
                     .unwrap();
                 if extractor.int_nets.contains_key(&rw) {
-                    extractor.own_mux(rw, (die.die, col, row, LayerId::from_idx(0)));
+                    extractor.own_mux(rw, (die.die, col, row, tslots::MAIN));
                 }
             }
         }

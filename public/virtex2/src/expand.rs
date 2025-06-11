@@ -8,6 +8,7 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 use crate::chip::{Chip, ChipKind, ColumnIoKind, ColumnKind, DcmPairKind, RowIoKind};
 use crate::expanded::{ExpandedDevice, REGION_HCLK, REGION_LEAF};
 use crate::iob::{get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w};
+use crate::tslots;
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
@@ -674,10 +675,10 @@ impl Expander<'_, '_> {
             }
             let mut row_s = self.chip.row_mid() - 1;
             let mut row_n = self.chip.row_mid();
-            while self.die[(col, row_s)].tiles.is_empty() {
+            while !self.die[(col, row_s)].tiles.contains_id(tslots::INT) {
                 row_s -= 1;
             }
-            while self.die[(col, row_n)].tiles.is_empty() {
+            while !self.die[(col, row_n)].tiles.contains_id(tslots::INT) {
                 row_n += 1;
             }
             let mut term_s = "LLV.S";
@@ -708,10 +709,10 @@ impl Expander<'_, '_> {
         for row in self.chip.rows.ids() {
             let mut col_l = self.chip.col_clk - 1;
             let mut col_r = self.chip.col_clk;
-            while self.die[(col_l, row)].tiles.is_empty() {
+            while !self.die[(col_l, row)].tiles.contains_id(tslots::INT) {
                 col_l -= 1;
             }
-            while self.die[(col_r, row)].tiles.is_empty() {
+            while !self.die[(col_r, row)].tiles.contains_id(tslots::INT) {
                 col_r += 1;
             }
             let mut term_w = "LLH.W";

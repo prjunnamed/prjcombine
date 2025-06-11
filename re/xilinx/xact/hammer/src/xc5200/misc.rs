@@ -1,7 +1,7 @@
-use prjcombine_interconnect::grid::{DieId, LayerId};
+use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::bels::xc5200 as bels;
+use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
@@ -119,7 +119,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         DieId::from_idx(0),
         backend.edev.chip.col_e(),
         backend.edev.chip.row_s(),
-        LayerId::from_idx(0),
+        tslots::MAIN,
     );
     for val in ["D2", "D4", "D6", "D8"] {
         bctx.mode("OSC")

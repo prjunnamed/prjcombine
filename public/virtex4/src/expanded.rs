@@ -1,6 +1,7 @@
 use crate::bond::{PsPad, SharedCfgPad};
 use crate::chip::{Chip, ChipKind, DisabledPart, GtKind, Interposer, IoKind, RegId, XadcIoLoc};
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
+use crate::tslots;
 use bimap::BiHashMap;
 use prjcombine_interconnect::db::RegionSlotId;
 use prjcombine_interconnect::dir::DirPartMap;
@@ -123,8 +124,8 @@ impl ExpandedDevice<'_> {
                 for col in die_s.cols() {
                     let row_s = die_s.rows().next_back().unwrap() - 49;
                     let row_n = die_n.rows().next().unwrap() + 1;
-                    if !die_s[(col, row_s)].tiles.is_empty()
-                        && !die_n[(col, row_n)].tiles.is_empty()
+                    if die_s[(col, row_s)].tiles.contains_id(tslots::INT)
+                        && die_n[(col, row_n)].tiles.contains_id(tslots::INT)
                     {
                         cursed_wires.insert((dieid_s, (col, row_s), lvb6));
                     }

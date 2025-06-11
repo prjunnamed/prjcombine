@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet};
 
-use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedDieRef, LayerId, RowId};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedDieRef, RowId};
 use prjcombine_re_xilinx_naming::{
     db::NamingDb,
     grid::{BelGrid, ExpandedGridNaming},
@@ -9,7 +9,7 @@ use prjcombine_virtex2::{
     bels,
     chip::{Chip, ChipKind, ColumnIoKind, ColumnKind, DcmPairKind, RowIoKind},
     expanded::ExpandedDevice,
-    iob::{IobKind, get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w},
+    iob::{get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w, IobKind}, tslots,
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -1164,7 +1164,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&(self.die.die, col, row, LayerId::from_idx(1)))
+                .get_mut(&(self.die.die, col, row, tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1226,7 +1226,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&(self.die.die, col, row, LayerId::from_idx(1)))
+                .get_mut(&(self.die.die, col, row, tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1292,7 +1292,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&(self.die.die, col, row, LayerId::from_idx(1)))
+                .get_mut(&(self.die.die, col, row, tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1371,7 +1371,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&(self.die.die, col, row, LayerId::from_idx(1)))
+                .get_mut(&(self.die.die, col, row, tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {

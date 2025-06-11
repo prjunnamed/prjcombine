@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
         BelSlotId, ConnectorSlotId, ConnectorWire, TileCellId, TileClass, TileClassId, TileIriId,
         WireKind,
     },
-    grid::{BelCoord, ColId, DieId, ExpandedGrid, LayerId, NodeLoc, NodePip, RowId, WireCoord},
+    grid::{BelCoord, ColId, DieId, ExpandedGrid, NodeLoc, NodePip, RowId, WireCoord},
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -141,7 +141,10 @@ impl<'a> ExpandedGridNaming<'a> {
         }
     }
 
-    pub fn resolve_wire_trace(&self, mut wire: WireCoord) -> Option<(WireCoord, Vec<TracePip<'_>>)> {
+    pub fn resolve_wire_trace(
+        &self,
+        mut wire: WireCoord,
+    ) -> Option<(WireCoord, Vec<TracePip<'_>>)> {
         let die = self.egrid.die(wire.0);
         let mut trace = vec![];
         loop {
@@ -252,7 +255,13 @@ impl<'a> ExpandedGridNaming<'a> {
                     }
                 }
                 WireKind::Buf(wf) => {
-                    let naming = &self.tiles[&(wire.0, wire.1.0, wire.1.1, LayerId::from_idx(0))];
+                    let slot = self
+                        .egrid
+                        .db
+                        .tile_slots
+                        .get("INT")
+                        .unwrap_or(self.egrid.db.tile_slots.get("MAIN").unwrap());
+                    let naming = &self.tiles[&(wire.0, wire.1.0, wire.1.1, slot)];
                     let nn = &self.db.tile_class_namings[naming.naming];
                     trace.push(TracePip {
                         tile: &naming.names[RawTileId::from_idx(0)],
@@ -275,7 +284,7 @@ impl<'a> ExpandedGridNaming<'a> {
     }
 
     pub fn get_tile_pip_naming(&self, np: NodePip) -> TracePip<'_> {
-        let tile = &self.tiles[&(np.node_die, np.node_crd.0, np.node_crd.1, np.node_layer)];
+        let tile = &self.tiles[&(np.node_die, np.node_crd.0, np.node_crd.1, np.node_slot)];
         let naming = &self.db.tile_class_namings[tile.naming];
         if let Some(pn) = naming.ext_pips.get(&(np.node_wire_out, np.node_wire_in)) {
             TracePip {

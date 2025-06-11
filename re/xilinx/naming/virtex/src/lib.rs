@@ -1,9 +1,9 @@
-use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedDieRef, LayerId, RowId};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedDieRef, RowId};
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex::{
     bels,
     chip::{Chip, ChipKind, DisabledPart},
-    expanded::ExpandedDevice,
+    expanded::ExpandedDevice, tslots,
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -86,7 +86,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&(self.die.die, col, row, LayerId::from_idx(0)))
+                .get_mut(&(self.die.die, col, row, tslots::MAIN))
                 .unwrap();
             nnode.add_bel(bels::IO3, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
@@ -105,7 +105,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&(self.die.die, col, row, LayerId::from_idx(0)))
+                .get_mut(&(self.die.die, col, row, tslots::MAIN))
                 .unwrap();
             nnode.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
@@ -127,7 +127,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&(self.die.die, col, row, LayerId::from_idx(0)))
+                .get_mut(&(self.die.die, col, row, tslots::MAIN))
                 .unwrap();
             nnode.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
@@ -146,7 +146,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&(self.die.die, col, row, LayerId::from_idx(0)))
+                .get_mut(&(self.die.die, col, row, tslots::MAIN))
                 .unwrap();
             nnode.add_bel(bels::IO3, format!("PAD{ctr_pad}"));
             ctr_pad += 1;

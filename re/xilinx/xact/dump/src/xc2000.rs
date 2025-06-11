@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
         PinDir, TileCellId, TileClass, WireKind,
     },
     dir::{Dir, DirMap},
-    grid::{ColId, DieId, EdgeIoCoord, LayerId, RowId},
+    grid::{ColId, DieId, EdgeIoCoord, RowId},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
@@ -637,7 +637,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     for (box_id, boxx) in &extractor.die.boxes {
         let col = xlut.binary_search(&usize::from(boxx.bx)).unwrap_err();
         let row = ylut.binary_search(&usize::from(boxx.by)).unwrap_err();
-        extractor.own_box(box_id, (die.die, col, row, LayerId::from_idx(0)));
+        extractor.own_box(box_id, (die.die, col, row, tslots::MAIN));
     }
 
     for (wire, name, &kind) in &intdb.wires {
@@ -654,7 +654,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                     .resolve_wire((die.die, (col, row), wire))
                     .unwrap();
                 if extractor.int_nets.contains_key(&rw) {
-                    extractor.own_mux(rw, (die.die, col, row, LayerId::from_idx(0)));
+                    extractor.own_mux(rw, (die.die, col, row, tslots::MAIN));
                 }
             }
         }

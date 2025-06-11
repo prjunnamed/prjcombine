@@ -10,7 +10,7 @@ use prjcombine_siliconblue::{
     bels,
     bitstream::Bitstream,
     chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
-    expanded::{BitOwner, ExpandedDevice},
+    expanded::{BitOwner, ExpandedDevice}, tslots,
 };
 use prjcombine_types::bitvec::BitVec;
 use unnamed_entity::EntityId;
@@ -132,7 +132,7 @@ pub fn make_sample(
                         let (col, row, wa, wb) =
                             xlat_mux_in(edev, iwa, iwb, (ax, ay, aw), (bx, by, bw));
                         let tile_name = get_main_tile_kind(edev, col, row);
-                        let node = die[(col, row)].tiles.first().unwrap();
+                        let node = &die[(col, row)].tiles[tslots::MAIN];
                         let wan = edev.egrid.db.wires.key(wa);
                         let wbn = edev.egrid.db.wires.key(wb);
                         if let Some(idx) = wbn.strip_prefix("GLOBAL.") {

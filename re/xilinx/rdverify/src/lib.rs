@@ -1,11 +1,10 @@
 #![allow(clippy::unnecessary_unwrap)]
 
 use prjcombine_interconnect::db::{
-    BelInfo, BelSlotId, ConnectorSlotId, ConnectorWire, IntDb, IntfInfo, IriPin, PinDir,
-    TileClassId, TileClassWire, WireId, WireKind,
+    BelInfo, BelSlotId, ConnectorSlotId, ConnectorWire, IntDb, IntfInfo, IriPin, PinDir, TileClassId, TileClassWire, TileSlotId, WireId, WireKind
 };
 use prjcombine_interconnect::grid::{
-    BelCoord, ColId, Connector, DieId, ExpandedGrid, LayerId, NodeLoc, RowId, Tile, WireCoord,
+    BelCoord, ColId, Connector, DieId, ExpandedGrid, NodeLoc, RowId, Tile, WireCoord,
 };
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, ConnectorWireInFarNaming, ConnectorWireOutNaming, IntfWireInNaming,
@@ -22,7 +21,7 @@ pub struct BelContext<'a> {
     pub col: ColId,
     pub row: RowId,
     pub slot: BelSlotId,
-    pub layer: LayerId,
+    pub tslot: TileSlotId,
     pub node: &'a Tile,
     pub nnode: &'a TileNaming,
     pub node_kind: &'a str,
@@ -1396,7 +1395,7 @@ impl<'a> Verifier<'a> {
             die: nloc.0,
             col: nloc.1,
             row: nloc.2,
-            layer: nloc.3,
+            tslot: nloc.3,
             node,
             nnode,
             node_kind: self.db.tile_classes.key(node.class),

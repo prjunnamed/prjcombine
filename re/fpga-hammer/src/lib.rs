@@ -8,8 +8,8 @@ use std::{
 
 use itertools::Itertools;
 use prjcombine_interconnect::{
-    db::TileClassId,
-    grid::{ColId, DieId, ExpandedGrid, LayerId, NodeLoc, RowId},
+    db::{TileClassId, TileSlotId},
+    grid::{ColId, DieId, ExpandedGrid, NodeLoc, RowId},
 };
 use prjcombine_re_hammer::{Backend, BatchValue, Fuzzer, FuzzerGen, FuzzerId};
 use prjcombine_types::bitvec::BitVec;
@@ -134,7 +134,7 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerGen<'b, B> {
                 DieId::from_idx(0),
                 ColId::from_idx(0),
                 RowId::from_idx(0),
-                LayerId::from_idx(0),
+                TileSlotId::from_idx(0),
             );
             self.try_generate(backend, kv, nloc)?
         };
@@ -195,7 +195,7 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerChainGen<'b, B> {
                 DieId::from_idx(0),
                 ColId::from_idx(0),
                 RowId::from_idx(0),
-                LayerId::from_idx(0),
+                TileSlotId::from_idx(0),
             );
             self.orig.try_generate(backend, kv, nloc)?
         };

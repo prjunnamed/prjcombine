@@ -9,6 +9,7 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Gts, PllKind, RegId};
 use crate::expanded::{ExpandedDevice, REGION_HCLK, REGION_LEAF};
+use crate::tslots;
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
@@ -449,7 +450,7 @@ impl Expander<'_, '_> {
             });
             for row in [br - 1, br] {
                 let tile = &mut self.die[(col, row)];
-                let node = tile.tiles.first_mut().unwrap();
+                let node = &mut tile.tiles[tslots::INT];
                 node.class = self.db.get_tile_class("INT.IOI");
                 self.die.add_tile((col, row), "INTF.CMT.IOI", &[(col, row)]);
             }
@@ -477,7 +478,7 @@ impl Expander<'_, '_> {
             self.die.add_tile((col, row), "INTF.CMT", &[(col, row)]);
             let row = br;
             let tile = &mut self.die[(col, row)];
-            let node = tile.tiles.first_mut().unwrap();
+            let node = &mut tile.tiles[tslots::INT];
             node.class = self.db.get_tile_class("INT.IOI");
             self.die.add_tile((col, row), "INTF.CMT.IOI", &[(col, row)]);
 
@@ -806,7 +807,7 @@ impl Expander<'_, '_> {
 
     fn fill_ioi(&mut self, crd: Coord) {
         let tile = &mut self.die[crd];
-        let node = tile.tiles.first_mut().unwrap();
+        let node = &mut tile.tiles[tslots::INT];
         node.class = self.db.get_tile_class("INT.IOI");
         self.die.add_tile(crd, "INTF.IOI", &[crd]);
         let kind = if crd.0 == self.chip.col_lio() || crd.0 == self.chip.col_rio() {

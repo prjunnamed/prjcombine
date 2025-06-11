@@ -2,12 +2,12 @@ use std::collections::HashSet;
 
 use prjcombine_interconnect::{
     db::{TileCellId, TileClassWire, WireKind},
-    grid::{ColId, LayerId, NodeLoc, RowId},
+    grid::{ColId, NodeLoc, RowId},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex::bels;
+use prjcombine_virtex::{bels, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -45,7 +45,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinBramLv {
             .resolve_wire((nloc.0, node.cells[self.0.0], self.0.1))?;
         let mut nloc = nloc;
         nloc.2 = RowId::from_idx(1);
-        nloc.3 = LayerId::from_idx(0);
+        nloc.3 = tslots::MAIN;
         for i in 0..12 {
             let wire_pin = (
                 TileCellId::from_idx(0),

@@ -1,7 +1,7 @@
-use prjcombine_interconnect::grid::{DieId, LayerId};
+use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind};
+use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
@@ -34,12 +34,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             let mut bctx = ctx.bel(bels::BSCAN);
             bctx.mode("BSCAN")
                 .extra_tile(
-                    (
-                        DieId::from_idx(0),
-                        grid.col_e(),
-                        grid.row_n(),
-                        LayerId::from_idx(0),
-                    ),
+                    (DieId::from_idx(0), grid.col_e(), grid.row_n(), tslots::MAIN),
                     "BSCAN",
                     "BSCAN",
                     "USED",
@@ -146,7 +141,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                                 DieId::from_idx(0),
                                 grid.col_e(),
                                 grid.row_s(),
-                                LayerId::from_idx(0),
+                                tslots::MAIN,
                             ),
                             "OSC",
                             format!("MUX.{out}"),

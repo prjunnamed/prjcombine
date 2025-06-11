@@ -16,6 +16,7 @@ use crate::expanded::{
     DieFrameGeom, ExpandedDevice, ExpandedGtz, IoCoord, REGION_HCLK, REGION_LEAF,
 };
 use crate::gtz::{GtzDb, GtzIntColId};
+use crate::tslots;
 
 struct DieExpander<'a, 'b, 'c> {
     chip: &'b Chip,
@@ -1095,7 +1096,9 @@ pub fn expand_grid<'a>(
             for dy in 0..49 {
                 let row_s = die_s.rows().next_back().unwrap() - 49 + dy;
                 let row_n = die_n.rows().next().unwrap() + 1 + dy;
-                if !die_s[(col, row_s)].tiles.is_empty() && !die_n[(col, row_n)].tiles.is_empty() {
+                if die_s[(col, row_s)].tiles.contains_id(tslots::INT)
+                    && die_n[(col, row_n)].tiles.contains_id(tslots::INT)
+                {
                     xdie_wires.insert((dieid_n, (col, row_n), lvb6), (dieid_s, (col, row_s), lvb6));
                 }
             }
