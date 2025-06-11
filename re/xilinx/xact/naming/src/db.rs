@@ -87,7 +87,7 @@ impl NamingDb {
                 writeln!(
                     o,
                     "\t\tPIP BEL {slot:20}  {key:20}  : {rt}.{x}.{y}",
-                    slot = intdb.bel_slots[slot],
+                    slot = intdb.bel_slots.key(slot),
                     rt = v.rt,
                     x = v.x,
                     y = v.y

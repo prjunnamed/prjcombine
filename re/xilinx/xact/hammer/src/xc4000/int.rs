@@ -142,7 +142,7 @@ fn drive_wire<'a>(
             _ => panic!("umm {wtn}"),
         };
         let bel = (die, (col, row), slot);
-        let slot_name = &backend.egrid.db.bel_slots[slot];
+        let slot_name = backend.egrid.db.bel_slots.key(slot).as_str();
         if slot_name.starts_with("IO") && grid.kind == ChipKind::Xc4000H {
             (
                 (die, col, row, LayerId::from_idx(0)),

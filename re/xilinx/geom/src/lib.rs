@@ -10,8 +10,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
-use unnamed_entity::id::{EntityIdU16, EntityTag};
 use unnamed_entity::EntityVec;
+use unnamed_entity::id::{EntityIdU16, EntityTag};
 
 impl EntityTag for DeviceNaming {
     const PREFIX: &'static str = "DEVNAMING";
@@ -145,7 +145,7 @@ pub enum ExpandedBond<'a> {
 }
 
 impl Bond {
-    pub fn expand(&self) -> ExpandedBond {
+    pub fn expand(&self) -> ExpandedBond<'_> {
         match self {
             Bond::Xc2000(bond) => ExpandedBond::Xc2000(bond.expand()),
             Bond::Virtex(bond) => ExpandedBond::Virtex(bond.expand()),
@@ -266,7 +266,7 @@ impl GeomDb {
         Ok(())
     }
 
-    pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice {
+    pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice<'_> {
         let fchip = &self.chips[*dev.chips.first().unwrap()];
         match fchip {
             Chip::Xc2000(chip) => {

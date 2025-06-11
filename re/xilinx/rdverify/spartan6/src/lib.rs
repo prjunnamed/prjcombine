@@ -3001,7 +3001,7 @@ fn verify_opad(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = &endev.edev.egrid.db.bel_slots[bel.slot];
+    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
     match bel.slot {
         bels::SLICE0 => verify_sliceml(vrf, bel),
         bels::SLICE1 => vrf.verify_bel(bel, "SLICEX", &[], &[]),

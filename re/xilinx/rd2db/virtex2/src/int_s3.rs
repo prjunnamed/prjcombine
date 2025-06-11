@@ -9,6 +9,7 @@ use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_virtex2::{
     bels,
     expanded::{REGION_HCLK, REGION_LEAF},
+    tslots,
 };
 use unnamed_entity::EntityId;
 
@@ -20,9 +21,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     assert_eq!(builder.db.region_slots.insert("HCLK".into()).0, REGION_HCLK);
     assert_eq!(builder.db.region_slots.insert("LEAF".into()).0, REGION_LEAF);
 
-    for &slot in bels::SLOTS {
-        builder.db.bel_slots.insert(slot.into());
-    }
+    builder.db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     builder.wire(
         "PULLUP",
@@ -825,221 +824,571 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ),
     ];
 
-    builder.extract_node("CENTER", "INT.CLB", "INT.CLB", &bels_int);
-    builder.extract_node("CENTER_SMALL", "INT.CLB", "INT.CLB", &bels_int);
-    builder.extract_node("CENTER_SMALL_BRK", "INT.CLB", "INT.CLB.BRK", &bels_int);
+    builder.extract_node(tslots::INT, "CENTER", "INT.CLB", "INT.CLB", &bels_int);
+    builder.extract_node(tslots::INT, "CENTER_SMALL", "INT.CLB", "INT.CLB", &bels_int);
+    builder.extract_node(
+        tslots::INT,
+        "CENTER_SMALL_BRK",
+        "INT.CLB",
+        "INT.CLB.BRK",
+        &bels_int,
+    );
     if rd.family.starts_with("spartan3a") {
-        builder.extract_node("LIOIS", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
         builder.extract_node(
+            tslots::INT,
+            "LIOIS",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
             "LIOIS_BRK",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR.BRK",
             &bels_int,
         );
-        builder.extract_node("LIOIS_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
         builder.extract_node(
+            tslots::INT,
+            "LIOIS_PCI",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
             "LIOIS_CLK_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
             &bels_int,
         );
         builder.extract_node(
+            tslots::INT,
             "LIOIS_CLK_PCI_BRK",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR.BRK",
             &bels_int,
         );
-        builder.extract_node("LIBUFS", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
-        builder.extract_node("LIBUFS_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
         builder.extract_node(
+            tslots::INT,
+            "LIBUFS",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "LIBUFS_PCI",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
             "LIBUFS_CLK_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
             &bels_int,
         );
-        builder.extract_node("RIOIS", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
-        builder.extract_node("RIOIS_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
         builder.extract_node(
+            tslots::INT,
+            "RIOIS",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "RIOIS_PCI",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
             "RIOIS_CLK_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
             &bels_int,
         );
-        builder.extract_node("RIBUFS", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
         builder.extract_node(
+            tslots::INT,
+            "RIBUFS",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
             "RIBUFS_BRK",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR.BRK",
             &bels_int,
         );
-        builder.extract_node("RIBUFS_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
         builder.extract_node(
+            tslots::INT,
+            "RIBUFS_PCI",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
             "RIBUFS_CLK_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
             &bels_int,
         );
         builder.extract_node(
+            tslots::INT,
             "RIBUFS_CLK_PCI_BRK",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR.BRK",
             &bels_int,
         );
-        builder.extract_node("BIOIS", "INT.IOI.S3A.TB", "INT.IOI.S3A.TB", &bels_int);
-        builder.extract_node("BIOIB", "INT.IOI.S3A.TB", "INT.IOI.S3A.TB", &bels_int);
-        builder.extract_node("TIOIS", "INT.IOI.S3A.TB", "INT.IOI.S3A.TB", &bels_int);
-        builder.extract_node("TIOIB", "INT.IOI.S3A.TB", "INT.IOI.S3A.TB", &bels_int);
+        builder.extract_node(
+            tslots::INT,
+            "BIOIS",
+            "INT.IOI.S3A.TB",
+            "INT.IOI.S3A.TB",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BIOIB",
+            "INT.IOI.S3A.TB",
+            "INT.IOI.S3A.TB",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "TIOIS",
+            "INT.IOI.S3A.TB",
+            "INT.IOI.S3A.TB",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "TIOIB",
+            "INT.IOI.S3A.TB",
+            "INT.IOI.S3A.TB",
+            &bels_int,
+        );
     } else if rd.family == "spartan3e" {
-        builder.extract_node("LIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("LIOIS_BRK", "INT.IOI.S3E", "INT.IOI.BRK", &bels_int);
-        builder.extract_node("LIOIS_PCI", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("LIOIS_CLK_PCI", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("LIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("LIBUFS_PCI", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("LIBUFS_CLK_PCI", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("RIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("RIOIS_PCI", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("RIOIS_CLK_PCI", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("RIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("RIBUFS_BRK", "INT.IOI.S3E", "INT.IOI.BRK", &bels_int);
-        builder.extract_node("RIBUFS_PCI", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("RIBUFS_CLK_PCI", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("BIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("BIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("TIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node("TIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
+        builder.extract_node(tslots::INT, "LIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
+        builder.extract_node(
+            tslots::INT,
+            "LIOIS_BRK",
+            "INT.IOI.S3E",
+            "INT.IOI.BRK",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "LIOIS_PCI",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "LIOIS_CLK_PCI",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(tslots::INT, "LIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
+        builder.extract_node(
+            tslots::INT,
+            "LIBUFS_PCI",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "LIBUFS_CLK_PCI",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(tslots::INT, "RIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
+        builder.extract_node(
+            tslots::INT,
+            "RIOIS_PCI",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "RIOIS_CLK_PCI",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(tslots::INT, "RIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
+        builder.extract_node(
+            tslots::INT,
+            "RIBUFS_BRK",
+            "INT.IOI.S3E",
+            "INT.IOI.BRK",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "RIBUFS_PCI",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "RIBUFS_CLK_PCI",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(tslots::INT, "BIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
+        builder.extract_node(tslots::INT, "BIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
+        builder.extract_node(tslots::INT, "TIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
+        builder.extract_node(tslots::INT, "TIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
     } else if rd.family == "fpgacore" {
-        builder.extract_node("LIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
-        builder.extract_node("RIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
-        builder.extract_node("BIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
-        builder.extract_node("TIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
+        builder.extract_node(tslots::INT, "LIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
+        builder.extract_node(tslots::INT, "RIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
+        builder.extract_node(tslots::INT, "BIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
+        builder.extract_node(tslots::INT, "TIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
     } else {
         // NOTE: could be unified by pulling extra muxes from CLB
-        builder.extract_node("LIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
-        builder.extract_node("RIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
-        builder.extract_node("BIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
-        builder.extract_node("TIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
+        builder.extract_node(tslots::INT, "LIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
+        builder.extract_node(tslots::INT, "RIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
+        builder.extract_node(tslots::INT, "BIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
+        builder.extract_node(tslots::INT, "TIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
     }
     // NOTE:
     // - S3/S3E/S3A could be unified by pulling some extra muxes from CLB
     // - S3A/S3ADSP adds VCC input to B[XY] and splits B[XY] to two nodes
     if rd.family == "spartan3adsp" {
         builder.extract_node(
+            tslots::INT,
             "BRAM0_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
             &bels_int,
         );
         builder.extract_node(
+            tslots::INT,
             "BRAM0_SMALL_BOT",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
             &bels_int,
         );
         builder.extract_node(
+            tslots::INT,
             "BRAM1_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
             &bels_int,
         );
         builder.extract_node(
+            tslots::INT,
             "BRAM2_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
             &bels_int,
         );
         builder.extract_node(
+            tslots::INT,
             "BRAM3_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
             &bels_int,
         );
         builder.extract_node(
+            tslots::INT,
             "BRAM3_SMALL_TOP",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
             &bels_int,
         );
         builder.extract_node(
+            tslots::INT,
             "BRAM3_SMALL_BRK",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP.BRK",
             &bels_int,
         );
-        builder.extract_node("MACC0_SMALL", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
-        builder.extract_node("MACC0_SMALL_BOT", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
-        builder.extract_node("MACC1_SMALL", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
-        builder.extract_node("MACC2_SMALL", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
-        builder.extract_node("MACC3_SMALL", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
-        builder.extract_node("MACC3_SMALL_TOP", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
         builder.extract_node(
+            tslots::INT,
+            "MACC0_SMALL",
+            "INT.BRAM.S3ADSP",
+            "INT.MACC",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "MACC0_SMALL_BOT",
+            "INT.BRAM.S3ADSP",
+            "INT.MACC",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "MACC1_SMALL",
+            "INT.BRAM.S3ADSP",
+            "INT.MACC",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "MACC2_SMALL",
+            "INT.BRAM.S3ADSP",
+            "INT.MACC",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "MACC3_SMALL",
+            "INT.BRAM.S3ADSP",
+            "INT.MACC",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "MACC3_SMALL_TOP",
+            "INT.BRAM.S3ADSP",
+            "INT.MACC",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
             "MACC3_SMALL_BRK",
             "INT.BRAM.S3ADSP",
             "INT.MACC.BRK",
             &bels_int,
         );
     } else if rd.family == "spartan3a" {
-        builder.extract_node("BRAM0_SMALL", "INT.BRAM.S3A.03", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM0_SMALL_BOT", "INT.BRAM.S3A.03", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM1_SMALL", "INT.BRAM.S3A.12", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM2_SMALL", "INT.BRAM.S3A.12", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM3_SMALL", "INT.BRAM.S3A.03", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM3_SMALL_TOP", "INT.BRAM.S3A.03", "INT.BRAM", &bels_int);
         builder.extract_node(
+            tslots::INT,
+            "BRAM0_SMALL",
+            "INT.BRAM.S3A.03",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM0_SMALL_BOT",
+            "INT.BRAM.S3A.03",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM1_SMALL",
+            "INT.BRAM.S3A.12",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM2_SMALL",
+            "INT.BRAM.S3A.12",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM3_SMALL",
+            "INT.BRAM.S3A.03",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM3_SMALL_TOP",
+            "INT.BRAM.S3A.03",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
             "BRAM3_SMALL_BRK",
             "INT.BRAM.S3A.03",
             "INT.BRAM.BRK",
             &bels_int,
         );
     } else if rd.family == "spartan3e" {
-        builder.extract_node("BRAM0_SMALL", "INT.BRAM.S3E", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM1_SMALL", "INT.BRAM.S3E", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM2_SMALL", "INT.BRAM.S3E", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM3_SMALL", "INT.BRAM.S3E", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM3_SMALL_BRK", "INT.BRAM.S3E", "INT.BRAM.BRK", &bels_int);
+        builder.extract_node(
+            tslots::INT,
+            "BRAM0_SMALL",
+            "INT.BRAM.S3E",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM1_SMALL",
+            "INT.BRAM.S3E",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM2_SMALL",
+            "INT.BRAM.S3E",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM3_SMALL",
+            "INT.BRAM.S3E",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM3_SMALL_BRK",
+            "INT.BRAM.S3E",
+            "INT.BRAM.BRK",
+            &bels_int,
+        );
     } else {
-        builder.extract_node("BRAM0", "INT.BRAM.S3", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM1", "INT.BRAM.S3", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM2", "INT.BRAM.S3", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM3", "INT.BRAM.S3", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM0_SMALL", "INT.BRAM.S3", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM1_SMALL", "INT.BRAM.S3", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM2_SMALL", "INT.BRAM.S3", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM3_SMALL", "INT.BRAM.S3", "INT.BRAM", &bels_int);
+        builder.extract_node(tslots::INT, "BRAM0", "INT.BRAM.S3", "INT.BRAM", &bels_int);
+        builder.extract_node(tslots::INT, "BRAM1", "INT.BRAM.S3", "INT.BRAM", &bels_int);
+        builder.extract_node(tslots::INT, "BRAM2", "INT.BRAM.S3", "INT.BRAM", &bels_int);
+        builder.extract_node(tslots::INT, "BRAM3", "INT.BRAM.S3", "INT.BRAM", &bels_int);
+        builder.extract_node(
+            tslots::INT,
+            "BRAM0_SMALL",
+            "INT.BRAM.S3",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM1_SMALL",
+            "INT.BRAM.S3",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM2_SMALL",
+            "INT.BRAM.S3",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            "BRAM3_SMALL",
+            "INT.BRAM.S3",
+            "INT.BRAM",
+            &bels_int,
+        );
     }
-    builder.extract_node("BRAM_IOIS", "INT.DCM", "INT.DCM.S3", &bels_int_dcm);
     builder.extract_node(
+        tslots::INT,
+        "BRAM_IOIS",
+        "INT.DCM",
+        "INT.DCM.S3",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        tslots::INT,
         "BRAM_IOIS_NODCM",
         "INT.DCM.S3.DUMMY",
         "INT.DCM.S3.DUMMY",
         &bels_int,
     );
     builder.extract_node(
+        tslots::INT,
         "DCMAUX_BL_CENTER",
         "INT.DCM.S3E.DUMMY",
         "INT.DCM.S3E.DUMMY",
         &bels_int_dcm,
     );
     builder.extract_node(
+        tslots::INT,
         "DCMAUX_TL_CENTER",
         "INT.DCM.S3E.DUMMY",
         "INT.DCM.S3E.DUMMY",
         &bels_int_dcm,
     );
-    builder.extract_node("DCM_BL_CENTER", "INT.DCM", "INT.DCM.S3E", &bels_int_dcm);
-    builder.extract_node("DCM_TL_CENTER", "INT.DCM", "INT.DCM.S3E", &bels_int_dcm);
-    builder.extract_node("DCM_BR_CENTER", "INT.DCM", "INT.DCM.S3E", &bels_int_dcm);
-    builder.extract_node("DCM_TR_CENTER", "INT.DCM", "INT.DCM.S3E", &bels_int_dcm);
-    builder.extract_node("DCM_H_BL_CENTER", "INT.DCM", "INT.DCM.S3E.H", &bels_int_dcm);
-    builder.extract_node("DCM_H_TL_CENTER", "INT.DCM", "INT.DCM.S3E.H", &bels_int_dcm);
-    builder.extract_node("DCM_H_BR_CENTER", "INT.DCM", "INT.DCM.S3E.H", &bels_int_dcm);
-    builder.extract_node("DCM_H_TR_CENTER", "INT.DCM", "INT.DCM.S3E.H", &bels_int_dcm);
-    builder.extract_node("DCM_BGAP", "INT.DCM", "INT.DCM.S3E.H", &bels_int_dcm);
-    builder.extract_node("DCM_SPLY", "INT.DCM", "INT.DCM.S3E.H", &bels_int_dcm);
-    builder.extract_node("LL", "INT.CLB", "INT.CNR", &bels_int);
-    builder.extract_node("LR", "INT.CLB", "INT.CNR", &bels_int);
-    builder.extract_node("UL", "INT.CLB", "INT.CNR", &bels_int);
-    builder.extract_node("UR", "INT.CLB", "INT.CNR", &bels_int);
+    builder.extract_node(
+        tslots::INT,
+        "DCM_BL_CENTER",
+        "INT.DCM",
+        "INT.DCM.S3E",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        tslots::INT,
+        "DCM_TL_CENTER",
+        "INT.DCM",
+        "INT.DCM.S3E",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        tslots::INT,
+        "DCM_BR_CENTER",
+        "INT.DCM",
+        "INT.DCM.S3E",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        tslots::INT,
+        "DCM_TR_CENTER",
+        "INT.DCM",
+        "INT.DCM.S3E",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        tslots::INT,
+        "DCM_H_BL_CENTER",
+        "INT.DCM",
+        "INT.DCM.S3E.H",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        tslots::INT,
+        "DCM_H_TL_CENTER",
+        "INT.DCM",
+        "INT.DCM.S3E.H",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        tslots::INT,
+        "DCM_H_BR_CENTER",
+        "INT.DCM",
+        "INT.DCM.S3E.H",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        tslots::INT,
+        "DCM_H_TR_CENTER",
+        "INT.DCM",
+        "INT.DCM.S3E.H",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        tslots::INT,
+        "DCM_BGAP",
+        "INT.DCM",
+        "INT.DCM.S3E.H",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        tslots::INT,
+        "DCM_SPLY",
+        "INT.DCM",
+        "INT.DCM.S3E.H",
+        &bels_int_dcm,
+    );
+    builder.extract_node(tslots::INT, "LL", "INT.CLB", "INT.CNR", &bels_int);
+    builder.extract_node(tslots::INT, "LR", "INT.CLB", "INT.CNR", &bels_int);
+    builder.extract_node(tslots::INT, "UL", "INT.CLB", "INT.CNR", &bels_int);
+    builder.extract_node(tslots::INT, "UR", "INT.CLB", "INT.CNR", &bels_int);
 
     let slicem_name_only = [
         "FXINA", "FXINB", "F5", "FX", "CIN", "COUT", "SHIFTIN", "SHIFTOUT", "ALTDIG", "DIG",
@@ -1063,9 +1412,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .pins_name_only(&slicel_name_only)
             .extra_wire("COUT_N", &["COUT_N3"]),
     ];
-    builder.extract_node_bels("CENTER", "CLB", "CLB", &bels_clb);
-    builder.extract_node_bels("CENTER_SMALL", "CLB", "CLB", &bels_clb);
-    builder.extract_node_bels("CENTER_SMALL_BRK", "CLB", "CLB", &bels_clb);
+    builder.extract_node_bels(tslots::BEL, "CENTER", "CLB", "CLB", &bels_clb);
+    builder.extract_node_bels(tslots::BEL, "CENTER_SMALL", "CLB", "CLB", &bels_clb);
+    builder.extract_node_bels(tslots::BEL, "CENTER_SMALL_BRK", "CLB", "CLB", &bels_clb);
 
     let ioi_name_only = [
         "DIFFI_IN",
@@ -1096,17 +1445,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .bel_indexed(bels::IO2, "IOB", 2)
                 .pins_name_only(&ioi_name_only),
         ];
-        builder.extract_node_bels("LIOIS", "IOI.S3", "IOI.S3.L", &bels_ioi);
-        builder.extract_node_bels("RIOIS", "IOI.S3", "IOI.S3.R", &bels_ioi);
-        builder.extract_node_bels("BIOIS", "IOI.S3", "IOI.S3.B", &bels_ioi);
-        builder.extract_node_bels("TIOIS", "IOI.S3", "IOI.S3.T", &bels_ioi);
+        builder.extract_node_bels(tslots::BEL, "LIOIS", "IOI.S3", "IOI.S3.L", &bels_ioi);
+        builder.extract_node_bels(tslots::BEL, "RIOIS", "IOI.S3", "IOI.S3.R", &bels_ioi);
+        builder.extract_node_bels(tslots::BEL, "BIOIS", "IOI.S3", "IOI.S3.B", &bels_ioi);
+        builder.extract_node_bels(tslots::BEL, "TIOIS", "IOI.S3", "IOI.S3.T", &bels_ioi);
         for (kind, num) in [
             ("IOBS.S3.B2", 2),
             ("IOBS.S3.T2", 2),
             ("IOBS.S3.L1", 1),
             ("IOBS.S3.R1", 1),
         ] {
-            builder.make_marker_node(kind, num);
+            builder.make_marker_node(tslots::IOB, kind, num);
         }
     } else if rd.family == "fpgacore" {
         let bels_ioi = [
@@ -1123,17 +1472,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_indexed(bels::OBUF2, "OBUF", 2),
             builder.bel_indexed(bels::OBUF3, "OBUF", 3),
         ];
-        builder.extract_node_bels("LIOIS", "IOI.FC", "IOI.FC.L", &bels_ioi);
-        builder.extract_node_bels("RIOIS", "IOI.FC", "IOI.FC.R", &bels_ioi);
-        builder.extract_node_bels("BIOIS", "IOI.FC", "IOI.FC.B", &bels_ioi);
-        builder.extract_node_bels("TIOIS", "IOI.FC", "IOI.FC.T", &bels_ioi);
+        builder.extract_node_bels(tslots::BEL, "LIOIS", "IOI.FC", "IOI.FC.L", &bels_ioi);
+        builder.extract_node_bels(tslots::BEL, "RIOIS", "IOI.FC", "IOI.FC.R", &bels_ioi);
+        builder.extract_node_bels(tslots::BEL, "BIOIS", "IOI.FC", "IOI.FC.B", &bels_ioi);
+        builder.extract_node_bels(tslots::BEL, "TIOIS", "IOI.FC", "IOI.FC.T", &bels_ioi);
         for (kind, num) in [
             ("IOBS.FC.B", 1),
             ("IOBS.FC.T", 1),
             ("IOBS.FC.L", 1),
             ("IOBS.FC.R", 1),
         ] {
-            builder.make_marker_node(kind, num);
+            builder.make_marker_node(tslots::IOB, kind, num);
         }
     } else if rd.family == "spartan3e" {
         let bels_ioi_tb = [
@@ -1188,24 +1537,84 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only),
         ];
-        builder.extract_node_bels("LIOIS", "IOI.S3E", "IOI.S3E.L", &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_BRK", "IOI.S3E", "IOI.S3E.L", &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_PCI", "IOI.S3E", "IOI.S3E.L.PCI.PCI", &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_CLK_PCI", "IOI.S3E", "IOI.S3E.L.PCI.PCI", &bels_ioi_l);
-        builder.extract_node_bels("LIBUFS", "IOI.S3E", "IOI.S3E.L", &bels_ioi_l);
-        builder.extract_node_bels("LIBUFS_PCI", "IOI.S3E", "IOI.S3E.L.PCI", &bels_ioi_l);
-        builder.extract_node_bels("LIBUFS_CLK_PCI", "IOI.S3E", "IOI.S3E.L.PCI", &bels_ioi_l);
-        builder.extract_node_bels("RIOIS", "IOI.S3E", "IOI.S3E.R", &bels_ioi_r);
-        builder.extract_node_bels("RIOIS_PCI", "IOI.S3E", "IOI.S3E.R.PCI.PCI", &bels_ioi_r);
-        builder.extract_node_bels("RIOIS_CLK_PCI", "IOI.S3E", "IOI.S3E.R.PCI.PCI", &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS", "IOI.S3E", "IOI.S3E.R", &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_BRK", "IOI.S3E", "IOI.S3E.R", &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_PCI", "IOI.S3E", "IOI.S3E.R.PCI", &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_CLK_PCI", "IOI.S3E", "IOI.S3E.R.PCI", &bels_ioi_r);
-        builder.extract_node_bels("BIOIS", "IOI.S3E", "IOI.S3E.B", &bels_ioi_tb);
-        builder.extract_node_bels("BIBUFS", "IOI.S3E", "IOI.S3E.B", &bels_ioi_tb);
-        builder.extract_node_bels("TIOIS", "IOI.S3E", "IOI.S3E.T", &bels_ioi_tb);
-        builder.extract_node_bels("TIBUFS", "IOI.S3E", "IOI.S3E.T", &bels_ioi_tb);
+        builder.extract_node_bels(tslots::BEL, "LIOIS", "IOI.S3E", "IOI.S3E.L", &bels_ioi_l);
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIOIS_BRK",
+            "IOI.S3E",
+            "IOI.S3E.L",
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIOIS_PCI",
+            "IOI.S3E",
+            "IOI.S3E.L.PCI.PCI",
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIOIS_CLK_PCI",
+            "IOI.S3E",
+            "IOI.S3E.L.PCI.PCI",
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(tslots::BEL, "LIBUFS", "IOI.S3E", "IOI.S3E.L", &bels_ioi_l);
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIBUFS_PCI",
+            "IOI.S3E",
+            "IOI.S3E.L.PCI",
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIBUFS_CLK_PCI",
+            "IOI.S3E",
+            "IOI.S3E.L.PCI",
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(tslots::BEL, "RIOIS", "IOI.S3E", "IOI.S3E.R", &bels_ioi_r);
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIOIS_PCI",
+            "IOI.S3E",
+            "IOI.S3E.R.PCI.PCI",
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIOIS_CLK_PCI",
+            "IOI.S3E",
+            "IOI.S3E.R.PCI.PCI",
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(tslots::BEL, "RIBUFS", "IOI.S3E", "IOI.S3E.R", &bels_ioi_r);
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIBUFS_BRK",
+            "IOI.S3E",
+            "IOI.S3E.R",
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIBUFS_PCI",
+            "IOI.S3E",
+            "IOI.S3E.R.PCI",
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIBUFS_CLK_PCI",
+            "IOI.S3E",
+            "IOI.S3E.R.PCI",
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(tslots::BEL, "BIOIS", "IOI.S3E", "IOI.S3E.B", &bels_ioi_tb);
+        builder.extract_node_bels(tslots::BEL, "BIBUFS", "IOI.S3E", "IOI.S3E.B", &bels_ioi_tb);
+        builder.extract_node_bels(tslots::BEL, "TIOIS", "IOI.S3E", "IOI.S3E.T", &bels_ioi_tb);
+        builder.extract_node_bels(tslots::BEL, "TIBUFS", "IOI.S3E", "IOI.S3E.T", &bels_ioi_tb);
         for (kind, num) in [
             ("IOBS.S3E.B1", 1),
             ("IOBS.S3E.B2", 2),
@@ -1224,7 +1633,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ("IOBS.S3E.R3", 3),
             ("IOBS.S3E.R4", 4),
         ] {
-            builder.make_marker_node(kind, num);
+            builder.make_marker_node(tslots::IOB, kind, num);
         }
     } else {
         let bels_ioi_tb = [
@@ -1292,55 +1701,163 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             naming_b = "IOI.S3A.B";
             naming_t = "IOI.S3A.T";
         }
-        builder.extract_node_bels("LIOIS", "IOI.S3A.LR", naming_l, &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_BRK", "IOI.S3A.LR", naming_l, &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_PCI", "IOI.S3A.LR", naming_l_pci, &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_CLK_PCI", "IOI.S3A.LR", naming_l_pci, &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_CLK_PCI_BRK", "IOI.S3A.LR", naming_l_pci, &bels_ioi_l);
-        builder.extract_node_bels("LIBUFS", "IOI.S3A.LR", naming_l, &bels_ioi_l);
-        builder.extract_node_bels("LIBUFS_PCI", "IOI.S3A.LR", naming_l, &bels_ioi_l);
-        builder.extract_node_bels("LIBUFS_CLK_PCI", "IOI.S3A.LR", naming_l, &bels_ioi_l);
-        builder.extract_node_bels("RIOIS", "IOI.S3A.LR", naming_r, &bels_ioi_r);
-        builder.extract_node_bels("RIOIS_PCI", "IOI.S3A.LR", naming_r_pci, &bels_ioi_r);
-        builder.extract_node_bels("RIOIS_CLK_PCI", "IOI.S3A.LR", naming_r_pci, &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS", "IOI.S3A.LR", naming_r, &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_BRK", "IOI.S3A.LR", naming_r, &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_PCI", "IOI.S3A.LR", naming_r, &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_CLK_PCI", "IOI.S3A.LR", naming_r, &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_CLK_PCI_BRK", "IOI.S3A.LR", naming_r, &bels_ioi_r);
-        builder.extract_node_bels("BIOIS", "IOI.S3A.B", naming_b, &bels_ioi_tb);
-        builder.extract_node_bels("BIOIB", "IOI.S3A.B", naming_b, &bels_ioi_tb);
-        builder.extract_node_bels("TIOIS", "IOI.S3A.T", naming_t, &bels_ioi_tb);
-        builder.extract_node_bels("TIOIB", "IOI.S3A.T", naming_t, &bels_ioi_tb);
+        builder.extract_node_bels(tslots::BEL, "LIOIS", "IOI.S3A.LR", naming_l, &bels_ioi_l);
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIOIS_BRK",
+            "IOI.S3A.LR",
+            naming_l,
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIOIS_PCI",
+            "IOI.S3A.LR",
+            naming_l_pci,
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIOIS_CLK_PCI",
+            "IOI.S3A.LR",
+            naming_l_pci,
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIOIS_CLK_PCI_BRK",
+            "IOI.S3A.LR",
+            naming_l_pci,
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(tslots::BEL, "LIBUFS", "IOI.S3A.LR", naming_l, &bels_ioi_l);
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIBUFS_PCI",
+            "IOI.S3A.LR",
+            naming_l,
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "LIBUFS_CLK_PCI",
+            "IOI.S3A.LR",
+            naming_l,
+            &bels_ioi_l,
+        );
+        builder.extract_node_bels(tslots::BEL, "RIOIS", "IOI.S3A.LR", naming_r, &bels_ioi_r);
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIOIS_PCI",
+            "IOI.S3A.LR",
+            naming_r_pci,
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIOIS_CLK_PCI",
+            "IOI.S3A.LR",
+            naming_r_pci,
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(tslots::BEL, "RIBUFS", "IOI.S3A.LR", naming_r, &bels_ioi_r);
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIBUFS_BRK",
+            "IOI.S3A.LR",
+            naming_r,
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIBUFS_PCI",
+            "IOI.S3A.LR",
+            naming_r,
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIBUFS_CLK_PCI",
+            "IOI.S3A.LR",
+            naming_r,
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "RIBUFS_CLK_PCI_BRK",
+            "IOI.S3A.LR",
+            naming_r,
+            &bels_ioi_r,
+        );
+        builder.extract_node_bels(tslots::BEL, "BIOIS", "IOI.S3A.B", naming_b, &bels_ioi_tb);
+        builder.extract_node_bels(tslots::BEL, "BIOIB", "IOI.S3A.B", naming_b, &bels_ioi_tb);
+        builder.extract_node_bels(tslots::BEL, "TIOIS", "IOI.S3A.T", naming_t, &bels_ioi_tb);
+        builder.extract_node_bels(tslots::BEL, "TIOIB", "IOI.S3A.T", naming_t, &bels_ioi_tb);
         for (kind, num) in [
             ("IOBS.S3A.B2", 2),
             ("IOBS.S3A.T2", 2),
             ("IOBS.S3A.L4", 4),
             ("IOBS.S3A.R4", 4),
         ] {
-            builder.make_marker_node(kind, num);
+            builder.make_marker_node(tslots::IOB, kind, num);
         }
     }
     if rd.family != "fpgacore" {
         let bels_randor_b = [builder
             .bel_xy(bels::RANDOR, "RANDOR", 0, 0)
             .pins_name_only(&["CIN0", "CIN1", "CPREV", "O"])];
-        builder.extract_node_bels("BIOIS", "RANDOR", "RANDOR.B", &bels_randor_b);
-        builder.extract_node_bels("BIOIB", "RANDOR", "RANDOR.B", &bels_randor_b);
-        builder.extract_node_bels("BIBUFS", "RANDOR", "RANDOR.B", &bels_randor_b);
+        builder.extract_node_bels(
+            tslots::RANDOR,
+            "BIOIS",
+            "RANDOR",
+            "RANDOR.B",
+            &bels_randor_b,
+        );
+        builder.extract_node_bels(
+            tslots::RANDOR,
+            "BIOIB",
+            "RANDOR",
+            "RANDOR.B",
+            &bels_randor_b,
+        );
+        builder.extract_node_bels(
+            tslots::RANDOR,
+            "BIBUFS",
+            "RANDOR",
+            "RANDOR.B",
+            &bels_randor_b,
+        );
     }
     let bels_randor_t = [builder
         .bel_xy(bels::RANDOR, "RANDOR", 0, 0)
         .pins_name_only(&["CIN0", "CIN1"])
         .pin_name_only("CPREV", 1)
         .pin_name_only("O", 1)];
-    builder.extract_node_bels("TIOIS", "RANDOR", "RANDOR.T", &bels_randor_t);
-    builder.extract_node_bels("TIOIB", "RANDOR", "RANDOR.T", &bels_randor_t);
-    builder.extract_node_bels("TIBUFS", "RANDOR", "RANDOR.T", &bels_randor_t);
-    builder.make_marker_node("RANDOR_INIT", 0);
+    builder.extract_node_bels(
+        tslots::RANDOR,
+        "TIOIS",
+        "RANDOR",
+        "RANDOR.T",
+        &bels_randor_t,
+    );
+    builder.extract_node_bels(
+        tslots::RANDOR,
+        "TIOIB",
+        "RANDOR",
+        "RANDOR.T",
+        &bels_randor_t,
+    );
+    builder.extract_node_bels(
+        tslots::RANDOR,
+        "TIBUFS",
+        "RANDOR",
+        "RANDOR.T",
+        &bels_randor_t,
+    );
+    builder.make_marker_node(tslots::RANDOR, "RANDOR_INIT", 0);
     if rd.family == "spartan3" {
         let bels_dcm = [builder.bel_xy(bels::DCM, "DCM", 0, 0)];
-        builder.extract_node_bels("BRAM_IOIS", "DCM.S3", "DCM.S3", &bels_dcm);
+        builder.extract_node_bels(tslots::BEL, "BRAM_IOIS", "DCM.S3", "DCM.S3", &bels_dcm);
     } else if rd.family != "fpgacore" {
         let bels_dcm = [
             builder.bel_xy(bels::DCM, "DCM", 0, 0),
@@ -1383,20 +1900,81 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     ],
                 ),
         ];
-        builder.extract_node_bels("DCM_BL_CENTER", "DCM.S3E.BL", "DCM.S3E.L", &bels_dcm);
-        builder.extract_node_bels("DCM_TL_CENTER", "DCM.S3E.TL", "DCM.S3E.L", &bels_dcm);
-        builder.extract_node_bels("DCM_BR_CENTER", "DCM.S3E.BR", "DCM.S3E.R", &bels_dcm);
-        builder.extract_node_bels("DCM_TR_CENTER", "DCM.S3E.TR", "DCM.S3E.R", &bels_dcm);
-        builder.extract_node_bels("DCM_H_BL_CENTER", "DCM.S3E.LB", "DCM.S3E.H", &bels_dcm);
-        builder.extract_node_bels("DCM_H_TL_CENTER", "DCM.S3E.LT", "DCM.S3E.H", &bels_dcm);
-        builder.extract_node_bels("DCM_H_BR_CENTER", "DCM.S3E.RB", "DCM.S3E.H", &bels_dcm);
-        builder.extract_node_bels("DCM_H_TR_CENTER", "DCM.S3E.RT", "DCM.S3E.H", &bels_dcm);
-        builder.extract_node_bels("DCM_BGAP", "DCM.S3E.LB", "DCM.S3E.H", &bels_dcm);
-        builder.extract_node_bels("DCM_SPLY", "DCM.S3E.LT", "DCM.S3E.H", &bels_dcm);
+        builder.extract_node_bels(
+            tslots::BEL,
+            "DCM_BL_CENTER",
+            "DCM.S3E.BL",
+            "DCM.S3E.L",
+            &bels_dcm,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "DCM_TL_CENTER",
+            "DCM.S3E.TL",
+            "DCM.S3E.L",
+            &bels_dcm,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "DCM_BR_CENTER",
+            "DCM.S3E.BR",
+            "DCM.S3E.R",
+            &bels_dcm,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "DCM_TR_CENTER",
+            "DCM.S3E.TR",
+            "DCM.S3E.R",
+            &bels_dcm,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "DCM_H_BL_CENTER",
+            "DCM.S3E.LB",
+            "DCM.S3E.H",
+            &bels_dcm,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "DCM_H_TL_CENTER",
+            "DCM.S3E.LT",
+            "DCM.S3E.H",
+            &bels_dcm,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "DCM_H_BR_CENTER",
+            "DCM.S3E.RB",
+            "DCM.S3E.H",
+            &bels_dcm,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "DCM_H_TR_CENTER",
+            "DCM.S3E.RT",
+            "DCM.S3E.H",
+            &bels_dcm,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "DCM_BGAP",
+            "DCM.S3E.LB",
+            "DCM.S3E.H",
+            &bels_dcm,
+        );
+        builder.extract_node_bels(
+            tslots::BEL,
+            "DCM_SPLY",
+            "DCM.S3E.LT",
+            "DCM.S3E.H",
+            &bels_dcm,
+        );
     }
 
     if rd.family == "spartan3" {
         builder.extract_node_bels(
+            tslots::BEL,
             "LL",
             "LL.S3",
             "LL.S3",
@@ -1408,6 +1986,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
         builder.extract_node_bels(
+            tslots::BEL,
             "LR",
             "LR.S3",
             "LR.S3",
@@ -1422,6 +2001,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
         builder.extract_node_bels(
+            tslots::BEL,
             "UL",
             "UL.S3",
             "UL.S3",
@@ -1434,6 +2014,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
         builder.extract_node_bels(
+            tslots::BEL,
             "UR",
             "UR.S3",
             "UR.S3",
@@ -1449,8 +2030,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
     } else if rd.family == "fpgacore" {
-        builder.extract_node_bels("LL", "LL.FC", "LL.FC", &[]);
+        builder.extract_node_bels(tslots::BEL, "LL", "LL.FC", "LL.FC", &[]);
         builder.extract_node_bels(
+            tslots::BEL,
             "LR",
             "LR.FC",
             "LR.FC",
@@ -1461,12 +2043,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
         builder.extract_node_bels(
+            tslots::BEL,
             "UL",
             "UL.FC",
             "UL.FC",
             &[builder.bel_single(bels::PMV, "PMV")],
         );
         builder.extract_node_bels(
+            tslots::BEL,
             "UR",
             "UR.FC",
             "UR.FC",
@@ -1508,8 +2092,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             naming.bels.insert(bels::MISR, bel_naming);
         }
     } else if rd.family == "spartan3e" {
-        builder.extract_node_bels("LL", "LL.S3E", "LL.S3E", &[]);
+        builder.extract_node_bels(tslots::BEL, "LL", "LL.S3E", "LL.S3E", &[]);
         builder.extract_node_bels(
+            tslots::BEL,
             "LR",
             "LR.S3E",
             "LR.S3E",
@@ -1524,12 +2109,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
         builder.extract_node_bels(
+            tslots::BEL,
             "UL",
             "UL.S3E",
             "UL.S3E",
             &[builder.bel_single(bels::PMV, "PMV")],
         );
         builder.extract_node_bels(
+            tslots::BEL,
             "UR",
             "UR.S3E",
             "UR.S3E",
@@ -1541,8 +2128,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
     } else {
-        builder.extract_node_bels("LL", "LL.S3A", "LL.S3A", &[]);
+        builder.extract_node_bels(tslots::BEL, "LL", "LL.S3A", "LL.S3A", &[]);
         builder.extract_node_bels(
+            tslots::BEL,
             "LR",
             "LR.S3A",
             "LR.S3A",
@@ -1554,6 +2142,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
         builder.extract_node_bels(
+            tslots::BEL,
             "UL",
             "UL.S3A",
             "UL.S3A",
@@ -1563,6 +2152,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
         builder.extract_node_bels(
+            tslots::BEL,
             "UR",
             "UR.S3A",
             "UR.S3A",
@@ -1717,7 +2307,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 None,
                 None,
                 None,
-                Some((node, naming)),
+                Some((tslots::VTERM, node, naming)),
                 int_fwd_xy,
                 &[],
             );
@@ -1773,7 +2363,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 None,
                 None,
                 None,
-                Some((node, "LLH")),
+                Some((tslots::HTERM, node, "LLH")),
                 int_fwd_xy,
                 &[],
             );
@@ -1925,6 +2515,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             );
             if rd.family == "spartan3" {
                 builder.extract_xnode(
+                    tslots::CLK,
                     "CLKB.S3",
                     xy,
                     &[],
@@ -1969,6 +2560,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
             } else if rd.family == "fpgacore" {
                 builder.extract_xnode(
+                    tslots::CLK,
                     "CLKB.FC",
                     xy,
                     &[],
@@ -2006,6 +2598,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     "CLKB.S3A"
                 };
                 builder.extract_xnode(
+                    tslots::CLK,
                     kind,
                     xy,
                     &[],
@@ -2128,6 +2721,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let xy_l = xy.delta(-1, 0);
             if rd.family == "spartan3" {
                 builder.extract_xnode(
+                    tslots::CLK,
                     "CLKT.S3",
                     xy,
                     &[],
@@ -2172,6 +2766,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
             } else if rd.family == "fpgacore" {
                 builder.extract_xnode(
+                    tslots::CLK,
                     "CLKT.FC",
                     xy,
                     &[],
@@ -2209,6 +2804,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     "CLKT.S3A"
                 };
                 builder.extract_xnode(
+                    tslots::CLK,
                     kind,
                     xy,
                     &[],
@@ -2362,6 +2958,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 continue;
             }
             builder.extract_xnode_bels(
+                tslots::CLK,
                 kind,
                 xy,
                 &[],
@@ -2465,7 +3062,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     buf_xy = vec![xy_o];
                     let mut i = 0;
                     bels = bels.map(|x| {
-                        if builder.db.bel_slots[x.bel].starts_with("BUFGMUX") {
+                        if builder.db.bel_slots.key(x.bel).starts_with("BUFGMUX") {
                             let res = x.extra_wire_force("DCM_PAD", format!("{tkn}_CKI{i}_END"));
                             i += 1;
                             res
@@ -2474,13 +3071,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         }
                     });
                 }
-                builder.extract_xnode_bels(&kind, xy, &buf_xy, &int_xy, &kind, &bels);
+                builder.extract_xnode_bels(tslots::CLK, &kind, xy, &buf_xy, &int_xy, &kind, &bels);
             }
         }
 
         for tkn in ["GCLKH_PCI_CE_N"] {
             for &xy in rd.tiles_by_kind_name(tkn) {
                 builder.extract_xnode_bels(
+                    tslots::PCI_CE,
                     "PCI_CE_N",
                     xy,
                     &[],
@@ -2496,6 +3094,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for tkn in ["GCLKH_PCI_CE_S", "GCLKH_PCI_CE_S_50A"] {
             for &xy in rd.tiles_by_kind_name(tkn) {
                 builder.extract_xnode_bels(
+                    tslots::PCI_CE,
                     "PCI_CE_S",
                     xy,
                     &[],
@@ -2510,6 +3109,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         for tkn in ["LL", "LR", "UL", "UR"] {
             builder.extract_node_bels(
+                tslots::PCI_CE,
                 tkn,
                 "PCI_CE_CNR",
                 "PCI_CE_CNR",
@@ -2522,6 +3122,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         if rd.family == "spartan3a" {
             for &xy in rd.tiles_by_kind_name("GCLKV_IOISL") {
                 builder.extract_xnode_bels(
+                    tslots::PCI_CE,
                     "PCI_CE_E",
                     xy,
                     &[],
@@ -2535,6 +3136,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             for &xy in rd.tiles_by_kind_name("GCLKV_IOISR") {
                 builder.extract_xnode_bels(
+                    tslots::PCI_CE,
                     "PCI_CE_W",
                     xy,
                     &[],
@@ -2562,6 +3164,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     int_xy.push(xy.delta(-1, dy));
                 }
                 builder.extract_xnode_bels(
+                    tslots::BEL,
                     "BRAM.S3ADSP",
                     xy,
                     &[],
@@ -2596,8 +3199,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 for dy in 0..4 {
                     int_xy.push(xy.delta(-1, dy));
                 }
-                builder.extract_xnode_bels("DSP", xy, &[], &int_xy, naming, &bels_dsp);
-                builder.extract_intf_tile_multi("INTF.DSP", xy, &int_xy, "INTF.DSP", false);
+                builder.extract_xnode_bels(tslots::BEL, "DSP", xy, &[], &int_xy, naming, &bels_dsp);
+                builder.extract_intf_tile_multi(
+                    tslots::INTF,
+                    "INTF.DSP",
+                    xy,
+                    &int_xy,
+                    "INTF.DSP",
+                    false,
+                );
             }
         }
     } else if rd.family != "fpgacore" {
@@ -2626,7 +3236,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 for dy in 0..4 {
                     int_xy.push(xy.delta(-1, dy));
                 }
-                builder.extract_xnode_bels(kind, xy, &[], &int_xy, naming, &bels_bram);
+                builder.extract_xnode_bels(tslots::BEL, kind, xy, &[], &int_xy, naming, &bels_bram);
             }
         }
     }
@@ -2642,7 +3252,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             for i in 0..8 {
                 bel = bel.extra_wire(format!("OUT{i}"), &[format!("CLKC_GCLK{i}")]);
             }
-            builder.extract_xnode_bels("CLKC", xy, &[], &[xy], "CLKC", &[bel]);
+            builder.extract_xnode_bels(tslots::CLK, "CLKC", xy, &[], &[xy], "CLKC", &[bel]);
         }
     }
 
@@ -2660,7 +3270,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_L{i}"), &[format!("CLKC_50A_GCLK_OUT_LH{i}")])
                 .extra_wire(format!("OUT_R{i}"), &[format!("CLKC_50A_GCLK_OUT_RH{i}")]);
         }
-        builder.extract_xnode_bels("CLKC_50A", xy, &[], &[xy], "CLKC_50A", &[bel]);
+        builder.extract_xnode_bels(tslots::CLK, "CLKC_50A", xy, &[], &[xy], "CLKC_50A", &[bel]);
     }
 
     for &xy in rd.tiles_by_kind_name("GCLKVM") {
@@ -2671,7 +3281,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_B{i}"), &[format!("GCLKVM_GCLK_DN{i}")])
                 .extra_wire(format!("OUT_T{i}"), &[format!("GCLKVM_GCLK_UP{i}")]);
         }
-        builder.extract_xnode_bels("GCLKVM.S3", xy, &[], &[xy], "GCLKVM.S3", &[bel]);
+        builder.extract_xnode_bels(
+            tslots::CLK,
+            "GCLKVM.S3",
+            xy,
+            &[],
+            &[xy],
+            "GCLKVM.S3",
+            &[bel],
+        );
     }
 
     for tkn in ["GCLKVML", "GCLKVMR"] {
@@ -2693,7 +3311,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire(format!("OUT_B{i}"), &[format!("GCLKVMLR_GCLK_DN{i}")])
                     .extra_wire(format!("OUT_T{i}"), &[format!("GCLKVMLR_GCLK_UP{i}")]);
             }
-            builder.extract_xnode_bels("GCLKVM.S3E", xy, &[], &[xy], tkn, &[bel]);
+            builder.extract_xnode_bels(tslots::CLK, "GCLKVM.S3E", xy, &[], &[xy], tkn, &[bel]);
         }
     }
 
@@ -2705,7 +3323,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLK_OUT_L{i}")])
                 .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLK_OUT_R{i}")]);
         }
-        builder.extract_xnode_bels("GCLKVC", xy, &[], &[xy], "GCLKVC", &[bel]);
+        builder.extract_xnode_bels(tslots::HROW, "GCLKVC", xy, &[], &[xy], "GCLKVC", &[bel]);
     }
 
     for tkn in [
@@ -2725,6 +3343,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_int_out(format!("OUT_B{i}"), &[format!("GCLKH_GCLK_DN{i}")]);
             }
             builder.extract_xnode_bels(
+                tslots::HCLK,
                 "GCLKH",
                 xy,
                 &[],
@@ -2754,6 +3373,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
         }
         builder.extract_xnode_bels(
+            tslots::HCLK,
             if rd.family == "spartan3e" {
                 "GCLKH"
             } else {
@@ -2776,6 +3396,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
         }
         builder.extract_xnode_bels(
+            tslots::HCLK,
             if rd.family == "spartan3e" {
                 "GCLKH.S"
             } else {
@@ -2798,6 +3419,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 )
         }
         builder.extract_xnode_bels(
+            tslots::HCLK,
             if rd.family == "spartan3e" {
                 "GCLKH.N"
             } else {
@@ -2810,6 +3432,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             &[bel_globalsig.clone(), bel],
         );
         builder.extract_xnode_bels(
+            tslots::HCLK,
             "GCLKH.0",
             dummy_xy,
             &[],
@@ -2818,6 +3441,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             &[bel_globalsig],
         );
         builder.extract_xnode_bels(
+            tslots::CLK,
             "GCLKH.DSP",
             dummy_xy,
             &[],

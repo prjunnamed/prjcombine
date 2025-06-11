@@ -6,3 +6,4 @@ pub mod chip;
 pub mod db;
 mod expand;
 pub mod expanded;
+pub mod tslots;

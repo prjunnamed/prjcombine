@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 use prjcombine_interconnect::{
     db::{
         BelInfo, BelPin, BelSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire,
-        IntDb, PinDir, TileCellId, TileClass, WireKind,
+        IntDb, PinDir, TileCellId, TileClass, TileSlotId, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{ColId, EdgeIoCoord, RowId},
@@ -12,6 +12,7 @@ use prjcombine_siliconblue::{
     bels,
     chip::{Chip, ChipKind, ExtraNode, ExtraNodeIo},
     expanded::{REGION_COLBUF, REGION_GLOBAL},
+    tslots,
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -49,9 +50,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     assert_eq!(db.region_slots.insert("GLOBAL".into()).0, REGION_GLOBAL);
     assert_eq!(db.region_slots.insert("COLBUF".into()).0, REGION_COLBUF);
 
-    for &slot_name in bels::SLOTS {
-        db.bel_slots.insert(slot_name.into());
-    }
+    db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     let slot_w = db
         .conn_slots
@@ -237,6 +236,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
 
     {
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -264,6 +264,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     }
     if kind != ChipKind::Ice40P03 {
         let node = TileClass {
+            slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -277,6 +278,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             continue;
         };
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -319,6 +321,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             continue;
         };
         let node = TileClass {
+            slot: tslots::IOB,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -331,6 +334,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     if kind != ChipKind::Ice40P03 {
         let ice40_bramv2 = kind.has_ice40_bramv2();
         let mut node = TileClass {
+            slot: tslots::BEL,
             cells: EntityVec::from_iter([(), ()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -398,6 +402,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     if let Some(tcls) = kind.tile_class_colbuf() {
         for tcls in [tcls, "COLBUF_IO_W", "COLBUF_IO_E"] {
             let node = TileClass {
+                slot: tslots::COLBUF,
                 cells: EntityVec::from_iter([()]),
                 muxes: Default::default(),
                 iris: Default::default(),
@@ -410,6 +415,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
 
     {
         let mut node = TileClass {
+            slot: tslots::BEL,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -424,6 +430,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
 
     {
         let mut node = TileClass {
+            slot: tslots::BEL,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -438,6 +445,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
 
     {
         let mut node = TileClass {
+            slot: tslots::GB_ROOT,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -472,7 +480,7 @@ pub struct MiscNodeBuilder<'a> {
 }
 
 impl<'a> MiscNodeBuilder<'a> {
-    pub fn new(chip: &'a Chip, fixed_tiles: &[(ColId, RowId)]) -> Self {
+    pub fn new(chip: &'a Chip, slot: TileSlotId, fixed_tiles: &[(ColId, RowId)]) -> Self {
         let mut tiles = EntityVec::new();
         let mut tiles_map = HashMap::new();
         for &crd in fixed_tiles {
@@ -482,6 +490,7 @@ impl<'a> MiscNodeBuilder<'a> {
         Self {
             chip,
             node: TileClass {
+                slot,
                 cells: EntityVec::from_iter(tiles.iter().map(|_| ())),
                 muxes: Default::default(),
                 iris: Default::default(),

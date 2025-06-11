@@ -782,7 +782,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             for i in 0..4 {
                 let bel_id = bels::PTE2OMUX[i];
                 let bel_data = &intdb.tile_classes[node_kind].bels[bel_id];
-                let mux_name = &intdb.bel_slots[bel_id];
+                let mux_name = intdb.bel_slots.key(bel_id);
                 let mut diffs = vec![];
                 for (pin_name, pin_data) in &bel_data.pins {
                     if pin_data.dir == PinDir::Output {

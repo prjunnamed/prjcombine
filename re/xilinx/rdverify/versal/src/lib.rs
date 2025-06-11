@@ -967,7 +967,7 @@ fn verify_vcc(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = &endev.edev.egrid.db.bel_slots[bel.slot];
+    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
     match bel.slot {
         bels::LAGUNA => verify_laguna(endev, vrf, bel),
         bels::DSP0 | bels::DSP1 => verify_dsp(vrf, bel),

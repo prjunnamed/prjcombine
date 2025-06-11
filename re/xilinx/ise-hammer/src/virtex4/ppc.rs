@@ -71,7 +71,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let node_data = &egrid.db.tile_classes[node_kind];
     for (slot, bel_data) in &node_data.bels {
-        let bel = &egrid.db.bel_slots[slot];
+        let bel = egrid.db.bel_slots.key(slot);
         if slot == bels::PPC {
             let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "1");
             for pin in bel_data.pins.keys() {

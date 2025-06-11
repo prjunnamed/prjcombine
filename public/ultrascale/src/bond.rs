@@ -494,7 +494,7 @@ pub struct ExpandedBond<'a> {
 }
 
 impl Bond {
-    pub fn expand(&self) -> ExpandedBond {
+    pub fn expand(&self) -> ExpandedBond<'_> {
         let mut hpios = BTreeMap::new();
         let mut hdios = BTreeMap::new();
         let mut hdiolcs = BTreeMap::new();

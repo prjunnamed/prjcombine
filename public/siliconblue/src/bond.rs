@@ -91,7 +91,7 @@ pub struct ExpandedBond<'a> {
 }
 
 impl Bond {
-    pub fn expand(&self) -> ExpandedBond {
+    pub fn expand(&self) -> ExpandedBond<'_> {
         let mut ios = BTreeMap::new();
         for (name, pad) in &self.pins {
             match *pad {

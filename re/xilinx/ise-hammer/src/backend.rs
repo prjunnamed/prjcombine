@@ -844,7 +844,7 @@ impl FpgaBackend for IseBackend<'_> {
         self.edev.node_bits(nloc)
     }
 
-    fn egrid(&self) -> &ExpandedGrid {
+    fn egrid(&self) -> &ExpandedGrid<'_> {
         self.egrid
     }
 }

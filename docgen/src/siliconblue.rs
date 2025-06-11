@@ -3,7 +3,10 @@ use std::collections::HashSet;
 use unnamed_entity::EntityPartVec;
 
 use crate::{
-    bsdata::{check_misc_data, gen_bstiles, gen_misc_table, FrameDirection, TileOrientation}, interconnect::gen_intdb, speed::{gen_speed, SpeedData}, DocgenContext
+    DocgenContext,
+    bsdata::{FrameDirection, TileOrientation, check_misc_data, gen_bstiles, gen_misc_table},
+    interconnect::gen_intdb,
+    speed::{SpeedData, gen_speed},
 };
 
 pub fn gen_siliconblue(ctx: &mut DocgenContext) {
@@ -23,10 +26,13 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
         for (sname, &speedid) in &part.speeds {
             let speed = &db.speeds[speedid];
             if !speeds.contains_id(speedid) {
-                speeds.insert(speedid, SpeedData {
-                    names: vec![],
-                    speed,
-                });
+                speeds.insert(
+                    speedid,
+                    SpeedData {
+                        names: vec![],
+                        speed,
+                    },
+                );
             }
             speeds[speedid]
                 .names

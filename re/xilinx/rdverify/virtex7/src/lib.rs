@@ -2878,7 +2878,7 @@ fn verify_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for pin in &iopins {
         vrf.claim_node(&[bel.fwire(pin)]);
         let obel =
-            vrf.find_bel_sibling(bel, vrf.db.bel_slots.get(&format!("IOPAD_{pin}")).unwrap());
+            vrf.find_bel_sibling(bel, vrf.db.bel_slots.get(&format!("IOPAD_{pin}")).unwrap().0);
         vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("IO"));
         vrf.claim_pip(bel.crd(), obel.wire("IO"), bel.wire(pin));
     }
@@ -3465,7 +3465,7 @@ fn verify_brkh_gtx(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = &endev.edev.egrid.db.bel_slots[bel.slot];
+    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
     match bel.slot {
         bels::SLICE0 | bels::SLICE1 => verify_slice(vrf, bel),
         bels::DSP0 | bels::DSP1 => verify_dsp(vrf, bel),

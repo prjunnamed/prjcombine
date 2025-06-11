@@ -15,6 +15,7 @@ use prjcombine_xc2000::{
     bels::xc2000 as bels,
     bond::{Bond, BondPad, CfgPad},
     chip::SharedCfgPad,
+    tslots,
 };
 use prjcombine_xc2000::{
     chip::{Chip, ChipKind},
@@ -49,9 +50,7 @@ pub fn make_intdb() -> IntDb {
 
     assert_eq!(db.region_slots.insert("GLOBAL".into()).0, REGION_GLOBAL);
 
-    for &slot in bels::SLOTS {
-        db.bel_slots.insert(slot.into());
-    }
+    db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     let slot_w = db
         .conn_slots
@@ -323,6 +322,7 @@ pub fn make_intdb() -> IntDb {
         "CLB", "CLB.L", "CLB.R", "CLB.B", "CLB.BL", "CLB.BR", "CLB.T", "CLB.TL", "CLB.TR",
     ] {
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -458,10 +458,17 @@ pub fn make_intdb() -> IntDb {
             }
         }
     }
-    for name in [
-        "LLH.B", "LLH.T", "LLV.LS", "LLV.RS", "LLV.L", "LLV.R", "LLV",
+    for (name, slot) in [
+        ("LLH.B", tslots::EXTRA_COL),
+        ("LLH.T", tslots::EXTRA_COL),
+        ("LLV.LS", tslots::EXTRA_ROW),
+        ("LLV.RS", tslots::EXTRA_ROW),
+        ("LLV.L", tslots::EXTRA_ROW),
+        ("LLV.R", tslots::EXTRA_ROW),
+        ("LLV", tslots::EXTRA_ROW),
     ] {
         let node = TileClass {
+            slot,
             cells: EntityVec::from_iter([(); 2]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -567,7 +574,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 let nnode = &endev.ngrid.nodes[&nloc];
                 for (slot, bel_info) in &node_kind.bels {
                     let bel = (die.die, (col, row), slot);
-                    let slot_name = &intdb.bel_slots[slot];
+                    let slot_name = intdb.bel_slots.key(slot);
                     match slot {
                         bels::CLB | bels::OSC | bels::CLKIOB | bels::BUFG => {
                             let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);

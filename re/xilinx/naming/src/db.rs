@@ -192,7 +192,7 @@ impl NamingDb {
                 writeln!(
                     o,
                     "\t\tBEL {slot} RT.{rt}:",
-                    slot = intdb.bel_slots[slot],
+                    slot = intdb.bel_slots.key(slot),
                     rt = bn.tile,
                 )?;
                 for (k, v) in &bn.pins {

@@ -51,6 +51,7 @@ pub fn make_device_multi(
             speed_idx: speeds.get_or_insert(&c.speed),
         })
         .collect();
+    intdb.validate();
     PreDevice {
         name: rd.part.clone(),
         grids,

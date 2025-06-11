@@ -15,6 +15,7 @@ use prjcombine_xc2000::{
     bels::xc5200 as bels,
     bond::{Bond, BondPad, CfgPad},
     chip::{Chip, ChipKind, SharedCfgPad},
+    tslots,
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -43,9 +44,7 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
 pub fn make_intdb() -> IntDb {
     let mut db = IntDb::default();
 
-    for &slot in bels::SLOTS {
-        db.bel_slots.insert(slot.into());
-    }
+    db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     let slot_w = db
         .conn_slots
@@ -395,6 +394,7 @@ pub fn make_intdb() -> IntDb {
 
     {
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -447,6 +447,7 @@ pub fn make_intdb() -> IntDb {
         ("IO.T", "GLOBAL.T"),
     ] {
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -501,6 +502,7 @@ pub fn make_intdb() -> IntDb {
         ("CNR.TR", "GLOBAL.TR"),
     ] {
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -587,8 +589,16 @@ pub fn make_intdb() -> IntDb {
         }
         db.tile_classes.insert(name.into(), node);
     }
-    for name in ["CLKV", "CLKB", "CLKT", "CLKH", "CLKL", "CLKR"] {
+    for (name, slot) in [
+        ("CLKV", tslots::EXTRA_COL),
+        ("CLKB", tslots::EXTRA_COL),
+        ("CLKT", tslots::EXTRA_COL),
+        ("CLKH", tslots::EXTRA_ROW),
+        ("CLKL", tslots::EXTRA_ROW),
+        ("CLKR", tslots::EXTRA_ROW),
+    ] {
         let node = TileClass {
+            slot,
             cells: EntityVec::from_iter([(), ()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -689,7 +699,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                 }
                 for (slot, bel_info) in &node_kind.bels {
                     let bel = (die.die, (col, row), slot);
-                    let slot_name = &intdb.bel_slots[slot];
+                    let slot_name = intdb.bel_slots.key(slot);
                     match slot {
                         bels::BUFG | bels::RDBK | bels::BSCAN => {
                             let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);

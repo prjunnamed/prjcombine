@@ -7,17 +7,23 @@ use prjcombine_siliconblue::{
     chip::Chip,
     db::{Database, Part},
 };
-use prjcombine_types::{bsdata::BsData, db::{BondId, ChipId, SpeedId}, speed::Speed};
+use prjcombine_types::{
+    bsdata::BsData,
+    db::{BondId, ChipId, SpeedId},
+    speed::Speed,
+};
 use unnamed_entity::EntityVec;
 
 fn merge_int(dst: &mut IntDb, src: &IntDb, dbname: &str) {
     if dst.wires.is_empty() {
         dst.wires = src.wires.clone();
+        dst.tile_slots = src.tile_slots.clone();
         dst.bel_slots = src.bel_slots.clone();
         dst.region_slots = src.region_slots.clone();
         dst.conn_slots = src.conn_slots.clone();
     } else {
         assert_eq!(dst.wires, src.wires);
+        assert_eq!(dst.tile_slots, src.tile_slots);
         assert_eq!(dst.bel_slots, src.bel_slots);
         assert_eq!(dst.region_slots, src.region_slots);
         assert_eq!(dst.conn_slots, src.conn_slots);

@@ -34,9 +34,7 @@ pub struct Chip {
     pub has_encrypt: bool,
 }
 
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode,
-)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SharedCfgPad {
     // ×16
     // 0 doubles as DIN, MISO, MISO1
@@ -157,9 +155,7 @@ pub struct Mcb {
     pub io_reset: McbIo,
 }
 
-#[derive(
-    Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode,
-)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub enum DisabledPart {
     Gtp,
     Mcb,
@@ -180,9 +176,7 @@ impl std::fmt::Display for DisabledPart {
     }
 }
 
-#[derive(
-    Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode,
-)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum DcmKind {
     Bot,
     BotMid,
@@ -190,9 +184,7 @@ pub enum DcmKind {
     TopMid,
 }
 
-#[derive(
-    Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode,
-)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Encode, Decode)]
 pub enum PllKind {
     BotOut0,
     BotOut1,

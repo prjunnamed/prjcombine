@@ -139,7 +139,7 @@ impl PipWire {
                         .unwrap_or_else(|| {
                             panic!(
                                 "missing pin {pin} in bel {bel} tile {tile}",
-                                bel = backend.egrid.db.bel_slots[*bel],
+                                bel = backend.egrid.db.bel_slots.key(*bel),
                                 tile = backend.egrid.db.tile_classes.key(node.class),
                             )
                         })
@@ -156,7 +156,7 @@ impl PipWire {
                         .unwrap_or_else(|| {
                             panic!(
                                 "missing pin {pin} in bel {bel} tile {tile}",
-                                bel = backend.egrid.db.bel_slots[*bel],
+                                bel = backend.egrid.db.bel_slots.key(*bel),
                                 tile = backend.egrid.db.tile_classes.key(node.class),
                             )
                         })

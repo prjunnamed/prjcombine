@@ -183,8 +183,9 @@ pub fn make_sample(
                                     format!("{cb_tile_name}:COLBUF:GLOBAL.{idx}:BIT0"),
                                 );
                             } else {
-                                sample
-                                    .add_global_pattern_single(format!("COLBUF:{col:#}.{row:#}.{idx}"));
+                                sample.add_global_pattern_single(format!(
+                                    "COLBUF:{col:#}.{row:#}.{idx}"
+                                ));
                             };
                         }
                         if io_hardip_outs.contains(&iwa) {
@@ -471,7 +472,7 @@ pub fn make_sample(
                     let io = pkg_info.xlat_io[&(loc.loc.x, loc.loc.y, loc.loc.bel)];
                     let (_, (col, row), slot) = edev.chip.get_io_loc(io);
                     let iob = io.iob();
-                    let slot_name = edev.egrid.db.bel_slots[slot].as_str();
+                    let slot_name = edev.egrid.db.bel_slots.key(slot).as_str();
                     let tcls_ioi = edev.chip.kind.tile_class_ioi(io.edge()).unwrap();
                     let tcls_iob = edev.chip.kind.tile_class_iob(io.edge()).unwrap();
                     let mut global_idx = None;
@@ -889,7 +890,10 @@ pub fn make_sample(
                         );
                         sample.add_tiled_pattern_single(
                             &tiles_io_a,
-                            format!("{tcls_iob}:IOB{iob_a:#}:IBUF_ENABLE:BIT0", iob_a = io_a.iob()),
+                            format!(
+                                "{tcls_iob}:IOB{iob_a:#}:IBUF_ENABLE:BIT0",
+                                iob_a = io_a.iob()
+                            ),
                         );
                     }
                     if edev.chip.kind.is_ultra() {
@@ -1361,8 +1365,7 @@ pub fn make_sample(
                                     .values()
                                     .map(|&(col, row)| BitOwner::Main(col, row)),
                             );
-                            sample
-                                .add_tiled_pattern(&tiles, format!("I3C:FILTER{i}:ENABLE:BIT0"));
+                            sample.add_tiled_pattern(&tiles, format!("I3C:FILTER{i}:ENABLE:BIT0"));
                         }
                     }
                 }

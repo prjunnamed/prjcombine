@@ -1,9 +1,12 @@
 use std::collections::HashSet;
 
 use crate::{
+    DocgenContext,
     bsdata::{
-        check_devdata, check_misc_data, gen_bstiles, gen_devdata_table, gen_misc_table, FrameDirection, TileOrientation
-    }, interconnect::gen_intdb, DocgenContext
+        FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_bstiles,
+        gen_devdata_table, gen_misc_table,
+    },
+    interconnect::gen_intdb,
 };
 
 pub fn gen_virtex4(ctx: &mut DocgenContext) {

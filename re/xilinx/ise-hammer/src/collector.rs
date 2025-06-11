@@ -64,7 +64,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         mut item: TileItem,
     ) {
         let intdb = self.edev.egrid().db;
-        let slot = intdb.bel_slots.get(bel).unwrap();
+        let slot = intdb.bel_slots.get(bel).unwrap().0;
         let node = intdb.tile_classes.get(tile).unwrap().1;
         let bel = &node.bels[slot];
         let pin = &bel.pins[pin];
@@ -85,7 +85,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
 
     pub fn item_int_inv(&self, int_tiles: &[&str], tile: &str, bel: &str, pin: &str) -> TileItem {
         let intdb = self.edev.egrid().db;
-        let slot = intdb.bel_slots.get(bel).unwrap();
+        let slot = intdb.bel_slots.get(bel).unwrap().0;
         let node = intdb.tile_classes.get(tile).unwrap().1;
         let bel = &node.bels[slot];
         let pin = &bel.pins[pin];

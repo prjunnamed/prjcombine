@@ -1,9 +1,12 @@
 use std::collections::HashSet;
 
 use crate::{
+    DocgenContext,
     bsdata::{
-        check_devdata, check_misc_data, gen_bstiles, gen_devdata_table, gen_misc_table, FrameDirection, TileOrientation
-    }, interconnect::gen_intdb, DocgenContext
+        FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_bstiles,
+        gen_devdata_table, gen_misc_table,
+    },
+    interconnect::gen_intdb,
 };
 
 pub fn gen_spartan6(ctx: &mut DocgenContext) {
@@ -66,13 +69,20 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
         &["IOSTD:LVDSBIAS"],
     );
 
-    gen_misc_table(ctx, &db.bsdata, &mut misc_used, "spartan6", "pll-lock", &[
-        "PLL:PLL_LOCK_REF_DLY",
-        "PLL:PLL_LOCK_FB_DLY",
-        "PLL:PLL_LOCK_CNT",
-        "PLL:PLL_LOCK_SAT_HIGH",
-        "PLL:PLL_UNLOCK_CNT",
-    ]);
+    gen_misc_table(
+        ctx,
+        &db.bsdata,
+        &mut misc_used,
+        "spartan6",
+        "pll-lock",
+        &[
+            "PLL:PLL_LOCK_REF_DLY",
+            "PLL:PLL_LOCK_FB_DLY",
+            "PLL:PLL_LOCK_CNT",
+            "PLL:PLL_LOCK_SAT_HIGH",
+            "PLL:PLL_UNLOCK_CNT",
+        ],
+    );
     gen_misc_table(
         ctx,
         &db.bsdata,

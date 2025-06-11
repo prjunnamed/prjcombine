@@ -7,8 +7,8 @@ use unnamed_entity::{EntityId, EntityPartVec};
 
 use crate::{
     DocgenContext,
-    speed::{SpeedData, gen_speed},
     bsdata::{FrameDirection, TileOrientation, gen_tile},
+    speed::{SpeedData, gen_speed},
 };
 
 fn gen_devlist(ctx: &mut DocgenContext, dbs: &[Database]) {

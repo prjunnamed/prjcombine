@@ -6,5 +6,6 @@ pub mod chip;
 pub mod db;
 mod expand;
 pub mod expanded;
+pub mod tslots;
 
 pub use expand::expand_grid;

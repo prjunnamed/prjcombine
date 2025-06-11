@@ -1,4 +1,4 @@
-use std::collections::{btree_map, HashMap, HashSet};
+use std::collections::{HashMap, HashSet, btree_map};
 use std::fmt::Write;
 
 use indexmap::IndexMap;
@@ -123,11 +123,14 @@ pub fn gen_tile(
                 for &frame in &frames {
                     writeln!(buf, r#"<tr><td>{frame}</td>"#).unwrap();
                     for &bit in &bits {
-                        emit_bit(&mut buf, TileBit {
-                            tile: tidx,
-                            frame,
-                            bit,
-                        });
+                        emit_bit(
+                            &mut buf,
+                            TileBit {
+                                tile: tidx,
+                                frame,
+                                bit,
+                            },
+                        );
                     }
                     writeln!(buf, r#"</tr>"#).unwrap();
                 }
@@ -136,11 +139,14 @@ pub fn gen_tile(
                 for &bit in &bits {
                     writeln!(buf, r#"<tr><td>{bit}</td>"#).unwrap();
                     for &frame in &frames {
-                        emit_bit(&mut buf, TileBit {
-                            tile: tidx,
-                            frame,
-                            bit,
-                        });
+                        emit_bit(
+                            &mut buf,
+                            TileBit {
+                                tile: tidx,
+                                frame,
+                                bit,
+                            },
+                        );
                     }
                     writeln!(buf, r#"</tr>"#).unwrap();
                 }

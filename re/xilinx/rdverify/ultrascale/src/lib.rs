@@ -1018,12 +1018,12 @@ fn verify_bufce_row(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
         vrf.claim_node(&[bel.fwire(pin)]);
     }
 
-    let idx = bels::BUFCE_ROW
+    if is_io {
+        let idx = bels::BUFCE_ROW_CMT
         .into_iter()
         .position(|x| x == bel.slot)
         .unwrap();
 
-    if is_io {
         let obel_cmt = vrf.find_bel_sibling(bel, bels::CMT);
         vrf.claim_pip(
             bel.crd(),
@@ -1036,9 +1036,14 @@ fn verify_bufce_row(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
             obel_cmt.wire(&format!("VDISTR{idx}_T")),
         );
     } else {
+        let idx = bels::BUFCE_ROW_RCLK
+        .into_iter()
+        .position(|x| x == bel.slot)
+        .unwrap();
+
         let hidx = chip.columns[bel.col].clk[idx];
 
-        let obel_gtb = vrf.find_bel_sibling(bel, bels::GCLK_TEST_BUF[idx]);
+        let obel_gtb = vrf.find_bel_sibling(bel, bels::GCLK_TEST_BUF_RCLK[idx]);
         if let Some(hidx) = hidx {
             let obel_hd = find_hdistr_src(endev, vrf, bel.die, bel.col, bel.row);
             let obel_hr = find_hroute_src(endev, vrf, bel.die, bel.col, bel.row);
@@ -1679,7 +1684,7 @@ fn verify_bufgce(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
     let obel_pll1 = vrf.find_bel_sibling(bel, bels::PLL1);
     let obel_cmt = vrf.find_bel_sibling(bel, bels::CMT);
     let obel_vcc = vrf.find_bel_sibling(bel, bels::VCC_CMT);
-    let obel_gtb = vrf.find_bel_sibling(bel, bels::GCLK_TEST_BUF[idx]);
+    let obel_gtb = vrf.find_bel_sibling(bel, bels::GCLK_TEST_BUF_CMT[idx]);
     for pin in [
         "CLKOUT0",
         "CLKOUT0B",
@@ -1903,7 +1908,7 @@ fn verify_mmcm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
     ] {
         vrf.claim_node(&[bel.fwire(pin)]);
         for i in 0..24 {
-            let obel_bufce_row = vrf.find_bel_sibling(bel, bels::BUFCE_ROW[i]);
+            let obel_bufce_row = vrf.find_bel_sibling(bel, bels::BUFCE_ROW_CMT[i]);
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(pin),
@@ -2043,7 +2048,7 @@ fn verify_pll(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         }
         vrf.claim_node(&[bel.fwire(pin)]);
         for i in 0..24 {
-            let obel_bufce_row = vrf.find_bel_sibling(bel, bels::BUFCE_ROW[i]);
+            let obel_bufce_row = vrf.find_bel_sibling(bel, bels::BUFCE_ROW_CMT[i]);
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(pin),
@@ -2148,7 +2153,7 @@ fn verify_hbm_ref_clk(vrf: &mut Verifier, bel: &BelContext<'_>) {
     );
     vrf.claim_node(&[bel.fwire("REF_CLK_MUX_BUFCE_ROW_DLY")]);
     for i in 0..24 {
-        let obel_bufce_row = vrf.find_bel_sibling(bel, bels::BUFCE_ROW[i]);
+        let obel_bufce_row = vrf.find_bel_sibling(bel, bels::BUFCE_ROW_CMT[i]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire("REF_CLK_MUX_BUFCE_ROW_DLY"),
@@ -2366,7 +2371,7 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
             bel.wire(&format!("HDISTR{i}_OUT_MUX")),
             bel.wire(&format!("OUT_MUX{i}")),
         );
-        let obel = vrf.find_bel_sibling(bel, bels::BUFCE_ROW[i]);
+        let obel = vrf.find_bel_sibling(bel, bels::BUFCE_ROW_CMT[i]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("HDISTR{i}_OUT_MUX")),
@@ -2399,7 +2404,7 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     }
 
     for i in 0..24 {
-        let obel = vrf.find_bel_sibling(bel, bels::GCLK_TEST_BUF[i]);
+        let obel = vrf.find_bel_sibling(bel, bels::GCLK_TEST_BUF_CMT[i]);
         vrf.claim_node(&[obel.fwire("CLK_IN")]);
         vrf.claim_pip(bel.crd(), obel.wire("CLK_IN"), obel_vcc.wire("VCC"));
         for j in 0..24 {
@@ -2421,7 +2426,7 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
             .find_bel_delta(bel, 0, dy, hpio_slot)
             .or_else(|| vrf.find_bel_delta(bel, 0, dy, hrio_slot))
         {
-            let obel_slot = &endev.edev.egrid.db.bel_slots[obel.slot];
+            let obel_slot = endev.edev.egrid.db.bel_slots.key(obel.slot);
             vrf.verify_node(&[
                 bel.fwire(&format!("CCIO{i}")),
                 obel.fwire(if obel_slot.starts_with("HRIO") {
@@ -4634,7 +4639,7 @@ fn verify_gtm_refclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
 
 fn verify_hsadc_hsdac(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let chip = endev.edev.chips[bel.die];
-    let slot_name = &endev.edev.egrid.db.bel_slots[bel.slot];
+    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
     let mut pins = vec![
         // to/from north/south
         ("SYSREF_IN_SOUTH_P", SitePinDir::In),
@@ -4793,7 +4798,7 @@ fn verify_rclk_gt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = &endev.edev.egrid.db.bel_slots[bel.slot];
+    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
     match bel.slot {
         bels::SLICE => verify_slice(endev, vrf, bel),
         bels::DSP0 | bels::DSP1 => verify_dsp(endev, vrf, bel),

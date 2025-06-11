@@ -375,7 +375,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
                     .tile_classes
                     .key(self.node_kind)
                     .clone(),
-                bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
+                bel: self.backend.egrid.db.bel_slots.key(self.bel).clone(),
                 attr: attr.into(),
                 val: val.into(),
             };
@@ -440,7 +440,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
                 .tile_classes
                 .key(self.node_kind)
                 .clone(),
-            bel: self.backend.egrid.db.bel_slots[self.bel].clone(),
+            bel: self.backend.egrid.db.bel_slots.key(self.bel).clone(),
             attr: attr.into(),
             val: val.into(),
         };

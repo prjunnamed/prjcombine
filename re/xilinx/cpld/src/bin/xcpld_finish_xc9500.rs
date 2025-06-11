@@ -503,10 +503,18 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile {
     );
     if device.kind == DeviceKind::Xc9500 {
         for (i, &bit) in &fpart.bits.fclk_inv {
-            tile.insert(format!("FCLK{i:#}_INV"), extract_bool(bit, xlat_bit), neutral);
+            tile.insert(
+                format!("FCLK{i:#}_INV"),
+                extract_bool(bit, xlat_bit),
+                neutral,
+            );
         }
         for (i, &bit) in &fpart.bits.foe_inv {
-            tile.insert(format!("FOE{i:#}_INV"), extract_bool(bit, xlat_bit), neutral);
+            tile.insert(
+                format!("FOE{i:#}_INV"),
+                extract_bool(bit, xlat_bit),
+                neutral,
+            );
         }
         for (i, enum_) in &fpart.bits.fclk_mux {
             tile.insert(

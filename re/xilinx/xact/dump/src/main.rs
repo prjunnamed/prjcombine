@@ -76,6 +76,7 @@ fn main() {
                     PartKind::Xc5200 => xc5200::dump_chip(&die),
                     PartKind::Xc7000 => unreachable!(),
                 };
+                intdb.validate();
                 let chip = db.chips.push(chip);
                 match db.ints.entry(args.family.clone()) {
                     btree_map::Entry::Vacant(entry) => {

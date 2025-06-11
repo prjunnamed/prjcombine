@@ -551,7 +551,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             }
         }
         for slot in node.bels.ids() {
-            let slot_name = &backend.egrid.db.bel_slots[slot];
+            let slot_name = backend.egrid.db.bel_slots.key(slot).as_str();
             if slot_name.starts_with("IO") {
                 let mut bctx = ctx.bel(slot);
                 bctx.mode("IO")
@@ -649,7 +649,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             "TIOB1" => bels::IO_N[1],
                             _ => unreachable!(),
                         };
-                        let bel = &ctx.edev.egrid.db.bel_slots[slot];
+                        let bel = ctx.edev.egrid.db.bel_slots.key(slot).as_str();
                         let diff = ctx.state.get_diff(tile, bel, "OUT", "O");
                         inps.push(("GND".to_string(), diff));
 
@@ -786,7 +786,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         for slot in node.bels.ids() {
-            let bel = &ctx.edev.egrid.db.bel_slots[slot];
+            let bel = ctx.edev.egrid.db.bel_slots.key(slot);
             if bel.starts_with("PULLUP_TBUF") {
                 ctx.collect_bit(tile, bel, "ENABLE", "1");
             }

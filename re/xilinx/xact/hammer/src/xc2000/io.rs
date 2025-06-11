@@ -11,7 +11,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         }
         let mut ctx = FuzzCtx::new(session, backend, tile);
         for slot in node.bels.ids() {
-            let slot_name = &backend.egrid.db.bel_slots[slot];
+            let slot_name = backend.egrid.db.bel_slots.key(slot);
             if !slot_name.starts_with("IO") {
                 continue;
             }
@@ -38,7 +38,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         for slot in node.bels.ids() {
-            let bel = &ctx.edev.egrid.db.bel_slots[slot];
+            let bel = ctx.edev.egrid.db.bel_slots.key(slot);
             if !bel.starts_with("IO") {
                 continue;
             }

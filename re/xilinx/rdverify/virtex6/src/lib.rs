@@ -1473,7 +1473,7 @@ pub fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
     }
 
     let dy = if bel.row < endev.edev.chips[bel.die].row_bufg() {
-        20
+        18
     } else {
         -20
     };
@@ -1491,18 +1491,26 @@ pub fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             ]);
         }
     } else {
+        let dy_n = if bel.row < endev.edev.chips[bel.die].row_bufg() {
+            20
+        } else {
+            -20
+        };
+        let dy_s = dy_n - 2;
         for i in 0..32 {
-            let obel = vrf.find_bel_delta(bel, 0, dy, bels::BUFGCTRL[i]).unwrap();
+            let obel = vrf
+                .find_bel_delta(bel, 0, if i < 16 { dy_s } else { dy_n }, bels::BUFGCTRL[i])
+                .unwrap();
             vrf.verify_node(&[bel.fwire(&format!("GCLK{i}")), obel.fwire("GCLK")]);
         }
-        let obel = vrf.find_bel_delta(bel, 0, dy, bels::GIO_S).unwrap();
+        let obel = vrf.find_bel_delta(bel, 0, dy_s, bels::GIO_S).unwrap();
         for i in 0..4 {
             vrf.verify_node(&[
                 bel.fwire(&format!("GIO{i}")),
                 obel.fwire(&format!("GIO{i}_CMT")),
             ]);
         }
-        let obel = vrf.find_bel_delta(bel, 0, dy, bels::GIO_N).unwrap();
+        let obel = vrf.find_bel_delta(bel, 0, dy_n, bels::GIO_N).unwrap();
         for i in 4..8 {
             vrf.verify_node(&[
                 bel.fwire(&format!("GIO{i}")),
@@ -1548,18 +1556,26 @@ pub fn verify_gclk_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
             ]);
         }
     } else {
+        let dy_n = if bel.row < endev.edev.chips[bel.die].row_bufg() {
+            42
+        } else {
+            -40
+        };
+        let dy_s = dy_n - 2;
         for i in 0..32 {
-            let obel = vrf.find_bel_delta(bel, 0, dy, bels::BUFGCTRL[i]).unwrap();
+            let obel = vrf
+                .find_bel_delta(bel, 0, if i < 16 { dy_s } else { dy_n }, bels::BUFGCTRL[i])
+                .unwrap();
             vrf.verify_node(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire("GCLK")]);
         }
-        let obel = vrf.find_bel_delta(bel, 0, dy, bels::GIO_S).unwrap();
+        let obel = vrf.find_bel_delta(bel, 0, dy_s, bels::GIO_S).unwrap();
         for i in 0..4 {
             vrf.verify_node(&[
                 bel.fwire(&format!("GIO{i}_I")),
                 obel.fwire(&format!("GIO{i}_CMT")),
             ]);
         }
-        let obel = vrf.find_bel_delta(bel, 0, dy, bels::GIO_N).unwrap();
+        let obel = vrf.find_bel_delta(bel, 0, dy_n, bels::GIO_N).unwrap();
         for i in 4..8 {
             vrf.verify_node(&[
                 bel.fwire(&format!("GIO{i}_I")),
@@ -1622,13 +1638,13 @@ pub fn verify_bufgctrl(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("GCLK"), bel.wire("O"));
 }
 
-pub fn verify_gio_bot(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let obel = vrf.find_bel_sibling(bel, bels::GIO_N);
+pub fn verify_gio_s(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel = vrf.find_bel_delta(bel, 0, 2, bels::GIO_N).unwrap();
     for (i, col, row) in [
-        (0, endev.edev.col_lcio.unwrap(), bel.row - 4),
-        (1, endev.edev.col_rcio.unwrap(), bel.row - 4),
-        (2, endev.edev.col_lcio.unwrap(), bel.row - 2),
-        (3, endev.edev.col_rcio.unwrap(), bel.row - 2),
+        (0, endev.edev.col_lcio.unwrap(), bel.row - 2),
+        (1, endev.edev.col_rcio.unwrap(), bel.row - 2),
+        (2, endev.edev.col_lcio.unwrap(), bel.row),
+        (3, endev.edev.col_rcio.unwrap(), bel.row),
     ] {
         vrf.claim_node(&[
             bel.fwire(&format!("GIO{i}_BUFG")),
@@ -1650,8 +1666,8 @@ pub fn verify_gio_bot(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
     }
 }
 
-pub fn verify_gio_top(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let obel = vrf.find_bel_sibling(bel, bels::GIO_S);
+pub fn verify_gio_n(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel = vrf.find_bel_delta(bel, 0, -2, bels::GIO_S).unwrap();
     for (i, col, row) in [
         (4, endev.edev.col_lcio.unwrap(), bel.row),
         (5, endev.edev.col_rcio.unwrap(), bel.row),
@@ -2065,7 +2081,7 @@ pub fn verify_mgt_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = &endev.edev.egrid.db.bel_slots[bel.slot];
+    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
     match bel.slot {
         bels::SLICE0 | bels::SLICE1 => verify_slice(vrf, bel),
         bels::DSP0 | bels::DSP1 => verify_dsp(vrf, bel),
@@ -2116,8 +2132,8 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         bels::CMT => verify_cmt(endev, vrf, bel),
         bels::GCLK_BUF => verify_gclk_buf(endev, vrf, bel),
         _ if slot_name.starts_with("BUFGCTRL") => verify_bufgctrl(vrf, bel),
-        bels::GIO_S => verify_gio_bot(endev, vrf, bel),
-        bels::GIO_N => verify_gio_top(endev, vrf, bel),
+        bels::GIO_S => verify_gio_s(endev, vrf, bel),
+        bels::GIO_N => verify_gio_n(endev, vrf, bel),
 
         bels::GTX0 | bels::GTX1 | bels::GTX2 | bels::GTX3 => verify_gtx(vrf, bel),
         bels::BUFDS0 | bels::BUFDS1 => verify_bufds(vrf, bel),

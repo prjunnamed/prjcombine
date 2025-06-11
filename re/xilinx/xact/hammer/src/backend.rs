@@ -444,7 +444,7 @@ impl FpgaBackend for XactBackend<'_> {
         self.edev.tile_bits(nloc)
     }
 
-    fn egrid(&self) -> &ExpandedGrid {
+    fn egrid(&self) -> &ExpandedGrid<'_> {
         self.egrid
     }
 }

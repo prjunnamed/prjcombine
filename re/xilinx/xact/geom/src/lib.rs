@@ -51,7 +51,7 @@ impl GeomDb {
         Ok(())
     }
 
-    pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice {
+    pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice<'_> {
         let chip = &self.chips[dev.chip];
         let intdb = &self.ints[match chip.kind {
             ChipKind::Xc2000 => "xc2000",

@@ -551,10 +551,8 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &mut DevData) {
             extract_bool(fpart.bits.ipads[ipad].term.unwrap(), xlat_bit),
             neutral,
         );
-        dd.jed_global_bits
-            .push((format!("{ipad}_IBUF_MODE"), 0));
-        dd.jed_global_bits
-            .push((format!("{ipad}_TERM_ENABLE"), 0));
+        dd.jed_global_bits.push((format!("{ipad}_IBUF_MODE"), 0));
+        dd.jed_global_bits.push((format!("{ipad}_TERM_ENABLE"), 0));
     }
     if device.banks != 1 {
         for bank in device.banks() {
@@ -571,19 +569,15 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &mut DevData) {
         }
         if device.fbs <= 4 {
             for bank in device.banks() {
-                dd.jed_global_bits
-                    .push((format!("{bank}_IBUF_VOLT"), 0));
-                dd.jed_global_bits
-                    .push((format!("{bank}_OBUF_VOLT"), 0));
+                dd.jed_global_bits.push((format!("{bank}_IBUF_VOLT"), 0));
+                dd.jed_global_bits.push((format!("{bank}_OBUF_VOLT"), 0));
             }
         } else {
             for bank in device.banks().rev() {
-                dd.jed_global_bits
-                    .push((format!("{bank}_IBUF_VOLT"), 0));
+                dd.jed_global_bits.push((format!("{bank}_IBUF_VOLT"), 0));
             }
             for bank in device.banks().rev() {
-                dd.jed_global_bits
-                    .push((format!("{bank}_OBUF_VOLT"), 0));
+                dd.jed_global_bits.push((format!("{bank}_OBUF_VOLT"), 0));
             }
         }
     }

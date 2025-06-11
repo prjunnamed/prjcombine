@@ -944,8 +944,7 @@ pub fn get_cached_designs(
         let mut zip = ZipArchive::new(File::open(zip).unwrap()).unwrap();
         let mut design_file = zip.by_name("design").unwrap();
         let config = bincode::config::standard();
-        let design: Design =
-            bincode::decode_from_std_read(&mut design_file, config).unwrap();
+        let design: Design = bincode::decode_from_std_read(&mut design_file, config).unwrap();
         core::mem::drop(design_file);
         (key, design, get_result(&mut zip))
     })

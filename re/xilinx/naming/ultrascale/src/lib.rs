@@ -1509,11 +1509,11 @@ pub fn name_device<'a>(
                             let gtbx = clk_grid.gtbxlut[col];
                             for i in 0..24 {
                                 nnode.add_bel(
-                                    bels::BUFCE_ROW[i],
+                                    bels::BUFCE_ROW_CMT[i],
                                     format!("BUFCE_ROW_X{cmtx}Y{y}", y = cmty * 24 + i),
                                 );
                                 nnode.add_bel(
-                                    bels::GCLK_TEST_BUF[i],
+                                    bels::GCLK_TEST_BUF_CMT[i],
                                     format!(
                                         "GCLK_TEST_BUFE3_X{gtbx}Y{y}",
                                         y = clk_grid.gtbylut[die.die][reg].0
@@ -1571,7 +1571,7 @@ pub fn name_device<'a>(
                             let cmty = cmt_grid.ylut[die.die][row];
                             for i in 0..24 {
                                 nnode.add_bel(
-                                    bels::BUFCE_ROW[i],
+                                    bels::BUFCE_ROW_CMT[i],
                                     format!(
                                         "BUFCE_ROW_X{x}Y{y}",
                                         x = clk_grid.brxlut[col],
@@ -1579,7 +1579,7 @@ pub fn name_device<'a>(
                                     ),
                                 );
                                 nnode.add_bel(
-                                    bels::GCLK_TEST_BUF[i],
+                                    bels::GCLK_TEST_BUF_CMT[i],
                                     format!(
                                         "GCLK_TEST_BUFE3_X{x}Y{y}",
                                         x = clk_grid.gtbxlut[col],
@@ -2214,16 +2214,16 @@ pub fn name_device<'a>(
                                 }
                                 match chip.kind {
                                     ChipKind::Ultrascale => nnode.add_bel(
-                                        bels::BUFCE_ROW[0],
+                                        bels::BUFCE_ROW_RCLK[0],
                                         format!("BUFCE_ROW_X{brx}Y{y}", y = bry * 25 + 24),
                                     ),
                                     ChipKind::UltrascalePlus => nnode.add_bel(
-                                        bels::BUFCE_ROW[0],
+                                        bels::BUFCE_ROW_RCLK[0],
                                         format!("BUFCE_ROW_FSR_X{brx}Y{bry}"),
                                     ),
                                 }
                                 nnode.add_bel(
-                                    bels::GCLK_TEST_BUF[0],
+                                    bels::GCLK_TEST_BUF_RCLK[0],
                                     format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"),
                                 );
                             } else {
@@ -2246,13 +2246,13 @@ pub fn name_device<'a>(
                                 let brx = clk_grid.brxlut[col];
                                 let bry = clk_grid.brylut[die.die][reg];
                                 nnode.add_bel(
-                                    bels::BUFCE_ROW[0],
+                                    bels::BUFCE_ROW_RCLK[0],
                                     format!("BUFCE_ROW_X{brx}Y{y}", y = bry * 25 + 24),
                                 );
                                 let gtbx = clk_grid.gtbxlut[col];
                                 let gtby = clk_grid.gtbylut[die.die][reg].1;
                                 nnode.add_bel(
-                                    bels::GCLK_TEST_BUF[0],
+                                    bels::GCLK_TEST_BUF_RCLK[0],
                                     format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"),
                                 );
                             }
@@ -2281,12 +2281,14 @@ pub fn name_device<'a>(
                             );
                             let brx = clk_grid.brxlut[col];
                             let bry = clk_grid.brylut[die.die][reg];
-                            nnode
-                                .add_bel(bels::BUFCE_ROW[0], format!("BUFCE_ROW_FSR_X{brx}Y{bry}"));
+                            nnode.add_bel(
+                                bels::BUFCE_ROW_RCLK[0],
+                                format!("BUFCE_ROW_FSR_X{brx}Y{bry}"),
+                            );
                             let gtbx = clk_grid.gtbxlut[col];
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             nnode.add_bel(
-                                bels::GCLK_TEST_BUF[0],
+                                bels::GCLK_TEST_BUF_RCLK[0],
                                 format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"),
                             );
                         }
@@ -2308,7 +2310,7 @@ pub fn name_device<'a>(
                             let bry = clk_grid.brylut[die.die][reg];
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    bels::BUFCE_ROW[i],
+                                    bels::BUFCE_ROW_RCLK[i],
                                     format!("BUFCE_ROW_X{x}Y{y}", x = brx + i, y = bry * 25 + 24),
                                 );
                             }
@@ -2316,7 +2318,7 @@ pub fn name_device<'a>(
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    bels::GCLK_TEST_BUF[i],
+                                    bels::GCLK_TEST_BUF_RCLK[i],
                                     format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i),
                                 );
                             }
@@ -2384,7 +2386,7 @@ pub fn name_device<'a>(
                             for i in 0..2 {
                                 match chip.kind {
                                     ChipKind::Ultrascale => nnode.add_bel(
-                                        bels::BUFCE_ROW[i],
+                                        bels::BUFCE_ROW_RCLK[i],
                                         format!(
                                             "BUFCE_ROW_X{x}Y{y}",
                                             x = brx + i,
@@ -2392,7 +2394,7 @@ pub fn name_device<'a>(
                                         ),
                                     ),
                                     ChipKind::UltrascalePlus => nnode.add_bel(
-                                        bels::BUFCE_ROW[i],
+                                        bels::BUFCE_ROW_RCLK[i],
                                         format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,),
                                     ),
                                 }
@@ -2400,7 +2402,7 @@ pub fn name_device<'a>(
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..2 {
                                 nnode.add_bel(
-                                    bels::GCLK_TEST_BUF[i],
+                                    bels::GCLK_TEST_BUF_RCLK[i],
                                     format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i),
                                 );
                             }
@@ -2422,7 +2424,7 @@ pub fn name_device<'a>(
                             let bry = clk_grid.brylut[die.die][reg];
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    bels::BUFCE_ROW[i],
+                                    bels::BUFCE_ROW_RCLK[i],
                                     format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,),
                                 );
                             }
@@ -2430,7 +2432,7 @@ pub fn name_device<'a>(
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    bels::GCLK_TEST_BUF[i],
+                                    bels::GCLK_TEST_BUF_RCLK[i],
                                     format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i),
                                 );
                             }
@@ -2465,7 +2467,7 @@ pub fn name_device<'a>(
                             let bry = clk_grid.brylut[die.die][reg];
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    bels::BUFCE_ROW[i],
+                                    bels::BUFCE_ROW_RCLK[i],
                                     format!("BUFCE_ROW_FSR_X{x}Y{bry}", x = brx + i,),
                                 );
                             }
@@ -2473,7 +2475,7 @@ pub fn name_device<'a>(
                             let gtby = clk_grid.gtbylut[die.die][reg].1;
                             for i in 0..4 {
                                 nnode.add_bel(
-                                    bels::GCLK_TEST_BUF[i],
+                                    bels::GCLK_TEST_BUF_RCLK[i],
                                     format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i),
                                 );
                             }

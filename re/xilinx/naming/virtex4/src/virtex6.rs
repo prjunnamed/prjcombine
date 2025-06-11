@@ -376,8 +376,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 nloc,
                                 kind,
                                 [
-                                    format!("{kind}_X{x}Y{y}", y = y - 2),
-                                    format!("CMT_X{x}Y{y}", y = y - 11),
+                                    format!("{kind}_X{x}Y{y}"),
+                                    format!("CMT_X{x}Y{y}", y = y - 9),
                                 ],
                             );
                             for i in 0..16 {
@@ -402,7 +402,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "GCLK_BUF" => {
                             let name = if row < chip.row_bufg() {
-                                format!("CMT_PMVB_BUF_BELOW_X{x}Y{y}", y = y - 2)
+                                format!("CMT_PMVB_BUF_BELOW_X{x}Y{y}")
                             } else {
                                 format!("CMT_PMVB_BUF_ABOVE_X{x}Y{y}")
                             };

@@ -3,7 +3,10 @@ use std::{error::Error, fs::File, path::Path};
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_types::{bsdata::BsData, db::{BondId, ChipId, DevBondId, DevSpeedId}};
+use prjcombine_types::{
+    bsdata::BsData,
+    db::{BondId, ChipId, DevBondId, DevSpeedId},
+};
 use unnamed_entity::{EntityId, EntityMap, EntityVec};
 
 use crate::{bond::Bond, chip::Chip};

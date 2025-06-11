@@ -8,22 +8,66 @@ use crate::DocgenContext;
 fn gen_intdb_basics(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb) {
     let mut buf = String::new();
 
+    writeln!(buf, "## Tile slots").unwrap();
+    writeln!(buf).unwrap();
+    writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+    writeln!(buf, r#"<caption>{dbname} tile slots</caption>"#).unwrap();
+    writeln!(buf, r#"<thead>"#).unwrap();
+    writeln!(
+        buf,
+        r#"<tr><th>Slot</th><th>Tiles</th><th>Bel slots</th></tr>"#
+    )
+    .unwrap();
+    writeln!(buf, r#"</thead>"#).unwrap();
+    writeln!(buf, r#"<tbody>"#).unwrap();
+    for (id, name) in &intdb.tile_slots {
+        let tiles = intdb
+            .tile_classes
+            .iter()
+            .filter(|&(_, _, tcls)| tcls.slot == id)
+            .map(|(_, name, _)| name.as_str())
+            .join(", ");
+        let bels = intdb
+            .bel_slots
+            .iter()
+            .filter(|&(_, _, bslot)| bslot.tile_slot == id)
+            .map(|(_, name, _)| name.as_str())
+            .join(", ");
+        writeln!(
+            buf,
+            r#"<tr><td>{name}</td><td>{tiles}</td><td>{bels}</td></tr>"#
+        )
+        .unwrap();
+    }
+    writeln!(buf, r#"</tbody>"#).unwrap();
+    writeln!(buf, r#"</table></div>"#).unwrap();
+    writeln!(buf).unwrap();
+
     writeln!(buf, "## Bel slots").unwrap();
     writeln!(buf).unwrap();
     writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
     writeln!(buf, r#"<caption>{dbname} bel slots</caption>"#).unwrap();
     writeln!(buf, r#"<thead>"#).unwrap();
-    writeln!(buf, r#"<tr><th>Slot</th><th>Tiles</th></tr>"#).unwrap();
+    writeln!(
+        buf,
+        r#"<tr><th>Slot</th><th>Tile slot</th><th>Tiles</th></tr>"#
+    )
+    .unwrap();
     writeln!(buf, r#"</thead>"#).unwrap();
     writeln!(buf, r#"<tbody>"#).unwrap();
-    for (id, name) in &intdb.bel_slots {
+    for (id, name, bslot) in &intdb.bel_slots {
         let tiles = intdb
             .tile_classes
             .iter()
             .filter(|&(_, _, tcls)| tcls.bels.contains_id(id))
             .map(|(_, name, _)| name.as_str())
             .join(", ");
-        writeln!(buf, r#"<tr><td>{name}</td><td>{tiles}</td></tr>"#).unwrap();
+        let tslot = intdb.tile_slots[bslot.tile_slot].as_str();
+        writeln!(
+            buf,
+            r#"<tr><td>{name}</td><td>{tslot}</td><td>{tiles}</td></tr>"#
+        )
+        .unwrap();
     }
     writeln!(buf, r#"</tbody>"#).unwrap();
     writeln!(buf, r#"</table></div>"#).unwrap();
@@ -257,7 +301,7 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
 
     let mut wmap: BTreeMap<_, Vec<_>> = BTreeMap::new();
     for (slot, bel) in &tcls.bels {
-        let bname = intdb.bel_slots[slot].as_str();
+        let bname = intdb.bel_slots.key(slot).as_str();
         writeln!(buf, r#"### Bel {bname}"#).unwrap();
         writeln!(buf).unwrap();
         writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
@@ -319,7 +363,7 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
             let pins = pins
                 .into_iter()
                 .map(|(slot, pin)| {
-                    let bel = &intdb.bel_slots[slot];
+                    let bel = intdb.bel_slots.key(slot).as_str();
                     format!("{bel}.{pin}")
                 })
                 .join(", ");

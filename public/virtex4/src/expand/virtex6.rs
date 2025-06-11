@@ -309,10 +309,10 @@ impl Expander<'_, '_> {
 
             let row: RowId = row_hclk + 18;
             if reg < self.chip.reg_cfg - 1 {
-                self.die.add_tile((col, row + 2), "GCLK_BUF", &[]);
+                self.die.add_tile((col, row), "GCLK_BUF", &[]);
             } else if reg == self.chip.reg_cfg - 1 {
                 self.die.add_tile(
-                    (col, row + 2),
+                    (col, row),
                     "CMT_BUFG_BOT",
                     &[(col, row - 1), (col, row), (col, row + 1)],
                 );

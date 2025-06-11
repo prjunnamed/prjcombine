@@ -1,4 +1,4 @@
-use unnamed_entity::id::{EntityIdU16, EntityIdU8, EntityTag};
+use unnamed_entity::id::{EntityIdU8, EntityIdU16, EntityTag};
 
 pub struct ChipTag;
 pub struct SpeedTag;
@@ -32,4 +32,3 @@ pub type BondId = EntityIdU16<BondTag>;
 pub type InterposerId = EntityIdU16<InterposerTag>;
 pub type DevBondId = EntityIdU8<DevBondTag>;
 pub type DevSpeedId = EntityIdU8<DevSpeedTag>;
-

@@ -1716,7 +1716,7 @@ fn verify_gt11clk(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = &endev.edev.egrid.db.bel_slots[bel.slot];
+    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
     match bel.slot {
         bels::SLICE0 | bels::SLICE1 | bels::SLICE2 | bels::SLICE3 => verify_slice(vrf, bel),
         bels::DSP0 | bels::DSP1 => verify_dsp(vrf, bel),

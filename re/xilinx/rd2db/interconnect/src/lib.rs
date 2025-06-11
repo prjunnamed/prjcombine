@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     db::{
         BelInfo, BelPin, BelSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire,
         IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, PinDir, TileCellId, TileClass, TileClassId,
-        TileClassWire, TileIriId, WireId, WireKind,
+        TileClassWire, TileIriId, TileSlotId, WireId, WireKind,
     },
     dir::{Dir, DirMap},
 };
@@ -57,6 +57,7 @@ pub struct XNodeRef {
 }
 
 pub struct XNodeInfo<'a, 'b> {
+    pub slot: TileSlotId,
     pub builder: &'b mut IntBuilder<'a>,
     pub kind: String,
     pub naming: String,
@@ -565,6 +566,7 @@ impl XNodeInfo<'_, '_> {
             int_out,
             int_in,
             node: TileClass {
+                slot: self.slot,
                 cells: (0..self.num_tiles).map(|_| ()).collect(),
                 muxes: Default::default(),
                 bels: Default::default(),
@@ -2162,6 +2164,7 @@ impl<'a> IntBuilder<'a> {
 
     pub fn extract_node(
         &mut self,
+        slot: TileSlotId,
         tile_kind: &str,
         kind: &str,
         naming: &str,
@@ -2171,6 +2174,7 @@ impl<'a> IntBuilder<'a> {
             let tk = &self.rd.tile_kinds[tki];
             let tkn = self.rd.tile_kinds.key(tki);
             let mut node = TileClass {
+                slot,
                 cells: [()].into_iter().collect(),
                 muxes: Default::default(),
                 bels: Default::default(),
@@ -2240,6 +2244,7 @@ impl<'a> IntBuilder<'a> {
 
     pub fn extract_node_bels(
         &mut self,
+        slot: TileSlotId,
         tile_kind: &str,
         kind: &str,
         naming: &str,
@@ -2255,6 +2260,7 @@ impl<'a> IntBuilder<'a> {
             }
 
             let mut node = TileClass {
+                slot,
                 cells: [()].into_iter().collect(),
                 muxes: Default::default(),
                 bels: Default::default(),
@@ -2269,8 +2275,8 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn node_type(&mut self, tile_kind: &str, kind: &str, naming: &str) {
-        self.extract_node(tile_kind, kind, naming, &[]);
+    pub fn node_type(&mut self, slot: TileSlotId, tile_kind: &str, kind: &str, naming: &str) {
+        self.extract_node(slot, tile_kind, kind, naming, &[]);
     }
 
     pub fn inject_node_type(&mut self, tile_kind: &str) {
@@ -2583,7 +2589,7 @@ impl<'a> IntBuilder<'a> {
     pub fn extract_term_tile(
         &mut self,
         name: impl AsRef<str>,
-        node_name: Option<&str>,
+        node_name: Option<(TileSlotId, &str)>,
         dir: Dir,
         term_xy: Coord,
         naming: impl AsRef<str>,
@@ -2671,10 +2677,11 @@ impl<'a> IntBuilder<'a> {
                 );
             }
         }
-        if let Some(nn) = node_name {
+        if let Some((slot, nn)) = node_name {
             self.insert_node_merge(
                 nn,
                 TileClass {
+                    slot,
                     cells: [()].into_iter().collect(),
                     muxes: node_muxes,
                     bels: Default::default(),
@@ -2867,7 +2874,7 @@ impl<'a> IntBuilder<'a> {
     pub fn extract_term(
         &mut self,
         name: impl AsRef<str>,
-        node_name: Option<&str>,
+        node_name: Option<(TileSlotId, &str)>,
         dir: Dir,
         tkn: impl AsRef<str>,
         naming: impl AsRef<str>,
@@ -2941,8 +2948,8 @@ impl<'a> IntBuilder<'a> {
         near: Option<Coord>,
         far: Option<Coord>,
         naming: Option<&str>,
-        node: Option<(&str, &str)>,
-        splitter_node: Option<(&str, &str)>,
+        node: Option<(TileSlotId, &str, &str)>,
+        splitter_node: Option<(TileSlotId, &str, &str)>,
         src_xy: Coord,
         force_pass: &[WireId],
     ) {
@@ -3174,10 +3181,11 @@ impl<'a> IntBuilder<'a> {
                     );
                 }
             }
-            if let Some((nn, nnn)) = node {
+            if let Some((slot, nn, nnn)) = node {
                 self.insert_node_merge(
                     nn,
                     TileClass {
+                        slot,
                         cells: node_tiles,
                         muxes: node_muxes,
                         bels: Default::default(),
@@ -3244,10 +3252,11 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
             }
-            if let Some((nn, nnn)) = splitter_node {
+            if let Some((slot, nn, nnn)) = splitter_node {
                 self.insert_node_merge(
                     nn,
                     TileClass {
+                        slot,
                         cells: snode_tiles,
                         muxes: snode_muxes,
                         bels: Default::default(),
@@ -3383,6 +3392,7 @@ impl<'a> IntBuilder<'a> {
 
     pub fn extract_intf_tile_multi(
         &mut self,
+        slot: TileSlotId,
         name: impl AsRef<str>,
         xy: Coord,
         int_xy: &[Coord],
@@ -3390,7 +3400,7 @@ impl<'a> IntBuilder<'a> {
         has_out_bufs: bool,
     ) {
         let mut x = self
-            .xnode(name.as_ref(), naming.as_ref(), xy)
+            .xnode(slot, name.as_ref(), naming.as_ref(), xy)
             .num_tiles(int_xy.len())
             .extract_intfs(has_out_bufs);
         for (i, &xy) in int_xy.iter().enumerate() {
@@ -3401,17 +3411,19 @@ impl<'a> IntBuilder<'a> {
 
     pub fn extract_intf_tile(
         &mut self,
+        slot: TileSlotId,
         name: impl AsRef<str>,
         xy: Coord,
         int_xy: Coord,
         naming: impl AsRef<str>,
         has_out_bufs: bool,
     ) {
-        self.extract_intf_tile_multi(name, xy, &[int_xy], naming, has_out_bufs);
+        self.extract_intf_tile_multi(slot, name, xy, &[int_xy], naming, has_out_bufs);
     }
 
     pub fn extract_intf(
         &mut self,
+        slot: TileSlotId,
         name: impl AsRef<str>,
         dir: Dir,
         tkn: impl AsRef<str>,
@@ -3420,12 +3432,20 @@ impl<'a> IntBuilder<'a> {
     ) {
         for &xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
             let int_xy = self.walk_to_int(xy, !dir, false).unwrap();
-            self.extract_intf_tile(name.as_ref(), xy, int_xy, naming.as_ref(), has_out_bufs);
+            self.extract_intf_tile(
+                slot,
+                name.as_ref(),
+                xy,
+                int_xy,
+                naming.as_ref(),
+                has_out_bufs,
+            );
         }
     }
 
     pub fn extract_xnode(
         &mut self,
+        slot: TileSlotId,
         name: &str,
         xy: Coord,
         buf_xy: &[Coord],
@@ -3435,7 +3455,7 @@ impl<'a> IntBuilder<'a> {
         skip_wires: &[WireId],
     ) {
         let mut x = self
-            .xnode(name, naming, xy)
+            .xnode(slot, name, naming, xy)
             .num_tiles(int_xy.len())
             .extract_muxes()
             .skip_muxes(skip_wires);
@@ -3453,6 +3473,7 @@ impl<'a> IntBuilder<'a> {
 
     pub fn extract_xnode_bels(
         &mut self,
+        slot: TileSlotId,
         name: &str,
         xy: Coord,
         buf_xy: &[Coord],
@@ -3460,7 +3481,7 @@ impl<'a> IntBuilder<'a> {
         naming: &str,
         bels: &[ExtrBelInfo],
     ) {
-        let mut x = self.xnode(name, naming, xy).num_tiles(int_xy.len());
+        let mut x = self.xnode(slot, name, naming, xy).num_tiles(int_xy.len());
         for &xy in buf_xy {
             x = x.raw_tile(xy);
         }
@@ -3475,6 +3496,7 @@ impl<'a> IntBuilder<'a> {
 
     pub fn extract_xnode_bels_intf(
         &mut self,
+        slot: TileSlotId,
         name: &str,
         xy: Coord,
         buf_xy: &[Coord],
@@ -3484,7 +3506,7 @@ impl<'a> IntBuilder<'a> {
         bels: &[ExtrBelInfo],
     ) {
         let mut x = self
-            .xnode(name, naming, xy)
+            .xnode(slot, name, naming, xy)
             .num_tiles(Ord::max(int_xy.len(), intf_xy.len()));
         for &xy in buf_xy {
             x = x.raw_tile(xy);
@@ -3501,7 +3523,14 @@ impl<'a> IntBuilder<'a> {
         x.extract();
     }
 
-    pub fn make_marker_bel(&mut self, name: &str, naming: &str, bel: BelSlotId, ntiles: usize) {
+    pub fn make_marker_bel(
+        &mut self,
+        slot: TileSlotId,
+        name: &str,
+        naming: &str,
+        bel: BelSlotId,
+        ntiles: usize,
+    ) {
         let mut bels = EntityPartVec::new();
         bels.insert(
             bel,
@@ -3518,6 +3547,7 @@ impl<'a> IntBuilder<'a> {
             },
         );
         let node = TileClass {
+            slot,
             cells: (0..ntiles).map(|_| ()).collect(),
             muxes: Default::default(),
             bels,
@@ -3537,8 +3567,9 @@ impl<'a> IntBuilder<'a> {
         self.insert_node_naming(naming, node_naming);
     }
 
-    pub fn make_marker_node(&mut self, name: &str, ntiles: usize) {
+    pub fn make_marker_node(&mut self, slot: TileSlotId, name: &str, ntiles: usize) {
         let node = TileClass {
+            slot,
             cells: (0..ntiles).map(|_| ()).collect(),
             muxes: Default::default(),
             bels: Default::default(),
@@ -3550,11 +3581,13 @@ impl<'a> IntBuilder<'a> {
 
     pub fn xnode<'b>(
         &'b mut self,
+        slot: TileSlotId,
         kind: impl Into<String>,
         naming: impl Into<String>,
         tile: Coord,
     ) -> XNodeInfo<'a, 'b> {
         XNodeInfo {
+            slot,
             builder: self,
             kind: kind.into(),
             naming: naming.into(),

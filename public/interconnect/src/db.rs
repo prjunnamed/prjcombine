@@ -38,9 +38,7 @@ pub type ConnectorClassId = EntityIdU16<ConnectorClass>;
 pub type TileCellId = EntityIdU16<TileCellTag>;
 pub type TileIriId = EntityIdU16<TileIriTag>;
 
-#[derive(
-    Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode,
-)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub struct BelSlotId(u16);
 
 impl BelSlotId {
@@ -80,10 +78,51 @@ impl std::fmt::Display for BelSlotId {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
+pub struct TileSlotId(u8);
+
+impl TileSlotId {
+    pub const fn from_idx_const(idx: usize) -> Self {
+        assert!(idx <= 0xff);
+        Self(idx as u8)
+    }
+
+    pub const fn to_idx_const(self) -> usize {
+        self.0 as usize
+    }
+}
+
+impl EntityId for TileSlotId {
+    fn from_idx(idx: usize) -> Self {
+        Self(idx.try_into().unwrap())
+    }
+
+    fn to_idx(self) -> usize {
+        self.0.into()
+    }
+}
+
+impl std::fmt::Debug for TileSlotId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TSLOT{}", self.0)
+    }
+}
+
+impl std::fmt::Display for TileSlotId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if f.alternate() {
+            write!(f, "{}", self.0)
+        } else {
+            write!(f, "TSLOT{}", self.0)
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Eq, Encode, Decode)]
 pub struct IntDb {
     pub wires: EntityMap<WireId, String, WireKind>,
-    pub bel_slots: EntitySet<BelSlotId, String>,
+    pub tile_slots: EntitySet<TileSlotId, String>,
+    pub bel_slots: EntityMap<BelSlotId, String, BelSlot>,
     pub region_slots: EntitySet<RegionSlotId, String>,
     pub tile_classes: EntityMap<TileClassId, String, TileClass>,
     pub conn_slots: EntityMap<ConnectorSlotId, String, ConnectorSlot>,
@@ -103,6 +142,7 @@ impl IntDb {
         self.bel_slots
             .get(name)
             .unwrap_or_else(|| panic!("no bel slot {name}"))
+            .0
     }
     #[track_caller]
     pub fn get_tile_class(&self, name: &str) -> TileClassId {
@@ -125,6 +165,44 @@ impl IntDb {
             .unwrap_or_else(|| panic!("no connector slot {name}"))
             .0
     }
+
+    pub fn init_slots(
+        &mut self,
+        tslots: &[(TileSlotId, &str)],
+        bslots: &[(BelSlotId, &str, TileSlotId)],
+    ) {
+        for &(id, name) in tslots {
+            assert_eq!(self.tile_slots.insert(name.into()), (id, true));
+        }
+        for &(id, name, tslot) in bslots {
+            assert_eq!(
+                self.bel_slots
+                    .insert(name.into(), BelSlot { tile_slot: tslot }),
+                (id, None)
+            );
+        }
+    }
+
+    pub fn validate(&self) {
+        for (_, tcname, tcls) in &self.tile_classes {
+            for bel in tcls.bels.ids() {
+                let bname = self.bel_slots.key(bel);
+                let bslot = &self.bel_slots[bel];
+                assert_eq!(
+                    tcls.slot,
+                    bslot.tile_slot,
+                    "mismatch on tile {tcname} bel {bname}: {tctslot} != {btslot}",
+                    tctslot = self.tile_slots[tcls.slot],
+                    btslot = self.tile_slots[bslot.tile_slot],
+                );
+            }
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+pub struct BelSlot {
+    pub tile_slot: TileSlotId,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -176,6 +254,7 @@ impl WireKind {
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct TileClass {
+    pub slot: TileSlotId,
     pub cells: EntityVec<TileCellId, ()>,
     pub muxes: BTreeMap<TileClassWire, MuxInfo>,
     pub iris: EntityVec<TileIriId, ()>,
@@ -428,6 +507,7 @@ impl BelPin {
 impl TileClass {
     pub fn to_json(&self, db: &IntDb) -> JsonValue {
         jzon::object! {
+            slot: db.tile_slots[self.slot].as_str(),
             cells: self.cells.len(),
             muxes: jzon::object::Object::from_iter(self.muxes.iter().map(|(wt, mux)| (
                 format!("{:#}:{}", wt.0, db.wires.key(wt.1)),
@@ -439,11 +519,19 @@ impl TileClass {
                 intf.to_json(db),
             ))),
             bels: jzon::object::Object::from_iter(self.bels.iter().map(|(slot, bel)| (
-                db.bel_slots[slot].as_str(),
+                db.bel_slots.key(slot).as_str(),
                 jzon::object! {
                     pins: jzon::object::Object::from_iter(bel.pins.iter().map(|(pname, pin)| (pname.as_str(), pin.to_json(db)))),
                 },
             ))),
+        }
+    }
+}
+
+impl BelSlot {
+    pub fn to_json(self, db: &IntDb) -> JsonValue {
+        jzon::object! {
+            tile_slot: db.tile_slots[self.tile_slot].as_str(),
         }
     }
 }
@@ -495,7 +583,10 @@ impl From<&IntDb> for JsonValue {
                 }
             })),
             region_slots: Vec::from_iter(db.region_slots.values().map(|name| name.as_str())),
-            bel_slots: Vec::from_iter(db.bel_slots.values().map(|name| name.as_str())),
+            tile_slots: Vec::from_iter(db.tile_slots.values().map(|name| name.as_str())),
+            bel_slots: jzon::object::Object::from_iter(db.bel_slots.iter().map(|(_, name, bslot)| {
+                (name.as_str(), bslot.to_json(db))
+            })),
             tile_classes: jzon::object::Object::from_iter(db.tile_classes.iter().map(|(_, name, tcls)| {
                 (name.as_str(), tcls.to_json(db))
             })),

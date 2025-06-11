@@ -15,6 +15,7 @@ use prjcombine_xc2000::{
     bels::xc4000 as bels,
     bond::{Bond, BondPad, CfgPad},
     chip::{Chip, ChipKind, SharedCfgPad},
+    tslots,
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -52,9 +53,7 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
 pub fn make_intdb(kind: ChipKind) -> IntDb {
     let mut db = IntDb::default();
 
-    for &slot in bels::SLOTS {
-        db.bel_slots.insert(slot.into());
-    }
+    db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     let slot_w = db
         .conn_slots
@@ -401,6 +400,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         "CLB.LT", "CLB.T", "CLB.RT", "CLB.L", "CLB", "CLB.R", "CLB.LB", "CLB.B", "CLB.RB",
     ] {
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: EntityVec::from_iter([(), (), ()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -452,6 +452,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     ] {
         let is_bot = name.starts_with("IO.B");
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: Default::default(),
             muxes: Default::default(),
             iris: Default::default(),
@@ -548,6 +549,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     ] {
         let is_left = name.starts_with("IO.L");
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: Default::default(),
             muxes: Default::default(),
             iris: Default::default(),
@@ -660,6 +662,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     }
     for (name, num_tiles) in [("CNR.BR", 1), ("CNR.TR", 2), ("CNR.BL", 2), ("CNR.TL", 4)] {
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: Default::default(),
             muxes: Default::default(),
             iris: Default::default(),
@@ -795,6 +798,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     }
     for name in ["LLH.IO.B", "LLH.IO.T", "LLH.CLB", "LLH.CLB.B"] {
         let mut node = TileClass {
+            slot: tslots::EXTRA_COL,
             cells: Default::default(),
             muxes: Default::default(),
             iris: Default::default(),
@@ -808,6 +812,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     }
     for name in ["LLV.IO.L", "LLV.IO.R", "LLV.CLB"] {
         let mut node = TileClass {
+            slot: tslots::EXTRA_ROW,
             cells: Default::default(),
             muxes: Default::default(),
             iris: Default::default(),
@@ -898,7 +903,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 }
                 for (slot, bel_info) in &node_kind.bels {
                     let bel = (die.die, (col, row), slot);
-                    let slot_name = &intdb.bel_slots[slot];
+                    let slot_name = intdb.bel_slots.key(slot);
 
                     if slot == bels::CLKH && chip.kind != ChipKind::Xc4000H {
                         continue;

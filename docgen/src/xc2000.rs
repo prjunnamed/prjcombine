@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
-use crate::interconnect::gen_intdb;
 use crate::DocgenContext;
+use crate::interconnect::gen_intdb;
 
 use crate::bsdata::{FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_bstiles};
 

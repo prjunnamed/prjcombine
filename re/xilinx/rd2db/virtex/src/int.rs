@@ -7,6 +7,7 @@ use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_virtex::{
     bels,
     expanded::{REGION_GLOBAL, REGION_LEAF},
+    tslots,
 };
 use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
@@ -24,9 +25,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     assert_eq!(builder.db.region_slots.insert("LEAF".into()).0, REGION_LEAF);
 
-    for &slot in bels::SLOTS {
-        builder.db.bel_slots.insert(slot.into());
-    }
+    builder.db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     let mut bram_forbidden = Vec::new();
     let mut bram_bt_forbidden = Vec::new();
@@ -573,6 +572,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let slice_name_only = ["F5IN", "F5", "CIN", "COUT"];
 
     builder.extract_node(
+        tslots::MAIN,
         "CENTER",
         "CLB",
         "CLB",
@@ -625,9 +625,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_int_out("BUS3", &["LEFT_TBUFO1"])
             .extra_wire("BUS3_E", &["LEFT_TBUF1_STUB"]),
     ];
-    builder.extract_node("LEFT", "IO.L", "IO.L", &bels_left);
-    builder.extract_node("LEFT_PCI_BOT", "IO.L", "IO.L", &bels_left);
-    builder.extract_node("LEFT_PCI_TOP", "IO.L", "IO.L", &bels_left);
+    builder.extract_node(tslots::MAIN, "LEFT", "IO.L", "IO.L", &bels_left);
+    builder.extract_node(tslots::MAIN, "LEFT_PCI_BOT", "IO.L", "IO.L", &bels_left);
+    builder.extract_node(tslots::MAIN, "LEFT_PCI_TOP", "IO.L", "IO.L", &bels_left);
 
     let bels_right = [
         builder.bel_indexed(bels::IO0, "IOB", 0),
@@ -651,9 +651,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_int_out("BUS2", &["RIGHT_TBUFO0"])
             .extra_int_out("BUS3", &["RIGHT_TBUFO1"]),
     ];
-    builder.extract_node("RIGHT", "IO.R", "IO.R", &bels_right);
-    builder.extract_node("RIGHT_PCI_BOT", "IO.R", "IO.R", &bels_right);
-    builder.extract_node("RIGHT_PCI_TOP", "IO.R", "IO.R", &bels_right);
+    builder.extract_node(tslots::MAIN, "RIGHT", "IO.R", "IO.R", &bels_right);
+    builder.extract_node(tslots::MAIN, "RIGHT_PCI_BOT", "IO.R", "IO.R", &bels_right);
+    builder.extract_node(tslots::MAIN, "RIGHT_PCI_TOP", "IO.R", "IO.R", &bels_right);
 
     let bels_bot = [
         builder.bel_indexed(bels::IO0, "IOB", 0),
@@ -665,9 +665,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_wire_force("DLLFB", "BR_DLLIOB_IOFB"),
         builder.bel_indexed(bels::IO3, "IOB", 3),
     ];
-    builder.extract_node("BOT", "IO.B", "IO.B", &bels_bot);
-    builder.extract_node("BL_DLLIOB", "IO.B", "IO.B", &bels_bot);
-    builder.extract_node("BR_DLLIOB", "IO.B", "IO.B", &bels_bot);
+    builder.extract_node(tslots::MAIN, "BOT", "IO.B", "IO.B", &bels_bot);
+    builder.extract_node(tslots::MAIN, "BL_DLLIOB", "IO.B", "IO.B", &bels_bot);
+    builder.extract_node(tslots::MAIN, "BR_DLLIOB", "IO.B", "IO.B", &bels_bot);
 
     let bels_top = [
         builder.bel_indexed(bels::IO0, "IOB", 0),
@@ -679,18 +679,20 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_wire_force("DLLFB", "TR_DLLIOB_IOFB"),
         builder.bel_indexed(bels::IO3, "IOB", 3),
     ];
-    builder.extract_node("TOP", "IO.T", "IO.T", &bels_top);
-    builder.extract_node("TL_DLLIOB", "IO.T", "IO.T", &bels_top);
-    builder.extract_node("TR_DLLIOB", "IO.T", "IO.T", &bels_top);
+    builder.extract_node(tslots::MAIN, "TOP", "IO.T", "IO.T", &bels_top);
+    builder.extract_node(tslots::MAIN, "TL_DLLIOB", "IO.T", "IO.T", &bels_top);
+    builder.extract_node(tslots::MAIN, "TR_DLLIOB", "IO.T", "IO.T", &bels_top);
 
     builder.extract_node(
+        tslots::MAIN,
         "LL",
         "CNR.BL",
         "CNR.BL",
         &[builder.bel_single(bels::CAPTURE, "CAPTURE")],
     );
-    builder.extract_node("LR", "CNR.BR", "CNR.BR", &[]);
+    builder.extract_node(tslots::MAIN, "LR", "CNR.BR", "CNR.BR", &[]);
     builder.extract_node(
+        tslots::MAIN,
         "UL",
         "CNR.TL",
         "CNR.TL",
@@ -699,7 +701,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_single(bels::BSCAN, "BSCAN"),
         ],
     );
-    builder.extract_node("UR", "CNR.TR", "CNR.TR", &[]);
+    builder.extract_node(tslots::MAIN, "UR", "CNR.TR", "CNR.TR", &[]);
 
     for tkn in ["LBRAM", "RBRAM", "MBRAM"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
@@ -747,7 +749,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
                 bels.push(bel);
             }
-            builder.extract_xnode(tkn, xy, &[], &coords, tkn, &bels, &bram_forbidden);
+            builder.extract_xnode(
+                tslots::MAIN,
+                tkn,
+                xy,
+                &[],
+                &coords,
+                tkn,
+                &bels,
+                &bram_forbidden,
+            );
         }
     }
 
@@ -779,7 +790,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 dx -= 1;
             }
             let coords = [xy, xy.delta(dx, 0)];
-            builder.extract_xnode(node, xy, &[], &coords, naming, &[], &bram_bt_forbidden);
+            builder.extract_xnode(
+                tslots::MAIN,
+                node,
+                xy,
+                &[],
+                &coords,
+                naming,
+                &[],
+                &bram_bt_forbidden,
+            );
         }
     }
 
@@ -824,7 +844,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 dx -= 1;
             }
             let coords = [xy, xy.delta(dx, 0)];
-            builder.extract_xnode(node, xy, &[], &coords, naming, &[], &dll_forbidden);
+            builder.extract_xnode(
+                tslots::DLL,
+                node,
+                xy,
+                &[],
+                &coords,
+                naming,
+                &[],
+                &dll_forbidden,
+            );
         }
     }
     for (naming, mode, bt, lr) in [
@@ -1097,13 +1126,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .extra_int_out("O", &["CLKB_IOFB1", "CLKT_IOFB1"]),
                 );
             }
-            builder.extract_xnode(tkn, xy, &[], &coords, tkn, &bels, &forbidden);
+            builder.extract_xnode(tslots::CLKBT, tkn, xy, &[], &coords, tkn, &bels, &forbidden);
         }
     }
 
     for tkn in ["CLKL", "CLKR"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             builder.extract_xnode(
+                tslots::PCILOGIC,
                 tkn,
                 xy,
                 &[],
@@ -1120,6 +1150,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for &xy in rd.tiles_by_kind_name("CLKC") {
         builder.extract_xnode_bels(
+            tslots::CLKC,
             "CLKC",
             xy,
             &[],
@@ -1152,6 +1183,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for &xy in rd.tiles_by_kind_name("GCLKC") {
         builder.extract_xnode_bels(
+            tslots::CLKC,
             "GCLKC",
             xy,
             &[],
@@ -1172,6 +1204,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for &xy in rd.tiles_by_kind_name("BRAM_CLKH") {
         builder.extract_xnode_bels(
+            tslots::CLKC,
             "BRAM_CLKH",
             xy,
             &[],
@@ -1257,7 +1290,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     ],
                 );
             }
-            builder.extract_xnode_bels(kind, xy, &[], &[int_xy_l, int_xy_r], naming, &[bel]);
+            builder.extract_xnode_bels(
+                tslots::CLKV,
+                kind,
+                xy,
+                &[],
+                &[int_xy_l, int_xy_r],
+                naming,
+                &[bel],
+            );
         }
     }
 
@@ -1289,7 +1330,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
             }
             let bram_xy = xy; // dummy position
-            builder.extract_xnode_bels(kind, xy, &[], &[xy, int_xy_l, bram_xy], kind, &[bel]);
+            builder.extract_xnode_bels(
+                tslots::CLKV,
+                kind,
+                xy,
+                &[],
+                &[xy, int_xy_l, bram_xy],
+                kind,
+                &[bel],
+            );
         }
     }
 

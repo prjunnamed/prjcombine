@@ -10,12 +10,24 @@ impl IntDb {
         for slot in self.region_slots.values() {
             writeln!(o, "\tREGION SLOT {slot}")?;
         }
-        for slot in self.bel_slots.values() {
-            writeln!(o, "\tBEL SLOT {slot}")?;
+        for slot in self.tile_slots.values() {
+            writeln!(o, "\tTILE SLOT {slot}")?;
         }
-        for (_, name, node) in &self.tile_classes {
-            writeln!(o, "\tTILE CLASS {name} {nt}", nt = node.cells.len())?;
-            for (&wo, mux) in &node.muxes {
+        for (_, name, bslot) in &self.bel_slots {
+            writeln!(
+                o,
+                "\tBEL SLOT {name}: {tile_slot}",
+                tile_slot = bslot.tile_slot
+            )?;
+        }
+        for (_, name, tcls) in &self.tile_classes {
+            writeln!(
+                o,
+                "\tTILE CLASS {name} {slot} {nt}",
+                slot = self.tile_slots[tcls.slot],
+                nt = tcls.cells.len()
+            )?;
+            for (&wo, mux) in &tcls.muxes {
                 write!(
                     o,
                     "\t\tMUX {wot}.{won:14} <-",
@@ -32,10 +44,10 @@ impl IntDb {
                 }
                 writeln!(o)?;
             }
-            if !node.iris.is_empty() {
-                writeln!(o, "\t\tIRI {n}", n = node.iris.len())?;
+            if !tcls.iris.is_empty() {
+                writeln!(o, "\t\tIRI {n}", n = tcls.iris.len())?;
             }
-            for (&wo, intf) in &node.intfs {
+            for (&wo, intf) in &tcls.intfs {
                 match intf {
                     IntfInfo::OutputTestMux(ins) => {
                         write!(
@@ -114,8 +126,8 @@ impl IntDb {
                 }
             }
             let mut wires: BTreeMap<_, Vec<_>> = BTreeMap::new();
-            for (slot, bel) in &node.bels {
-                writeln!(o, "\t\tBEL {slot}:", slot = self.bel_slots[slot])?;
+            for (slot, bel) in &tcls.bels {
+                writeln!(o, "\t\tBEL {slot}:", slot = self.bel_slots.key(slot))?;
                 for (pn, pin) in &bel.pins {
                     write!(
                         o,
@@ -147,7 +159,7 @@ impl IntDb {
                     wn = self.wires.key(wire.1)
                 )?;
                 for (bel, pin) in bels {
-                    write!(o, " {bel}.{pin}", bel = self.bel_slots[bel])?;
+                    write!(o, " {bel}.{pin}", bel = self.bel_slots.key(bel))?;
                 }
                 writeln!(o)?;
             }

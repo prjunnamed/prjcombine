@@ -3,7 +3,10 @@ use std::collections::BTreeMap;
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::{db::PinDir, dir::DirV};
-use unnamed_entity::{id::{EntityIdU16, EntityTag, EntityTagArith}, EntityId, EntityMap};
+use unnamed_entity::{
+    EntityId, EntityMap,
+    id::{EntityIdU16, EntityTag, EntityTagArith},
+};
 
 impl EntityTag for GtzBel {
     const PREFIX: &'static str = "GTZ";

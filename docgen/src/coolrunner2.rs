@@ -8,8 +8,8 @@ use unnamed_entity::{EntityId, EntityPartVec};
 
 use crate::{
     DocgenContext,
-    speed::{SpeedData, gen_speed},
     bsdata::{FrameDirection, TileOrientation, gen_tile},
+    speed::{SpeedData, gen_speed},
     xpla3::gen_jed,
 };
 

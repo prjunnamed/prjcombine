@@ -443,7 +443,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Iobify {
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let id = &mut fuzzer.info.features[0].id;
-        assert_eq!(id.bel, backend.egrid.db.bel_slots[self.0.bel]);
+        assert_eq!(id.bel, *backend.egrid.db.bel_slots.key(self.0.bel));
         id.bel = format!("IOB{}", self.0.index);
         Some((fuzzer, false))
     }
@@ -2491,7 +2491,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if tile == "IOI.CLK_B" && matches!(idx, 2 | 3) {
                 continue;
             }
-            let bel = &intdb.bel_slots[slot];
+            let bel = intdb.bel_slots.key(slot);
             ctx.collect_inv(tile, bel, "OTCLK1");
             ctx.collect_inv(tile, bel, "OTCLK2");
             ctx.collect_inv(tile, bel, "ICLK1");

@@ -16,6 +16,7 @@ use prjcombine_xc2000::{
     bond::{Bond, BondPad, CfgPad},
     chip::{Chip, ChipKind, SharedCfgPad},
     expanded::REGION_GLOBAL,
+    tslots,
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -46,9 +47,7 @@ pub fn make_intdb() -> IntDb {
 
     assert_eq!(db.region_slots.insert("GLOBAL".into()).0, REGION_GLOBAL);
 
-    for &slot in bels::SLOTS {
-        db.bel_slots.insert(slot.into());
-    }
+    db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     let slot_w = db
         .conn_slots
@@ -229,6 +228,7 @@ pub fn make_intdb() -> IntDb {
         "CLB.ML", "CLB.MR", "CLB.BR1", "CLB.TR1",
     ] {
         let mut node = TileClass {
+            slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
             muxes: Default::default(),
             iris: Default::default(),
@@ -321,10 +321,11 @@ pub fn make_intdb() -> IntDb {
         db.tile_classes.insert(name.into(), node);
     }
 
-    for name in ["BIDIH", "BIDIV"] {
+    for (name, slot) in [("BIDIH", tslots::EXTRA_COL), ("BIDIV", tslots::EXTRA_ROW)] {
         db.tile_classes.insert(
             name.into(),
             TileClass {
+                slot,
                 cells: Default::default(),
                 muxes: Default::default(),
                 iris: Default::default(),
@@ -445,7 +446,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                 let nnode = &endev.ngrid.nodes[&nloc];
                 for (slot, bel_info) in &node_kind.bels {
                     let bel = (die.die, (col, row), slot);
-                    let slot_name = &intdb.bel_slots[slot];
+                    let slot_name = intdb.bel_slots.key(slot);
                     match slot {
                         bels::CLB | bels::BUFG | bels::OSC => {
                             let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);

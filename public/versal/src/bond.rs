@@ -9,7 +9,7 @@ pub struct ExpandedBond<'a> {
 }
 
 impl Bond {
-    pub fn expand(&self) -> ExpandedBond {
+    pub fn expand(&self) -> ExpandedBond<'_> {
         ExpandedBond { bond: self }
     }
 }

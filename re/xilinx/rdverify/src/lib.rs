@@ -1346,7 +1346,7 @@ impl<'a> Verifier<'a> {
                 if !bel.naming.pins.contains_key(pin) {
                     panic!(
                         "MISSING PIN NAME {slot} {pin}",
-                        slot = self.grid.db.bel_slots[bel.slot]
+                        slot = self.grid.db.bel_slots.key(bel.slot)
                     );
                 }
                 pins.push(SitePin {
@@ -1362,7 +1362,7 @@ impl<'a> Verifier<'a> {
             println!(
                 "MISSING SITE NAME {tiles:?} {slot}",
                 tiles = bel.node.cells,
-                slot = self.grid.db.bel_slots[bel.slot]
+                slot = self.grid.db.bel_slots.key(bel.slot)
             );
         }
     }

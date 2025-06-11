@@ -399,6 +399,10 @@ impl ExpandedDieRefMut<'_, '_> {
     pub fn add_tile(&mut self, crd: Coord, kind: &str, cells: &[Coord]) -> &mut Tile {
         let kind = self.grid.db.get_tile_class(kind);
         let cells: EntityVec<_, _> = cells.iter().copied().collect();
+        let slot = self.grid.db.tile_classes[kind].slot;
+        for otile in self[crd].tiles.values() {
+            assert_ne!(self.grid.db.tile_classes[otile.class].slot, slot);
+        }
         let layer = self[crd].tiles.push(Tile {
             class: kind,
             cells: cells.clone(),

@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_naming::db::{NamingDb, TileClassNamingId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
-use prjcombine_xc2000::bels::xc4000 as bels;
+use prjcombine_xc2000::{bels::xc4000 as bels, tslots};
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
@@ -1211,7 +1211,7 @@ fn extract_clb(
         }
 
         let mut xn = builder
-            .xnode(kind, &naming, crd)
+            .xnode(tslots::MAIN, kind, &naming, crd)
             .num_tiles(3)
             .raw_tile_single(xy_n, 1)
             .raw_tile_single(xy_e, 2)
@@ -1291,7 +1291,7 @@ fn extract_bot(
                 );
             }
             let mut xn = builder
-                .xnode(nn, &naming, crd)
+                .xnode(tslots::MAIN, nn, &naming, crd)
                 .num_tiles(4)
                 .raw_tile_single(xy_n, 1)
                 .raw_tile_single(xy_e, 2)
@@ -1374,7 +1374,7 @@ fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileC
                 );
             }
             let mut xn = builder
-                .xnode(nn, &naming, crd)
+                .xnode(tslots::MAIN, nn, &naming, crd)
                 .num_tiles(3)
                 .raw_tile_single(xy_e, 1)
                 .raw_tile_single(xy_w, 2)
@@ -1455,7 +1455,7 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileCl
             }
 
             let mut xn = builder
-                .xnode(nn, &naming, crd)
+                .xnode(tslots::MAIN, nn, &naming, crd)
                 .num_tiles(3)
                 .raw_tile_single(xy_s, 1)
                 .raw_tile_single(xy_n, 2)
@@ -1552,7 +1552,7 @@ fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[Tile
             }
 
             let mut xn = builder
-                .xnode(nn, &naming, crd)
+                .xnode(tslots::MAIN, nn, &naming, crd)
                 .num_tiles(4)
                 .raw_tile_single(xy_s, 1)
                 .raw_tile_single(xy_e, 2)
@@ -1653,7 +1653,7 @@ fn extract_lr(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileCl
         ]);
 
         builder
-            .xnode("CNR.BR", "CNR.BR", crd)
+            .xnode(tslots::MAIN, "CNR.BR", "CNR.BR", crd)
             .extract_muxes()
             .optin_muxes_tile(imux_nw)
             .skip_muxes(imux_wires)
@@ -1739,7 +1739,7 @@ fn extract_ur(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileCl
         let xy_s = builder.walk_to_int(crd, Dir::S, true).unwrap();
 
         let mut xn = builder
-            .xnode("CNR.TR", "CNR.TR", crd)
+            .xnode(tslots::MAIN, "CNR.TR", "CNR.TR", crd)
             .num_tiles(2)
             .raw_tile_single(xy_s, 1)
             .extract_muxes()
@@ -1829,7 +1829,7 @@ fn extract_ll(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileCl
         bels.extend([builder.bel_single(bels::RDBK, "RDBK")]);
 
         let mut xn = builder
-            .xnode("CNR.BL", "CNR.BL", crd)
+            .xnode(tslots::MAIN, "CNR.BL", "CNR.BL", crd)
             .num_tiles(2)
             .raw_tile_single(xy_e, 1)
             .extract_muxes()
@@ -1913,7 +1913,7 @@ fn extract_ul(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileCl
         bels.extend([builder.bel_single(bels::BSCAN, "BSCAN")]);
 
         let mut xn = builder
-            .xnode("CNR.TL", "CNR.TL", crd)
+            .xnode(tslots::MAIN, "CNR.TL", "CNR.TL", crd)
             .num_tiles(4)
             .raw_tile_single(xy_e, 1)
             .raw_tile_single(xy_s, 2)
@@ -2015,7 +2015,7 @@ fn extract_llh(builder: &mut IntBuilder) {
             }
 
             let mut xn = builder
-                .xnode(kind, naming, crd)
+                .xnode(tslots::EXTRA_COL, kind, naming, crd)
                 .num_tiles(2)
                 .ref_single(xy_w, 0, naming_w)
                 .ref_single(xy_e, 1, naming_e)
@@ -2181,7 +2181,7 @@ fn extract_llv(builder: &mut IntBuilder) {
                     ],
                 );
             builder
-                .xnode(kind, kind, crd)
+                .xnode(tslots::EXTRA_ROW, kind, kind, crd)
                 .num_tiles(2)
                 .ref_single(xy_s, 0, naming_s)
                 .ref_single(xy_n, 1, naming_n)
@@ -2220,7 +2220,7 @@ fn extract_llhq(builder: &mut IntBuilder) {
                 ]);
             }
             builder
-                .xnode(kind, naming, crd)
+                .xnode(tslots::EXTRA_COL, kind, naming, crd)
                 .num_tiles(2)
                 .ref_single(xy_w, 0, naming_w)
                 .ref_single(xy_e, 1, naming_e)
@@ -2298,7 +2298,7 @@ fn extract_llhc(builder: &mut IntBuilder) {
                 _ => unreachable!(),
             }
             let mut xn = builder
-                .xnode(kind, naming, crd)
+                .xnode(tslots::EXTRA_COL, kind, naming, crd)
                 .num_tiles(2)
                 .ref_single(xy_w, 0, naming_w)
                 .ref_single(xy_e, 1, naming_e)
@@ -2340,7 +2340,7 @@ fn extract_llvc(builder: &mut IntBuilder) {
                 _ => (),
             }
             builder
-                .xnode(kind, kind, crd)
+                .xnode(tslots::EXTRA_ROW, kind, kind, crd)
                 .num_tiles(2)
                 .ref_single(xy_s, 0, naming_s)
                 .ref_single(xy_n, 1, naming_n)
@@ -2371,7 +2371,7 @@ fn extract_llvq(builder: &mut IntBuilder) {
                 bels.push(builder.bel_single(bels::BUFF, "BUFF").pin_name_only("I", 1));
             }
             builder
-                .xnode(kind, naming, crd)
+                .xnode(tslots::EXTRA_ROW, kind, naming, crd)
                 .num_tiles(2)
                 .ref_single(xy_s, 0, naming_s)
                 .ref_single(xy_n, 1, naming_n)
@@ -2395,7 +2395,7 @@ fn extract_clkc(builder: &mut IntBuilder) {
             .extra_wire("O.LR.V", &["CLKC_BUFGLS_5"])
             .extra_wire("O.UR.V", &["CLKC_BUFGLS_6"]);
         builder
-            .xnode("CLKC", "CLKC", crd)
+            .xnode(tslots::EXTRA_CROSS, "CLKC", "CLKC", crd)
             .num_tiles(0)
             .bel(bel)
             .extract();
@@ -2425,7 +2425,7 @@ fn extract_clkqc(builder: &mut IntBuilder) {
                 .extra_int_out("O.UR.H", &["HVBRKC_BUFGLS_7_H", "TVBRKC_BUFGLS_7_H"])
                 .extra_int_out("O.UR.V", &["HVBRKC_BUFGLS_6_H", "TVBRKC_BUFGLS_6"]);
             builder
-                .xnode("CLKQC", naming, crd)
+                .xnode(tslots::EXTRA_CROSS, "CLKQC", naming, crd)
                 .ref_xlat(crd.delta(1, 0), &[None, Some(0)], hvbrk)
                 .bel(bel)
                 .extract();
@@ -2464,7 +2464,7 @@ fn extract_clkq(builder: &mut IntBuilder) {
                 .extra_int_out("O.UR.H.R", &["BCCBRK_BUFGLS_7R", "TCCBRK_BUFGLS_7R"])
                 .extra_int_out("O.UR.V.R", &["BCCBRK_BUFGLS_6R", "TCCBRK_BUFGLS_6R"]);
             builder
-                .xnode("CLKQ", naming, crd)
+                .xnode(tslots::EXTRA_CROSS, "CLKQ", naming, crd)
                 .num_tiles(2)
                 .ref_xlat(crd.delta(-1, 0), &[None, Some(0)], hvbrk)
                 .ref_xlat(crd.delta(2, 0), &[None, Some(1)], hvbrk)
@@ -2477,9 +2477,7 @@ fn extract_clkq(builder: &mut IntBuilder) {
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
 
-    for &slot in bels::SLOTS {
-        builder.db.bel_slots.insert(slot.into());
-    }
+    builder.db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     let mut cnr_terms = CnrTerms {
         term_ll_w: vec![],

@@ -141,7 +141,7 @@ impl<'a> ExpandedGridNaming<'a> {
         }
     }
 
-    pub fn resolve_wire_trace(&self, mut wire: WireCoord) -> Option<(WireCoord, Vec<TracePip>)> {
+    pub fn resolve_wire_trace(&self, mut wire: WireCoord) -> Option<(WireCoord, Vec<TracePip<'_>>)> {
         let die = self.egrid.die(wire.0);
         let mut trace = vec![];
         loop {
@@ -274,7 +274,7 @@ impl<'a> ExpandedGridNaming<'a> {
         }
     }
 
-    pub fn get_tile_pip_naming(&self, np: NodePip) -> TracePip {
+    pub fn get_tile_pip_naming(&self, np: NodePip) -> TracePip<'_> {
         let tile = &self.tiles[&(np.node_die, np.node_crd.0, np.node_crd.1, np.node_layer)];
         let naming = &self.db.tile_class_namings[tile.naming];
         if let Some(pn) = naming.ext_pips.get(&(np.node_wire_out, np.node_wire_in)) {

@@ -7,5 +7,6 @@ pub mod db;
 mod expand;
 pub mod expanded;
 pub mod gtz;
+pub mod tslots;
 
 pub use expand::expand_grid;

@@ -6,14 +6,12 @@ use prjcombine_re_xilinx_rawdump::Part;
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
-use prjcombine_xc2000::bels::xc5200 as bels;
+use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
 
-    for &slot in bels::SLOTS {
-        builder.db.bel_slots.insert(slot.into());
-    }
+    builder.db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     builder.wire(
         "GND",
@@ -475,6 +473,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.extract_main_passes();
 
     builder.extract_node(
+        tslots::MAIN,
         "CENTER",
         "CLB",
         "CLB",
@@ -550,15 +549,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .bel_virtual(bels::COUT)
             .extra_int_out("OUT", &["WIRE_COUT_TOP"]),
     );
-    builder.extract_node("LEFT", "IO.L", "IO.L", &bels_io);
-    builder.extract_node("LEFTCLK", "IO.L", "IO.L.CLK", &bels_io);
-    builder.extract_node("RIGHT", "IO.R", "IO.R", &bels_io);
-    builder.extract_node("RIGHTCLK", "IO.R", "IO.R.CLK", &bels_io);
-    builder.extract_node("BOT", "IO.B", "IO.B", &bels_io_b);
-    builder.extract_node("BOTCLK", "IO.B", "IO.B.CLK", &bels_io_b);
-    builder.extract_node("TOP", "IO.T", "IO.T", &bels_io_t);
-    builder.extract_node("TOPCLK", "IO.T", "IO.T.CLK", &bels_io_t);
+    builder.extract_node(tslots::MAIN, "LEFT", "IO.L", "IO.L", &bels_io);
+    builder.extract_node(tslots::MAIN, "LEFTCLK", "IO.L", "IO.L.CLK", &bels_io);
+    builder.extract_node(tslots::MAIN, "RIGHT", "IO.R", "IO.R", &bels_io);
+    builder.extract_node(tslots::MAIN, "RIGHTCLK", "IO.R", "IO.R.CLK", &bels_io);
+    builder.extract_node(tslots::MAIN, "BOT", "IO.B", "IO.B", &bels_io_b);
+    builder.extract_node(tslots::MAIN, "BOTCLK", "IO.B", "IO.B.CLK", &bels_io_b);
+    builder.extract_node(tslots::MAIN, "TOP", "IO.T", "IO.T", &bels_io_t);
+    builder.extract_node(tslots::MAIN, "TOPCLK", "IO.T", "IO.T.CLK", &bels_io_t);
     builder.extract_node(
+        tslots::MAIN,
         "LL",
         "CNR.BL",
         "CNR.BL",
@@ -571,6 +571,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ],
     );
     builder.extract_node(
+        tslots::MAIN,
         "LR",
         "CNR.BR",
         "CNR.BR",
@@ -583,6 +584,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ],
     );
     builder.extract_node(
+        tslots::MAIN,
         "UL",
         "CNR.TL",
         "CNR.TL",
@@ -595,6 +597,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ],
     );
     builder.extract_node(
+        tslots::MAIN,
         "UR",
         "CNR.TR",
         "CNR.TR",
@@ -626,7 +629,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 None,
                 None,
                 None,
-                Some((tkn, tkn)),
+                Some((tslots::EXTRA_COL, tkn, tkn)),
                 int_fwd_xy,
                 &[],
             );
@@ -657,7 +660,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 None,
                 None,
                 None,
-                Some((tkn, tkn)),
+                Some((tslots::EXTRA_ROW, tkn, tkn)),
                 int_fwd_xy,
                 &[],
             );

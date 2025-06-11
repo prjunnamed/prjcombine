@@ -562,7 +562,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         "TIOB1" => bels::IO_N[1],
                         _ => unreachable!(),
                     };
-                    let bel = &ctx.edev.egrid.db.bel_slots[slot];
+                    let bel = ctx.edev.egrid.db.bel_slots.key(slot);
                     assert!(!got_empty);
                     inps.push(("VCC".to_string(), Diff::default()));
                     inps.push((
