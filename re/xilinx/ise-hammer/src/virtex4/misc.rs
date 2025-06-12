@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     dir::{DirH, DirV},
-    grid::{DieId, NodeLoc},
+    grid::{CellCoord, DieId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum_ocd,
@@ -11,7 +11,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{bels, tslots};
 use prjcombine_xilinx_bitstream::Reg;
 use unnamed_entity::EntityId;
 
@@ -22,7 +22,7 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::{
             DynProp,
-            relation::{FixedRelation, NodeRelation},
+            relation::{FixedRelation, TileRelation},
         },
     },
 };
@@ -30,16 +30,16 @@ use crate::{
 #[derive(Clone, Copy, Debug)]
 struct HclkDcm;
 
-impl NodeRelation for HclkDcm {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for HclkDcm {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        Some(backend.egrid.get_tile_by_class(
-            nloc.0,
-            (edev.col_clk, edev.chips[nloc.0].row_hclk(nloc.2)),
-            |kind| kind == "HCLK_DCM",
-        ))
+        Some(
+            tcrd.cell
+                .with_cr(edev.col_clk, edev.chips[tcrd.die].row_hclk(tcrd.row))
+                .tile(tslots::HCLK_BEL),
+        )
     }
 }
 
@@ -54,22 +54,21 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeater {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
+        let chip = edev.chips[tcrd.die];
         let rrow = match self.1 {
-            DirV::S => edev.chips[nloc.0].row_bufg() - 8,
-            DirV::N => edev.chips[nloc.0].row_bufg() + 8,
+            DirV::S => chip.row_bufg() - 8,
+            DirV::N => chip.row_bufg() + 8,
         };
         for &col in &edev.chips[DieId::from_idx(0)].cols_vbrk {
             if (col < edev.col_cfg) == (self.0 == DirH::W) {
                 let rcol = if self.0 == DirH::W { col } else { col - 1 };
-                let nnloc = edev
-                    .egrid
-                    .get_tile_by_class(nloc.0, (rcol, rrow), |kind| kind == "HCLK_MGT_REPEATER");
+                let ntcrd = tcrd.with_cr(rcol, rrow).tile(tslots::CLK);
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
                         tile: "HCLK_MGT_REPEATER".into(),
@@ -77,7 +76,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeater {
                         attr: self.2.clone(),
                         val: self.3.into(),
                     },
-                    tiles: edev.tile_bits(nnloc),
+                    tiles: edev.tile_bits(ntcrd),
                 });
             }
         }
@@ -153,19 +152,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 let mb_idx = 2 * (i % 16) + midx;
                 let mb_out = format!("MUXBUS_O{mb_idx}");
-                let die = DieId::from_idx(0);
-                let clk_iob = edev.egrid.get_tile_by_class(
-                    die,
-                    (
-                        edev.col_clk,
-                        if i < 16 {
-                            edev.row_dcmiob.unwrap()
-                        } else {
-                            edev.row_iobdcm.unwrap() - 16
-                        },
-                    ),
-                    |kind| kind.starts_with("CLK_IOB"),
-                );
+                let clk_iob = CellCoord::new(
+                    DieId::from_idx(0),
+                    edev.col_clk,
+                    if i < 16 {
+                        edev.row_dcmiob.unwrap()
+                    } else {
+                        edev.row_iobdcm.unwrap() - 16
+                    },
+                )
+                .tile(tslots::CLK);
                 bctx.build()
                     .mutex("IxMUX", &mux)
                     .mutex(&mux, "MUXBUS")

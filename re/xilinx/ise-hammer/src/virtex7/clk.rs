@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     dir::{DirH, DirV},
-    grid::{NodeLoc, RowId},
+    grid::{RowId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -16,7 +16,7 @@ use crate::{
         props::{
             DynProp,
             bel::BelMutex,
-            relation::{Delta, NodeRelation, Related},
+            relation::{Delta, Related, TileRelation},
         },
     },
 };
@@ -24,24 +24,24 @@ use crate::{
 #[derive(Clone, Copy, Debug)]
 pub struct ColPair(pub &'static str);
 
-impl NodeRelation for ColPair {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
-        let col = if nloc.1.to_idx() % 2 == 0 {
-            nloc.1 + 1
+impl TileRelation for ColPair {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
+        let col = if tcrd.col.to_idx() % 2 == 0 {
+            tcrd.col + 1
         } else {
-            nloc.1 - 1
+            tcrd.col - 1
         };
         backend
             .egrid
-            .find_tile_by_class(nloc.0, (col, nloc.2), |kind| kind == self.0)
+            .find_tile_by_class(tcrd.with_col(col), |kind| kind == self.0)
     }
 }
 
 #[derive(Clone, Copy, Debug)]
 struct CmtDir(DirH);
 
-impl NodeRelation for CmtDir {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for CmtDir {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
@@ -51,48 +51,45 @@ impl NodeRelation for CmtDir {
         };
         backend
             .egrid
-            .find_tile_by_class(nloc.0, (scol, nloc.2), |kind| kind == "CMT")
+            .find_tile_by_class(tcrd.with_col(scol), |kind| kind == "CMT")
     }
 }
 
 #[derive(Clone, Copy, Debug)]
 struct ClkRebuf(DirV);
 
-impl NodeRelation for ClkRebuf {
-    fn resolve(&self, backend: &IseBackend, mut nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for ClkRebuf {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
+        let mut cell = tcrd.cell;
         loop {
             match self.0 {
                 DirV::S => {
-                    if nloc.2.to_idx() == 0 {
-                        if nloc.0.to_idx() == 0 {
+                    if cell.row.to_idx() == 0 {
+                        if cell.die.to_idx() == 0 {
                             return None;
                         }
-                        nloc.0 -= 1;
-                        nloc.2 = backend.egrid.die(nloc.0).rows().next_back().unwrap();
+                        cell.die -= 1;
+                        cell.row = backend.egrid.die(cell.die).rows().next_back().unwrap();
                     } else {
-                        nloc.2 -= 1;
+                        cell.row -= 1;
                     }
                 }
                 DirV::N => {
-                    if nloc.2 == backend.egrid.die(nloc.0).rows().next_back().unwrap() {
-                        nloc.2 = RowId::from_idx(0);
-                        nloc.0 += 1;
-                        if nloc.0 == backend.egrid.die.next_id() {
+                    if cell.row == backend.egrid.die(cell.die).rows().next_back().unwrap() {
+                        cell.row = RowId::from_idx(0);
+                        cell.die += 1;
+                        if cell.die == backend.egrid.die.next_id() {
                             return None;
                         }
                     } else {
-                        nloc.2 += 1;
+                        cell.row += 1;
                     }
                 }
             }
-            if let Some(nnloc) =
-                backend
-                    .egrid
-                    .find_tile_by_class(nloc.0, (nloc.1, nloc.2), |kind| {
-                        matches!(kind, "CLK_BUFG_REBUF" | "CLK_BALI_REBUF")
-                    })
-            {
-                return Some(nnloc);
+            if let Some(ntcrd) = backend.egrid.find_tile_by_class(cell, |kind| {
+                matches!(kind, "CLK_BUFG_REBUF" | "CLK_BALI_REBUF")
+            }) {
+                return Some(ntcrd);
             }
         }
     }
@@ -109,21 +106,22 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkSide {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
+        let chip = edev.chips[tcrd.die];
 
         match self.0 {
             DirV::S => {
-                if nloc.2 >= edev.chips[nloc.0].row_hclk(nloc.2) {
+                if tcrd.row >= chip.row_hclk(tcrd.row) {
                     return None;
                 }
             }
             DirV::N => {
-                if nloc.2 < edev.chips[nloc.0].row_hclk(nloc.2) {
+                if tcrd.row < chip.row_hclk(tcrd.row) {
                     return None;
                 }
             }
@@ -508,10 +506,10 @@ pub fn add_fuzzers<'a>(
             let cmt = backend.egrid.db.get_tile_class("CMT");
             let has_lio = backend.egrid.tile_index[cmt]
                 .iter()
-                .any(|loc| loc.1 <= edev.col_clk);
+                .any(|loc| loc.cell.col <= edev.col_clk);
             let has_rio = backend.egrid.tile_index[cmt]
                 .iter()
-                .any(|loc| loc.1 > edev.col_clk);
+                .any(|loc| loc.cell.col > edev.col_clk);
             for i in 0..32 {
                 bctx.build()
                     .mutex("CASCO", "CASCO")

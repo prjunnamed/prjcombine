@@ -1,8 +1,8 @@
-use prjcombine_interconnect::grid::NodeLoc;
+use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{bels, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -10,7 +10,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::{Delta, NodeRelation},
+        props::relation::{Delta, TileRelation},
     },
 };
 
@@ -639,21 +639,18 @@ const PCIE3_DEC_ATTRS: &[(&str, usize)] = &[
 #[derive(Copy, Clone, Debug)]
 struct PcieHclkPair;
 
-impl NodeRelation for PcieHclkPair {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for PcieHclkPair {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let col = if nloc.1.to_idx() % 2 == 0 {
-            nloc.1 - 4
+        let col = if tcrd.col.to_idx() % 2 == 0 {
+            tcrd.col - 4
         } else {
-            nloc.1 - 1
+            tcrd.col - 1
         };
-        let row = nloc.2 + edev.chips[nloc.0].rows_per_reg() / 2;
-        Some(
-            edev.egrid
-                .get_tile_by_class(nloc.0, (col, row), |kind| kind == "HCLK"),
-        )
+        let row = tcrd.row + edev.chips[tcrd.die].rows_per_reg() / 2;
+        Some(tcrd.with_cr(col, row).tile(tslots::HCLK))
     }
 }
 

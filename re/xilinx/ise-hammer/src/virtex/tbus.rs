@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::NodeLoc;
+use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::xlat_bool;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -6,7 +6,7 @@ use prjcombine_re_xilinx_geom::ExpandedDevice;
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
-    generic::{fbuild::FuzzCtx, props::relation::NodeRelation},
+    generic::{fbuild::FuzzCtx, props::relation::TileRelation},
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -18,24 +18,35 @@ enum Mode {
 #[derive(Copy, Clone, Debug)]
 struct ClbTbusRight;
 
-impl NodeRelation for ClbTbusRight {
-    fn resolve(&self, backend: &IseBackend, mut nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for ClbTbusRight {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
+        let mut cell = tcrd.cell;
         loop {
-            if nloc.1 == backend.egrid.die(nloc.0).cols().next_back().unwrap() {
+            if cell.col == backend.egrid.die(cell.die).cols().next_back().unwrap() {
                 return None;
             }
-            nloc.1 += 1;
-            if let Some(layer) = backend
-                .egrid
-                .find_tile_layer(nloc.0, (nloc.1, nloc.2), |kind| kind == "CLB")
-            {
-                nloc.3 = layer;
-                if let ExpandedDevice::Virtex2(edev) = backend.edev {
-                    if nloc.1 == edev.chip.col_e() - 1 {
-                        return None;
+            cell.col += 1;
+            match backend.edev {
+                ExpandedDevice::Virtex(_) => {
+                    if backend
+                        .egrid
+                        .has_bel(cell.bel(prjcombine_virtex::bels::SLICE0))
+                    {
+                        return Some(cell.tile(prjcombine_virtex::tslots::MAIN));
                     }
                 }
-                return Some(nloc);
+                ExpandedDevice::Virtex2(edev) => {
+                    if cell.col == edev.chip.col_e() - 1 {
+                        return None;
+                    }
+                    if backend
+                        .egrid
+                        .has_bel(cell.bel(prjcombine_virtex2::bels::SLICE0))
+                    {
+                        return Some(cell.tile(prjcombine_virtex2::tslots::BEL));
+                    }
+                }
+                _ => unreachable!(),
             }
         }
     }
@@ -43,8 +54,8 @@ impl NodeRelation for ClbTbusRight {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let mode = match backend.edev {
-        prjcombine_re_xilinx_geom::ExpandedDevice::Virtex(_) => Mode::Virtex,
-        prjcombine_re_xilinx_geom::ExpandedDevice::Virtex2(_) => Mode::Virtex2,
+        ExpandedDevice::Virtex(_) => Mode::Virtex,
+        ExpandedDevice::Virtex2(_) => Mode::Virtex2,
         _ => unreachable!(),
     };
     let (tbus, tbuf, tiles) = match mode {
@@ -111,8 +122,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mode = match ctx.edev {
-        prjcombine_re_xilinx_geom::ExpandedDevice::Virtex(_) => Mode::Virtex,
-        prjcombine_re_xilinx_geom::ExpandedDevice::Virtex2(_) => Mode::Virtex2,
+        ExpandedDevice::Virtex(_) => Mode::Virtex,
+        ExpandedDevice::Virtex2(_) => Mode::Virtex2,
         _ => unreachable!(),
     };
     let tiles: &[_] = match mode {

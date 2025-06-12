@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     db::RegionSlotId,
-    grid::{ColId, DieId, ExpandedGrid, NodeLoc, Rect, RowId},
+    grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord},
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -24,25 +24,25 @@ pub struct ExpandedDevice<'a> {
 }
 
 impl ExpandedDevice<'_> {
-    pub fn is_in_hole(&self, col: ColId, row: RowId) -> bool {
+    pub fn is_in_hole(&self, cell: CellCoord) -> bool {
         for hole in &self.holes {
-            if hole.contains(col, row) {
+            if hole.contains(cell.col, cell.row) {
                 return true;
             }
         }
         false
     }
 
-    pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_main(&self, cell: CellCoord) -> BitTile {
         let (width, height) = if self.chip.kind.is_virtex2() {
             (22, 80)
         } else {
             (19, 64)
         };
-        let bit = 16 + height * row.to_idx();
+        let bit = 16 + height * cell.row.to_idx();
         BitTile::Main(
             DieId::from_idx(0),
-            self.col_frame[col],
+            self.col_frame[cell.col],
             width,
             bit,
             height,
@@ -50,16 +50,16 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_bram(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_bram(&self, cell: CellCoord) -> BitTile {
         let (width, height, height_single) = if self.chip.kind.is_virtex2() {
             (64, 80 * 4, 80)
         } else {
             (19 * 4, 64 * 4, 64)
         };
-        let bit = 16 + height_single * row.to_idx();
+        let bit = 16 + height_single * cell.row.to_idx();
         BitTile::Main(
             DieId::from_idx(0),
-            self.bram_frame[col],
+            self.bram_frame[cell.col],
             width,
             bit,
             height,
@@ -67,16 +67,16 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_lrterm(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_lrterm(&self, cell: CellCoord) -> BitTile {
         let (width, height) = if self.chip.kind.is_virtex2() {
             (4, 80)
         } else {
             (2, 64)
         };
-        let bit = 16 + height * row.to_idx();
-        let frame = if col == self.chip.col_w() {
+        let bit = 16 + height * cell.row.to_idx();
+        let frame = if cell.col == self.chip.col_w() {
             self.lterm_frame
-        } else if col == self.chip.col_e() {
+        } else if cell.col == self.chip.col_e() {
             self.rterm_frame
         } else {
             unreachable!()
@@ -84,13 +84,13 @@ impl ExpandedDevice<'_> {
         BitTile::Main(DieId::from_idx(0), frame, width, bit, height, false)
     }
 
-    pub fn btile_btterm(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_btterm(&self, cell: CellCoord) -> BitTile {
         let (width, height) = if self.chip.kind.is_virtex2() {
             (22, 80)
         } else {
             (19, 64)
         };
-        let bit = if row == self.chip.row_s() {
+        let bit = if cell.row == self.chip.row_s() {
             if self.chip.kind.is_virtex2() {
                 4
             } else if !self.chip.kind.is_spartan3a() {
@@ -98,14 +98,14 @@ impl ExpandedDevice<'_> {
             } else {
                 0
             }
-        } else if row == self.chip.row_n() {
+        } else if cell.row == self.chip.row_n() {
             16 + height * self.chip.rows.len()
         } else {
             unreachable!()
         };
         BitTile::Main(
             DieId::from_idx(0),
-            self.col_frame[col],
+            self.col_frame[cell.col],
             width,
             bit,
             if self.chip.kind.is_virtex2() {
@@ -138,12 +138,12 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_clkv(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_clkv(&self, cell: CellCoord) -> BitTile {
         assert!(!self.chip.kind.is_virtex2());
-        let bit = 16 + 64 * row.to_idx();
+        let bit = 16 + 64 * cell.row.to_idx();
         BitTile::Main(
             DieId::from_idx(0),
-            self.clkv_frame + if col < self.chip.col_clk { 0 } else { 1 },
+            self.clkv_frame + if cell.col < self.chip.col_clk { 0 } else { 1 },
             1,
             bit,
             64,
@@ -190,7 +190,7 @@ impl ExpandedDevice<'_> {
         BitTile::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 3, false)
     }
 
-    pub fn btile_hclk(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_hclk(&self, cell: CellCoord) -> BitTile {
         let (width, height) = if self.chip.kind.is_virtex2() {
             (22, 80)
         } else {
@@ -200,9 +200,9 @@ impl ExpandedDevice<'_> {
             .chip
             .rows_hclk
             .iter()
-            .position(|&(hrow, _, _)| hrow == row)
+            .position(|&(hrow, _, _)| hrow == cell.row)
             .unwrap();
-        let bit = if row <= self.chip.row_mid() {
+        let bit = if cell.row <= self.chip.row_mid() {
             if self.chip.kind.is_spartan3a() {
                 11 + hclk_idx
             } else {
@@ -218,7 +218,7 @@ impl ExpandedDevice<'_> {
         };
         BitTile::Main(
             DieId::from_idx(0),
-            self.col_frame[col],
+            self.col_frame[cell.col],
             width,
             bit,
             1,
@@ -226,33 +226,37 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn tile_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
-        let (_, col, row, _) = nloc;
-        let node = self.egrid.tile(nloc);
-        let kind = self.egrid.db.tile_classes.key(node.class).as_str();
+    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+        let col = tcrd.col;
+        let row = tcrd.row;
+        let tile = self.egrid.tile(tcrd);
+        let kind = self.egrid.db.tile_classes.key(tile.class).as_str();
         if kind.starts_with("BRAM") {
             vec![
-                self.btile_main(col, row),
-                self.btile_main(col, row + 1),
-                self.btile_main(col, row + 2),
-                self.btile_main(col, row + 3),
-                self.btile_bram(col, row),
+                self.btile_main(tcrd.delta(0, 0)),
+                self.btile_main(tcrd.delta(0, 1)),
+                self.btile_main(tcrd.delta(0, 2)),
+                self.btile_main(tcrd.delta(0, 3)),
+                self.btile_bram(tcrd.cell),
             ]
         } else if kind.starts_with("CLKB") || kind.starts_with("CLKT") {
             vec![self.btile_spine(row), self.btile_btspine(row)]
         } else if kind.starts_with("CLKL") || kind.starts_with("CLKR") {
             vec![
-                self.btile_main(col, row - 1),
-                self.btile_main(col, row),
-                self.btile_lrterm(col, row - 2),
-                self.btile_lrterm(col, row - 1),
-                self.btile_lrterm(col, row),
-                self.btile_lrterm(col, row + 1),
+                self.btile_main(tcrd.delta(0, -1)),
+                self.btile_main(tcrd.delta(0, 0)),
+                self.btile_lrterm(tcrd.delta(0, -2)),
+                self.btile_lrterm(tcrd.delta(0, -1)),
+                self.btile_lrterm(tcrd.delta(0, 0)),
+                self.btile_lrterm(tcrd.delta(0, 1)),
             ]
         } else if kind == "CLKC_50A" {
             vec![self.btile_spine(row - 1)]
         } else if kind.starts_with("GCLKVM") {
-            vec![self.btile_clkv(col, row - 1), self.btile_clkv(col, row)]
+            vec![
+                self.btile_clkv(tcrd.delta(0, -1)),
+                self.btile_clkv(tcrd.delta(0, 0)),
+            ]
         } else if kind.starts_with("GCLKC") {
             if row == self.chip.row_s() + 1 {
                 vec![
@@ -277,71 +281,71 @@ impl ExpandedDevice<'_> {
                 ]
             }
         } else if kind.starts_with("GCLKH") {
-            vec![self.btile_hclk(col, row)]
+            vec![self.btile_hclk(tcrd.cell)]
         } else if kind.starts_with("IOBS") {
             if col == self.chip.col_w() || col == self.chip.col_e() {
                 Vec::from_iter(
-                    node.cells
-                        .values()
-                        .map(|&(col, row)| self.btile_lrterm(col, row)),
+                    self.egrid
+                        .tile_cells(tcrd)
+                        .map(|(_, cell)| self.btile_lrterm(cell)),
                 )
             } else {
                 Vec::from_iter(
-                    node.cells
-                        .values()
-                        .map(|&(col, row)| self.btile_btterm(col, row)),
+                    self.egrid
+                        .tile_cells(tcrd)
+                        .map(|(_, cell)| self.btile_btterm(cell)),
                 )
             }
         } else if matches!(kind, "TERM.W" | "TERM.E") {
-            vec![self.btile_lrterm(col, row)]
+            vec![self.btile_lrterm(tcrd.cell)]
         } else if kind.starts_with("DCMCONN") || matches!(kind, "TERM.S" | "TERM.N") {
-            vec![self.btile_btterm(col, row)]
+            vec![self.btile_btterm(tcrd.cell)]
         } else if kind.starts_with("DCM") {
             if self.chip.kind.is_virtex2() {
-                vec![self.btile_main(col, row), self.btile_btterm(col, row)]
+                vec![self.btile_main(tcrd.cell), self.btile_btterm(tcrd.cell)]
             } else if self.chip.kind == ChipKind::Spartan3 {
-                vec![self.btile_main(col, row)]
+                vec![self.btile_main(tcrd.cell)]
             } else {
                 match kind {
                     "DCM.S3E.BL" | "DCM.S3E.RT" => vec![
-                        self.btile_main(col, row),
-                        self.btile_main(col, row + 1),
-                        self.btile_main(col, row + 2),
-                        self.btile_main(col, row + 3),
-                        self.btile_main(col - 3, row),
-                        self.btile_main(col - 3, row + 1),
-                        self.btile_main(col - 3, row + 2),
-                        self.btile_main(col - 3, row + 3),
+                        self.btile_main(tcrd.delta(0, 0)),
+                        self.btile_main(tcrd.delta(0, 1)),
+                        self.btile_main(tcrd.delta(0, 2)),
+                        self.btile_main(tcrd.delta(0, 3)),
+                        self.btile_main(tcrd.delta(-3, 0)),
+                        self.btile_main(tcrd.delta(-3, 1)),
+                        self.btile_main(tcrd.delta(-3, 2)),
+                        self.btile_main(tcrd.delta(-3, 3)),
                     ],
                     "DCM.S3E.BR" | "DCM.S3E.LT" => vec![
-                        self.btile_main(col, row),
-                        self.btile_main(col, row + 1),
-                        self.btile_main(col, row + 2),
-                        self.btile_main(col, row + 3),
-                        self.btile_main(col + 3, row),
-                        self.btile_main(col + 3, row + 1),
-                        self.btile_main(col + 3, row + 2),
-                        self.btile_main(col + 3, row + 3),
+                        self.btile_main(tcrd.delta(0, 0)),
+                        self.btile_main(tcrd.delta(0, 1)),
+                        self.btile_main(tcrd.delta(0, 2)),
+                        self.btile_main(tcrd.delta(0, 3)),
+                        self.btile_main(tcrd.delta(3, 0)),
+                        self.btile_main(tcrd.delta(3, 1)),
+                        self.btile_main(tcrd.delta(3, 2)),
+                        self.btile_main(tcrd.delta(3, 3)),
                     ],
                     "DCM.S3E.TL" | "DCM.S3E.RB" => vec![
-                        self.btile_main(col, row),
-                        self.btile_main(col, row - 3),
-                        self.btile_main(col, row - 2),
-                        self.btile_main(col, row - 1),
-                        self.btile_main(col - 3, row - 3),
-                        self.btile_main(col - 3, row - 2),
-                        self.btile_main(col - 3, row - 1),
-                        self.btile_main(col - 3, row),
+                        self.btile_main(tcrd.delta(0, 0)),
+                        self.btile_main(tcrd.delta(0, -3)),
+                        self.btile_main(tcrd.delta(0, -2)),
+                        self.btile_main(tcrd.delta(0, -1)),
+                        self.btile_main(tcrd.delta(-3, -3)),
+                        self.btile_main(tcrd.delta(-3, -2)),
+                        self.btile_main(tcrd.delta(-3, -1)),
+                        self.btile_main(tcrd.delta(-3, 0)),
                     ],
                     "DCM.S3E.TR" | "DCM.S3E.LB" => vec![
-                        self.btile_main(col, row),
-                        self.btile_main(col, row - 3),
-                        self.btile_main(col, row - 2),
-                        self.btile_main(col, row - 1),
-                        self.btile_main(col + 3, row - 3),
-                        self.btile_main(col + 3, row - 2),
-                        self.btile_main(col + 3, row - 1),
-                        self.btile_main(col + 3, row),
+                        self.btile_main(tcrd.delta(0, 0)),
+                        self.btile_main(tcrd.delta(0, -3)),
+                        self.btile_main(tcrd.delta(0, -2)),
+                        self.btile_main(tcrd.delta(0, -1)),
+                        self.btile_main(tcrd.delta(3, -3)),
+                        self.btile_main(tcrd.delta(3, -2)),
+                        self.btile_main(tcrd.delta(3, -1)),
+                        self.btile_main(tcrd.delta(3, 0)),
                     ],
                     _ => unreachable!(),
                 }
@@ -351,16 +355,16 @@ impl ExpandedDevice<'_> {
             || kind.starts_with("UL.") | kind.starts_with("UR.")
         {
             if self.chip.kind.is_virtex2() {
-                vec![self.btile_lrterm(col, row), self.btile_btterm(col, row)]
+                vec![self.btile_lrterm(tcrd.cell), self.btile_btterm(tcrd.cell)]
             } else {
-                vec![self.btile_lrterm(col, row)]
+                vec![self.btile_lrterm(tcrd.cell)]
             }
         } else if matches!(kind, "RANDOR" | "RANDOR_INIT") {
-            vec![self.btile_main(col, row)]
+            vec![self.btile_main(tcrd.cell)]
         } else if kind == "PPC.N" {
-            vec![self.btile_main(col, row + 1)]
+            vec![self.btile_main(tcrd.delta(0, 1))]
         } else if kind == "PPC.S" {
-            vec![self.btile_main(col, row - 1)]
+            vec![self.btile_main(tcrd.delta(0, -1))]
         } else if kind.starts_with("LLV") {
             if self.chip.kind == ChipKind::Spartan3E {
                 vec![self.btile_llv_b(col), self.btile_llv_t(col)]
@@ -371,9 +375,9 @@ impl ExpandedDevice<'_> {
             vec![self.btile_spine(row)]
         } else {
             Vec::from_iter(
-                node.cells
-                    .values()
-                    .map(|&(col, row)| self.btile_main(col, row)),
+                self.egrid
+                    .tile_cells(tcrd)
+                    .map(|(_, cell)| self.btile_main(cell)),
             )
         }
     }

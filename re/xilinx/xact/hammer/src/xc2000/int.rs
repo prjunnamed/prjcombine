@@ -1,7 +1,7 @@
 use prjcombine_interconnect::{
-    db::{ConnectorWire, TileCellId, TileClassWire, WireId},
+    db::{CellSlotId, ConnectorWire, TileWireCoord, WireId},
     dir::Dir,
-    grid::{NodeLoc, WireCoord},
+    grid::{TileCoord, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd,
@@ -19,23 +19,23 @@ use crate::{
 
 fn apply_int_pip<'a>(
     backend: &XactBackend<'a>,
-    nloc: NodeLoc,
-    wire_to: TileClassWire,
-    wire_from: TileClassWire,
+    tcrd: TileCoord,
+    wire_to: TileWireCoord,
+    wire_from: TileWireCoord,
     block: &'a str,
     pin: &'static str,
     mut fuzzer: Fuzzer<XactBackend<'a>>,
 ) -> Fuzzer<XactBackend<'a>> {
     let rwf = backend
         .egrid
-        .resolve_tile_wire_nobuf(nloc, wire_from)
+        .resolve_tile_wire_nobuf(tcrd, wire_from)
         .unwrap();
     let rwt = backend
         .egrid
-        .resolve_tile_wire_nobuf(nloc, wire_to)
+        .resolve_tile_wire_nobuf(tcrd, wire_to)
         .unwrap();
     fuzzer = fuzzer.base(Key::NodeMutex(rwt), rwf);
-    let crd = backend.ngrid.int_pip(nloc, wire_to, wire_from);
+    let crd = backend.ngrid.int_pip(tcrd, wire_to, wire_from);
     fuzzer.base(Key::Pip(crd), Value::FromPin(block, pin.into()))
 }
 
@@ -46,7 +46,8 @@ fn drive_wire<'a>(
     wire_avoid: WireCoord,
 ) -> (Fuzzer<XactBackend<'a>>, &'a str, &'static str) {
     let grid = backend.edev.chip;
-    let (die, (mut col, mut row), wt) = wire_target;
+    let mut cell = wire_target.cell;
+    let wt = wire_target.slot;
     let wtn = &backend.egrid.db.wires.key(wt)[..];
     let (ploc, pwt, pwf) = if wtn.starts_with("OUT") || wtn == "GCLK" || wtn == "ACLK" {
         let (slot, pin) = match wtn {
@@ -62,24 +63,22 @@ fn drive_wire<'a>(
             "OUT.RIOB1.I" => (bels::IO_E1, "I"),
             "OUT.OSC" => (bels::OSC, "O"),
             "GCLK" => {
-                col = grid.col_w();
-                row = grid.row_n();
+                cell.col = grid.col_w();
+                cell.row = grid.row_n();
                 (bels::BUFG, "O")
             }
             "ACLK" => {
-                col = grid.col_e();
-                row = grid.row_s();
+                cell.col = grid.col_e();
+                cell.row = grid.row_s();
                 (bels::BUFG, "O")
             }
             _ => panic!("umm {wtn}"),
         };
-        let bel = (die, (col, row), slot);
-        let layer = backend.edev.egrid.find_bel_layer(bel).unwrap();
-        let nloc = (die, col, row, layer);
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let tcrd = cell.tile(tslots::MAIN);
+        let ntile = &backend.ngrid.tiles[&tcrd];
         return (
             fuzzer.base(Key::NodeMutex(wire_target), "SHARED_ROOT"),
-            &nnode.bels[slot][0],
+            &ntile.bels[slot][0],
             pin,
         );
     } else if wtn.starts_with("SINGLE.V")
@@ -90,30 +89,50 @@ fn drive_wire<'a>(
     {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1.0, w.1.1, tslots::MAIN);
-                let node = backend.egrid.tile(nloc);
-                let node_kind = &backend.egrid.db.tile_classes[node.class];
-                if let Some(mux) = node_kind.muxes.get(&(TileCellId::from_idx(0), w.2)) {
+                let tcrd = w.cell.tile(tslots::MAIN);
+                let tile = backend.egrid.tile(tcrd);
+                let tcls = &backend.egrid.db.tile_classes[tile.class];
+                if let Some(mux) = tcls.muxes.get(&TileWireCoord {
+                    cell: CellSlotId::from_idx(0),
+                    wire: w.slot,
+                }) {
                     for &inp in &mux.ins {
-                        if backend.egrid.db.wires.key(inp.1).starts_with("OUT") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(nloc, inp).unwrap();
+                        if backend.egrid.db.wires.key(inp.wire).starts_with("OUT") {
+                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp).unwrap();
                             if rwf != wire_avoid {
-                                break 'a (nloc, (TileCellId::from_idx(0), w.2), inp);
+                                break 'a (
+                                    tcrd,
+                                    TileWireCoord {
+                                        cell: CellSlotId::from_idx(0),
+                                        wire: w.slot,
+                                    },
+                                    inp,
+                                );
                             }
                         }
                     }
                 }
             }
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1.0, w.1.1, tslots::MAIN);
-                let node = backend.egrid.tile(nloc);
-                let node_kind = &backend.egrid.db.tile_classes[node.class];
-                if let Some(mux) = node_kind.muxes.get(&(TileCellId::from_idx(0), w.2)) {
+                let tcrd = w.cell.tile(tslots::MAIN);
+                let tile = backend.egrid.tile(tcrd);
+                let tcls = &backend.egrid.db.tile_classes[tile.class];
+                if let Some(mux) = tcls.muxes.get(&TileWireCoord {
+                    cell: CellSlotId::from_idx(0),
+                    wire: w.slot,
+                }) {
                     for &inp in &mux.ins {
-                        if backend.egrid.db.wires.key(inp.1).starts_with("SINGLE.V") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(nloc, inp).unwrap();
+                        if backend.egrid.db.wires.key(inp.wire).starts_with("SINGLE.V") {
+                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp).unwrap();
                             if rwf != wire_avoid {
-                                break 'a (nloc, (TileCellId::from_idx(0), w.2), inp);
+                                break 'a (
+                                    tcrd,
+                                    TileWireCoord {
+                                        cell: CellSlotId::from_idx(0),
+                                        wire: w.slot,
+                                    },
+                                    inp,
+                                );
                             }
                         }
                     }
@@ -129,15 +148,25 @@ fn drive_wire<'a>(
     {
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
-                let nloc = (w.0, w.1.0, w.1.1, tslots::MAIN);
-                let node = backend.egrid.tile(nloc);
+                let tcrd = w.cell.tile(tslots::MAIN);
+                let node = backend.egrid.tile(tcrd);
                 let node_kind = &backend.egrid.db.tile_classes[node.class];
-                if let Some(mux) = node_kind.muxes.get(&(TileCellId::from_idx(0), w.2)) {
+                if let Some(mux) = node_kind.muxes.get(&TileWireCoord {
+                    cell: CellSlotId::from_idx(0),
+                    wire: w.slot,
+                }) {
                     for &inp in &mux.ins {
-                        if backend.egrid.db.wires.key(inp.1).starts_with("SINGLE.V") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(nloc, inp).unwrap();
+                        if backend.egrid.db.wires.key(inp.wire).starts_with("SINGLE.V") {
+                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp).unwrap();
                             if rwf != wire_avoid {
-                                break 'a (nloc, (TileCellId::from_idx(0), w.2), inp);
+                                break 'a (
+                                    tcrd,
+                                    TileWireCoord {
+                                        cell: CellSlotId::from_idx(0),
+                                        wire: w.slot,
+                                    },
+                                    inp,
+                                );
                             }
                         }
                     }
@@ -161,7 +190,8 @@ fn apply_imux_finish<'a>(
     sblock: &'a str,
     spin: &'static str,
 ) -> Fuzzer<XactBackend<'a>> {
-    let (die, (col, mut row), w) = wire;
+    let mut cell = wire.cell;
+    let w = wire.slot;
     let wn = &backend.egrid.db.wires.key(w)[..];
     if !wn.starts_with("IMUX") {
         return fuzzer;
@@ -171,7 +201,7 @@ fn apply_imux_finish<'a>(
         "IMUX.CLB.B" => (bels::CLB, "B"),
         "IMUX.CLB.C" => (bels::CLB, "C"),
         "IMUX.CLB.D" => {
-            row += 1;
+            cell.row += 1;
             (bels::CLB, "D")
         }
         "IMUX.CLB.D.N" => (bels::CLB, "D"),
@@ -195,9 +225,9 @@ fn apply_imux_finish<'a>(
         "IMUX.BUFG" => (bels::BUFG, "I"),
         _ => panic!("umm {wn}?"),
     };
-    let bel = (die, (col, row), slot);
-    let nloc = (die, col, row, tslots::MAIN);
-    let nnode = &backend.ngrid.nodes[&nloc];
+    let bel = cell.bel(slot);
+    let tcrd = cell.tile(tslots::MAIN);
+    let nnode = &backend.ngrid.tiles[&tcrd];
     let block = &nnode.bels[slot][0];
     if slot == bels::CLB && pin == "K" {
         fuzzer = fuzzer
@@ -228,12 +258,12 @@ fn apply_imux_finish<'a>(
 
 #[derive(Clone, Debug)]
 struct IntPip {
-    wire_to: TileClassWire,
-    wire_from: TileClassWire,
+    wire_to: TileWireCoord,
+    wire_from: TileWireCoord,
 }
 
 impl IntPip {
-    pub fn new(wire_to: TileClassWire, wire_from: TileClassWire) -> Self {
+    pub fn new(wire_to: TileWireCoord, wire_from: TileWireCoord) -> Self {
         Self { wire_to, wire_from }
     }
 }
@@ -246,20 +276,20 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for IntPip {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: prjcombine_interconnect::grid::NodeLoc,
+        tcrd: prjcombine_interconnect::grid::TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let rwt = backend
             .egrid
-            .resolve_tile_wire_nobuf(nloc, self.wire_to)
+            .resolve_tile_wire_nobuf(tcrd, self.wire_to)
             .unwrap();
         let rwf = backend
             .egrid
-            .resolve_tile_wire_nobuf(nloc, self.wire_from)
+            .resolve_tile_wire_nobuf(tcrd, self.wire_from)
             .unwrap();
         let (mut fuzzer, block, pin) = drive_wire(backend, fuzzer, rwf, rwt);
         fuzzer = fuzzer.fuzz(Key::NodeMutex(rwt), false, true);
-        let crd = backend.ngrid.int_pip(nloc, self.wire_to, self.wire_from);
+        let crd = backend.ngrid.int_pip(tcrd, self.wire_to, self.wire_from);
         fuzzer = fuzzer.fuzz(Key::Pip(crd), None, Value::FromPin(block, pin.into()));
         fuzzer = apply_imux_finish(backend, rwt, fuzzer, block, pin);
         Some((fuzzer, false))
@@ -286,24 +316,24 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let wn = backend.egrid.db.wires.key(self.wire);
         let bidi_tile = match self.dir {
             Dir::W | Dir::E => {
-                if nloc.2 == backend.edev.chip.row_s() {
+                if tcrd.row == backend.edev.chip.row_s() {
                     "BIDIH.B"
-                } else if nloc.2 == backend.edev.chip.row_n() {
+                } else if tcrd.row == backend.edev.chip.row_n() {
                     "BIDIH.T"
                 } else {
                     "BIDIH"
                 }
             }
             Dir::S | Dir::N => {
-                if nloc.1 == backend.edev.chip.col_w() {
+                if tcrd.col == backend.edev.chip.col_w() {
                     "BIDIV.L"
-                } else if nloc.1 == backend.edev.chip.col_e() {
+                } else if tcrd.col == backend.edev.chip.col_e() {
                     "BIDIV.R"
                 } else {
                     "BIDIV"
@@ -312,7 +342,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
         };
         match self.dir {
             Dir::W => {
-                if !backend.edev.chip.cols_bidi.contains(&nloc.1) {
+                if !backend.edev.chip.cols_bidi.contains(&tcrd.col) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -322,12 +352,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                         attr: format!("BIDI.{wn}"),
                         val: "W".into(),
                     },
-                    tiles: vec![backend.edev.btile_llh(nloc.1, nloc.2)],
+                    tiles: vec![backend.edev.btile_llh(tcrd.col, tcrd.row)],
                 });
                 Some((fuzzer, false))
             }
             Dir::E => {
-                if !backend.edev.chip.cols_bidi.contains(&(nloc.1 + 1)) {
+                if !backend.edev.chip.cols_bidi.contains(&(tcrd.col + 1)) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -337,12 +367,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                         attr: format!("BIDI.{wn}"),
                         val: "E".into(),
                     },
-                    tiles: vec![backend.edev.btile_llh(nloc.1 + 1, nloc.2)],
+                    tiles: vec![backend.edev.btile_llh(tcrd.col + 1, tcrd.row)],
                 });
                 Some((fuzzer, false))
             }
             Dir::S => {
-                if !backend.edev.chip.rows_bidi.contains(&nloc.2) {
+                if !backend.edev.chip.rows_bidi.contains(&tcrd.row) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -352,12 +382,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                         attr: format!("BIDI.{wn}"),
                         val: "S".into(),
                     },
-                    tiles: vec![backend.edev.btile_llv(nloc.1, nloc.2)],
+                    tiles: vec![backend.edev.btile_llv(tcrd.col, tcrd.row)],
                 });
                 Some((fuzzer, false))
             }
             Dir::N => {
-                if !backend.edev.chip.rows_bidi.contains(&(nloc.2 + 1)) {
+                if !backend.edev.chip.rows_bidi.contains(&(tcrd.row + 1)) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -367,7 +397,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                         attr: format!("BIDI.{wn}"),
                         val: "N".into(),
                     },
-                    tiles: vec![backend.edev.btile_llv(nloc.1, nloc.2 + 1)],
+                    tiles: vec![backend.edev.btile_llv(tcrd.col, tcrd.row + 1)],
                 });
                 Some((fuzzer, false))
             }
@@ -389,14 +419,14 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for HasBidi {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let val = match self.dir {
-            Dir::W => backend.edev.chip.cols_bidi.contains(&nloc.1),
-            Dir::E => backend.edev.chip.cols_bidi.contains(&(nloc.1 + 1)),
-            Dir::S => backend.edev.chip.rows_bidi.contains(&nloc.2),
-            Dir::N => backend.edev.chip.rows_bidi.contains(&(nloc.2 + 1)),
+            Dir::W => backend.edev.chip.cols_bidi.contains(&tcrd.col),
+            Dir::E => backend.edev.chip.cols_bidi.contains(&(tcrd.col + 1)),
+            Dir::S => backend.edev.chip.rows_bidi.contains(&tcrd.row),
+            Dir::N => backend.edev.chip.rows_bidi.contains(&(tcrd.row + 1)),
         };
         if val != self.val {
             return None;
@@ -419,10 +449,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         }
         let mut ctx = FuzzCtx::new(session, backend, tile);
         for (&wire_to, mux) in &node.muxes {
-            let mux_name = format!("MUX.{}", intdb.wires.key(wire_to.1));
+            let mux_name = format!("MUX.{}", intdb.wires.key(wire_to.wire));
             for &wire_from in &mux.ins {
-                let wire_from_name = intdb.wires.key(wire_from.1);
-                let in_name = format!("{:#}.{}", wire_from.0, wire_from_name);
+                let wire_from_name = intdb.wires.key(wire_from.wire);
+                let in_name = format!("{:#}.{}", wire_from.cell, wire_from_name);
                 let mut f = ctx
                     .build()
                     .test_manual("INT", &mux_name, &in_name)
@@ -432,13 +462,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 {
                     let (dir, wire) = if mux_name.ends_with(".E") {
                         let term = intdb.get_conn_class("MAIN.W");
-                        let ConnectorWire::Pass(wire) = intdb.conn_classes[term].wires[wire_to.1]
+                        let ConnectorWire::Pass(wire) =
+                            intdb.conn_classes[term].wires[wire_to.wire]
                         else {
                             unreachable!()
                         };
                         (Dir::W, wire)
                     } else {
-                        (Dir::E, wire_to.1)
+                        (Dir::E, wire_to.wire)
                     };
                     f = f.prop(SingleBidi::new(wire, dir));
                 }
@@ -455,13 +486,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 {
                     let (dir, wire) = if mux_name.ends_with(".S") {
                         let term = intdb.get_conn_class("MAIN.N");
-                        let ConnectorWire::Pass(wire) = intdb.conn_classes[term].wires[wire_to.1]
+                        let ConnectorWire::Pass(wire) =
+                            intdb.conn_classes[term].wires[wire_to.wire]
                         else {
                             unreachable!()
                         };
                         (Dir::N, wire)
                     } else {
-                        (Dir::S, wire_to.1)
+                        (Dir::S, wire_to.wire)
                     };
                     f = f.prop(SingleBidi::new(wire, dir));
                 }
@@ -490,14 +522,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let snode = intdb.get_tile_class(stile);
         let snode = &intdb.tile_classes[snode];
         for (wire, mux) in &snode.muxes {
-            let wn = intdb.wires.key(wire.1);
+            let wn = intdb.wires.key(wire.wire);
             if wn.starts_with(filter) && !wn.ends_with(".E") && !wn.ends_with(".S") {
                 let attr = &format!("BIDI.{wn}");
                 if wn == "SINGLE.V.R0" {
                     let mux_name = format!("MUX.{wn}");
                     let mut diff_s = None;
                     for &wire_from in &mux.ins {
-                        let in_name = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                        let in_name =
+                            format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
                         let diff =
                             ctx.state
                                 .get_diff(stile, bel, &mux_name, format!("{in_name}.BIDI_S"));
@@ -535,15 +568,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         for (&wire_to, mux) in &node.muxes {
-            assert_eq!(wire_to.0, TileCellId::from_idx(0));
-            let out_name = intdb.wires.key(wire_to.1);
+            assert_eq!(wire_to.cell, CellSlotId::from_idx(0));
+            let out_name = intdb.wires.key(wire_to.wire);
             let mux_name = format!("MUX.{out_name}");
 
             if out_name.starts_with("IMUX") || out_name.starts_with("IOCLK") {
                 let mut inps = vec![];
                 let mut got_empty = false;
                 for &wire_from in &mux.ins {
-                    let in_name = format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1));
+                    let in_name =
+                        format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
                     let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
                     if diff.bits.is_empty() {
                         got_empty = true;
@@ -589,9 +623,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.tiledb.insert(tile, "INT", mux_name, item);
             } else {
                 for &wire_from in &mux.ins {
-                    let in_name = intdb.wires.key(wire_from.1);
-                    assert_eq!(wire_from.0, TileCellId::from_idx(0));
-                    let val_name = format!("{:#}.{}", wire_from.0, in_name);
+                    let in_name = intdb.wires.key(wire_from.wire);
+                    assert_eq!(wire_from.cell, CellSlotId::from_idx(0));
+                    let val_name = format!("{:#}.{}", wire_from.cell, in_name);
                     let diff =
                         ctx.state
                             .get_diff(tile, "INT", format!("MUX.{out_name}"), &val_name);

@@ -1,7 +1,8 @@
-use prjcombine_interconnect::grid::NodeLoc;
+use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::{Diff, FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_virtex2::tslots;
 
 use crate::{
     backend::IseBackend,
@@ -30,33 +31,27 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RandorInit {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex2(edev) = backend.edev else {
             unreachable!()
         };
-        let (die, col, row, _) = nloc;
-        if row != edev.chip.row_n() {
+        if tcrd.row != edev.chip.row_n() {
             return None;
         }
-        if col == edev.chip.col_w() + 1 {
-            let col = col - 1;
-            let layer = backend
-                .egrid
-                .find_tile_layer(die, (col, row), |kind| kind == "RANDOR_INIT")
-                .unwrap();
-            let nloc = (die, col, row, layer);
-            let node = backend.egrid.tile(nloc);
-            let tile = backend.egrid.db.tile_classes.key(node.class);
+        if tcrd.col == edev.chip.col_w() + 1 {
+            let tcrd = tcrd.delta(-1, 0).tile(tslots::RANDOR);
+            let tile = backend.egrid.tile(tcrd);
+            let tcls = backend.egrid.db.tile_classes.key(tile.class);
             let first_feature_id = fuzzer.info.features.first().unwrap().id.clone();
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
-                    tile: tile.into(),
+                    tile: tcls.into(),
                     bel: "RANDOR_INIT".into(),
                     ..first_feature_id
                 },
-                tiles: backend.edev.node_bits(nloc),
+                tiles: backend.edev.node_bits(tcrd),
             });
             Some((fuzzer, false))
         } else {
@@ -931,7 +926,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         for &wire in node.muxes.keys() {
-            let wire_name = egrid.db.wires.key(wire.1);
+            let wire_name = egrid.db.wires.key(wire.wire);
             if name == "INT.GT.CLKPAD"
                 && matches!(
                     &wire_name[..],

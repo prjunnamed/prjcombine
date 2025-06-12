@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::DieId;
+use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{bels::xc2000 as bels, expanded::ExpandedDevice};
 use unnamed_entity::{EntityId, EntityVec};
@@ -39,11 +39,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     for die in egrid.dies() {
         for col in die.cols() {
             for row in die.rows() {
-                for (layer, node) in &die[(col, row)].tiles {
-                    let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.tile_classes.key(node.class);
+                let cell = CellCoord::new(die.die, col, row);
+                for (tslot, tile) in &die[(col, row)].tiles {
+                    let tcrd = cell.tile(tslot);
+                    let kind = egrid.db.tile_classes.key(tile.class);
                     if kind.starts_with("BIDI") {
-                        ngrid.name_node(nloc, kind, []);
+                        ngrid.name_node(tcrd, kind, []);
                         continue;
                     }
                     let mut naming = &kind[..];
@@ -54,7 +55,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         naming = "CLB.B1R";
                     }
                     let nnode =
-                        ngrid.name_node(nloc, naming, [(col_x[col].clone(), row_y[row].clone())]);
+                        ngrid.name_node(tcrd, naming, [(col_x[col].clone(), row_y[row].clone())]);
                     if (kind.starts_with("CLB.B") || kind.starts_with("CLB.T"))
                         && !kind.ends_with('R')
                     {

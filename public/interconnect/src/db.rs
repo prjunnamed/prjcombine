@@ -22,8 +22,8 @@ impl EntityTag for RegionSlotTag {
 impl EntityTag for ConnectorClass {
     const PREFIX: &'static str = "CCLS";
 }
-pub struct TileCellTag;
-impl EntityTag for TileCellTag {
+pub struct CellSlotTag;
+impl EntityTag for CellSlotTag {
     const PREFIX: &'static str = "TCELL";
 }
 pub struct TileIriTag;
@@ -35,7 +35,7 @@ pub type TileClassId = EntityIdU16<TileClass>;
 pub type RegionSlotId = EntityIdU8<RegionSlotTag>;
 pub type ConnectorSlotId = EntityIdU8<ConnectorSlot>;
 pub type ConnectorClassId = EntityIdU16<ConnectorClass>;
-pub type TileCellId = EntityIdU16<TileCellTag>;
+pub type CellSlotId = EntityIdU16<CellSlotTag>;
 pub type TileIriId = EntityIdU16<TileIriTag>;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
@@ -255,19 +255,23 @@ impl WireKind {
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct TileClass {
     pub slot: TileSlotId,
-    pub cells: EntityVec<TileCellId, ()>,
-    pub muxes: BTreeMap<TileClassWire, MuxInfo>,
+    pub cells: EntityVec<CellSlotId, ()>,
+    pub muxes: BTreeMap<TileWireCoord, MuxInfo>,
     pub iris: EntityVec<TileIriId, ()>,
-    pub intfs: BTreeMap<TileClassWire, IntfInfo>,
+    pub intfs: BTreeMap<TileWireCoord, IntfInfo>,
     pub bels: EntityPartVec<BelSlotId, BelInfo>,
 }
 
-pub type TileClassWire = (TileCellId, WireId);
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
+pub struct TileWireCoord {
+    pub cell: CellSlotId,
+    pub wire: WireId,
+}
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct MuxInfo {
     pub kind: MuxKind,
-    pub ins: BTreeSet<TileClassWire>,
+    pub ins: BTreeSet<TileWireCoord>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -284,7 +288,7 @@ pub struct BelInfo {
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct BelPin {
-    pub wires: BTreeSet<TileClassWire>,
+    pub wires: BTreeSet<TileWireCoord>,
     pub dir: PinDir,
     pub is_intf_in: bool,
 }
@@ -298,8 +302,8 @@ pub enum PinDir {
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum IntfInfo {
-    OutputTestMux(BTreeSet<TileClassWire>),
-    OutputTestMuxPass(BTreeSet<TileClassWire>, TileClassWire),
+    OutputTestMux(BTreeSet<TileWireCoord>),
+    OutputTestMuxPass(BTreeSet<TileWireCoord>, TileWireCoord),
     InputDelay,
     InputIri(TileIriId, IriPin),
     InputIriDelay(TileIriId, IriPin),
@@ -351,9 +355,9 @@ pub struct IntDbIndex {
 
 #[derive(Clone, Debug)]
 pub struct TileClassIndex {
-    pub mux_ins: HashMap<TileClassWire, HashSet<TileClassWire>>,
-    pub intf_ins: HashMap<TileClassWire, HashSet<TileClassWire>>,
-    pub intf_ins_pass: HashMap<TileClassWire, HashSet<TileClassWire>>,
+    pub mux_ins: HashMap<TileWireCoord, HashSet<TileWireCoord>>,
+    pub intf_ins: HashMap<TileWireCoord, HashSet<TileWireCoord>>,
+    pub intf_ins_pass: HashMap<TileWireCoord, HashSet<TileWireCoord>>,
 }
 
 #[derive(Clone, Debug)]
@@ -449,7 +453,7 @@ impl MuxInfo {
                 MuxKind::OptInv => "OPTINV",
             },
             ins: Vec::from_iter(self.ins.iter().map(|wf| format!(
-                "{:#}:{}", wf.0, db.wires.key(wf.1)
+                "{:#}:{}", wf.cell, db.wires.key(wf.wire)
             ))),
         }
     }
@@ -461,15 +465,15 @@ impl IntfInfo {
             IntfInfo::OutputTestMux(ins) => jzon::object! {
                 kind: "OUTPUT_TEST_MUX",
                 ins: Vec::from_iter(ins.iter().map(|wf| format!(
-                    "{:#}:{}", wf.0, db.wires.key(wf.1)
+                    "{:#}:{}", wf.cell, db.wires.key(wf.wire)
                 ))),
             },
             IntfInfo::OutputTestMuxPass(ins, def) => jzon::object! {
                 kind: "OUTPUT_TEST_MUX_PASS",
                 ins: Vec::from_iter(ins.iter().map(|wf| format!(
-                    "{:#}:{}", wf.0, db.wires.key(wf.1)
+                    "{:#}:{}", wf.cell, db.wires.key(wf.wire)
                 ))),
-                default: format!("{:#}:{}", def.0, db.wires.key(def.1)),
+                default: format!("{:#}:{}", def.cell, db.wires.key(def.wire)),
             },
             IntfInfo::InputDelay => jzon::object! {
                 kind: "INPUT_DELAY",
@@ -492,7 +496,7 @@ impl BelPin {
     pub fn to_json(&self, db: &IntDb) -> JsonValue {
         jzon::object! {
             wires: Vec::from_iter(self.wires.iter().map(|wf| format!(
-                "{:#}:{}", wf.0, db.wires.key(wf.1)
+                "{:#}:{}", wf.cell, db.wires.key(wf.wire)
             ))),
             dir: match self.dir {
                 PinDir::Input => "INPUT",
@@ -510,12 +514,12 @@ impl TileClass {
             slot: db.tile_slots[self.slot].as_str(),
             cells: self.cells.len(),
             muxes: jzon::object::Object::from_iter(self.muxes.iter().map(|(wt, mux)| (
-                format!("{:#}:{}", wt.0, db.wires.key(wt.1)),
+                format!("{:#}:{}", wt.cell, db.wires.key(wt.wire)),
                 mux.to_json(db),
             ))),
             iris: self.iris.len(),
             intfs: jzon::object::Object::from_iter(self.intfs.iter().map(|(wt, intf)| (
-                format!("{:#}:{}", wt.0, db.wires.key(wt.1)),
+                format!("{:#}:{}", wt.cell, db.wires.key(wt.wire)),
                 intf.to_json(db),
             ))),
             bels: jzon::object::Object::from_iter(self.bels.iter().map(|(slot, bel)| (

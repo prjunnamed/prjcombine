@@ -1,8 +1,8 @@
-use prjcombine_interconnect::grid::{DieId, NodeLoc};
+use prjcombine_interconnect::grid::{CellCoord, DieId, TileCoord};
 use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind};
+use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -25,7 +25,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesIoW {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         for (node_kind, locs) in &backend.egrid.tile_index {
@@ -33,8 +33,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesIoW {
             if !tile.starts_with("IO.L") {
                 continue;
             }
-            for &nloc in locs {
-                let node = backend.egrid.tile(nloc);
+            for &tcrd in locs {
+                let node = backend.egrid.tile(tcrd);
                 let tile = backend.egrid.db.tile_classes.key(node.class);
                 let fuzzer_id = fuzzer.info.features[0].id.clone();
                 fuzzer.info.features.push(FuzzerFeature {
@@ -42,7 +42,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesIoW {
                         tile: tile.into(),
                         ..fuzzer_id
                     },
-                    tiles: vec![backend.edev.node_bits(nloc)[0]],
+                    tiles: vec![backend.edev.node_bits(tcrd)[0]],
                 });
             }
         }
@@ -61,7 +61,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesAllIo {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         for (node_kind, locs) in &backend.egrid.tile_index {
@@ -69,8 +69,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesAllIo {
             if !tile.starts_with("IO") {
                 continue;
             }
-            for &nloc in locs {
-                let node = backend.egrid.tile(nloc);
+            for &tcrd in locs {
+                let node = backend.egrid.tile(tcrd);
                 let tile = backend.egrid.db.tile_classes.key(node.class);
                 let fuzzer_id = fuzzer.info.features[0].id.clone();
                 fuzzer.info.features.push(FuzzerFeature {
@@ -78,7 +78,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesAllIo {
                         tile: tile.into(),
                         ..fuzzer_id
                     },
-                    tiles: vec![backend.edev.node_bits(nloc)[0]],
+                    tiles: vec![backend.edev.node_bits(tcrd)[0]],
                 });
             }
         }
@@ -88,12 +88,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesAllIo {
 
 #[derive(Clone, Debug)]
 pub struct ExtraTileSingle {
-    pub nloc: NodeLoc,
+    pub tcrd: TileCoord,
 }
 
 impl ExtraTileSingle {
-    pub fn new(nloc: NodeLoc) -> Self {
-        Self { nloc }
+    pub fn new(tcrd: TileCoord) -> Self {
+        Self { tcrd }
     }
 }
 
@@ -105,10 +105,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileSingle {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(self.nloc);
+        let node = backend.egrid.tile(self.tcrd);
         let tile = backend.egrid.db.tile_classes.key(node.class);
         let fuzzer_id = fuzzer.info.features[0].id.clone();
         fuzzer.info.features.push(FuzzerFeature {
@@ -116,7 +116,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileSingle {
                 tile: tile.into(),
                 ..fuzzer_id
             },
-            tiles: vec![backend.edev.node_bits(self.nloc)[0]],
+            tiles: vec![backend.edev.node_bits(self.tcrd)[0]],
         });
         Some((fuzzer, false))
     }
@@ -199,13 +199,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
         let mut bctx = ctx.bel(bels::BSCAN);
-        let nloc = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_e(), edev.chip.row_n()),
-            |x| x == "CNR.TR",
-        );
+        let tcrd = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_n())
+            .tile(tslots::MAIN);
         bctx.build()
-            .extra_tile_fixed(nloc, "BSCAN")
+            .extra_tile_fixed(tcrd, "BSCAN")
             .test_manual("ENABLE", "1")
             .mode("BSCAN")
             .attr("BSCAN", "USED")
@@ -364,11 +361,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     {
         let mut ctx = FuzzCtx::new(session, backend, "CNR.TR");
         let mut bctx = ctx.bel(bels::OSC);
-        let cnr_br = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_e(), edev.chip.row_s()),
-            |x| x == "CNR.BR",
-        );
+        let cnr_br = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_s())
+            .tile(tslots::MAIN);
         for (pin, opin) in [("OUT0", "OUT1"), ("OUT1", "OUT0")] {
             for spin in ["F15", "F490", "F16K", "F500K"] {
                 bctx.build()
@@ -434,14 +428,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut ctx = FuzzCtx::new(session, backend, "CNR.BR");
         let mut bctx = ctx.bel(bels::READCLK);
         for val in ["CCLK", "RDBK"] {
-            let nloc = edev.egrid.get_tile_by_class(
-                DieId::from_idx(0),
-                (edev.chip.col_e(), edev.chip.row_n()),
-                |x| x == "CNR.TR",
-            );
+            let tcrd = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_n())
+                .tile(tslots::MAIN);
             bctx.mode("READCLK")
                 .pin("I")
-                .extra_tile_fixed(nloc, "READCLK")
+                .extra_tile_fixed(tcrd, "READCLK")
                 .null_bits()
                 .test_manual("READ_CLK", val)
                 .global("READCLK", val)
@@ -465,21 +456,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
     if edev.chip.kind == ChipKind::SpartanXl {
         let mut ctx = FuzzCtx::new_null(session, backend);
-        let cnr_bl = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_w(), edev.chip.row_s()),
-            |x| x == "CNR.BL",
-        );
-        let cnr_br = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_e(), edev.chip.row_s()),
-            |x| x == "CNR.BR",
-        );
-        let cnr_tr = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_e(), edev.chip.row_n()),
-            |x| x == "CNR.TR",
-        );
+        let cnr_bl = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_s())
+            .tile(tslots::MAIN);
+        let cnr_br = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_s())
+            .tile(tslots::MAIN);
+        let cnr_tr = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_n())
+            .tile(tslots::MAIN);
         ctx.build()
             .prop(ExtraTileSingle::new(cnr_bl))
             .prop(ExtraTileSingle::new(cnr_br))

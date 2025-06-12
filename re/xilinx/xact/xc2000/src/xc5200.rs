@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::{ColId, DieId, RowId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{bels::xc5200 as bels, chip::Chip, expanded::ExpandedDevice};
 use unnamed_entity::{EntityId, EntityVec};
@@ -76,13 +76,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     for die in egrid.dies() {
         for col in die.cols() {
             for row in die.rows() {
-                for (layer, node) in &die[(col, row)].tiles {
-                    let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.tile_classes.key(node.class);
+                let cell = CellCoord::new(die.die, col, row);
+                for (tslot, tile) in &die[(col, row)].tiles {
+                    let tcrd = cell.tile(tslot);
+                    let kind = egrid.db.tile_classes.key(tile.class);
                     match &kind[..] {
                         "CLB" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [(col_x[col].clone(), row_y[row].clone())],
                             );
@@ -124,7 +125,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CNR.BL" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [(col_x[col].clone(), row_y[row].clone())],
                             );
@@ -138,7 +139,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CNR.BR" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [(col_x[col].clone(), row_y[row].clone())],
                             );
@@ -152,7 +153,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CNR.TL" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [(col_x[col].clone(), row_y[row].clone())],
                             );
@@ -166,7 +167,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CNR.TR" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [(col_x[col].clone(), row_y[row].clone())],
                             );
@@ -180,7 +181,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IO.L" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [(col_x[col].clone(), row_y[row].clone())],
                             );
@@ -227,7 +228,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IO.R" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [(col_x[col].clone(), row_y[row].clone())],
                             );
@@ -273,7 +274,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IO.B" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [(col_x[col].clone(), row_y[row].clone())],
                             );
@@ -327,7 +328,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IO.T" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [(col_x[col].clone(), row_y[row].clone())],
                             );
@@ -370,10 +371,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             );
                         }
                         "CLKL" | "CLKR" | "CLKH" => {
-                            ngrid.name_node(nloc, kind, [(col_x[col].clone(), clk_y.clone())]);
+                            ngrid.name_node(tcrd, kind, [(col_x[col].clone(), clk_y.clone())]);
                         }
                         "CLKB" | "CLKT" | "CLKV" => {
-                            ngrid.name_node(nloc, kind, [(clk_x.clone(), row_y[row].clone())]);
+                            ngrid.name_node(tcrd, kind, [(clk_x.clone(), row_y[row].clone())]);
                         }
 
                         _ => panic!("umm {kind}"),

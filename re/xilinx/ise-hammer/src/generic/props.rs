@@ -1,9 +1,9 @@
 use core::fmt::Debug;
 
-use prjcombine_interconnect::grid::NodeLoc;
+use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
-use relation::NodeRelation;
+use relation::TileRelation;
 
 use crate::backend::{IseBackend, Key, MultiValue, Value};
 
@@ -35,7 +35,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseRaw<'b> {
     fn apply(
         &self,
         _backend: &IseBackend<'b>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         Some((fuzzer.base(self.key.clone(), self.val.clone()), false))
@@ -63,7 +63,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzRaw<'b> {
     fn apply(
         &self,
         _backend: &IseBackend<'b>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         Some((
@@ -94,7 +94,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzRawMulti<'b> {
     fn apply(
         &self,
         _backend: &IseBackend<'b>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         fuzzer.bits = self.width;
@@ -113,7 +113,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NullBits {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         fuzzer.info.features[0].tiles.clear();

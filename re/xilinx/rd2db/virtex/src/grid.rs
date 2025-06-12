@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord};
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex::{
     bels,
@@ -79,10 +79,11 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
         for (k, v) in &tile.sites {
             if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
                 if rd.slot_kinds[sn] == "IOB" {
+                    let die = DieId::from_idx(0);
                     let col = int.lookup_column(crd.x.into());
                     let row = int.lookup_row(crd.y.into());
                     let io =
-                        chip.get_io_crd((DieId::from_idx(0), (col, row), bels::IO[idx as usize]));
+                        chip.get_io_crd(CellCoord::new(die, col, row).bel(bels::IO[idx as usize]));
                     io_lookup.insert(v.clone(), io);
                 }
             }

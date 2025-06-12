@@ -16,11 +16,11 @@ use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, IntDb, MuxInfo, MuxKind, PinDir, TileCellId, TileClass, TileClassId,
-        TileClassWire,
+        BelInfo, BelPin, CellSlotId, IntDb, MuxInfo, MuxKind, PinDir, TileClass, TileClassId,
+        TileWireCoord,
     },
     dir::{Dir, DirH, DirPartMap, DirV},
-    grid::{ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
+    grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_re_toolchain::Toolchain;
@@ -99,7 +99,7 @@ struct HarvestContext<'a> {
     gencfg: GeneratorConfig<'a>,
     harvester: Mutex<Harvester<BitOwner>>,
     speed: BTreeMap<(&'static str, &'static str), Mutex<SpeedCollector>>,
-    muxes: Mutex<BTreeMap<TileClassId, BTreeMap<TileClassWire, MuxInfo>>>,
+    muxes: Mutex<BTreeMap<TileClassId, BTreeMap<TileWireCoord, MuxInfo>>>,
 }
 
 impl HarvestContext<'_> {
@@ -243,10 +243,10 @@ impl HarvestContext<'_> {
         for (&nk, muxes) in &*muxes {
             let mut stats: BTreeMap<String, usize> = BTreeMap::new();
             let nkn = self.edev.egrid.db.tile_classes.key(nk);
-            for (&(_, wt), mux) in muxes {
-                let wtn = self.edev.egrid.db.wires.key(wt);
-                for &(_, wf) in &mux.ins {
-                    let wfn = self.edev.egrid.db.wires.key(wf);
+            for (&wt, mux) in muxes {
+                let wtn = self.edev.egrid.db.wires.key(wt.wire);
+                for &wf in &mux.ins {
+                    let wfn = self.edev.egrid.db.wires.key(wf.wire);
                     let bucket = if wtn.starts_with("QUAD.V") && wfn.starts_with("QUAD") {
                         "QUAD-QUAD.V"
                     } else if wtn.starts_with("QUAD.H") && wfn.starts_with("QUAD") {
@@ -380,13 +380,19 @@ impl HarvestContext<'_> {
             let mux = muxes
                 .entry(pip.0)
                 .or_default()
-                .entry((TileCellId::from_idx(0), pip.1))
+                .entry(TileWireCoord {
+                    cell: CellSlotId::from_idx(0),
+                    wire: pip.1,
+                })
                 .or_insert_with(|| MuxInfo {
                     kind: MuxKind::Plain,
                     ins: BTreeSet::new(),
                 });
 
-            if mux.ins.insert((TileCellId::from_idx(0), pip.2)) {
+            if mux.ins.insert(TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire: pip.2,
+            }) {
                 ctr += 1;
                 changed = true;
             }
@@ -768,8 +774,11 @@ impl PartContext<'_> {
         for (&(dev, pkg), pkg_info) in &mut self.pkgs {
             for info in &pkg_info.bel_info["SB_IO"] {
                 let (col, row, ref wn) = info.in_wires[&InstPin::Simple("D_OUT_0".into())];
-                let col = ColId::from_idx(col.try_into().unwrap());
-                let row = RowId::from_idx(row.try_into().unwrap());
+                let cell = CellCoord::new(
+                    DieId::from_idx(0),
+                    ColId::from_idx(col.try_into().unwrap()),
+                    RowId::from_idx(row.try_into().unwrap()),
+                );
                 let slot = bels::IO[if wn == "wire_io_cluster/io_0/D_OUT_0" {
                     0
                 } else if wn == "wire_io_cluster/io_1/D_OUT_0" {
@@ -780,7 +789,7 @@ impl PartContext<'_> {
                 let (loc, ref pin) = info.pads["PACKAGE_PIN"];
                 let xy = (loc.x, loc.y, loc.bel);
                 assert_eq!(loc, info.loc);
-                let io = self.chip.get_io_crd((DieId::from_idx(0), (col, row), slot));
+                let io = self.chip.get_io_crd(cell.bel(slot));
                 // will be fixed up later.
                 self.chip.io_iob.insert(io, io);
                 assert_eq!(
@@ -966,23 +975,23 @@ impl PartContext<'_> {
                 let xy = (info.loc.x, info.loc.y, info.loc.bel);
                 let io = pkg_info.xlat_io[&xy];
                 let r0 = info.dedio["REP0"];
-                let ior0 = self.chip.get_io_crd((
-                    DieId::from_idx(0),
-                    (
+                let ior0 = self.chip.get_io_crd(
+                    CellCoord::new(
+                        DieId::from_idx(0),
                         ColId::from_idx(r0.x as usize),
                         RowId::from_idx(r0.y as usize),
-                    ),
-                    bels::IO[r0.bel as usize],
-                ));
+                    )
+                    .bel(bels::IO[r0.bel as usize]),
+                );
                 let r1 = info.dedio["REP1"];
-                let ior1 = self.chip.get_io_crd((
-                    DieId::from_idx(0),
-                    (
+                let ior1 = self.chip.get_io_crd(
+                    CellCoord::new(
+                        DieId::from_idx(0),
                         ColId::from_idx(r1.x as usize),
                         RowId::from_idx(r1.y as usize),
-                    ),
-                    bels::IO[r1.bel as usize],
-                ));
+                    )
+                    .bel(bels::IO[r1.bel as usize]),
+                );
                 x3.insert(io, (ior0, ior1));
             }
             for bpin in pkg_info.bond.pins.values_mut() {
@@ -1164,7 +1173,8 @@ impl PartContext<'_> {
                 ExtraNodeLoc::LatchIo(edge),
                 ExtraNode {
                     io: Default::default(),
-                    cells: EntityVec::from_iter([(
+                    cells: EntityVec::from_iter([CellCoord::new(
+                        DieId::from_idx(0),
                         ColId::from_idx(x as usize),
                         RowId::from_idx(y as usize),
                     )]),
@@ -1178,7 +1188,11 @@ impl PartContext<'_> {
         let mut found = HashSet::new();
         for site in sb_gb {
             let (x, y) = site.fabout_wires[&InstPin::Simple("USER_SIGNAL_TO_GLOBAL_BUFFER".into())];
-            let crd = (ColId::from_idx(x as usize), RowId::from_idx(y as usize));
+            let crd = CellCoord::new(
+                DieId::from_idx(0),
+                ColId::from_idx(x as usize),
+                RowId::from_idx(y as usize),
+            );
             let index = site.global_nets[&InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())];
             assert!(found.insert(index));
             self.chip.extra_nodes.insert(
@@ -1254,8 +1268,12 @@ impl PartContext<'_> {
     fn fill_trim(&mut self) {
         let loc = ExtraNodeLoc::Trim;
         let crd = match self.chip.kind {
-            ChipKind::Ice40T04 | ChipKind::Ice40T05 => (self.chip.col_w(), RowId::from_idx(16)),
-            ChipKind::Ice40T01 => (self.chip.col_w(), RowId::from_idx(13)),
+            ChipKind::Ice40T04 | ChipKind::Ice40T05 => {
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(16))
+            }
+            ChipKind::Ice40T01 => {
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(13))
+            }
             _ => return,
         };
         let nb = MiscNodeBuilder::new(&self.chip, tslots::TRIM, &[crd]);
@@ -1404,13 +1422,13 @@ impl PartContext<'_> {
                 let mut fixed_crd = vec![];
                 if kind == "SB_WARMBOOT" && self.chip.kind != ChipKind::Ice40T01 {
                     for pin in ["BOOT", "S0", "S1"] {
-                        fixed_crd.push(bel_pins.ins[pin].1);
+                        fixed_crd.push(bel_pins.ins[pin].cell);
                     }
                 }
                 let mut nb = MiscNodeBuilder::new(&self.chip, slot, &fixed_crd);
                 nb.add_bel(bel, bel_pins);
                 for crd in extra_crd {
-                    nb.get_tile(crd);
+                    nb.get_cell(crd);
                 }
                 let (int_node, mut extra_node) = nb.finish();
                 for &(slot, pin) in dedio {
@@ -1446,7 +1464,7 @@ impl PartContext<'_> {
                     EdgeIoCoord::N(col, _) => EdgeIoCoord::N(col + 1, TileIobId::from_idx(0)),
                     _ => unreachable!(),
                 };
-                let (_, (col, row), _) = self.chip.get_io_loc(io);
+                let bel = self.chip.get_io_loc(io);
                 let mut bel_pins = self.bel_pins[&(kind, site.loc)].clone();
                 bel_pins.ins.remove("LATCHINPUTVALUE");
                 bel_pins.outs.retain(|k, _| !k.starts_with("PLLOUT"));
@@ -1454,11 +1472,15 @@ impl PartContext<'_> {
                 if self.chip.kind.is_ice40() {
                     if self.chip.kind == ChipKind::Ice40P01 {
                         for i in 1..=5 {
-                            nb.get_tile((self.chip.col_w(), RowId::from_idx(i)));
+                            nb.get_cell(CellCoord::new(
+                                DieId::from_idx(0),
+                                self.chip.col_w(),
+                                RowId::from_idx(i),
+                            ));
                         }
                     } else {
                         for i in 0..5 {
-                            nb.get_tile((col - 2 + i, row));
+                            nb.get_cell(bel.delta(-2 + i, 0));
                         }
                     }
                 }
@@ -1466,7 +1488,7 @@ impl PartContext<'_> {
                 nb.io.insert(ExtraNodeIo::PllB, io2);
                 nb.add_bel(bels::PLL, &bel_pins);
                 let (int_node, extra_node) = nb.finish();
-                let loc = ExtraNodeLoc::Pll(if row == self.chip.row_s() {
+                let loc = ExtraNodeLoc::Pll(if bel.row == self.chip.row_s() {
                     DirV::S
                 } else {
                     DirV::N
@@ -1497,7 +1519,11 @@ impl PartContext<'_> {
                         self.chip.extra_nodes[&ExtraNodeLoc::GbIo(3)].io[&ExtraNodeIo::GbIn],
                     ),
                 ]),
-                cells: EntityVec::from_iter([(self.chip.col_mid() + 1, self.chip.row_s())]),
+                cells: EntityVec::from_iter([CellCoord::new(
+                    DieId::from_idx(0),
+                    self.chip.col_mid() + 1,
+                    self.chip.row_s(),
+                )]),
             };
             let xloc = ExtraNodeLoc::PllStub(DirV::S);
             self.chip.extra_nodes.insert(xloc, xnode);
@@ -1529,7 +1555,11 @@ impl PartContext<'_> {
             let bel_pins = &self.bel_pins[&("SB_FILTER_50NS", site.loc)];
             nb.add_bel(bels::FILTER[i], bel_pins);
         }
-        nb.get_tile((ColId::from_idx(25), RowId::from_idx(30)));
+        nb.get_cell(CellCoord::new(
+            DieId::from_idx(0),
+            ColId::from_idx(25),
+            RowId::from_idx(30),
+        ));
 
         let mut io_sites = None;
         for pkg_info in self.pkgs.values() {
@@ -1668,7 +1698,7 @@ impl PartContext<'_> {
                 }
                 let mut nb = MiscNodeBuilder::new(&self.chip, tslots::LED_DRV, &[]);
                 for crd in extra_crd {
-                    nb.get_tile(crd);
+                    nb.get_cell(CellCoord::new(DieId::from_idx(0), crd.0, crd.1));
                 }
 
                 let mut site_locs = vec![];
@@ -1806,7 +1836,10 @@ impl PartContext<'_> {
         bel.pins.insert(
             "CLK".into(),
             BelPin {
-                wires: BTreeSet::from_iter([(TileCellId::from_idx(0), wire)]),
+                wires: BTreeSet::from_iter([TileWireCoord {
+                    cell: CellSlotId::from_idx(0),
+                    wire,
+                }]),
                 dir: PinDir::Output,
                 is_intf_in: false,
             },
@@ -1819,7 +1852,7 @@ impl PartContext<'_> {
             ExtraNodeLoc::SmcClk,
             ExtraNode {
                 io: Default::default(),
-                cells: EntityVec::from_iter([(col, row)]),
+                cells: EntityVec::from_iter([CellCoord::new(DieId::from_idx(0), col, row)]),
             },
         );
     }
@@ -1922,7 +1955,7 @@ impl PartContext<'_> {
     fn transplant_r04(
         &mut self,
         harvester: &mut Harvester<BitOwner>,
-        muxes: &mut BTreeMap<TileClassId, BTreeMap<TileClassWire, MuxInfo>>,
+        muxes: &mut BTreeMap<TileClassId, BTreeMap<TileWireCoord, MuxInfo>>,
     ) {
         let db = Database::from_file("db/icecube/ice40p01.zstd").unwrap();
         for tcls in ["COLBUF_IO_W", "COLBUF_IO_E"] {
@@ -2056,20 +2089,20 @@ impl PartContext<'_> {
 
         for tile_muxes in muxes.values_mut() {
             let mut new_muxes = BTreeMap::new();
-            for (&(_, wt), mux) in &mut *tile_muxes {
-                let wtn = self.intdb.wires.key(wt);
+            for (&wt, mux) in &mut *tile_muxes {
+                let wtn = self.intdb.wires.key(wt.wire);
                 if let Some(idx) = wtn.strip_prefix("LOCAL.") {
                     let (a, b) = idx.split_once('.').unwrap();
                     let a: usize = a.parse().unwrap();
                     let b: usize = b.parse().unwrap();
                     if a == 0 && b >= 4 {
-                        let g2l_wire = (
-                            TileCellId::from_idx(0),
-                            self.intdb.get_wire(&format!("GOUT.{}", b - 4)),
-                        );
+                        let g2l_wire = TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: self.intdb.get_wire(&format!("GOUT.{}", b - 4)),
+                        };
                         let mut g2l_ins = BTreeSet::new();
                         mux.ins.retain(|&wf| {
-                            let wfn = self.intdb.wires.key(wf.1);
+                            let wfn = self.intdb.wires.key(wf.wire);
                             if wfn.starts_with("GLOBAL") {
                                 g2l_ins.insert(wf);
                                 false
@@ -2103,7 +2136,7 @@ impl PartContext<'_> {
             let muxes_int_bram = muxes.get_mut(&tcls_int_bram).unwrap();
             let bsdata_int_bram = bsdata.tiles.get_mut("INT_BRAM").unwrap();
             for (k, v) in muxes_plb {
-                let wire_name = self.intdb.wires.key(k.1);
+                let wire_name = self.intdb.wires.key(k.wire);
                 match muxes_int_bram.entry(k) {
                     btree_map::Entry::Vacant(e) => {
                         assert!(wire_name.starts_with("IMUX"));

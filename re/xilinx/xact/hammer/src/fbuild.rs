@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     db::{BelSlotId, TileClassId},
-    grid::NodeLoc,
+    grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{FeatureId, FpgaFuzzerGen, FuzzerProp};
 use prjcombine_re_hammer::Session;
@@ -320,7 +320,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
 
     pub fn extra_tile(
         self,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         bel: impl Into<String>,
         attr: impl Into<String>,
         val: impl Into<String>,

@@ -1,6 +1,6 @@
 use prjcombine_interconnect::db::{
-    ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire, IntDb, TileCellId,
-    TileClassWire, WireId, WireKind,
+    CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire, IntDb,
+    TileWireCoord, WireId, WireKind,
 };
 use prjcombine_interconnect::dir::{Dir, DirMap, DirPartMap};
 use prjcombine_re_xilinx_naming::db::NamingDb;
@@ -67,12 +67,12 @@ impl XNodeInfoExt for XNodeInfo<'_, '_> {
             xy,
             naming: None,
             tile_map: [(
-                TileCellId::from_idx(match side {
+                CellSlotId::from_idx(match side {
                     Dir::W => 0,
                     Dir::E => 1,
                     _ => unreachable!(),
                 }),
-                TileCellId::from_idx(slot),
+                CellSlotId::from_idx(slot),
             )]
             .into_iter()
             .collect(),
@@ -129,7 +129,7 @@ struct IntMaker<'a> {
     term_slot_intf: ConnectorSlotId,
     long_main_passes: DirPartMap<ConnectorClass>,
     // how many mental illnesses do you think I could be diagnosed with just from this repo?
-    sng_fixup_map: BTreeMap<TileClassWire, TileClassWire>,
+    sng_fixup_map: BTreeMap<TileWireCoord, TileWireCoord>,
     term_wires: DirMap<EntityPartVec<WireId, ConnectorWire>>,
     term_wires_l: DirPartMap<EntityPartVec<WireId, ConnectorWire>>,
     bnodes: Vec<WireId>,
@@ -381,12 +381,24 @@ impl IntMaker<'_> {
                             w_b,
                         );
                         self.sng_fixup_map.insert(
-                            (TileCellId::from_idx(0), w_f),
-                            (TileCellId::from_idx(1), n_f),
+                            TileWireCoord {
+                                cell: CellSlotId::from_idx(0),
+                                wire: w_f,
+                            },
+                            TileWireCoord {
+                                cell: CellSlotId::from_idx(1),
+                                wire: n_f,
+                            },
                         );
                         self.sng_fixup_map.insert(
-                            (TileCellId::from_idx(1), w_b),
-                            (TileCellId::from_idx(0), n_b),
+                            TileWireCoord {
+                                cell: CellSlotId::from_idx(1),
+                                wire: w_b,
+                            },
+                            TileWireCoord {
+                                cell: CellSlotId::from_idx(0),
+                                wire: n_b,
+                            },
                         );
                     }
                     w_f = n_f;
@@ -980,7 +992,7 @@ impl IntMaker<'_> {
         let node = &mut self.builder.db.tile_classes[nk];
         node.cells.push(());
         for (wt, mux) in &mut node.muxes {
-            let wtn = self.builder.db.wires.key(wt.1);
+            let wtn = self.builder.db.wires.key(wt.wire);
             if !wtn.starts_with("INODE") && !wtn.starts_with("SDQNODE") {
                 continue;
             }
@@ -1042,21 +1054,24 @@ impl IntMaker<'_> {
                 for (int_xy, int_subtile, cle_tile, side) in [
                     (
                         int_xy_e,
-                        TileCellId::from_idx(0),
-                        TileCellId::from_idx(1),
+                        CellSlotId::from_idx(0),
+                        CellSlotId::from_idx(1),
                         Dir::W,
                     ),
                     (
                         int_xy_w,
-                        TileCellId::from_idx(1),
-                        TileCellId::from_idx(0),
+                        CellSlotId::from_idx(1),
+                        CellSlotId::from_idx(0),
                         Dir::E,
                     ),
                 ] {
                     let naming = &self.builder.ndb.tile_class_namings[naming];
                     let mut nodes = HashMap::new();
                     for &w in &self.bnode_outs {
-                        if let Some(n) = naming.wires.get(&(cle_tile, w)) {
+                        if let Some(n) = naming.wires.get(&TileWireCoord {
+                            cell: cle_tile,
+                            wire: w,
+                        }) {
                             let n = self.builder.rd.wires.get(n).unwrap();
                             if let &TkWire::Connected(idx) = tk.wires.get(&n).unwrap().1 {
                                 nodes.insert(tile.conn_wires[idx], w);
@@ -1067,7 +1082,10 @@ impl IntMaker<'_> {
                     let int_tk = &self.builder.rd.tile_kinds[int_tile.kind];
                     let int_naming = &self.builder.ndb.tile_class_namings[int_naming];
                     for &w in &self.bounces {
-                        if let Some(n) = int_naming.wires.get(&(int_subtile, w)) {
+                        if let Some(n) = int_naming.wires.get(&TileWireCoord {
+                            cell: int_subtile,
+                            wire: w,
+                        }) {
                             let n = self.builder.rd.wires.get(n).unwrap();
                             if let &TkWire::Connected(idx) = int_tk.wires.get(&n).unwrap().1 {
                                 nodes.insert(int_tile.conn_wires[idx], w);
@@ -1079,7 +1097,10 @@ impl IntMaker<'_> {
                         if self.builder.db.wires[w] != WireKind::Branch(self.term_slot_intf) {
                             continue;
                         }
-                        if let Some(n) = int_naming.wires.get(&(int_subtile, w)) {
+                        if let Some(n) = int_naming.wires.get(&TileWireCoord {
+                            cell: int_subtile,
+                            wire: w,
+                        }) {
                             let n = self.builder.rd.wires.get(n).unwrap();
                             if let &TkWire::Connected(idx) = int_tk.wires.get(&n).unwrap().1 {
                                 if let Some(&cw) = nodes.get(&int_tile.conn_wires[idx]) {

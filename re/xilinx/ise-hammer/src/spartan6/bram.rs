@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use prjcombine_interconnect::grid::NodeLoc;
+use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_spartan6::bels;
@@ -29,7 +29,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraBramFixup {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let mut feature = fuzzer.info.features[0].clone();

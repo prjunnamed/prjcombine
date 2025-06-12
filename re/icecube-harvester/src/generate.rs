@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{Dir, DirH, DirV},
-    grid::{ColId, EdgeIoCoord, RowId, TileIobId},
+    grid::{CellCoord, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_siliconblue::{
     bond::BondPad,
@@ -45,7 +45,7 @@ struct Generator<'a> {
     signals: Vec<(InstId, InstPin)>,
     unused_signals: HashSet<(InstId, InstPin)>,
     unused_io: Vec<EdgeIoCoord>,
-    io_cs_used: HashSet<(ColId, RowId)>,
+    io_cs_used: HashSet<CellCoord>,
     io_map: HashMap<EdgeIoCoord, &'a str>,
     io_latch_ok: HashSet<Dir>,
     gb_net: [Option<(InstId, InstPin)>; 8],
@@ -304,9 +304,9 @@ impl Generator<'_> {
                 }
             }
         }
-        let (_, (col, row), _) = self.cfg.edev.chip.get_io_loc(crd);
-        if self.rng.random_bool(0.5) && !self.io_cs_used.contains(&(col, row)) {
-            self.io_cs_used.insert((col, row));
+        let bcrd = self.cfg.edev.chip.get_io_loc(crd);
+        if self.rng.random_bool(0.5) && !self.io_cs_used.contains(&bcrd.cell) {
+            self.io_cs_used.insert(bcrd.cell);
             let shared_in_pins = if is_od {
                 ["INPUTCLK", "OUTPUTCLK", "CLOCKENABLE"]
             } else {

@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::DieId;
+use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
@@ -34,7 +34,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             let mut bctx = ctx.bel(bels::BSCAN);
             bctx.mode("BSCAN")
                 .extra_tile(
-                    (DieId::from_idx(0), grid.col_e(), grid.row_n(), tslots::MAIN),
+                    CellCoord::new(DieId::from_idx(0), grid.col_e(), grid.row_n())
+                        .tile(tslots::MAIN),
                     "BSCAN",
                     "BSCAN",
                     "USED",
@@ -137,12 +138,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 for pin in ["F500K", "F16K", "F490", "F15"] {
                     bctx.build()
                         .extra_tile(
-                            (
-                                DieId::from_idx(0),
-                                grid.col_e(),
-                                grid.row_s(),
-                                tslots::MAIN,
-                            ),
+                            CellCoord::new(DieId::from_idx(0), grid.col_e(), grid.row_s())
+                                .tile(tslots::MAIN),
                             "OSC",
                             format!("MUX.{out}"),
                             pin,

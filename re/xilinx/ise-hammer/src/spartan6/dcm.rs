@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use prjcombine_interconnect::grid::NodeLoc;
+use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum_default,
     xlat_enum_ocd,
@@ -33,7 +33,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllOtherDcms {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let node = backend.egrid.db.get_tile_class("CMT_DCM");

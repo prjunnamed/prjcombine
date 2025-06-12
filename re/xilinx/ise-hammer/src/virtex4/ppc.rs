@@ -50,7 +50,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
             assert_eq!(pin_data.wires.len(), 1);
             let wire = *pin_data.wires.first().unwrap();
-            if intdb.wires.key(wire.1).starts_with("IMUX.IMUX") {
+            if intdb.wires.key(wire.wire).starts_with("IMUX.IMUX") {
                 continue;
             }
             bctx.mode(mode).test_inv(pin);
@@ -102,7 +102,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             assert_eq!(pin_data.wires.len(), 1);
             let wire = *pin_data.wires.first().unwrap();
-            if egrid.db.wires.key(wire.1).starts_with("IMUX.IMUX") {
+            if egrid.db.wires.key(wire.wire).starts_with("IMUX.IMUX") {
                 continue;
             }
             let int_tiles = &["INT"; 62];

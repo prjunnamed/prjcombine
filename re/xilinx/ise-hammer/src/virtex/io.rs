@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use prjcombine_interconnect::{
     db::BelSlotId,
-    grid::{DieId, NodeLoc},
+    grid::{CellCoord, DieId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
@@ -13,7 +13,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex::{bels, chip::ChipKind};
+use prjcombine_virtex::{bels, chip::ChipKind, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -36,15 +36,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexIsDllIob {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex(edev) = backend.edev else {
             unreachable!()
         };
         let is_dll = edev.chip.kind != prjcombine_virtex::chip::ChipKind::Virtex
-            && ((nloc.1 == edev.chip.col_clk() - 1 && self.0 == bels::IO[1])
-                || (nloc.1 == edev.chip.col_clk() && self.0 == bels::IO[2]));
+            && ((tcrd.col == edev.chip.col_clk() - 1 && self.0 == bels::IO[1])
+                || (tcrd.col == edev.chip.col_clk() && self.0 == bels::IO[2]));
         if self.1 != is_dll {
             return None;
         }
@@ -63,7 +63,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsVref {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
@@ -75,7 +75,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsVref {
         let ExpandedNamedDevice::Virtex(endev) = backend.endev else {
             unreachable!()
         };
-        let crd = endev.grid.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+        let crd = endev.grid.get_io_crd(tcrd.bel(self.0));
         if !ebond.bond.vref.contains(&crd) {
             return None;
         }
@@ -94,7 +94,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsDiff {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
@@ -107,7 +107,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsDiff {
         let ExpandedNamedDevice::Virtex(endev) = backend.endev else {
             unreachable!()
         };
-        let crd = endev.grid.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+        let crd = endev.grid.get_io_crd(tcrd.bel(self.0));
         if !ebond.bond.diffp.contains(&crd) && !ebond.bond.diffn.contains(&crd) {
             return None;
         }
@@ -126,7 +126,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexOtherIobInput {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex(edev) = backend.edev else {
@@ -142,12 +142,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexOtherIobInput {
             unreachable!()
         };
         let (crd, orig_bank) = if bels::IO.contains(&self.0) {
-            let crd = edev.chip.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+            let crd = edev.chip.get_io_crd(tcrd.bel(self.0));
             (Some(crd), edev.chip.get_io_bank(crd))
         } else {
             (
                 None,
-                if nloc.2 == edev.chip.row_s() {
+                if tcrd.row == edev.chip.row_s() {
                     if self.0 == bels::GCLK_IO0 { 4 } else { 5 }
                 } else {
                     if self.0 == bels::GCLK_IO0 { 1 } else { 0 }
@@ -189,8 +189,8 @@ fn has_any_vref<'a>(
             bonded_ios.insert(io, &devbond.name[..]);
         }
     }
-    for &(die, col, row, _) in &edev.egrid.tile_index[node_kind] {
-        let crd = edev.chip.get_io_crd((die, (col, row), slot));
+    for &tcrd in &edev.egrid.tile_index[node_kind] {
+        let crd = edev.chip.get_io_crd(tcrd.bel(slot));
         if let Some(&pkg) = bonded_ios.get(&crd) {
             return Some(pkg);
         }
@@ -494,30 +494,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     }
                 }
                 if tile == "IO.B" || tile == "IO.T" {
-                    let tile_clk = if backend.device.name.contains("2s") {
-                        if tile == "IO.B" {
-                            "CLKB_2DLL"
-                        } else {
-                            "CLKT_2DLL"
-                        }
-                    } else {
-                        if tile == "IO.B" {
-                            "CLKB_4DLL"
-                        } else {
-                            "CLKT_4DLL"
-                        }
-                    };
                     let row = if tile == "IO.B" {
                         edev.chip.row_s()
                     } else {
                         edev.chip.row_n()
                     };
                     let bel_clk = if i == 1 { "IOFB1" } else { "IOFB0" };
-                    let clkbt = edev.egrid.get_tile_by_class(
-                        DieId::from_idx(0),
-                        (edev.chip.col_clk(), row),
-                        |x| x == tile_clk,
-                    );
+                    let clkbt = CellCoord::new(DieId::from_idx(0), edev.chip.col_clk(), row)
+                        .tile(tslots::CLKBT);
                     for &iostd in IOSTDS_CMOS_VE {
                         bctx.mode("DLLIOB")
                             .global_mutex("GCLKIOB", "NO")

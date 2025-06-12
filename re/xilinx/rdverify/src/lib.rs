@@ -1,10 +1,12 @@
 #![allow(clippy::unnecessary_unwrap)]
 
 use prjcombine_interconnect::db::{
-    BelInfo, BelSlotId, ConnectorSlotId, ConnectorWire, IntDb, IntfInfo, IriPin, PinDir, TileClassId, TileClassWire, TileSlotId, WireId, WireKind
+    BelInfo, BelSlotId, ConnectorWire, IntDb, IntfInfo, IriPin, PinDir, TileClassId, TileWireCoord,
+    WireId, WireKind,
 };
 use prjcombine_interconnect::grid::{
-    BelCoord, ColId, Connector, DieId, ExpandedGrid, NodeLoc, RowId, Tile, WireCoord,
+    BelCoord, CellCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, Tile, TileCoord,
+    WireCoord,
 };
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, ConnectorWireInFarNaming, ConnectorWireOutNaming, IntfWireInNaming,
@@ -21,11 +23,12 @@ pub struct BelContext<'a> {
     pub col: ColId,
     pub row: RowId,
     pub slot: BelSlotId,
-    pub tslot: TileSlotId,
-    pub node: &'a Tile,
-    pub nnode: &'a TileNaming,
-    pub node_kind: &'a str,
-    pub bel: &'a BelInfo,
+    pub cell: CellCoord,
+    pub bel: BelCoord,
+    pub tile: &'a Tile,
+    pub ntile: &'a TileNaming,
+    pub tcls: &'a str,
+    pub info: &'a BelInfo,
     pub naming: &'a BelNaming,
     pub name: Option<&'a str>,
     pub crds: EntityPartVec<RawTileId, Coord>,
@@ -129,8 +132,8 @@ struct IntWireData {
 
 #[derive(Debug)]
 struct NodeUsedInfo {
-    used_o: HashSet<TileClassWire>,
-    used_i: HashSet<TileClassWire>,
+    used_o: HashSet<TileWireCoord>,
+    used_i: HashSet<TileWireCoord>,
 }
 
 fn prep_node_used_info(db: &IntDb, nid: TileClassId) -> NodeUsedInfo {
@@ -140,7 +143,7 @@ fn prep_node_used_info(db: &IntDb, nid: TileClassId) -> NodeUsedInfo {
     for (&k, v) in &node.muxes {
         used_o.insert(k);
         for &w in &v.ins {
-            if !db.wires[w.1].is_tie() {
+            if !db.wires[w.wire].is_tie() {
                 used_i.insert(w);
             }
         }
@@ -228,123 +231,115 @@ impl<'a> Verifier<'a> {
     }
 
     fn prep_int_wires(&mut self) {
-        for die in self.grid.dies() {
-            for col in die.cols() {
-                for row in die.rows() {
-                    let et = &die[(col, row)];
-                    for (layer, node) in &et.tiles {
-                        let nui = &self.node_used[node.class];
-                        let nk = &self.db.tile_classes[node.class];
-                        let Some(nnode) = self.ngrid.tiles.get(&(die.die, col, row, layer)) else {
-                            continue;
-                        };
-                        let naming = &self.ndb.tile_class_namings[nnode.naming];
-                        for &w in &nui.used_i {
-                            let w = (die.die, node.cells[w.0], w.1);
+        for (tcrd, tile) in self.grid.tiles() {
+            let nui = &self.node_used[tile.class];
+            let nk = &self.db.tile_classes[tile.class];
+            let Some(ntile) = self.ngrid.tiles.get(&tcrd) else {
+                continue;
+            };
+            let naming = &self.ndb.tile_class_namings[ntile.naming];
+            for &w in &nui.used_i {
+                let w = self.grid.tile_wire(tcrd, w);
+                if let Some(w) = self.ngrid.resolve_wire_raw(w) {
+                    self.int_wire_data.entry(w).or_default().used_i = true;
+                }
+            }
+            for &w in &nui.used_o {
+                let w = self.grid.tile_wire(tcrd, w);
+                if let Some(w) = self.ngrid.resolve_wire_raw(w) {
+                    self.int_wire_data.entry(w).or_default().used_o = true;
+                }
+            }
+            for nt in tile.cells.ids() {
+                for (wt, _, &wd) in &self.db.wires {
+                    if let WireKind::Buf(wf) = wd {
+                        let wt = TileWireCoord { cell: nt, wire: wt };
+                        let wf = TileWireCoord { cell: nt, wire: wf };
+                        if naming.wires.contains_key(&wt) {
+                            let w = self.grid.tile_wire(tcrd, wf);
                             if let Some(w) = self.ngrid.resolve_wire_raw(w) {
                                 self.int_wire_data.entry(w).or_default().used_i = true;
                             }
-                        }
-                        for &w in &nui.used_o {
-                            let w = (die.die, node.cells[w.0], w.1);
+                            let w = self.grid.tile_wire(tcrd, wt);
                             if let Some(w) = self.ngrid.resolve_wire_raw(w) {
                                 self.int_wire_data.entry(w).or_default().used_o = true;
                             }
                         }
-                        for nt in node.cells.ids() {
-                            for (wt, _, &wd) in &self.db.wires {
-                                if let WireKind::Buf(wf) = wd {
-                                    let wt = (nt, wt);
-                                    let wf = (nt, wf);
-                                    if naming.wires.contains_key(&wt) {
-                                        let w = (die.die, node.cells[wf.0], wf.1);
-                                        if let Some(w) = self.ngrid.resolve_wire_raw(w) {
-                                            self.int_wire_data.entry(w).or_default().used_i = true;
-                                        }
-                                        let w = (die.die, node.cells[wt.0], wt.1);
-                                        if let Some(w) = self.ngrid.resolve_wire_raw(w) {
-                                            self.int_wire_data.entry(w).or_default().used_o = true;
-                                        }
-                                    }
-                                }
-                            }
+                    }
+                }
+            }
+            for (&w, ii) in &nk.intfs {
+                match *ii {
+                    IntfInfo::OutputTestMux(ref wfs) => {
+                        let wt = self.grid.tile_wire(tcrd, w);
+                        if let Some(wt) = self.ngrid.resolve_wire_raw(wt) {
+                            let iwd = self.int_wire_data.entry(wt).or_default();
+                            iwd.used_o = true;
+                            iwd.has_intf_o = true;
                         }
-                        for (w, ii) in &nk.intfs {
-                            match *ii {
-                                IntfInfo::OutputTestMux(ref wfs) => {
-                                    let wt = (die.die, node.cells[w.0], w.1);
-                                    if let Some(wt) = self.ngrid.resolve_wire_raw(wt) {
-                                        let iwd = self.int_wire_data.entry(wt).or_default();
-                                        iwd.used_o = true;
-                                        iwd.has_intf_o = true;
-                                    }
-                                    for &wf in wfs {
-                                        let wf = (die.die, node.cells[wf.0], wf.1);
-                                        if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
-                                            self.int_wire_data.entry(wf).or_default().used_i = true;
-                                        }
-                                    }
-                                }
-                                IntfInfo::OutputTestMuxPass(ref wfs, pwf) => {
-                                    let wt = (die.die, node.cells[w.0], w.1);
-                                    if let Some(wt) = self.ngrid.resolve_wire_raw(wt) {
-                                        let iwd = self.int_wire_data.entry(wt).or_default();
-                                        iwd.used_o = true;
-                                        iwd.has_intf_o = true;
-                                    }
-                                    for &wf in wfs {
-                                        let wf = (die.die, node.cells[wf.0], wf.1);
-                                        if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
-                                            self.int_wire_data.entry(wf).or_default().used_i = true;
-                                        }
-                                    }
-                                    let wf = (die.die, node.cells[pwf.0], pwf.1);
-                                    if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
-                                        self.int_wire_data.entry(wf).or_default().used_i = true;
-                                    }
-                                }
-                                IntfInfo::InputDelay
-                                | IntfInfo::InputIri(..)
-                                | IntfInfo::InputIriDelay(..) => {
-                                    let wf = (die.die, node.cells[w.0], w.1);
-                                    if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
-                                        let iwd = self.int_wire_data.entry(wf).or_default();
-                                        iwd.used_i = true;
-                                        iwd.has_intf_i = true;
-                                    }
-                                }
-                            }
-                        }
-                        for (w, ini) in &naming.intf_wires_in {
-                            if let IntfWireInNaming::Buf { .. } = ini {
-                                let wf = (die.die, node.cells[w.0], w.1);
-                                if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
-                                    let iwd = self.int_wire_data.entry(wf).or_default();
-                                    iwd.used_i = true;
-                                    iwd.has_intf_i = true;
-                                }
+                        for &wf in wfs {
+                            let wf = self.grid.tile_wire(tcrd, wf);
+                            if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
+                                self.int_wire_data.entry(wf).or_default().used_i = true;
                             }
                         }
                     }
-                    for (slot, t) in &et.conns {
-                        if let Some(nt) = self.ngrid.conns.get(&(die.die, col, row, slot)) {
-                            let tn = &self.ndb.conn_class_namings[nt.naming];
-                            let tk = &self.db.conn_classes[t.class];
-                            for w in tn.wires_out.ids() {
-                                let wt = (die.die, (col, row), w);
-                                if let Some(wt) = self.ngrid.resolve_wire_raw(wt) {
-                                    self.int_wire_data.entry(wt).or_default().used_o = true;
-                                }
-                                let wf = match tk.wires[w] {
-                                    ConnectorWire::Reflect(wf) => (die.die, (col, row), wf),
-                                    ConnectorWire::Pass(wf) => (die.die, t.target.unwrap(), wf),
-                                    _ => unreachable!(),
-                                };
-                                if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
-                                    self.int_wire_data.entry(wf).or_default().used_i = true;
-                                }
+                    IntfInfo::OutputTestMuxPass(ref wfs, pwf) => {
+                        let wt = self.grid.tile_wire(tcrd, w);
+                        if let Some(wt) = self.ngrid.resolve_wire_raw(wt) {
+                            let iwd = self.int_wire_data.entry(wt).or_default();
+                            iwd.used_o = true;
+                            iwd.has_intf_o = true;
+                        }
+                        for &wf in wfs {
+                            let wf = self.grid.tile_wire(tcrd, wf);
+                            if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
+                                self.int_wire_data.entry(wf).or_default().used_i = true;
                             }
                         }
+                        let wf = self.grid.tile_wire(tcrd, pwf);
+                        if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
+                            self.int_wire_data.entry(wf).or_default().used_i = true;
+                        }
+                    }
+                    IntfInfo::InputDelay | IntfInfo::InputIri(..) | IntfInfo::InputIriDelay(..) => {
+                        let wf = self.grid.tile_wire(tcrd, w);
+                        if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
+                            let iwd = self.int_wire_data.entry(wf).or_default();
+                            iwd.used_i = true;
+                            iwd.has_intf_i = true;
+                        }
+                    }
+                }
+            }
+            for (&w, ini) in &naming.intf_wires_in {
+                if let IntfWireInNaming::Buf { .. } = ini {
+                    let wf = self.grid.tile_wire(tcrd, w);
+                    if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
+                        let iwd = self.int_wire_data.entry(wf).or_default();
+                        iwd.used_i = true;
+                        iwd.has_intf_i = true;
+                    }
+                }
+            }
+        }
+        for (ccrd, conn) in self.grid.connectors() {
+            let target = conn.target.map(|(col, row)| ccrd.cell.with_cr(col, row));
+            if let Some(nt) = self.ngrid.conns.get(&ccrd) {
+                let tn = &self.ndb.conn_class_namings[nt.naming];
+                let tk = &self.db.conn_classes[conn.class];
+                for w in tn.wires_out.ids() {
+                    let wt = ccrd.cell.wire(w);
+                    if let Some(wt) = self.ngrid.resolve_wire_raw(wt) {
+                        self.int_wire_data.entry(wt).or_default().used_o = true;
+                    }
+                    let wf = match tk.wires[w] {
+                        ConnectorWire::Reflect(wf) => ccrd.cell.wire(wf),
+                        ConnectorWire::Pass(wf) => target.unwrap().wire(wf),
+                        _ => unreachable!(),
+                    };
+                    if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
+                        self.int_wire_data.entry(wf).or_default().used_i = true;
                     }
                 }
             }
@@ -387,9 +382,9 @@ impl<'a> Verifier<'a> {
                 } else if iwd.node != Some(cnw) {
                     let tname = &self.rd.tiles[&crd].name;
                     println!(
-                        "INT NODE MISMATCH FOR {p} {tname} {wire} {iw:?} {wn}",
+                        "INT NODE MISMATCH FOR {p} {tname} {wire} {iw}",
                         p = self.rd.part,
-                        wn = self.db.wires.key(iw.2),
+                        iw = iw.to_string(self.db),
                     );
                 }
             } else if iwd.used_o {
@@ -436,9 +431,9 @@ impl<'a> Verifier<'a> {
                 if nw != cnw {
                     let tname = &self.rd.tiles[&crd].name;
                     println!(
-                        "INT INTF NODE MISMATCH FOR {p} {tname} {wire} {iw:?} {wn}",
+                        "INT INTF NODE MISMATCH FOR {p} {tname} {wire} {iw}",
                         p = self.rd.part,
-                        wn = self.db.wires.key(iw.2)
+                        iw = iw.to_string(self.db)
                     );
                 }
             } else if iwd.intf_missing {
@@ -632,7 +627,10 @@ impl<'a> Verifier<'a> {
         self.tile_lut.get(tname).copied()
     }
 
-    pub fn get_node_crds(&self, nloc: NodeLoc) -> Option<EntityPartVec<RawTileId, rawdump::Coord>> {
+    pub fn get_node_crds(
+        &self,
+        nloc: TileCoord,
+    ) -> Option<EntityPartVec<RawTileId, rawdump::Coord>> {
         let mut crds = EntityPartVec::new();
         if let Some(nnode) = self.ngrid.tiles.get(&nloc) {
             for (k, name) in &nnode.names {
@@ -647,31 +645,36 @@ impl<'a> Verifier<'a> {
         Some(crds)
     }
 
-    fn print_nw(&self, nw: TileClassWire) -> String {
-        format!("{t}.{w}", t = nw.0.to_idx(), w = self.db.wires.key(nw.1))
+    fn print_nw(&self, nw: TileWireCoord) -> String {
+        format!(
+            "{t}.{w}",
+            t = nw.cell.to_idx(),
+            w = self.db.wires.key(nw.wire)
+        )
     }
 
     fn print_w(&self, w: WireId) -> String {
         self.db.wires.key(w).to_string()
     }
 
-    fn handle_int_node(&mut self, nloc: NodeLoc, node: &Tile) {
+    fn handle_tile(&mut self, tcrd: TileCoord) {
+        let tile = self.grid.tile(tcrd);
         let crds;
-        if let Some(c) = self.get_node_crds(nloc) {
+        if let Some(c) = self.get_node_crds(tcrd) {
             crds = c;
         } else {
             return;
         }
-        let Some(nnode) = self.ngrid.tiles.get(&nloc) else {
+        let Some(nnode) = self.ngrid.tiles.get(&tcrd) else {
             return;
         };
         let def_rt = RawTileId::from_idx(0);
-        let kind = &self.db.tile_classes[node.class];
+        let kind = &self.db.tile_classes[tile.class];
         let naming = &self.ndb.tile_class_namings[nnode.naming];
-        let nui = &self.node_used[node.class];
+        let nui = &self.node_used[tile.class];
         let mut wire_lut = HashMap::new();
         for &w in nui.used_i.iter().chain(nui.used_o.iter()) {
-            let ww = (nloc.0, node.cells[w.0], w.1);
+            let ww = self.grid.tile_wire(tcrd, w);
             wire_lut.insert(w, self.ngrid.resolve_wire_raw(ww));
         }
         let mut wires_pinned = HashSet::new();
@@ -684,7 +687,7 @@ impl<'a> Verifier<'a> {
             }
             let wti = wti.unwrap();
             for &wf in &wfs.ins {
-                let wftie = self.db.wires[wf.1].is_tie();
+                let wftie = self.db.wires[wf.wire].is_tie();
                 let pip_found;
                 if let Some(en) = naming.ext_pips.get(&(wt, wf)) {
                     if !crds.contains_id(en.tile) {
@@ -693,7 +696,7 @@ impl<'a> Verifier<'a> {
                         if !wires_pinned.contains(&wf) {
                             wires_pinned.insert(wf);
                             self.claim_node(&[(crds[en.tile], &en.wire_from)]);
-                            tie_pins_extra.insert(wf.1, &en.wire_from);
+                            tie_pins_extra.insert(wf.wire, &en.wire_from);
                         }
                         pip_found = self.pin_int_wire(crds[en.tile], &en.wire_to, wti);
                         if pip_found {
@@ -793,15 +796,18 @@ impl<'a> Verifier<'a> {
             }
         }
         for (&wt, wtn) in &naming.wires {
-            if let WireKind::Buf(wfw) = self.db.wires[wt.1] {
-                let wf = (wt.0, wfw);
+            if let WireKind::Buf(wfw) = self.db.wires[wt.wire] {
+                let wf = TileWireCoord {
+                    cell: wt.cell,
+                    wire: wfw,
+                };
                 let wti = self
                     .ngrid
-                    .resolve_wire_raw((nloc.0, node.cells[wt.0], wt.1))
+                    .resolve_wire_raw(self.grid.tile_wire(tcrd, wt))
                     .unwrap();
                 let wfi = self
                     .ngrid
-                    .resolve_wire_raw((nloc.0, node.cells[wf.0], wf.1))
+                    .resolve_wire_raw(self.grid.tile_wire(tcrd, wf))
                     .unwrap();
                 let wff = self.pin_int_wire(crds[def_rt], &naming.wires[&wf], wfi);
                 let wtf = self.pin_int_wire(crds[def_rt], wtn, wti);
@@ -825,7 +831,7 @@ impl<'a> Verifier<'a> {
         if let Some(ref tn) = nnode.tie_name {
             let mut pins = vec![];
             for (&k, v) in &naming.wires {
-                let pin = match self.db.wires[k.1] {
+                let pin = match self.db.wires[k.wire] {
                     WireKind::Tie0 => self.ngrid.tie_pin_gnd.as_ref().unwrap(),
                     WireKind::Tie1 => self.ngrid.tie_pin_vcc.as_ref().unwrap(),
                     WireKind::TiePullup => self.ngrid.tie_pin_pullup.as_ref().unwrap(),
@@ -864,10 +870,7 @@ impl<'a> Verifier<'a> {
         for (slot, bel) in &kind.bels {
             let bn = &naming.bels[slot];
             for (k, v) in &bel.pins {
-                if self
-                    .skip_bel_pins
-                    .contains(&((nloc.0, (nloc.1, nloc.2), slot), k))
-                {
+                if self.skip_bel_pins.contains(&(tcrd.bel(slot), k)) {
                     continue;
                 }
                 let n = &bn.pins[k];
@@ -897,7 +900,7 @@ impl<'a> Verifier<'a> {
                 for &w in &v.wires {
                     let wire = self
                         .ngrid
-                        .resolve_wire_raw((nloc.0, node.cells[w.0], w.1))
+                        .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
                         .unwrap();
                     let wcrd;
                     let ww: &str;
@@ -950,7 +953,7 @@ impl<'a> Verifier<'a> {
 
         let mut iri_pins = kind.iris.map_values(|_| HashMap::new());
         for (&wt, ii) in &kind.intfs {
-            let wti = (nloc.0, node.cells[wt.0], wt.1);
+            let wti = self.grid.tile_wire(tcrd, wt);
             match ii {
                 IntfInfo::OutputTestMux(wfs) | IntfInfo::OutputTestMuxPass(wfs, _) => {
                     let wtn = match naming.intf_wires_out[&wt] {
@@ -979,7 +982,7 @@ impl<'a> Verifier<'a> {
                         None
                     };
                     for wf in wfs.iter().copied().chain(pwf) {
-                        let wfi = (nloc.0, node.cells[wf.0], wf.1);
+                        let wfi = self.grid.tile_wire(tcrd, wf);
                         if let Some(iwi) = naming.intf_wires_in.get(&wf) {
                             let wfn = match *iwi {
                                 IntfWireInNaming::Simple { name: ref wfn } => {
@@ -1124,14 +1127,13 @@ impl<'a> Verifier<'a> {
                 }
             }
         }
-        for (wf, iwin) in &naming.intf_wires_in {
+        for (&wf, iwin) in &naming.intf_wires_in {
             if let IntfWireInNaming::TestBuf { name_out, name_in } = iwin {
                 self.claim_node(&[(crds[def_rt], name_out)]);
                 self.claim_pip(crds[def_rt], name_out, name_in);
             }
             if let IntfWireInNaming::Buf { name_out, name_in } = iwin {
-                if self.pin_int_intf_wire(crds[def_rt], name_out, (nloc.0, node.cells[wf.0], wf.1))
-                {
+                if self.pin_int_intf_wire(crds[def_rt], name_out, self.grid.tile_wire(tcrd, wf)) {
                     self.claim_pip(crds[def_rt], name_out, name_in);
                 }
             }
@@ -1169,28 +1171,23 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn handle_int_term(
-        &mut self,
-        die: DieId,
-        col: ColId,
-        row: RowId,
-        slot: ConnectorSlotId,
-        term: &Connector,
-    ) {
-        let Some(nterm) = &self.ngrid.conns.get(&(die, col, row, slot)) else {
+    pub fn handle_connector(&mut self, ccrd: ConnectorCoord) {
+        let conn = self.grid.connector(ccrd);
+        let target = conn.target.map(|(col, row)| ccrd.cell.with_cr(col, row));
+        let Some(nconn) = &self.ngrid.conns.get(&ccrd) else {
             return;
         };
-        let tn = &self.ndb.conn_class_namings[nterm.naming];
-        let tk = &self.db.conn_classes[term.class];
+        let tn = &self.ndb.conn_class_namings[nconn.naming];
+        let tk = &self.db.conn_classes[conn.class];
         let crd;
-        if let Some(c) = self.xlat_tile(&nterm.tile) {
+        if let Some(c) = self.xlat_tile(&nconn.tile) {
             crd = c;
         } else {
-            println!("MISSING TERM TILE {n}", n = nterm.tile);
+            println!("MISSING TERM TILE {n}", n = nconn.tile);
             return;
         }
         let crd_far;
-        if let Some(n) = &nterm.tile_far {
+        if let Some(n) = &nconn.tile_far {
             if let Some(c) = self.xlat_tile(n) {
                 crd_far = Some(c);
             } else {
@@ -1201,15 +1198,15 @@ impl<'a> Verifier<'a> {
             crd_far = None;
         }
         for (w, twn) in &tn.wires_out {
-            let wt = self.ngrid.resolve_wire_raw((die, (col, row), w));
+            let wt = self.ngrid.resolve_wire_raw(ccrd.cell.wire(w));
             if wt.is_none() {
                 continue;
             }
             let wt = wt.unwrap();
             let tkw = &tk.wires[w];
             let wf = match *tkw {
-                ConnectorWire::Reflect(wf) => (die, (col, row), wf),
-                ConnectorWire::Pass(wf) => (die, term.target.unwrap(), wf),
+                ConnectorWire::Reflect(wf) => ccrd.cell.wire(wf),
+                ConnectorWire::Pass(wf) => target.unwrap().wire(wf),
                 _ => unreachable!(),
             };
             let wf = self.ngrid.resolve_wire_raw(wf);
@@ -1286,7 +1283,7 @@ impl<'a> Verifier<'a> {
                     println!(
                         "MISSING TERM PIP {part} {tile} {wt}",
                         part = self.rd.part,
-                        tile = nterm.tile,
+                        tile = nconn.tile,
                         wt = self.print_w(w)
                     );
                 }
@@ -1295,18 +1292,11 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn handle_int(&mut self) {
-        for die in self.grid.dies() {
-            for col in die.cols() {
-                for row in die.rows() {
-                    let et = &die[(col, row)];
-                    for (layer, node) in &et.tiles {
-                        self.handle_int_node((die.die, col, row, layer), node);
-                    }
-                    for (slot, t) in &et.conns {
-                        self.handle_int_term(die.die, col, row, slot, t);
-                    }
-                }
-            }
+        for (tcrd, _) in self.grid.tiles() {
+            self.handle_tile(tcrd);
+        }
+        for (ccrd, _) in self.grid.connectors() {
+            self.handle_connector(ccrd);
         }
     }
 
@@ -1319,7 +1309,7 @@ impl<'a> Verifier<'a> {
         dummies: &[&str],
     ) {
         let mut pins = Vec::new();
-        for (k, v) in &bel.bel.pins {
+        for (k, v) in &bel.info.pins {
             if skip.contains(&&**k) {
                 continue;
             }
@@ -1345,7 +1335,7 @@ impl<'a> Verifier<'a> {
                 if !bel.naming.pins.contains_key(pin) {
                     panic!(
                         "MISSING PIN NAME {slot} {pin}",
-                        slot = self.grid.db.bel_slots.key(bel.slot)
+                        slot = self.grid.db.bel_slots.key(bel.bel.slot)
                     );
                 }
                 pins.push(SitePin {
@@ -1360,8 +1350,8 @@ impl<'a> Verifier<'a> {
         } else {
             println!(
                 "MISSING SITE NAME {tiles:?} {slot}",
-                tiles = bel.node.cells,
-                slot = self.grid.db.bel_slots.key(bel.slot)
+                tiles = bel.tile.cells,
+                slot = self.grid.db.bel_slots.key(bel.bel.slot)
             );
         }
     }
@@ -1381,29 +1371,28 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn find_bel(&self, bel: BelCoord) -> Option<BelContext<'a>> {
-        let (die, (col, row), slot) = bel;
-        let layer = self.grid.find_bel_layer(bel)?;
-        let nloc = (die, col, row, layer);
-        let node = &self.grid.die(die).tile((col, row)).tiles[layer];
-        let crds = self.get_node_crds(nloc).unwrap();
-        let nk = &self.db.tile_classes[node.class];
-        let nnode = &self.ngrid.tiles[&nloc];
-        let nn = &self.ndb.tile_class_namings[nnode.naming];
-        let bel = &nk.bels[slot];
-        let naming = &nn.bels[slot];
+        let tcrd = self.grid.find_tile_by_bel(bel)?;
+        let tile = &self.grid.tile(tcrd);
+        let crds = self.get_node_crds(tcrd).unwrap();
+        let nk = &self.db.tile_classes[tile.class];
+        let ntile = &self.ngrid.tiles[&tcrd];
+        let nn = &self.ndb.tile_class_namings[ntile.naming];
+        let info = &nk.bels[bel.slot];
+        let naming = &nn.bels[bel.slot];
         Some(BelContext {
-            die: nloc.0,
-            col: nloc.1,
-            row: nloc.2,
-            tslot: nloc.3,
-            node,
-            nnode,
-            node_kind: self.db.tile_classes.key(node.class),
-            slot,
+            die: bel.cell.die,
+            col: bel.cell.col,
+            row: bel.cell.row,
+            cell: bel.cell,
+            slot: bel.slot,
             bel,
+            tile,
+            ntile,
+            tcls: self.db.tile_classes.key(tile.class),
+            info,
             naming,
             crds,
-            name: nnode.bels.get(slot).map(|x| &**x),
+            name: ntile.bels.get(bel.slot).map(|x| &**x),
         })
     }
 
@@ -1425,7 +1414,12 @@ impl<'a> Verifier<'a> {
         if nc >= die.cols().len() || nr >= die.rows().len() {
             return None;
         }
-        self.find_bel((bel.die, (ColId::from_idx(nc), RowId::from_idx(nr)), slot))
+        self.find_bel(
+            bel.bel
+                .cell
+                .with_cr(ColId::from_idx(nc), RowId::from_idx(nr))
+                .bel(slot),
+        )
     }
 
     pub fn find_bel_walk(
@@ -1449,9 +1443,11 @@ impl<'a> Verifier<'a> {
             if c >= die.cols().len() || r >= die.rows().len() {
                 return None;
             }
-            if let Some(x) =
-                self.find_bel((bel.die, (ColId::from_idx(c), RowId::from_idx(r)), slot))
-            {
+            if let Some(x) = self.find_bel(
+                bel.cell
+                    .with_cr(ColId::from_idx(c), RowId::from_idx(r))
+                    .bel(slot),
+            ) {
                 return Some(x);
             }
         }
@@ -1459,7 +1455,7 @@ impl<'a> Verifier<'a> {
 
     #[track_caller]
     pub fn find_bel_sibling(&self, bel: &BelContext<'_>, slot: BelSlotId) -> BelContext<'a> {
-        self.get_bel((bel.die, (bel.col, bel.row), slot))
+        self.get_bel(bel.cell.bel(slot))
     }
 
     pub fn skip_residual_sites(&mut self) {
@@ -1639,17 +1635,11 @@ pub fn verify(
     extra_pre(&mut vrf);
     vrf.prep_int_wires();
     vrf.handle_int();
-    for die in grid.egrid.dies() {
-        for col in die.cols() {
-            for row in die.rows() {
-                for node in die[(col, row)].tiles.values() {
-                    let nk = &grid.egrid.db.tile_classes[node.class];
-                    for slot in nk.bels.ids() {
-                        let ctx = vrf.get_bel((die.die, (col, row), slot));
-                        bel_handler(&mut vrf, &ctx);
-                    }
-                }
-            }
+    for (tcrd, tile) in grid.egrid.tiles() {
+        let nk = &grid.egrid.db.tile_classes[tile.class];
+        for slot in nk.bels.ids() {
+            let ctx = vrf.get_bel(tcrd.bel(slot));
+            bel_handler(&mut vrf, &ctx);
         }
     }
     extra(&mut vrf);

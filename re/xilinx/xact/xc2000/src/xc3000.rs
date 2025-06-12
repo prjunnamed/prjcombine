@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::{ColId, DieId, RowId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{bels::xc2000 as bels, chip::Chip, expanded::ExpandedDevice};
 use unnamed_entity::{EntityId, EntityVec};
@@ -57,9 +57,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     for die in egrid.dies() {
         for col in die.cols() {
             for row in die.rows() {
-                for (layer, node) in &die[(col, row)].tiles {
-                    let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.tile_classes.key(node.class);
+                let cell = CellCoord::new(die.die, col, row);
+                for (tslot, tile) in &die[(col, row)].tiles {
+                    let tcrd = cell.tile(tslot);
+                    let kind = egrid.db.tile_classes.key(tile.class);
                     let mut naming = kind.to_string();
                     if col == grid.col_w() + 1 {
                         naming += ".L1";
@@ -69,7 +70,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     }
                     if kind.starts_with("CLB") {
                         let nnode = ngrid.name_node(
-                            nloc,
+                            tcrd,
                             &naming,
                             [(col_x[col].clone(), row_y[row].clone())],
                         );
@@ -192,9 +193,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bels::OSC, vec!["OSC".into()]);
                         }
                     } else if kind.starts_with("LLH") {
-                        ngrid.name_node(nloc, kind, [(col_x[col].clone(), row_y[row].clone())]);
+                        ngrid.name_node(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);
                     } else if kind.starts_with("LLV") {
-                        ngrid.name_node(nloc, kind, [(col_x[col].clone(), row_y[row - 1].clone())]);
+                        ngrid.name_node(tcrd, kind, [(col_x[col].clone(), row_y[row - 1].clone())]);
                     } else {
                         panic!("ummmm {kind}?");
                     }

@@ -1,30 +1,27 @@
-use prjcombine_interconnect::grid::NodeLoc;
+use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{bels, tslots};
 
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::{Delta, NodeRelation},
+        props::relation::{Delta, TileRelation},
     },
 };
 
 #[derive(Clone, Debug)]
 struct Cmt;
 
-impl NodeRelation for Cmt {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for Cmt {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        Some(
-            edev.egrid
-                .get_tile_by_bel((nloc.0, (edev.col_clk, nloc.2), bels::CMT)),
-        )
+        Some(tcrd.with_col(edev.col_clk).tile(tslots::BEL))
     }
 }
 
@@ -78,9 +75,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    for (tile, gio, base) in [
-        ("CMT_BUFG_BOT", bels::GIO_S, 0),
-        ("CMT_BUFG_TOP", bels::GIO_N, 16),
+    for (tile, gio, base, dy) in [
+        ("CMT_BUFG_BOT", bels::GIO_S, 0, 2),
+        ("CMT_BUFG_TOP", bels::GIO_N, 16, 0),
     ] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         for i in 0..16 {
@@ -102,8 +99,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
             bctx.build()
                 .null_bits()
-                .extra_tile(Delta::new(0, -20, "CMT"), "CMT")
-                .extra_tile(Delta::new(0, 20, "CMT"), "CMT")
+                .extra_tile(Delta::new(0, dy - 20, "CMT"), "CMT")
+                .extra_tile(Delta::new(0, dy + 20, "CMT"), "CMT")
                 .global_mutex("GCLK", "TEST")
                 .test_manual(format!("ENABLE.GCLK{}", base + i), "1")
                 .pip("GCLK", "O")
@@ -157,8 +154,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .null_bits()
                 .global_mutex("GIO", "TEST")
-                .extra_tile(Delta::new(0, -20, "CMT"), "CMT")
-                .extra_tile(Delta::new(0, 20, "CMT"), "CMT")
+                .extra_tile(Delta::new(0, dy - 20, "CMT"), "CMT")
+                .extra_tile(Delta::new(0, dy + 20, "CMT"), "CMT")
                 .test_manual(format!("ENABLE.GIO{i}"), "1")
                 .pip(format!("GIO{i}_CMT"), format!("GIO{i}"))
                 .commit();

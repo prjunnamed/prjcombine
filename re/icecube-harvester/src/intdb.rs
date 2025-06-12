@@ -2,11 +2,11 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, BelSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire,
-        IntDb, PinDir, TileCellId, TileClass, TileSlotId, WireKind,
+        BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId,
+        ConnectorWire, IntDb, PinDir, TileClass, TileSlotId, TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
-    grid::{ColId, EdgeIoCoord, RowId},
+    grid::{CellCoord, EdgeIoCoord},
 };
 use prjcombine_siliconblue::{
     bels,
@@ -18,26 +18,28 @@ use unnamed_entity::{EntityId, EntityVec};
 
 use crate::sites::BelPins;
 
-fn add_input(db: &IntDb, bel: &mut BelInfo, name: &str, tile: usize, wire: &str) {
+fn add_input(db: &IntDb, bel: &mut BelInfo, name: &str, cell: usize, wire: &str) {
     bel.pins.insert(
         name.into(),
         BelPin {
-            wires: BTreeSet::from_iter([(TileCellId::from_idx(tile), db.get_wire(wire))]),
+            wires: BTreeSet::from_iter([TileWireCoord {
+                cell: CellSlotId::from_idx(cell),
+                wire: db.get_wire(wire),
+            }]),
             dir: PinDir::Input,
             is_intf_in: false,
         },
     );
 }
 
-fn add_output(db: &IntDb, bel: &mut BelInfo, name: &str, tile: usize, wires: &[&str]) {
+fn add_output(db: &IntDb, bel: &mut BelInfo, name: &str, cell: usize, wires: &[&str]) {
     bel.pins.insert(
         name.into(),
         BelPin {
-            wires: BTreeSet::from_iter(
-                wires
-                    .iter()
-                    .map(|wire| (TileCellId::from_idx(tile), db.get_wire(wire))),
-            ),
+            wires: BTreeSet::from_iter(wires.iter().map(|wire| TileWireCoord {
+                cell: CellSlotId::from_idx(cell),
+                wire: db.get_wire(wire),
+            })),
             dir: PinDir::Output,
             is_intf_in: false,
         },
@@ -475,23 +477,23 @@ pub struct MiscNodeBuilder<'a> {
     pub node: TileClass,
     pub io: BTreeMap<ExtraNodeIo, EdgeIoCoord>,
     pub fixed_tiles: usize,
-    pub tiles: EntityVec<TileCellId, (ColId, RowId)>,
-    pub tiles_map: HashMap<(ColId, RowId), TileCellId>,
+    pub cells: EntityVec<CellSlotId, CellCoord>,
+    pub cells_map: HashMap<CellCoord, CellSlotId>,
 }
 
 impl<'a> MiscNodeBuilder<'a> {
-    pub fn new(chip: &'a Chip, slot: TileSlotId, fixed_tiles: &[(ColId, RowId)]) -> Self {
-        let mut tiles = EntityVec::new();
-        let mut tiles_map = HashMap::new();
+    pub fn new(chip: &'a Chip, slot: TileSlotId, fixed_tiles: &[CellCoord]) -> Self {
+        let mut cells = EntityVec::new();
+        let mut cells_map = HashMap::new();
         for &crd in fixed_tiles {
-            let tile = tiles.push(crd);
-            tiles_map.insert(crd, tile);
+            let tile = cells.push(crd);
+            cells_map.insert(crd, tile);
         }
         Self {
             chip,
             node: TileClass {
                 slot,
-                cells: EntityVec::from_iter(tiles.iter().map(|_| ())),
+                cells: EntityVec::from_iter(cells.iter().map(|_| ())),
                 muxes: Default::default(),
                 iris: Default::default(),
                 intfs: Default::default(),
@@ -499,31 +501,34 @@ impl<'a> MiscNodeBuilder<'a> {
             },
             io: Default::default(),
             fixed_tiles: fixed_tiles.len(),
-            tiles,
-            tiles_map,
+            cells,
+            cells_map,
         }
     }
 
-    pub fn get_tile(&mut self, crd: (ColId, RowId)) -> TileCellId {
-        match self.tiles_map.entry(crd) {
+    pub fn get_cell(&mut self, crd: CellCoord) -> CellSlotId {
+        match self.cells_map.entry(crd) {
             hash_map::Entry::Occupied(entry) => *entry.get(),
             hash_map::Entry::Vacant(entry) => {
-                let tile = self.node.cells.push(());
-                self.tiles.push(crd);
-                entry.insert(tile);
-                tile
+                let cell = self.node.cells.push(());
+                self.cells.push(crd);
+                entry.insert(cell);
+                cell
             }
         }
     }
 
     pub fn add_bel(&mut self, slot: BelSlotId, pins: &BelPins) {
         let mut bel = BelInfo::default();
-        for (pin, &(_, crd, wire)) in &pins.ins {
-            let tile = self.get_tile(crd);
+        for (pin, &wire) in &pins.ins {
+            let cell = self.get_cell(wire.cell);
             bel.pins.insert(
                 pin.clone(),
                 BelPin {
-                    wires: BTreeSet::from_iter([(tile, wire)]),
+                    wires: BTreeSet::from_iter([TileWireCoord {
+                        cell,
+                        wire: wire.slot,
+                    }]),
                     dir: PinDir::Input,
                     is_intf_in: false,
                 },
@@ -531,9 +536,12 @@ impl<'a> MiscNodeBuilder<'a> {
         }
         for (pin, iwires) in &pins.outs {
             let mut wires = BTreeSet::new();
-            for &(_, crd, wire) in iwires {
-                let tile = self.get_tile(crd);
-                wires.insert((tile, wire));
+            for &wire in iwires {
+                let cell = self.get_cell(wire.cell);
+                wires.insert(TileWireCoord {
+                    cell,
+                    wire: wire.slot,
+                });
             }
             bel.pins.insert(
                 pin.clone(),
@@ -548,16 +556,16 @@ impl<'a> MiscNodeBuilder<'a> {
     }
 
     pub fn finish(mut self) -> (TileClass, ExtraNode) {
-        let mut tiles_sorted = Vec::from_iter(self.tiles.values().copied());
-        let mut new_tiles: EntityVec<TileCellId, _> =
-            EntityVec::from_iter(tiles_sorted[..self.fixed_tiles].iter().copied());
-        let mut new_tiles_map: HashMap<_, _> =
-            HashMap::from_iter(new_tiles.iter().map(|(k, &v)| (v, k)));
-        tiles_sorted.sort_by_key(|&crd| {
+        let mut cells_sorted = Vec::from_iter(self.cells.values().copied());
+        let mut new_cells: EntityVec<CellSlotId, _> =
+            EntityVec::from_iter(cells_sorted[..self.fixed_tiles].iter().copied());
+        let mut new_cells_map: HashMap<_, _> =
+            HashMap::from_iter(new_cells.iter().map(|(k, &v)| (v, k)));
+        cells_sorted.sort_by_key(|&crd| {
             // corners, then west/east edge, then south/north edge
             (
-                if crd.0 == self.chip.col_w() || crd.0 == self.chip.col_e() {
-                    if crd.1 == self.chip.row_s() || crd.1 == self.chip.row_n() {
+                if crd.col == self.chip.col_w() || crd.col == self.chip.col_e() {
+                    if crd.row == self.chip.row_s() || crd.row == self.chip.row_n() {
                         0
                     } else {
                         1
@@ -568,12 +576,12 @@ impl<'a> MiscNodeBuilder<'a> {
                 crd,
             )
         });
-        for crd in tiles_sorted {
-            match new_tiles_map.entry(crd) {
+        for crd in cells_sorted {
+            match new_cells_map.entry(crd) {
                 hash_map::Entry::Occupied(_) => (),
                 hash_map::Entry::Vacant(entry) => {
-                    let tile = new_tiles.push(crd);
-                    entry.insert(tile);
+                    let cell = new_cells.push(crd);
+                    entry.insert(cell);
                 }
             }
         }
@@ -582,9 +590,12 @@ impl<'a> MiscNodeBuilder<'a> {
                 pin.wires = pin
                     .wires
                     .iter()
-                    .map(|&(tile, wire)| {
-                        let new_tile = new_tiles_map[&self.tiles[tile]];
-                        (new_tile, wire)
+                    .map(|&twc| {
+                        let new_cell = new_cells_map[&self.cells[twc.cell]];
+                        TileWireCoord {
+                            cell: new_cell,
+                            wire: twc.wire,
+                        }
                     })
                     .collect();
             }
@@ -593,7 +604,7 @@ impl<'a> MiscNodeBuilder<'a> {
             self.node,
             ExtraNode {
                 io: self.io,
-                cells: new_tiles,
+                cells: new_cells,
             },
         )
     }

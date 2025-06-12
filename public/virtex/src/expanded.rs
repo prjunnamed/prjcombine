@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 
 use prjcombine_interconnect::{
     db::RegionSlotId,
-    grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, NodeLoc, RowId},
+    grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, RowId, TileCoord},
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -95,31 +95,30 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn tile_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
-        let (_, col, row, _) = nloc;
-        let node = self.egrid.tile(nloc);
-        let kind = self.egrid.db.tile_classes.key(node.class).as_str();
+    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+        let tile = self.egrid.tile(tcrd);
+        let kind = self.egrid.db.tile_classes.key(tile.class).as_str();
         if matches!(kind, "LBRAM" | "RBRAM" | "MBRAM") {
             vec![
-                self.btile_main(col, row),
-                self.btile_main(col, row + 1),
-                self.btile_main(col, row + 2),
-                self.btile_main(col, row + 3),
-                self.btile_bram(col, row),
+                self.btile_main(tcrd.col, tcrd.row),
+                self.btile_main(tcrd.col, tcrd.row + 1),
+                self.btile_main(tcrd.col, tcrd.row + 2),
+                self.btile_main(tcrd.col, tcrd.row + 3),
+                self.btile_bram(tcrd.col, tcrd.row),
             ]
         } else if kind.starts_with("CLKB") || kind.starts_with("CLKT") {
-            if row == self.chip.row_s() {
-                vec![self.btile_spine(row), self.btile_spine(row + 1)]
+            if tcrd.row == self.chip.row_s() {
+                vec![self.btile_spine(tcrd.row), self.btile_spine(tcrd.row + 1)]
             } else {
-                vec![self.btile_spine(row), self.btile_spine(row - 1)]
+                vec![self.btile_spine(tcrd.row), self.btile_spine(tcrd.row - 1)]
             }
         } else if matches!(kind, "CLKV.CLKV" | "CLKV.GCLKV") {
-            vec![self.btile_clkv(col, row)]
+            vec![self.btile_clkv(tcrd.col, tcrd.row)]
         } else if kind.starts_with("DLL") || matches!(kind, "BRAM_BOT" | "BRAM_TOP") {
-            vec![self.btile_main(col, row)]
+            vec![self.btile_main(tcrd.col, tcrd.row)]
         } else {
             Vec::from_iter(
-                node.cells
+                tile.cells
                     .values()
                     .map(|&(col, row)| self.btile_main(col, row)),
             )

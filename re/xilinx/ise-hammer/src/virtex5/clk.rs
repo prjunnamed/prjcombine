@@ -1,10 +1,10 @@
-use prjcombine_interconnect::grid::{DieId, NodeLoc};
+use prjcombine_interconnect::grid::{DieId, TileCoord};
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{bels, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -12,41 +12,37 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{DynProp, pip::PinFar, relation::NodeRelation},
+        props::{DynProp, pip::PinFar, relation::TileRelation},
     },
 };
 
 #[derive(Copy, Clone, Debug)]
 struct Rclk;
 
-impl NodeRelation for Rclk {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for Rclk {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let col = if nloc.1 <= edev.col_clk {
+        let col = if tcrd.col <= edev.col_clk {
             edev.col_lio.unwrap()
         } else {
             edev.col_rio.unwrap()
         };
-        Some(
-            edev.egrid
-                .get_tile_by_bel((nloc.0, (col, nloc.2), bels::IOCLK)),
-        )
+        Some(tcrd.with_col(col).tile(tslots::HCLK_BEL))
     }
 }
 
 #[derive(Copy, Clone, Debug)]
-struct Hclk(&'static str);
+struct HclkCmt;
 
-impl NodeRelation for Hclk {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for HclkCmt {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let row = edev.chips[nloc.0].row_hclk(nloc.2);
-        edev.egrid
-            .find_tile_by_class(nloc.0, (nloc.1, row), |kind| kind == self.0)
+        let row = edev.chips[tcrd.die].row_hclk(tcrd.row);
+        Some(tcrd.with_row(row).tile(tslots::HCLK_CMT))
     }
 }
 
@@ -61,25 +57,23 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkBramMgtPrev {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let chip = edev.chips[nloc.0];
-        let col = if nloc.1 < edev.col_clk {
-            let mut range = chip.cols_mgt_buf.range(..nloc.1);
+        let chip = edev.chips[tcrd.die];
+        let col = if tcrd.col < edev.col_clk {
+            let mut range = chip.cols_mgt_buf.range(..tcrd.col);
             range.next_back()
         } else {
-            let mut range = chip.cols_mgt_buf.range((nloc.1 + 1)..);
+            let mut range = chip.cols_mgt_buf.range((tcrd.col + 1)..);
             range.next()
         };
         let mut sad = true;
         if let Some(&col) = col {
-            let nnloc = edev
-                .egrid
-                .get_tile_by_bel((nloc.0, (col, nloc.2), bels::HCLK_BRAM_MGT));
+            let ntcrd = tcrd.with_col(col).tile(tslots::CLK);
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
                     tile: "HCLK_BRAM_MGT".into(),
@@ -87,7 +81,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkBramMgtPrev {
                     attr: self.0.clone(),
                     val: self.1.into(),
                 },
-                tiles: edev.tile_bits(nnloc),
+                tiles: edev.tile_bits(ntcrd),
             });
             sad = false;
         }
@@ -106,18 +100,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
         let mut sad = true;
-        if nloc.1 <= edev.col_clk {
-            if let Some(nnloc) =
-                backend
-                    .egrid
-                    .find_tile_by_class(nloc.0, (edev.col_clk, nloc.2), |kind| kind == self.0)
+        if tcrd.col <= edev.col_clk {
+            if let Some(ntcrd) = backend
+                .egrid
+                .find_tile_by_class(tcrd.with_col(edev.col_clk), |kind| kind == self.0)
             {
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
@@ -126,7 +119,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
                         attr: self.2.clone(),
                         val: self.3.into(),
                     },
-                    tiles: edev.tile_bits(nnloc),
+                    tiles: edev.tile_bits(ntcrd),
                 });
                 sad = false;
             }
@@ -146,24 +139,24 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllIodelay {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let chip = edev.chips[nloc.0];
-        let bot = chip.row_reg_bot(chip.row_to_reg(nloc.2));
+        let chip = edev.chips[tcrd.die];
+        let bot = chip.row_reg_bot(chip.row_to_reg(tcrd.row));
         for i in 0..chip.rows_per_reg() {
             let row = bot + i;
-            let Some(nnloc) = edev
+            let Some(ntcrd) = edev
                 .egrid
-                .find_tile_by_bel((nloc.0, (nloc.1, row), bels::IODELAY0))
+                .find_tile_by_bel(tcrd.with_row(row).bel(bels::IODELAY0))
             else {
                 continue;
             };
             for bel in [bels::IODELAY0, bels::IODELAY1] {
-                if let Some(site) = backend.ngrid.get_bel_name((nloc.0, (nloc.1, row), bel)) {
+                if let Some(site) = backend.ngrid.get_bel_name(ntcrd.bel(bel)) {
                     fuzzer = fuzzer.fuzz(Key::SiteMode(site), None, "IODELAY");
                     fuzzer = fuzzer.fuzz(Key::SiteAttr(site, "IDELAY_TYPE".into()), None, self.0);
                 }
@@ -175,7 +168,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllIodelay {
                     attr: "IDELAYCTRL_MODE".into(),
                     val: self.1.into(),
                 },
-                tiles: edev.tile_bits(nnloc),
+                tiles: edev.tile_bits(ntcrd),
             });
         }
         Some((fuzzer, false))
@@ -255,7 +248,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             if bel == bels::CLK_CMT {
                 for j in 0..28 {
                     bctx.build()
-                        .related_tile_mutex(Hclk("HCLK_CMT"), "ENABLE", "NOPE")
+                        .related_tile_mutex(HclkCmt, "ENABLE", "NOPE")
                         .tile_mutex(&mux, format!("CMT_CLK{j}"))
                         .test_manual(&mux, format!("CMT_CLK{j}"))
                         .pip(&mout, format!("CMT_CLK{j}"))

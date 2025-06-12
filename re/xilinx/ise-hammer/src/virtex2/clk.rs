@@ -1,4 +1,4 @@
-use prjcombine_interconnect::{db::PinDir, grid::NodeLoc};
+use prjcombine_interconnect::{db::PinDir, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -30,7 +30,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for StabilizeGclkc {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         for (node_kind, node_name, _) in &backend.egrid.db.tile_classes {
@@ -596,7 +596,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 ctx.tiledb.insert(
                     tile,
                     "INT",
-                    format!("INV.{:#}.{}", wire.0, intdb.wires.key(wire.1)),
+                    format!("INV.{:#}.{}", wire.cell, intdb.wires.key(wire.wire)),
                     sinv,
                 );
                 ctx.collect_enum(tile, bel, "DISABLE_ATTR", &["HIGH", "LOW"]);

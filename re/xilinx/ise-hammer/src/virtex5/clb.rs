@@ -8,7 +8,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::FuzzCtx,
-        props::{pip::PinFar, relation::NodeRelation},
+        props::{pip::PinFar, relation::TileRelation},
     },
 };
 
@@ -23,25 +23,21 @@ pub enum Mode {
 #[derive(Copy, Clone, Debug)]
 struct ClbCinDown;
 
-impl NodeRelation for ClbCinDown {
+impl TileRelation for ClbCinDown {
     fn resolve(
         &self,
         backend: &IseBackend,
-        mut nloc: prjcombine_interconnect::grid::NodeLoc,
-    ) -> Option<prjcombine_interconnect::grid::NodeLoc> {
+        mut tcrd: prjcombine_interconnect::grid::TileCoord,
+    ) -> Option<prjcombine_interconnect::grid::TileCoord> {
         loop {
-            if nloc.2.to_idx() == 0 {
+            if tcrd.row.to_idx() == 0 {
                 return None;
             }
-            nloc.2 -= 1;
-            if let Some(nnloc) =
-                backend
-                    .egrid
-                    .find_tile_by_class(nloc.0, (nloc.1, nloc.2), |kind| {
-                        kind.starts_with("CLB") || kind.starts_with("CLEX")
-                    })
-            {
-                return Some(nnloc);
+            tcrd.row -= 1;
+            if let Some(ntcrd) = backend.egrid.find_tile_by_class(tcrd.cell, |kind| {
+                kind.starts_with("CLB") || kind.starts_with("CLEX")
+            }) {
+                return Some(ntcrd);
             }
             if !matches!(backend.edev, ExpandedDevice::Spartan6(_)) {
                 return None;

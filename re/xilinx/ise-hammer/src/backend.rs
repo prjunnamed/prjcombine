@@ -1,5 +1,5 @@
 use prjcombine_interconnect::grid::{
-    BelCoord, ColId, DieId, ExpandedGrid, NodeLoc, RowId, WireCoord,
+    BelCoord, CellCoord, ExpandedGrid, RowId, TileCoord, WireCoord,
 };
 use prjcombine_re_fpga_hammer::{Diff, FeatureData, FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
@@ -58,8 +58,8 @@ pub enum Key<'a> {
     RowMutex(String, RowId),
     BelMutex(BelCoord, String),
     NodeMutex(WireCoord),
-    TileMutex(NodeLoc, String),
-    IntMutex(DieId, ColId, RowId),
+    TileMutex(TileCoord, String),
+    IntMutex(CellCoord),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -840,7 +840,7 @@ impl<'a> Backend for IseBackend<'a> {
 impl FpgaBackend for IseBackend<'_> {
     type BitTile = BitTile;
 
-    fn node_bits(&self, nloc: NodeLoc) -> Vec<Self::BitTile> {
+    fn node_bits(&self, nloc: TileCoord) -> Vec<Self::BitTile> {
         self.edev.node_bits(nloc)
     }
 

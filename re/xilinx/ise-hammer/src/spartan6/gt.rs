@@ -1,6 +1,6 @@
 use core::ops::Range;
 
-use prjcombine_interconnect::{dir::DirH, grid::NodeLoc};
+use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -218,7 +218,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Spartan6(edev) = backend.edev else {
@@ -226,12 +226,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
         };
         match self.0 {
             DirH::W => {
-                if nloc.1 >= edev.chip.col_clk {
+                if tcrd.col >= edev.chip.col_clk {
                     return None;
                 }
             }
             DirH::E => {
-                if nloc.1 < edev.chip.col_clk {
+                if tcrd.col < edev.chip.col_clk {
                     return None;
                 }
             }

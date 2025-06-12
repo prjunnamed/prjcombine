@@ -4,7 +4,7 @@ use std::{
 };
 
 use itertools::Itertools;
-use prjcombine_interconnect::db::{BelInfo, TileCellId};
+use prjcombine_interconnect::db::{BelInfo, CellSlotId, TileWireCoord};
 use prjcombine_types::bsdata::BsData;
 use prjcombine_xc2000::{
     bels,
@@ -260,7 +260,10 @@ pub fn finish(
             let io_b = int_i.get_tile_class("IO.B");
             let io_b = &mut int_i.tile_classes[io_b];
             io_b.bels.insert(bels::xc5200::SCANTEST, BelInfo::default());
-            let key = (TileCellId::from_idx(0), int_i.get_wire("IMUX.BYPOSC.PUMP"));
+            let key = TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire: int_i.get_wire("IMUX.BYPOSC.PUMP"),
+            };
             let imux_byposc_pump = int_i.tile_classes.get("CNR.TR").unwrap().1.muxes[&key].clone();
             int_x
                 .tile_classes

@@ -1,9 +1,9 @@
-use prjcombine_interconnect::grid::DieId;
+use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{bits, bsdata::TileItemKind};
-use prjcombine_xc2000::bels::xc5200 as bels;
+use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -220,11 +220,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let die = DieId::from_idx(0);
         let col = edev.chip.col_e();
         let row = edev.chip.row_s();
-        let layer = edev
-            .egrid
-            .find_tile_layer(die, (col, row), |kind| kind == "CNR.BR")
-            .unwrap();
-        let cnr_br = (die, col, row, layer);
+        let cnr_br = CellCoord::new(die, col, row).tile(tslots::MAIN);
         bctx.mode("OSC")
             .extra_tile_fixed(cnr_br, "OSC")
             .null_bits()

@@ -9,7 +9,7 @@ use std::{
 use itertools::Itertools;
 use prjcombine_interconnect::{
     db::{TileClassId, TileSlotId},
-    grid::{ColId, DieId, ExpandedGrid, NodeLoc, RowId},
+    grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, TileCoord},
 };
 use prjcombine_re_hammer::{Backend, BatchValue, Fuzzer, FuzzerGen, FuzzerId};
 use prjcombine_types::bitvec::BitVec;
@@ -20,7 +20,7 @@ use unnamed_entity::EntityId;
 pub trait FpgaBackend: Backend<State = State, FuzzerInfo = FuzzerInfo<Self::BitTile>> {
     type BitTile: Copy + Clone + Debug + Hash + PartialEq + Eq + Sync + Send;
 
-    fn node_bits(&self, nloc: NodeLoc) -> Vec<Self::BitTile>;
+    fn node_bits(&self, nloc: TileCoord) -> Vec<Self::BitTile>;
 
     fn egrid(&self) -> &ExpandedGrid;
 }
@@ -45,7 +45,7 @@ impl<BitTile> std::fmt::Debug for FuzzerInfo<BitTile> {
 pub trait FuzzerProp<'b, B: FpgaBackend>: Debug {
     fn dyn_clone(&self) -> Box<dyn FuzzerProp<'b, B> + 'b>;
 
-    fn apply(&self, backend: &B, nloc: NodeLoc, fuzzer: Fuzzer<B>) -> Option<(Fuzzer<B>, bool)>;
+    fn apply(&self, backend: &B, nloc: TileCoord, fuzzer: Fuzzer<B>) -> Option<(Fuzzer<B>, bool)>;
 }
 
 impl<'a, B: FpgaBackend> Clone for Box<dyn FuzzerProp<'a, B> + 'a> {
@@ -76,7 +76,7 @@ impl<B: FpgaBackend> FpgaFuzzerGen<'_, B> {
         &self,
         backend: &B,
         kv: &HashMap<B::Key, BatchValue<B>>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
     ) -> Option<(Fuzzer<B>, BTreeSet<usize>)> {
         let tiles = if self.node_kind.is_some() {
             backend.node_bits(nloc)
@@ -130,12 +130,8 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerGen<'b, B> {
                 return None;
             }
         } else {
-            let nloc = (
-                DieId::from_idx(0),
-                ColId::from_idx(0),
-                RowId::from_idx(0),
-                TileSlotId::from_idx(0),
-            );
+            let nloc = CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0))
+                .tile(TileSlotId::from_idx(0));
             self.try_generate(backend, kv, nloc)?
         };
         if !sad_props.is_empty() {
@@ -191,12 +187,8 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerChainGen<'b, B> {
                 return None;
             }
         } else {
-            let nloc = (
-                DieId::from_idx(0),
-                ColId::from_idx(0),
-                RowId::from_idx(0),
-                TileSlotId::from_idx(0),
-            );
+            let nloc = CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0))
+                .tile(TileSlotId::from_idx(0));
             self.orig.try_generate(backend, kv, nloc)?
         };
         sad_props.retain(|&idx| self.sad_props.contains(&idx));

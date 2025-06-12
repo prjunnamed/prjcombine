@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use prjcombine_interconnect::{
     db::BelSlotId,
     dir::DirH,
-    grid::{DieId, NodeLoc},
+    grid::{CellCoord, DieId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -13,7 +13,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex::bels;
+use prjcombine_virtex::{bels, tslots};
 use prjcombine_xilinx_bitstream::Reg;
 use unnamed_entity::EntityId;
 
@@ -37,7 +37,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex(edev) = backend.edev else {
@@ -45,12 +45,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
         };
         match self.0 {
             DirH::W => {
-                if nloc.1 >= edev.chip.col_clk() {
+                if tcrd.col >= edev.chip.col_clk() {
                     return None;
                 }
             }
             DirH::E => {
-                if nloc.1 < edev.chip.col_clk() {
+                if tcrd.col < edev.chip.col_clk() {
                     return None;
                 }
             }
@@ -70,18 +70,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for PinNodeMutexShared {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(nloc);
+        let node = backend.egrid.tile(tcrd);
         let node_data = &backend.egrid.db.tile_classes[node.class];
         let bel_data = &node_data.bels[self.0];
         let pin_data = &bel_data.pins[self.1];
         for &wire in &pin_data.wires {
-            let node = backend.egrid.tile(nloc);
             let node = backend
                 .egrid
-                .resolve_wire((nloc.0, node.cells[wire.0], wire.1))?;
+                .resolve_wire(backend.egrid.tile_wire(tcrd, wire))?;
             fuzzer = fuzzer.base(Key::NodeMutex(node), "SHARED");
         }
         Some((fuzzer, false))
@@ -99,7 +98,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzGlobalDll {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let nnode = &backend.ngrid.tiles[&nloc];
@@ -132,11 +131,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             continue;
         };
         let mut bctx = ctx.bel(bels::DLL);
-        let cnr_tl = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_w(), edev.chip.row_n()),
-            |x| x == "CNR.TL",
-        );
+        let cnr_tl = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_n())
+            .tile(tslots::MAIN);
         bctx.build()
             .extra_tile_attr_fixed(cnr_tl, "MISC", "DLL_ENABLE", "1")
             .global_mutex_here("DLL")

@@ -1,7 +1,7 @@
 use prjcombine_interconnect::{
     db::BelSlotId,
     dir::DirV,
-    grid::{DieId, NodeLoc},
+    grid::{CellCoord, DieId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
@@ -9,7 +9,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
-use prjcombine_spartan6::bels;
+use prjcombine_spartan6::{bels, tslots};
 use prjcombine_types::{
     bits,
     bitvec::BitVec,
@@ -164,25 +164,25 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllMcbIoi {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Spartan6(edev) = backend.edev else {
             unreachable!()
         };
 
-        for row in backend.egrid.die(nloc.0).rows() {
+        for row in backend.egrid.die(tcrd.die).rows() {
             if let Some(split) = edev.chip.row_mcb_split {
-                if nloc.2 < split && row >= split {
+                if tcrd.row < split && row >= split {
                     continue;
                 }
-                if nloc.2 >= split && row < split {
+                if tcrd.row >= split && row < split {
                     continue;
                 }
             }
-            if let Some(nnloc) = backend
+            if let Some(ntcrd) = backend
                 .egrid
-                .find_tile_by_class(nloc.0, (nloc.1, row), |kind| kind == "IOI.LR")
+                .find_tile_by_class(tcrd.with_row(row), |kind| kind == "IOI.LR")
             {
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
@@ -191,7 +191,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllMcbIoi {
                         attr: self.1.into(),
                         val: self.2.into(),
                     },
-                    tiles: edev.tile_bits(nnloc),
+                    tiles: edev.tile_bits(ntcrd),
                 })
             }
         }
@@ -211,7 +211,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsVref {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
@@ -223,7 +223,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsVref {
         let ExpandedBond::Spartan6(ref ebond) = backend.ebonds[pkg] else {
             unreachable!()
         };
-        let crd = edev.chip.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+        let crd = edev.chip.get_io_crd(tcrd.bel(self.0));
         if !ebond.bond.vref.contains(&crd) {
             return None;
         }
@@ -242,7 +242,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsBonded {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
@@ -254,7 +254,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsBonded {
         let ExpandedBond::Spartan6(ref ebond) = backend.ebonds[pkg] else {
             unreachable!()
         };
-        let crd = edev.chip.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+        let crd = edev.chip.get_io_crd(tcrd.bel(self.0));
         if !ebond.ios.contains_key(&crd) {
             return None;
         }
@@ -273,13 +273,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsBank {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Spartan6(edev) = backend.edev else {
             unreachable!()
         };
-        let crd = edev.chip.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+        let crd = edev.chip.get_io_crd(tcrd.bel(self.0));
         if edev.chip.get_io_bank(crd) != self.1 {
             return None;
         }
@@ -298,15 +298,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Spartan6(edev) = backend.edev else {
             unreachable!()
         };
         let dir_match = match self.0 {
-            DirV::S => nloc.2 < edev.chip.row_clk(),
-            DirV::N => nloc.2 >= edev.chip.row_clk(),
+            DirV::S => tcrd.row < edev.chip.row_clk(),
+            DirV::N => tcrd.row >= edev.chip.row_clk(),
         };
         if dir_match {
             Some((fuzzer, false))
@@ -1111,26 +1111,30 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("O")
             .commit();
 
-        let cnr_ll = edev.egrid.get_tile_by_class(
+        let cnr_ll = CellCoord::new(
             DieId::from_idx(0),
-            (edev.chip.col_lio(), edev.chip.row_bio_outer()),
-            |kind| kind == "LL",
-        );
-        let cnr_ul = edev.egrid.get_tile_by_class(
+            edev.chip.col_lio(),
+            edev.chip.row_bio_outer(),
+        )
+        .tile(tslots::BEL);
+        let cnr_ul = CellCoord::new(
             DieId::from_idx(0),
-            (edev.chip.col_lio(), edev.chip.row_tio_outer()),
-            |kind| kind == "UL",
-        );
-        let cnr_lr = edev.egrid.get_tile_by_class(
+            edev.chip.col_lio(),
+            edev.chip.row_tio_outer(),
+        )
+        .tile(tslots::BEL);
+        let cnr_lr = CellCoord::new(
             DieId::from_idx(0),
-            (edev.chip.col_rio(), edev.chip.row_bio_outer()),
-            |kind| kind == "LR",
-        );
-        let cnr_ur = edev.egrid.get_tile_by_class(
+            edev.chip.col_rio(),
+            edev.chip.row_bio_outer(),
+        )
+        .tile(tslots::BEL);
+        let cnr_ur = CellCoord::new(
             DieId::from_idx(0),
-            (edev.chip.col_rio(), edev.chip.row_tio_inner()),
-            |kind| kind == "UR",
-        );
+            edev.chip.col_rio(),
+            edev.chip.row_tio_inner(),
+        )
+        .tile(tslots::BEL);
 
         bctx.build()
             .global("GLUTMASK", "YES")

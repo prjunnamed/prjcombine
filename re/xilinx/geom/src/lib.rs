@@ -1,6 +1,6 @@
 use bincode::{Decode, Encode};
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::grid::{DieId, ExpandedGrid, NodeLoc};
+use prjcombine_interconnect::grid::{DieId, ExpandedGrid, TileCoord};
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming::grid::ExpandedGridNaming;
 use prjcombine_types::db::{BondId, ChipId, DevBondId, DevSpeedId, InterposerId};
@@ -212,7 +212,7 @@ impl<'a> ExpandedDevice<'a> {
         }
     }
 
-    pub fn node_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
+    pub fn node_bits(&self, nloc: TileCoord) -> Vec<BitTile> {
         match self {
             ExpandedDevice::Xc2000(edev) => edev.tile_bits(nloc),
             ExpandedDevice::Virtex(edev) => edev.tile_bits(nloc),

@@ -31,15 +31,15 @@ impl IntDb {
                 write!(
                     o,
                     "\t\tMUX {wot}.{won:14} <-",
-                    wot = wo.0.to_idx(),
-                    won = self.wires.key(wo.1)
+                    wot = wo.cell.to_idx(),
+                    won = self.wires.key(wo.wire)
                 )?;
                 for &wi in &mux.ins {
                     write!(
                         o,
                         " {wit}.{win:14}",
-                        wit = wi.0.to_idx(),
-                        win = self.wires.key(wi.1)
+                        wit = wi.cell.to_idx(),
+                        win = self.wires.key(wi.wire)
                     )?;
                 }
                 writeln!(o)?;
@@ -53,15 +53,15 @@ impl IntDb {
                         write!(
                             o,
                             "\t\tINTF.TESTMUX {wot}.{won} <-",
-                            wot = wo.0.to_idx(),
-                            won = self.wires.key(wo.1)
+                            wot = wo.cell.to_idx(),
+                            won = self.wires.key(wo.wire)
                         )?;
                         for &wi in ins {
                             write!(
                                 o,
                                 " {wit}.{win}",
-                                wit = wi.0.to_idx(),
-                                win = self.wires.key(wi.1)
+                                wit = wi.cell.to_idx(),
+                                win = self.wires.key(wi.wire)
                             )?;
                         }
                         writeln!(o)?;
@@ -70,17 +70,17 @@ impl IntDb {
                         write!(
                             o,
                             "\t\tINTF.TESTMUX.PASS {wot}.{won} <- {wit}.{win} | ",
-                            wot = wo.0.to_idx(),
-                            won = self.wires.key(wo.1),
-                            wit = wi.0.to_idx(),
-                            win = self.wires.key(wi.1)
+                            wot = wo.cell.to_idx(),
+                            won = self.wires.key(wo.wire),
+                            wit = wi.cell.to_idx(),
+                            win = self.wires.key(wi.wire)
                         )?;
                         for &wi in ins {
                             write!(
                                 o,
                                 " {wit}.{win}",
-                                wit = wi.0.to_idx(),
-                                win = self.wires.key(wi.1)
+                                wit = wi.cell.to_idx(),
+                                win = self.wires.key(wi.wire)
                             )?;
                         }
                         writeln!(o)?;
@@ -89,16 +89,16 @@ impl IntDb {
                         writeln!(
                             o,
                             "\t\tINTF.DELAY {wot}.{won}",
-                            wot = wo.0.to_idx(),
-                            won = self.wires.key(wo.1)
+                            wot = wo.cell.to_idx(),
+                            won = self.wires.key(wo.wire)
                         )?;
                     }
                     IntfInfo::InputIri(iri, pin) => {
                         write!(
                             o,
                             "\t\tINTF.IRI {wot}.{won} IRI.{iri} ",
-                            wot = wo.0.to_idx(),
-                            won = self.wires.key(wo.1),
+                            wot = wo.cell.to_idx(),
+                            won = self.wires.key(wo.wire),
                             iri = iri.to_idx(),
                         )?;
                         match pin {
@@ -112,8 +112,8 @@ impl IntDb {
                         write!(
                             o,
                             "\t\tINTF.IRI.DELAY {wot}.{won} IRI.{iri} ",
-                            wot = wo.0.to_idx(),
-                            won = self.wires.key(wo.1),
+                            wot = wo.cell.to_idx(),
+                            won = self.wires.key(wo.wire),
                             iri = iri.to_idx(),
                         )?;
                         match pin {
@@ -144,8 +144,8 @@ impl IntDb {
                         write!(
                             o,
                             " {wit}.{win}",
-                            wit = wi.0.to_idx(),
-                            win = self.wires.key(wi.1)
+                            wit = wi.cell.to_idx(),
+                            win = self.wires.key(wi.wire)
                         )?;
                     }
                     writeln!(o)?;
@@ -155,8 +155,8 @@ impl IntDb {
                 write!(
                     o,
                     "\t\tWIRE {wt:3}.{wn:20}",
-                    wt = wire.0.to_idx(),
-                    wn = self.wires.key(wire.1)
+                    wt = wire.cell.to_idx(),
+                    wn = self.wires.key(wire.wire)
                 )?;
                 for (bel, pin) in bels {
                     write!(o, " {bel}.{pin}", bel = self.bel_slots.key(bel))?;

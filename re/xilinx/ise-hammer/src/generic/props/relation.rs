@@ -1,8 +1,6 @@
 use core::fmt::Debug;
 
-use unnamed_entity::EntityId;
-
-use prjcombine_interconnect::grid::NodeLoc;
+use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 
@@ -10,24 +8,24 @@ use crate::backend::IseBackend;
 
 use super::DynProp;
 
-pub trait NodeRelation: Clone + Debug {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc>;
+pub trait TileRelation: Clone + Debug {
+    fn resolve(&self, backend: &IseBackend, nloc: TileCoord) -> Option<TileCoord>;
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct NoopRelation;
 
-impl NodeRelation for NoopRelation {
-    fn resolve(&self, _backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for NoopRelation {
+    fn resolve(&self, _backend: &IseBackend, nloc: TileCoord) -> Option<TileCoord> {
         Some(nloc)
     }
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct FixedRelation(pub NodeLoc);
+pub struct FixedRelation(pub TileCoord);
 
-impl NodeRelation for FixedRelation {
-    fn resolve(&self, _backend: &IseBackend, _nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for FixedRelation {
+    fn resolve(&self, _backend: &IseBackend, _nloc: TileCoord) -> Option<TileCoord> {
         Some(self.0)
     }
 }
@@ -57,47 +55,22 @@ impl Delta {
     }
 }
 
-impl NodeRelation for Delta {
-    fn resolve(&self, backend: &IseBackend, mut nloc: NodeLoc) -> Option<NodeLoc> {
-        if self.dx < 0 {
-            if nloc.1.to_idx() < (-self.dx) as usize {
-                return None;
-            }
-            nloc.1 -= (-self.dx) as usize;
-        } else {
-            nloc.1 += self.dx as usize;
-            if nloc.1.to_idx() >= backend.egrid.die(nloc.0).cols().len() {
-                return None;
-            }
-        }
-        if self.dy < 0 {
-            if nloc.2.to_idx() < (-self.dy) as usize {
-                return None;
-            }
-            nloc.2 -= (-self.dy) as usize;
-        } else {
-            nloc.2 += self.dy as usize;
-            if nloc.2.to_idx() >= backend.egrid.die(nloc.0).rows().len() {
-                return None;
-            }
-        }
-        let layer = backend
+impl TileRelation for Delta {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
+        let cell = backend.egrid.cell_delta(tcrd.cell, self.dx, self.dy)?;
+        backend
             .egrid
-            .find_tile_layer(nloc.0, (nloc.1, nloc.2), |node| {
-                self.nodes.iter().any(|x| x == node)
-            })?;
-        nloc.3 = layer;
-        Some(nloc)
+            .find_tile_by_class(cell, |node| self.nodes.iter().any(|x| x == node))
     }
 }
 
 #[derive(Clone, Debug)]
-pub struct Related<'b, R: NodeRelation> {
+pub struct Related<'b, R: TileRelation> {
     pub relation: R,
     pub prop: Box<DynProp<'b>>,
 }
 
-impl<'b, R: NodeRelation> Related<'b, R> {
+impl<'b, R: TileRelation> Related<'b, R> {
     pub fn new(relation: R, prop: impl FuzzerProp<'b, IseBackend<'b>> + 'b) -> Self {
         Self {
             relation,
@@ -110,7 +83,7 @@ impl<'b, R: NodeRelation> Related<'b, R> {
     }
 }
 
-impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for Related<'b, R> {
+impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for Related<'b, R> {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -118,7 +91,7 @@ impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for Related<'b, R>
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let nloc = self.relation.resolve(backend, nloc)?;
@@ -127,18 +100,18 @@ impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for Related<'b, R>
 }
 
 #[derive(Clone, Debug)]
-pub struct HasRelated<R: NodeRelation> {
+pub struct HasRelated<R: TileRelation> {
     pub relation: R,
     pub val: bool,
 }
 
-impl<R: NodeRelation> HasRelated<R> {
+impl<R: TileRelation> HasRelated<R> {
     pub fn new(relation: R, val: bool) -> Self {
         Self { relation, val }
     }
 }
 
-impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for HasRelated<R> {
+impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for HasRelated<R> {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -146,7 +119,7 @@ impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for HasRelated<R> 
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         if self.relation.resolve(backend, nloc).is_some() == self.val {

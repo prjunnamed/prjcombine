@@ -1,6 +1,6 @@
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::{Dir, DirMap};
-use prjcombine_interconnect::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_interconnect::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -805,7 +805,7 @@ impl Expander<'_, '_> {
         }
     }
 
-    fn fill_ioi(&mut self, crd: Coord) {
+    fn fill_ioi(&mut self, crd: (ColId, RowId)) {
         let tile = &mut self.die[crd];
         let node = &mut tile.tiles[tslots::INT];
         node.class = self.db.get_tile_class("INT.IOI");
@@ -818,12 +818,12 @@ impl Expander<'_, '_> {
         self.die.add_tile(crd, kind, &[crd]);
     }
 
-    fn fill_intf_rterm(&mut self, crd: Coord) {
+    fn fill_intf_rterm(&mut self, crd: (ColId, RowId)) {
         self.die.fill_conn_term(crd, "TERM.E");
         self.die.add_tile(crd, "INTF", &[crd]);
     }
 
-    fn fill_intf_lterm(&mut self, crd: Coord) {
+    fn fill_intf_lterm(&mut self, crd: (ColId, RowId)) {
         self.die.fill_conn_term(crd, "TERM.W");
         self.die.add_tile(crd, "INTF", &[crd]);
     }

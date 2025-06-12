@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::DieId;
+use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
 use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
@@ -115,12 +115,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
     ctx.test_cfg5200("MISC", "TLC", &["ON", "OFF"]);
     ctx.test_cfg5200("MISC", "TAC", &["ON", "OFF"]);
     let mut bctx = ctx.bel(bels::OSC);
-    let cnr_br = (
+    let cnr_br = CellCoord::new(
         DieId::from_idx(0),
         backend.edev.chip.col_e(),
         backend.edev.chip.row_s(),
-        tslots::MAIN,
-    );
+    )
+    .tile(tslots::MAIN);
     for val in ["D2", "D4", "D6", "D8"] {
         bctx.mode("OSC")
             .extra_tile(cnr_br, "OSC", "OSC1", val)

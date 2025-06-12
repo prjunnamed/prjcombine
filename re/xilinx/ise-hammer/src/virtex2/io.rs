@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet, hash_map};
 
 use prjcombine_interconnect::{
-    db::{BelSlotId, TileCellId},
-    grid::NodeLoc,
+    db::{BelSlotId, CellSlotId},
+    grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FuzzerProp, OcdMode, enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum,
@@ -21,6 +21,7 @@ use prjcombine_virtex2::{
     bels,
     chip::{ChipKind, IoDiffKind},
     iob::{IobData, IobDiff, IobKind, get_iob_data},
+    tslots,
 };
 use unnamed_entity::EntityId;
 
@@ -34,7 +35,7 @@ use crate::{
             DynProp,
             bel::FuzzBelMultiAttr,
             pip::PinFar,
-            relation::{NodeRelation, NoopRelation, Related},
+            relation::{NoopRelation, Related, TileRelation},
         },
     },
 };
@@ -50,10 +51,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NotIbuf {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         if !nnode.names[RawTileId::from_idx(0)].contains("IOIS") {
             return None;
         }
@@ -72,7 +73,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsVref {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
@@ -84,7 +85,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsVref {
         let ExpandedDevice::Virtex2(edev) = backend.edev else {
             unreachable!()
         };
-        let crd = edev.chip.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+        let crd = edev.chip.get_io_crd(tcrd.bel(self.0));
         if !ebond.bond.vref.contains(&crd) {
             return None;
         }
@@ -103,7 +104,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsVr {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
@@ -115,7 +116,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsVr {
         let ExpandedDevice::Virtex2(edev) = backend.edev else {
             unreachable!()
         };
-        let crd = edev.chip.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+        let crd = edev.chip.get_io_crd(tcrd.bel(self.0));
         let mut is_vr = false;
         for (bank, vr) in &edev.chip.dci_io {
             if vr.0 == crd || vr.1 == crd {
@@ -162,7 +163,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for OtherIobInput {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
@@ -175,7 +176,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for OtherIobInput {
             unreachable!()
         };
         let edev = endev.edev;
-        let crd = edev.chip.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+        let crd = edev.chip.get_io_crd(tcrd.bel(self.0));
         let orig_io_info = edev.chip.get_io_info(crd);
         for io in edev.chip.get_bonded_ios() {
             let io_info = edev.chip.get_io_info(io);
@@ -219,7 +220,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for OtherIobDiffOutput {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
@@ -233,7 +234,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for OtherIobDiffOutput {
         };
         let edev = endev.edev;
 
-        let crd = edev.chip.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+        let crd = edev.chip.get_io_crd(tcrd.bel(self.0));
         let orig_io_info = edev.chip.get_io_info(crd);
         for io in edev.chip.get_bonded_ios() {
             let io_info = edev.chip.get_io_info(io);
@@ -293,7 +294,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BankDiffOutput {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
@@ -307,7 +308,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BankDiffOutput {
         };
         let edev = endev.edev;
 
-        let crd = edev.chip.get_io_crd((nloc.0, (nloc.1, nloc.2), self.0));
+        let crd = edev.chip.get_io_crd(tcrd.bel(self.0));
         let stds = if let Some(ref stdb) = self.2 {
             &[&self.1, stdb][..]
         } else {
@@ -386,45 +387,27 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BankDiffOutput {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct IobRelation(TileCellId);
+struct IobRelation(CellSlotId);
 
-impl NodeRelation for IobRelation {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
-        let node = backend.egrid.tile(nloc);
-        let (col, row) = node.cells[self.0];
-        backend
-            .egrid
-            .find_tile_by_class(nloc.0, (col, row), |kind| kind.starts_with("IOI"))
+impl TileRelation for IobRelation {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
+        let cell = backend.egrid.tile_cell(tcrd, self.0);
+        Some(cell.tile(tslots::BEL))
     }
 }
 
 #[derive(Copy, Clone, Debug)]
 struct IobBrefclkClkBT;
 
-impl NodeRelation for IobBrefclkClkBT {
-    fn resolve(&self, backend: &IseBackend, mut nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for IobBrefclkClkBT {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex2(edev) = backend.edev else {
             unreachable!()
         };
-        if nloc.1 != edev.chip.col_clk && nloc.1 != edev.chip.col_clk - 1 {
+        if tcrd.col != edev.chip.col_clk && tcrd.col != edev.chip.col_clk - 1 {
             return None;
         }
-        nloc.1 = edev.chip.col_clk;
-        let Some((layer, _)) = backend
-            .egrid
-            .find_tile_loc(nloc.0, (nloc.1, nloc.2), |node| {
-                backend
-                    .egrid
-                    .db
-                    .tile_classes
-                    .key(node.class)
-                    .starts_with("CLK")
-            })
-        else {
-            unreachable!()
-        };
-        nloc.3 = layer;
-        Some(nloc)
+        Some(tcrd.with_col(edev.chip.col_clk).tile(tslots::CLK))
     }
 }
 
@@ -439,7 +422,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Iobify {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        _nloc: NodeLoc,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let id = &mut fuzzer.info.features[0].id;
@@ -474,7 +457,7 @@ fn has_any_vref<'a>(
 ) -> Option<&'a str> {
     let node_kind = edev.egrid.db.get_tile_class(tile);
     let iobs = get_iob_data(tile).iobs;
-    let ioi_tile = iobs[iob_idx].tile;
+    let ioi_cell = iobs[iob_idx].tile;
     let ioi_bel = iobs[iob_idx].bel;
     let mut bonded_ios = HashMap::new();
     for devbond in device.bonds.values() {
@@ -486,10 +469,9 @@ fn has_any_vref<'a>(
             bonded_ios.insert(io, &devbond.name[..]);
         }
     }
-    for &nloc in &edev.egrid.tile_index[node_kind] {
-        let node = edev.egrid.tile(nloc);
-        let (col, row) = node.cells[ioi_tile];
-        let crd = edev.chip.get_io_crd((nloc.0, (col, row), ioi_bel));
+    for &tcrd in &edev.egrid.tile_index[node_kind] {
+        let cell = edev.egrid.tile_cell(tcrd, ioi_cell);
+        let crd = edev.chip.get_io_crd(cell.bel(ioi_bel));
         if let Some(&pkg) = bonded_ios.get(&crd) {
             return Some(pkg);
         }
@@ -506,7 +488,7 @@ fn has_any_vr<'a>(
 ) -> Option<(&'a str, Option<bool>)> {
     let node_kind = edev.egrid.db.get_tile_class(tile);
     let iobs = get_iob_data(tile).iobs;
-    let ioi_tile = iobs[iob_idx].tile;
+    let ioi_cell = iobs[iob_idx].tile;
     let ioi_bel = iobs[iob_idx].bel;
     let mut bonded_ios = HashMap::new();
     for devbond in device.bonds.values() {
@@ -520,10 +502,9 @@ fn has_any_vr<'a>(
             }
         }
     }
-    for &nloc in &edev.egrid.tile_index[node_kind] {
-        let node = edev.egrid.tile(nloc);
-        let (col, row) = node.cells[ioi_tile];
-        let crd = edev.chip.get_io_crd((nloc.0, (col, row), ioi_bel));
+    for &tcrd in &edev.egrid.tile_index[node_kind] {
+        let cell = edev.egrid.tile_cell(tcrd, ioi_cell);
+        let crd = edev.chip.get_io_crd(cell.bel(ioi_bel));
         if let Some(&pkg) = bonded_ios.get(&crd) {
             for bank in 0..8 {
                 if let Some(alt_vr) = edev.chip.dci_io_alt.get(&bank) {
@@ -2440,7 +2421,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let mut bctx = ctx.bel(bels::BREFCLK_INT);
             bctx.test_manual("ENABLE", "1")
                 .related_pip(
-                    IobRelation(TileCellId::from_idx(1)),
+                    IobRelation(CellSlotId::from_idx(1)),
                     (bel_id, "BREFCLK"),
                     (PinFar, clk_bel_id, "I"),
                 )

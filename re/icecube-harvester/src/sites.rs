@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{Dir, DirPartMap},
-    grid::{ColId, DieId, RowId, WireCoord},
+    grid::{CellCoord, ColId, DieId, RowId, WireCoord},
 };
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
@@ -687,11 +687,12 @@ pub fn find_bel_pins(
     let mut result = BelPins::default();
     if edev.chip.kind.has_iob_we() {
         for (k, &v) in &site.fabout_wires {
-            let iw = (
+            let iw = CellCoord::new(
                 DieId::from_idx(0),
-                (ColId::from_idx(v.0 as usize), RowId::from_idx(v.1 as usize)),
-                edev.egrid.db.get_wire("IMUX.IO.EXTRA"),
-            );
+                ColId::from_idx(v.0 as usize),
+                RowId::from_idx(v.1 as usize),
+            )
+            .wire(edev.egrid.db.get_wire("IMUX.IO.EXTRA"));
             match k {
                 InstPin::Simple(pin) => {
                     if pin == "LATCHINPUTVALUE" {
@@ -713,11 +714,8 @@ pub fn find_bel_pins(
             };
             for (pin, col) in [("LOCK", edev.chip.col_w()), ("SDO", edev.chip.col_e())] {
                 let iws = Vec::from_iter((0..8).map(|idx| {
-                    (
-                        DieId::from_idx(0),
-                        (col, row),
-                        edev.egrid.db.get_wire(&format!("OUT.LC{idx}")),
-                    )
+                    CellCoord::new(DieId::from_idx(0), col, row)
+                        .wire(edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))
                 }));
                 result
                     .wire_names
@@ -1009,6 +1007,7 @@ pub fn find_bel_pins(
         let tiledb = bsdata.unwrap();
         for col in edev.chip.columns() {
             for row in edev.chip.rows() {
+                let cell = CellCoord::new(DieId::from_idx(0), col, row);
                 let tile_kind = if row == edev.chip.row_s() {
                     if col == edev.chip.col_w() || col == edev.chip.col_e() {
                         continue;
@@ -1065,10 +1064,10 @@ pub fn find_bel_pins(
                         continue;
                     };
                     if wtn.starts_with("IMUX") {
-                        let wf = (DieId::from_idx(0), (col, row), edev.egrid.db.get_wire(wfn));
+                        let wf = cell.wire(edev.egrid.db.get_wire(wfn));
                         let wf = edev.egrid.resolve_wire(wf).unwrap();
                         if let Some(pin) = iwmap_in.get(&wf) {
-                            let wt = (DieId::from_idx(0), (col, row), edev.egrid.db.get_wire(wtn));
+                            let wt = cell.wire(edev.egrid.db.get_wire(wtn));
                             if let Some(wnames) = wnmap.get(pin) {
                                 for wn in wnames {
                                     result.wire_names.insert(wn.clone(), wt);
@@ -1082,24 +1081,28 @@ pub fn find_bel_pins(
                         }
                     }
                     if wfn.starts_with("OUT") {
-                        let wt = (DieId::from_idx(0), (col, row), edev.egrid.db.get_wire(wtn));
+                        let wt = cell.wire(edev.egrid.db.get_wire(wtn));
                         let wt = edev.egrid.resolve_wire(wt).unwrap();
                         if let Some(pin) = iwmap_out.get(&wt) {
-                            let wf = (DieId::from_idx(0), (col, row), edev.egrid.db.get_wire(wfn));
+                            let wf = cell.wire(edev.egrid.db.get_wire(wfn));
                             let wf = edev.egrid.resolve_wire(wf).unwrap();
-                            let is_lr = wf.1.0 == edev.chip.col_w() || wf.1.0 == edev.chip.col_e();
-                            let is_bt = wf.1.1 == edev.chip.row_s() || wf.1.1 == edev.chip.row_n();
+                            let is_lr = wf.cell.col == edev.chip.col_w()
+                                || wf.cell.col == edev.chip.col_e();
+                            let is_bt = wf.cell.row == edev.chip.row_s()
+                                || wf.cell.row == edev.chip.row_n();
                             let wfs = if is_lr && is_bt {
                                 Vec::from_iter((0..8).map(|idx| {
-                                    (wf.0, wf.1, edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))
+                                    wf.cell
+                                        .wire(edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))
                                 }))
                             } else if (is_lr && edev.chip.kind.has_ioi_we()) || is_bt {
-                                let wfn = edev.egrid.db.wires.key(wf.2);
+                                let wfn = edev.egrid.db.wires.key(wf.slot);
                                 let idx: usize =
                                     wfn.strip_prefix("OUT.LC").unwrap().parse().unwrap();
                                 let idx = idx & 3;
                                 Vec::from_iter([idx, idx + 4].map(|idx| {
-                                    (wf.0, wf.1, edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))
+                                    wf.cell
+                                        .wire(edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))
                                 }))
                             } else {
                                 vec![wf]

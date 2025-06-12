@@ -1,7 +1,7 @@
 use prjcombine_interconnect::{
     db::RegionSlotId,
     dir::{Dir, DirMap},
-    grid::{ColId, DieId, ExpandedGrid, NodeLoc, Rect, RowId},
+    grid::{ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord},
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
@@ -83,20 +83,19 @@ impl ExpandedDevice<'_> {
         BitTile::Iob(DieId::from_idx(0), self.iob_frame[&(col, row)], 128)
     }
 
-    pub fn tile_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
-        let (_, col, row, _) = nloc;
-        let node = self.egrid.tile(nloc);
-        let kind = self.egrid.db.tile_classes.key(node.class).as_str();
+    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+        let tile = self.egrid.tile(tcrd);
+        let kind = self.egrid.db.tile_classes.key(tile.class).as_str();
         if kind == "BRAM" {
             vec![
-                self.btile_main(col, row),
-                self.btile_main(col, row + 1),
-                self.btile_main(col, row + 2),
-                self.btile_main(col, row + 3),
-                self.btile_bram(col, row),
+                self.btile_main(tcrd.col, tcrd.row),
+                self.btile_main(tcrd.col, tcrd.row + 1),
+                self.btile_main(tcrd.col, tcrd.row + 2),
+                self.btile_main(tcrd.col, tcrd.row + 3),
+                self.btile_bram(tcrd.col, tcrd.row),
             ]
         } else if kind == "HCLK" {
-            vec![self.btile_hclk(col, row)]
+            vec![self.btile_hclk(tcrd.col, tcrd.row)]
         } else if kind == "REG_L" {
             vec![self.btile_reg(Dir::W)]
         } else if kind == "REG_R" {
@@ -106,23 +105,23 @@ impl ExpandedDevice<'_> {
         } else if kind == "REG_T" {
             vec![self.btile_reg(Dir::N)]
         } else if kind == "HCLK_ROW" {
-            vec![self.btile_spine(row - 1)]
+            vec![self.btile_spine(tcrd.row - 1)]
         } else if kind.starts_with("PLL_BUFPLL") || kind.starts_with("DCM_BUFPLL") {
-            vec![self.btile_spine(row - 7)]
+            vec![self.btile_spine(tcrd.row - 7)]
         } else if kind == "IOB" {
-            vec![self.btile_iob(col, row)]
+            vec![self.btile_iob(tcrd.col, tcrd.row)]
         } else if matches!(kind, "CMT_DCM" | "CMT_PLL") {
             let mut res = vec![];
             for i in 0..16 {
-                res.push(self.btile_main(col, row - 8 + i));
+                res.push(self.btile_main(tcrd.col, tcrd.row - 8 + i));
             }
             for i in 0..16 {
-                res.push(self.btile_spine(row - 8 + i));
+                res.push(self.btile_spine(tcrd.row - 8 + i));
             }
             res
         } else {
             Vec::from_iter(
-                node.cells
+                tile.cells
                     .values()
                     .map(|&(col, row)| self.btile_main(col, row)),
             )

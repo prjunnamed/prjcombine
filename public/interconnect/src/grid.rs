@@ -89,10 +89,194 @@ impl std::fmt::Display for EdgeIoCoord {
     }
 }
 
-pub type Coord = (ColId, RowId);
-pub type NodeLoc = (DieId, ColId, RowId, TileSlotId);
-pub type WireCoord = (DieId, Coord, WireId);
-pub type BelCoord = (DieId, Coord, BelSlotId);
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
+pub struct CellCoord {
+    pub die: DieId,
+    pub col: ColId,
+    pub row: RowId,
+}
+
+impl CellCoord {
+    pub fn new(die: DieId, col: ColId, row: RowId) -> Self {
+        Self { die, col, row }
+    }
+
+    pub fn with_cr(self, col: ColId, row: RowId) -> CellCoord {
+        CellCoord { col, row, ..self }
+    }
+
+    pub fn with_col(self, col: ColId) -> CellCoord {
+        CellCoord { col, ..self }
+    }
+
+    pub fn with_row(self, row: RowId) -> CellCoord {
+        CellCoord { row, ..self }
+    }
+
+    pub fn tile(self, slot: TileSlotId) -> TileCoord {
+        TileCoord { cell: self, slot }
+    }
+
+    pub fn wire(self, slot: WireId) -> WireCoord {
+        WireCoord { cell: self, slot }
+    }
+
+    pub fn bel(self, slot: BelSlotId) -> BelCoord {
+        BelCoord { cell: self, slot }
+    }
+
+    pub fn connector(self, slot: ConnectorSlotId) -> ConnectorCoord {
+        ConnectorCoord { cell: self, slot }
+    }
+
+    pub fn delta(&self, dx: i32, dy: i32) -> CellCoord {
+        self.with_cr(self.col + dx, self.row + dy)
+    }
+}
+
+impl std::fmt::Display for CellCoord {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{die}{col}{row}",
+            die = self.die,
+            col = self.col,
+            row = self.row
+        )
+    }
+}
+
+impl std::fmt::Debug for CellCoord {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{die}{col}{row}",
+            die = self.die,
+            col = self.col,
+            row = self.row
+        )
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
+pub struct TileCoord {
+    pub cell: CellCoord,
+    pub slot: TileSlotId,
+}
+
+impl TileCoord {
+    pub fn to_string(&self, db: &IntDb) -> String {
+        format!(
+            "{cell}_{slot}",
+            cell = self.cell,
+            slot = db.tile_slots[self.slot]
+        )
+    }
+}
+
+impl std::ops::Deref for TileCoord {
+    type Target = CellCoord;
+
+    fn deref(&self) -> &Self::Target {
+        &self.cell
+    }
+}
+
+impl std::ops::DerefMut for TileCoord {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.cell
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
+pub struct ConnectorCoord {
+    pub cell: CellCoord,
+    pub slot: ConnectorSlotId,
+}
+
+impl ConnectorCoord {
+    pub fn to_string(&self, db: &IntDb) -> String {
+        format!(
+            "{cell}_{slot}",
+            cell = self.cell,
+            slot = db.conn_slots.key(self.slot)
+        )
+    }
+}
+
+impl std::ops::Deref for ConnectorCoord {
+    type Target = CellCoord;
+
+    fn deref(&self) -> &Self::Target {
+        &self.cell
+    }
+}
+
+impl std::ops::DerefMut for ConnectorCoord {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.cell
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
+pub struct WireCoord {
+    pub cell: CellCoord,
+    pub slot: WireId,
+}
+
+impl WireCoord {
+    pub fn to_string(&self, db: &IntDb) -> String {
+        format!(
+            "{cell}_{slot}",
+            cell = self.cell,
+            slot = db.wires.key(self.slot)
+        )
+    }
+}
+
+impl std::ops::Deref for WireCoord {
+    type Target = CellCoord;
+
+    fn deref(&self) -> &Self::Target {
+        &self.cell
+    }
+}
+
+impl std::ops::DerefMut for WireCoord {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.cell
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
+pub struct BelCoord {
+    pub cell: CellCoord,
+    pub slot: BelSlotId,
+}
+
+impl BelCoord {
+    pub fn to_string(&self, db: &IntDb) -> String {
+        format!(
+            "{cell}_{slot}",
+            cell = self.cell,
+            slot = db.bel_slots.key(self.slot)
+        )
+    }
+}
+
+impl std::ops::Deref for BelCoord {
+    type Target = CellCoord;
+
+    fn deref(&self) -> &Self::Target {
+        &self.cell
+    }
+}
+
+impl std::ops::DerefMut for BelCoord {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.cell
+    }
+}
 
 #[derive(Copy, Clone, Debug)]
 pub struct Rect {
@@ -115,13 +299,14 @@ pub struct ExpandedGrid<'a> {
     pub die: EntityVec<DieId, ExpandedDie>,
     pub extra_conns: BiHashMap<WireCoord, WireCoord>,
     pub blackhole_wires: HashSet<WireCoord>,
-    pub tile_index: EntityVec<TileClassId, Vec<NodeLoc>>,
+    pub tile_index: EntityVec<TileClassId, Vec<TileCoord>>,
 }
 
 #[derive(Clone, Debug)]
 pub struct ExpandedDie {
     tiles: Array2<Cell>,
-    pub region_root_cells: EntityVec<RegionSlotId, HashMap<Coord, HashSet<Coord>>>,
+    pub region_root_cells:
+        EntityVec<RegionSlotId, HashMap<(ColId, RowId), HashSet<(ColId, RowId)>>>,
 }
 
 pub struct ExpandedDieRef<'a, 'b> {
@@ -179,109 +364,171 @@ impl<'a> ExpandedGrid<'a> {
         ExpandedDieRefMut { grid: self, die }
     }
 
-    pub fn tile(&self, loc: NodeLoc) -> &Tile {
-        &self.die(loc.0).tile((loc.1, loc.2)).tiles[loc.3]
+    pub fn tile(&self, crd: TileCoord) -> &Tile {
+        &self
+            .die(crd.cell.die)
+            .cell((crd.cell.col, crd.cell.row))
+            .tiles[crd.slot]
     }
 
-    pub fn tile_wire(&self, loc: NodeLoc, wire: TileClassWire) -> WireCoord {
-        let tile = self.tile(loc);
-        (loc.0, tile.cells[wire.0], wire.1)
+    pub fn connector(&self, crd: ConnectorCoord) -> &Connector {
+        &self
+            .die(crd.cell.die)
+            .cell((crd.cell.col, crd.cell.row))
+            .conns[crd.slot]
     }
 
-    pub fn resolve_tile_wire_nobuf(&self, loc: NodeLoc, wire: TileClassWire) -> Option<WireCoord> {
-        self.resolve_wire_nobuf(self.tile_wire(loc, wire))
+    pub fn tile_wire(&self, tcrd: TileCoord, wire: TileWireCoord) -> WireCoord {
+        WireCoord {
+            cell: self.tile_cell(tcrd, wire.cell),
+            slot: wire.wire,
+        }
     }
 
-    pub fn find_tile(&self, die: DieId, coord: Coord, f: impl Fn(&Tile) -> bool) -> Option<&Tile> {
-        let die = self.die(die);
-        let tile = die.tile(coord);
-        tile.tiles.values().find(|x| f(x))
-    }
-
-    // TODO: kill
-    pub fn find_tile_loc(
+    pub fn resolve_tile_wire_nobuf(
         &self,
-        die: DieId,
-        coord: Coord,
-        f: impl Fn(&Tile) -> bool,
-    ) -> Option<(TileSlotId, &Tile)> {
-        let die = self.die(die);
-        let tile = die.tile(coord);
-        for (id, val) in &tile.tiles {
-            if f(val) {
-                return Some((id, val));
+        tcrd: TileCoord,
+        wire: TileWireCoord,
+    ) -> Option<WireCoord> {
+        self.resolve_wire_nobuf(self.tile_wire(tcrd, wire))
+    }
+
+    pub fn cell(&self, ccrd: CellCoord) -> &Cell {
+        self.die(ccrd.die).cell((ccrd.col, ccrd.row))
+    }
+
+    pub fn cells(&self) -> impl Iterator<Item = (CellCoord, &Cell)> + '_ {
+        self.dies().flat_map(move |die| {
+            die.cols().flat_map(move |col| {
+                die.rows().map(move |row| {
+                    let crd = CellCoord::new(die.die, col, row);
+                    let cell = self.cell(crd);
+                    (crd, cell)
+                })
+            })
+        })
+    }
+
+    pub fn tiles(&self) -> impl Iterator<Item = (TileCoord, &Tile)> + '_ {
+        self.cells().flat_map(|(crd, cell)| {
+            cell.tiles
+                .iter()
+                .map(move |(tslot, tile)| (crd.tile(tslot), tile))
+        })
+    }
+
+    pub fn connectors(&self) -> impl Iterator<Item = (ConnectorCoord, &Connector)> + '_ {
+        self.cells().flat_map(|(crd, cell)| {
+            cell.conns
+                .iter()
+                .map(move |(cslot, conn)| (crd.connector(cslot), conn))
+        })
+    }
+
+    pub fn tile_cells(
+        &self,
+        tcrd: TileCoord,
+    ) -> impl DoubleEndedIterator<Item = (CellSlotId, CellCoord)> + ExactSizeIterator + '_ {
+        self.tile(tcrd)
+            .cells
+            .iter()
+            .map(move |(slot, &(col, row))| (slot, tcrd.with_cr(col, row)))
+    }
+
+    pub fn tile_cell(&self, tcrd: TileCoord, slot: CellSlotId) -> CellCoord {
+        let tile = self.tile(tcrd);
+        CellCoord {
+            die: tcrd.die,
+            col: tile.cells[slot].0,
+            row: tile.cells[slot].1,
+        }
+    }
+
+    pub fn find_tile(&self, ccrd: CellCoord, f: impl Fn(&Tile) -> bool) -> Option<&Tile> {
+        let cell = self.cell(ccrd);
+        cell.tiles.values().find(|x| f(x))
+    }
+
+    pub fn get_tile(&self, tcrd: TileCoord) -> Option<&Tile> {
+        self.cell(tcrd.cell).tiles.get(tcrd.slot)
+    }
+
+    pub fn cell_delta(&self, mut cell: CellCoord, dx: i32, dy: i32) -> Option<CellCoord> {
+        if dx < 0 {
+            if cell.col.to_idx() < (-dx) as usize {
+                return None;
+            }
+            cell.col -= (-dx) as usize;
+        } else {
+            cell.col += dx as usize;
+            if cell.col.to_idx() >= self.die(cell.die).cols().len() {
+                return None;
             }
         }
-        None
-    }
-
-    // TODO: kill
-    pub fn find_tile_layer(
-        &self,
-        die: DieId,
-        coord: Coord,
-        f: impl Fn(&str) -> bool,
-    ) -> Option<TileSlotId> {
-        let die = self.die(die);
-        let tile = die.tile(coord);
-        for (layer, val) in &tile.tiles {
-            if f(self.db.tile_classes.key(val.class)) {
-                return Some(layer);
+        if dy < 0 {
+            if cell.row.to_idx() < (-dy) as usize {
+                return None;
+            }
+            cell.row -= (-dy) as usize;
+        } else {
+            cell.row += dy as usize;
+            if cell.row.to_idx() >= self.die(cell.die).rows().len() {
+                return None;
             }
         }
-        None
+        Some(cell)
     }
 
-    // TODO: kill
     pub fn find_tile_by_class(
         &self,
-        die: DieId,
-        coord: Coord,
+        ccrd: CellCoord,
         f: impl Fn(&str) -> bool,
-    ) -> Option<NodeLoc> {
-        let gdie = self.die(die);
-        let tile = gdie.tile(coord);
-        for (layer, val) in &tile.tiles {
+    ) -> Option<TileCoord> {
+        for (slot, val) in &self.cell(ccrd).tiles {
             if f(self.db.tile_classes.key(val.class)) {
-                return Some((die, coord.0, coord.1, layer));
+                return Some(TileCoord { cell: ccrd, slot });
             }
         }
         None
     }
 
-    pub fn get_tile_by_class(&self, die: DieId, coord: Coord, f: impl Fn(&str) -> bool) -> NodeLoc {
-        self.find_tile_by_class(die, coord, f).unwrap()
+    // TODO: kill
+    pub fn get_tile_by_class(&self, ccrd: CellCoord, f: impl Fn(&str) -> bool) -> TileCoord {
+        self.find_tile_by_class(ccrd, f).unwrap()
     }
 
-    pub fn find_tile_by_bel(&self, bel: BelCoord) -> Option<NodeLoc> {
-        let (die, coord, slot) = bel;
-        let gdie = self.die(die);
-        let tile = gdie.tile(coord);
-        for (layer, tile) in &tile.tiles {
+    pub fn has_bel(&self, bel: BelCoord) -> bool {
+        let cell = self.cell(bel.cell);
+        let tslot = self.db.bel_slots[bel.slot].tile_slot;
+        if let Some(tile) = cell.tiles.get(tslot) {
             let nk = &self.db.tile_classes[tile.class];
-            if nk.bels.contains_id(slot) {
-                return Some((die, coord.0, coord.1, layer));
+            if nk.bels.contains_id(bel.slot) {
+                return true;
             }
         }
-        None
+        false
     }
 
-    pub fn get_tile_by_bel(&self, bel: BelCoord) -> NodeLoc {
-        self.find_tile_by_bel(bel).unwrap()
+    pub fn find_tile_by_bel(&self, bel: BelCoord) -> Option<TileCoord> {
+        if self.has_bel(bel) {
+            Some(self.get_tile_by_bel(bel))
+        } else {
+            None
+        }
     }
 
-    pub fn find_bel_layer(&self, bel: BelCoord) -> Option<TileSlotId> {
-        self.find_tile_by_bel(bel).map(|(_, _, _, layer)| layer)
+    pub fn get_tile_by_bel(&self, bel: BelCoord) -> TileCoord {
+        bel.tile(self.db.bel_slots[bel.slot].tile_slot)
     }
 
     pub fn get_bel_pin(&self, bel: BelCoord, pin: &str) -> Vec<WireCoord> {
-        let tloc = self.get_tile_by_bel(bel);
-        let tile = self.tile(tloc);
-        let pin_info = &self.db.tile_classes[tile.class].bels[bel.2].pins[pin];
+        let tcrd = self.get_tile_by_bel(bel);
+        let tile = self.tile(tcrd);
+        let pin_info = &self.db.tile_classes[tile.class].bels[bel.slot].pins[pin];
         pin_info
             .wires
             .iter()
-            .map(|&(cell, wire)| (tloc.0, tile.cells[cell], wire))
+            .map(|&wire| self.tile_wire(tcrd, wire))
             .collect()
     }
 
@@ -301,8 +548,15 @@ impl<'a> ExpandedGrid<'a> {
             }
             for col in die.cols() {
                 for row in die.rows() {
-                    for (layer, node) in &die[(col, row)].tiles {
-                        self.tile_index[node.class].push((dieid, col, row, layer));
+                    for (slot, node) in &die[(col, row)].tiles {
+                        self.tile_index[node.class].push(TileCoord {
+                            cell: CellCoord {
+                                die: dieid,
+                                col,
+                                row,
+                            },
+                            slot,
+                        });
                     }
                 }
             }
@@ -310,34 +564,24 @@ impl<'a> ExpandedGrid<'a> {
         #[allow(unexpected_cfgs)]
         if cfg!(self_check_egrid) {
             println!("CHECK");
-            for die in self.dies() {
-                for col in die.cols() {
-                    for row in die.rows() {
-                        for w in self.db.wires.ids() {
-                            let wire = (die.die, (col, row), w);
-                            let Some(rw) = self.resolve_wire(wire) else {
-                                continue;
-                            };
-                            let tree = self.wire_tree(rw);
-                            if rw == wire {
-                                for &ow in &tree {
-                                    assert_eq!(Some(wire), self.resolve_wire(ow));
-                                }
-                            }
-                            if !tree.contains(&wire) {
-                                panic!(
-                                    "tree {rd}.{rc}.{rr}.{rw} does not contain {od}.{oc}.{or}.{ow}",
-                                    rd = rw.0.to_idx(),
-                                    rc = rw.1.0.to_idx(),
-                                    rr = rw.1.1.to_idx(),
-                                    rw = self.db.wires.key(rw.2),
-                                    od = wire.0.to_idx(),
-                                    oc = wire.1.0.to_idx(),
-                                    or = wire.1.1.to_idx(),
-                                    ow = self.db.wires.key(wire.2),
-                                );
-                            }
+            for (cell, _) in self.cells() {
+                for w in self.db.wires.ids() {
+                    let wire = WireCoord { cell, slot: w };
+                    let Some(rw) = self.resolve_wire(wire) else {
+                        continue;
+                    };
+                    let tree = self.wire_tree(rw);
+                    if rw == wire {
+                        for &ow in &tree {
+                            assert_eq!(Some(wire), self.resolve_wire(ow));
                         }
+                    }
+                    if !tree.contains(&wire) {
+                        panic!(
+                            "tree {rw} does not contain {ow}",
+                            rw = rw.to_string(self.db),
+                            ow = wire.to_string(self.db)
+                        );
                     }
                 }
             }
@@ -345,16 +589,29 @@ impl<'a> ExpandedGrid<'a> {
     }
 }
 
-impl core::ops::Index<Coord> for ExpandedDie {
+impl core::ops::Index<(ColId, RowId)> for ExpandedDie {
     type Output = Cell;
-    fn index(&self, xy: Coord) -> &Cell {
+    fn index(&self, xy: (ColId, RowId)) -> &Cell {
         &self.tiles[[xy.1.to_idx(), xy.0.to_idx()]]
     }
 }
 
-impl core::ops::IndexMut<Coord> for ExpandedDie {
-    fn index_mut(&mut self, xy: Coord) -> &mut Cell {
+impl core::ops::IndexMut<(ColId, RowId)> for ExpandedDie {
+    fn index_mut(&mut self, xy: (ColId, RowId)) -> &mut Cell {
         &mut self.tiles[[xy.1.to_idx(), xy.0.to_idx()]]
+    }
+}
+
+impl core::ops::Index<CellCoord> for ExpandedGrid<'_> {
+    type Output = Cell;
+    fn index(&self, xy: CellCoord) -> &Cell {
+        &self.die[xy.die][(xy.col, xy.row)]
+    }
+}
+
+impl core::ops::IndexMut<CellCoord> for ExpandedGrid<'_> {
+    fn index_mut(&mut self, xy: CellCoord) -> &mut Cell {
+        &mut self.die[xy.die][(xy.col, xy.row)]
     }
 }
 
@@ -389,13 +646,18 @@ impl ExpandedDie {
 }
 
 impl<'a> ExpandedDieRef<'_, 'a> {
-    pub fn tile(&self, xy: Coord) -> &'a Cell {
+    pub fn cell(&self, xy: (ColId, RowId)) -> &'a Cell {
         &self.grid.die[self.die].tiles[[xy.1.to_idx(), xy.0.to_idx()]]
     }
 }
 
 impl ExpandedDieRefMut<'_, '_> {
-    pub fn add_tile(&mut self, crd: Coord, kind: &str, cells: &[Coord]) -> &mut Tile {
+    pub fn add_tile(
+        &mut self,
+        crd: (ColId, RowId),
+        kind: &str,
+        cells: &[(ColId, RowId)],
+    ) -> &mut Tile {
         let kind = self.grid.db.get_tile_class(kind);
         let cells: EntityVec<_, _> = cells.iter().copied().collect();
         let slot = self.grid.db.tile_classes[kind].slot;
@@ -413,12 +675,12 @@ impl ExpandedDieRefMut<'_, '_> {
         &mut self[crd].tiles[slot]
     }
 
-    pub fn fill_tile(&mut self, xy: Coord, kind: &str) -> &mut Tile {
+    pub fn fill_tile(&mut self, xy: (ColId, RowId), kind: &str) -> &mut Tile {
         assert!(self[xy].tiles.iter().count() == 0);
         self.add_tile(xy, kind, &[xy])
     }
 
-    pub fn fill_conn_pair(&mut self, a: Coord, b: Coord, fwd: &str, bwd: &str) {
+    pub fn fill_conn_pair(&mut self, a: (ColId, RowId), b: (ColId, RowId), fwd: &str, bwd: &str) {
         let fwd = self.grid.db.get_conn_class(fwd);
         let bwd = self.grid.db.get_conn_class(bwd);
         let this = &mut *self;
@@ -438,7 +700,7 @@ impl ExpandedDieRefMut<'_, '_> {
         this[b].conns.insert(bwd_slot, bwd);
     }
 
-    pub fn fill_conn_term(&mut self, xy: Coord, kind: &str) {
+    pub fn fill_conn_term(&mut self, xy: (ColId, RowId), kind: &str) {
         let ccls = self.grid.db.get_conn_class(kind);
         let slot = self.grid.db.conn_classes[ccls].slot;
         self[xy].conns.insert(
@@ -501,43 +763,40 @@ impl ExpandedDieRefMut<'_, '_> {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct NodePip {
+pub struct TilePip {
     pub wire_out: WireCoord,
     pub wire_in: WireCoord,
     pub wire_out_raw: WireCoord,
     pub wire_in_raw: WireCoord,
 
-    pub node_die: DieId,
-    pub node_crd: Coord,
-    pub node_slot: TileSlotId,
-    pub node_wire_out: TileClassWire,
-    pub node_wire_in: TileClassWire,
+    pub tile: TileCoord,
+    pub tile_wire_out: TileWireCoord,
+    pub tile_wire_in: TileWireCoord,
 }
 
 impl ExpandedGrid<'_> {
     pub fn resolve_wire(&self, mut wire: WireCoord) -> Option<WireCoord> {
-        let die = self.die(wire.0);
         loop {
-            let tile = die.tile(wire.1);
-            let wi = self.db.wires[wire.2];
+            let cell = self.cell(wire.cell);
+            let wi = self.db.wires[wire.slot];
             match wi {
                 WireKind::Regional(rslot) => {
-                    wire.1 = tile.region_root[rslot];
+                    (wire.cell.col, wire.cell.row) = cell.region_root[rslot];
                     break;
                 }
                 WireKind::MultiBranch(slot)
                 | WireKind::Branch(slot)
                 | WireKind::PipBranch(slot) => {
-                    if let Some(t) = tile.conns.get(slot) {
+                    if let Some(t) = cell.conns.get(slot) {
                         let ccls = &self.db.conn_classes[t.class];
-                        match ccls.wires.get(wire.2) {
+                        match ccls.wires.get(wire.slot) {
                             Some(&ConnectorWire::BlackHole) => return None,
                             Some(&ConnectorWire::Reflect(wf)) => {
-                                wire.2 = wf;
+                                wire.slot = wf;
                             }
                             Some(&ConnectorWire::Pass(wf)) => {
-                                wire.1 = t.target.unwrap();
-                                wire.2 = wf;
+                                (wire.cell.col, wire.cell.row) = t.target.unwrap();
+                                wire.slot = wf;
                             }
                             None => break,
                         }
@@ -546,7 +805,7 @@ impl ExpandedGrid<'_> {
                     }
                 }
                 WireKind::Buf(wf) => {
-                    wire.2 = wf;
+                    wire.slot = wf;
                 }
                 _ => break,
             }
@@ -562,28 +821,27 @@ impl ExpandedGrid<'_> {
     }
 
     pub fn resolve_wire_nobuf(&self, mut wire: WireCoord) -> Option<WireCoord> {
-        let die = self.die(wire.0);
         loop {
-            let tile = die.tile(wire.1);
-            let wi = self.db.wires[wire.2];
+            let cell = self.cell(wire.cell);
+            let wi = self.db.wires[wire.slot];
             match wi {
                 WireKind::Regional(rslot) => {
-                    wire.1 = tile.region_root[rslot];
+                    (wire.cell.col, wire.cell.row) = cell.region_root[rslot];
                     break;
                 }
                 WireKind::MultiBranch(slot)
                 | WireKind::Branch(slot)
                 | WireKind::PipBranch(slot) => {
-                    if let Some(t) = tile.conns.get(slot) {
+                    if let Some(t) = cell.conns.get(slot) {
                         let ccls = &self.db.conn_classes[t.class];
-                        match ccls.wires.get(wire.2) {
+                        match ccls.wires.get(wire.slot) {
                             Some(&ConnectorWire::BlackHole) => return None,
                             Some(&ConnectorWire::Reflect(wf)) => {
-                                wire.2 = wf;
+                                wire.slot = wf;
                             }
                             Some(&ConnectorWire::Pass(wf)) => {
-                                wire.1 = t.target.unwrap();
-                                wire.2 = wf;
+                                (wire.cell.col, wire.cell.row) = t.target.unwrap();
+                                wire.slot = wf;
                             }
                             None => break,
                         }
@@ -614,30 +872,31 @@ impl ExpandedGrid<'_> {
             queue.push(twire);
         }
         while let Some(wire) = queue.pop() {
-            let die = self.die(wire.0);
-            let tile = &die[wire.1];
+            let die = self.die(wire.cell.die);
+            let tile = self.cell(wire.cell);
             res.push(wire);
-            if let WireKind::Regional(rslot) = self.db.wires[wire.2] {
-                if tile.region_root[rslot] == wire.1 {
-                    for &crd in &die.region_root_cells[rslot][&wire.1] {
-                        if crd != wire.1 {
-                            queue.push((wire.0, crd, wire.2));
+            if let WireKind::Regional(rslot) = self.db.wires[wire.slot] {
+                if tile.region_root[rslot] == (wire.cell.col, wire.cell.row) {
+                    for &crd in &die.region_root_cells[rslot][&(wire.cell.col, wire.cell.row)] {
+                        if crd != (wire.cell.col, wire.cell.row) {
+                            queue.push(wire.cell.with_cr(crd.0, crd.1).wire(wire.slot));
                         }
                     }
                 }
             }
-            for &wt in &self.db_index.buf_ins[wire.2] {
-                queue.push((wire.0, wire.1, wt));
+            for &wt in &self.db_index.buf_ins[wire.slot] {
+                queue.push(wire.cell.wire(wt));
             }
             for (slot, conn) in &tile.conns {
                 let oslot = self.db.conn_slots[slot].opposite;
-                for &wt in &self.db_index.conn_classes[conn.class].wire_ins_near[wire.2] {
-                    queue.push((wire.0, wire.1, wt));
+                for &wt in &self.db_index.conn_classes[conn.class].wire_ins_near[wire.slot] {
+                    queue.push(wire.cell.wire(wt));
                 }
                 if let Some(ocrd) = conn.target {
-                    let oconn = &die[ocrd].conns[oslot];
-                    for &wt in &self.db_index.conn_classes[oconn.class].wire_ins_far[wire.2] {
-                        queue.push((wire.0, ocrd, wt));
+                    let ocrd = wire.cell.with_cr(ocrd.0, ocrd.1);
+                    let oconn = &self.cell(ocrd).conns[oslot];
+                    for &wt in &self.db_index.conn_classes[oconn.class].wire_ins_far[wire.slot] {
+                        queue.push(ocrd.wire(wt));
                     }
                 }
             }
@@ -645,10 +904,10 @@ impl ExpandedGrid<'_> {
         res
     }
 
-    pub fn wire_pips_bwd(&self, wire: WireCoord) -> Vec<NodePip> {
+    pub fn wire_pips_bwd(&self, wire: WireCoord) -> Vec<TilePip> {
         let mut wires = vec![wire];
         if matches!(
-            self.db.wires[wire.2],
+            self.db.wires[wire.slot],
             WireKind::MultiOut
                 | WireKind::MultiBranch(_)
                 | WireKind::PipOut
@@ -658,24 +917,26 @@ impl ExpandedGrid<'_> {
         }
         let mut res = vec![];
         for w in wires {
-            for &(crd, layer, tid) in &self.die(w.0)[w.1].tile_index {
-                let tile = &self.die(w.0)[crd].tiles[layer];
+            for &(crd, tslot, tid) in &self.cell(w.cell).tile_index {
+                let tcrd = w.cell.with_cr(crd.0, crd.1).tile(tslot);
+                let tile = self.tile(tcrd);
                 let tcls = &self.db.tile_classes[tile.class];
-                let tcw = (tid, w.2);
+                let tcw = TileWireCoord {
+                    cell: tid,
+                    wire: w.slot,
+                };
                 if let Some(mux) = tcls.muxes.get(&tcw) {
                     for &tcwi in &mux.ins {
-                        let wire_in_raw = (w.0, tile.cells[tcwi.0], tcwi.1);
+                        let wire_in_raw = self.tile_wire(tcrd, tcwi);
                         if let Some(wire_in) = self.resolve_wire(wire_in_raw) {
-                            res.push(NodePip {
+                            res.push(TilePip {
                                 wire_out: wire,
                                 wire_in,
                                 wire_out_raw: w,
                                 wire_in_raw,
-                                node_die: w.0,
-                                node_crd: crd,
-                                node_slot: layer,
-                                node_wire_out: tcw,
-                                node_wire_in: tcwi,
+                                tile: tcrd,
+                                tile_wire_out: tcw,
+                                tile_wire_in: tcwi,
                             });
                         }
                     }
@@ -685,28 +946,30 @@ impl ExpandedGrid<'_> {
         res
     }
 
-    pub fn wire_pips_fwd(&self, wire: WireCoord) -> Vec<NodePip> {
+    pub fn wire_pips_fwd(&self, wire: WireCoord) -> Vec<TilePip> {
         let wires = self.wire_tree(wire);
         let mut res = vec![];
         for w in wires {
-            for &(crd, layer, tid) in &self.die(w.0)[w.1].tile_index {
-                let tile = &self.die(w.0)[crd].tiles[layer];
+            for &(crd, tslot, tid) in &self.cell(w.cell).tile_index {
+                let tcrd = w.cell.with_cr(crd.0, crd.1).tile(tslot);
+                let tile = self.tile(tcrd);
                 let tcls = &self.db_index.tile_classes[tile.class];
-                let tcw = (tid, w.2);
+                let tcw = TileWireCoord {
+                    cell: tid,
+                    wire: w.slot,
+                };
                 if let Some(outs) = tcls.mux_ins.get(&tcw) {
                     for &tcwo in outs {
-                        let wire_out_raw = (w.0, tile.cells[tcwo.0], tcwo.1);
+                        let wire_out_raw = self.tile_wire(tcrd, tcwo);
                         if let Some(wire_out) = self.resolve_wire(wire_out_raw) {
-                            res.push(NodePip {
+                            res.push(TilePip {
                                 wire_out,
                                 wire_in: wire,
                                 wire_out_raw,
                                 wire_in_raw: w,
-                                node_die: w.0,
-                                node_crd: crd,
-                                node_slot: layer,
-                                node_wire_out: tcwo,
-                                node_wire_in: tcw,
+                                tile: tcrd,
+                                tile_wire_out: tcwo,
+                                tile_wire_in: tcw,
                             });
                         }
                     }
@@ -721,18 +984,18 @@ impl ExpandedGrid<'_> {
 pub struct Cell {
     pub tiles: EntityPartVec<TileSlotId, Tile>,
     pub conns: EntityPartVec<ConnectorSlotId, Connector>,
-    pub tile_index: Vec<(Coord, TileSlotId, TileCellId)>,
-    pub region_root: EntityVec<RegionSlotId, Coord>,
+    pub tile_index: Vec<((ColId, RowId), TileSlotId, CellSlotId)>,
+    pub region_root: EntityVec<RegionSlotId, (ColId, RowId)>,
 }
 
 #[derive(Clone, Debug)]
 pub struct Tile {
     pub class: TileClassId,
-    pub cells: EntityVec<TileCellId, Coord>,
+    pub cells: EntityVec<CellSlotId, (ColId, RowId)>,
 }
 
 #[derive(Clone, Debug)]
 pub struct Connector {
     pub class: ConnectorClassId,
-    pub target: Option<Coord>,
+    pub target: Option<(ColId, RowId)>,
 }

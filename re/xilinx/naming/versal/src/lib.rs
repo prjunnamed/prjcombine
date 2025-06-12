@@ -4,7 +4,7 @@ use bincode::{Decode, Encode};
 use prjcombine_interconnect::{
     db::{TileClass, TileClassId},
     dir::DirH,
-    grid::{ColId, DieId, NodeLoc, RowId},
+    grid::{CellCoord, ColId, DieId, RowId, TileCoord},
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_versal::{
@@ -122,7 +122,7 @@ fn make_grid(
 fn make_grid_complex(
     edev: &ExpandedDevice,
     f: impl Fn(TileClassId, &str, &TileClass) -> bool,
-    n: impl Fn(TileClassId, &str, &TileClass, NodeLoc) -> (i32, i32),
+    n: impl Fn(TileClassId, &str, &TileClass, TileCoord) -> (i32, i32),
 ) -> BelGrid {
     if edev.interposer.kind == InterposerKind::MirrorSquare {
         let mut res = BelGrid {
@@ -135,14 +135,14 @@ fn make_grid_complex(
             let mut rows = BTreeMap::new();
             for (kind, name, node) in &edev.egrid.db.tile_classes {
                 if f(kind, name, node) {
-                    for &nloc in &edev.egrid.tile_index[kind] {
-                        if nloc.0 != die {
+                    for &tcrd in &edev.egrid.tile_index[kind] {
+                        if tcrd.die != die {
                             continue;
                         }
-                        let (n_x, n_y) = n(kind, name, node, nloc);
-                        let v_c = cols.entry(nloc.1).or_default();
+                        let (n_x, n_y) = n(kind, name, node, tcrd);
+                        let v_c = cols.entry(tcrd.col).or_default();
                         *v_c = max(*v_c, n_x);
-                        let v_r = rows.entry(nloc.2).or_default();
+                        let v_r = rows.entry(tcrd.row).or_default();
                         *v_r = max(*v_r, n_y);
                     }
                 }
@@ -168,11 +168,11 @@ fn make_grid_complex(
         let mut rows = BTreeMap::new();
         for (kind, name, node) in &edev.egrid.db.tile_classes {
             if f(kind, name, node) {
-                for &nloc in &edev.egrid.tile_index[kind] {
-                    let (n_x, n_y) = n(kind, name, node, nloc);
-                    let v_c = cols[nloc.0].entry(nloc.1).or_default();
+                for &tcrd in &edev.egrid.tile_index[kind] {
+                    let (n_x, n_y) = n(kind, name, node, tcrd);
+                    let v_c = cols[tcrd.die].entry(tcrd.col).or_default();
                     *v_c = max(*v_c, n_x);
-                    let v_r = rows.entry((nloc.0, nloc.2)).or_default();
+                    let v_r = rows.entry((tcrd.die, tcrd.row)).or_default();
                     *v_r = max(*v_r, n_y);
                 }
             }
@@ -257,14 +257,14 @@ pub fn name_device<'a>(
                     | "RCLK_INTF.E.HALF"
             )
         },
-        |_, _, _, nloc| {
-            let chip = edev.chips[nloc.0];
-            let cd = &chip.columns[nloc.1];
+        |_, _, _, tcrd| {
+            let chip = edev.chips[tcrd.die];
+            let cd = &chip.columns[tcrd.col];
             match cd.kind {
                 ColumnKind::Dsp => (1, 64),
                 ColumnKind::ContHard => {
-                    let hc = chip.get_col_hard(nloc.1 - 1).unwrap();
-                    let reg = chip.row_to_reg(nloc.2);
+                    let hc = chip.get_col_hard(tcrd.col - 1).unwrap();
+                    let reg = chip.row_to_reg(tcrd.row);
                     if matches!(
                         hc.regs[reg],
                         HardRowKind::DcmacT | HardRowKind::HscT | HardRowKind::IlknT
@@ -275,8 +275,8 @@ pub fn name_device<'a>(
                     }
                 }
                 ColumnKind::Hard => {
-                    let hc = chip.get_col_hard(nloc.1).unwrap();
-                    let reg = chip.row_to_reg(nloc.2);
+                    let hc = chip.get_col_hard(tcrd.col).unwrap();
+                    let reg = chip.row_to_reg(tcrd.row);
                     if matches!(
                         hc.regs[reg],
                         HardRowKind::DcmacT | HardRowKind::HscT | HardRowKind::IlknT
@@ -323,9 +323,9 @@ pub fn name_device<'a>(
     let rclk_dfx_grid = make_grid_complex(
         edev,
         |_, node, _| matches!(node, "RCLK_DFX.W" | "RCLK_DFX.E"),
-        |_, _, _, nloc| {
-            let chip = edev.chips[nloc.0];
-            if chip.columns[nloc.1].kind == ColumnKind::Bram(BramKind::MaybeClkBufNoPd) {
+        |_, _, _, tcrd| {
+            let chip = edev.chips[tcrd.die];
+            if chip.columns[tcrd.col].kind == ColumnKind::Bram(BramKind::MaybeClkBufNoPd) {
                 (2, 1)
             } else {
                 (1, 1)
@@ -370,14 +370,15 @@ pub fn name_device<'a>(
         let chip = edev.chips[die.die];
         for col in die.cols() {
             for row in die.rows() {
+                let cell = CellCoord::new(die.die, col, row);
                 let reg = chip.row_to_reg(row);
-                for (layer, node) in &die[(col, row)].tiles {
-                    let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.tile_classes.key(node.class);
+                for (tslot, tile) in &die[(col, row)].tiles {
+                    let tcrd = cell.tile(tslot);
+                    let kind = egrid.db.tile_classes.key(tile.class);
                     match &kind[..] {
                         "INT" => {
                             ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 "INT",
                                 [int_grid.name("INT", die.die, col, row, 0, 0)],
                             );
@@ -390,7 +391,7 @@ pub fn name_device<'a>(
                             };
                             let vr = if chip.is_vr { "_VR" } else { "" };
                             ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 "RCLK",
                                 [int_grid.name(
                                     &format!("RCLK_INT_{lr}{vr}_FT"),
@@ -416,7 +417,7 @@ pub fn name_device<'a>(
                                     && col - 1 > edev.col_cfrm[die.die]
                                     && chip.cols_vbrk.contains(&(col - 1));
                             ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [int_grid.name(
                                     &if bump_prev && !bump_cur {
@@ -446,7 +447,7 @@ pub fn name_device<'a>(
                                 format!("{kind}.LAG")
                             };
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 naming,
                                 [int_grid.name(
                                     if cle_kind == CleKind::Plain {
@@ -516,7 +517,7 @@ pub fn name_device<'a>(
                                 0,
                                 0,
                             );
-                            let nnode = ngrid.name_tile(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             for i in 0..4 {
                                 nnode
                                     .iri_names
@@ -544,7 +545,7 @@ pub fn name_device<'a>(
                                 0,
                                 0,
                             );
-                            let nnode = ngrid.name_tile(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             for i in 0..4 {
                                 nnode
                                     .iri_names
@@ -577,7 +578,7 @@ pub fn name_device<'a>(
                                 0,
                                 0,
                             );
-                            let nnode = ngrid.name_tile(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             for i in 0..4 {
                                 nnode.iri_names.push(iri_grid.name(
                                     "IRI_QUAD",
@@ -627,7 +628,7 @@ pub fn name_device<'a>(
                                 0,
                                 0,
                             );
-                            let nnode = ngrid.name_tile(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             for i in 0..4 {
                                 nnode.iri_names.push(iri_grid.name(
                                     "IRI_QUAD",
@@ -917,7 +918,7 @@ pub fn name_device<'a>(
                                 }
                                 _ => unreachable!(),
                             };
-                            let nnode = ngrid.name_tile(nloc, &format!("{kind}.{subkind}"), [name]);
+                            let nnode = ngrid.name_tile(tcrd, &format!("{kind}.{subkind}"), [name]);
                             for (i, dy) in swz.into_iter().enumerate() {
                                 nnode.add_bel(
                                     if i < 16 {
@@ -1301,7 +1302,7 @@ pub fn name_device<'a>(
                                 }
                                 _ => unreachable!(),
                             };
-                            let nnode = ngrid.name_tile(nloc, &format!("{kind}.{subkind}"), [name]);
+                            let nnode = ngrid.name_tile(tcrd, &format!("{kind}.{subkind}"), [name]);
                             for (i, dy) in swz.into_iter().enumerate() {
                                 nnode.add_bel(
                                     if i < 16 {
@@ -1376,7 +1377,7 @@ pub fn name_device<'a>(
                             };
                             let vr = if chip.is_vr { ".VR" } else { "" };
                             let nnode =
-                                ngrid.name_tile(nloc, &format!("{kind}.{subkind}{vr}"), [name]);
+                                ngrid.name_tile(tcrd, &format!("{kind}.{subkind}{vr}"), [name]);
                             nnode.add_bel(
                                 bels::RCLK_DFX_TEST,
                                 rclk_dfx_grid.name("RCLK", die.die, col, row, 0, 0),
@@ -1485,7 +1486,7 @@ pub fn name_device<'a>(
                             };
                             let vr = if chip.is_vr { ".VR" } else { "" };
                             let nnode =
-                                ngrid.name_tile(nloc, &format!("{kind}.{subkind}{vr}"), [name]);
+                                ngrid.name_tile(tcrd, &format!("{kind}.{subkind}{vr}"), [name]);
                             nnode.add_bel(
                                 bels::RCLK_DFX_TEST,
                                 rclk_dfx_grid.name("RCLK", die.die, col, row, dx, 0),
@@ -1510,7 +1511,7 @@ pub fn name_device<'a>(
                                 0,
                                 0,
                             );
-                            ngrid.name_tile(nloc, &naming, [name]);
+                            ngrid.name_tile(tcrd, &naming, [name]);
                         }
                         "CLE_W" | "CLE_W.VR" => {
                             let tkn = if !chip.is_vr {
@@ -1519,7 +1520,7 @@ pub fn name_device<'a>(
                                 "CLE_E_VR_CORE"
                             };
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [int_grid.name(tkn, die.die, col, row, 0, 0)],
                             );
@@ -1537,7 +1538,7 @@ pub fn name_device<'a>(
                                 "CLE_W_VR_CORE"
                             };
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [int_grid.name(tkn, die.die, col, row, 0, 0)],
                             );
@@ -1564,7 +1565,7 @@ pub fn name_device<'a>(
                                 0,
                             );
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 if dev_naming.is_dsp_v2 {
                                     "DSP.V2"
                                 } else {
@@ -1599,7 +1600,7 @@ pub fn name_device<'a>(
                                 0,
                                 0,
                             );
-                            let nnode = ngrid.name_tile(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             nnode.add_bel(
                                 bels::BRAM_F,
                                 bram_grid.name("RAMB36", die.die, col, row, 0, 0),
@@ -1627,7 +1628,7 @@ pub fn name_device<'a>(
                                 0,
                                 0,
                             );
-                            let nnode = ngrid.name_tile(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             nnode.add_bel(
                                 bels::URAM,
                                 uram_grid.name("URAM288", die.die, col, row, 0, 0),
@@ -1662,7 +1663,7 @@ pub fn name_device<'a>(
                             let bt = if chip.is_reg_n(reg) { "TOP" } else { "BOT" };
                             let name =
                                 int_grid.name(&format!("{tk}_{bt}_TILE"), die.die, col, row, 0, 0);
-                            let nnode = ngrid.name_tile(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             nnode.add_bel(slot, bel_grid.name(bk, die.die, col, row, 0, 0));
                         }
                         "DCMAC" | "ILKN" | "HSC" => {
@@ -1674,7 +1675,7 @@ pub fn name_device<'a>(
                             };
                             let name =
                                 int_grid.name(&format!("{kind}_TILE"), die.die, col, row, 0, 0);
-                            let nnode = ngrid.name_tile(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             nnode.add_bel(slot, bel_grid.name(bk, die.die, col, row, 0, 0));
                         }
                         "HDIO" => {
@@ -1690,7 +1691,7 @@ pub fn name_device<'a>(
                                 0,
                                 0,
                             );
-                            let nnode = ngrid.name_tile(nloc, kind, [name]);
+                            let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             let naming = &dev_naming.die[die.die].hdio[&(col, reg)];
                             for i in 0..11 {
                                 nnode.add_bel(
@@ -1757,7 +1758,7 @@ pub fn name_device<'a>(
                         }
                         "VNOC" => {
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     int_grid.name("NOC_NSU512_TOP", die.die, col, row + 7, 0, 0),
@@ -1785,7 +1786,7 @@ pub fn name_device<'a>(
                         }
                         "VNOC2" => {
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     int_grid.name(
@@ -1869,7 +1870,7 @@ pub fn name_device<'a>(
                         }
                         "VNOC4" => {
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     int_grid.name(
@@ -1942,7 +1943,7 @@ pub fn name_device<'a>(
                         }
                         "MISR" => {
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [int_grid.name(
                                     "MISR_TILE",
@@ -1961,7 +1962,7 @@ pub fn name_device<'a>(
                         "SYSMON_SAT.VNOC" => {
                             let nnode =
                                 ngrid.name_tile(
-                                    nloc,
+                                    tcrd,
                                     kind,
                                     [int_grid.name(
                                         "AMS_SAT_VNOC_TILE",
@@ -1981,7 +1982,7 @@ pub fn name_device<'a>(
                         "SYSMON_SAT.LGT" | "SYSMON_SAT.RGT" => {
                             let bt = if chip.is_reg_n(reg) { "TOP" } else { "BOT" };
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [int_grid_gt.name(
                                     &format!("AMS_SAT_GT_{bt}_TILE"),
@@ -2000,7 +2001,7 @@ pub fn name_device<'a>(
                         }
                         "DPLL.LGT" | "DPLL.RGT" => {
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [int_grid_gt.name("CMT_DPLL", die.die, col, row + 7, 0, 0)],
                             );
@@ -2013,7 +2014,7 @@ pub fn name_device<'a>(
                         "BFR_B.E" => {
                             let bt = if chip.is_reg_n(reg) { "TOP" } else { "BOT" };
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [int_grid.name(
                                     &format!("BFR_TILE_B_{bt}_CORE"),
@@ -2031,7 +2032,7 @@ pub fn name_device<'a>(
                         }
                         "VDU.E" => {
                             let nnode = ngrid.name_tile(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [int_grid.name("VDU_CORE", die.die, col, row, 0, 0)],
                             );

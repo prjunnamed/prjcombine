@@ -1,3 +1,4 @@
+use prjcombine_interconnect::grid::CellCoord;
 use prjcombine_re_xilinx_naming_versal::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
@@ -5,7 +6,7 @@ use prjcombine_versal::{bels, chip::DisabledPart, expanded::UbumpId};
 use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let kind = if bel.bel.pins.contains_key("WE") {
+    let kind = if bel.info.pins.contains_key("WE") {
         "SLICEM"
     } else {
         "SLICEL"
@@ -60,7 +61,7 @@ fn verify_laguna(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
         if let Some(conns) = edev.sll.get(&(bel.die, bel.col, bel.row)) {
             if !conns.cursed[bump] {
                 if let Some((odie, ocol, orow, obump)) = conns.conns[bump] {
-                    let obel = vrf.get_bel((odie, (ocol, orow), bels::LAGUNA));
+                    let obel = vrf.get_bel(CellCoord::new(odie, ocol, orow).bel(bels::LAGUNA));
                     if (bel.die, bel.col, bel.row, bump) < (odie, ocol, orow, obump) {
                         vrf.claim_node(&[
                             bel.fwire(&format!("UBUMP{i}")),
@@ -383,13 +384,13 @@ fn verify_hardip(
 fn verify_bufdiv_leaf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let grid = endev.edev.chips[bel.die];
     let mut pins = vec![("I", SitePinDir::In), ("O_CASC", SitePinDir::Out)];
-    if !bel.bel.pins.contains_key("O") {
+    if !bel.info.pins.contains_key("O") {
         pins.push(("O", SitePinDir::Out));
         vrf.claim_node(&[bel.fwire("O")]);
         vrf.claim_node(&[bel.fwire_far("O")]);
         vrf.claim_pip(bel.crd(), bel.wire_far("O"), bel.wire("O"));
     }
-    if !bel.bel.pins.contains_key("I_CASC") {
+    if !bel.info.pins.contains_key("I_CASC") {
         pins.push(("I_CASC", SitePinDir::In));
         let idx = bels::BUFDIV_LEAF
             .into_iter()

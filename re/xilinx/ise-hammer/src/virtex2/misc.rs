@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 
-use prjcombine_interconnect::grid::{DieId, NodeLoc};
+use prjcombine_interconnect::{
+    dir::DirHV,
+    grid::{CellCoord, DieId, TileCoord},
+};
 use prjcombine_re_fpga_hammer::{
     Diff, FuzzerProp, OcdMode, concat_bitvec, extract_bitvec_val, extract_bitvec_val_part,
     xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
@@ -16,6 +19,7 @@ use prjcombine_virtex2::{
     bels,
     chip::{ChipKind, IoDiffKind},
     iob::IobKind,
+    tslots,
 };
 use prjcombine_xilinx_bitstream::{BitTile, Reg};
 use unnamed_entity::EntityId;
@@ -26,7 +30,7 @@ use crate::{
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         iostd::{DciKind, DiffKind},
-        props::{DynProp, extra::ExtraReg, pip::PinFar, relation::NodeRelation},
+        props::{DynProp, extra::ExtraReg, pip::PinFar, relation::TileRelation},
     },
     virtex2::io::get_iostds,
 };
@@ -34,11 +38,9 @@ use crate::{
 #[derive(Copy, Clone, Debug)]
 struct IntRelation;
 
-impl NodeRelation for IntRelation {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
-        backend
-            .egrid
-            .find_tile_by_class(nloc.0, (nloc.1, nloc.2), |kind| kind.starts_with("INT."))
+impl TileRelation for IntRelation {
+    fn resolve(&self, _backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
+        Some(tcrd.tile(tslots::INT))
     }
 }
 
@@ -53,7 +55,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ForceBits {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         fuzzer.info.features[0].tiles = self.0.clone();
@@ -84,11 +86,11 @@ pub fn add_fuzzers<'a>(
     };
 
     let freeze_dci_btiles = vec![
-        edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_s()),
-        edev.btile_btterm(edev.chip.col_w(), edev.chip.row_s()),
-        edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_s())
+        edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell),
+        edev.btile_btterm(edev.chip.corner(DirHV::SW).cell),
+        edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell)
             .to_fixup(),
-        edev.btile_btterm(edev.chip.col_w(), edev.chip.row_s())
+        edev.btile_btterm(edev.chip.corner(DirHV::SW).cell)
             .to_fixup(),
         BitTile::Reg(DieId::from_idx(0), Reg::FakeFreezeDciNops),
         BitTile::RegPresent(DieId::from_idx(0), Reg::FakeFreezeDciNops),
@@ -270,11 +272,7 @@ pub fn add_fuzzers<'a>(
         for val in ["NO", "YES"] {
             let mut builder = ctx.build();
             if edev.chip.kind.is_virtex2() {
-                let cnr_ne = edev.egrid.get_tile_by_class(
-                    DieId::from_idx(0),
-                    (edev.chip.col_e(), edev.chip.row_n()),
-                    |kind| kind.starts_with("UR."),
-                );
+                let cnr_ne = edev.chip.corner(DirHV::NE);
                 builder = builder.extra_tile_fixed(cnr_ne, "MISC");
             }
             builder
@@ -480,46 +478,14 @@ pub fn add_fuzzers<'a>(
 
     if edev.chip.kind == ChipKind::FpgaCore {
         let mut ctx = FuzzCtx::new_null(session, backend);
-        let cnr_ll = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_w(), edev.chip.row_s()),
-            |kind| kind == "LL.FC",
-        );
-        let cnr_ul = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_w(), edev.chip.row_n()),
-            |kind| kind == "UL.FC",
-        );
-        let cnr_lr = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_e(), edev.chip.row_s()),
-            |kind| kind == "LR.FC",
-        );
-        let cnr_ur = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_e(), edev.chip.row_n()),
-            |kind| kind == "UR.FC",
-        );
-        let int_ll = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_w(), edev.chip.row_s()),
-            |kind| kind == "INT.CLB",
-        );
-        let int_ul = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_w(), edev.chip.row_n()),
-            |kind| kind == "INT.CLB",
-        );
-        let int_lr = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_e(), edev.chip.row_s()),
-            |kind| kind == "INT.CLB",
-        );
-        let int_ur = edev.egrid.get_tile_by_class(
-            DieId::from_idx(0),
-            (edev.chip.col_e(), edev.chip.row_n()),
-            |kind| kind == "INT.CLB",
-        );
+        let cnr_ll = edev.chip.corner(DirHV::SW);
+        let cnr_ul = edev.chip.corner(DirHV::NW);
+        let cnr_lr = edev.chip.corner(DirHV::SE);
+        let cnr_ur = edev.chip.corner(DirHV::NE);
+        let int_ll = edev.chip.corner(DirHV::SW).cell.tile(tslots::INT);
+        let int_ul = edev.chip.corner(DirHV::NW).cell.tile(tslots::INT);
+        let int_lr = edev.chip.corner(DirHV::SE).cell.tile(tslots::INT);
+        let int_ur = edev.chip.corner(DirHV::NE).cell.tile(tslots::INT);
         for val in ["NO", "YES"] {
             ctx.build()
                 .extra_tile_fixed(cnr_ll, "MISC")
@@ -565,33 +531,23 @@ pub fn add_fuzzers<'a>(
             unreachable!()
         };
         if !edev.chip.kind.is_spartan3ea() {
-            for (tile_name, bel, bank) in [
-                (ul, 0, 7),
-                (ul, 1, 0),
-                (ur, 1, 1),
-                (ur, 0, 2),
-                (lr, 0, 3),
-                (lr, 1, 4),
-                (ll, 1, 5),
-                (ll, 0, 6),
+            for (dir, tile_name, bel, bank) in [
+                (DirHV::NW, ul, 0, 7),
+                (DirHV::NW, ul, 1, 0),
+                (DirHV::NE, ur, 1, 1),
+                (DirHV::NE, ur, 0, 2),
+                (DirHV::SE, lr, 0, 3),
+                (DirHV::SE, lr, 1, 4),
+                (DirHV::SW, ll, 1, 5),
+                (DirHV::SW, ll, 0, 6),
             ] {
                 let mut ctx = FuzzCtx::new(session, backend, tile_name);
                 let mut bctx = ctx.bel([bels::DCI0, bels::DCI1][bel]);
 
                 let bel_name = ["DCI0", "DCI1"][bel];
-                let col = if tile_name == ul || tile_name == ll {
-                    edev.chip.col_w()
-                } else {
-                    edev.chip.col_e()
-                };
-                let row = if tile_name == ll || tile_name == lr {
-                    edev.chip.row_s()
-                } else {
-                    edev.chip.row_n()
-                };
-                let mut btiles = vec![edev.btile_lrterm(col, row)];
+                let mut btiles = vec![edev.btile_lrterm(edev.chip.corner(dir).cell)];
                 if edev.chip.kind.is_virtex2() {
-                    btiles.push(edev.btile_btterm(col, row));
+                    btiles.push(edev.btile_btterm(edev.chip.corner(dir).cell));
                 }
                 let mut site = None;
                 let mut site_other = None;
@@ -611,13 +567,14 @@ pub fn add_fuzzers<'a>(
                 let site_vrn = endev.get_io_name(io_vrn);
                 for io in edev.chip.get_bonded_ios().into_iter().rev() {
                     let ioinfo = edev.chip.get_io_info(io);
-                    let (_, (io_col, io_row), _) = edev.chip.get_io_loc(io);
-                    if ioinfo.bank == bank && coords.insert((io_col, io_row)) {
-                        btiles.push(edev.btile_main(io_col, io_row));
-                        if io_col == edev.chip.col_w() || io_col == edev.chip.col_e() {
-                            btiles.push(edev.btile_lrterm(io_col, io_row));
+                    let bcrd = edev.chip.get_io_loc(io);
+                    if ioinfo.bank == bank && coords.insert(bcrd.cell) {
+                        btiles.push(edev.btile_main(bcrd.cell));
+                        if bcrd.cell.col == edev.chip.col_w() || bcrd.cell.col == edev.chip.col_e()
+                        {
+                            btiles.push(edev.btile_lrterm(bcrd.cell));
                         } else {
-                            btiles.push(edev.btile_btterm(io_col, io_row));
+                            btiles.push(edev.btile_btterm(bcrd.cell));
                         }
                     }
                     if ebond.ios.contains_key(&io)
@@ -818,14 +775,14 @@ pub fn add_fuzzers<'a>(
             {
                 let mut ctx = FuzzCtx::new(session, backend, ll);
                 let btiles = vec![
-                    edev.btile_btterm(edev.chip.col_w(), edev.chip.row_n()),
-                    edev.btile_btterm(edev.chip.col_e(), edev.chip.row_n()),
-                    edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_n()),
-                    edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_s()),
-                    edev.btile_btterm(edev.chip.col_e(), edev.chip.row_s()),
-                    edev.btile_btterm(edev.chip.col_w(), edev.chip.row_s()),
-                    edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_s()),
-                    edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_n()),
+                    edev.btile_btterm(edev.chip.corner(DirHV::NW).cell),
+                    edev.btile_btterm(edev.chip.corner(DirHV::NE).cell),
+                    edev.btile_lrterm(edev.chip.corner(DirHV::NE).cell),
+                    edev.btile_lrterm(edev.chip.corner(DirHV::SE).cell),
+                    edev.btile_btterm(edev.chip.corner(DirHV::SE).cell),
+                    edev.btile_btterm(edev.chip.corner(DirHV::SW).cell),
+                    edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell),
+                    edev.btile_lrterm(edev.chip.corner(DirHV::NW).cell),
                 ];
                 for val in ["ASREQUIRED", "CONTINUOUS", "QUIET"] {
                     ctx.build()
@@ -839,39 +796,15 @@ pub fn add_fuzzers<'a>(
         } else {
             let banks = if edev.chip.kind == ChipKind::Spartan3E {
                 &[
-                    (
-                        ul,
-                        edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_n()),
-                        0,
-                    ),
-                    (
-                        ur,
-                        edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_n()),
-                        1,
-                    ),
-                    (
-                        lr,
-                        edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_s()),
-                        2,
-                    ),
-                    (
-                        ll,
-                        edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_s()),
-                        3,
-                    ),
+                    (ul, edev.btile_lrterm(edev.chip.corner(DirHV::NW).cell), 0),
+                    (ur, edev.btile_lrterm(edev.chip.corner(DirHV::NE).cell), 1),
+                    (lr, edev.btile_lrterm(edev.chip.corner(DirHV::SE).cell), 2),
+                    (ll, edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell), 3),
                 ][..]
             } else {
                 &[
-                    (
-                        ul,
-                        edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_n()),
-                        0,
-                    ),
-                    (
-                        ll,
-                        edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_s()),
-                        2,
-                    ),
+                    (ul, edev.btile_lrterm(edev.chip.corner(DirHV::NW).cell), 0),
+                    (ll, edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell), 2),
                 ][..]
             };
             for &(tile_name, btile, bank) in banks {
@@ -882,8 +815,9 @@ pub fn add_fuzzers<'a>(
                         let row = edev.chip.row_n();
                         for col in edev.chip.columns.ids() {
                             if col != edev.chip.col_w() && col != edev.chip.col_e() {
-                                btiles.push(edev.btile_main(col, row));
-                                btiles.push(edev.btile_btterm(col, row));
+                                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                                btiles.push(edev.btile_main(cell));
+                                btiles.push(edev.btile_btterm(cell));
                             }
                         }
                     }
@@ -891,8 +825,9 @@ pub fn add_fuzzers<'a>(
                         let col = edev.chip.col_e();
                         for row in edev.chip.rows.ids() {
                             if row != edev.chip.row_s() && row != edev.chip.row_n() {
-                                btiles.push(edev.btile_main(col, row));
-                                btiles.push(edev.btile_lrterm(col, row));
+                                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                                btiles.push(edev.btile_main(cell));
+                                btiles.push(edev.btile_lrterm(cell));
                             }
                         }
                     }
@@ -900,8 +835,9 @@ pub fn add_fuzzers<'a>(
                         let row = edev.chip.row_s();
                         for col in edev.chip.columns.ids() {
                             if col != edev.chip.col_w() && col != edev.chip.col_e() {
-                                btiles.push(edev.btile_main(col, row));
-                                btiles.push(edev.btile_btterm(col, row));
+                                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                                btiles.push(edev.btile_main(cell));
+                                btiles.push(edev.btile_btterm(cell));
                             }
                         }
                     }
@@ -909,8 +845,9 @@ pub fn add_fuzzers<'a>(
                         let col = edev.chip.col_w();
                         for row in edev.chip.rows.ids() {
                             if row != edev.chip.row_s() && row != edev.chip.row_n() {
-                                btiles.push(edev.btile_main(col, row));
-                                btiles.push(edev.btile_lrterm(col, row));
+                                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                                btiles.push(edev.btile_main(cell));
+                                btiles.push(edev.btile_lrterm(cell));
                             }
                         }
                     }
@@ -2380,8 +2317,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                     "IOSTD:S3A.TB:LVDSBIAS"
                 };
                 let kind = edev.egrid.db.get_tile_class(tile);
-                let (_, col, row, _) = edev.egrid.tile_index[kind][0];
-                let btile = edev.btile_lrterm(col, row);
+                let tcrd = edev.egrid.tile_index[kind][0];
+                let btile = edev.btile_lrterm(tcrd.cell);
                 let base: BitVec = lvdsbias_0
                     .bits
                     .iter()
@@ -2420,10 +2357,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
 
         if edev.chip.kind.is_spartan3ea() {
             for (tile, btile) in [
-                (ll, edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_s())),
-                (ul, edev.btile_lrterm(edev.chip.col_w(), edev.chip.row_n())),
-                (lr, edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_s())),
-                (ur, edev.btile_lrterm(edev.chip.col_e(), edev.chip.row_n())),
+                (ll, edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell)),
+                (ul, edev.btile_lrterm(edev.chip.corner(DirHV::NW).cell)),
+                (lr, edev.btile_lrterm(edev.chip.corner(DirHV::SE).cell)),
+                (ur, edev.btile_lrterm(edev.chip.corner(DirHV::NE).cell)),
             ] {
                 let bel = "MISC";
                 let mut diff = Diff::default();

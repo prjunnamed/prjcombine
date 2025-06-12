@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_interconnect::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -1199,7 +1199,7 @@ impl Expander<'_, '_> {
 }
 
 impl Chip {
-    fn fill_term(&self, die: &mut ExpandedDieRefMut, coord: Coord, kind: &str) {
+    fn fill_term(&self, die: &mut ExpandedDieRefMut, coord: (ColId, RowId), kind: &str) {
         if self.kind.is_virtex2() {
             die.add_tile(coord, kind, &[coord]);
         }

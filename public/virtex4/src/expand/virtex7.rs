@@ -2,7 +2,7 @@ use bimap::BiHashMap;
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::{Dir, DirPartMap};
 use prjcombine_interconnect::grid::{
-    ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
+    CellCoord, ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
 };
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
@@ -558,6 +558,7 @@ impl DieExpander<'_, '_, '_> {
         for iocol in self.chip.cols_io.iter() {
             let col = iocol.col;
             for row in self.die.rows() {
+                let cell = CellCoord::new(self.die.die, col, row);
                 let reg = self.chip.row_to_reg(row);
                 if let Some(kind) = iocol.regs[reg] {
                     if matches!(row.to_idx() % 50, 0 | 49) {
@@ -579,9 +580,7 @@ impl DieExpander<'_, '_, '_> {
                             &[(col, row)],
                         );
                         self.io.push(IoCoord {
-                            die: self.die.die,
-                            col,
-                            row,
+                            cell,
                             iob: TileIobId::from_idx(0),
                         });
                     } else if row.to_idx() % 2 == 1 {
@@ -596,15 +595,11 @@ impl DieExpander<'_, '_, '_> {
                         );
                         self.io.extend([
                             IoCoord {
-                                die: self.die.die,
-                                col,
-                                row,
+                                cell,
                                 iob: TileIobId::from_idx(0),
                             },
                             IoCoord {
-                                die: self.die.die,
-                                col,
-                                row,
+                                cell,
                                 iob: TileIobId::from_idx(1),
                             },
                         ]);
@@ -1076,11 +1071,15 @@ pub fn expand_grid<'a>(
             for col in chip.columns.ids() {
                 for i in 0..6 {
                     let row = RowId::from_idx(i);
-                    egrid.blackhole_wires.insert((die, (col, row), lvb6));
+                    egrid
+                        .blackhole_wires
+                        .insert(CellCoord::new(die, col, row).wire(lvb6));
                 }
                 for i in 0..6 {
                     let row = RowId::from_idx(chip.regs * 50 - 6 + i);
-                    egrid.blackhole_wires.insert((die, (col, row), lvb6));
+                    egrid
+                        .blackhole_wires
+                        .insert(CellCoord::new(die, col, row).wire(lvb6));
                 }
             }
         }
@@ -1099,7 +1098,10 @@ pub fn expand_grid<'a>(
                 if die_s[(col, row_s)].tiles.contains_id(tslots::INT)
                     && die_n[(col, row_n)].tiles.contains_id(tslots::INT)
                 {
-                    xdie_wires.insert((dieid_n, (col, row_n), lvb6), (dieid_s, (col, row_s), lvb6));
+                    xdie_wires.insert(
+                        CellCoord::new(dieid_n, col, row_n).wire(lvb6),
+                        CellCoord::new(dieid_s, col, row_s).wire(lvb6),
+                    );
                 }
             }
         }
@@ -1127,9 +1129,11 @@ pub fn expand_grid<'a>(
         cfg_io.insert(
             SharedCfgPad::PudcB,
             IoCoord {
-                die: interposer.primary,
-                col: col_rio.unwrap(),
-                row: pchip.row_reg_bot(pchip.reg_cfg) - 50 + 43,
+                cell: CellCoord {
+                    die: interposer.primary,
+                    col: col_rio.unwrap(),
+                    row: pchip.row_reg_bot(pchip.reg_cfg) - 50 + 43,
+                },
                 iob: TileIobId::from_idx(1),
             },
         );
@@ -1198,9 +1202,11 @@ pub fn expand_grid<'a>(
                 (
                     pin,
                     IoCoord {
-                        die: interposer.primary,
-                        col: col_lio.unwrap(),
-                        row: pchip.row_reg_bot(pchip.reg_cfg) - 50 + dy,
+                        cell: CellCoord {
+                            die: interposer.primary,
+                            col: col_lio.unwrap(),
+                            row: pchip.row_reg_bot(pchip.reg_cfg) - 50 + dy,
+                        },
                         iob: TileIobId::from_idx(iob),
                     },
                 )

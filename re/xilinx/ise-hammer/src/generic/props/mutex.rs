@@ -1,4 +1,4 @@
-use prjcombine_interconnect::{db::TileClassWire, grid::NodeLoc};
+use prjcombine_interconnect::{db::TileWireCoord, grid::TileCoord};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 
@@ -25,12 +25,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IntMutex {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(nloc);
-        for &(col, row) in node.cells.values() {
-            fuzzer = fuzzer.base(Key::IntMutex(nloc.0, col, row), self.val.clone());
+        for (_, cell) in backend.egrid.tile_cells(tcrd) {
+            fuzzer = fuzzer.base(Key::IntMutex(cell), self.val.clone());
         }
         Some((fuzzer, false))
     }
@@ -56,11 +55,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RowMutex {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         Some((
-            fuzzer.base(Key::RowMutex(self.key.clone(), nloc.2), self.val.clone()),
+            fuzzer.base(Key::RowMutex(self.key.clone(), tcrd.row), self.val.clone()),
             false,
         ))
     }
@@ -86,7 +85,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TileMutex {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         Some((
@@ -115,7 +114,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TileMutexExclusive {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         Some((
@@ -127,11 +126,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TileMutexExclusive {
 
 #[derive(Clone, Debug)]
 pub struct NodeMutexShared {
-    pub wire: TileClassWire,
+    pub wire: TileWireCoord,
 }
 
 impl NodeMutexShared {
-    pub fn new(wire: TileClassWire) -> Self {
+    pub fn new(wire: TileWireCoord) -> Self {
         Self { wire }
     }
 }
@@ -144,24 +143,23 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeMutexShared {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(nloc);
         let node = backend
             .egrid
-            .resolve_wire((nloc.0, node.cells[self.wire.0], self.wire.1))?;
+            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire))?;
         Some((fuzzer.base(Key::NodeMutex(node), "SHARED"), false))
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct NodeMutexExclusive {
-    pub wire: TileClassWire,
+    pub wire: TileWireCoord,
 }
 
 impl NodeMutexExclusive {
-    pub fn new(wire: TileClassWire) -> Self {
+    pub fn new(wire: TileWireCoord) -> Self {
         Self { wire }
     }
 }
@@ -174,13 +172,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeMutexExclusive {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(nloc);
         let node = backend
             .egrid
-            .resolve_wire((nloc.0, node.cells[self.wire.0], self.wire.1))?;
+            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire))?;
         Some((fuzzer.fuzz(Key::NodeMutex(node), None, "EXCLUSIVE"), false))
     }
 }

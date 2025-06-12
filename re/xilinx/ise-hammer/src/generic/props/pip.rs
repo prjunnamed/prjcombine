@@ -1,8 +1,8 @@
 use core::fmt::Debug;
 
 use prjcombine_interconnect::{
-    db::{BelSlotId, TileCellId, TileClassWire},
-    grid::NodeLoc,
+    db::{BelSlotId, CellSlotId, TileWireCoord},
+    grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
@@ -11,7 +11,7 @@ use unnamed_entity::EntityId;
 
 use crate::backend::{IseBackend, Key};
 
-use super::{DynProp, NodeRelation};
+use super::{DynProp, TileRelation};
 
 pub struct PipInt;
 pub struct PinFar;
@@ -88,23 +88,23 @@ impl BelIntoPipWire for PipWire {
 
 impl BelIntoPipWire for (PipInt, usize, &str) {
     fn into_pip_wire(self, backend: &IseBackend, _slot: BelSlotId) -> PipWire {
-        let tile = TileCellId::from_idx(self.1);
+        let tile = CellSlotId::from_idx(self.1);
         let wire = backend.egrid.db.get_wire(self.2);
-        PipWire::Int((tile, wire))
+        PipWire::Int(TileWireCoord { cell: tile, wire })
     }
 }
 
 impl BelIntoPipWire for (PipInt, usize, String) {
     fn into_pip_wire(self, backend: &IseBackend, _slot: BelSlotId) -> PipWire {
-        let tile = TileCellId::from_idx(self.1);
+        let tile = CellSlotId::from_idx(self.1);
         let wire = backend.egrid.db.get_wire(&self.2);
-        PipWire::Int((tile, wire))
+        PipWire::Int(TileWireCoord { cell: tile, wire })
     }
 }
 
 #[derive(Clone, Debug)]
 pub enum PipWire {
-    Int(TileClassWire),
+    Int(TileWireCoord),
     BelPinNear(BelSlotId, String),
     BelPinFar(BelSlotId, String),
 }
@@ -113,17 +113,17 @@ impl PipWire {
     pub fn resolve<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
     ) -> Option<(&'a str, &'a str)> {
-        let node = backend.egrid.tile(nloc);
+        let node = backend.egrid.tile(tcrd);
         let ndb = backend.ngrid.db;
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         let node_naming = &ndb.tile_class_namings[nnode.naming];
         Some(match self {
             PipWire::Int(wire) => {
                 backend
                     .egrid
-                    .resolve_wire((nloc.0, node.cells[wire.0], wire.1))?;
+                    .resolve_wire(backend.egrid.tile_wire(tcrd, *wire))?;
                 (
                     &nnode.names[RawTileId::from_idx(0)],
                     node_naming.wires.get(wire)?,
@@ -168,13 +168,13 @@ impl PipWire {
 }
 
 #[derive(Clone, Debug)]
-pub struct BasePip<R: NodeRelation> {
+pub struct BasePip<R: TileRelation> {
     pub relation: R,
     pub wire_to: PipWire,
     pub wire_from: PipWire,
 }
 
-impl<R: NodeRelation> BasePip<R> {
+impl<R: TileRelation> BasePip<R> {
     pub fn new(relation: R, wire_to: PipWire, wire_from: PipWire) -> Self {
         Self {
             relation,
@@ -184,7 +184,7 @@ impl<R: NodeRelation> BasePip<R> {
     }
 }
 
-impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for BasePip<R> {
+impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for BasePip<R> {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -192,25 +192,25 @@ impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for BasePip<R> {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nloc = self.relation.resolve(backend, nloc)?;
-        let (tt, wt) = self.wire_to.resolve(backend, nloc)?;
-        let (tf, wf) = self.wire_from.resolve(backend, nloc)?;
+        let tcrd = self.relation.resolve(backend, tcrd)?;
+        let (tt, wt) = self.wire_to.resolve(backend, tcrd)?;
+        let (tf, wf) = self.wire_from.resolve(backend, tcrd)?;
         assert_eq!(tt, tf);
         Some((fuzzer.base(Key::Pip(tt, wf, wt), true), false))
     }
 }
 
 #[derive(Clone, Debug)]
-pub struct FuzzPip<R: NodeRelation> {
+pub struct FuzzPip<R: TileRelation> {
     pub relation: R,
     pub wire_to: PipWire,
     pub wire_from: PipWire,
 }
 
-impl<R: NodeRelation> FuzzPip<R> {
+impl<R: TileRelation> FuzzPip<R> {
     pub fn new(relation: R, wire_to: PipWire, wire_from: PipWire) -> Self {
         Self {
             relation,
@@ -220,7 +220,7 @@ impl<R: NodeRelation> FuzzPip<R> {
     }
 }
 
-impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for FuzzPip<R> {
+impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for FuzzPip<R> {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -228,12 +228,12 @@ impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for FuzzPip<R> {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nloc = self.relation.resolve(backend, nloc)?;
-        let (tt, wt) = self.wire_to.resolve(backend, nloc)?;
-        let (tf, wf) = self.wire_from.resolve(backend, nloc)?;
+        let tcrd = self.relation.resolve(backend, tcrd)?;
+        let (tt, wt) = self.wire_to.resolve(backend, tcrd)?;
+        let (tf, wf) = self.wire_from.resolve(backend, tcrd)?;
         assert_eq!(tt, tf);
         Some((fuzzer.fuzz(Key::Pip(tt, wf, wt), false, true), false))
     }

@@ -1,5 +1,7 @@
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, RowId, WireCoord};
+use prjcombine_interconnect::grid::{
+    CellCoord, ColId, ExpandedDieRefMut, ExpandedGrid, RowId, WireCoord,
+};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -118,7 +120,7 @@ impl Expander<'_, '_> {
             for (wire, wname, _) in &self.db.wires {
                 if wname.starts_with("BRAM.QUAD") {
                     self.blackhole_wires
-                        .insert((self.die.die, (col, self.chip.row_n()), wire));
+                        .insert(CellCoord::new(self.die.die, col, self.chip.row_n()).wire(wire));
                 }
             }
         }

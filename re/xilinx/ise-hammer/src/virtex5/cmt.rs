@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use prjcombine_interconnect::grid::NodeLoc;
+use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -9,31 +9,28 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{bels, tslots};
 
 use crate::{
     backend::{IseBackend, PinFromKind},
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::NodeRelation,
+        props::relation::TileRelation,
     },
 };
 
 #[derive(Copy, Clone, Debug)]
 struct HclkCmt;
 
-impl NodeRelation for HclkCmt {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for HclkCmt {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let chip = edev.chips[nloc.0];
-        let row = chip.row_hclk(nloc.2);
-        Some(
-            edev.egrid
-                .get_tile_by_bel((nloc.0, (nloc.1, row), bels::HCLK_CMT_HCLK)),
-        )
+        let chip = edev.chips[tcrd.die];
+        let row = chip.row_hclk(tcrd.row);
+        Some(tcrd.with_row(row).tile(tslots::HCLK_CMT))
     }
 }
 

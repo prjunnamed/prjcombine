@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     dir::{DirH, DirV},
-    grid::{DieId, NodeLoc},
+    grid::{DieId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum_ocd,
@@ -8,6 +8,7 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::bels;
+use prjcombine_virtex4::tslots;
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -17,7 +18,7 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::{
             DynProp,
-            relation::{Delta, FixedRelation, NodeRelation},
+            relation::{Delta, FixedRelation, TileRelation},
         },
     },
 };
@@ -25,118 +26,96 @@ use crate::{
 #[derive(Copy, Clone, Debug)]
 struct ClkTerm;
 
-impl NodeRelation for ClkTerm {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for ClkTerm {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let row = if nloc.2 < edev.chips[nloc.0].row_bufg() {
-            edev.chips[nloc.0].rows().next().unwrap()
+        let chip = edev.chips[tcrd.die];
+        let row = if tcrd.row < chip.row_bufg() {
+            chip.rows().next().unwrap()
         } else {
-            edev.chips[nloc.0].rows().next_back().unwrap()
+            chip.rows().next_back().unwrap()
         };
-        Some(
-            edev.egrid
-                .get_tile_by_class(nloc.0, (nloc.1, row), |kind| kind == "CLK_TERM"),
-        )
+        Some(tcrd.with_row(row).tile(tslots::HROW))
     }
 }
 
 #[derive(Copy, Clone, Debug)]
 struct ClkHrow;
 
-impl NodeRelation for ClkHrow {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for ClkHrow {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        Some(
-            edev.egrid
-                .get_tile_by_class(nloc.0, (edev.col_clk, nloc.2), |kind| kind == "CLK_HROW"),
-        )
+        Some(tcrd.with_col(edev.col_clk).tile(tslots::HROW))
     }
 }
 
 #[derive(Copy, Clone, Debug)]
 struct HclkTerm(DirH);
 
-impl NodeRelation for HclkTerm {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for HclkTerm {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
         let col = match self.0 {
-            DirH::W => edev.chips[nloc.0].columns.first_id().unwrap(),
-            DirH::E => edev.chips[nloc.0].columns.last_id().unwrap(),
+            DirH::W => edev.chips[tcrd.die].columns.first_id().unwrap(),
+            DirH::E => edev.chips[tcrd.die].columns.last_id().unwrap(),
         };
-        Some(
-            edev.egrid
-                .get_tile_by_class(nloc.0, (col, nloc.2), |kind| kind == "HCLK_TERM"),
-        )
+        Some(tcrd.with_col(col).tile(tslots::HROW))
     }
 }
 
 #[derive(Copy, Clone, Debug)]
 struct Rclk;
 
-impl NodeRelation for Rclk {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for Rclk {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let col = if nloc.1 <= edev.col_clk {
+        let col = if tcrd.col <= edev.col_clk {
             edev.col_lio.unwrap()
         } else {
             edev.col_rio.unwrap()
         };
-        Some(
-            edev.egrid
-                .get_tile_by_class(nloc.0, (col, nloc.2), |kind| kind.starts_with("HCLK_IOIS")),
-        )
+        Some(tcrd.with_col(col).tile(tslots::HCLK_BEL))
     }
 }
 
 #[derive(Copy, Clone, Debug)]
 struct Ioclk(DirV);
 
-impl NodeRelation for Ioclk {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for Ioclk {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
+        let chip = edev.chips[tcrd.die];
         let row = match self.0 {
             DirV::S => {
-                if nloc.1 == edev.col_cfg && nloc.2 == edev.chips[nloc.0].row_bufg() + 8 {
+                if tcrd.col == edev.col_cfg && tcrd.row == chip.row_bufg() + 8 {
                     return None;
                 }
-                if nloc.2.to_idx() < 16 {
+                if tcrd.row.to_idx() < 16 {
                     return None;
                 }
-                nloc.2 - 16
+                tcrd.row - 16
             }
             DirV::N => {
-                if nloc.1 == edev.col_cfg && nloc.2 == edev.chips[nloc.0].row_bufg() - 8 {
+                if tcrd.col == edev.col_cfg && tcrd.row == chip.row_bufg() - 8 {
                     return None;
                 }
-                if nloc.2.to_idx() + 16 >= edev.chips[nloc.0].rows().len() {
+                if tcrd.row.to_idx() + 16 >= chip.rows().len() {
                     return None;
                 }
-                nloc.2 + 16
+                tcrd.row + 16
             }
         };
-        backend
-            .egrid
-            .find_tile_by_class(nloc.0, (nloc.1, row), |node| {
-                matches!(
-                    node,
-                    "HCLK_IOIS_DCI"
-                        | "HCLK_IOIS_LVDS"
-                        | "HCLK_CENTER"
-                        | "HCLK_CENTER_ABOVE_CFG"
-                        | "HCLK_DCMIOB"
-                        | "HCLK_IOBDCM"
-                )
-            })
+        Some(tcrd.with_row(row).tile(tslots::HCLK_BEL))
     }
 }
 
@@ -151,21 +130,21 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
         let rows = match self.0 {
-            DirV::N => [nloc.2, nloc.2 + 4],
-            DirV::S => [nloc.2 - 8, nloc.2 - 4],
+            DirV::N => [tcrd.row, tcrd.row + 4],
+            DirV::S => [tcrd.row - 8, tcrd.row - 4],
         };
         let mut sad = true;
         for row in rows {
             if let Some(nnloc) = backend
                 .egrid
-                .find_tile_by_class(nloc.0, (nloc.1, row), |kind| kind == self.1)
+                .find_tile_by_class(tcrd.with_row(row), |kind| kind == self.1)
             {
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
@@ -194,7 +173,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraMgtRepeaterAttr {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -203,9 +182,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraMgtRepeaterAttr {
         for &col in &edev.chips[DieId::from_idx(0)].cols_vbrk {
             if (col < edev.col_cfg) == (self.0 == DirH::W) {
                 let rcol = if self.0 == DirH::W { col } else { col - 1 };
-                let nnloc = edev
-                    .egrid
-                    .get_tile_by_class(nloc.0, (rcol, nloc.2), |kind| kind == "HCLK_MGT_REPEATER");
+                let ntcrd = tcrd.with_col(rcol).tile(tslots::CLK);
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
                         tile: "HCLK_MGT_REPEATER".into(),
@@ -213,7 +190,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraMgtRepeaterAttr {
                         attr: self.1.clone(),
                         val: self.2.into(),
                     },
-                    tiles: edev.tile_bits(nnloc),
+                    tiles: edev.tile_bits(ntcrd),
                 });
             }
         }

@@ -1,7 +1,7 @@
 use assert_matches::assert_matches;
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::{
-    ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
+    CellCoord, ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
 };
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
@@ -321,20 +321,17 @@ impl Expander<'_, '_> {
                 continue;
             }
             for row in self.die.rows() {
+                let cell = CellCoord::new(self.die.die, col, row);
                 let is_cfg = col == self.col_cfg;
                 if !self.is_site_hole(col, row) {
                     self.die.add_tile((col, row), "IO", &[(col, row)]);
                     self.io.extend([
                         IoCoord {
-                            die: self.die.die,
-                            col,
-                            row,
+                            cell,
                             iob: TileIobId::from_idx(0),
                         },
                         IoCoord {
-                            die: self.die.die,
-                            col,
-                            row,
+                            cell,
                             iob: TileIobId::from_idx(1),
                         },
                     ]);
@@ -697,9 +694,11 @@ pub fn expand_grid<'a>(
         (
             pin,
             IoCoord {
-                die: DieId::from_idx(0),
-                col: col_cfg,
-                row: chip.row_reg_bot(chip.reg_cfg) - 30 + dy,
+                cell: CellCoord {
+                    die: DieId::from_idx(0),
+                    col: col_cfg,
+                    row: chip.row_reg_bot(chip.reg_cfg) - 30 + dy,
+                },
                 iob: TileIobId::from_idx(iob),
             },
         )

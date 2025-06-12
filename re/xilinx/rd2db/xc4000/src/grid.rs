@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::DieId;
+use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_re_xilinx_rawdump::{Part, TkSiteSlot};
 use prjcombine_xc2000::{
     bels::xc4000 as bels,
@@ -29,14 +29,14 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
                 if rd.slot_kinds[sn] == "IOB" {
                     io_lookup.insert(
                         v.clone(),
-                        chip.get_io_crd((
-                            DieId::from_idx(0),
-                            (
+                        chip.get_io_crd(
+                            CellCoord::new(
+                                DieId::from_idx(0),
                                 int.lookup_column(crd.x.into()),
                                 int.lookup_row(crd.y.into()),
-                            ),
-                            bels::IO[idx as usize - 1],
-                        )),
+                            )
+                            .bel(bels::IO[idx as usize - 1]),
+                        ),
                     );
                 }
             }

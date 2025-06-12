@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     db::RegionSlotId,
-    grid::{ColId, ExpandedGrid, NodeLoc, RowId},
+    grid::{ColId, ExpandedGrid, RowId, TileCoord},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -156,15 +156,14 @@ impl ExpandedDevice<'_> {
         }
     }
 
-    pub fn tile_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
-        let (_, col, row, _) = nloc;
-        let node = self.egrid.tile(nloc);
-        let kind = self.egrid.db.tile_classes.key(node.class).as_str();
+    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+        let tile = self.egrid.tile(tcrd);
+        let kind = self.egrid.db.tile_classes.key(tile.class).as_str();
         if kind == "BRAM" {
             vec![
-                self.btile_main(col, row),
-                self.btile_main(col, row + 1),
-                self.btile_bram(col, row),
+                self.btile_main(tcrd.col, tcrd.row),
+                self.btile_main(tcrd.col, tcrd.row + 1),
+                self.btile_bram(tcrd.col, tcrd.row),
             ]
         } else if kind == "GB_ROOT" {
             self.btile_clock().to_vec()
@@ -172,7 +171,7 @@ impl ExpandedDevice<'_> {
             self.btile_pll().to_vec()
         } else {
             Vec::from_iter(
-                node.cells
+                tile.cells
                     .values()
                     .map(|&(col, row)| self.btile_main(col, row)),
             )

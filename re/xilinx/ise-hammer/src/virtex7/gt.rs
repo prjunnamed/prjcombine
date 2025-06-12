@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, ops::Range};
 
-use prjcombine_interconnect::grid::NodeLoc;
+use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -8,7 +8,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{bels, tslots};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -1425,36 +1425,37 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TouchHout {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
+        let chip = edev.chips[tcrd.die];
         let idx = self.0;
         let mut tgt_col_cmt = None;
         let mut tgt_col_gt = None;
-        if nloc.1 < edev.col_clk {
+        if tcrd.col < edev.col_clk {
             if let Some(col_io) = edev.col_lio {
-                if nloc.1 < col_io {
+                if tcrd.col < col_io {
                     tgt_col_cmt = Some(col_io + 1);
                 }
             }
             if let Some((col_gt, _)) = edev.col_mgt {
-                let gtcol = edev.chips[nloc.0].get_col_gt(col_gt).unwrap();
-                if nloc.1 > col_gt && gtcol.regs[edev.chips[nloc.0].row_to_reg(nloc.2)].is_some() {
+                let gtcol = chip.get_col_gt(col_gt).unwrap();
+                if tcrd.col > col_gt && gtcol.regs[chip.row_to_reg(tcrd.row)].is_some() {
                     tgt_col_gt = Some(col_gt);
                 }
             }
         } else {
             if let Some(col_io) = edev.col_rio {
-                if nloc.1 > col_io {
+                if tcrd.col > col_io {
                     tgt_col_cmt = Some(col_io - 1);
                 }
             }
             if let Some((_, col_gt)) = edev.col_mgt {
-                let gtcol = edev.chips[nloc.0].get_col_gt(col_gt).unwrap();
-                if nloc.1 > col_gt && gtcol.regs[edev.chips[nloc.0].row_to_reg(nloc.2)].is_some() {
+                let gtcol = chip.get_col_gt(col_gt).unwrap();
+                if tcrd.col > col_gt && gtcol.regs[chip.row_to_reg(tcrd.row)].is_some() {
                     tgt_col_gt = Some(col_gt);
                 }
             }
@@ -1465,9 +1466,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TouchHout {
             // nope.
             return None;
         } else {
-            let lr = if nloc.1 < edev.col_clk { 'L' } else { 'R' };
-            let clk_hrow_bel = (nloc.0, (edev.col_clk, nloc.2), bels::CLK_HROW);
-            let clk_hrow = edev.egrid.get_tile_by_bel(clk_hrow_bel);
+            let lr = if tcrd.col < edev.col_clk { 'L' } else { 'R' };
+            let clk_hrow = tcrd.with_col(edev.col_clk).tile(tslots::BEL);
+            let clk_hrow_bel = clk_hrow.cell.bel(bels::CLK_HROW);
             let (ta, wa) = PipWire::BelPinNear(bels::CLK_HROW, format!("HIN{idx}_{lr}"))
                 .resolve(backend, clk_hrow)?;
             let (tb, wb) = PipWire::BelPinNear(bels::CLK_HROW, format!("CASCO{idx}"))

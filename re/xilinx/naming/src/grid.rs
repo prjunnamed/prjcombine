@@ -2,10 +2,12 @@ use std::collections::{BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
     db::{
-        BelSlotId, ConnectorSlotId, ConnectorWire, TileCellId, TileClass, TileClassId, TileIriId,
+        BelSlotId, CellSlotId, ConnectorWire, TileClass, TileClassId, TileIriId, TileWireCoord,
         WireKind,
     },
-    grid::{BelCoord, ColId, DieId, ExpandedGrid, NodeLoc, NodePip, RowId, WireCoord},
+    grid::{
+        BelCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, TileCoord, TilePip, WireCoord,
+    },
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -22,8 +24,8 @@ pub struct ExpandedGridNaming<'a> {
     pub tie_pin_gnd: Option<String>,
     pub tie_pin_vcc: Option<String>,
     pub tie_pin_pullup: Option<String>,
-    pub tiles: HashMap<NodeLoc, TileNaming>,
-    pub conns: HashMap<(DieId, ColId, RowId, ConnectorSlotId), ConnectorNaming>,
+    pub tiles: HashMap<TileCoord, TileNaming>,
+    pub conns: HashMap<ConnectorCoord, ConnectorNaming>,
 }
 
 #[derive(Clone, Debug)]
@@ -83,44 +85,39 @@ impl<'a> ExpandedGridNaming<'a> {
     }
 
     pub fn resolve_wire_raw(&self, mut wire: WireCoord) -> Option<WireCoord> {
-        let die = self.egrid.die(wire.0);
         loop {
-            let tile = &die[wire.1];
-            let wi = self.egrid.db.wires[wire.2];
+            let cell = self.egrid.cell(wire.cell);
+            let wi = self.egrid.db.wires[wire.slot];
             match wi {
                 WireKind::Regional(rslot) => {
-                    wire.1 = tile.region_root[rslot];
+                    (wire.cell.col, wire.cell.row) = cell.region_root[rslot];
                     break;
                 }
                 WireKind::MultiBranch(slot)
                 | WireKind::Branch(slot)
                 | WireKind::PipBranch(slot) => {
-                    if let Some(t) = tile.conns.get(slot) {
+                    if let Some(t) = cell.conns.get(slot) {
                         let ccls = &self.egrid.db.conn_classes[t.class];
-                        match ccls.wires.get(wire.2) {
+                        match ccls.wires.get(wire.slot) {
                             Some(&ConnectorWire::BlackHole) => return None,
                             Some(&ConnectorWire::Reflect(wf)) => {
-                                if let Some(naming) =
-                                    self.conns.get(&(wire.0, wire.1.0, wire.1.1, slot))
-                                {
+                                if let Some(naming) = self.conns.get(&wire.cell.connector(slot)) {
                                     let n = &self.db.conn_class_namings[naming.naming];
-                                    if n.wires_out.contains_id(wire.2) {
+                                    if n.wires_out.contains_id(wire.slot) {
                                         break;
                                     }
                                 }
-                                wire.2 = wf;
+                                wire.slot = wf;
                             }
                             Some(&ConnectorWire::Pass(wf)) => {
-                                if let Some(naming) =
-                                    self.conns.get(&(wire.0, wire.1.0, wire.1.1, slot))
-                                {
+                                if let Some(naming) = self.conns.get(&wire.cell.connector(slot)) {
                                     let n = &self.db.conn_class_namings[naming.naming];
-                                    if n.wires_out.contains_id(wire.2) {
+                                    if n.wires_out.contains_id(wire.slot) {
                                         break;
                                     }
                                 }
-                                wire.1 = t.target.unwrap();
-                                wire.2 = wf;
+                                (wire.cell.col, wire.cell.row) = t.target.unwrap();
+                                wire.slot = wf;
                             }
                             None => break,
                         }
@@ -145,14 +142,13 @@ impl<'a> ExpandedGridNaming<'a> {
         &self,
         mut wire: WireCoord,
     ) -> Option<(WireCoord, Vec<TracePip<'_>>)> {
-        let die = self.egrid.die(wire.0);
         let mut trace = vec![];
         loop {
-            let tile = die.tile(wire.1);
-            let wi = self.egrid.db.wires[wire.2];
+            let tile = self.egrid.cell(wire.cell);
+            let wi = self.egrid.db.wires[wire.slot];
             match wi {
                 WireKind::Regional(rslot) => {
-                    wire.1 = tile.region_root[rslot];
+                    (wire.cell.col, wire.cell.row) = tile.region_root[rslot];
                     break;
                 }
                 WireKind::MultiBranch(slot)
@@ -160,14 +156,12 @@ impl<'a> ExpandedGridNaming<'a> {
                 | WireKind::PipBranch(slot) => {
                     if let Some(t) = tile.conns.get(slot) {
                         let term = &self.egrid.db.conn_classes[t.class];
-                        match term.wires.get(wire.2) {
+                        match term.wires.get(wire.slot) {
                             Some(&ConnectorWire::BlackHole) => return None,
                             Some(&ConnectorWire::Reflect(wf)) => {
-                                if let Some(naming) =
-                                    self.conns.get(&(wire.0, wire.1.0, wire.1.1, slot))
-                                {
+                                if let Some(naming) = self.conns.get(&wire.cell.connector(slot)) {
                                     let n = &self.db.conn_class_namings[naming.naming];
-                                    match n.wires_out.get(wire.2) {
+                                    match n.wires_out.get(wire.slot) {
                                         None => (),
                                         Some(ConnectorWireOutNaming::Simple { name }) => {
                                             trace.push(TracePip {
@@ -185,14 +179,12 @@ impl<'a> ExpandedGridNaming<'a> {
                                         }
                                     }
                                 }
-                                wire.2 = wf;
+                                wire.slot = wf;
                             }
                             Some(&ConnectorWire::Pass(wf)) => {
-                                if let Some(naming) =
-                                    self.conns.get(&(wire.0, wire.1.0, wire.1.1, slot))
-                                {
+                                if let Some(naming) = self.conns.get(&wire.cell.connector(slot)) {
                                     let n = &self.db.conn_class_namings[naming.naming];
-                                    match n.wires_out.get(wire.2) {
+                                    match n.wires_out.get(wire.slot) {
                                         None => (),
                                         Some(ConnectorWireOutNaming::Simple {
                                             name: name_fout,
@@ -245,8 +237,8 @@ impl<'a> ExpandedGridNaming<'a> {
                                         }
                                     }
                                 }
-                                wire.1 = t.target.unwrap();
-                                wire.2 = wf;
+                                (wire.cell.col, wire.cell.row) = t.target.unwrap();
+                                wire.slot = wf;
                             }
                             None => break,
                         }
@@ -261,14 +253,20 @@ impl<'a> ExpandedGridNaming<'a> {
                         .tile_slots
                         .get("INT")
                         .unwrap_or(self.egrid.db.tile_slots.get("MAIN").unwrap());
-                    let naming = &self.tiles[&(wire.0, wire.1.0, wire.1.1, slot)];
+                    let naming = &self.tiles[&wire.cell.tile(slot)];
                     let nn = &self.db.tile_class_namings[naming.naming];
                     trace.push(TracePip {
                         tile: &naming.names[RawTileId::from_idx(0)],
-                        wire_to: &nn.wires[&(TileCellId::from_idx(0), wire.2)],
-                        wire_from: &nn.wires[&(TileCellId::from_idx(0), wf)],
+                        wire_to: &nn.wires[&TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: wire.slot,
+                        }],
+                        wire_from: &nn.wires[&TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: wf,
+                        }],
                     });
-                    wire.2 = wf;
+                    wire.slot = wf;
                 }
                 _ => break,
             }
@@ -283,10 +281,10 @@ impl<'a> ExpandedGridNaming<'a> {
         }
     }
 
-    pub fn get_tile_pip_naming(&self, np: NodePip) -> TracePip<'_> {
-        let tile = &self.tiles[&(np.node_die, np.node_crd.0, np.node_crd.1, np.node_slot)];
+    pub fn get_tile_pip_naming(&self, np: TilePip) -> TracePip<'_> {
+        let tile = &self.tiles[&np.tile];
         let naming = &self.db.tile_class_namings[tile.naming];
-        if let Some(pn) = naming.ext_pips.get(&(np.node_wire_out, np.node_wire_in)) {
+        if let Some(pn) = naming.ext_pips.get(&(np.tile_wire_out, np.tile_wire_in)) {
             TracePip {
                 tile: &tile.names[pn.tile],
                 wire_to: &pn.wire_to,
@@ -295,15 +293,15 @@ impl<'a> ExpandedGridNaming<'a> {
         } else {
             TracePip {
                 tile: &tile.names[RawTileId::from_idx(0)],
-                wire_to: &naming.wires[&np.node_wire_out],
-                wire_from: &naming.wires[&np.node_wire_in],
+                wire_to: &naming.wires[&np.tile_wire_out],
+                wire_from: &naming.wires[&np.tile_wire_in],
             }
         }
     }
 
     pub fn name_tile(
         &mut self,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         naming: &str,
         names: impl IntoIterator<Item = String>,
     ) -> &mut TileNaming {
@@ -325,18 +323,13 @@ impl<'a> ExpandedGridNaming<'a> {
         entry.insert(ntile)
     }
 
-    pub fn name_conn_tile(
-        &mut self,
-        tloc: (DieId, ColId, RowId, ConnectorSlotId),
-        naming: &str,
-        name: String,
-    ) {
+    pub fn name_conn_tile(&mut self, ccrd: ConnectorCoord, naming: &str, name: String) {
         let nconn = ConnectorNaming {
             naming: self.db.get_conn_class_naming(naming),
             tile: name,
             tile_far: None,
         };
-        let hash_map::Entry::Vacant(entry) = self.conns.entry(tloc) else {
+        let hash_map::Entry::Vacant(entry) = self.conns.entry(ccrd) else {
             unreachable!()
         };
         entry.insert(nconn);
@@ -344,7 +337,7 @@ impl<'a> ExpandedGridNaming<'a> {
 
     pub fn name_conn_pair(
         &mut self,
-        tloc: (DieId, ColId, RowId, ConnectorSlotId),
+        ccrd: ConnectorCoord,
         naming: &str,
         name: String,
         name_far: String,
@@ -354,7 +347,7 @@ impl<'a> ExpandedGridNaming<'a> {
             tile: name,
             tile_far: Some(name_far),
         };
-        let hash_map::Entry::Vacant(entry) = self.conns.entry(tloc) else {
+        let hash_map::Entry::Vacant(entry) = self.conns.entry(ccrd) else {
             unreachable!()
         };
         entry.insert(nconn);
@@ -366,9 +359,9 @@ impl<'a> ExpandedGridNaming<'a> {
         let mut rows = BTreeSet::new();
         for (kind, name, tcls) in &self.egrid.db.tile_classes {
             if f(kind, name, tcls) {
-                for &nloc in &self.egrid.tile_index[kind] {
-                    cols.insert(nloc.1);
-                    rows.insert(nloc.2);
+                for &tcrd in &self.egrid.tile_index[kind] {
+                    cols.insert(tcrd.col);
+                    rows.insert(tcrd.row);
                 }
             }
         }
@@ -391,9 +384,9 @@ impl<'a> ExpandedGridNaming<'a> {
         let mut rows = BTreeSet::new();
         for (kind, name, tcls) in &self.egrid.db.tile_classes {
             if f(kind, name, tcls) {
-                for &nloc in &self.egrid.tile_index[kind] {
-                    cols.insert(nloc.1);
-                    rows.insert((nloc.0, nloc.2));
+                for &tcrd in &self.egrid.tile_index[kind] {
+                    cols.insert(tcrd.col);
+                    rows.insert((tcrd.die, tcrd.row));
                 }
             }
         }
@@ -410,10 +403,9 @@ impl<'a> ExpandedGridNaming<'a> {
     }
 
     pub fn get_bel_name(&self, bel: BelCoord) -> Option<&str> {
-        let (die, (col, row), slot) = bel;
-        if let Some(layer) = self.egrid.find_bel_layer(bel) {
-            let ntile = &self.tiles[&(die, col, row, layer)];
-            Some(&ntile.bels[slot])
+        if let Some(loc) = self.egrid.find_tile_by_bel(bel) {
+            let ntile = &self.tiles[&loc];
+            Some(&ntile.bels[bel.slot])
         } else {
             None
         }

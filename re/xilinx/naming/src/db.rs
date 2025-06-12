@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
-use prjcombine_interconnect::db::{BelSlotId, IntDb, TileClassWire, TileIriId, WireId};
+use prjcombine_interconnect::db::{BelSlotId, IntDb, TileIriId, TileWireCoord, WireId};
 use unnamed_entity::{
     EntityId, EntityMap, EntityPartVec, EntityVec,
     id::{EntityIdU16, EntityTag},
@@ -46,13 +46,13 @@ impl NamingDb {
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct TileClassNaming {
-    pub wires: BTreeMap<TileClassWire, String>,
-    pub wire_bufs: BTreeMap<TileClassWire, PipNaming>,
-    pub ext_pips: BTreeMap<(TileClassWire, TileClassWire), PipNaming>,
+    pub wires: BTreeMap<TileWireCoord, String>,
+    pub wire_bufs: BTreeMap<TileWireCoord, PipNaming>,
+    pub ext_pips: BTreeMap<(TileWireCoord, TileWireCoord), PipNaming>,
     pub bels: EntityPartVec<BelSlotId, BelNaming>,
     pub iris: EntityVec<TileIriId, IriNaming>,
-    pub intf_wires_out: BTreeMap<TileClassWire, IntfWireOutNaming>,
-    pub intf_wires_in: BTreeMap<TileClassWire, IntfWireInNaming>,
+    pub intf_wires_out: BTreeMap<TileWireCoord, IntfWireOutNaming>,
+    pub intf_wires_in: BTreeMap<TileWireCoord, IntfWireInNaming>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
@@ -73,7 +73,7 @@ pub struct BelPinNaming {
     pub name: String,
     pub name_far: String,
     pub pips: Vec<PipNaming>,
-    pub int_pips: BTreeMap<TileClassWire, PipNaming>,
+    pub int_pips: BTreeMap<TileWireCoord, PipNaming>,
     pub is_intf_out: bool,
 }
 
@@ -160,16 +160,16 @@ impl NamingDb {
                 writeln!(
                     o,
                     "\t\tWIRE {wt:3}.{wn:20} {v}",
-                    wt = k.0.to_idx(),
-                    wn = intdb.wires.key(k.1)
+                    wt = k.cell.to_idx(),
+                    wn = intdb.wires.key(k.wire)
                 )?;
             }
             for (k, v) in &naming.wire_bufs {
                 writeln!(
                     o,
                     "\t\tWIRE BUF {wt:3}.{wn:20}: RT.{vrt} {vt} <- {vf}",
-                    wt = k.0.to_idx(),
-                    wn = intdb.wires.key(k.1),
+                    wt = k.cell.to_idx(),
+                    wn = intdb.wires.key(k.wire),
                     vrt = v.tile.to_idx(),
                     vt = v.wire_to,
                     vf = v.wire_from,
@@ -179,10 +179,10 @@ impl NamingDb {
                 writeln!(
                     o,
                     "\t\tEXT PIP {wtt:3}.{wtn:20} <- {wft:3}.{wfn:20}: RT.{vrt} {vt} <- {vf}",
-                    wtt = k.0.0.to_idx(),
-                    wtn = intdb.wires.key(k.0.1),
-                    wft = k.1.0.to_idx(),
-                    wfn = intdb.wires.key(k.1.1),
+                    wtt = k.0.cell.to_idx(),
+                    wtn = intdb.wires.key(k.0.wire),
+                    wft = k.1.cell.to_idx(),
+                    wfn = intdb.wires.key(k.1.wire),
                     vrt = v.tile.to_idx(),
                     vt = v.wire_to,
                     vf = v.wire_from,
@@ -219,8 +219,8 @@ impl NamingDb {
                         writeln!(
                             o,
                             "\t\t\t\tINT PIP {wt:3}.{wn:20}: RT.{rt} {pt} <- {pf}",
-                            wt = w.0.to_idx(),
-                            wn = intdb.wires.key(w.1),
+                            wt = w.cell.to_idx(),
+                            wn = intdb.wires.key(w.wire),
                             rt = pip.tile.to_idx(),
                             pt = pip.wire_to,
                             pf = pip.wire_from
@@ -241,8 +241,8 @@ impl NamingDb {
                 write!(
                     o,
                     "\t\tINTF.OUT {wt:3}.{wn:20}: ",
-                    wt = w.0.to_idx(),
-                    wn = intdb.wires.key(w.1)
+                    wt = w.cell.to_idx(),
+                    wn = intdb.wires.key(w.wire)
                 )?;
                 match wn {
                     IntfWireOutNaming::Simple { name } => writeln!(o, "SIMPLE {name}")?,
@@ -255,8 +255,8 @@ impl NamingDb {
                 write!(
                     o,
                     "\t\tINTF.IN {wt:3}.{wn:20}: ",
-                    wt = w.0.to_idx(),
-                    wn = intdb.wires.key(w.1)
+                    wt = w.cell.to_idx(),
+                    wn = intdb.wires.key(w.wire)
                 )?;
                 match wn {
                     IntfWireInNaming::Simple { name } => writeln!(o, "SIMPLE {name}")?,

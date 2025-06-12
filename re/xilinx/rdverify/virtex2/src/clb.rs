@@ -123,7 +123,7 @@ pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
         if endev.chip.columns[scol].kind == ColumnKind::Bram {
             scol -= 1;
         }
-        if let Some(obel) = vrf.find_bel((bel.die, (scol, bel.row), sbel)) {
+        if let Some(obel) = vrf.find_bel(bel.cell.with_col(scol).bel(sbel)) {
             vrf.claim_node(&[bel.fwire("SOPIN"), obel.fwire("SOPOUT_W")]);
             vrf.claim_pip(obel.crd(), obel.wire("SOPOUT_W"), obel.wire("SOPOUT"));
         } else {

@@ -72,11 +72,11 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let wire = *pin.wires.first().unwrap();
         assert_eq!(item.bits.len(), 1);
         let bit = &mut item.bits[0];
-        assert_eq!(wire.0.to_idx(), bit.tile);
+        assert_eq!(wire.cell.to_idx(), bit.tile);
         bit.tile = 0;
-        let wire_name = intdb.wires.key(wire.1);
+        let wire_name = intdb.wires.key(wire.wire);
         self.tiledb.insert(
-            int_tiles[wire.0.to_idx()],
+            int_tiles[wire.cell.to_idx()],
             "INT",
             format!("INV.{wire_name}"),
             item,
@@ -91,18 +91,18 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let pin = &bel.pins[pin];
         assert_eq!(pin.wires.len(), 1);
         let wire = *pin.wires.first().unwrap();
-        let wire_name = intdb.wires.key(wire.1);
+        let wire_name = intdb.wires.key(wire.wire);
         let mut item = self
             .tiledb
             .item(
-                int_tiles[wire.0.to_idx()],
+                int_tiles[wire.cell.to_idx()],
                 "INT",
                 &format!("INV.{wire_name}"),
             )
             .clone();
         assert_eq!(item.bits.len(), 1);
         let bit = &mut item.bits[0];
-        bit.tile = wire.0.to_idx();
+        bit.tile = wire.cell.to_idx();
         item
     }
 

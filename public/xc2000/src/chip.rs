@@ -5,7 +5,9 @@ use std::{
 
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use prjcombine_interconnect::grid::{BelCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId};
+use prjcombine_interconnect::grid::{
+    BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId,
+};
 use unnamed_entity::{EntityId, EntityIds};
 
 use crate::bels;
@@ -169,21 +171,20 @@ impl Chip {
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
-        let (_, (col, row), slot) = bel;
         match self.kind {
             ChipKind::Xc2000 | ChipKind::Xc3000 | ChipKind::Xc3000A => {
-                if let Some(iob) = bels::xc2000::IO_W.iter().position(|&x| x == slot) {
-                    assert_eq!(col, self.col_w());
-                    EdgeIoCoord::W(row, TileIobId::from_idx(iob))
-                } else if let Some(iob) = bels::xc2000::IO_E.iter().position(|&x| x == slot) {
-                    assert_eq!(col, self.col_e());
-                    EdgeIoCoord::E(row, TileIobId::from_idx(iob))
-                } else if let Some(iob) = bels::xc2000::IO_S.iter().position(|&x| x == slot) {
-                    assert_eq!(row, self.row_s());
-                    EdgeIoCoord::S(col, TileIobId::from_idx(iob))
-                } else if let Some(iob) = bels::xc2000::IO_N.iter().position(|&x| x == slot) {
-                    assert_eq!(row, self.row_n());
-                    EdgeIoCoord::N(col, TileIobId::from_idx(iob))
+                if let Some(iob) = bels::xc2000::IO_W.iter().position(|&x| x == bel.slot) {
+                    assert_eq!(bel.col, self.col_w());
+                    EdgeIoCoord::W(bel.row, TileIobId::from_idx(iob))
+                } else if let Some(iob) = bels::xc2000::IO_E.iter().position(|&x| x == bel.slot) {
+                    assert_eq!(bel.col, self.col_e());
+                    EdgeIoCoord::E(bel.row, TileIobId::from_idx(iob))
+                } else if let Some(iob) = bels::xc2000::IO_S.iter().position(|&x| x == bel.slot) {
+                    assert_eq!(bel.row, self.row_s());
+                    EdgeIoCoord::S(bel.col, TileIobId::from_idx(iob))
+                } else if let Some(iob) = bels::xc2000::IO_N.iter().position(|&x| x == bel.slot) {
+                    assert_eq!(bel.row, self.row_n());
+                    EdgeIoCoord::N(bel.col, TileIobId::from_idx(iob))
                 } else {
                     unreachable!()
                 }
@@ -199,23 +200,32 @@ impl Chip {
             | ChipKind::Xc5200 => {
                 let iob = match self.kind {
                     ChipKind::Xc4000H => TileIobId::from_idx(
-                        bels::xc4000::HIO.iter().position(|&x| x == slot).unwrap(),
+                        bels::xc4000::HIO
+                            .iter()
+                            .position(|&x| x == bel.slot)
+                            .unwrap(),
                     ),
                     ChipKind::Xc5200 => TileIobId::from_idx(
-                        bels::xc5200::IO.iter().position(|&x| x == slot).unwrap(),
+                        bels::xc5200::IO
+                            .iter()
+                            .position(|&x| x == bel.slot)
+                            .unwrap(),
                     ),
                     _ => TileIobId::from_idx(
-                        bels::xc4000::IO.iter().position(|&x| x == slot).unwrap(),
+                        bels::xc4000::IO
+                            .iter()
+                            .position(|&x| x == bel.slot)
+                            .unwrap(),
                     ),
                 };
-                if col == self.col_w() {
-                    EdgeIoCoord::W(row, iob)
-                } else if col == self.col_e() {
-                    EdgeIoCoord::E(row, iob)
-                } else if row == self.row_s() {
-                    EdgeIoCoord::S(col, iob)
-                } else if row == self.row_n() {
-                    EdgeIoCoord::N(col, iob)
+                if bel.col == self.col_w() {
+                    EdgeIoCoord::W(bel.row, iob)
+                } else if bel.col == self.col_e() {
+                    EdgeIoCoord::E(bel.row, iob)
+                } else if bel.row == self.row_s() {
+                    EdgeIoCoord::S(bel.col, iob)
+                } else if bel.row == self.row_n() {
+                    EdgeIoCoord::N(bel.col, iob)
                 } else {
                     unreachable!()
                 }
@@ -228,16 +238,16 @@ impl Chip {
         match self.kind {
             ChipKind::Xc2000 | ChipKind::Xc3000 | ChipKind::Xc3000A => match io {
                 EdgeIoCoord::N(col, iob) => {
-                    (die, (col, self.row_n()), bels::xc2000::IO_N[iob.to_idx()])
+                    CellCoord::new(die, col, self.row_n()).bel(bels::xc2000::IO_N[iob.to_idx()])
                 }
                 EdgeIoCoord::E(row, iob) => {
-                    (die, (self.col_e(), row), bels::xc2000::IO_E[iob.to_idx()])
+                    CellCoord::new(die, self.col_e(), row).bel(bels::xc2000::IO_E[iob.to_idx()])
                 }
                 EdgeIoCoord::S(col, iob) => {
-                    (die, (col, self.row_s()), bels::xc2000::IO_S[iob.to_idx()])
+                    CellCoord::new(die, col, self.row_s()).bel(bels::xc2000::IO_S[iob.to_idx()])
                 }
                 EdgeIoCoord::W(row, iob) => {
-                    (die, (self.col_w(), row), bels::xc2000::IO_W[iob.to_idx()])
+                    CellCoord::new(die, self.col_w(), row).bel(bels::xc2000::IO_W[iob.to_idx()])
                 }
             },
             ChipKind::Xc4000
@@ -260,7 +270,7 @@ impl Chip {
                     ChipKind::Xc5200 => bels::xc5200::IO[iob.to_idx()],
                     _ => bels::xc4000::IO[iob.to_idx()],
                 };
-                (die, (col, row), slot)
+                CellCoord::new(die, col, row).bel(slot)
             }
         }
     }

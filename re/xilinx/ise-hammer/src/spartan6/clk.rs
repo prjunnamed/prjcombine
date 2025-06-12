@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use prjcombine_interconnect::{dir::DirV, grid::NodeLoc};
+use prjcombine_interconnect::{dir::DirV, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{
     FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum,
     xlat_enum_ocd,
@@ -19,22 +19,25 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{DynProp, pip::PinFar, relation::NodeRelation},
+        props::{DynProp, pip::PinFar, relation::TileRelation},
     },
 };
 
 #[derive(Clone, Copy, Debug)]
 struct HclkInt(DirV);
 
-impl NodeRelation for HclkInt {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
-        let row = match self.0 {
-            DirV::S => nloc.2 - 1,
-            DirV::N => nloc.2,
-        };
-        backend
-            .egrid
-            .find_tile_by_class(nloc.0, (nloc.1, row), |kind| kind.starts_with("INT"))
+impl TileRelation for HclkInt {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
+        backend.egrid.find_tile_by_class(
+            tcrd.delta(
+                0,
+                match self.0 {
+                    DirV::S => -1,
+                    DirV::N => 0,
+                },
+            ),
+            |kind| kind.starts_with("INT"),
+        )
     }
 }
 
@@ -49,13 +52,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkHasCmt {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Spartan6(edev) = backend.edev else {
             unreachable!()
         };
-        if nloc.2 == edev.chip.row_clk() {
+        if tcrd.row == edev.chip.row_clk() {
             return None;
         }
         Some((fuzzer, false))
@@ -73,33 +76,33 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ExpandedDevice::Spartan6(edev) = backend.edev else {
             unreachable!()
         };
-        let mut row = nloc.2;
+        let mut cell = tcrd.cell;
         loop {
             match self.0 {
                 DirV::S => {
-                    if row.to_idx() == 0 {
+                    if cell.row.to_idx() == 0 {
                         return Some((fuzzer, true));
                     }
-                    row -= 1;
+                    cell.row -= 1;
                 }
                 DirV::N => {
-                    row += 1;
-                    if row == edev.chip.rows.next_id() {
+                    cell.row += 1;
+                    if cell.row == edev.chip.rows.next_id() {
                         return Some((fuzzer, true));
                     }
                 }
             }
-            if let Some(nnloc) = backend
+            if let Some(ntcrd) = backend
                 .egrid
-                .find_tile_by_class(nloc.0, (nloc.1, row), |kind| kind.starts_with("PLL_BUFPLL"))
+                .find_tile_by_class(cell, |kind| kind.starts_with("PLL_BUFPLL"))
             {
-                let node = edev.egrid.tile(nnloc);
+                let node = edev.egrid.tile(ntcrd);
                 if edev.egrid.db.tile_classes.key(node.class) != self.1 {
                     return Some((fuzzer, true));
                 }
@@ -110,7 +113,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
                         attr: self.3.clone(),
                         val: self.4.clone(),
                     },
-                    tiles: edev.tile_bits(nnloc),
+                    tiles: edev.tile_bits(ntcrd),
                 });
                 return Some((fuzzer, false));
             }

@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::{DieId, NodeLoc, TileIobId};
+use prjcombine_interconnect::grid::{CellCoord, DieId, TileCoord, TileIobId};
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
     extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_enum,
@@ -11,7 +11,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::{bels, chip::RegId, expanded::IoCoord};
+use prjcombine_virtex4::{bels, chip::RegId, expanded::IoCoord, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -148,7 +148,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VccoSenseMode {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -156,9 +156,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VccoSenseMode {
         };
         let bank = edev
             .get_io_info(IoCoord {
-                die: nloc.0,
-                col: nloc.1,
-                row: nloc.2,
+                cell: tcrd.cell,
                 iob: TileIobId::from_idx(0),
             })
             .bank;
@@ -166,20 +164,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VccoSenseMode {
     }
 }
 
-fn get_vrefs(backend: &IseBackend, nloc: NodeLoc) -> Vec<NodeLoc> {
+fn get_vrefs(backend: &IseBackend, tcrd: TileCoord) -> Vec<TileCoord> {
     let ExpandedDevice::Virtex4(edev) = backend.edev else {
         unreachable!()
     };
-    let (die, col, row, _) = nloc;
+    let chip = edev.chips[tcrd.die];
 
-    let reg = edev.chips[die].row_to_reg(row);
-    let bot = edev.chips[die].row_reg_bot(reg);
+    let reg = chip.row_to_reg(tcrd.row);
+    let bot = chip.row_reg_bot(reg);
     [bot + 11, bot + 37]
         .into_iter()
-        .map(|vref_row| {
-            edev.egrid
-                .get_tile_by_bel((die, (col, vref_row), bels::IOB0))
-        })
+        .map(|vref_row| tcrd.with_row(vref_row).tile(tslots::BEL))
         .collect()
 }
 
@@ -194,25 +189,22 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
 
-        let vrefs = get_vrefs(backend, nloc);
-        if vrefs.contains(&nloc) {
+        let vrefs = get_vrefs(backend, tcrd);
+        if vrefs.contains(&tcrd) {
             return None;
         }
-        let chip = edev.chips[nloc.0];
+        let chip = edev.chips[tcrd.die];
 
-        let hclk_row = chip.row_hclk(nloc.2);
+        let hclk_row = chip.row_hclk(tcrd.row);
         // Take exclusive mutex on VREF.
-        let hclk_ioi =
-            backend
-                .egrid
-                .get_tile_by_bel((nloc.0, (nloc.1, hclk_row), bels::IDELAYCTRL));
+        let hclk_ioi = tcrd.with_row(hclk_row).tile(tslots::HCLK_BEL);
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_ioi, "VREF".to_string()),
             None,
@@ -221,7 +213,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
         for vref in vrefs {
             let site = backend
                 .ngrid
-                .get_bel_name((vref.0, (vref.1, vref.2), bels::IOB0))
+                .get_bel_name(vref.cell.bel(bels::IOB0))
                 .unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             if self.0 {
@@ -252,13 +244,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let chip = edev.chips[nloc.0];
+        let chip = edev.chips[tcrd.die];
 
         // Avoid anchor bank.
         let anchor_reg = if chip.has_ps {
@@ -266,19 +258,19 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         } else {
             RegId::from_idx(0)
         };
-        if nloc.1 == edev.col_rio.unwrap() && chip.row_to_reg(nloc.2) == anchor_reg {
+        if tcrd.col == edev.col_rio.unwrap() && chip.row_to_reg(tcrd.row) == anchor_reg {
             return None;
         }
 
         // Ensure nothing is placed in VR.
-        for row in [chip.row_hclk(nloc.2) - 25, chip.row_hclk(nloc.2) + 24] {
-            let vr_bel = (nloc.0, (nloc.1, row), bels::IOB0);
-            let vr_node = edev.egrid.get_tile_by_bel(vr_bel);
+        for row in [chip.row_hclk(tcrd.row) - 25, chip.row_hclk(tcrd.row) + 24] {
+            let vr_tile = tcrd.with_row(row).tile(tslots::BEL);
+            let vr_bel = vr_tile.cell.bel(bels::IOB0);
             let site = backend.ngrid.get_bel_name(vr_bel).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             // Test VR.
             if self.0.is_some() {
-                let node = edev.egrid.tile(vr_node);
+                let node = edev.egrid.tile(vr_tile);
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
                         tile: edev.egrid.db.tile_classes.key(node.class).clone(),
@@ -286,17 +278,16 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                         attr: "PRESENT".into(),
                         val: "VR".into(),
                     },
-                    tiles: edev.tile_bits(vr_node),
+                    tiles: edev.tile_bits(vr_tile),
                 });
             }
         }
 
         // Take exclusive mutex on bank DCI.
-        let hclk_ioi =
-            edev.egrid
-                .get_tile_by_class(nloc.0, (nloc.1, chip.row_hclk(nloc.2)), |kind| {
-                    kind == "HCLK_IOI_HP"
-                });
+        let hclk_ioi = tcrd
+            .cell
+            .with_row(chip.row_hclk(tcrd.row))
+            .tile(tslots::HCLK_BEL);
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_ioi, "BANK_DCI".to_string()),
             None,
@@ -319,11 +310,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         fuzzer = fuzzer.base(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
 
         // Anchor global DCI by putting something in arbitrary bank.
-        let iob_anchor = (
-            nloc.0,
-            (edev.col_rio.unwrap(), chip.row_reg_bot(anchor_reg) + 1),
-            bels::IOB0,
-        );
+        let iob_anchor = tcrd
+            .cell
+            .with_cr(edev.col_rio.unwrap(), chip.row_reg_bot(anchor_reg) + 1)
+            .bel(bels::IOB0);
         let site = backend.ngrid.get_bel_name(iob_anchor).unwrap();
         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
@@ -334,16 +324,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
             chip.row_reg_hclk(anchor_reg) - 25,
             chip.row_reg_hclk(anchor_reg) + 24,
         ] {
-            let iob_anchor_vr = (nloc.0, (edev.col_rio.unwrap(), row), bels::IOB0);
+            let iob_anchor_vr = tcrd
+                .cell
+                .with_cr(edev.col_rio.unwrap(), row)
+                .bel(bels::IOB0);
             let site = backend.ngrid.get_bel_name(iob_anchor_vr).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
         }
         // Make note of anchor VCCO.
-        let hclk_ioi_anchor = edev.egrid.get_tile_by_class(
-            nloc.0,
-            (edev.col_rio.unwrap(), chip.row_reg_hclk(anchor_reg)),
-            |kind| kind == "HCLK_IOI_HP",
-        );
+        let hclk_ioi_anchor = tcrd
+            .cell
+            .with_cr(edev.col_rio.unwrap(), chip.row_reg_hclk(anchor_reg))
+            .tile(tslots::HCLK_BEL);
         fuzzer = fuzzer.base(Key::TileMutex(hclk_ioi_anchor, "VCCO".to_string()), "1800");
 
         Some((fuzzer, false))
@@ -2021,28 +2013,27 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 RegId::from_idx(0)
             };
             let io_row = chip.row_reg_hclk(anchor_reg) - 24;
-            let io_bel = (die, (edev.col_rio.unwrap(), io_row), bels::IOB0);
-            let io_node = edev.egrid.get_tile_by_bel(io_bel);
-            let hclk_row = chip.row_hclk(io_node.2);
-            let hclk_node =
-                edev.egrid
-                    .get_tile_by_bel((die, (edev.col_rio.unwrap(), hclk_row), bels::DCI));
+            let io_tile = CellCoord::new(die, edev.col_rio.unwrap(), io_row).tile(tslots::BEL);
+            let io_bel = io_tile.cell.bel(bels::IOB0);
+            let hclk_row = chip.row_hclk(io_tile.cell.row);
+            let hclk_tile =
+                CellCoord::new(die, edev.col_rio.unwrap(), hclk_row).tile(tslots::HCLK_BEL);
 
             // Ensure nothing is placed in VR.
             for row in [
                 chip.row_reg_hclk(anchor_reg) - 25,
                 chip.row_reg_hclk(anchor_reg) + 24,
             ] {
-                let vr_bel = (die, (edev.col_rio.unwrap(), row), bels::IOB0);
-                let vr_node = edev.egrid.get_tile_by_bel(vr_bel);
+                let vr_tile = CellCoord::new(die, edev.col_rio.unwrap(), row).tile(tslots::BEL);
+                let vr_bel = vr_tile.cell.bel(bels::IOB0);
                 let site = backend.ngrid.get_bel_name(vr_bel).unwrap();
                 builder = builder
                     .raw(Key::SiteMode(site), None)
-                    .extra_tile_attr_fixed(vr_node, "IOB0", "PRESENT", "VR");
+                    .extra_tile_attr_fixed(vr_tile, "IOB0", "PRESENT", "VR");
             }
 
             // Set up hclk.
-            builder = builder.extra_tile_attr_fixed(hclk_node, "DCI", "ENABLE", "1");
+            builder = builder.extra_tile_attr_fixed(hclk_tile, "DCI", "ENABLE", "1");
 
             // Set up the IO and fire.
             let site = backend.ngrid.get_bel_name(io_bel).unwrap();
@@ -2054,12 +2045,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .raw_diff(Key::SiteAttr(site, "OUSED".into()), None, "0")
                 .raw_diff(Key::SiteAttr(site, "OSTANDARD".into()), None, "HSLVDCI_18")
                 // Make note of anchor VCCO.
-                .raw(Key::TileMutex(hclk_node, "VCCO".to_string()), "1800")
+                .raw(Key::TileMutex(hclk_tile, "VCCO".to_string()), "1800")
                 // Take exclusive mutex on global DCI.
                 .raw_diff(Key::GlobalMutex("GLOBAL_DCI".into()), None, "EXCLUSIVE")
                 // Avoid interference.
                 .global("MATCH_CYCLE", "NOWAIT")
-                .extra_tile_attr_fixed(io_node, "IOB0", "OSTD", "HSLVDCI_18")
+                .extra_tile_attr_fixed(io_tile, "IOB0", "OSTD", "HSLVDCI_18")
                 .test_manual("NULL", "CENTER_DCI", "1")
                 .commit();
         }
@@ -2084,27 +2075,29 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let col = edev.col_rio.unwrap();
             let hclk_row_from = chip.row_reg_hclk(anchor_reg_from);
             let hclk_row_to = chip.row_reg_hclk(anchor_reg_to);
-            let hclk_node_to = edev
-                .egrid
-                .get_tile_by_bel((die, (col, hclk_row_to), bels::DCI));
+            let hclk_tile_to = CellCoord::new(die, col, hclk_row_to).tile(tslots::HCLK_BEL);
             let io_row_from = hclk_row_from - 24;
-            let io_bel_from = (die, (col, io_row_from), bels::IOB0);
+            let io_bel_from = CellCoord::new(die, col, io_row_from).bel(bels::IOB0);
             let io_row_to = hclk_row_to - 24;
-            let io_bel_to = (die, (col, io_row_to), bels::IOB0);
-            let io_node_to = edev.egrid.get_tile_by_bel(io_bel_to);
+            let io_tile_to = CellCoord::new(die, col, io_row_to).tile(tslots::BEL);
+            let io_bel_to = io_tile_to.cell.bel(bels::IOB0);
             let actual_bank_from = edev
-                .get_io_info(prjcombine_virtex4::expanded::IoCoord {
-                    die,
-                    col,
-                    row: hclk_row_from - 24,
+                .get_io_info(IoCoord {
+                    cell: CellCoord {
+                        die,
+                        col,
+                        row: hclk_row_from - 24,
+                    },
                     iob: EntityId::from_idx(0),
                 })
                 .bank;
             let actual_bank_to = edev
-                .get_io_info(prjcombine_virtex4::expanded::IoCoord {
-                    die,
-                    col,
-                    row: hclk_row_to - 24,
+                .get_io_info(IoCoord {
+                    cell: CellCoord {
+                        die,
+                        col,
+                        row: hclk_row_to - 24,
+                    },
                     iob: EntityId::from_idx(0),
                 })
                 .bank;
@@ -2116,7 +2109,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     if row == io_row_from && bel == bels::IOB0 {
                         continue;
                     }
-                    if let Some(site) = backend.ngrid.get_bel_name((die, (col, row), bel)) {
+                    if let Some(site) = backend
+                        .ngrid
+                        .get_bel_name(CellCoord::new(die, col, row).bel(bel))
+                    {
                         builder = builder.raw(Key::SiteMode(site), None);
                     }
                 }
@@ -2140,7 +2136,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     if row == io_row_to && bel == bels::IOB0 {
                         continue;
                     }
-                    if let Some(site) = backend.ngrid.get_bel_name((die, (col, row), bel)) {
+                    if let Some(site) = backend
+                        .ngrid
+                        .get_bel_name(CellCoord::new(die, col, row).bel(bel))
+                    {
                         builder = builder.raw(Key::SiteMode(site), None);
                     }
                 }
@@ -2155,9 +2154,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .raw_diff(Key::SiteAttr(site, "OUSED".into()), None, "0")
                 .raw_diff(Key::SiteAttr(site, "OSTANDARD".into()), None, "HSLVDCI_18")
                 .raw_diff(Key::DciCascade(actual_bank_to), None, actual_bank_from)
-                .extra_tile_attr_fixed(io_node_to, "IOB0", "OSTD", "HSLVDCI_18")
+                .extra_tile_attr_fixed(io_tile_to, "IOB0", "OSTD", "HSLVDCI_18")
                 .extra_tile_attr_fixed(
-                    hclk_node_to,
+                    hclk_tile_to,
                     "DCI",
                     if bank_to == 0 {
                         "CASCADE_FROM_ABOVE"

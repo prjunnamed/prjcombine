@@ -104,7 +104,7 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
     let mut sm_lookup: HashMap<&str, (u32, SysMonPad)> = HashMap::new();
     let mut vaux_lookup: HashMap<IoCoord, (usize, char)> = HashMap::new();
     for sysmon in &endev.get_sysmons() {
-        if sysmon.die == endev.edev.interposer.unwrap().primary {
+        if sysmon.cell.die == endev.edev.interposer.unwrap().primary {
             sm_lookup.insert(sysmon.pad_vp, (sysmon.bank, SysMonPad::VP));
             sm_lookup.insert(sysmon.pad_vn, (sysmon.bank, SysMonPad::VN));
             for (i, vaux) in sysmon.vaux.iter().enumerate() {

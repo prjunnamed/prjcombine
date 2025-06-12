@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use prjcombine_interconnect::grid::{ColId, RowId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, RowId};
 use prjcombine_re_xilinx_naming::{
     db::{NamingDb, RawTileId},
     grid::ExpandedGridNaming,
@@ -134,555 +134,544 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
     ngrid.tie_kind = Some("TIE".to_string());
     ngrid.tie_pin_gnd = Some("O".to_string());
-    for die in egrid.dies() {
-        for col in die.cols() {
-            for row in die.rows() {
-                for (layer, node) in &die[(col, row)].tiles {
-                    let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.tile_classes.key(node.class);
-                    let c = col.to_idx();
-                    let r = chip.row_n() - row;
-                    match &kind[..] {
-                        "CNR.BL" => {
-                            let nnode = ngrid.name_tile(
-                                nloc,
-                                "CNR.BL",
-                                [
-                                    get_tile_name(chip, col, row),
-                                    get_tile_name(chip, col + 1, row),
-                                ],
-                            );
-                            if chip.kind == ChipKind::SpartanXl {
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGLS_SSW".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGLS_WSW".to_string());
-                            } else if chip.kind.is_xl() {
-                                nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.8"));
-                                nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.7"));
-                                nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.6"));
-                                nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.5"));
-                                nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.4"));
-                                nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.3"));
-                                nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.2"));
-                                nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.1"));
-                                nnode.add_bel(bels::BUFG_H, "BUFG_SSW".to_string());
-                                nnode.add_bel(bels::BUFG_V, "BUFG_WSW".to_string());
-                                nnode.add_bel(bels::BUFGE_H, "BUFGE_SSW".to_string());
-                                nnode.add_bel(bels::BUFGE_V, "BUFGE_WSW".to_string());
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGLS_SSW".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGLS_WSW".to_string());
-                                nnode.add_bel(bels::MD0, "MD0".to_string());
-                                nnode.add_bel(bels::MD1, "MD1".to_string());
-                                nnode.add_bel(bels::MD2, "MD2".to_string());
-                            } else {
-                                nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.8"));
-                                nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.7"));
-                                nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.6"));
-                                nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.5"));
-                                nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.4"));
-                                nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.3"));
-                                nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.2"));
-                                nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.1"));
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGP_BL".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGS_BL".to_string());
-                                nnode.add_bel(bels::CIN, "CI_BL".to_string());
-                                nnode.add_bel(bels::MD0, "MD0".to_string());
-                                nnode.add_bel(bels::MD1, "MD1".to_string());
-                                nnode.add_bel(bels::MD2, "MD2".to_string());
-                            }
-                            nnode.add_bel(bels::RDBK, "RDBK".to_string());
-                        }
-                        "CNR.TL" => {
-                            let nnode = ngrid.name_tile(
-                                nloc,
-                                "CNR.TL",
-                                [
-                                    get_tile_name(chip, col, row),
-                                    get_tile_name(chip, col + 1, row),
-                                    get_tile_name(chip, col, row - 1),
-                                    get_tile_name(chip, col + 1, row - 1),
-                                ],
-                            );
-                            if chip.kind == ChipKind::SpartanXl {
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGLS_NNW".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGLS_WNW".to_string());
-                            } else if chip.kind.is_xl() {
-                                nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.1"));
-                                nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.2"));
-                                nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.3"));
-                                nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.4"));
-                                nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.5"));
-                                nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.6"));
-                                nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.7"));
-                                nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.8"));
-                                nnode.add_bel(bels::BUFG_H, "BUFG_NNW".to_string());
-                                nnode.add_bel(bels::BUFG_V, "BUFG_WNW".to_string());
-                                nnode.add_bel(bels::BUFGE_H, "BUFGE_NNW".to_string());
-                                nnode.add_bel(bels::BUFGE_V, "BUFGE_WNW".to_string());
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGLS_NNW".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGLS_WNW".to_string());
-                            } else {
-                                nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.1"));
-                                nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.2"));
-                                nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.3"));
-                                nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.4"));
-                                nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.5"));
-                                nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.6"));
-                                nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.7"));
-                                nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.8"));
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGS_TL".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGP_TL".to_string());
-                                nnode.add_bel(bels::CIN, "CI_TL".to_string());
-                            }
-                            nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
-                        }
-                        "CNR.BR" => {
-                            let nnode =
-                                ngrid.name_tile(nloc, "CNR.BR", [get_tile_name(chip, col, row)]);
-                            if chip.kind == ChipKind::SpartanXl {
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGLS_SSE".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGLS_ESE".to_string());
-                            } else if chip.kind.is_xl() {
-                                nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.8"));
-                                nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.7"));
-                                nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.6"));
-                                nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.5"));
-                                nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.4"));
-                                nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.3"));
-                                nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.2"));
-                                nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.1"));
-                                nnode.add_bel(bels::BUFG_H, "BUFG_SSE".to_string());
-                                nnode.add_bel(bels::BUFG_V, "BUFG_ESE".to_string());
-                                nnode.add_bel(bels::BUFGE_H, "BUFGE_SSE".to_string());
-                                nnode.add_bel(bels::BUFGE_V, "BUFGE_ESE".to_string());
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGLS_SSE".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGLS_ESE".to_string());
-                            } else {
-                                nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.8"));
-                                nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.7"));
-                                nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.6"));
-                                nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.5"));
-                                nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.4"));
-                                nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.3"));
-                                nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.2"));
-                                nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.1"));
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGS_BR".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGP_BR".to_string());
-                                nnode.add_bel(bels::COUT, "CO_BR".to_string());
-                            }
-                            nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
-                            nnode.add_bel(bels::READCLK, "RDCLK".to_string());
-                            nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
-                        }
-                        "CNR.TR" => {
-                            let nnode = ngrid.name_tile(
-                                nloc,
-                                "CNR.TR",
-                                [
-                                    get_tile_name(chip, col, row),
-                                    get_tile_name(chip, col, row - 1),
-                                ],
-                            );
-                            if chip.kind == ChipKind::SpartanXl {
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGLS_NNE".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGLS_ENE".to_string());
-                            } else if chip.kind.is_xl() {
-                                nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.1"));
-                                nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.2"));
-                                nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.3"));
-                                nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.4"));
-                                nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.5"));
-                                nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.6"));
-                                nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.7"));
-                                nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.8"));
-                                nnode.add_bel(bels::BUFG_H, "BUFG_NNE".to_string());
-                                nnode.add_bel(bels::BUFG_V, "BUFG_ENE".to_string());
-                                nnode.add_bel(bels::BUFGE_H, "BUFGE_NNE".to_string());
-                                nnode.add_bel(bels::BUFGE_V, "BUFGE_ENE".to_string());
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGLS_NNE".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGLS_ENE".to_string());
-                            } else {
-                                nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.1"));
-                                nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.2"));
-                                nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.3"));
-                                nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.4"));
-                                nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.5"));
-                                nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.6"));
-                                nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.7"));
-                                nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.8"));
-                                nnode.add_bel(bels::BUFGLS_H, "BUFGP_TR".to_string());
-                                nnode.add_bel(bels::BUFGLS_V, "BUFGS_TR".to_string());
-                                nnode.add_bel(bels::COUT, "CO_TR".to_string());
-                            }
-                            nnode.add_bel(bels::UPDATE, "UPDATE".to_string());
-                            nnode.add_bel(bels::OSC, "OSC".to_string());
-                            nnode.add_bel(bels::TDO, "TDO".to_string());
-                        }
-                        _ if kind.starts_with("IO.L") => {
-                            let kind = get_tile_kind(chip, col, row);
-                            let kind_s = get_tile_kind(chip, col, row - 1);
-                            let mut names = vec![
-                                get_tile_name(chip, col, row),
-                                get_tile_name(chip, col, row - 1),
-                                get_tile_name(chip, col + 1, row),
-                                get_tile_name(chip, col, row + 1),
-                            ];
-                            if chip.kind == ChipKind::Xc4000Xv {
-                                names.push(format!("LHIR{r}"));
-                            }
-                            let nnode = ngrid.name_tile(nloc, &format!("{kind}.{kind_s}"), names);
-                            let p = (chip.columns - 2) * 4
-                                + (chip.rows - 2) * 2
-                                + (row.to_idx() - 1) * 2
-                                + 1;
-                            nnode.add_bel(bels::IO0, format!("PAD{}", p + 1));
-                            nnode.add_bel(bels::IO1, format!("PAD{p}"));
-                            nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.2"));
-                            nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
-                            nnode.add_bel(bels::PULLUP_TBUF0, format!("PULLUP_R{r}C{c}.2"));
-                            nnode.add_bel(bels::PULLUP_TBUF1, format!("PULLUP_R{r}C{c}.1"));
-                            if chip.kind != ChipKind::SpartanXl {
-                                nnode.add_bel(bels::DEC0, format!("DEC_R{r}C{c}.1"));
-                                nnode.add_bel(bels::DEC1, format!("DEC_R{r}C{c}.2"));
-                                nnode.add_bel(bels::DEC2, format!("DEC_R{r}C{c}.3"));
-                            }
-                            if chip.kind == ChipKind::Xc4000Xv {
-                                nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
-                                nnode.tie_rt = RawTileId::from_idx(4);
-                            }
-                        }
-                        _ if kind.starts_with("IO.R") => {
-                            let kind = get_tile_kind(chip, col, row);
-                            let kind_s = get_tile_kind(chip, col, row - 1);
-                            let mut names = vec![
-                                get_tile_name(chip, col, row),
-                                get_tile_name(chip, col, row - 1),
-                                get_tile_name(chip, col, row + 1),
-                            ];
-                            if chip.kind == ChipKind::Xc4000Xv {
-                                names.push(format!("RHIR{r}"));
-                            }
-                            let nnode = ngrid.name_tile(nloc, &format!("{kind}.{kind_s}"), names);
-                            let p = (chip.columns - 2) * 2
-                                + (chip.row_n().to_idx() - row.to_idx() - 1) * 2
-                                + 1;
-                            nnode.add_bel(bels::IO0, format!("PAD{p}"));
-                            nnode.add_bel(bels::IO1, format!("PAD{}", p + 1));
-                            nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.2"));
-                            nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
-                            nnode.add_bel(bels::PULLUP_TBUF0, format!("PULLUP_R{r}C{c}.2"));
-                            nnode.add_bel(bels::PULLUP_TBUF1, format!("PULLUP_R{r}C{c}.1"));
-                            if chip.kind != ChipKind::SpartanXl {
-                                nnode.add_bel(bels::DEC0, format!("DEC_R{r}C{c}.1"));
-                                nnode.add_bel(bels::DEC1, format!("DEC_R{r}C{c}.2"));
-                                nnode.add_bel(bels::DEC2, format!("DEC_R{r}C{c}.3"));
-                            }
-
-                            nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
-                        }
-                        _ if kind.starts_with("IO.B") => {
-                            let kind = get_tile_kind(chip, col, row);
-                            let kind_e = get_tile_kind(chip, col + 1, row);
-                            let mut names = vec![
-                                get_tile_name(chip, col, row),
-                                get_tile_name(chip, col, row + 1),
-                                get_tile_name(chip, col + 1, row),
-                                get_tile_name(chip, col - 1, row),
-                            ];
-                            if chip.kind == ChipKind::Xc4000Xv {
-                                names.push(format!("BVIC{c}"));
-                            }
-                            let nnode = ngrid.name_tile(nloc, &format!("{kind}.{kind_e}"), names);
-                            let p = (chip.columns - 2) * 2
-                                + (chip.rows - 2) * 2
-                                + (chip.col_e().to_idx() - col.to_idx() - 1) * 2
-                                + 1;
-
-                            nnode.add_bel(bels::IO0, format!("PAD{}", p + 1));
-                            nnode.add_bel(bels::IO1, format!("PAD{p}"));
-                            if chip.kind != ChipKind::SpartanXl {
-                                nnode.add_bel(bels::DEC0, format!("DEC_R{r}C{c}.1"));
-                                nnode.add_bel(bels::DEC1, format!("DEC_R{r}C{c}.2"));
-                                nnode.add_bel(bels::DEC2, format!("DEC_R{r}C{c}.3"));
-                            }
-                            nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
-                        }
-                        _ if kind.starts_with("IO.T") => {
-                            let kind = get_tile_kind(chip, col, row);
-                            let kind_e = get_tile_kind(chip, col + 1, row);
-                            let mut names = vec![
-                                get_tile_name(chip, col, row),
-                                get_tile_name(chip, col + 1, row),
-                                get_tile_name(chip, col - 1, row),
-                            ];
-                            if chip.kind == ChipKind::Xc4000Xv {
-                                names.push(format!("TVIC{c}"));
-                            }
-                            let nnode = ngrid.name_tile(nloc, &format!("{kind}.{kind_e}"), names);
-                            let p = (col.to_idx() - 1) * 2 + 1;
-                            nnode.add_bel(bels::IO0, format!("PAD{p}"));
-                            nnode.add_bel(bels::IO1, format!("PAD{}", p + 1));
-                            if chip.kind != ChipKind::SpartanXl {
-                                nnode.add_bel(bels::DEC0, format!("DEC_R{r}C{c}.1"));
-                                nnode.add_bel(bels::DEC1, format!("DEC_R{r}C{c}.2"));
-                                nnode.add_bel(bels::DEC2, format!("DEC_R{r}C{c}.3"));
-                            }
-                            if chip.kind == ChipKind::Xc4000Xv {
-                                nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
-                                nnode.tie_rt = RawTileId::from_idx(3);
-                            }
-                        }
-                        _ if kind.starts_with("CLB") => {
-                            let mut naming = "CLB".to_string();
-                            if row == chip.row_n() - 1 {
-                                let kind_n = get_tile_kind(chip, col, row + 1);
-                                write!(naming, ".{kind_n}").unwrap();
-                            }
-                            if col == chip.col_e() - 1 {
-                                let kind_e = get_tile_kind(chip, col + 1, row);
-                                write!(naming, ".{kind_e}").unwrap();
-                            }
-                            let mut names = vec![
-                                get_tile_name(chip, col, row),
-                                get_tile_name(chip, col, row + 1),
-                                get_tile_name(chip, col + 1, row),
-                            ];
-                            if chip.kind == ChipKind::Xc4000Xv {
-                                names.extend([
-                                    format!("VIR{r}C{c}"),
-                                    format!("HIR{r}C{c}"),
-                                    format!("VHIR{r}C{c}"),
-                                ]);
-                            }
-                            let nnode = ngrid.name_tile(nloc, &naming, names);
-                            nnode.add_bel(bels::CLB, format!("CLB_R{r}C{c}"));
-                            nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.2"));
-                            nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
-                            nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
-                        }
-
-                        "LLH.IO.B" => {
-                            ngrid.name_tile(nloc, "LLH.IO.B", ["BM".into()]);
-                        }
-                        "LLH.IO.T" => {
-                            ngrid.name_tile(nloc, "LLH.IO.T", ["TM".into()]);
-                        }
-                        _ if kind.starts_with("LLH.CLB") => {
-                            let naming = if row < chip.row_mid() {
-                                "LLH.CLB.B"
-                            } else {
-                                "LLH.CLB.T"
-                            };
-                            ngrid.name_tile(nloc, naming, [format!("VMR{r}")]);
-                        }
-                        "LLV.IO.L" => {
-                            ngrid.name_tile(nloc, "LLV.IO.L", ["LM".into()]);
-                        }
-                        "LLV.IO.R" => {
-                            ngrid.name_tile(nloc, "LLV.IO.R", ["RM".into()]);
-                        }
-                        "LLV.CLB" => {
-                            ngrid.name_tile(nloc, "LLV.CLB", [format!("HMC{c}")]);
-                        }
-
-                        "LLHQ.IO.B" => {
-                            let lr = if col == chip.col_ql() {
-                                'L'
-                            } else if col == chip.col_qr() {
-                                'R'
-                            } else {
-                                unreachable!()
-                            };
-                            ngrid.name_tile(nloc, "LLHQ.IO.B", [format!("BQ{lr}")]);
-                        }
-                        "LLHQ.IO.T" => {
-                            let lr = if col == chip.col_ql() {
-                                'L'
-                            } else if col == chip.col_qr() {
-                                'R'
-                            } else {
-                                unreachable!()
-                            };
-                            ngrid.name_tile(nloc, "LLHQ.IO.T", [format!("TQ{lr}")]);
-                        }
-                        _ if kind.starts_with("LLHQ.CLB") => {
-                            let lr = if col == chip.col_ql() {
-                                'L'
-                            } else if col == chip.col_qr() {
-                                'R'
-                            } else {
-                                unreachable!()
-                            };
-                            let naming = if chip.kind != ChipKind::Xc4000Xv {
-                                "LLHQ.CLB"
-                            } else if row >= chip.row_qb() && row < chip.row_qt() {
-                                "LLHQ.CLB.I"
-                            } else {
-                                "LLHQ.CLB.O"
-                            };
-                            let nnode = ngrid.name_tile(nloc, naming, [format!("VQ{lr}R{r}")]);
-                            if chip.kind == ChipKind::Xc4000Xla {
-                                nnode.add_bel(
-                                    bels::PULLUP_TBUF0_W,
-                                    format!("PULLUP_R{r}C{cc}.4", cc = c - 1),
-                                );
-                                nnode.add_bel(bels::PULLUP_TBUF0_E, format!("PULLUP_R{r}C{c}.2"));
-                                nnode.add_bel(
-                                    bels::PULLUP_TBUF1_W,
-                                    format!("PULLUP_R{r}C{cc}.3", cc = c - 1),
-                                );
-                                nnode.add_bel(bels::PULLUP_TBUF1_E, format!("PULLUP_R{r}C{c}.1"));
-                            } else {
-                                nnode.add_bel(bels::PULLUP_TBUF0_W, format!("PULLUP_R{r}C{c}.4"));
-                                nnode.add_bel(bels::PULLUP_TBUF0_E, format!("PULLUP_R{r}C{c}.2"));
-                                nnode.add_bel(bels::PULLUP_TBUF1_W, format!("PULLUP_R{r}C{c}.3"));
-                                nnode.add_bel(bels::PULLUP_TBUF1_E, format!("PULLUP_R{r}C{c}.1"));
-                            }
-                        }
-                        "LLHC.IO.B" => {
-                            let nnode = ngrid.name_tile(nloc, "LLHC.IO.B", ["BM".into()]);
-                            nnode.add_bel(bels::PULLUP_DEC0_W, format!("PULLUP_R{r}C{c}.4"));
-                            nnode.add_bel(bels::PULLUP_DEC0_E, format!("PULLUP_R{r}C{c}.5"));
-                            nnode.add_bel(bels::PULLUP_DEC1_W, format!("PULLUP_R{r}C{c}.3"));
-                            nnode.add_bel(bels::PULLUP_DEC1_E, format!("PULLUP_R{r}C{c}.6"));
-                            nnode.add_bel(bels::PULLUP_DEC2_W, format!("PULLUP_R{r}C{c}.2"));
-                            nnode.add_bel(bels::PULLUP_DEC2_E, format!("PULLUP_R{r}C{c}.7"));
-                            nnode.add_bel(bels::PULLUP_DEC3_W, format!("PULLUP_R{r}C{c}.1"));
-                            nnode.add_bel(bels::PULLUP_DEC3_E, format!("PULLUP_R{r}C{c}.8"));
-                        }
-                        "LLHC.IO.T" => {
-                            let nnode = ngrid.name_tile(nloc, "LLHC.IO.T", ["TM".into()]);
-                            nnode.add_bel(bels::PULLUP_DEC0_W, format!("PULLUP_R{r}C{c}.1"));
-                            nnode.add_bel(bels::PULLUP_DEC0_E, format!("PULLUP_R{r}C{c}.8"));
-                            nnode.add_bel(bels::PULLUP_DEC1_W, format!("PULLUP_R{r}C{c}.2"));
-                            nnode.add_bel(bels::PULLUP_DEC1_E, format!("PULLUP_R{r}C{c}.7"));
-                            nnode.add_bel(bels::PULLUP_DEC2_W, format!("PULLUP_R{r}C{c}.3"));
-                            nnode.add_bel(bels::PULLUP_DEC2_E, format!("PULLUP_R{r}C{c}.6"));
-                            nnode.add_bel(bels::PULLUP_DEC3_W, format!("PULLUP_R{r}C{c}.4"));
-                            nnode.add_bel(bels::PULLUP_DEC3_E, format!("PULLUP_R{r}C{c}.5"));
-                        }
-                        _ if kind.starts_with("LLHC.CLB") => {
-                            let naming = if row >= chip.row_qb() && row < chip.row_qt() {
-                                "LLHC.CLB.I"
-                            } else {
-                                "LLHC.CLB.O"
-                            };
-                            let nnode = ngrid.name_tile(nloc, naming, [format!("VMR{r}")]);
-                            nnode.add_bel(bels::PULLUP_TBUF0_W, format!("PULLUP_R{r}C{c}.2"));
-                            nnode.add_bel(bels::PULLUP_TBUF0_E, format!("PULLUP_R{r}C{c}.4"));
-                            nnode.add_bel(bels::PULLUP_TBUF1_W, format!("PULLUP_R{r}C{c}.1"));
-                            nnode.add_bel(bels::PULLUP_TBUF1_E, format!("PULLUP_R{r}C{c}.3"));
-                        }
-                        _ if kind.starts_with("LLVQ.IO.L") => {
-                            let bt = if row == chip.row_qb() {
-                                'B'
-                            } else if row == chip.row_qt() {
-                                'T'
-                            } else {
-                                unreachable!()
-                            };
-                            let nnode = ngrid.name_tile(nloc, kind, [format!("LQ{bt}")]);
-                            let sn = if bt == 'B' { 'S' } else { 'N' };
-                            nnode.add_bel(bels::BUFF, format!("BUFF_{sn}W"));
-                        }
-                        _ if kind.starts_with("LLVQ.IO.R") => {
-                            let bt = if row == chip.row_qb() {
-                                'B'
-                            } else if row == chip.row_qt() {
-                                'T'
-                            } else {
-                                unreachable!()
-                            };
-                            let naming = if chip.is_buff_large {
-                                if bt == 'B' {
-                                    "LLVQ.IO.R.B"
-                                } else {
-                                    "LLVQ.IO.R.T"
-                                }
-                            } else {
-                                if bt == 'B' {
-                                    "LLVQ.IO.R.BS"
-                                } else {
-                                    "LLVQ.IO.R.TS"
-                                }
-                            };
-                            let nnode = ngrid.name_tile(nloc, naming, [format!("RQ{bt}")]);
-                            let sn = if bt == 'B' { 'S' } else { 'N' };
-                            nnode.add_bel(bels::BUFF, format!("BUFF_{sn}E"));
-                        }
-                        "LLVQ.CLB" => {
-                            let bt = if row == chip.row_qb() {
-                                'B'
-                            } else if row == chip.row_qt() {
-                                'T'
-                            } else {
-                                unreachable!()
-                            };
-                            ngrid.name_tile(nloc, "LLVQ.CLB", [format!("HQ{bt}C{c}")]);
-                        }
-                        "LLVC.IO.L" => {
-                            let nnode = ngrid.name_tile(nloc, "LLVC.IO.L", ["LM".into()]);
-                            let r = r + 1;
-                            nnode.add_bel(bels::PULLUP_DEC0_S, format!("PULLUP_R{r}C{c}.10"));
-                            nnode.add_bel(bels::PULLUP_DEC0_N, format!("PULLUP_R{r}C{c}.3"));
-                            nnode.add_bel(bels::PULLUP_DEC1_S, format!("PULLUP_R{r}C{c}.9"));
-                            nnode.add_bel(bels::PULLUP_DEC1_N, format!("PULLUP_R{r}C{c}.4"));
-                            nnode.add_bel(bels::PULLUP_DEC2_S, format!("PULLUP_R{r}C{c}.8"));
-                            nnode.add_bel(bels::PULLUP_DEC2_N, format!("PULLUP_R{r}C{c}.5"));
-                            nnode.add_bel(bels::PULLUP_DEC3_S, format!("PULLUP_R{r}C{c}.7"));
-                            nnode.add_bel(bels::PULLUP_DEC3_N, format!("PULLUP_R{r}C{c}.6"));
-                        }
-                        "LLVC.IO.R" => {
-                            let nnode = ngrid.name_tile(nloc, "LLVC.IO.R", ["RM".into()]);
-                            let r = r + 1;
-                            nnode.add_bel(bels::PULLUP_DEC0_S, format!("PULLUP_R{r}C{c}.10"));
-                            nnode.add_bel(bels::PULLUP_DEC0_N, format!("PULLUP_R{r}C{c}.3"));
-                            nnode.add_bel(bels::PULLUP_DEC1_S, format!("PULLUP_R{r}C{c}.9"));
-                            nnode.add_bel(bels::PULLUP_DEC1_N, format!("PULLUP_R{r}C{c}.4"));
-                            nnode.add_bel(bels::PULLUP_DEC2_S, format!("PULLUP_R{r}C{c}.8"));
-                            nnode.add_bel(bels::PULLUP_DEC2_N, format!("PULLUP_R{r}C{c}.5"));
-                            nnode.add_bel(bels::PULLUP_DEC3_S, format!("PULLUP_R{r}C{c}.7"));
-                            nnode.add_bel(bels::PULLUP_DEC3_N, format!("PULLUP_R{r}C{c}.6"));
-                        }
-                        "LLVC.CLB" => {
-                            ngrid.name_tile(nloc, "LLVC.CLB", [format!("HMC{c}")]);
-                        }
-
-                        "CLKQ" => {
-                            let bt = if row == chip.row_qb() {
-                                'B'
-                            } else if row == chip.row_qt() {
-                                'T'
-                            } else {
-                                unreachable!()
-                            };
-                            let lr = if col == chip.col_ql() {
-                                'L'
-                            } else if col == chip.col_qr() {
-                                'R'
-                            } else {
-                                unreachable!()
-                            };
-
-                            ngrid.name_tile(nloc, &format!("CLKQ.{bt}"), [format!("Q{bt}{lr}")]);
-                        }
-                        "CLKC" => {
-                            ngrid.name_tile(nloc, "CLKC", ["M".into()]);
-                        }
-                        "CLKQC" => {
-                            let bt = if row == chip.row_qb() {
-                                'B'
-                            } else if row == chip.row_qt() {
-                                'T'
-                            } else {
-                                unreachable!()
-                            };
-                            ngrid.name_tile(nloc, &format!("CLKQC.{bt}"), [format!("VMQ{bt}")]);
-                        }
-
-                        _ => unreachable!(),
-                    }
+    for (tcrd, tile) in egrid.tiles() {
+        let cell = tcrd.cell;
+        let CellCoord { col, row, .. } = cell;
+        let kind = egrid.db.tile_classes.key(tile.class);
+        let c = col.to_idx();
+        let r = chip.row_n() - row;
+        match &kind[..] {
+            "CNR.BL" => {
+                let nnode = ngrid.name_tile(
+                    tcrd,
+                    "CNR.BL",
+                    [
+                        get_tile_name(chip, col, row),
+                        get_tile_name(chip, col + 1, row),
+                    ],
+                );
+                if chip.kind == ChipKind::SpartanXl {
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGLS_SSW".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGLS_WSW".to_string());
+                } else if chip.kind.is_xl() {
+                    nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.8"));
+                    nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.7"));
+                    nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.6"));
+                    nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.5"));
+                    nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.4"));
+                    nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.3"));
+                    nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.2"));
+                    nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.1"));
+                    nnode.add_bel(bels::BUFG_H, "BUFG_SSW".to_string());
+                    nnode.add_bel(bels::BUFG_V, "BUFG_WSW".to_string());
+                    nnode.add_bel(bels::BUFGE_H, "BUFGE_SSW".to_string());
+                    nnode.add_bel(bels::BUFGE_V, "BUFGE_WSW".to_string());
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGLS_SSW".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGLS_WSW".to_string());
+                    nnode.add_bel(bels::MD0, "MD0".to_string());
+                    nnode.add_bel(bels::MD1, "MD1".to_string());
+                    nnode.add_bel(bels::MD2, "MD2".to_string());
+                } else {
+                    nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.8"));
+                    nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.7"));
+                    nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.6"));
+                    nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.5"));
+                    nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.4"));
+                    nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.3"));
+                    nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.2"));
+                    nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.1"));
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGP_BL".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGS_BL".to_string());
+                    nnode.add_bel(bels::CIN, "CI_BL".to_string());
+                    nnode.add_bel(bels::MD0, "MD0".to_string());
+                    nnode.add_bel(bels::MD1, "MD1".to_string());
+                    nnode.add_bel(bels::MD2, "MD2".to_string());
+                }
+                nnode.add_bel(bels::RDBK, "RDBK".to_string());
+            }
+            "CNR.TL" => {
+                let nnode = ngrid.name_tile(
+                    tcrd,
+                    "CNR.TL",
+                    [
+                        get_tile_name(chip, col, row),
+                        get_tile_name(chip, col + 1, row),
+                        get_tile_name(chip, col, row - 1),
+                        get_tile_name(chip, col + 1, row - 1),
+                    ],
+                );
+                if chip.kind == ChipKind::SpartanXl {
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGLS_NNW".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGLS_WNW".to_string());
+                } else if chip.kind.is_xl() {
+                    nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.1"));
+                    nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.2"));
+                    nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.3"));
+                    nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.4"));
+                    nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.5"));
+                    nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.6"));
+                    nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.7"));
+                    nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.8"));
+                    nnode.add_bel(bels::BUFG_H, "BUFG_NNW".to_string());
+                    nnode.add_bel(bels::BUFG_V, "BUFG_WNW".to_string());
+                    nnode.add_bel(bels::BUFGE_H, "BUFGE_NNW".to_string());
+                    nnode.add_bel(bels::BUFGE_V, "BUFGE_WNW".to_string());
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGLS_NNW".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGLS_WNW".to_string());
+                } else {
+                    nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.1"));
+                    nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.2"));
+                    nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.3"));
+                    nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.4"));
+                    nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.5"));
+                    nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.6"));
+                    nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.7"));
+                    nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.8"));
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGS_TL".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGP_TL".to_string());
+                    nnode.add_bel(bels::CIN, "CI_TL".to_string());
+                }
+                nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
+            }
+            "CNR.BR" => {
+                let nnode = ngrid.name_tile(tcrd, "CNR.BR", [get_tile_name(chip, col, row)]);
+                if chip.kind == ChipKind::SpartanXl {
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGLS_SSE".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGLS_ESE".to_string());
+                } else if chip.kind.is_xl() {
+                    nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.8"));
+                    nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.7"));
+                    nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.6"));
+                    nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.5"));
+                    nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.4"));
+                    nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.3"));
+                    nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.2"));
+                    nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.1"));
+                    nnode.add_bel(bels::BUFG_H, "BUFG_SSE".to_string());
+                    nnode.add_bel(bels::BUFG_V, "BUFG_ESE".to_string());
+                    nnode.add_bel(bels::BUFGE_H, "BUFGE_SSE".to_string());
+                    nnode.add_bel(bels::BUFGE_V, "BUFGE_ESE".to_string());
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGLS_SSE".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGLS_ESE".to_string());
+                } else {
+                    nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.8"));
+                    nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.7"));
+                    nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.6"));
+                    nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.5"));
+                    nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.4"));
+                    nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.3"));
+                    nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.2"));
+                    nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.1"));
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGS_BR".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGP_BR".to_string());
+                    nnode.add_bel(bels::COUT, "CO_BR".to_string());
+                }
+                nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
+                nnode.add_bel(bels::READCLK, "RDCLK".to_string());
+                nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
+            }
+            "CNR.TR" => {
+                let nnode = ngrid.name_tile(
+                    tcrd,
+                    "CNR.TR",
+                    [
+                        get_tile_name(chip, col, row),
+                        get_tile_name(chip, col, row - 1),
+                    ],
+                );
+                if chip.kind == ChipKind::SpartanXl {
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGLS_NNE".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGLS_ENE".to_string());
+                } else if chip.kind.is_xl() {
+                    nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.1"));
+                    nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.2"));
+                    nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.3"));
+                    nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.4"));
+                    nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.5"));
+                    nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.6"));
+                    nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.7"));
+                    nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.8"));
+                    nnode.add_bel(bels::BUFG_H, "BUFG_NNE".to_string());
+                    nnode.add_bel(bels::BUFG_V, "BUFG_ENE".to_string());
+                    nnode.add_bel(bels::BUFGE_H, "BUFGE_NNE".to_string());
+                    nnode.add_bel(bels::BUFGE_V, "BUFGE_ENE".to_string());
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGLS_NNE".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGLS_ENE".to_string());
+                } else {
+                    nnode.add_bel(bels::PULLUP_DEC0_H, format!("PULLUP_R{r}C{c}.1"));
+                    nnode.add_bel(bels::PULLUP_DEC1_H, format!("PULLUP_R{r}C{c}.2"));
+                    nnode.add_bel(bels::PULLUP_DEC2_H, format!("PULLUP_R{r}C{c}.3"));
+                    nnode.add_bel(bels::PULLUP_DEC3_H, format!("PULLUP_R{r}C{c}.4"));
+                    nnode.add_bel(bels::PULLUP_DEC0_V, format!("PULLUP_R{r}C{c}.5"));
+                    nnode.add_bel(bels::PULLUP_DEC1_V, format!("PULLUP_R{r}C{c}.6"));
+                    nnode.add_bel(bels::PULLUP_DEC2_V, format!("PULLUP_R{r}C{c}.7"));
+                    nnode.add_bel(bels::PULLUP_DEC3_V, format!("PULLUP_R{r}C{c}.8"));
+                    nnode.add_bel(bels::BUFGLS_H, "BUFGP_TR".to_string());
+                    nnode.add_bel(bels::BUFGLS_V, "BUFGS_TR".to_string());
+                    nnode.add_bel(bels::COUT, "CO_TR".to_string());
+                }
+                nnode.add_bel(bels::UPDATE, "UPDATE".to_string());
+                nnode.add_bel(bels::OSC, "OSC".to_string());
+                nnode.add_bel(bels::TDO, "TDO".to_string());
+            }
+            _ if kind.starts_with("IO.L") => {
+                let kind = get_tile_kind(chip, col, row);
+                let kind_s = get_tile_kind(chip, col, row - 1);
+                let mut names = vec![
+                    get_tile_name(chip, col, row),
+                    get_tile_name(chip, col, row - 1),
+                    get_tile_name(chip, col + 1, row),
+                    get_tile_name(chip, col, row + 1),
+                ];
+                if chip.kind == ChipKind::Xc4000Xv {
+                    names.push(format!("LHIR{r}"));
+                }
+                let nnode = ngrid.name_tile(tcrd, &format!("{kind}.{kind_s}"), names);
+                let p = (chip.columns - 2) * 4 + (chip.rows - 2) * 2 + (row.to_idx() - 1) * 2 + 1;
+                nnode.add_bel(bels::IO0, format!("PAD{}", p + 1));
+                nnode.add_bel(bels::IO1, format!("PAD{p}"));
+                nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.2"));
+                nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
+                nnode.add_bel(bels::PULLUP_TBUF0, format!("PULLUP_R{r}C{c}.2"));
+                nnode.add_bel(bels::PULLUP_TBUF1, format!("PULLUP_R{r}C{c}.1"));
+                if chip.kind != ChipKind::SpartanXl {
+                    nnode.add_bel(bels::DEC0, format!("DEC_R{r}C{c}.1"));
+                    nnode.add_bel(bels::DEC1, format!("DEC_R{r}C{c}.2"));
+                    nnode.add_bel(bels::DEC2, format!("DEC_R{r}C{c}.3"));
+                }
+                if chip.kind == ChipKind::Xc4000Xv {
+                    nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
+                    nnode.tie_rt = RawTileId::from_idx(4);
                 }
             }
+            _ if kind.starts_with("IO.R") => {
+                let kind = get_tile_kind(chip, col, row);
+                let kind_s = get_tile_kind(chip, col, row - 1);
+                let mut names = vec![
+                    get_tile_name(chip, col, row),
+                    get_tile_name(chip, col, row - 1),
+                    get_tile_name(chip, col, row + 1),
+                ];
+                if chip.kind == ChipKind::Xc4000Xv {
+                    names.push(format!("RHIR{r}"));
+                }
+                let nnode = ngrid.name_tile(tcrd, &format!("{kind}.{kind_s}"), names);
+                let p = (chip.columns - 2) * 2 + (chip.row_n().to_idx() - row.to_idx() - 1) * 2 + 1;
+                nnode.add_bel(bels::IO0, format!("PAD{p}"));
+                nnode.add_bel(bels::IO1, format!("PAD{}", p + 1));
+                nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.2"));
+                nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
+                nnode.add_bel(bels::PULLUP_TBUF0, format!("PULLUP_R{r}C{c}.2"));
+                nnode.add_bel(bels::PULLUP_TBUF1, format!("PULLUP_R{r}C{c}.1"));
+                if chip.kind != ChipKind::SpartanXl {
+                    nnode.add_bel(bels::DEC0, format!("DEC_R{r}C{c}.1"));
+                    nnode.add_bel(bels::DEC1, format!("DEC_R{r}C{c}.2"));
+                    nnode.add_bel(bels::DEC2, format!("DEC_R{r}C{c}.3"));
+                }
+
+                nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
+            }
+            _ if kind.starts_with("IO.B") => {
+                let kind = get_tile_kind(chip, col, row);
+                let kind_e = get_tile_kind(chip, col + 1, row);
+                let mut names = vec![
+                    get_tile_name(chip, col, row),
+                    get_tile_name(chip, col, row + 1),
+                    get_tile_name(chip, col + 1, row),
+                    get_tile_name(chip, col - 1, row),
+                ];
+                if chip.kind == ChipKind::Xc4000Xv {
+                    names.push(format!("BVIC{c}"));
+                }
+                let nnode = ngrid.name_tile(tcrd, &format!("{kind}.{kind_e}"), names);
+                let p = (chip.columns - 2) * 2
+                    + (chip.rows - 2) * 2
+                    + (chip.col_e().to_idx() - col.to_idx() - 1) * 2
+                    + 1;
+
+                nnode.add_bel(bels::IO0, format!("PAD{}", p + 1));
+                nnode.add_bel(bels::IO1, format!("PAD{p}"));
+                if chip.kind != ChipKind::SpartanXl {
+                    nnode.add_bel(bels::DEC0, format!("DEC_R{r}C{c}.1"));
+                    nnode.add_bel(bels::DEC1, format!("DEC_R{r}C{c}.2"));
+                    nnode.add_bel(bels::DEC2, format!("DEC_R{r}C{c}.3"));
+                }
+                nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
+            }
+            _ if kind.starts_with("IO.T") => {
+                let kind = get_tile_kind(chip, col, row);
+                let kind_e = get_tile_kind(chip, col + 1, row);
+                let mut names = vec![
+                    get_tile_name(chip, col, row),
+                    get_tile_name(chip, col + 1, row),
+                    get_tile_name(chip, col - 1, row),
+                ];
+                if chip.kind == ChipKind::Xc4000Xv {
+                    names.push(format!("TVIC{c}"));
+                }
+                let nnode = ngrid.name_tile(tcrd, &format!("{kind}.{kind_e}"), names);
+                let p = (col.to_idx() - 1) * 2 + 1;
+                nnode.add_bel(bels::IO0, format!("PAD{p}"));
+                nnode.add_bel(bels::IO1, format!("PAD{}", p + 1));
+                if chip.kind != ChipKind::SpartanXl {
+                    nnode.add_bel(bels::DEC0, format!("DEC_R{r}C{c}.1"));
+                    nnode.add_bel(bels::DEC1, format!("DEC_R{r}C{c}.2"));
+                    nnode.add_bel(bels::DEC2, format!("DEC_R{r}C{c}.3"));
+                }
+                if chip.kind == ChipKind::Xc4000Xv {
+                    nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
+                    nnode.tie_rt = RawTileId::from_idx(3);
+                }
+            }
+            _ if kind.starts_with("CLB") => {
+                let mut naming = "CLB".to_string();
+                if row == chip.row_n() - 1 {
+                    let kind_n = get_tile_kind(chip, col, row + 1);
+                    write!(naming, ".{kind_n}").unwrap();
+                }
+                if col == chip.col_e() - 1 {
+                    let kind_e = get_tile_kind(chip, col + 1, row);
+                    write!(naming, ".{kind_e}").unwrap();
+                }
+                let mut names = vec![
+                    get_tile_name(chip, col, row),
+                    get_tile_name(chip, col, row + 1),
+                    get_tile_name(chip, col + 1, row),
+                ];
+                if chip.kind == ChipKind::Xc4000Xv {
+                    names.extend([
+                        format!("VIR{r}C{c}"),
+                        format!("HIR{r}C{c}"),
+                        format!("VHIR{r}C{c}"),
+                    ]);
+                }
+                let nnode = ngrid.name_tile(tcrd, &naming, names);
+                nnode.add_bel(bels::CLB, format!("CLB_R{r}C{c}"));
+                nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.2"));
+                nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
+                nnode.tie_name = Some(format!("TIE_R{r}C{c}.1"));
+            }
+
+            "LLH.IO.B" => {
+                ngrid.name_tile(tcrd, "LLH.IO.B", ["BM".into()]);
+            }
+            "LLH.IO.T" => {
+                ngrid.name_tile(tcrd, "LLH.IO.T", ["TM".into()]);
+            }
+            _ if kind.starts_with("LLH.CLB") => {
+                let naming = if row < chip.row_mid() {
+                    "LLH.CLB.B"
+                } else {
+                    "LLH.CLB.T"
+                };
+                ngrid.name_tile(tcrd, naming, [format!("VMR{r}")]);
+            }
+            "LLV.IO.L" => {
+                ngrid.name_tile(tcrd, "LLV.IO.L", ["LM".into()]);
+            }
+            "LLV.IO.R" => {
+                ngrid.name_tile(tcrd, "LLV.IO.R", ["RM".into()]);
+            }
+            "LLV.CLB" => {
+                ngrid.name_tile(tcrd, "LLV.CLB", [format!("HMC{c}")]);
+            }
+
+            "LLHQ.IO.B" => {
+                let lr = if col == chip.col_ql() {
+                    'L'
+                } else if col == chip.col_qr() {
+                    'R'
+                } else {
+                    unreachable!()
+                };
+                ngrid.name_tile(tcrd, "LLHQ.IO.B", [format!("BQ{lr}")]);
+            }
+            "LLHQ.IO.T" => {
+                let lr = if col == chip.col_ql() {
+                    'L'
+                } else if col == chip.col_qr() {
+                    'R'
+                } else {
+                    unreachable!()
+                };
+                ngrid.name_tile(tcrd, "LLHQ.IO.T", [format!("TQ{lr}")]);
+            }
+            _ if kind.starts_with("LLHQ.CLB") => {
+                let lr = if col == chip.col_ql() {
+                    'L'
+                } else if col == chip.col_qr() {
+                    'R'
+                } else {
+                    unreachable!()
+                };
+                let naming = if chip.kind != ChipKind::Xc4000Xv {
+                    "LLHQ.CLB"
+                } else if row >= chip.row_qb() && row < chip.row_qt() {
+                    "LLHQ.CLB.I"
+                } else {
+                    "LLHQ.CLB.O"
+                };
+                let nnode = ngrid.name_tile(tcrd, naming, [format!("VQ{lr}R{r}")]);
+                if chip.kind == ChipKind::Xc4000Xla {
+                    nnode.add_bel(
+                        bels::PULLUP_TBUF0_W,
+                        format!("PULLUP_R{r}C{cc}.4", cc = c - 1),
+                    );
+                    nnode.add_bel(bels::PULLUP_TBUF0_E, format!("PULLUP_R{r}C{c}.2"));
+                    nnode.add_bel(
+                        bels::PULLUP_TBUF1_W,
+                        format!("PULLUP_R{r}C{cc}.3", cc = c - 1),
+                    );
+                    nnode.add_bel(bels::PULLUP_TBUF1_E, format!("PULLUP_R{r}C{c}.1"));
+                } else {
+                    nnode.add_bel(bels::PULLUP_TBUF0_W, format!("PULLUP_R{r}C{c}.4"));
+                    nnode.add_bel(bels::PULLUP_TBUF0_E, format!("PULLUP_R{r}C{c}.2"));
+                    nnode.add_bel(bels::PULLUP_TBUF1_W, format!("PULLUP_R{r}C{c}.3"));
+                    nnode.add_bel(bels::PULLUP_TBUF1_E, format!("PULLUP_R{r}C{c}.1"));
+                }
+            }
+            "LLHC.IO.B" => {
+                let nnode = ngrid.name_tile(tcrd, "LLHC.IO.B", ["BM".into()]);
+                nnode.add_bel(bels::PULLUP_DEC0_W, format!("PULLUP_R{r}C{c}.4"));
+                nnode.add_bel(bels::PULLUP_DEC0_E, format!("PULLUP_R{r}C{c}.5"));
+                nnode.add_bel(bels::PULLUP_DEC1_W, format!("PULLUP_R{r}C{c}.3"));
+                nnode.add_bel(bels::PULLUP_DEC1_E, format!("PULLUP_R{r}C{c}.6"));
+                nnode.add_bel(bels::PULLUP_DEC2_W, format!("PULLUP_R{r}C{c}.2"));
+                nnode.add_bel(bels::PULLUP_DEC2_E, format!("PULLUP_R{r}C{c}.7"));
+                nnode.add_bel(bels::PULLUP_DEC3_W, format!("PULLUP_R{r}C{c}.1"));
+                nnode.add_bel(bels::PULLUP_DEC3_E, format!("PULLUP_R{r}C{c}.8"));
+            }
+            "LLHC.IO.T" => {
+                let nnode = ngrid.name_tile(tcrd, "LLHC.IO.T", ["TM".into()]);
+                nnode.add_bel(bels::PULLUP_DEC0_W, format!("PULLUP_R{r}C{c}.1"));
+                nnode.add_bel(bels::PULLUP_DEC0_E, format!("PULLUP_R{r}C{c}.8"));
+                nnode.add_bel(bels::PULLUP_DEC1_W, format!("PULLUP_R{r}C{c}.2"));
+                nnode.add_bel(bels::PULLUP_DEC1_E, format!("PULLUP_R{r}C{c}.7"));
+                nnode.add_bel(bels::PULLUP_DEC2_W, format!("PULLUP_R{r}C{c}.3"));
+                nnode.add_bel(bels::PULLUP_DEC2_E, format!("PULLUP_R{r}C{c}.6"));
+                nnode.add_bel(bels::PULLUP_DEC3_W, format!("PULLUP_R{r}C{c}.4"));
+                nnode.add_bel(bels::PULLUP_DEC3_E, format!("PULLUP_R{r}C{c}.5"));
+            }
+            _ if kind.starts_with("LLHC.CLB") => {
+                let naming = if row >= chip.row_qb() && row < chip.row_qt() {
+                    "LLHC.CLB.I"
+                } else {
+                    "LLHC.CLB.O"
+                };
+                let nnode = ngrid.name_tile(tcrd, naming, [format!("VMR{r}")]);
+                nnode.add_bel(bels::PULLUP_TBUF0_W, format!("PULLUP_R{r}C{c}.2"));
+                nnode.add_bel(bels::PULLUP_TBUF0_E, format!("PULLUP_R{r}C{c}.4"));
+                nnode.add_bel(bels::PULLUP_TBUF1_W, format!("PULLUP_R{r}C{c}.1"));
+                nnode.add_bel(bels::PULLUP_TBUF1_E, format!("PULLUP_R{r}C{c}.3"));
+            }
+            _ if kind.starts_with("LLVQ.IO.L") => {
+                let bt = if row == chip.row_qb() {
+                    'B'
+                } else if row == chip.row_qt() {
+                    'T'
+                } else {
+                    unreachable!()
+                };
+                let nnode = ngrid.name_tile(tcrd, kind, [format!("LQ{bt}")]);
+                let sn = if bt == 'B' { 'S' } else { 'N' };
+                nnode.add_bel(bels::BUFF, format!("BUFF_{sn}W"));
+            }
+            _ if kind.starts_with("LLVQ.IO.R") => {
+                let bt = if row == chip.row_qb() {
+                    'B'
+                } else if row == chip.row_qt() {
+                    'T'
+                } else {
+                    unreachable!()
+                };
+                let naming = if chip.is_buff_large {
+                    if bt == 'B' {
+                        "LLVQ.IO.R.B"
+                    } else {
+                        "LLVQ.IO.R.T"
+                    }
+                } else {
+                    if bt == 'B' {
+                        "LLVQ.IO.R.BS"
+                    } else {
+                        "LLVQ.IO.R.TS"
+                    }
+                };
+                let nnode = ngrid.name_tile(tcrd, naming, [format!("RQ{bt}")]);
+                let sn = if bt == 'B' { 'S' } else { 'N' };
+                nnode.add_bel(bels::BUFF, format!("BUFF_{sn}E"));
+            }
+            "LLVQ.CLB" => {
+                let bt = if row == chip.row_qb() {
+                    'B'
+                } else if row == chip.row_qt() {
+                    'T'
+                } else {
+                    unreachable!()
+                };
+                ngrid.name_tile(tcrd, "LLVQ.CLB", [format!("HQ{bt}C{c}")]);
+            }
+            "LLVC.IO.L" => {
+                let nnode = ngrid.name_tile(tcrd, "LLVC.IO.L", ["LM".into()]);
+                let r = r + 1;
+                nnode.add_bel(bels::PULLUP_DEC0_S, format!("PULLUP_R{r}C{c}.10"));
+                nnode.add_bel(bels::PULLUP_DEC0_N, format!("PULLUP_R{r}C{c}.3"));
+                nnode.add_bel(bels::PULLUP_DEC1_S, format!("PULLUP_R{r}C{c}.9"));
+                nnode.add_bel(bels::PULLUP_DEC1_N, format!("PULLUP_R{r}C{c}.4"));
+                nnode.add_bel(bels::PULLUP_DEC2_S, format!("PULLUP_R{r}C{c}.8"));
+                nnode.add_bel(bels::PULLUP_DEC2_N, format!("PULLUP_R{r}C{c}.5"));
+                nnode.add_bel(bels::PULLUP_DEC3_S, format!("PULLUP_R{r}C{c}.7"));
+                nnode.add_bel(bels::PULLUP_DEC3_N, format!("PULLUP_R{r}C{c}.6"));
+            }
+            "LLVC.IO.R" => {
+                let nnode = ngrid.name_tile(tcrd, "LLVC.IO.R", ["RM".into()]);
+                let r = r + 1;
+                nnode.add_bel(bels::PULLUP_DEC0_S, format!("PULLUP_R{r}C{c}.10"));
+                nnode.add_bel(bels::PULLUP_DEC0_N, format!("PULLUP_R{r}C{c}.3"));
+                nnode.add_bel(bels::PULLUP_DEC1_S, format!("PULLUP_R{r}C{c}.9"));
+                nnode.add_bel(bels::PULLUP_DEC1_N, format!("PULLUP_R{r}C{c}.4"));
+                nnode.add_bel(bels::PULLUP_DEC2_S, format!("PULLUP_R{r}C{c}.8"));
+                nnode.add_bel(bels::PULLUP_DEC2_N, format!("PULLUP_R{r}C{c}.5"));
+                nnode.add_bel(bels::PULLUP_DEC3_S, format!("PULLUP_R{r}C{c}.7"));
+                nnode.add_bel(bels::PULLUP_DEC3_N, format!("PULLUP_R{r}C{c}.6"));
+            }
+            "LLVC.CLB" => {
+                ngrid.name_tile(tcrd, "LLVC.CLB", [format!("HMC{c}")]);
+            }
+
+            "CLKQ" => {
+                let bt = if row == chip.row_qb() {
+                    'B'
+                } else if row == chip.row_qt() {
+                    'T'
+                } else {
+                    unreachable!()
+                };
+                let lr = if col == chip.col_ql() {
+                    'L'
+                } else if col == chip.col_qr() {
+                    'R'
+                } else {
+                    unreachable!()
+                };
+
+                ngrid.name_tile(tcrd, &format!("CLKQ.{bt}"), [format!("Q{bt}{lr}")]);
+            }
+            "CLKC" => {
+                ngrid.name_tile(tcrd, "CLKC", ["M".into()]);
+            }
+            "CLKQC" => {
+                let bt = if row == chip.row_qb() {
+                    'B'
+                } else if row == chip.row_qt() {
+                    'T'
+                } else {
+                    unreachable!()
+                };
+                ngrid.name_tile(tcrd, &format!("CLKQC.{bt}"), [format!("VMQ{bt}")]);
+            }
+
+            _ => unreachable!(),
         }
     }
     ExpandedNamedDevice { edev, ngrid, chip }

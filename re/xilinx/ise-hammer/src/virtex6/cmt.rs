@@ -1,4 +1,4 @@
-use prjcombine_interconnect::{dir::DirH, grid::NodeLoc};
+use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -7,22 +7,22 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem},
 };
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{bels, tslots};
 
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::NodeRelation,
+        props::relation::TileRelation,
     },
 };
 
 #[derive(Clone, Copy, Debug)]
 struct HclkIoiInnerSide(DirH);
 
-impl NodeRelation for HclkIoiInnerSide {
-    fn resolve(&self, backend: &IseBackend, nloc: NodeLoc) -> Option<NodeLoc> {
+impl TileRelation for HclkIoiInnerSide {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
@@ -30,8 +30,8 @@ impl NodeRelation for HclkIoiInnerSide {
             DirH::W => edev.col_lcio.unwrap(),
             DirH::E => edev.col_rcio.unwrap(),
         };
-        let row = edev.chips[nloc.0].row_hclk(nloc.2);
-        Some(edev.egrid.get_tile_by_bel((nloc.0, (col, row), bels::DCI)))
+        let row = edev.chips[tcrd.die].row_hclk(tcrd.row);
+        Some(tcrd.with_cr(col, row).tile(tslots::HCLK_BEL))
     }
 }
 

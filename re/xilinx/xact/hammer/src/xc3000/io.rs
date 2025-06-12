@@ -1,4 +1,7 @@
-use prjcombine_interconnect::{db::TileCellId, grid::DieId};
+use prjcombine_interconnect::{
+    db::{CellSlotId, TileWireCoord},
+    grid::{CellCoord, DieId},
+};
 use prjcombine_re_fpga_hammer::{Diff, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
@@ -59,18 +62,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             ctx.test_global("MISC", "REPROGRAM", &["ENABLE", "DISABLE"]);
             ctx.test_global("MISC", "DONETIME", &["BEFORE", "AFTER"]);
             ctx.test_global("MISC", "RESETTIME", &["BEFORE", "AFTER"]);
-            let nloc = (DieId::from_idx(0), grid.col_e(), grid.row_s(), tslots::MAIN);
-            let wt = (
-                TileCellId::from_idx(0),
-                backend.egrid.db.get_wire("IMUX.BUFG"),
-            );
-            let wf = (
-                TileCellId::from_idx(0),
-                backend.egrid.db.get_wire("OUT.OSC"),
-            );
-            let crd = backend.ngrid.int_pip(nloc, wt, wf);
-            let rwt = backend.egrid.resolve_tile_wire_nobuf(nloc, wt).unwrap();
-            let rwf = backend.egrid.resolve_tile_wire_nobuf(nloc, wf).unwrap();
+            let tcrd =
+                CellCoord::new(DieId::from_idx(0), grid.col_e(), grid.row_s()).tile(tslots::MAIN);
+            let wt = TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire: backend.egrid.db.get_wire("IMUX.BUFG"),
+            };
+            let wf = TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire: backend.egrid.db.get_wire("OUT.OSC"),
+            };
+            let crd = backend.ngrid.int_pip(tcrd, wt, wf);
+            let rwt = backend.egrid.resolve_tile_wire_nobuf(tcrd, wt).unwrap();
+            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, wf).unwrap();
             for val in ["ENABLE", "DIV2"] {
                 ctx.build()
                     .raw(Key::NodeMutex(rwt), "OSC_SPECIAL")

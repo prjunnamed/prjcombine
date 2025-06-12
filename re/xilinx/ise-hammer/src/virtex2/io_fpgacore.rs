@@ -1,10 +1,11 @@
-use prjcombine_interconnect::{dir::Dir, grid::NodeLoc};
+use prjcombine_interconnect::{dir::Dir, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_bit_wide, xlat_bool,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
+use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex2::bels;
+use prjcombine_virtex2::{bels, tslots};
 
 use crate::{
     backend::IseBackend,
@@ -34,28 +35,28 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IobExtra {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let (die, col, row, _) = nloc;
-        let tile = match self.edge {
-            Dir::W => "IOBS.FC.L",
-            Dir::E => "IOBS.FC.R",
-            Dir::S => "IOBS.FC.B",
-            Dir::N => "IOBS.FC.T",
+        let tcrd = tcrd.tile(tslots::IOB);
+        let ExpandedDevice::Virtex2(edev) = backend.edev else {
+            unreachable!()
         };
-        if let Some(layer) = backend
-            .egrid
-            .find_tile_layer(die, (col, row), |x| x == tile)
-        {
-            let nloc = (die, col, row, layer);
+        let edge_match = match self.edge {
+            Dir::W => tcrd.col == edev.chip.col_w(),
+            Dir::E => tcrd.col == edev.chip.col_e(),
+            Dir::S => tcrd.row == edev.chip.row_s(),
+            Dir::N => tcrd.row == edev.chip.row_n(),
+        };
+        if edge_match {
+            let tile = backend.egrid.tile(tcrd);
             let fuzzer_id = fuzzer.info.features[0].id.clone();
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
-                    tile: tile.into(),
+                    tile: backend.egrid.db.tile_classes.key(tile.class).clone(),
                     ..fuzzer_id
                 },
-                tiles: backend.edev.node_bits(nloc),
+                tiles: backend.edev.node_bits(tcrd),
             });
             Some((fuzzer, false))
         } else {

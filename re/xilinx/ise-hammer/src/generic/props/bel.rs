@@ -1,4 +1,4 @@
-use prjcombine_interconnect::{db::BelSlotId, grid::NodeLoc};
+use prjcombine_interconnect::{db::BelSlotId, grid::TileCoord};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 
@@ -26,10 +26,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelMode {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.base(Key::SiteMode(&nnode.bels[self.bel]), self.val.clone()),
             false,
@@ -56,10 +56,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BelUnused {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.base(Key::SiteMode(&nnode.bels[self.bel]), None),
             false,
@@ -88,10 +88,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelMode {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.fuzz(
                 Key::SiteMode(&nnode.bels[self.bel]),
@@ -123,10 +123,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPin {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.base(Key::SitePin(&nnode.bels[self.bel], self.pin.clone()), true),
             false,
@@ -154,10 +154,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelNoPin {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.base(Key::SitePin(&nnode.bels[self.bel], self.pin.clone()), false),
             false,
@@ -185,10 +185,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPin {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.fuzz(
                 Key::SitePin(&nnode.bels[self.bel], self.pin.clone()),
@@ -220,10 +220,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinPips {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
         let bel_naming = &node_naming.bels[self.bel];
         let pin_naming = &bel_naming.pins[&self.pin];
@@ -257,10 +257,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinPips {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
         let bel_naming = &node_naming.bels[self.bel];
         let pin_naming = &bel_naming.pins[&self.pin];
@@ -295,12 +295,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinIntPips {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(nloc);
+        let node = backend.egrid.tile(tcrd);
         let node_data = &backend.egrid.db.tile_classes[node.class];
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
         let bel_data = &node_data.bels[self.bel];
         let pin_data = &bel_data.pins[&self.pin];
@@ -340,10 +340,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinFrom {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.base(
                 Key::SitePinFrom(&nnode.bels[self.bel], self.pin.clone()),
@@ -381,10 +381,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinFrom {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.fuzz(
                 Key::SitePinFrom(&nnode.bels[self.bel], self.pin.clone()),
@@ -423,10 +423,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinPair {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         let site_to = &nnode.bels[self.bel_to];
         let site_from = &nnode.bels[self.bel_from];
 
@@ -467,10 +467,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinPair {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         let site_to = &nnode.bels[self.bel_to];
         let site_from = &nnode.bels[self.bel_from];
 
@@ -506,10 +506,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelAttr {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.base(
                 Key::SiteAttr(&nnode.bels[self.bel], self.attr.clone()),
@@ -547,10 +547,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelAttr {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.fuzz(
                 Key::SiteAttr(&nnode.bels[self.bel], self.attr.clone()),
@@ -589,10 +589,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelMultiAttr {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         fuzzer.bits = self.width;
         Some((
             fuzzer.fuzz_multi(
@@ -625,10 +625,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BelMutex {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let bel = (nloc.0, (nloc.1, nloc.2), self.bel);
+        let bel = tcrd.bel(self.bel);
         Some((
             fuzzer.base(Key::BelMutex(bel, self.attr.clone()), self.val.clone()),
             false,
@@ -656,13 +656,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RowMutexHere {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         Some((
             fuzzer.base(
-                Key::RowMutex(self.key.clone(), nloc.2),
-                Value::Bel((nloc.0, (nloc.1, nloc.2), self.bel)),
+                Key::RowMutex(self.key.clone(), tcrd.row),
+                Value::Bel(tcrd.bel(self.bel)),
             ),
             false,
         ))
@@ -689,21 +689,21 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for GlobalMutexHere {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         Some((
             fuzzer.base(
                 Key::GlobalMutex(self.key.clone()),
-                Value::Bel((nloc.0, (nloc.1, nloc.2), self.bel)),
+                Value::Bel(tcrd.bel(self.bel)),
             ),
             false,
         ))
     }
 }
 
-fn resolve_global_xy(backend: &IseBackend, nloc: NodeLoc, slot: BelSlotId, opt: &str) -> String {
-    let site = &backend.ngrid.tiles[&nloc].bels[slot];
+fn resolve_global_xy(backend: &IseBackend, tcrd: TileCoord, slot: BelSlotId, opt: &str) -> String {
+    let site = &backend.ngrid.tiles[&tcrd].bels[slot];
     opt.replace('*', &site[site.rfind('X').unwrap()..])
 }
 
@@ -728,10 +728,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseGlobalXy {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let opt = resolve_global_xy(backend, nloc, self.bel, &self.opt);
+        let opt = resolve_global_xy(backend, tcrd, self.bel, &self.opt);
         Some((fuzzer.base(Key::GlobalOpt(opt), self.val.clone()), false))
     }
 }
@@ -763,10 +763,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzGlobalXy {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let opt = resolve_global_xy(backend, nloc, self.bel, &self.opt);
+        let opt = resolve_global_xy(backend, tcrd, self.bel, &self.opt);
         Some((
             fuzzer.fuzz(
                 Key::GlobalOpt(opt),
@@ -811,10 +811,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzMultiGlobalXy {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let opt = resolve_global_xy(backend, nloc, self.bel, &self.opt);
+        let opt = resolve_global_xy(backend, tcrd, self.bel, &self.opt);
         fuzzer.bits = self.width;
         Some((fuzzer.fuzz_multi(Key::GlobalOpt(opt), self.val), false))
     }
@@ -831,7 +831,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ForceBelName {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         fuzzer.info.features[0].id.bel = self.0.clone();

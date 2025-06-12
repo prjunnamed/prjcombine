@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     db::RegionSlotId,
-    grid::{ColId, DieId, ExpandedGrid, NodeLoc, RowId},
+    grid::{ColId, DieId, ExpandedGrid, RowId, TileCoord},
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -20,10 +20,11 @@ pub struct ExpandedDevice<'a> {
 }
 
 impl ExpandedDevice<'_> {
-    pub fn tile_bits(&self, nloc: NodeLoc) -> Vec<BitTile> {
-        let (_, col, row, _) = nloc;
-        let node = self.egrid.tile(nloc);
-        let kind = self.egrid.db.tile_classes.key(node.class);
+    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+        let col = tcrd.col;
+        let row = tcrd.row;
+        let tile = self.egrid.tile(tcrd);
+        let kind = self.egrid.db.tile_classes.key(tile.class);
         match self.chip.kind {
             ChipKind::Xc2000 => {
                 if kind.starts_with("BIDI") {

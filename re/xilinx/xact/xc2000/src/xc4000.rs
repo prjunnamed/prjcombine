@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::{ColId, DieId, RowId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{
     bels::xc4000 as bels,
@@ -88,14 +88,15 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     for die in egrid.dies() {
         for col in die.cols() {
             for row in die.rows() {
-                for (layer, node) in &die[(col, row)].tiles {
-                    let nloc = (die.die, col, row, layer);
-                    let kind = egrid.db.tile_classes.key(node.class);
+                let cell = CellCoord::new(die.die, col, row);
+                for (tslot, tile) in &die[(col, row)].tiles {
+                    let tcrd = cell.tile(tslot);
+                    let kind = egrid.db.tile_classes.key(tile.class);
                     match &kind[..] {
                         "CLB.LB" | "CLB.B" | "CLB.RB" | "CLB.L" | "CLB" | "CLB.R" | "CLB.LT"
                         | "CLB.T" | "CLB.RT" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     (col_x[col].clone(), row_y[row].clone()),
@@ -149,7 +150,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IO.B" | "IO.B.R" | "IO.BS" | "IO.BS.L" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     (col_x[col].clone(), row_y[row].clone()),
@@ -210,7 +211,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IO.T" | "IO.T.R" | "IO.TS" | "IO.TS.L" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     (col_x[col].clone(), row_y[row].clone()),
@@ -260,7 +261,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IO.L" | "IO.L.T" | "IO.LS" | "IO.LS.B" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     (col_x[col].clone(), row_y[row].clone()),
@@ -344,7 +345,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "IO.R" | "IO.R.T" | "IO.RS" | "IO.RS.B" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     (col_x[col].clone(), row_y[row].clone()),
@@ -434,7 +435,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
                         "CNR.BL" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     (col_x[col].clone(), row_y[row].clone()),
@@ -539,7 +540,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CNR.TL" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     (col_x[col].clone(), row_y[row].clone()),
@@ -642,7 +643,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CNR.BR" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     (col_x[col].clone(), row_y[row].clone()),
@@ -752,7 +753,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         }
                         "CNR.TR" => {
                             let nnode = ngrid.name_node(
-                                nloc,
+                                tcrd,
                                 kind,
                                 [
                                     (col_x[col].clone(), row_y[row].clone()),
@@ -858,7 +859,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
                         "LLV.IO.L" | "LLV.IO.R" | "LLV.CLB" => {
                             let nnode =
-                                ngrid.name_node(nloc, kind, [(col_x[col].clone(), clk_y.clone())]);
+                                ngrid.name_node(tcrd, kind, [(col_x[col].clone(), clk_y.clone())]);
                             if grid.kind == ChipKind::Xc4000H {
                                 let cidx = if col < grid.col_mid() {
                                     col.to_idx()
@@ -874,7 +875,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             }
                         }
                         "LLH.IO.B" | "LLH.IO.T" | "LLH.CLB" | "LLH.CLB.B" => {
-                            ngrid.name_node(nloc, kind, [(clk_x.clone(), row_y[row].clone())]);
+                            ngrid.name_node(tcrd, kind, [(clk_x.clone(), row_y[row].clone())]);
                         }
 
                         _ => panic!("umm {kind}"),

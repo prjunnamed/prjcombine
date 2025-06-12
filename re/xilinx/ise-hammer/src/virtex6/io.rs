@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::{DieId, NodeLoc};
+use prjcombine_interconnect::grid::{CellCoord, DieId, TileCoord};
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
     extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_enum,
@@ -11,7 +11,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::{bels, tslots};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -99,20 +99,16 @@ const IOSTDS: &[Iostd] = &[
     Iostd::true_diff("HT_25", 2500),
 ];
 
-fn get_vrefs(backend: &IseBackend, nloc: NodeLoc) -> Vec<NodeLoc> {
+fn get_vrefs(backend: &IseBackend, tcrd: TileCoord) -> Vec<TileCoord> {
     let ExpandedDevice::Virtex4(edev) = backend.edev else {
         unreachable!()
     };
-    let (die, col, row, _) = nloc;
-
-    let reg = edev.chips[die].row_to_reg(row);
-    let bot = edev.chips[die].row_reg_bot(reg);
+    let chip = edev.chips[tcrd.die];
+    let reg = chip.row_to_reg(tcrd.row);
+    let bot = chip.row_reg_bot(reg);
     [bot + 10, bot + 30]
         .into_iter()
-        .map(|vref_row| {
-            edev.egrid
-                .get_tile_by_bel((die, (col, vref_row), bels::IOB0))
-        })
+        .map(|vref_row| tcrd.with_row(vref_row).tile(tslots::BEL))
         .collect()
 }
 
@@ -127,25 +123,22 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
 
-        let vrefs = get_vrefs(backend, nloc);
-        if vrefs.contains(&nloc) {
+        let vrefs = get_vrefs(backend, tcrd);
+        if vrefs.contains(&tcrd) {
             return None;
         }
-        let chip = edev.chips[nloc.0];
+        let chip = edev.chips[tcrd.die];
 
-        let hclk_row = chip.row_hclk(nloc.2);
+        let hclk_row = chip.row_hclk(tcrd.row);
         // Take exclusive mutex on VREF.
-        let hclk_ioi =
-            backend
-                .egrid
-                .get_tile_by_bel((nloc.0, (nloc.1, hclk_row), bels::IDELAYCTRL));
+        let hclk_ioi = tcrd.with_row(hclk_row).tile(tslots::HCLK_BEL);
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_ioi, "VREF".to_string()),
             None,
@@ -154,7 +147,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
         for vref in vrefs {
             let site = backend
                 .ngrid
-                .get_bel_name((vref.0, (vref.1, vref.2), bels::IOB0))
+                .get_bel_name(vref.cell.bel(bels::IOB0))
                 .unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             fuzzer.info.features.push(FuzzerFeature {
@@ -171,24 +164,23 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
     }
 }
 
-fn get_vr(backend: &IseBackend, nloc: NodeLoc) -> NodeLoc {
+fn get_vr(backend: &IseBackend, tcrd: TileCoord) -> TileCoord {
     let ExpandedDevice::Virtex4(edev) = backend.edev else {
         unreachable!()
     };
-    let chip = edev.chips[nloc.0];
+    let chip = edev.chips[tcrd.die];
 
-    let reg = chip.row_to_reg(nloc.2);
+    let reg = chip.row_to_reg(tcrd.row);
     let row = if reg == chip.reg_cfg {
         chip.row_reg_bot(reg) + 6
-    } else if reg == chip.reg_cfg - 1 && Some(nloc.1) == edev.col_lcio {
+    } else if reg == chip.reg_cfg - 1 && Some(tcrd.col) == edev.col_lcio {
         chip.row_reg_bot(reg) + 4
-    } else if reg == chip.reg_cfg - 1 && Some(nloc.1) == edev.col_rcio {
+    } else if reg == chip.reg_cfg - 1 && Some(tcrd.col) == edev.col_rcio {
         chip.row_reg_bot(reg) + 0
     } else {
         chip.row_reg_bot(reg) + 14
     };
-    edev.egrid
-        .get_tile_by_bel((nloc.0, (nloc.1, row), bels::IOB0))
+    tcrd.with_row(row).tile(tslots::BEL)
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -202,30 +194,27 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let chip = edev.chips[nloc.0];
+        let chip = edev.chips[tcrd.die];
 
         // Avoid bank 25, which is our (arbitrary) anchor.
-        if nloc.1 == edev.col_lcio.unwrap() && chip.row_to_reg(nloc.2) == chip.reg_cfg {
+        if tcrd.col == edev.col_lcio.unwrap() && chip.row_to_reg(tcrd.row) == chip.reg_cfg {
             return None;
         }
 
-        let vr_node = get_vr(backend, nloc);
-        if nloc == vr_node {
+        let vr_tile = get_vr(backend, tcrd);
+        if tcrd == vr_tile {
             // Not in VR tile please.
             return None;
         }
         // Ensure nothing is placed in VR.
         for bel in [bels::IOB0, bels::IOB1] {
-            let site = backend
-                .ngrid
-                .get_bel_name((vr_node.0, (vr_node.1, vr_node.2), bel))
-                .unwrap();
+            let site = backend.ngrid.get_bel_name(vr_tile.cell.bel(bel)).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
         }
         // Test VR.
@@ -237,16 +226,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                     attr: "PRESENT".into(),
                     val: "VR".into(),
                 },
-                tiles: edev.tile_bits(vr_node),
+                tiles: edev.tile_bits(vr_tile),
             });
         }
 
         // Take exclusive mutex on bank DCI.
-        let hclk_ioi =
-            edev.egrid
-                .get_tile_by_class(nloc.0, (nloc.1, chip.row_hclk(nloc.2)), |kind| {
-                    kind == "HCLK_IOI"
-                });
+        let hclk_ioi = tcrd
+            .cell
+            .with_row(chip.row_hclk(tcrd.row))
+            .tile(tslots::HCLK_BEL);
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_ioi, "BANK_DCI".to_string()),
             None,
@@ -268,11 +256,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         fuzzer = fuzzer.base(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
 
         // Anchor global DCI by putting something in bottom IOB of bank 25.
-        let iob_center = (
-            nloc.0,
-            (edev.col_lcio.unwrap(), chip.row_bufg()),
-            bels::IOB0,
-        );
+        let iob_center = tcrd
+            .cell
+            .with_cr(edev.col_lcio.unwrap(), chip.row_bufg())
+            .bel(bels::IOB0);
         let site = backend.ngrid.get_bel_name(iob_center).unwrap();
         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
@@ -280,16 +267,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         fuzzer = fuzzer.base(Key::SiteAttr(site, "OSTANDARD".into()), "LVDCI_25");
         // Ensure anchor VR IOBs are free.
         for bel in [bels::IOB0, bels::IOB1] {
-            let iob_center_vr = (nloc.0, (edev.col_lcio.unwrap(), chip.row_bufg() + 6), bel);
+            let iob_center_vr = tcrd
+                .cell
+                .with_cr(edev.col_lcio.unwrap(), chip.row_bufg() + 6)
+                .bel(bel);
             let site = backend.ngrid.get_bel_name(iob_center_vr).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
         }
         // Make note of anchor VCCO.
-        let hclk_ioi_center = edev.egrid.get_tile_by_class(
-            nloc.0,
-            (edev.col_lcio.unwrap(), chip.row_bufg() + 20),
-            |kind| kind == "HCLK_IOI",
-        );
+        let hclk_ioi_center = tcrd
+            .cell
+            .with_cr(edev.col_lcio.unwrap(), chip.row_bufg() + 20)
+            .tile(tslots::HCLK_BEL);
         fuzzer = fuzzer.base(Key::TileMutex(hclk_ioi_center, "VCCO".to_string()), "2500");
 
         Some((fuzzer, false))
@@ -1222,28 +1211,21 @@ pub fn add_fuzzers<'a>(
             .extra_tile_attr_fixed(edev.tile_cfg(die), "MISC", "DCI_CLK_ENABLE", "1");
 
         // Find VR and IO rows.
-        let vr_bel = (
-            die,
-            (edev.col_lcio.unwrap(), chip.row_bufg() + 6),
-            bels::IOB0,
-        );
-        let vr_node = edev.egrid.get_tile_by_bel(vr_bel);
-        let io_bel = (die, (edev.col_lcio.unwrap(), chip.row_bufg()), bels::IOB0);
-        let io_node = edev.egrid.get_tile_by_bel(io_bel);
-        let hclk_row = chip.row_hclk(io_node.2);
+        let vr_tile =
+            CellCoord::new(die, edev.col_lcio.unwrap(), chip.row_bufg() + 6).tile(tslots::BEL);
+        let io_tile =
+            CellCoord::new(die, edev.col_lcio.unwrap(), chip.row_bufg()).tile(tslots::BEL);
+        let io_bel = io_tile.cell.bel(bels::IOB0);
+        let hclk_row = chip.row_hclk(io_tile.cell.row);
         let hclk_node =
-            edev.egrid
-                .get_tile_by_bel((die, (edev.col_lcio.unwrap(), hclk_row), bels::DCI));
+            CellCoord::new(die, edev.col_lcio.unwrap(), hclk_row).tile(tslots::HCLK_BEL);
 
         // Ensure nothing is placed in VR.
         for bel in [bels::IOB0, bels::IOB1] {
-            let site = backend
-                .ngrid
-                .get_bel_name((vr_node.0, (vr_node.1, vr_node.2), bel))
-                .unwrap();
+            let site = backend.ngrid.get_bel_name(vr_tile.cell.bel(bel)).unwrap();
             builder = builder.raw(Key::SiteMode(site), None);
         }
-        builder = builder.extra_tile_attr_fixed(vr_node, "IOB_COMMON", "PRESENT", "VR");
+        builder = builder.extra_tile_attr_fixed(vr_tile, "IOB_COMMON", "PRESENT", "VR");
 
         // Set up hclk.
         builder = builder.extra_tile_attr_fixed(hclk_node, "DCI", "ENABLE", "1");
@@ -1263,7 +1245,7 @@ pub fn add_fuzzers<'a>(
             .raw_diff(Key::GlobalMutex("GLOBAL_DCI".into()), None, "EXCLUSIVE")
             // Avoid interference.
             .raw(Key::GlobalOpt("MATCH_CYCLE".into()), "NOWAIT")
-            .extra_tile_attr_fixed(io_node, "IOB0", "OSTD", "LVDCI_25")
+            .extra_tile_attr_fixed(io_tile, "IOB0", "OSTD", "LVDCI_25")
             .test_manual("NULL", "CENTER_DCI", "1")
             .commit();
     }
@@ -1272,32 +1254,31 @@ pub fn add_fuzzers<'a>(
         let chip = edev.chips[die];
         let mut builder = ctx.build().raw(Key::Package, &package.name);
 
-        let io_bel_from = (die, (edev.col_lcio.unwrap(), chip.row_bufg()), bels::IOB0);
-        let io_node_from = edev.egrid.get_tile_by_bel(io_bel_from);
+        let io_tile_from =
+            CellCoord::new(die, edev.col_lcio.unwrap(), chip.row_bufg()).tile(tslots::BEL);
+        let io_bel_from = io_tile_from.cell.bel(bels::IOB0);
         let io_row_to = match bank_to {
             24 => edev.chips[die].row_bufg() - 40,
             26 => edev.chips[die].row_bufg() + 40,
             _ => unreachable!(),
         };
-        let io_bel_to = (die, (edev.col_lcio.unwrap(), io_row_to), bels::IOB0);
-        let io_node_to = edev.egrid.get_tile_by_bel(io_bel_to);
+        let io_tile_to = CellCoord::new(die, edev.col_lcio.unwrap(), io_row_to).tile(tslots::BEL);
+        let io_bel_to = io_tile_to.cell.bel(bels::IOB0);
         let hclk_row_to = chip.row_hclk(io_row_to);
-        let hclk_node_to =
-            edev.egrid
-                .get_tile_by_bel((die, (edev.col_lcio.unwrap(), hclk_row_to), bels::DCI));
+        let hclk_tile_to =
+            CellCoord::new(die, edev.col_lcio.unwrap(), hclk_row_to).tile(tslots::HCLK_BEL);
 
         // Ensure nothing else in the bank.
-        let bot = chip.row_reg_bot(chip.row_to_reg(io_node_from.2));
+        let bot = chip.row_reg_bot(chip.row_to_reg(io_tile_from.cell.row));
         for i in 0..chip.rows_per_reg() {
             let row = bot + i;
             for bel in [bels::IOB0, bels::IOB1] {
-                if row == io_node_from.2 && bel == bels::IOB0 {
+                if row == io_tile_from.cell.row && bel == bels::IOB0 {
                     continue;
                 }
-                if let Some(site) =
-                    backend
-                        .ngrid
-                        .get_bel_name((io_node_from.0, (io_node_from.1, row), bel))
+                if let Some(site) = backend
+                    .ngrid
+                    .get_bel_name(io_tile_from.cell.with_row(row).bel(bel))
                 {
                     builder = builder.raw(Key::SiteMode(site), None);
                 }
@@ -1316,17 +1297,16 @@ pub fn add_fuzzers<'a>(
             .raw(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
 
         // Ensure nothing else in the bank.
-        let bot = chip.row_reg_bot(chip.row_to_reg(io_node_to.2));
+        let bot = chip.row_reg_bot(chip.row_to_reg(io_tile_to.cell.row));
         for i in 0..chip.rows_per_reg() {
             let row = bot + i;
             for bel in [bels::IOB0, bels::IOB1] {
-                if row == io_node_to.2 && bel == bels::IOB0 {
+                if row == io_tile_to.cell.row && bel == bels::IOB0 {
                     continue;
                 }
-                if let Some(site) =
-                    backend
-                        .ngrid
-                        .get_bel_name((io_node_to.0, (io_node_to.1, row), bel))
+                if let Some(site) = backend
+                    .ngrid
+                    .get_bel_name(io_tile_to.cell.with_row(row).bel(bel))
                 {
                     builder = builder.raw(Key::SiteMode(site), None);
                 }
@@ -1350,9 +1330,9 @@ pub fn add_fuzzers<'a>(
                 },
             )
             .raw_diff(Key::DciCascade(bank_to), None, 25)
-            .extra_tile_attr_fixed(io_node_to, "IOB0", "OSTD", "LVDCI_25")
+            .extra_tile_attr_fixed(io_tile_to, "IOB0", "OSTD", "LVDCI_25")
             .extra_tile_attr_fixed(
-                hclk_node_to,
+                hclk_tile_to,
                 "DCI",
                 if bank_to == 24 {
                     "CASCADE_FROM_ABOVE"

@@ -51,7 +51,7 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     let mut pins = vec![];
     let kind = if bel.naming.pins.contains_key("CLKIN") {
         pins.push(("CLKIN", SitePinDir::Out));
-        let st = if bel.row == endev.edev.chip.row_s() {
+        let (col, row) = if bel.row == endev.edev.chip.row_s() {
             (endev.edev.chip.col_w(), endev.edev.chip.row_s())
         } else if bel.row == endev.edev.chip.row_n() {
             (endev.edev.chip.col_e(), endev.edev.chip.row_n())
@@ -62,7 +62,7 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         } else {
             unreachable!()
         };
-        let obel = vrf.get_bel((bel.die, st, bels::CLKIOB));
+        let obel = vrf.get_bel(bel.cell.with_cr(col, row).bel(bels::CLKIOB));
         vrf.verify_node(&[bel.fwire("CLKIN"), obel.fwire("OUT")]);
         "CLKIOB"
     } else {

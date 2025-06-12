@@ -1,7 +1,7 @@
 use prjcombine_interconnect::{
     db::IntDb,
     dir::Dir,
-    grid::{DieId, ExpandedGrid},
+    grid::{CellCoord, DieId, ExpandedGrid},
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -86,10 +86,11 @@ impl Chip {
             if matches!(loc, ExtraNodeLoc::GbIo(..)) {
                 continue;
             }
+            let fcell = node.cells.first().unwrap();
             die.add_tile(
-                *node.cells.first().unwrap(),
+                (fcell.col, fcell.row),
                 &loc.tile_class(self.kind),
-                &Vec::from_iter(node.cells.values().copied()),
+                &Vec::from_iter(node.cells.values().map(|cell| (cell.col, cell.row))),
             );
         }
 
@@ -138,22 +139,20 @@ impl Chip {
             }
         }
 
+        let cnr_ws = CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_s());
+        let cnr_wn = CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_n());
+        let cnr_es = CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_s());
+        let cnr_en = CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_n());
         if self.kind.has_ioi_we() {
             for i in 0..4 {
                 for j in 0..4 {
                     let wh = egrid
-                        .resolve_wire((
-                            DieId::from_idx(0),
-                            (self.col_w(), self.row_s()),
-                            db.get_wire(&format!("QUAD.H{i}.{j}")),
-                        ))
+                        .resolve_wire(cnr_ws.wire(db.get_wire(&format!("QUAD.H{i}.{j}"))))
                         .unwrap();
                     let wv = egrid
-                        .resolve_wire((
-                            DieId::from_idx(0),
-                            (self.col_w(), self.row_s()),
-                            db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 3 - j)),
-                        ))
+                        .resolve_wire(
+                            cnr_ws.wire(db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 3 - j))),
+                        )
                         .unwrap();
                     egrid.extra_conns.insert(wh, wv);
                 }
@@ -161,18 +160,12 @@ impl Chip {
             for i in 0..4 {
                 for j in 0..4 {
                     let wh = egrid
-                        .resolve_wire((
-                            DieId::from_idx(0),
-                            (self.col_w(), self.row_n()),
-                            db.get_wire(&format!("QUAD.H{i}.{j}")),
-                        ))
+                        .resolve_wire(cnr_wn.wire(db.get_wire(&format!("QUAD.H{i}.{j}"))))
                         .unwrap();
                     let wv = egrid
-                        .resolve_wire((
-                            DieId::from_idx(0),
-                            (self.col_w(), self.row_n()),
-                            db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 4 - j)),
-                        ))
+                        .resolve_wire(
+                            cnr_wn.wire(db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 4 - j))),
+                        )
                         .unwrap();
                     egrid.extra_conns.insert(wh, wv);
                 }
@@ -180,18 +173,14 @@ impl Chip {
             for i in 0..4 {
                 for j in 0..4 {
                     let wh = egrid
-                        .resolve_wire((
-                            DieId::from_idx(0),
-                            (self.col_e(), self.row_s()),
-                            db.get_wire(&format!("QUAD.H{i}.{jj}", jj = 1 + j)),
-                        ))
+                        .resolve_wire(
+                            cnr_es.wire(db.get_wire(&format!("QUAD.H{i}.{jj}", jj = 1 + j))),
+                        )
                         .unwrap();
                     let wv = egrid
-                        .resolve_wire((
-                            DieId::from_idx(0),
-                            (self.col_e(), self.row_s()),
-                            db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 3 - j)),
-                        ))
+                        .resolve_wire(
+                            cnr_es.wire(db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 3 - j))),
+                        )
                         .unwrap();
                     egrid.extra_conns.insert(wh, wv);
                 }
@@ -199,18 +188,14 @@ impl Chip {
             for i in 0..4 {
                 for j in 0..4 {
                     let wh = egrid
-                        .resolve_wire((
-                            DieId::from_idx(0),
-                            (self.col_e(), self.row_n()),
-                            db.get_wire(&format!("QUAD.H{i}.{jj}", jj = 1 + j)),
-                        ))
+                        .resolve_wire(
+                            cnr_en.wire(db.get_wire(&format!("QUAD.H{i}.{jj}", jj = 1 + j))),
+                        )
                         .unwrap();
                     let wv = egrid
-                        .resolve_wire((
-                            DieId::from_idx(0),
-                            (self.col_e(), self.row_n()),
-                            db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 4 - j)),
-                        ))
+                        .resolve_wire(
+                            cnr_en.wire(db.get_wire(&format!("QUAD.V{i}.{jj}", jj = 4 - j))),
+                        )
                         .unwrap();
                     egrid.extra_conns.insert(wh, wv);
                 }
@@ -220,21 +205,13 @@ impl Chip {
                 let seg = i / 4;
                 let which = i % 4;
                 let wh = egrid
-                    .resolve_wire((
-                        DieId::from_idx(0),
-                        (self.col_w(), self.row_s()),
-                        db.get_wire(&format!("QUAD.H{which}.{seg}")),
-                    ))
+                    .resolve_wire(cnr_ws.wire(db.get_wire(&format!("QUAD.H{which}.{seg}"))))
                     .unwrap();
                 let seg = 3 - (32 + i) / 12;
                 let mut which = (32 + i) % 12;
                 which ^= seg & 1;
                 let wv = egrid
-                    .resolve_wire((
-                        DieId::from_idx(0),
-                        (self.col_w(), self.row_s()),
-                        db.get_wire(&format!("QUAD.V{which}.{seg}")),
-                    ))
+                    .resolve_wire(cnr_ws.wire(db.get_wire(&format!("QUAD.V{which}.{seg}"))))
                     .unwrap();
                 egrid.extra_conns.insert(wh, wv);
             }
@@ -242,22 +219,14 @@ impl Chip {
                 let seg = i / 4;
                 let which = i % 4;
                 let wh = egrid
-                    .resolve_wire((
-                        DieId::from_idx(0),
-                        (self.col_w(), self.row_n()),
-                        db.get_wire(&format!("QUAD.H{which}.{seg}")),
-                    ))
+                    .resolve_wire(cnr_wn.wire(db.get_wire(&format!("QUAD.H{which}.{seg}"))))
                     .unwrap();
                 let mut seg = 3 - i / 12;
                 let mut which = i % 12;
                 which ^= seg & 1;
                 seg += 1;
                 let wv = egrid
-                    .resolve_wire((
-                        DieId::from_idx(0),
-                        (self.col_w(), self.row_n()),
-                        db.get_wire(&format!("QUAD.V{which}.{seg}")),
-                    ))
+                    .resolve_wire(cnr_wn.wire(db.get_wire(&format!("QUAD.V{which}.{seg}"))))
                     .unwrap();
                 egrid.extra_conns.insert(wh, wv);
             }
@@ -265,21 +234,13 @@ impl Chip {
                 let seg = 1 + i / 4;
                 let which = i % 4;
                 let wh = egrid
-                    .resolve_wire((
-                        DieId::from_idx(0),
-                        (self.col_e(), self.row_s()),
-                        db.get_wire(&format!("QUAD.H{which}.{seg}")),
-                    ))
+                    .resolve_wire(cnr_es.wire(db.get_wire(&format!("QUAD.H{which}.{seg}"))))
                     .unwrap();
                 let seg = 3 - (32 + i) / 12;
                 let mut which = (32 + i) % 12;
                 which ^= seg & 1;
                 let wv = egrid
-                    .resolve_wire((
-                        DieId::from_idx(0),
-                        (self.col_e(), self.row_s()),
-                        db.get_wire(&format!("QUAD.V{which}.{seg}")),
-                    ))
+                    .resolve_wire(cnr_es.wire(db.get_wire(&format!("QUAD.V{which}.{seg}"))))
                     .unwrap();
                 egrid.extra_conns.insert(wh, wv);
             }
@@ -287,22 +248,14 @@ impl Chip {
                 let seg = 1 + i / 4;
                 let which = i % 4;
                 let wh = egrid
-                    .resolve_wire((
-                        DieId::from_idx(0),
-                        (self.col_e(), self.row_n()),
-                        db.get_wire(&format!("QUAD.H{which}.{seg}")),
-                    ))
+                    .resolve_wire(cnr_en.wire(db.get_wire(&format!("QUAD.H{which}.{seg}"))))
                     .unwrap();
                 let mut seg = 3 - i / 12;
                 let mut which = i % 12;
                 which ^= seg & 1;
                 seg += 1;
                 let wv = egrid
-                    .resolve_wire((
-                        DieId::from_idx(0),
-                        (self.col_e(), self.row_n()),
-                        db.get_wire(&format!("QUAD.V{which}.{seg}")),
-                    ))
+                    .resolve_wire(cnr_en.wire(db.get_wire(&format!("QUAD.V{which}.{seg}"))))
                     .unwrap();
                 egrid.extra_conns.insert(wh, wv);
             }

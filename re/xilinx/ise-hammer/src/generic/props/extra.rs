@@ -1,7 +1,7 @@
 use prjcombine_interconnect::{
     db::{BelSlotId, TileClassId},
     dir::DirV,
-    grid::NodeLoc,
+    grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
@@ -9,7 +9,7 @@ use prjcombine_xilinx_bitstream::{BitTile, Reg};
 
 use crate::backend::IseBackend;
 
-use super::{DynProp, relation::NodeRelation};
+use super::{DynProp, relation::TileRelation};
 
 #[derive(Clone, Debug)]
 pub struct ExtraTile<R> {
@@ -35,7 +35,7 @@ impl<R> ExtraTile<R> {
     }
 }
 
-impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
+impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -43,7 +43,7 @@ impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let nloc = self.relation.resolve(backend, nloc)?;
@@ -88,7 +88,7 @@ impl<R> ExtraTileMaybe<R> {
     }
 }
 
-impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe<R> {
+impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe<R> {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -96,7 +96,7 @@ impl<'b, R: NodeRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let Some(nloc) = self.relation.resolve(backend, nloc) else {
@@ -151,7 +151,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         if let Some(locs) = backend.egrid.tile_index.get(self.kind) {
@@ -207,7 +207,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         for (node_kind, locs) in &backend.egrid.tile_index {
@@ -273,7 +273,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraReg {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         for die in backend.egrid.die.ids() {
@@ -305,7 +305,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraGtz {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        _nloc: NodeLoc,
+        _nloc: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let main_id = &fuzzer.info.features[0].id;

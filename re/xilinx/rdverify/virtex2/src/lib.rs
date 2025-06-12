@@ -18,7 +18,7 @@ fn get_bel_iob<'a>(
 
 fn verify_rll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut pins = Vec::new();
-    if bel.bel.pins.is_empty() {
+    if bel.info.pins.is_empty() {
         for pin in bel.naming.pins.keys() {
             pins.push((&**pin, SitePinDir::In));
             vrf.claim_node(&[bel.fwire(pin)]);
@@ -50,7 +50,7 @@ fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelConte
         for (pin, oslot) in [("BREFCLKPIN", slot_p), ("BREFCLKNIN", slot_n)] {
             vrf.claim_node(&[bel.fwire(pin)]);
             vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
-            let obel = vrf.get_bel((bel.die, (endev.chip.col_clk - 1, bel.row), oslot));
+            let obel = vrf.get_bel(bel.cell.with_col(endev.chip.col_clk - 1).bel(oslot));
             vrf.verify_node(&[bel.fwire_far(pin), obel.fwire_far("I")]);
         }
     } else {
@@ -69,7 +69,7 @@ fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelConte
             ],
             &[],
         );
-        let obel = vrf.get_bel((bel.die, (endev.chip.col_clk, bel.row), bels::BREFCLK));
+        let obel = vrf.get_bel(bel.cell.with_col(endev.chip.col_clk).bel(bels::BREFCLK));
         for pin in ["BREFCLK", "BREFCLK2"] {
             vrf.claim_node(&[bel.fwire(pin)]);
             vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));

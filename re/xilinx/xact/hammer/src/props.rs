@@ -1,4 +1,4 @@
-use prjcombine_interconnect::{db::BelSlotId, grid::NodeLoc};
+use prjcombine_interconnect::{db::BelSlotId, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_types::bitvec::BitVec;
@@ -27,7 +27,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for BaseRaw {
     fn apply<'a>(
         &self,
         _backend: &XactBackend<'a>,
-        _nloc: NodeLoc,
+        _tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         Some((fuzzer.base(self.key.clone(), self.val.clone()), false))
@@ -55,7 +55,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for FuzzRaw {
     fn apply<'a>(
         &self,
         _backend: &XactBackend<'a>,
-        _nloc: NodeLoc,
+        _tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         Some((
@@ -85,10 +85,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for BaseBelMode {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.base(Key::BlockBase(&nnode.bels[self.bel][0]), self.val.clone()),
             false,
@@ -116,10 +116,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for FuzzBelMode {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.fuzz(
                 Key::BlockBase(&nnode.bels[self.bel][0]),
@@ -152,12 +152,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for BaseBelMutex {
     fn apply<'a>(
         &self,
         _backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         Some((
             fuzzer.base(
-                Key::BelMutex((nloc.0, (nloc.1, nloc.2), self.bel), self.attr.clone()),
+                Key::BelMutex(tcrd.bel(self.bel), self.attr.clone()),
                 self.val.clone(),
             ),
             false,
@@ -186,10 +186,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for BaseBelConfig {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.base(
                 Key::BlockConfig(
@@ -225,10 +225,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for BaseBelNoConfig {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.base(
                 Key::BlockConfig(
@@ -264,10 +264,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for FuzzBelConfig {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer.fuzz(
                 Key::BlockConfig(
@@ -310,10 +310,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for FuzzBelConfigDiff {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         Some((
             fuzzer
                 .fuzz(
@@ -360,10 +360,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for FuzzEquate {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         let bname = &nnode.bels[self.bel][0];
         for &inp in self.inps {
             fuzzer = fuzzer.base(
@@ -410,10 +410,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for FuzzEquateFixed {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         let bname = &nnode.bels[self.bel][0];
         for &inp in self.inps {
             fuzzer = fuzzer.fuzz(
@@ -454,12 +454,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for FuzzBelPipBufg {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let crd = backend
-            .ngrid
-            .bel_pip((nloc.0, (nloc.1, nloc.2), self.bel), &self.key);
+        let crd = backend.ngrid.bel_pip(tcrd.bel(self.bel), &self.key);
         Some((
             fuzzer.fuzz(Key::Pip(crd), None, Value::FromPin(self.buf, "O".into())),
             false,
@@ -487,14 +485,11 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for PinMutexExclusive {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(nloc);
-        let pin_info = &backend.egrid.db.tile_classes[node.class].bels[self.bel].pins[&self.pin];
-        for &wire in &pin_info.wires {
-            let nw = (nloc.0, node.cells[wire.0], wire.1);
-            let rw = backend.egrid.resolve_wire(nw)?;
+        for wire in backend.egrid.get_bel_pin(tcrd.bel(self.bel), &self.pin) {
+            let rw = backend.egrid.resolve_wire(wire)?;
             fuzzer = fuzzer.fuzz(Key::NodeMutex(rw), false, true);
         }
         Some((fuzzer, false))
@@ -522,14 +517,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for FuzzBelPipPin {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.nodes[&nloc];
+        let nnode = &backend.ngrid.tiles[&tcrd];
         let bname = &nnode.bels[self.bel][0];
-        let crd = backend
-            .ngrid
-            .bel_pip((nloc.0, (nloc.1, nloc.2), self.bel), &self.key);
+        let crd = backend.ngrid.bel_pip(tcrd.bel(self.bel), &self.key);
         Some((
             fuzzer.fuzz(Key::Pip(crd), None, Value::FromPin(bname, self.pin.clone())),
             false,
@@ -556,13 +549,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for BondedIo {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let io = backend
-            .edev
-            .chip
-            .get_io_crd((nloc.0, (nloc.1, nloc.2), self.bel));
+        let io = backend.edev.chip.get_io_crd(tcrd.bel(self.bel));
         if backend.edev.chip.unbonded_io.contains(&io) {
             None
         } else {
@@ -573,16 +563,16 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for BondedIo {
 
 #[derive(Clone, Debug)]
 pub struct ExtraTile {
-    pub nloc: NodeLoc,
+    pub tcrd: TileCoord,
     pub bel: String,
     pub attr: String,
     pub val: String,
 }
 
 impl ExtraTile {
-    pub fn new(nloc: NodeLoc, bel: String, attr: String, val: String) -> Self {
+    pub fn new(tcrd: TileCoord, bel: String, attr: String, val: String) -> Self {
         Self {
-            nloc,
+            tcrd,
             bel,
             attr,
             val,
@@ -598,10 +588,10 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ExtraTile {
     fn apply<'a>(
         &self,
         backend: &XactBackend<'a>,
-        _nloc: NodeLoc,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(self.nloc);
+        let node = backend.egrid.tile(self.tcrd);
         let tile = backend.egrid.db.tile_classes.key(node.class);
         fuzzer.info.features.push(FuzzerFeature {
             id: FeatureId {
@@ -610,7 +600,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ExtraTile {
                 attr: self.attr.clone(),
                 val: self.val.clone(),
             },
-            tiles: backend.edev.tile_bits(self.nloc),
+            tiles: backend.edev.tile_bits(self.tcrd),
         });
         Some((fuzzer, false))
     }

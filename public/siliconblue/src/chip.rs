@@ -3,9 +3,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::{
-    db::TileCellId,
+    db::CellSlotId,
     dir::{Dir, DirH, DirV},
-    grid::{BelCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
+    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 use unnamed_entity::{EntityId, EntityIds, EntityVec};
 
@@ -302,7 +302,7 @@ impl std::fmt::Display for SharedCfgPad {
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub struct ExtraNode {
     pub io: BTreeMap<ExtraNodeIo, EdgeIoCoord>,
-    pub cells: EntityVec<TileCellId, (ColId, RowId)>,
+    pub cells: EntityVec<CellSlotId, CellCoord>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
@@ -575,20 +575,19 @@ impl Chip {
             EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
         };
         let slot = bels::IO[iob.to_idx()];
-        (DieId::from_idx(0), (col, row), slot)
+        CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
-        let (_, (col, row), slot) = bel;
-        let iob = TileIobId::from_idx(bels::IO.iter().position(|&x| x == slot).unwrap());
-        if col == self.col_w() {
-            EdgeIoCoord::W(row, iob)
-        } else if col == self.col_e() {
-            EdgeIoCoord::E(row, iob)
-        } else if row == self.row_s() {
-            EdgeIoCoord::S(col, iob)
-        } else if row == self.row_n() {
-            EdgeIoCoord::N(col, iob)
+        let iob = TileIobId::from_idx(bels::IO.iter().position(|&x| x == bel.slot).unwrap());
+        if bel.col == self.col_w() {
+            EdgeIoCoord::W(bel.row, iob)
+        } else if bel.col == self.col_e() {
+            EdgeIoCoord::E(bel.row, iob)
+        } else if bel.row == self.row_s() {
+            EdgeIoCoord::S(bel.col, iob)
+        } else if bel.row == self.row_n() {
+            EdgeIoCoord::N(bel.col, iob)
         } else {
             unreachable!()
         }
@@ -641,7 +640,7 @@ impl From<&ExtraNode> for JsonValue {
     fn from(node: &ExtraNode) -> Self {
         jzon::object! {
             io: jzon::object::Object::from_iter(node.io.iter().map(|(slot, io)| (slot.to_string(), io.to_string()))),
-            cells: Vec::from_iter(node.cells.values().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
+            cells: Vec::from_iter(node.cells.values().map(|cell| cell.to_string())),
         }
     }
 }
@@ -692,8 +691,8 @@ impl std::fmt::Display for Chip {
             for (slot, io) in &node.io {
                 writeln!(f, "\t\tIO {slot}: {io}")?;
             }
-            for (tile, (col, row)) in &node.cells {
-                writeln!(f, "\t\t{tile}: {col}{row}")?;
+            for (idx, cell) in &node.cells {
+                writeln!(f, "\t\t{idx}: {cell}")?;
             }
         }
         writeln!(f, "\tIOB:")?;

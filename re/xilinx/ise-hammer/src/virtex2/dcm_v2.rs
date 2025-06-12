@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use prjcombine_interconnect::{
     dir::{DirH, DirHV, DirV},
-    grid::NodeLoc,
+    grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, extract_bitvec_val, extract_bitvec_val_part,
@@ -18,6 +18,7 @@ use prjcombine_types::{
 use prjcombine_virtex2::{
     bels,
     chip::{ChipKind, ColumnKind},
+    tslots,
 };
 
 use crate::{
@@ -40,7 +41,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DcmCornerEnable {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let ExpandedDevice::Virtex2(edev) = backend.edev else {
@@ -48,25 +49,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DcmCornerEnable {
         };
         let required = self.1;
         let we_match = match self.0.h {
-            DirH::W => nloc.1 < edev.chip.col_clk,
-            DirH::E => nloc.1 >= edev.chip.col_clk,
+            DirH::W => tcrd.col < edev.chip.col_clk,
+            DirH::E => tcrd.col >= edev.chip.col_clk,
         };
         let sn_match = match self.0.v {
-            DirV::S => nloc.2 < edev.chip.row_mid(),
-            DirV::N => nloc.2 >= edev.chip.row_mid(),
+            DirV::S => tcrd.row < edev.chip.row_mid(),
+            DirV::N => tcrd.row >= edev.chip.row_mid(),
         };
         if we_match && sn_match {
-            let col = match self.0.h {
-                DirH::W => edev.chip.col_w(),
-                DirH::E => edev.chip.col_e(),
-            };
-            let nloc = edev.egrid.get_tile_by_class(nloc.0, (col, nloc.2), |kind| {
-                kind.starts_with("LL.")
-                    || kind.starts_with("LR.")
-                    || kind.starts_with("UL.")
-                    || kind.starts_with("UR.")
-            });
-            let node = edev.egrid.tile(nloc);
+            let col = edev.chip.col_edge(self.0.h);
+            let tcrd = tcrd.with_col(col).tile(tslots::BEL);
+            let node = edev.egrid.tile(tcrd);
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
                     tile: edev.egrid.db.tile_classes.key(node.class).clone(),
@@ -74,7 +67,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DcmCornerEnable {
                     attr: "DCM_ENABLE".into(),
                     val: "1".into(),
                 },
-                tiles: edev.tile_bits(nloc),
+                tiles: edev.tile_bits(tcrd),
             });
             Some((fuzzer, false))
         } else if required {

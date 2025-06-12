@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
-    db::{BelSlotId, TileCellId},
-    grid::NodeLoc,
+    db::{BelSlotId, CellSlotId, TileWireCoord},
+    grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -40,30 +40,33 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(nloc);
-        let node_data = &backend.egrid.db.tile_classes[node.class];
-        let bel_data = &node_data.bels[self.slot];
+        let tile = backend.egrid.tile(tcrd);
+        let tcls = &backend.egrid.db.tile_classes[tile.class];
+        let bel_data = &tcls.bels[self.slot];
         let wire = *bel_data.pins[self.pin].wires.iter().next().unwrap();
         let res_wire = backend
             .egrid
-            .resolve_wire((nloc.0, node.cells[wire.0], wire.1))
+            .resolve_wire(backend.egrid.tile_wire(tcrd, wire))
             .unwrap();
         fuzzer = fuzzer.fuzz(Key::NodeMutex(res_wire), None, "EXCLUSIVE");
         if self.drive {
-            let oloc = (res_wire.0, res_wire.1.0, res_wire.1.1, tslots::MAIN);
-            let onode = backend.egrid.tile(oloc);
-            let onode_data = &backend.egrid.db.tile_classes[onode.class];
-            let wt = (TileCellId::from_idx(0), res_wire.2);
-            let mux = &onode_data.muxes[&wt];
+            let otcrd = res_wire.cell.tile(tslots::MAIN);
+            let otile = backend.egrid.tile(otcrd);
+            let otcls = &backend.egrid.db.tile_classes[otile.class];
+            let wt = TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire: res_wire.slot,
+            };
+            let mux = &otcls.muxes[&wt];
             let wf = *mux.ins.iter().next().unwrap();
             let res_wf = backend
                 .egrid
-                .resolve_wire((oloc.0, onode.cells[wf.0], wf.1))
+                .resolve_wire(backend.egrid.tile_wire(otcrd, wf))
                 .unwrap();
-            let (tile, wt, wf) = resolve_int_pip(backend, oloc, wt, wf).unwrap();
+            let (tile, wt, wf) = resolve_int_pip(backend, otcrd, wt, wf).unwrap();
             fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true).fuzz(
                 Key::NodeMutex(res_wf),
                 None,

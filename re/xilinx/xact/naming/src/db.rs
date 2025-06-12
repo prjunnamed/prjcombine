@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
-use prjcombine_interconnect::db::{BelSlotId, IntDb, TileClassWire};
+use prjcombine_interconnect::db::{BelSlotId, IntDb, TileWireCoord};
 use unnamed_entity::{
     EntityMap,
     id::{EntityIdU16, EntityTag},
@@ -36,7 +36,7 @@ impl NamingDb {
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct NodeNaming {
-    pub int_pips: BTreeMap<(TileClassWire, TileClassWire), IntPipNaming>,
+    pub int_pips: BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>,
     pub bel_pips: BTreeMap<(BelSlotId, String), PipNaming>,
 }
 
@@ -62,10 +62,10 @@ impl NamingDb {
                 write!(
                     o,
                     "\t\tPIP {wtt}.{wtn:20} <- {wft}.{wfn:20}: ",
-                    wtt = wt.0,
-                    wtn = intdb.wires.key(wt.1),
-                    wft = wf.0,
-                    wfn = intdb.wires.key(wf.1),
+                    wtt = wt.cell,
+                    wtn = intdb.wires.key(wt.wire),
+                    wft = wf.cell,
+                    wfn = intdb.wires.key(wf.wire),
                 )?;
                 match v {
                     IntPipNaming::Pip(p) => {

@@ -1,6 +1,6 @@
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::{
-    ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
+    CellCoord, ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
 };
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
@@ -80,18 +80,15 @@ impl Expander<'_, '_> {
     fn fill_lrio(&mut self) {
         for col in [self.col_lio.unwrap(), self.col_rio.unwrap()] {
             for row in self.die.rows() {
+                let cell = CellCoord::new(self.die.die, col, row);
                 self.die.add_tile((col, row), "INTF", &[(col, row)]);
                 self.die.add_tile((col, row), "IO", &[(col, row)]);
                 let crd_n = IoCoord {
-                    die: self.die.die,
-                    col,
-                    row,
+                    cell,
                     iob: TileIobId::from_idx(0),
                 };
                 let crd_p = IoCoord {
-                    die: self.die.die,
-                    col,
-                    row,
+                    cell,
                     iob: TileIobId::from_idx(1),
                 };
                 self.io.extend([crd_n, crd_p]);
@@ -192,19 +189,16 @@ impl Expander<'_, '_> {
     fn fill_cio(&mut self) {
         let col = self.col_cfg;
         for row in self.die.rows() {
+            let cell = CellCoord::new(self.die.die, col, row);
             if !self.is_site_hole(col, row) {
                 self.die.add_tile((col, row), "INTF", &[(col, row)]);
                 self.die.add_tile((col, row), "IO", &[(col, row)]);
                 let crd_n = IoCoord {
-                    die: self.die.die,
-                    col,
-                    row,
+                    cell,
                     iob: TileIobId::from_idx(0),
                 };
                 let crd_p = IoCoord {
-                    die: self.die.die,
-                    col,
-                    row,
+                    cell,
                     iob: TileIobId::from_idx(1),
                 };
                 self.io.extend([crd_n, crd_p]);
@@ -665,9 +659,11 @@ pub fn expand_grid<'a>(
         cfg_io.insert(
             SharedCfgPad::Data(i as u8),
             IoCoord {
-                die: DieId::from_idx(0),
-                col: col_cfg,
-                row: chip.row_reg_bot(chip.reg_cfg) - 16 + i / 2,
+                cell: CellCoord::new(
+                    DieId::from_idx(0),
+                    col_cfg,
+                    chip.row_reg_bot(chip.reg_cfg) - 16 + i / 2,
+                ),
                 iob: TileIobId::from_idx(i & 1),
             },
         );
@@ -676,9 +672,11 @@ pub fn expand_grid<'a>(
         cfg_io.insert(
             SharedCfgPad::Data(i as u8 + 16),
             IoCoord {
-                die: DieId::from_idx(0),
-                col: col_cfg,
-                row: chip.row_reg_bot(chip.reg_cfg) + 8 + i / 2,
+                cell: CellCoord::new(
+                    DieId::from_idx(0),
+                    col_cfg,
+                    chip.row_reg_bot(chip.reg_cfg) + 8 + i / 2,
+                ),
                 iob: TileIobId::from_idx(i & 1),
             },
         );

@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use prjcombine_interconnect::{db::TileClassWire, grid::NodeLoc};
+use prjcombine_interconnect::{db::TileWireCoord, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -22,25 +22,24 @@ use super::{
 
 fn resolve_intf_test_pip<'a>(
     backend: &IseBackend<'a>,
-    loc: NodeLoc,
-    wire_to: TileClassWire,
-    wire_from: TileClassWire,
+    tcrd: TileCoord,
+    wire_to: TileWireCoord,
+    wire_from: TileWireCoord,
 ) -> Option<(&'a str, &'a str, &'a str)> {
-    let node = backend.egrid.tile(loc);
-    let nnode = &backend.ngrid.tiles[&loc];
+    let nnode = &backend.ngrid.tiles[&tcrd];
     let intdb = backend.egrid.db;
     let ndb = backend.ngrid.db;
     let node_naming = &ndb.tile_class_namings[nnode.naming];
     backend
         .egrid
-        .resolve_wire((loc.0, node.cells[wire_to.0], wire_to.1))?;
+        .resolve_wire(backend.egrid.tile_wire(tcrd, wire_to))?;
     backend
         .egrid
-        .resolve_wire((loc.0, node.cells[wire_from.0], wire_from.1))?;
+        .resolve_wire(backend.egrid.tile_wire(tcrd, wire_from))?;
     if let ExpandedDevice::Virtex4(edev) = backend.edev {
         if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5
             && ndb.tile_class_namings.key(nnode.naming) == "INTF.PPC_R"
-            && intdb.wires.key(wire_from.1).starts_with("TEST")
+            && intdb.wires.key(wire_from.wire).starts_with("TEST")
         {
             // ISE.
             return None;
@@ -64,12 +63,12 @@ fn resolve_intf_test_pip<'a>(
 
 #[derive(Clone, Debug)]
 struct FuzzIntfTestPip {
-    wire_to: TileClassWire,
-    wire_from: TileClassWire,
+    wire_to: TileWireCoord,
+    wire_from: TileWireCoord,
 }
 
 impl FuzzIntfTestPip {
-    pub fn new(wire_to: TileClassWire, wire_from: TileClassWire) -> Self {
+    pub fn new(wire_to: TileWireCoord, wire_from: TileWireCoord) -> Self {
         Self { wire_to, wire_from }
     }
 }
@@ -82,7 +81,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfTestPip {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         if let ExpandedDevice::Virtex4(edev) = backend.edev {
@@ -91,31 +90,30 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfTestPip {
                     .egrid
                     .db
                     .wires
-                    .key(self.wire_from.1)
+                    .key(self.wire_from.wire)
                     .starts_with("TEST")
-                && nloc.1 == edev.col_cfg
+                && tcrd.col == edev.col_cfg
             {
                 // interference.
                 return None;
             }
         }
-        let (tile, wt, wf) = resolve_intf_test_pip(backend, nloc, self.wire_to, self.wire_from)?;
+        let (tile, wt, wf) = resolve_intf_test_pip(backend, tcrd, self.wire_to, self.wire_from)?;
         Some((fuzzer.fuzz(Key::Pip(tile, wf, wt), None, true), false))
     }
 }
 
 fn resolve_intf_delay<'a>(
     backend: &IseBackend<'a>,
-    loc: NodeLoc,
-    wire: TileClassWire,
+    tcrd: TileCoord,
+    wire: TileWireCoord,
 ) -> Option<(&'a str, &'a str, &'a str, &'a str)> {
-    let node = backend.egrid.tile(loc);
-    let nnode = &backend.ngrid.tiles[&loc];
+    let nnode = &backend.ngrid.tiles[&tcrd];
     let ndb = backend.ngrid.db;
     let node_naming = &ndb.tile_class_namings[nnode.naming];
     backend
         .egrid
-        .resolve_wire((loc.0, node.cells[wire.0], wire.1))?;
+        .resolve_wire(backend.egrid.tile_wire(tcrd, wire))?;
     let IntfWireInNaming::Delay {
         name_out,
         name_in,
@@ -134,12 +132,12 @@ fn resolve_intf_delay<'a>(
 
 #[derive(Clone, Debug)]
 struct FuzzIntfDelay {
-    wire: TileClassWire,
+    wire: TileWireCoord,
     state: bool,
 }
 
 impl FuzzIntfDelay {
-    pub fn new(wire: TileClassWire, state: bool) -> Self {
+    pub fn new(wire: TileWireCoord, state: bool) -> Self {
         Self { wire, state }
     }
 }
@@ -152,7 +150,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfDelay {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let (tile, wa, wb, wc) = resolve_intf_delay(backend, nloc, self.wire)?;
@@ -181,15 +179,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             match intf {
                 prjcombine_interconnect::db::IntfInfo::OutputTestMux(inps) => {
                     let mux_name = if node.cells.len() == 1 {
-                        format!("MUX.{}", intdb.wires.key(wire.1))
+                        format!("MUX.{}", intdb.wires.key(wire.wire))
                     } else {
-                        format!("MUX.{:#}.{}", wire.0, intdb.wires.key(wire.1))
+                        format!("MUX.{:#}.{}", wire.cell, intdb.wires.key(wire.wire))
                     };
                     for &wire_from in inps {
                         let in_name = if node.cells.len() == 1 {
-                            intdb.wires.key(wire_from.1).to_string()
+                            intdb.wires.key(wire_from.wire).to_string()
                         } else {
-                            format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1))
+                            format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                         };
                         ctx.build()
                             .prop(IntMutex::new("INTF".into()))
@@ -203,7 +201,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 prjcombine_interconnect::db::IntfInfo::InputDelay => {
                     assert_eq!(node.cells.len(), 1);
-                    let del_name = format!("DELAY.{}", intdb.wires.key(wire.1));
+                    let del_name = format!("DELAY.{}", intdb.wires.key(wire.wire));
                     for val in ["0", "1"] {
                         ctx.build()
                             .prop(IntMutex::new("INTF".into()))
@@ -236,16 +234,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             match intf {
                 prjcombine_interconnect::db::IntfInfo::OutputTestMux(inps) => {
                     let mux_name = if node.cells.len() == 1 {
-                        format!("MUX.{}", intdb.wires.key(wire.1))
+                        format!("MUX.{}", intdb.wires.key(wire.wire))
                     } else {
-                        format!("MUX.{:#}.{}", wire.0, intdb.wires.key(wire.1))
+                        format!("MUX.{:#}.{}", wire.cell, intdb.wires.key(wire.wire))
                     };
                     let mut mux_inps = vec![];
                     for &wire_from in inps {
                         let in_name = if node.cells.len() == 1 {
-                            intdb.wires.key(wire_from.1).to_string()
+                            intdb.wires.key(wire_from.wire).to_string()
                         } else {
-                            format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1))
+                            format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                         };
                         let diff = ctx.state.get_diff(name, "INTF", &mux_name, &in_name);
 
@@ -261,7 +259,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     test_muxes.push((mux_name, mux_inps));
                 }
                 prjcombine_interconnect::db::IntfInfo::InputDelay => {
-                    let del_name = format!("DELAY.{}", intdb.wires.key(wire.1));
+                    let del_name = format!("DELAY.{}", intdb.wires.key(wire.wire));
                     ctx.collect_enum_bool(name, "INTF", &del_name, "0", "1");
                 }
                 _ => unreachable!(),

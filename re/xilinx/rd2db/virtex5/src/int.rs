@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{ConnectorWire, IntDb, TileCellId, WireKind},
+    db::{CellSlotId, ConnectorWire, IntDb, TileWireCoord, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, NamingDb};
@@ -653,14 +653,20 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     if let Some((_, intf)) = builder.ndb.tile_class_namings.get_mut("INTF.PPC_R") {
         intf.intf_wires_in.insert(
-            (TileCellId::from_idx(0), clk[0]),
+            TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire: clk[0],
+            },
             IntfWireInNaming::Buf {
                 name_out: "PPC_R_INT_INTERFACE_FB_CLK_B0".to_string(),
                 name_in: "INT_INTERFACE_CLK_B0".to_string(),
             },
         );
         intf.intf_wires_in.insert(
-            (TileCellId::from_idx(0), clk[1]),
+            TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire: clk[1],
+            },
             IntfWireInNaming::Buf {
                 name_out: "PPC_R_INT_INTERFACE_FB_CLK_B1".to_string(),
                 name_in: "INT_INTERFACE_CLK_B1".to_string(),

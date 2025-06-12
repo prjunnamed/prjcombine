@@ -219,18 +219,18 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
         writeln!(buf, r#"<tbody>"#).unwrap();
         for (wdst, mux) in &tcls.muxes {
             let dst = if single_cell {
-                intdb.wires.key(wdst.1).to_string()
+                intdb.wires.key(wdst.wire).to_string()
             } else {
-                format!("{}:{}", wdst.0, intdb.wires.key(wdst.1))
+                format!("{}:{}", wdst.cell, intdb.wires.key(wdst.wire))
             };
             let src = mux
                 .ins
                 .iter()
                 .map(|wsrc| {
                     if single_cell {
-                        intdb.wires.key(wsrc.1).to_string()
+                        intdb.wires.key(wsrc.wire).to_string()
                     } else {
-                        format!("{}:{}", wsrc.0, intdb.wires.key(wsrc.1))
+                        format!("{}:{}", wsrc.cell, intdb.wires.key(wsrc.wire))
                     }
                 })
                 .join(", ");
@@ -252,9 +252,9 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
         writeln!(buf, r#"<tbody>"#).unwrap();
         for (wire, intf) in &tcls.intfs {
             let wire = if single_cell {
-                intdb.wires.key(wire.1).to_string()
+                intdb.wires.key(wire.wire).to_string()
             } else {
-                format!("{}:{}", wire.0, intdb.wires.key(wire.1))
+                format!("{}:{}", wire.cell, intdb.wires.key(wire.wire))
             };
             let intf = match intf {
                 IntfInfo::OutputTestMux(srcs) => {
@@ -262,9 +262,9 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                         .iter()
                         .map(|wsrc| {
                             if single_cell {
-                                intdb.wires.key(wsrc.1).to_string()
+                                intdb.wires.key(wsrc.wire).to_string()
                             } else {
-                                format!("{}:{}", wsrc.0, intdb.wires.key(wsrc.1))
+                                format!("{}:{}", wsrc.cell, intdb.wires.key(wsrc.wire))
                             }
                         })
                         .join(", ");
@@ -275,16 +275,16 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                         .iter()
                         .map(|wsrc| {
                             if single_cell {
-                                intdb.wires.key(wsrc.1).to_string()
+                                intdb.wires.key(wsrc.wire).to_string()
                             } else {
-                                format!("{}:{}", wsrc.0, intdb.wires.key(wsrc.1))
+                                format!("{}:{}", wsrc.cell, intdb.wires.key(wsrc.wire))
                             }
                         })
                         .join(", ");
                     let base = if single_cell {
-                        intdb.wires.key(base.1).to_string()
+                        intdb.wires.key(base.wire).to_string()
                     } else {
-                        format!("{}:{}", base.0, intdb.wires.key(base.1))
+                        format!("{}:{}", base.cell, intdb.wires.key(base.wire))
                     };
                     format!("TEST_MUX BASE {base} TEST {srcs}")
                 }
@@ -320,9 +320,9 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                 .iter()
                 .map(|wire| {
                     if single_cell {
-                        intdb.wires.key(wire.1).to_string()
+                        intdb.wires.key(wire.wire).to_string()
                     } else {
-                        format!("{}:{}", wire.0, intdb.wires.key(wire.1))
+                        format!("{}:{}", wire.cell, intdb.wires.key(wire.wire))
                     }
                 })
                 .join(", ");
@@ -355,9 +355,9 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
         writeln!(buf, r#"<tbody>"#).unwrap();
         for (wire, pins) in wmap {
             let wire = if single_cell {
-                intdb.wires.key(wire.1).to_string()
+                intdb.wires.key(wire.wire).to_string()
             } else {
-                format!("{}:{}", wire.0, intdb.wires.key(wire.1))
+                format!("{}:{}", wire.cell, intdb.wires.key(wire.wire))
             };
 
             let pins = pins

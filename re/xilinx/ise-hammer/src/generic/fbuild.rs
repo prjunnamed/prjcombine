@@ -1,7 +1,7 @@
 use prjcombine_interconnect::{
     db::{BelSlotId, TileClassId},
     dir::DirV,
-    grid::NodeLoc,
+    grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{FeatureId, FpgaFuzzerGen, FuzzerProp};
 use prjcombine_re_hammer::Session;
@@ -20,7 +20,7 @@ use super::props::{
     extra::{ExtraGtz, ExtraReg, ExtraTile, ExtraTilesByBel, ExtraTilesByKind},
     mutex::{IntMutex, RowMutex, TileMutex, TileMutexExclusive},
     pip::{BasePip, BelIntoPipWire, FuzzPip},
-    relation::{FixedRelation, HasRelated, NodeRelation, NoopRelation, Related},
+    relation::{FixedRelation, HasRelated, NoopRelation, Related, TileRelation},
 };
 
 pub struct FuzzCtx<'sm, 'a> {
@@ -154,7 +154,7 @@ pub trait FuzzBuilderBase<'b>: Sized {
         self.prop(prop)
     }
 
-    fn related_tile_mutex<R: NodeRelation + 'b>(
+    fn related_tile_mutex<R: TileRelation + 'b>(
         self,
         relation: R,
         key: impl Into<String>,
@@ -164,7 +164,7 @@ pub trait FuzzBuilderBase<'b>: Sized {
         self.prop(prop)
     }
 
-    fn related_tile_mutex_exclusive<R: NodeRelation + 'b>(
+    fn related_tile_mutex_exclusive<R: TileRelation + 'b>(
         self,
         relation: R,
         key: impl Into<String>,
@@ -181,15 +181,15 @@ pub trait FuzzBuilderBase<'b>: Sized {
         }
     }
 
-    fn extra_tile<R: NodeRelation + 'b>(self, relation: R, bel: impl Into<String>) -> Self {
+    fn extra_tile<R: TileRelation + 'b>(self, relation: R, bel: impl Into<String>) -> Self {
         self.prop(ExtraTile::new(relation, Some(bel.into()), None, None))
     }
 
-    fn extra_tile_fixed(self, nloc: NodeLoc, bel: impl Into<String>) -> Self {
+    fn extra_tile_fixed(self, nloc: TileCoord, bel: impl Into<String>) -> Self {
         self.extra_tile(FixedRelation(nloc), bel)
     }
 
-    fn extra_tile_attr<R: NodeRelation + 'b>(
+    fn extra_tile_attr<R: TileRelation + 'b>(
         self,
         relation: R,
         bel: impl Into<String>,
@@ -206,7 +206,7 @@ pub trait FuzzBuilderBase<'b>: Sized {
 
     fn extra_tile_attr_fixed(
         self,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         bel: impl Into<String>,
         attr: impl Into<String>,
         val: impl Into<String>,
@@ -303,11 +303,11 @@ pub trait FuzzBuilderBase<'b>: Sized {
         self.prop(NullBits)
     }
 
-    fn no_related<R: NodeRelation + 'b>(self, relation: R) -> Self {
+    fn no_related<R: TileRelation + 'b>(self, relation: R) -> Self {
         self.prop(HasRelated::new(relation, false))
     }
 
-    fn has_related<R: NodeRelation + 'b>(self, relation: R) -> Self {
+    fn has_related<R: TileRelation + 'b>(self, relation: R) -> Self {
         self.prop(HasRelated::new(relation, true))
     }
 }
@@ -597,7 +597,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.related_pip(NoopRelation, wire_to, wire_from)
     }
 
-    pub fn related_pip<R: NodeRelation + 'b>(
+    pub fn related_pip<R: TileRelation + 'b>(
         self,
         relation: R,
         wire_to: impl BelIntoPipWire,
@@ -900,7 +900,7 @@ impl<'b> FuzzBuilderBelTestManual<'_, 'b> {
         self.prop(prop)
     }
 
-    pub fn related_pip<R: NodeRelation + 'b>(
+    pub fn related_pip<R: TileRelation + 'b>(
         self,
         relation: R,
         wire_to: impl BelIntoPipWire,

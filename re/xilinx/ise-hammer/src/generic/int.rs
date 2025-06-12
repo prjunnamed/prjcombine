@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
-    db::{TileCellId, TileClassWire},
-    grid::NodeLoc,
+    db::{CellSlotId, TileWireCoord},
+    grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -23,12 +23,12 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct NodeIntDistinct {
-    wire_a: TileClassWire,
-    wire_b: TileClassWire,
+    wire_a: TileWireCoord,
+    wire_b: TileWireCoord,
 }
 
 impl NodeIntDistinct {
-    pub fn new(wire_a: TileClassWire, wire_b: TileClassWire) -> Self {
+    pub fn new(wire_a: TileWireCoord, wire_b: TileWireCoord) -> Self {
         Self { wire_a, wire_b }
     }
 }
@@ -41,16 +41,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDistinct {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(nloc);
         let a = backend
             .egrid
-            .resolve_wire((nloc.0, node.cells[self.wire_a.0], self.wire_a.1))?;
+            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire_a))?;
         let b = backend
             .egrid
-            .resolve_wire((nloc.0, node.cells[self.wire_b.0], self.wire_b.1))?;
+            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire_b))?;
         if a == b {
             return None;
         }
@@ -60,11 +59,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDistinct {
 
 #[derive(Clone, Debug)]
 pub struct NodeIntDstFilter {
-    wire: TileClassWire,
+    wire: TileWireCoord,
 }
 
 impl NodeIntDstFilter {
-    pub fn new(wire: TileClassWire) -> Self {
+    pub fn new(wire: TileWireCoord) -> Self {
         Self { wire }
     }
 }
@@ -77,39 +76,37 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDstFilter {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let intdb = backend.egrid.db;
         let ndb = backend.ngrid.db;
-        let wire_name = intdb.wires.key(self.wire.1);
+        let wire_name = intdb.wires.key(self.wire.wire);
         match backend.edev {
             ExpandedDevice::Virtex2(edev) => {
-                let node = backend.egrid.tile(nloc);
-                let nnode = &backend.ngrid.tiles[&nloc];
+                let tile = backend.egrid.tile(tcrd);
+                let ntile = &backend.ngrid.tiles[&tcrd];
                 if backend
                     .egrid
                     .db
                     .tile_classes
-                    .key(node.class)
+                    .key(tile.class)
                     .starts_with("INT.BRAM")
                 {
                     let mut tgt = None;
                     for i in 0..4 {
                         if let Some(bram_node) =
-                            backend
-                                .egrid
-                                .find_tile(nloc.0, (nloc.1, nloc.2 - i), |node| {
-                                    intdb.tile_classes.key(node.class).starts_with("BRAM")
-                                        || intdb.tile_classes.key(node.class) == "DSP"
-                                })
+                            backend.egrid.find_tile(tcrd.delta(0, -(i as i32)), |node| {
+                                intdb.tile_classes.key(node.class).starts_with("BRAM")
+                                    || intdb.tile_classes.key(node.class) == "DSP"
+                            })
                         {
                             tgt = Some((bram_node, i));
                             break;
                         }
                     }
                     let (bram_node, idx) = tgt.unwrap();
-                    let node_tile = TileCellId::from_idx(idx);
+                    let node_tile = CellSlotId::from_idx(idx);
                     let bram_node_kind = &intdb.tile_classes[bram_node.class];
                     if (edev.chip.kind.is_virtex2()
                         || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3)
@@ -121,7 +118,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDstFilter {
                         let mut found = false;
                         for bel in bram_node_kind.bels.values() {
                             for pin in bel.pins.values() {
-                                if pin.wires.contains(&(node_tile, self.wire.1)) {
+                                if pin.wires.contains(&TileWireCoord {
+                                    cell: node_tile,
+                                    wire: self.wire.wire,
+                                }) {
                                     found = true;
                                     break;
                                 }
@@ -132,8 +132,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDstFilter {
                         }
                     }
                 }
-                if backend.egrid.db.tile_classes.key(node.class) == "INT.IOI.S3E"
-                    || backend.egrid.db.tile_classes.key(node.class) == "INT.IOI.S3A.LR"
+                if backend.egrid.db.tile_classes.key(tile.class) == "INT.IOI.S3E"
+                    || backend.egrid.db.tile_classes.key(tile.class) == "INT.IOI.S3A.LR"
                 {
                     if matches!(
                         &wire_name[..],
@@ -145,14 +145,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDstFilter {
                             | "IMUX.DATA23"
                             | "IMUX.DATA27"
                             | "IMUX.DATA31"
-                    ) && nloc.2 != edev.chip.row_mid() - 1
-                        && nloc.2 != edev.chip.row_mid()
+                    ) && tcrd.row != edev.chip.row_mid() - 1
+                        && tcrd.row != edev.chip.row_mid()
                     {
                         return None;
                     }
                     if wire_name == "IMUX.DATA13"
                         && edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
-                        && nloc.1 == edev.chip.col_w()
+                        && tcrd.col == edev.chip.col_w()
                     {
                         // ISE bug. sigh.
                         return None;
@@ -160,32 +160,32 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDstFilter {
                     if matches!(
                         &wire_name[..],
                         "IMUX.DATA12" | "IMUX.DATA13" | "IMUX.DATA14"
-                    ) && nloc.2 != edev.chip.row_mid()
+                    ) && tcrd.row != edev.chip.row_mid()
                     {
                         return None;
                     }
                 }
-                if backend.egrid.db.tile_classes.key(node.class) == "INT.IOI.S3A.TB"
+                if backend.egrid.db.tile_classes.key(tile.class) == "INT.IOI.S3A.TB"
                     && wire_name == "IMUX.DATA15"
-                    && nloc.2 == edev.chip.row_n()
+                    && tcrd.row == edev.chip.row_n()
                 {
                     // also ISE bug.
                     return None;
                 }
                 if edev.chip.kind.is_spartan3a()
-                    && backend.egrid.db.tile_classes.key(node.class) == "INT.CLB"
+                    && backend.egrid.db.tile_classes.key(tile.class) == "INT.CLB"
                 {
                     // avoid SR in corners — it causes the inverter bit to be auto-set
-                    let is_lr = nloc.1 == edev.chip.col_w() || nloc.1 == edev.chip.col_e();
-                    let is_bt = nloc.2 == edev.chip.row_s() || nloc.2 == edev.chip.row_n();
-                    if intdb.wires.key(self.wire.1).starts_with("IMUX.SR") && is_lr && is_bt {
+                    let is_lr = tcrd.col == edev.chip.col_w() || tcrd.col == edev.chip.col_e();
+                    let is_bt = tcrd.row == edev.chip.row_s() || tcrd.row == edev.chip.row_n();
+                    if intdb.wires.key(self.wire.wire).starts_with("IMUX.SR") && is_lr && is_bt {
                         return None;
                     }
                 }
                 if matches!(&wire_name[..], "IMUX.DATA15" | "IMUX.DATA31")
                     && ndb
                         .tile_class_namings
-                        .key(nnode.naming)
+                        .key(ntile.naming)
                         .starts_with("INT.MACC")
                 {
                     // ISE bug.
@@ -195,8 +195,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDstFilter {
             ExpandedDevice::Virtex4(edev) => {
                 if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4 {
                     // avoid CLK in center column — using it on DCM tiles causes the inverter bit to be auto-set
-                    if intdb.wires.key(self.wire.1).starts_with("IMUX.CLK")
-                        && nloc.1 == edev.col_clk
+                    if intdb.wires.key(self.wire.wire).starts_with("IMUX.CLK")
+                        && tcrd.col == edev.col_clk
                     {
                         return None;
                     }
@@ -211,11 +211,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDstFilter {
 
 #[derive(Clone, Debug)]
 pub struct NodeIntSrcFilter {
-    wire: TileClassWire,
+    wire: TileWireCoord,
 }
 
 impl NodeIntSrcFilter {
-    pub fn new(wire: TileClassWire) -> Self {
+    pub fn new(wire: TileWireCoord) -> Self {
         Self { wire }
     }
 }
@@ -228,35 +228,26 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntSrcFilter {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let intdb = backend.egrid.db;
         let ndb = backend.ngrid.db;
-        let wire_name = intdb.wires.key(self.wire.1);
-        let node = backend.egrid.tile(nloc);
-        let nnode = &backend.ngrid.tiles[&nloc];
+        let wire_name = intdb.wires.key(self.wire.wire);
+        let tile = backend.egrid.tile(tcrd);
+        let ntile = &backend.ngrid.tiles[&tcrd];
         #[allow(clippy::single_match)]
         match backend.edev {
             ExpandedDevice::Virtex2(edev) => {
                 if (edev.chip.kind.is_virtex2()
                     || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3)
                     && wire_name.starts_with("OUT")
-                    && intdb.tile_classes.key(node.class).starts_with("INT.DCM")
+                    && intdb.tile_classes.key(tile.class).starts_with("INT.DCM")
                 {
-                    let (layer, _) = backend
-                        .egrid
-                        .find_tile_loc(nloc.0, (nloc.1, nloc.2), |node| {
-                            intdb.tile_classes.key(node.class).starts_with("DCM.")
-                        })
-                        .unwrap();
-                    let ndcm = &backend.ngrid.tiles[&(nloc.0, nloc.1, nloc.2, layer)];
+                    let ndcm = &backend.ngrid.tiles[&tcrd.tile(prjcombine_virtex2::tslots::BEL)];
                     let site = &ndcm.bels[prjcombine_virtex2::bels::DCM];
                     fuzzer = fuzzer.base(Key::SiteMode(site), "DCM").base(
-                        Key::BelMutex(
-                            (nloc.0, (nloc.1, nloc.2), prjcombine_virtex2::bels::DCM),
-                            "MODE".into(),
-                        ),
+                        Key::BelMutex(tcrd.bel(prjcombine_virtex2::bels::DCM), "MODE".into()),
                         "INT",
                     );
                     for pin in [
@@ -267,33 +258,33 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntSrcFilter {
                     }
                 }
                 if wire_name == "OUT.PCI0"
-                    && nloc.2 != edev.chip.row_pci.unwrap() - 2
-                    && nloc.2 != edev.chip.row_pci.unwrap() - 1
-                    && nloc.2 != edev.chip.row_pci.unwrap()
-                    && nloc.2 != edev.chip.row_pci.unwrap() + 1
+                    && tcrd.row != edev.chip.row_pci.unwrap() - 2
+                    && tcrd.row != edev.chip.row_pci.unwrap() - 1
+                    && tcrd.row != edev.chip.row_pci.unwrap()
+                    && tcrd.row != edev.chip.row_pci.unwrap() + 1
                 {
                     return None;
                 }
                 if wire_name == "OUT.PCI1"
-                    && nloc.2 != edev.chip.row_pci.unwrap() - 1
-                    && nloc.2 != edev.chip.row_pci.unwrap()
+                    && tcrd.row != edev.chip.row_pci.unwrap() - 1
+                    && tcrd.row != edev.chip.row_pci.unwrap()
                 {
                     return None;
                 }
-                if (backend.egrid.db.tile_classes.key(node.class) == "INT.IOI.S3E"
-                    || backend.egrid.db.tile_classes.key(node.class) == "INT.IOI.S3A.LR")
+                if (backend.egrid.db.tile_classes.key(tile.class) == "INT.IOI.S3E"
+                    || backend.egrid.db.tile_classes.key(tile.class) == "INT.IOI.S3A.LR")
                     && matches!(
                         &wire_name[..],
                         "OUT.FAN3" | "OUT.FAN7" | "OUT.SEC11" | "OUT.SEC15"
                     )
-                    && nloc.2 != edev.chip.row_mid() - 1
-                    && nloc.2 != edev.chip.row_mid()
+                    && tcrd.row != edev.chip.row_mid() - 1
+                    && tcrd.row != edev.chip.row_mid()
                 {
                     return None;
                 }
                 if wire_name.starts_with("GCLK")
                     && matches!(
-                        &ndb.tile_class_namings.key(nnode.naming)[..],
+                        &ndb.tile_class_namings.key(ntile.naming)[..],
                         "INT.BRAM.BRK" | "INT.BRAM.S3ADSP.BRK" | "INT.MACC.BRK"
                     )
                 {
@@ -309,26 +300,25 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntSrcFilter {
 
 pub fn resolve_int_pip<'a>(
     backend: &IseBackend<'a>,
-    loc: NodeLoc,
-    wire_to: TileClassWire,
-    wire_from: TileClassWire,
+    tcrd: TileCoord,
+    wire_to: TileWireCoord,
+    wire_from: TileWireCoord,
 ) -> Option<(&'a str, &'a str, &'a str)> {
-    let node = backend.egrid.tile(loc);
-    let nnode = &backend.ngrid.tiles[&loc];
+    let ntile = &backend.ngrid.tiles[&tcrd];
     let ndb = backend.ngrid.db;
-    let node_naming = &ndb.tile_class_namings[nnode.naming];
+    let node_naming = &ndb.tile_class_namings[ntile.naming];
     backend
         .egrid
-        .resolve_wire((loc.0, node.cells[wire_to.0], wire_to.1))?;
+        .resolve_wire(backend.egrid.tile_wire(tcrd, wire_to))?;
     backend
         .egrid
-        .resolve_wire((loc.0, node.cells[wire_from.0], wire_from.1))?;
+        .resolve_wire(backend.egrid.tile_wire(tcrd, wire_from))?;
     Some(
         if let Some(ext) = node_naming.ext_pips.get(&(wire_to, wire_from)) {
-            (&nnode.names[ext.tile], &ext.wire_to, &ext.wire_from)
+            (&ntile.names[ext.tile], &ext.wire_to, &ext.wire_from)
         } else {
             (
-                &nnode.names[RawTileId::from_idx(0)],
+                &ntile.names[RawTileId::from_idx(0)],
                 node_naming.wires.get(&wire_to)?,
                 node_naming.wires.get(&wire_from)?,
             )
@@ -338,12 +328,12 @@ pub fn resolve_int_pip<'a>(
 
 #[derive(Clone, Debug)]
 pub struct BaseIntPip {
-    wire_to: TileClassWire,
-    wire_from: TileClassWire,
+    wire_to: TileWireCoord,
+    wire_from: TileWireCoord,
 }
 
 impl BaseIntPip {
-    pub fn new(wire_to: TileClassWire, wire_from: TileClassWire) -> Self {
+    pub fn new(wire_to: TileWireCoord, wire_from: TileWireCoord) -> Self {
         Self { wire_to, wire_from }
     }
 }
@@ -356,7 +346,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseIntPip {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let (tile, wt, wf) = resolve_int_pip(backend, nloc, self.wire_to, self.wire_from)?;
@@ -367,12 +357,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseIntPip {
 
 #[derive(Clone, Debug)]
 pub struct FuzzIntPip {
-    wire_to: TileClassWire,
-    wire_from: TileClassWire,
+    wire_to: TileWireCoord,
+    wire_from: TileWireCoord,
 }
 
 impl FuzzIntPip {
-    pub fn new(wire_to: TileClassWire, wire_from: TileClassWire) -> Self {
+    pub fn new(wire_to: TileWireCoord, wire_from: TileWireCoord) -> Self {
         Self { wire_to, wire_from }
     }
 }
@@ -385,7 +375,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntPip {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        nloc: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let (tile, wt, wf) = resolve_int_pip(backend, nloc, self.wire_to, self.wire_from)?;
@@ -396,11 +386,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntPip {
 
 #[derive(Clone, Debug)]
 pub struct DriveLLH {
-    pub wire: TileClassWire,
+    pub wire: TileWireCoord,
 }
 
 impl DriveLLH {
-    pub fn new(wire: TileClassWire) -> Self {
+    pub fn new(wire: TileWireCoord) -> Self {
         Self { wire }
     }
 }
@@ -413,54 +403,42 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         match backend.edev {
             ExpandedDevice::Xc2000(edev) => {
                 assert_eq!(edev.chip.kind, prjcombine_xc2000::chip::ChipKind::Xc5200);
-                let node = backend.egrid.tile(nloc);
-                let wnode =
-                    backend
-                        .egrid
-                        .resolve_wire((nloc.0, node.cells[self.wire.0], self.wire.1))?;
-                let mut src_col = if node.cells[self.wire.0].0 < edev.chip.col_mid() {
-                    edev.chip.col_mid() - 1
-                } else {
-                    edev.chip.col_mid()
-                };
+                let wnode = backend
+                    .egrid
+                    .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire))?;
+                let mut src_col =
+                    if backend.egrid.tile_cell(tcrd, self.wire.cell).col < edev.chip.col_mid() {
+                        edev.chip.col_mid() - 1
+                    } else {
+                        edev.chip.col_mid()
+                    };
                 loop {
-                    if let Some((src_layer, src_node)) =
-                        backend
-                            .egrid
-                            .find_tile_loc(nloc.0, (src_col, nloc.2), |src_node| {
-                                backend
-                                    .egrid
-                                    .db
-                                    .tile_classes
-                                    .key(src_node.class)
-                                    .starts_with("IO")
-                                    || backend.egrid.db.tile_classes.key(src_node.class) == "CLB"
-                            })
-                    {
-                        let dwire = (TileCellId::from_idx(0), self.wire.1);
-                        let src_node_kind = &backend.egrid.db.tile_classes[src_node.class];
+                    let int_tcrd = tcrd
+                        .cell
+                        .with_col(src_col)
+                        .tile(prjcombine_xc2000::tslots::MAIN);
+                    if let Some(src_tile) = backend.egrid.get_tile(int_tcrd) {
+                        let dwire = TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: self.wire.wire,
+                        };
+                        let src_node_kind = &backend.egrid.db.tile_classes[src_tile.class];
                         if let Some(mux) = src_node_kind.muxes.get(&dwire) {
-                            let Some(dnode) = backend.egrid.resolve_wire((
-                                nloc.0,
-                                src_node.cells[dwire.0],
-                                dwire.1,
-                            )) else {
+                            let Some(dnode) = backend
+                                .egrid
+                                .resolve_wire(backend.egrid.tile_wire(int_tcrd, dwire))
+                            else {
                                 continue;
                             };
                             assert_eq!(dnode, wnode);
                             let swire = *mux.ins.first().unwrap();
-                            let (tile, wa, wb) = resolve_int_pip(
-                                backend,
-                                (nloc.0, src_col, nloc.2, src_layer),
-                                swire,
-                                dwire,
-                            )?;
+                            let (tile, wa, wb) = resolve_int_pip(backend, int_tcrd, swire, dwire)?;
                             fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
                             return Some((fuzzer, false));
                         }
@@ -476,47 +454,32 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                 }
             }
             ExpandedDevice::Virtex2(edev) => {
-                let node = backend.egrid.tile(nloc);
-                let wnode =
-                    backend
-                        .egrid
-                        .resolve_wire((nloc.0, node.cells[self.wire.0], self.wire.1))?;
-                let mut src_col = node.cells[self.wire.0].0;
+                let wnode = backend
+                    .egrid
+                    .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire))?;
+                let mut src_col = backend.egrid.tile_cell(tcrd, self.wire.cell).col;
                 loop {
-                    if let Some((src_layer, src_node)) =
-                        backend
-                            .egrid
-                            .find_tile_loc(nloc.0, (src_col, nloc.2), |src_node| {
-                                backend
-                                    .egrid
-                                    .db
-                                    .tile_classes
-                                    .key(src_node.class)
-                                    .starts_with("INT")
-                            })
-                    {
-                        let src_node_kind = &backend.egrid.db.tile_classes[src_node.class];
+                    let int_tcrd = tcrd
+                        .cell
+                        .with_col(src_col)
+                        .tile(prjcombine_virtex2::tslots::INT);
+                    if let Some(src_tile) = backend.egrid.get_tile(int_tcrd) {
+                        let src_node_kind = &backend.egrid.db.tile_classes[src_tile.class];
                         for (&dwire, mux) in &src_node_kind.muxes {
-                            if !backend.egrid.db.wires.key(dwire.1).starts_with("LH") {
+                            if !backend.egrid.db.wires.key(dwire.wire).starts_with("LH") {
                                 continue;
                             }
-                            let Some(dnode) = backend.egrid.resolve_wire((
-                                nloc.0,
-                                src_node.cells[dwire.0],
-                                dwire.1,
-                            )) else {
+                            let Some(dnode) = backend
+                                .egrid
+                                .resolve_wire(backend.egrid.tile_wire(int_tcrd, dwire))
+                            else {
                                 continue;
                             };
                             if dnode != wnode {
                                 continue;
                             }
                             let swire = *mux.ins.first().unwrap();
-                            let (tile, wa, wb) = resolve_int_pip(
-                                backend,
-                                (nloc.0, src_col, nloc.2, src_layer),
-                                swire,
-                                dwire,
-                            )?;
+                            let (tile, wa, wb) = resolve_int_pip(backend, int_tcrd, swire, dwire)?;
                             fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
                             return Some((fuzzer, false));
                         }
@@ -524,7 +487,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                     if src_col == edev.chip.col_w() || src_col == edev.chip.col_e() {
                         return None;
                     }
-                    if self.wire.0.to_idx() == 0 {
+                    if self.wire.cell.to_idx() == 0 {
                         src_col -= 1;
                     } else {
                         src_col += 1;
@@ -538,11 +501,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
 
 #[derive(Clone, Debug)]
 pub struct DriveLLV {
-    pub wire: TileClassWire,
+    pub wire: TileWireCoord,
 }
 
 impl DriveLLV {
-    pub fn new(wire: TileClassWire) -> Self {
+    pub fn new(wire: TileWireCoord) -> Self {
         Self { wire }
     }
 }
@@ -555,54 +518,42 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: NodeLoc,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         match backend.edev {
             ExpandedDevice::Xc2000(edev) => {
                 assert_eq!(edev.chip.kind, prjcombine_xc2000::chip::ChipKind::Xc5200);
-                let node = backend.egrid.tile(nloc);
-                let wnode =
-                    backend
-                        .egrid
-                        .resolve_wire((nloc.0, node.cells[self.wire.0], self.wire.1))?;
-                let mut src_row = if node.cells[self.wire.0].1 < edev.chip.row_mid() {
-                    edev.chip.row_mid() - 1
-                } else {
-                    edev.chip.row_mid()
-                };
+                let wnode = backend
+                    .egrid
+                    .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire))?;
+                let mut src_row =
+                    if backend.egrid.tile_cell(tcrd, self.wire.cell).row < edev.chip.row_mid() {
+                        edev.chip.row_mid() - 1
+                    } else {
+                        edev.chip.row_mid()
+                    };
                 loop {
-                    if let Some((src_layer, src_node)) =
-                        backend
-                            .egrid
-                            .find_tile_loc(nloc.0, (nloc.1, src_row), |src_node| {
-                                backend
-                                    .egrid
-                                    .db
-                                    .tile_classes
-                                    .key(src_node.class)
-                                    .starts_with("IO")
-                                    || backend.egrid.db.tile_classes.key(src_node.class) == "CLB"
-                            })
-                    {
-                        let dwire = (TileCellId::from_idx(0), self.wire.1);
-                        let src_node_kind = &backend.egrid.db.tile_classes[src_node.class];
+                    let int_tcrd = tcrd
+                        .cell
+                        .with_row(src_row)
+                        .tile(prjcombine_xc2000::tslots::MAIN);
+                    if let Some(src_tile) = backend.egrid.get_tile(int_tcrd) {
+                        let dwire = TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: self.wire.wire,
+                        };
+                        let src_node_kind = &backend.egrid.db.tile_classes[src_tile.class];
                         if let Some(mux) = src_node_kind.muxes.get(&dwire) {
-                            let Some(dnode) = backend.egrid.resolve_wire((
-                                nloc.0,
-                                src_node.cells[dwire.0],
-                                dwire.1,
-                            )) else {
+                            let Some(dnode) = backend
+                                .egrid
+                                .resolve_wire(backend.egrid.tile_wire(int_tcrd, dwire))
+                            else {
                                 continue;
                             };
                             assert_eq!(dnode, wnode);
                             let swire = *mux.ins.first().unwrap();
-                            let (tile, wa, wb) = resolve_int_pip(
-                                backend,
-                                (nloc.0, nloc.1, src_row, src_layer),
-                                swire,
-                                dwire,
-                            )?;
+                            let (tile, wa, wb) = resolve_int_pip(backend, int_tcrd, swire, dwire)?;
                             fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
                             return Some((fuzzer, false));
                         }
@@ -618,47 +569,32 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                 }
             }
             ExpandedDevice::Virtex2(edev) => {
-                let node = backend.egrid.tile(nloc);
-                let wnode =
-                    backend
-                        .egrid
-                        .resolve_wire((nloc.0, node.cells[self.wire.0], self.wire.1))?;
-                let mut src_row = node.cells[self.wire.0].1;
+                let wnode = backend
+                    .egrid
+                    .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire))?;
+                let mut src_row = backend.egrid.tile_cell(tcrd, self.wire.cell).row;
                 loop {
-                    if let Some((src_layer, src_node)) =
-                        backend
-                            .egrid
-                            .find_tile_loc(nloc.0, (nloc.1, src_row), |src_node| {
-                                backend
-                                    .egrid
-                                    .db
-                                    .tile_classes
-                                    .key(src_node.class)
-                                    .starts_with("INT")
-                            })
-                    {
-                        let src_node_kind = &backend.egrid.db.tile_classes[src_node.class];
+                    let int_tcrd = tcrd
+                        .cell
+                        .with_row(src_row)
+                        .tile(prjcombine_virtex2::tslots::INT);
+                    if let Some(src_tile) = backend.egrid.get_tile(int_tcrd) {
+                        let src_node_kind = &backend.egrid.db.tile_classes[src_tile.class];
                         for (&dwire, mux) in &src_node_kind.muxes {
-                            if !backend.egrid.db.wires.key(dwire.1).starts_with("LV") {
+                            if !backend.egrid.db.wires.key(dwire.wire).starts_with("LV") {
                                 continue;
                             }
-                            let Some(dnode) = backend.egrid.resolve_wire((
-                                nloc.0,
-                                src_node.cells[dwire.0],
-                                dwire.1,
-                            )) else {
+                            let Some(dnode) = backend
+                                .egrid
+                                .resolve_wire(backend.egrid.tile_wire(int_tcrd, dwire))
+                            else {
                                 continue;
                             };
                             if dnode != wnode {
                                 continue;
                             }
                             let swire = *mux.ins.first().unwrap();
-                            let (tile, wa, wb) = resolve_int_pip(
-                                backend,
-                                (nloc.0, nloc.1, src_row, src_layer),
-                                swire,
-                                dwire,
-                            )?;
+                            let (tile, wa, wb) = resolve_int_pip(backend, int_tcrd, swire, dwire)?;
                             fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
                             return Some((fuzzer, false));
                         }
@@ -666,7 +602,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                     if src_row == edev.chip.row_s() || src_row == edev.chip.row_n() {
                         return None;
                     }
-                    if self.wire.0.to_idx() == 0 {
+                    if self.wire.cell.to_idx() == 0 {
                         src_row -= 1;
                     } else {
                         src_row += 1;
@@ -690,15 +626,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut ctx = FuzzCtx::new(session, backend, name);
         for (&wire_to, mux) in &node.muxes {
             let mux_name = if node.cells.len() == 1 {
-                format!("MUX.{}", intdb.wires.key(wire_to.1))
+                format!("MUX.{}", intdb.wires.key(wire_to.wire))
             } else {
-                format!("MUX.{:#}.{}", wire_to.0, intdb.wires.key(wire_to.1))
+                format!("MUX.{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire))
             };
             for &wire_from in &mux.ins {
                 let in_name = if node.cells.len() == 1 {
-                    intdb.wires.key(wire_from.1).to_string()
+                    intdb.wires.key(wire_from.wire).to_string()
                 } else {
-                    format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1))
+                    format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                 };
                 let mut builder = ctx
                     .build()
@@ -743,7 +679,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         Value::None,
                     ));
                 }
-                if intdb.wires.key(wire_from.1) == "OUT.TBUS" {
+                if intdb.wires.key(wire_from.wire) == "OUT.TBUS" {
                     builder = builder.prop(RowMutex::new("TBUF".to_string(), "INT".to_string()));
                 }
                 builder.commit();
@@ -765,17 +701,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         for (&wire_to, mux) in &node.muxes {
             let mux_name = if node.cells.len() == 1 {
-                format!("MUX.{}", intdb.wires.key(wire_to.1))
+                format!("MUX.{}", intdb.wires.key(wire_to.wire))
             } else {
-                format!("MUX.{:#}.{}", wire_to.0, intdb.wires.key(wire_to.1))
+                format!("MUX.{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire))
             };
             let mut inps = vec![];
             let mut got_empty = false;
             for &wire_from in &mux.ins {
                 let in_name = if node.cells.len() == 1 {
-                    intdb.wires.key(wire_from.1).to_string()
+                    intdb.wires.key(wire_from.wire).to_string()
                 } else {
-                    format!("{:#}.{}", wire_from.0, intdb.wires.key(wire_from.1))
+                    format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                 };
                 let diff = ctx.state.get_diff(name, "INT", &mux_name, &in_name);
                 if let ExpandedDevice::Virtex2(edev) = ctx.edev {
@@ -789,8 +725,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                 }
                 if diff.bits.is_empty() {
-                    if intdb.wires.key(wire_to.1).starts_with("IMUX")
-                        && !intdb.wires[wire_from.1].is_tie()
+                    if intdb.wires.key(wire_to.wire).starts_with("IMUX")
+                        && !intdb.wires[wire_from.wire].is_tie()
                     {
                         // suppress message on known offenders.
                         if name == "INT.BRAM.S3A.03"

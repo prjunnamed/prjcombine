@@ -1,6 +1,8 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use prjcombine_interconnect::grid::{BelCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId};
+use prjcombine_interconnect::grid::{
+    BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityIds};
 
@@ -143,20 +145,19 @@ impl Chip {
             EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
         };
         let slot = bels::IO[iob.to_idx()];
-        (DieId::from_idx(0), (col, row), slot)
+        CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
-        let (_, (col, row), slot) = bel;
-        let iob = TileIobId::from_idx(bels::IO.iter().position(|&x| x == slot).unwrap());
-        if col == self.col_w() {
-            EdgeIoCoord::W(row, iob)
-        } else if col == self.col_e() {
-            EdgeIoCoord::E(row, iob)
-        } else if row == self.row_s() {
-            EdgeIoCoord::S(col, iob)
-        } else if row == self.row_n() {
-            EdgeIoCoord::N(col, iob)
+        let iob = TileIobId::from_idx(bels::IO.iter().position(|&x| x == bel.slot).unwrap());
+        if bel.col == self.col_w() {
+            EdgeIoCoord::W(bel.row, iob)
+        } else if bel.col == self.col_e() {
+            EdgeIoCoord::E(bel.row, iob)
+        } else if bel.row == self.row_s() {
+            EdgeIoCoord::S(bel.col, iob)
+        } else if bel.row == self.row_n() {
+            EdgeIoCoord::N(bel.col, iob)
         } else {
             unreachable!()
         }

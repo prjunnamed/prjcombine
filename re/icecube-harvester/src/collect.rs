@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use prjcombine_interconnect::{
-    db::{MuxInfo, TileClassId, TileClassWire},
+    db::{MuxInfo, TileClassId, TileWireCoord},
     dir::{Dir, DirV},
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
@@ -123,7 +123,7 @@ pub fn collect_iob(
 
 pub fn collect(
     edev: &ExpandedDevice,
-    muxes: &BTreeMap<TileClassId, BTreeMap<TileClassWire, MuxInfo>>,
+    muxes: &BTreeMap<TileClassId, BTreeMap<TileWireCoord, MuxInfo>>,
     harvester: &Harvester<BitOwner>,
 ) -> BsData {
     let mut tiledb = BsData::new();
@@ -185,8 +185,8 @@ pub fn collect(
         if !tile.starts_with("IO") {
             collector.collect_bit(tile, bel, "INV.IMUX.CLK", "");
         }
-        for (&(_, wt), mux) in tile_muxes {
-            let wtn = edev.egrid.db.wires.key(wt);
+        for (&wt, mux) in tile_muxes {
+            let wtn = edev.egrid.db.wires.key(wt.wire);
             let mux_name = format!("MUX.{wtn}");
             let mut values = vec![];
             if tile == edev.chip.kind.tile_class_plb()
@@ -195,8 +195,8 @@ pub fn collect(
             {
                 values.push("CI");
             }
-            for &(_, wf) in &mux.ins {
-                let wfn = edev.egrid.db.wires.key(wf);
+            for &wf in &mux.ins {
+                let wfn = edev.egrid.db.wires.key(wf.wire);
                 if (wfn.starts_with("OUT") && (wtn.starts_with("QUAD") || wtn.starts_with("LONG")))
                     || (wfn.starts_with("LONG") && wtn.starts_with("QUAD"))
                 {

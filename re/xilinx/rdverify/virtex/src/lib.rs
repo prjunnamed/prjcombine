@@ -118,9 +118,9 @@ fn verify_pcilogic(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
         vrf.claim_node(&[bel.fwire(pin)]);
         vrf.claim_node(&[bel.fwire_far(pin)]);
     }
-    let obel = vrf.get_bel((bel.die, (bel.col, endev.grid.row_mid()), bels::IO3));
+    let obel = vrf.get_bel(bel.cell.with_row(endev.grid.row_mid()).bel(bels::IO3));
     vrf.verify_node(&[bel.fwire_far("IRDY"), obel.fwire("PCI")]);
-    let obel = vrf.get_bel((bel.die, (bel.col, endev.grid.row_mid() - 1), bels::IO1));
+    let obel = vrf.get_bel(bel.cell.with_row(endev.grid.row_mid() - 1).bel(bels::IO1));
     vrf.verify_node(&[bel.fwire_far("TRDY"), obel.fwire("PCI")]);
 }
 
@@ -133,7 +133,7 @@ fn verify_clkc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
     ] {
         vrf.claim_node(&[bel.fwire(opin)]);
         vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
-        let obel = vrf.get_bel((bel.die, (endev.grid.col_clk(), srow), sslot));
+        let obel = vrf.get_bel(bel.cell.with_cr(endev.grid.col_clk(), srow).bel(sslot));
         vrf.verify_node(&[bel.fwire(ipin), obel.fwire("OUT.GLOBAL")]);
     }
 }
@@ -147,7 +147,7 @@ fn verify_gclkc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
     ] {
         vrf.claim_node(&[bel.fwire(opin)]);
         vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
-        let obel = vrf.get_bel((bel.die, (endev.grid.col_clk(), bel.row), bels::CLKC));
+        let obel = vrf.get_bel(bel.cell.with_col(endev.grid.col_clk()).bel(bels::CLKC));
         vrf.verify_node(&[bel.fwire(ipin), obel.fwire(opin)]);
     }
 }
@@ -160,7 +160,7 @@ fn verify_bram_clkh(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
         ("OUT3", "IN3"),
     ] {
         vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
-        let obel = vrf.get_bel((bel.die, (endev.grid.col_clk(), bel.row), bels::CLKC));
+        let obel = vrf.get_bel(bel.cell.with_col(endev.grid.col_clk()).bel(bels::CLKC));
         vrf.verify_node(&[bel.fwire(ipin), obel.fwire(opin)]);
     }
 }
@@ -174,7 +174,7 @@ fn verify_clkv(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
     ] {
         vrf.claim_pip(bel.crd(), bel.wire(opinl), bel.wire(ipin));
         vrf.claim_pip(bel.crd(), bel.wire(opinr), bel.wire(ipin));
-        let obel = vrf.get_bel((bel.die, (bel.col, endev.grid.row_clk()), bels::GCLKC));
+        let obel = vrf.get_bel(bel.cell.with_row(endev.grid.row_clk()).bel(bels::GCLKC));
         vrf.verify_node(&[bel.fwire(ipin), obel.fwire(opin)]);
     }
 }

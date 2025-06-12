@@ -614,7 +614,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     let node_bot = builder.db.tile_classes.get_mut("IO.B").unwrap().1;
     for mux in node_bot.muxes.values_mut() {
-        mux.ins.retain(|&x| x.1 != bot_cin);
+        mux.ins.retain(|&x| x.wire != bot_cin);
     }
 
     for tkn in ["CLKV", "CLKB", "CLKT"] {
