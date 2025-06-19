@@ -1851,6 +1851,22 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("RCLK_RCLK_INTF_LEFT_TERM_GT_IO_FT", SINGLE, &["clk-row"]),
     TileInfo("INT_INTF_L_TERM_GT_RBRK", SINGLE, &["clk-brk"]),
     TileInfo("INT_INTF_LEFT_TERM_GT_IO_RBRK_FT", SINGLE, &["clk-brk"]),
+    TileInfo("INT_INTF_20_2_RIGHT_TERM_GT_FT", SINGLE, &["int-if"]),
+    TileInfo("INT_INTF_RIGHT_TERM_XP5IO_FT", SINGLE, &["int-if"]),
+    TileInfo("RCLK_RCLK_INTF_20_2_RIGHT_TERM_GT_FT", SINGLE, &["clk-row"]),
+    TileInfo(
+        "RCLK_RCLK_INTF_RIGHT_TERM_XP5IO_DL9_FT",
+        SINGLE,
+        &["clk-row"],
+    ),
+    TileInfo(
+        "INT_INTF_20_2_RIGHT_TERM_GT_IO_RBRK_FT",
+        SINGLE,
+        &["clk-brk"],
+    ),
+    TileInfo("INT_INTF_RIGHT_TERM_XP5IO_RBRK_FT", SINGLE, &["clk-brk"]),
+    TileInfo("INT_INTF_20_2_RIGHT_TERM_GT_TERM_B_FT", SINGLE, &[]),
+    TileInfo("INT_INTF_RIGHT_TERM_XP5IO_TERM_T_FT", SINGLE, &[]),
     TileInfo("INT_INTF_L_TERM_G_TERM_B", SINGLE, &[]),
     TileInfo("INT_INTF_L_TERM_G_TERM_T", SINGLE, &[]),
     TileInfo("INT_INTF_LEFT_TERM_GT_TERM_P", SINGLE, &[]),
@@ -1973,6 +1989,7 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("HDIO_HDIO_FILL_TERM_T_FT", SINGLE, &[]),
     TileInfo("CFG_CONFIG", (1, 0, 60, 0), &["cfg"]),
     TileInfo("CSEC_CONFIG_FT", (2, 0, 60, 0), &["cfg"]),
+    TileInfo("CSEC_CONFIG_VER2_FT", (2, 0, 60, 0), &["cfg"]),
     TileInfo("CFGIO_IOB20", (1, 0, 29, 0), &["cfg"]),
     TileInfo("CFGIOLC_IOB20_FT", (1, 0, 29, 0), &["cfg"]),
     TileInfo("AMS", (1, 0, 29, 0), &["sysmon"]),
@@ -1980,6 +1997,7 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("CFGIO_CONFIG_RBRK", (1, 0, 0, 0), &["clk-brk"]),
     TileInfo("CFGIOLC_CONFIG_SEC_RBRK_FT", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("CFG_CONFIG_PCIE4", (1, 0, 0, 0), &["clk-brk"]),
+    TileInfo("CFG_CONFIG_SEC_PCIE4_RBRK_FT", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("AMS_TERM_T", (1, 0, 0, 0), &[]),
     TileInfo("CMAC_AMS_RBRK_FT", (1, 0, 0, 0), &["clk-brk"]),
     TileInfo("PCIE4_AMS_RBRK_FT", (1, 0, 0, 0), &["clk-brk"]),
@@ -1999,6 +2017,7 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("CFG_CFG_FILL_OLY_DK_FT", (0, 0, 60, 0), &[]),
     TileInfo("CFGIO_FILL_FT", (0, 0, 29, 0), &[]),
     TileInfo("CFGIO_FILL_LC_FT", (0, 0, 29, 0), &[]),
+    TileInfo("CFGIO_FILL_LC_VER2_FT", (0, 0, 29, 0), &[]),
     TileInfo("AMS_AMS_FILL_FT", (0, 0, 29, 0), &[]),
     TileInfo("AMS_AMS_FILL_LC_FT", (0, 0, 29, 0), &[]),
     TileInfo("RCLK_RCLK_CTR_FILL_FT", SINGLE, &["clk-row"]),
@@ -2018,6 +2037,7 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("AMS_AMS_FILL_TERM_T_FT", SINGLE, &[]),
     TileInfo("PCIE4_PCIE4_FT", (2, 0, 60, 0), &["hardip"]),
     TileInfo("PCIE4C_PCIE4C_FT", (2, 0, 60, 0), &["hardip"]),
+    TileInfo("PCIE4CE_PCIE4CE_FT", (2, 0, 60, 0), &["hardip"]),
     TileInfo("ILKN_ILKN_FT", (2, 0, 60, 0), &["hardip"]),
     TileInfo("DFE_DFE_TILEA_FT", (2, 0, 60, 0), &["hardip"]),
     TileInfo("DFE_DFE_TILEG_FT", (2, 0, 60, 0), &["hardip"]),
@@ -2207,6 +2227,9 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("GTH_QUAD_RIGHT_TERM_T", (50, 0, 0, 0), &[]),
     TileInfo("GTH_QUAD_HPIO_RIGHT_RBRK", (50, 0, 0, 0), &["clk-brk"]),
     TileInfo("HPIO_GTH_QUAD_RIGHT_RBRK_FT", (50, 0, 0, 0), &["clk-brk"]),
+    TileInfo("GTH_QUAD_RIGHT_TERM_R_FT", (0, 0, 60, 0), &[]),
+    TileInfo("GTH_QUAD_RIGHT_TERM_R_RBRK_FT", SINGLE, &["clk-brk"]),
+    TileInfo("GTH_QUAD_RIGHT_TERM_R_TERM_B_FT", SINGLE, &[]),
     // right
     TileInfo("GTY_R", (50, 0, 60, 0), &["gty"]),
     TileInfo("GTY_R_RBRK", (50, 0, 0, 0), &["clk-brk"]),
@@ -2266,15 +2289,47 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("HDIOLC_HDIOL_BOT_LEFT_FT", (44, 0, 29, 0), &["io"]),
     TileInfo("HDIOLC_HDIOL_TOP_LEFT_FT", (44, 0, 29, 0), &["io"]),
     TileInfo("RCLK_RCLK_HDIOL_L_FT", (44, 0, 0, 0), &["clk-row"]),
+    TileInfo("RCLK_RCLK_HDIOL_MRC_L_FT", (44, 0, 0, 0), &["clk-row"]),
     TileInfo("HDIOLC_HDIOL_LEFT_TERM_B_FT", (44, 0, 0, 0), &[]),
     TileInfo("XIPHY_XIPHY_TERM_LEFT_FT", (0, 0, 14, 0), &[]),
     TileInfo("RCLK_RCLK_XIPHY_TERM_L_FT", SINGLE, &["clk-row"]),
     TileInfo("XIPHY_XIPHY_TERM_LEFT_RBRK_FT", SINGLE, &["clk-brk"]),
+    TileInfo("XIPHY_XIPHY_TERM_LEFT_HDIOL_RBRK_FT", SINGLE, &["clk-brk"]),
     TileInfo("XIPHY_XIPHY_TERM_LEFT_TERM_B_FT", SINGLE, &[]),
     TileInfo("CMT_CMT_LEFT_DL3_FT", (0, 0, 60, 0), &["pll"]),
     TileInfo("HPIO_HDIOL_FILL_FT", (1, 0, 60, 0), &[]),
+    TileInfo("HDIOLC_HDIOL_LEFT_FILL_RBRK_FT", (1, 0, 0, 0), &["clk-brk"]),
     TileInfo("HPIO_HDIOL_FILL_TERM_B_FT", (1, 0, 0, 0), &[]),
+    TileInfo("HDIOLC_HDIOL_LEFT_RBRK_FT", (44, 0, 0, 0), &["clk-brk"]),
     TileInfo("HPIO_HDIOL_LEFT_RBRK_FT", (48, 0, 0, 0), &["clk-brk"]),
+    // middle extra-large HDIO
+    TileInfo("HDIOLC_HDIOS_BOT_LEFT_FT", (23, 0, 29, 0), &["io"]),
+    TileInfo("HDIOLC_HDIOS_TOP_LEFT_FT", (23, 0, 29, 0), &["io"]),
+    TileInfo("HDIOLC_HDIOS_BOT_LEFT_CFG_FT", (23, 0, 29, 0), &["io"]),
+    TileInfo("HDIOLC_HDIOS_TOP_LEFT_CFG_FT", (23, 0, 29, 0), &["io"]),
+    TileInfo("HDIOLC_HDIOS_BOT_LEFT_AUX_FT", (23, 0, 29, 0), &["io"]),
+    TileInfo("HDIOLC_HDIOS_TOP_LEFT_AUX_FT", (23, 0, 29, 0), &["io"]),
+    TileInfo("RCLK_RCLK_HDIOS_L_FT", (23, 0, 0, 0), &["clk-row"]),
+    TileInfo("HDIOLC_HDIOS_LEFT_RBRK_FT", (23, 0, 0, 0), &["clk-brk"]),
+    TileInfo("HDIOLC_HDIOS_LEFT_TERM_B_FT", (23, 0, 0, 0), &[]),
+    TileInfo("HDIOLC_HDIOS_LEFT_TERM_T_FT", (23, 0, 0, 0), &[]),
+    // right XP5IO
+    TileInfo(
+        "X5PHIOLP_GTH_QUAD_RIGHT_RBRK_FT",
+        (51, 0, 0, 0),
+        &["clk-brk"],
+    ),
+    TileInfo("CMTXP_CMTXP_RIGHT_FT", (0, 0, 60, 0), &["pll-alt"]),
+    TileInfo("MC2NPI_BOT_RIGHT_FT", (1, 0, 29, 0), &[]),
+    TileInfo("MC2NPI_TOP_RIGHT_FT", (1, 0, 29, 0), &[]),
+    TileInfo("RCLK_RCLK_MC2NPI_R_FT", (1, 0, 0, 0), &["clk-row"]),
+    TileInfo("MC2NPI_RIGHT_RBRK_FT", (1, 0, 0, 0), &["clk-brk"]),
+    TileInfo("MC2NPI_RIGHT_TERM_T_FT", (1, 0, 0, 0), &[]),
+    TileInfo("HSM_XP5IO_FT", (48, 0, 60, 0), &["iob"]),
+    TileInfo("LPDDRMC_RBRK_FT", (2, 0, 0, 0), &["clk-brk"]),
+    TileInfo("X5PHIOLP_RIGHT_RBRK_FT", (45, 0, 0, 0), &["clk-brk"]),
+    TileInfo("LPDDRMC_TERM_T_FT", (2, 0, 0, 0), &[]),
+    TileInfo("X5PHIOLP_RIGHT_TERM_T_FT", (45, 0, 0, 0), &[]),
     // left
     TileInfo("GTH_QUAD_LEFT", (50, 0, 60, 0), &["gth"]),
     TileInfo("GTH_QUAD_LEFT_RBRK", (50, 0, 0, 0), &["clk-brk"]),
@@ -2378,6 +2433,26 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
         (0, 0, 29, 0),
         &["sysmon"],
     ),
+    TileInfo(
+        "AMS_M12BUF_AMS_LASSEN_M_BOT_L_FT",
+        (0, 0, 29, 0),
+        &["sysmon"],
+    ),
+    TileInfo(
+        "AMS_M12BUF_AMS_LASSEN_M_TOP_L_FT",
+        (0, 0, 29, 0),
+        &["sysmon"],
+    ),
+    TileInfo(
+        "AMS_M12BUF_AMS_LASSEN_TERM_BOT_R_FT",
+        (0, 0, 29, 0),
+        &["sysmon"],
+    ),
+    TileInfo(
+        "AMS_M12BUF_AMS_LASSEN_TERM_TOP_R_FT",
+        (0, 0, 29, 0),
+        &["sysmon"],
+    ),
     TileInfo("CFG_M12BUF", (0, 0, 29, 0), &[]),
     TileInfo("CFG_M12BUF_TERM_L", (0, 0, 29, 0), &[]),
     TileInfo("CFG_M12BUF_CFG_BOT_L_FT", (0, 0, 29, 0), &[]),
@@ -2400,6 +2475,11 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     ),
     TileInfo("CFG_M12BUF_CFG_LASSEN_TERM_BOT_L_FT", (0, 0, 29, 0), &[]),
     TileInfo("CFG_M12BUF_CFG_LASSEN_TERM_TOP_L_FT", (0, 0, 29, 0), &[]),
+    TileInfo("CFG_M12BUF_CFG_LASSEN_TERM_ALL_L_FT", (0, 0, 29, 0), &[]),
+    TileInfo("CFG_M12BUF_CFG_LASSEN_M_BOT_L_FT", (0, 0, 29, 0), &[]),
+    TileInfo("CFG_M12BUF_CFG_LASSEN_M_TOP_L_FT", (0, 0, 29, 0), &[]),
+    TileInfo("CFG_M12BUF_CFG_LASSEN_TERM_BOT_R_FT", (0, 0, 29, 0), &[]),
+    TileInfo("CFG_M12BUF_CFG_LASSEN_TERM_TOP_R_FT", (0, 0, 29, 0), &[]),
     TileInfo("CFG_M12BUF_RBRK_L", SINGLE, &["clk-brk"]),
     TileInfo("CFG_M12BUF_TERM_B_L", SINGLE, &[]),
     TileInfo("CFG_M12BUF_TERM_P", SINGLE, &[]),
@@ -3920,6 +4000,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     if crd.y >= my_th {
                         core::mem::swap(&mut eu, &mut ed);
+                    }
+                    if matches!(
+                        rd.tile_kinds.key(tile.kind).as_str(),
+                        "HDIOLC_HDIOL_LEFT_TERM_B_FT"
+                            | "HDIOLC_HDIOL_BOT_LEFT_FT"
+                            | "HDIOLC_HDIOL_TOP_LEFT_FT"
+                            | "RCLK_RCLK_HDIOL_MRC_L_FT"
+                            | "HDIOLC_HDIOL_LEFT_RBRK_FT"
+                    ) && crd.x == 3
+                    {
+                        el += 1;
+                        er -= 1;
                     }
                     for dx in -el..er + 1 {
                         for dy in -ed..eu + 1 {

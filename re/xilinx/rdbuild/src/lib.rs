@@ -106,6 +106,7 @@ impl PartBuilder {
 
         let mut res: HashMap<&'a str, TkSiteSlot> = HashMap::new();
         let mut minxy: HashMap<SlotKindId, (u32, u32)> = HashMap::new();
+        let mut all_y: HashMap<_, HashSet<_>> = HashMap::new();
         for (n, _, _) in sites {
             if let Some((base, x, y)) = split_xy(n) {
                 let base = self.part.slot_kinds.get_or_insert(base);
@@ -116,6 +117,7 @@ impl PartBuilder {
                 if y < e.1 {
                     e.1 = y;
                 }
+                all_y.entry(base).or_default().insert(y);
             }
             if let Some((base, _s, x, y)) = split_sxy(n) {
                 let base = self.part.slot_kinds.get_or_insert(base);
@@ -126,6 +128,7 @@ impl PartBuilder {
                 if y < e.1 {
                     e.1 = y;
                 }
+                all_y.entry(base).or_default().insert(y);
             }
         }
         let mut slots: HashSet<TkSiteSlot> = HashSet::new();
@@ -268,9 +271,15 @@ impl PartBuilder {
                 if self.part.family == "ultrascaleplus"
                     && tile_kind == "HPIO_L"
                     && base == "IOB"
-                    && y >= 30
+                    && y >= 13
                 {
-                    y -= 17;
+                    if !all_y[&base_id].contains(&(by + 13)) {
+                        if all_y[&base_id].contains(&(by + 20)) {
+                            y -= 7;
+                        } else {
+                            y -= 17;
+                        }
+                    }
                 }
                 TkSiteSlot::Xy(base_id, x as u8, y as u8)
             } else if let Some((base, _s, x, y)) = split_sxy(n) {
@@ -325,7 +334,7 @@ impl PartBuilder {
         &mut self,
         coord: Coord,
         name: String,
-        kind: String,
+        tile_kind: String,
         sites: &[(&str, &str, Vec<PbSitePin<'_>>)],
         wires: &[(&str, Option<&str>)],
         pips: &[PbPip<'_>],
@@ -409,7 +418,7 @@ impl PartBuilder {
                 )
             })
             .collect();
-        let slots = self.slotify(&kind, sites);
+        let slots = self.slotify(&tile_kind, sites);
         let sites_raw: Vec<_> = sites
             .iter()
             .map(|&(n, k, ref p)| {
@@ -437,18 +446,30 @@ impl PartBuilder {
         let mut pending_wires: EntityPartVec<TkConnWireId, Option<NodeClassId>> =
             EntityPartVec::new();
 
-        let tki = match self.part.tile_kinds.get_mut(&kind) {
+        let tki = match self.part.tile_kinds.get_mut(&tile_kind) {
             Some((tki, tk)) => {
-                for (slot, name, kind, pins) in sites_raw {
+                for (slot, name, site_kind, pins) in sites_raw {
                     let id = match tk.sites.get_mut(&slot) {
                         Some((id, site)) => {
-                            for (n, tksp) in pins {
-                                let pin = site.pins.get_mut(n).unwrap();
+                            for (pin_name, tksp) in pins {
+                                let pin = site.pins.get_mut(pin_name).unwrap();
                                 if tksp.wire.is_none() {
                                     continue;
                                 }
                                 if pin.wire.is_some() && pin.wire != tksp.wire {
-                                    panic!("pin wire mismatch");
+                                    panic!(
+                                        "pin wire mismatch {tile_kind} {name} {pin_name}: {w1} != {w2}",
+                                        w1 = if let Some(wire) = pin.wire {
+                                            self.part.wires[wire].as_str()
+                                        } else {
+                                            "----"
+                                        },
+                                        w2 = if let Some(wire) = tksp.wire {
+                                            self.part.wires[wire].as_str()
+                                        } else {
+                                            "----"
+                                        },
+                                    );
                                 }
                                 pin.wire = tksp.wire;
                                 if pin.speed != tksp.speed {
@@ -465,7 +486,7 @@ impl PartBuilder {
                                 .insert(
                                     slot,
                                     TkSite {
-                                        kind: kind.to_string(),
+                                        kind: site_kind.to_string(),
                                         pins: pins
                                             .iter()
                                             .map(|&(n, tksp)| (n.to_string(), tksp))
@@ -526,7 +547,7 @@ impl PartBuilder {
                                 panic!(
                                     "pip mismatch {} {} {} {} {:?} {:?}",
                                     name,
-                                    kind,
+                                    tile_kind,
                                     self.part.wires[k.0],
                                     self.part.wires[k.1],
                                     pip,
@@ -570,7 +591,7 @@ impl PartBuilder {
                     let id = tk.sites.get(&slot).unwrap().0;
                     sites.insert(id, name.to_string());
                 }
-                self.part.tile_kinds.insert(kind.to_string(), tk).0
+                self.part.tile_kinds.insert(tile_kind.to_string(), tk).0
             }
         };
         let tk = &self.part.tile_kinds[tki];
