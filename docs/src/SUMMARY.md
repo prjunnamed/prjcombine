@@ -335,6 +335,7 @@
     - [HPIO IOB](ultrascaleplus/io/hpio.md)
     - [HPIO XIPHY](ultrascaleplus/io/xiphy.md)
     - [HDIO](ultrascaleplus/io/hdio.md)
+    - [XP5IO](ultrascaleplus/io/xp5io.md)
     - [Clock Management Tile](ultrascaleplus/io/cmt.md)
   - [Configuration center](ultrascaleplus/center.md)
   - [CMAC](ultrascaleplus/cmac.md)
