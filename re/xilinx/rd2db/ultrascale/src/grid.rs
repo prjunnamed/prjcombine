@@ -5,8 +5,9 @@ use prjcombine_interconnect::{
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::chip::{
-    BramKind, Chip, ChipKind, CleLKind, CleMKind, Column, ColumnKind, DisabledPart, DspKind,
-    HardColumn, HardKind, HardRowKind, Interposer, IoColumn, IoRowKind, Ps, PsIntfKind, RegId,
+    BramKind, Chip, ChipKind, CleLKind, CleMKind, Column, ColumnKind, ConfigKind, DisabledPart,
+    DspKind, HardColumn, HardKind, HardRowKind, Interposer, IoColumn, IoRowKind, Ps, PsIntfKind,
+    RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityVec};
@@ -86,7 +87,9 @@ fn make_columns(int: &IntGridWrapper) -> EntityVec<ColId, Column> {
         ("URAM_URAM_FT", 2, ColumnKind::Uram),
         ("INT_INTERFACE_GT_R", 1, ColumnKind::Gt(0)),
         ("INT_INTF_R_TERM_GT", 1, ColumnKind::Gt(0)),
+        ("INT_INTF_20_2_RIGHT_TERM_GT_FT", 1, ColumnKind::Gt(0)),
         ("INT_INTF_RIGHT_TERM_IO", 1, ColumnKind::Io(0)),
+        ("INT_INTF_RIGHT_TERM_XP5IO_FT", 1, ColumnKind::Io(0)),
     ] {
         for c in int.find_columns(&[tkn]) {
             res[int.lookup_column(c - delta, Dir::E)] = Some(kind);
@@ -101,8 +104,10 @@ fn make_columns(int: &IntGridWrapper) -> EntityVec<ColId, Column> {
         // Ultrascale+
         "CFG_CONFIG",
         "CSEC_CONFIG_FT",
+        "CSEC_CONFIG_VER2_FT",
         "PCIE4_PCIE4_FT",
         "PCIE4C_PCIE4C_FT",
+        "PCIE4CE_PCIE4CE_FT",
         "CMAC",
         "ILKN_ILKN_FT",
         "HDIO_BOT_RIGHT",
@@ -142,6 +147,11 @@ fn make_columns(int: &IntGridWrapper) -> EntityVec<ColId, Column> {
     for c in int.find_columns(&["DFE_DFE_TILEE_FT"]) {
         let col = int.lookup_column_inter(c) - 1;
         res[col] = Some(ColumnKind::DfeE);
+        res[col + 1] = Some(ColumnKind::ContHard);
+    }
+    for c in int.find_columns(&["RCLK_RCLK_HDIOS_L_FT"]) {
+        let col = int.lookup_column_inter(c) - 1;
+        res[col] = Some(ColumnKind::HdioS);
         res[col + 1] = Some(ColumnKind::ContHard);
     }
     for c in int.find_columns(&["RCLK_CLEM_CLKBUF_L"]) {
@@ -327,17 +337,19 @@ fn get_cols_hard(
         // Ultrascale+
         ("CFG_CONFIG", HardRowKind::Cfg),
         ("CSEC_CONFIG_FT", HardRowKind::Cfg),
+        ("CSEC_CONFIG_VER2_FT", HardRowKind::Cfg),
         ("CFGIO_IOB20", HardRowKind::Ams),
         ("CFGIOLC_IOB20_FT", HardRowKind::Ams),
         ("PCIE4_PCIE4_FT", HardRowKind::Pcie),
-        ("PCIE4C_PCIE4C_FT", HardRowKind::PciePlus),
+        ("PCIE4C_PCIE4C_FT", HardRowKind::Pcie4C),
+        ("PCIE4CE_PCIE4CE_FT", HardRowKind::Pcie4CE),
         ("CMAC", HardRowKind::Cmac),
         ("ILKN_ILKN_FT", HardRowKind::Ilkn),
         ("DFE_DFE_TILEA_FT", HardRowKind::DfeA),
         ("DFE_DFE_TILEG_FT", HardRowKind::DfeG),
         ("HDIO_BOT_RIGHT", HardRowKind::Hdio),
-        ("HDIOLC_HDIOL_BOT_RIGHT_CFG_FT", HardRowKind::HdioLc),
-        ("HDIOLC_HDIOL_BOT_RIGHT_AUX_FT", HardRowKind::HdioLc),
+        ("HDIOLC_HDIOL_BOT_RIGHT_CFG_FT", HardRowKind::HdioL),
+        ("HDIOLC_HDIOL_BOT_RIGHT_AUX_FT", HardRowKind::HdioL),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
             let col = int.lookup_column_inter(x) - 1;
@@ -434,7 +446,7 @@ fn get_cols_io(
         ("GTY_QUAD_LEFT_FT", IoRowKind::Gty),
         // Ultrascale+
         // [reuse HPIO_L]
-        ("HDIOLC_HDIOL_BOT_LEFT_FT", IoRowKind::HdioLc),
+        ("HDIOLC_HDIOL_BOT_LEFT_FT", IoRowKind::HdioL),
         ("GTH_QUAD_LEFT", IoRowKind::Gth),
         ("GTY_L", IoRowKind::Gty),
         ("GTM_DUAL_LEFT_FT", IoRowKind::Gtm),
@@ -510,6 +522,7 @@ fn get_cols_io(
         ("GTH_R", IoRowKind::Gth),
         // Ultrascale+
         ("HPIO_RIGHT", IoRowKind::Hpio),
+        ("HSM_XP5IO_FT", IoRowKind::Xp5io),
         ("GTH_QUAD_RIGHT", IoRowKind::Gth),
         ("GTY_R", IoRowKind::Gty),
         ("GTM_DUAL_RIGHT_FT", IoRowKind::Gtm),
@@ -703,7 +716,7 @@ pub fn make_grids(
         }
     }
 
-    let mut grids = EntityVec::new();
+    let mut chips = EntityVec::new();
     let mut disabled = BTreeSet::new();
     let mut dieid = DieId::from_idx(0);
     for w in rows_slr_split.windows(2) {
@@ -736,7 +749,7 @@ pub fn make_grids(
                 .is_empty();
 
         assert_eq!(int.int.rows.len() % 60, 0);
-        grids.push(Chip {
+        chips.push(Chip {
             kind,
             columns,
             cols_vbrk,
@@ -746,7 +759,13 @@ pub fn make_grids(
             regs: int.int.rows.len() / 60,
             ps: get_ps(&int),
             has_hbm: int.find_column(&["HBM_DMAH_FT"]).is_some(),
-            has_csec: int.find_column(&["CSEC_CONFIG_FT"]).is_some(),
+            config_kind: if int.find_column(&["CSEC_CONFIG_VER2_FT"]).is_some() {
+                ConfigKind::CsecV2
+            } else if int.find_column(&["CSEC_CONFIG_FT"]).is_some() {
+                ConfigKind::Csec
+            } else {
+                ConfigKind::Config
+            },
             is_dmc: int.find_column(&["FSR_DMC_TARGET_FT"]).is_some(),
             is_alt_cfg,
         });
@@ -756,81 +775,81 @@ pub fn make_grids(
     if !tterms.contains(&(rd.height as i32 - 1)) {
         if rd.part.contains("ku025") {
             let s0 = DieId::from_idx(0);
-            assert_eq!(grids.len(), 1);
-            assert_eq!(grids[s0].regs, 3);
-            assert_eq!(grids[s0].cols_hard.len(), 1);
-            assert_eq!(grids[s0].cols_io.len(), 3);
-            grids[s0].regs = 5;
-            grids[s0].cols_hard[0].regs.push(HardRowKind::Pcie);
-            grids[s0].cols_hard[0].regs.push(HardRowKind::Pcie);
-            grids[s0].cols_io[0].regs.push(IoRowKind::Hpio);
-            grids[s0].cols_io[0].regs.push(IoRowKind::Hpio);
-            grids[s0].cols_io[1].regs.push(IoRowKind::Hpio);
-            grids[s0].cols_io[1].regs.push(IoRowKind::Hpio);
-            grids[s0].cols_io[2].regs.push(IoRowKind::Gth);
-            grids[s0].cols_io[2].regs.push(IoRowKind::Gth);
+            assert_eq!(chips.len(), 1);
+            assert_eq!(chips[s0].regs, 3);
+            assert_eq!(chips[s0].cols_hard.len(), 1);
+            assert_eq!(chips[s0].cols_io.len(), 3);
+            chips[s0].regs = 5;
+            chips[s0].cols_hard[0].regs.push(HardRowKind::Pcie);
+            chips[s0].cols_hard[0].regs.push(HardRowKind::Pcie);
+            chips[s0].cols_io[0].regs.push(IoRowKind::Hpio);
+            chips[s0].cols_io[0].regs.push(IoRowKind::Hpio);
+            chips[s0].cols_io[1].regs.push(IoRowKind::Hpio);
+            chips[s0].cols_io[1].regs.push(IoRowKind::Hpio);
+            chips[s0].cols_io[2].regs.push(IoRowKind::Gth);
+            chips[s0].cols_io[2].regs.push(IoRowKind::Gth);
             disabled.insert(DisabledPart::Region(s0, RegId::from_idx(3)));
             disabled.insert(DisabledPart::Region(s0, RegId::from_idx(4)));
         } else if rd.part.contains("ku085") {
             let s0 = DieId::from_idx(0);
             let s1 = DieId::from_idx(1);
-            assert_eq!(grids.len(), 2);
-            assert_eq!(grids[s0].regs, 5);
-            assert_eq!(grids[s1].regs, 4);
-            assert_eq!(grids[s1].cols_hard.len(), 1);
-            assert_eq!(grids[s1].cols_io.len(), 4);
-            grids[s1].regs = 5;
-            grids[s1].cols_hard[0].regs.push(HardRowKind::Pcie);
-            grids[s1].cols_io[0].regs.push(IoRowKind::Gth);
-            grids[s1].cols_io[1].regs.push(IoRowKind::Hpio);
-            grids[s1].cols_io[2].regs.push(IoRowKind::Hpio);
-            grids[s1].cols_io[3].regs.push(IoRowKind::Gth);
-            assert_eq!(grids[s0], grids[s1]);
+            assert_eq!(chips.len(), 2);
+            assert_eq!(chips[s0].regs, 5);
+            assert_eq!(chips[s1].regs, 4);
+            assert_eq!(chips[s1].cols_hard.len(), 1);
+            assert_eq!(chips[s1].cols_io.len(), 4);
+            chips[s1].regs = 5;
+            chips[s1].cols_hard[0].regs.push(HardRowKind::Pcie);
+            chips[s1].cols_io[0].regs.push(IoRowKind::Gth);
+            chips[s1].cols_io[1].regs.push(IoRowKind::Hpio);
+            chips[s1].cols_io[2].regs.push(IoRowKind::Hpio);
+            chips[s1].cols_io[3].regs.push(IoRowKind::Gth);
+            assert_eq!(chips[s0], chips[s1]);
             disabled.insert(DisabledPart::Region(s1, RegId::from_idx(4)));
         } else if rd.part.contains("zu25dr") {
             let s0 = DieId::from_idx(0);
-            assert_eq!(grids.len(), 1);
-            assert_eq!(grids[s0].regs, 6);
-            assert_eq!(grids[s0].cols_io.len(), 3);
-            grids[s0].regs = 8;
-            grids[s0].cols_hard[0].regs.push(HardRowKind::Cmac);
-            grids[s0].cols_hard[0].regs.push(HardRowKind::Pcie);
-            grids[s0].cols_hard[1].regs.push(HardRowKind::Hdio);
-            grids[s0].cols_hard[1].regs.push(HardRowKind::Hdio);
-            grids[s0].cols_io[0].regs.push(IoRowKind::Gty);
-            grids[s0].cols_io[0].regs.push(IoRowKind::Gty);
-            grids[s0].cols_io[1].regs.push(IoRowKind::Hpio);
-            grids[s0].cols_io[1].regs.push(IoRowKind::Hpio);
-            grids[s0].cols_io[2].regs.push(IoRowKind::HsDac);
-            grids[s0].cols_io[2].regs.push(IoRowKind::HsDac);
+            assert_eq!(chips.len(), 1);
+            assert_eq!(chips[s0].regs, 6);
+            assert_eq!(chips[s0].cols_io.len(), 3);
+            chips[s0].regs = 8;
+            chips[s0].cols_hard[0].regs.push(HardRowKind::Cmac);
+            chips[s0].cols_hard[0].regs.push(HardRowKind::Pcie);
+            chips[s0].cols_hard[1].regs.push(HardRowKind::Hdio);
+            chips[s0].cols_hard[1].regs.push(HardRowKind::Hdio);
+            chips[s0].cols_io[0].regs.push(IoRowKind::Gty);
+            chips[s0].cols_io[0].regs.push(IoRowKind::Gty);
+            chips[s0].cols_io[1].regs.push(IoRowKind::Hpio);
+            chips[s0].cols_io[1].regs.push(IoRowKind::Hpio);
+            chips[s0].cols_io[2].regs.push(IoRowKind::HsDac);
+            chips[s0].cols_io[2].regs.push(IoRowKind::HsDac);
             disabled.insert(DisabledPart::TopRow(s0, RegId::from_idx(5)));
             disabled.insert(DisabledPart::Region(s0, RegId::from_idx(6)));
             disabled.insert(DisabledPart::Region(s0, RegId::from_idx(7)));
         } else if rd.part.contains("ku19p") {
             let s0 = DieId::from_idx(0);
-            assert_eq!(grids.len(), 1);
-            assert_eq!(grids[s0].regs, 9);
-            assert_eq!(grids[s0].cols_io.len(), 2);
-            assert_eq!(grids[s0].cols_hard.len(), 1);
-            grids[s0].regs = 11;
-            prepend_reg(&mut grids[s0].cols_hard[0].regs, HardRowKind::PciePlus);
-            grids[s0].cols_hard[0].regs.push(HardRowKind::Cmac);
-            prepend_reg(&mut grids[s0].cols_io[0].regs, IoRowKind::Hpio);
-            grids[s0].cols_io[0].regs.push(IoRowKind::Hpio);
-            prepend_reg(&mut grids[s0].cols_io[1].regs, IoRowKind::Gty);
-            grids[s0].cols_io[1].regs.push(IoRowKind::Gtm);
+            assert_eq!(chips.len(), 1);
+            assert_eq!(chips[s0].regs, 9);
+            assert_eq!(chips[s0].cols_io.len(), 2);
+            assert_eq!(chips[s0].cols_hard.len(), 1);
+            chips[s0].regs = 11;
+            prepend_reg(&mut chips[s0].cols_hard[0].regs, HardRowKind::Pcie4C);
+            chips[s0].cols_hard[0].regs.push(HardRowKind::Cmac);
+            prepend_reg(&mut chips[s0].cols_io[0].regs, IoRowKind::Hpio);
+            chips[s0].cols_io[0].regs.push(IoRowKind::Hpio);
+            prepend_reg(&mut chips[s0].cols_io[1].regs, IoRowKind::Gty);
+            chips[s0].cols_io[1].regs.push(IoRowKind::Gtm);
             // the "disabled gt" regions will be off now
             disabled.clear();
             disabled.insert(DisabledPart::Region(s0, RegId::from_idx(0)));
             disabled.insert(DisabledPart::Region(s0, RegId::from_idx(10)));
             disabled.insert(DisabledPart::Gt(
                 s0,
-                grids[s0].cols_io[1].col,
+                chips[s0].cols_io[1].col,
                 RegId::from_idx(9),
             ));
             disabled.insert(DisabledPart::GtmSpareBufs(
                 s0,
-                grids[s0].cols_io[1].col,
+                chips[s0].cols_io[1].col,
                 RegId::from_idx(9),
             ));
         } else {
@@ -839,26 +858,26 @@ pub fn make_grids(
     }
     let bterms = find_rows(rd, &["INT_TERM_B"]);
     if !bterms.contains(&0)
-        && !grids.first().unwrap().has_hbm
-        && grids.first().unwrap().ps.is_none()
+        && !chips.first().unwrap().has_hbm
+        && chips.first().unwrap().ps.is_none()
     {
         if rd.part.contains("vu160") {
             let s0 = DieId::from_idx(0);
             let s1 = DieId::from_idx(1);
             let s2 = DieId::from_idx(2);
-            assert_eq!(grids.len(), 3);
-            assert_eq!(grids[s0].regs, 4);
-            assert_eq!(grids[s1].regs, 5);
-            assert_eq!(grids[s2].regs, 5);
-            assert_eq!(grids[s0].cols_io.len(), 4);
-            grids[s0].regs = 5;
-            prepend_reg(&mut grids[s0].cols_hard[0].regs, HardRowKind::Ilkn);
-            prepend_reg(&mut grids[s0].cols_hard[1].regs, HardRowKind::Pcie);
-            prepend_reg(&mut grids[s0].cols_io[0].regs, IoRowKind::Gty);
-            prepend_reg(&mut grids[s0].cols_io[1].regs, IoRowKind::Hpio);
-            prepend_reg(&mut grids[s0].cols_io[2].regs, IoRowKind::Hrio);
-            prepend_reg(&mut grids[s0].cols_io[3].regs, IoRowKind::Gth);
-            assert_eq!(grids[s0], grids[s1]);
+            assert_eq!(chips.len(), 3);
+            assert_eq!(chips[s0].regs, 4);
+            assert_eq!(chips[s1].regs, 5);
+            assert_eq!(chips[s2].regs, 5);
+            assert_eq!(chips[s0].cols_io.len(), 4);
+            chips[s0].regs = 5;
+            prepend_reg(&mut chips[s0].cols_hard[0].regs, HardRowKind::Ilkn);
+            prepend_reg(&mut chips[s0].cols_hard[1].regs, HardRowKind::Pcie);
+            prepend_reg(&mut chips[s0].cols_io[0].regs, IoRowKind::Gty);
+            prepend_reg(&mut chips[s0].cols_io[1].regs, IoRowKind::Hpio);
+            prepend_reg(&mut chips[s0].cols_io[2].regs, IoRowKind::Hrio);
+            prepend_reg(&mut chips[s0].cols_io[3].regs, IoRowKind::Gth);
+            assert_eq!(chips[s0], chips[s1]);
             disabled.insert(DisabledPart::Region(s0, RegId::from_idx(0)));
         } else if rd.part.contains("ku19p") {
             // fixed above
@@ -896,7 +915,7 @@ pub fn make_grids(
     }
     let primary = DieId::from_idx(primary.unwrap());
     let interposer = Interposer { primary };
-    if grids.first().unwrap().ps.is_some() {
+    if chips.first().unwrap().ps.is_some() {
         let mut found = false;
         for pins in rd.packages.values() {
             for pin in pins {
@@ -935,5 +954,5 @@ pub fn make_grids(
     }
 
     let naming = DeviceNaming { rclk_alt_pins };
-    (grids, interposer, disabled, naming)
+    (chips, interposer, disabled, naming)
 }

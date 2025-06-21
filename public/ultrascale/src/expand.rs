@@ -10,11 +10,11 @@ use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{
-    Chip, ChipKind, CleMKind, Column, ColumnKind, DisabledPart, DspKind, HardKind, HardRowKind,
-    Interposer, IoRowKind, RegId,
+    Chip, ChipKind, CleMKind, Column, ColumnKind, ConfigKind, DisabledPart, DspKind, HardKind,
+    HardRowKind, Interposer, IoRowKind, RegId,
 };
 use crate::expanded::{
-    ClkSrc, ExpandedDevice, GtCoord, HdioCoord, HpioCoord, IoCoord, REGION_LEAF,
+    ClkSrc, ExpandedDevice, GtCoord, HdioCoord, HpioCoord, IoCoord, REGION_LEAF, Xp5ioCoord,
 };
 
 use crate::bond::SharedCfgPad;
@@ -72,7 +72,10 @@ impl DieExpander<'_, '_, '_> {
 
                             (
                                 ChipKind::UltrascalePlus,
-                                IoRowKind::Hpio | IoRowKind::Hrio | IoRowKind::HdioLc,
+                                IoRowKind::Hpio
+                                | IoRowKind::Hrio
+                                | IoRowKind::HdioL
+                                | IoRowKind::Xp5io,
                             ) => {
                                 self.die.add_tile((col, row), "INTF.IO", &[(col, row)]);
                             }
@@ -85,6 +88,7 @@ impl DieExpander<'_, '_, '_> {
                     | ColumnKind::DfeC
                     | ColumnKind::DfeDF
                     | ColumnKind::DfeE
+                    | ColumnKind::HdioS
                     | ColumnKind::ContHard
                     | ColumnKind::Sdfec
                     | ColumnKind::DfeB => {
@@ -458,8 +462,8 @@ impl DieExpander<'_, '_, '_> {
                 self.die.add_tile((col, row + 30), "RCLK_HDIO", &crds);
                 return;
             }
-            HardRowKind::HdioLc => {
-                for (i, nk) in ["HDIOLC_S", "HDIOLC_N"].into_iter().enumerate() {
+            HardRowKind::HdioL => {
+                for (i, nk) in ["HDIOL_S", "HDIOL_N"].into_iter().enumerate() {
                     let row = row + i * 30;
                     let crds: [_; 30] = core::array::from_fn(|i| (col, row + i));
                     self.die.add_tile((col, row), nk, &crds);
@@ -474,14 +478,14 @@ impl DieExpander<'_, '_, '_> {
                     }
                 }
                 let crds: [_; 60] = core::array::from_fn(|i| (col, row + i));
-                self.die.add_tile((col, row + 30), "RCLK_HDIOLC", &crds);
+                self.die.add_tile((col, row + 30), "RCLK_HDIOL", &crds);
                 return;
             }
             HardRowKind::Cfg => {
-                let kind = if self.chip.has_csec {
-                    "CFG_CSEC"
-                } else {
-                    "CFG"
+                let kind = match self.chip.config_kind {
+                    ConfigKind::Config => "CFG",
+                    ConfigKind::Csec => "CFG_CSEC",
+                    ConfigKind::CsecV2 => "CFG_CSEC_V2",
                 };
                 let crds: [_; 60] = core::array::from_fn(|i| (col, row + i));
                 self.die.add_tile((col, row), kind, &crds);
@@ -506,7 +510,8 @@ impl DieExpander<'_, '_, '_> {
                     "PCIE4"
                 }
             }
-            HardRowKind::PciePlus => "PCIE4C",
+            HardRowKind::Pcie4C => "PCIE4C",
+            HardRowKind::Pcie4CE => "PCIE4CE",
             HardRowKind::Cmac => "CMAC",
             HardRowKind::Ilkn => "ILKN",
             HardRowKind::DfeA => "DFE_A",
@@ -531,7 +536,7 @@ impl DieExpander<'_, '_, '_> {
                 let kind = hc.regs[reg];
                 if kind == HardRowKind::Cfg
                     && reg.to_idx() != 0
-                    && matches!(hc.regs[reg - 1], HardRowKind::Pcie | HardRowKind::PciePlus)
+                    && matches!(hc.regs[reg - 1], HardRowKind::Pcie | HardRowKind::Pcie4C)
                 {
                     *has_pcie_cfg = true;
                 }
@@ -618,10 +623,10 @@ impl DieExpander<'_, '_, '_> {
                             self.die.add_tile((ioc.col, row), "RCLK_HPIO", &crds);
                         }
                     }
-                    IoRowKind::HdioLc => {
+                    IoRowKind::HdioL => {
                         let col = ioc.col;
                         let row = self.chip.row_reg_rclk(reg);
-                        for (i, nk) in ["HDIOLC_S", "HDIOLC_N"].into_iter().enumerate() {
+                        for (i, nk) in ["HDIOL_S", "HDIOL_N"].into_iter().enumerate() {
                             let row = row - 30 + i * 30;
                             let crds: [_; 30] = core::array::from_fn(|i| (col, row + i));
                             self.die.add_tile((col, row), nk, &crds);
@@ -637,7 +642,23 @@ impl DieExpander<'_, '_, '_> {
                         }
                         let crds: [_; 60] = core::array::from_fn(|i| (ioc.col, row - 30 + i));
                         self.die.add_tile((col, row), "CMT", &crds);
-                        self.die.add_tile((col, row), "RCLK_HDIOLC", &crds);
+                        self.die.add_tile((col, row), "RCLK_HDIOL", &crds);
+                    }
+                    IoRowKind::Xp5io => {
+                        let col = ioc.col;
+                        let row = self.chip.row_reg_rclk(reg);
+
+                        let crds: [_; 60] = core::array::from_fn(|i| (ioc.col, row - 30 + i));
+                        self.die.add_tile((col, row), "CMTXP", &crds);
+                        self.die.add_tile((col, row), "XP5IO", &crds);
+                        for idx in 0..66 {
+                            self.io.push(IoCoord::Xp5io(Xp5ioCoord {
+                                die,
+                                col,
+                                reg,
+                                iob: TileIobId::from_idx(idx),
+                            }));
+                        }
                     }
                     _ => {
                         let row = self.chip.row_reg_rclk(reg);
@@ -717,6 +738,35 @@ impl DieExpander<'_, '_, '_> {
         }
     }
 
+    fn fill_hdios(&mut self) {
+        for (col, &cd) in &self.chip.columns {
+            if cd.kind != ColumnKind::HdioS {
+                continue;
+            }
+            for reg in self.chip.regs() {
+                let row = self.chip.row_reg_bot(reg);
+                let crds: [_; 120] = core::array::from_fn(|i| {
+                    if i < 60 {
+                        (col, row + i)
+                    } else {
+                        (col + 1, row + (i - 60))
+                    }
+                });
+                self.die
+                    .add_tile((col, row + 30), "RCLK_HDIOS", &crds[..60]);
+                self.die.add_tile((col, row), "HDIOS", &crds);
+                for i in 0..42 {
+                    self.io.push(IoCoord::HdioLc(HdioCoord {
+                        die: self.die.die,
+                        col,
+                        reg,
+                        iob: TileIobId::from_idx(i),
+                    }));
+                }
+            }
+        }
+    }
+
     fn fill_clkroot(&mut self) {
         for col in self.die.cols() {
             for row in self.die.rows() {
@@ -749,7 +799,8 @@ pub fn fill_clk_src(
             ColumnKind::CleM(CleMKind::ClkBuf)
             | ColumnKind::Hard(_, _)
             | ColumnKind::DfeE
-            | ColumnKind::DfeB => {
+            | ColumnKind::DfeB
+            | ColumnKind::HdioS => {
                 if col != columns.last_id().unwrap() {
                     hr = ClkSrc::RouteSplitter(col);
                 }
@@ -804,6 +855,7 @@ pub fn expand_grid<'a>(
         expander.fill_uram();
         expander.fill_fe();
         expander.fill_dfe();
+        expander.fill_hdios();
         expander.fill_hard(&mut has_pcie_cfg);
         expander.fill_io();
         expander.fill_clkroot();
@@ -827,13 +879,16 @@ pub fn expand_grid<'a>(
                 col_cfg_io = Some(col);
             }
         }
+        if cd.kind == ColumnKind::HdioS {
+            col_cfg_io = Some(col);
+        }
         if let ColumnKind::Hard(HardKind::Term, idx) = cd.kind {
             let mut has_hdiolc = false;
             for chip in chips.values() {
                 if chip.cols_hard[idx]
                     .regs
                     .values()
-                    .any(|&kind| kind == HardRowKind::HdioLc)
+                    .any(|&kind| kind == HardRowKind::HdioL)
                 {
                     has_hdiolc = true;
                 }
@@ -854,12 +909,16 @@ pub fn expand_grid<'a>(
                 ioxlut.insert(col, iox);
                 iox += 1;
             }
+            ColumnKind::HdioS => {
+                ioxlut.insert(col, iox);
+                iox += 1;
+            }
             ColumnKind::Hard(_, idx) => {
                 let regs = &pchip.cols_hard[idx].regs;
                 if regs.values().any(|x| {
                     matches!(
                         x,
-                        HardRowKind::Hdio | HardRowKind::HdioAms | HardRowKind::HdioLc
+                        HardRowKind::Hdio | HardRowKind::HdioAms | HardRowKind::HdioL
                     )
                 }) {
                     ioxlut.insert(col, iox);
@@ -876,6 +935,7 @@ pub fn expand_grid<'a>(
             && iox != iox_cfg
             && pchip.kind == ChipKind::UltrascalePlus
             && pchip.cols_hard.len() == 1
+            && !pchip.config_kind.is_csec()
         {
             bank -= 20;
         }
@@ -900,7 +960,7 @@ pub fn expand_grid<'a>(
                     HardRowKind::Hdio | HardRowKind::HdioAms => {
                         has_io = true;
                     }
-                    HardRowKind::HdioLc => {
+                    HardRowKind::HdioL => {
                         has_hdiolc = true;
                     }
                     _ => (),
@@ -911,7 +971,7 @@ pub fn expand_grid<'a>(
                     IoRowKind::Hpio | IoRowKind::Hrio => {
                         has_io = true;
                     }
-                    IoRowKind::HdioLc => {
+                    IoRowKind::HdioL => {
                         has_hdiolc = true;
                     }
                     _ => (),
@@ -1073,12 +1133,7 @@ pub fn expand_grid<'a>(
                     }
                 }
             }
-        } else {
-            let hcol = chip
-                .cols_hard
-                .iter()
-                .find(|hcol| hcol.col == col_cfg_io)
-                .unwrap();
+        } else if let Some(hcol) = chip.cols_hard.iter().find(|hcol| hcol.col == col_cfg_io) {
             for idx in 0..84 {
                 if let Some(cfg) = match idx {
                     14 => Some(SharedCfgPad::Data(31)),
@@ -1127,6 +1182,61 @@ pub fn expand_grid<'a>(
                         IoCoord::HdioLc(HdioCoord {
                             die,
                             col: hcol.col,
+                            reg: chip.reg_cfg(),
+                            iob: TileIobId::from_idx(idx),
+                        }),
+                    );
+                }
+            }
+        } else {
+            for idx in 0..42 {
+                if let Some(cfg) = match idx {
+                    0 => Some(SharedCfgPad::Data(31)),
+                    1 => Some(SharedCfgPad::Data(30)),
+                    2 => Some(SharedCfgPad::Data(28)),
+                    3 => Some(SharedCfgPad::Data(26)),
+                    4 => Some(SharedCfgPad::Data(24)),
+                    5 => Some(SharedCfgPad::Data(22)),
+                    6 => Some(SharedCfgPad::Data(20)),
+                    7 => Some(SharedCfgPad::Data(18)),
+                    8 => Some(SharedCfgPad::Data(16)),
+                    9 => Some(SharedCfgPad::Data(14)),
+                    12 => Some(SharedCfgPad::Data(29)),
+                    13 => Some(SharedCfgPad::Data(27)),
+                    14 => Some(SharedCfgPad::Data(25)),
+                    15 => Some(SharedCfgPad::Data(23)),
+                    16 => Some(SharedCfgPad::Data(21)),
+                    17 => Some(SharedCfgPad::Data(19)),
+                    18 => Some(SharedCfgPad::Data(17)),
+                    19 => Some(SharedCfgPad::Data(15)),
+                    20 => Some(SharedCfgPad::Data(13)),
+                    21 => Some(SharedCfgPad::Data(12)),
+                    22 => Some(SharedCfgPad::EmCclk),
+                    24 => Some(SharedCfgPad::Data(8)),
+                    25 => Some(SharedCfgPad::Data(7)),
+                    26 => Some(SharedCfgPad::Data(5)),
+                    27 => Some(SharedCfgPad::Busy),
+                    28 => Some(SharedCfgPad::Fcs1B),
+                    29 => Some(SharedCfgPad::CsiB),
+                    30 => Some(SharedCfgPad::I2cSda),
+                    31 => Some(SharedCfgPad::I2cSclk),
+                    32 => Some(SharedCfgPad::PerstN0),
+                    33 => Some(SharedCfgPad::SmbAlert),
+                    34 => Some(SharedCfgPad::Data(11)),
+                    35 => Some(SharedCfgPad::Data(10)),
+                    36 => Some(SharedCfgPad::Data(9)),
+                    37 => Some(SharedCfgPad::OspiDs),
+                    38 => Some(SharedCfgPad::Data(6)),
+                    39 => Some(SharedCfgPad::Data(4)),
+                    40 => Some(SharedCfgPad::OspiRstB),
+                    41 => Some(SharedCfgPad::OspiEccFail),
+                    _ => None,
+                } {
+                    die_cfg_io.insert(
+                        cfg,
+                        IoCoord::HdioLc(HdioCoord {
+                            die,
+                            col: col_cfg_io,
                             reg: chip.reg_cfg(),
                             iob: TileIobId::from_idx(idx),
                         }),

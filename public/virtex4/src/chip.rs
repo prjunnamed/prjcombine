@@ -349,7 +349,7 @@ impl std::fmt::Display for Chip {
             if self.cols_vbrk.contains(&col) {
                 writeln!(f, "\t\t--- break")?;
             }
-            write!(f, "\t\tX{c}: ", c = col.to_idx())?;
+            write!(f, "\t\t{col}: ")?;
             match cd {
                 ColumnKind::Io => write!(f, "IO")?,
                 ColumnKind::ClbLL => write!(f, "CLBLL")?,
@@ -373,10 +373,10 @@ impl std::fmt::Display for Chip {
             if let Some(ref hard) = self.col_hard {
                 if hard.col == col {
                     for &row in &hard.rows_pcie {
-                        writeln!(f, "\t\t\tY{y}: PCIE", y = row.to_idx())?;
+                        writeln!(f, "\t\t\t{row}: PCIE")?;
                     }
                     for &row in &hard.rows_emac {
-                        writeln!(f, "\t\t\tY{y}: EMAC", y = row.to_idx())?;
+                        writeln!(f, "\t\t\t{row}: EMAC")?;
                     }
                 }
             }
@@ -384,11 +384,7 @@ impl std::fmt::Display for Chip {
                 if ioc.col == col {
                     for (reg, kind) in &ioc.regs {
                         if let Some(kind) = kind {
-                            writeln!(
-                                f,
-                                "\t\t\tY{y}: {kind:?}",
-                                y = self.row_reg_bot(reg).to_idx()
-                            )?;
+                            writeln!(f, "\t\t\t{row}: {kind:?}", row = self.row_reg_bot(reg))?;
                         }
                     }
                 }
@@ -398,18 +394,14 @@ impl std::fmt::Display for Chip {
                     let mid = if gtc.is_middle { "MID " } else { "" };
                     for (reg, kind) in &gtc.regs {
                         if let Some(kind) = kind {
-                            writeln!(
-                                f,
-                                "\t\t\tY{y}: {mid}{kind:?}",
-                                y = self.row_reg_bot(reg).to_idx()
-                            )?;
+                            writeln!(f, "\t\t\t{row}: {mid}{kind:?}", row = self.row_reg_bot(reg))?;
                         }
                     }
                 }
             }
             if cd == ColumnKind::Cfg {
                 for &(row, kind) in &self.rows_cfg {
-                    writeln!(f, "\t\t\tY{y}: {kind:?}", y = row.to_idx())?;
+                    writeln!(f, "\t\t\t{row}: {kind:?}")?;
                 }
             }
         }
@@ -422,37 +414,30 @@ impl std::fmt::Display for Chip {
                 ChipKind::Virtex5 => (col + 14, row + 40),
                 _ => unreachable!(),
             };
-            writeln!(
-                f,
-                "\tPPC: X{xl}:X{xr} Y{yb}:Y{yt}",
-                xl = col.to_idx(),
-                xr = col_r.to_idx(),
-                yb = row.to_idx(),
-                yt = row_t.to_idx(),
-            )?;
+            writeln!(f, "\tPPC: {col}:{col_r} {row}:{row_t}")?;
         }
         for pcie in &self.holes_pcie2 {
             writeln!(
                 f,
-                "\tPCIE2.{lr}: X{xl}:X{xr} Y{yb}:Y{yt}",
+                "\tPCIE2.{lr}: {col_l}:{col_r} {row_b}:{row_t}",
                 lr = match pcie.kind {
                     Pcie2Kind::Left => 'L',
                     Pcie2Kind::Right => 'R',
                 },
-                xl = pcie.col.to_idx(),
-                xr = pcie.col.to_idx() + 4,
-                yb = pcie.row.to_idx(),
-                yt = pcie.row.to_idx() + 25
+                col_l = pcie.col,
+                col_r = pcie.col + 4,
+                row_b = pcie.row,
+                row_t = pcie.row + 25
             )?;
         }
         for &(col, row) in &self.holes_pcie3 {
             writeln!(
                 f,
-                "\tPCIE3: X{xl}:X{xr} Y{yb}:Y{yt}",
-                xl = col.to_idx(),
-                xr = col.to_idx() + 6,
-                yb = row.to_idx(),
-                yt = row.to_idx() + 50
+                "\tPCIE3: {col_l}:{col_r} {row_b}:{row_t}",
+                col_l = col,
+                col_r = col + 6,
+                row_b = row,
+                row_t = row + 50
             )?;
         }
         writeln!(f, "\tHAS BRAM_FX: {v:?}", v = self.has_bram_fx)?;

@@ -252,8 +252,10 @@ bels![
     HDLOGIC_CSSD0: tslots::BEL,
     HDLOGIC_CSSD1: tslots::BEL,
     HDLOGIC_CSSD2: tslots::BEL,
+    HDLOGIC_CSSD3: tslots::BEL,
     HDIO_VREF0: tslots::BEL,
     HDIO_VREF1: tslots::BEL,
+    HDIO_VREF2: tslots::BEL,
     HDIO_BIAS: tslots::BEL,
     BUFGCE_HDIO0: tslots::RCLK_BEL,
     BUFGCE_HDIO1: tslots::RCLK_BEL,
@@ -271,6 +273,89 @@ bels![
     ABUS_SWITCH_HDIO9: tslots::RCLK_BEL,
     ABUS_SWITCH_HDIO10: tslots::RCLK_BEL,
     ABUS_SWITCH_HDIO11: tslots::RCLK_BEL,
+    LPDDRMC: tslots::BEL,
+    XP5IOB0: tslots::BEL,
+    XP5IOB1: tslots::BEL,
+    XP5IOB2: tslots::BEL,
+    XP5IOB3: tslots::BEL,
+    XP5IOB4: tslots::BEL,
+    XP5IOB5: tslots::BEL,
+    XP5IOB6: tslots::BEL,
+    XP5IOB7: tslots::BEL,
+    XP5IOB8: tslots::BEL,
+    XP5IOB9: tslots::BEL,
+    XP5IOB10: tslots::BEL,
+    XP5IOB11: tslots::BEL,
+    XP5IOB12: tslots::BEL,
+    XP5IOB13: tslots::BEL,
+    XP5IOB14: tslots::BEL,
+    XP5IOB15: tslots::BEL,
+    XP5IOB16: tslots::BEL,
+    XP5IOB17: tslots::BEL,
+    XP5IOB18: tslots::BEL,
+    XP5IOB19: tslots::BEL,
+    XP5IOB20: tslots::BEL,
+    XP5IOB21: tslots::BEL,
+    XP5IOB22: tslots::BEL,
+    XP5IOB23: tslots::BEL,
+    XP5IOB24: tslots::BEL,
+    XP5IOB25: tslots::BEL,
+    XP5IOB26: tslots::BEL,
+    XP5IOB27: tslots::BEL,
+    XP5IOB28: tslots::BEL,
+    XP5IOB29: tslots::BEL,
+    XP5IOB30: tslots::BEL,
+    XP5IOB31: tslots::BEL,
+    XP5IOB32: tslots::BEL,
+    XP5IO_VREF0: tslots::BEL,
+    XP5IO_VREF1: tslots::BEL,
+    XP5IO_VREF2: tslots::BEL,
+    XP5IO_VREF3: tslots::BEL,
+    XP5IO_VREF4: tslots::BEL,
+    XP5IO_VREF5: tslots::BEL,
+    XP5IO_VREF6: tslots::BEL,
+    XP5IO_VREF7: tslots::BEL,
+    XP5IO_VREF8: tslots::BEL,
+    XP5IO_VREF9: tslots::BEL,
+    XP5IO_VREF10: tslots::BEL,
+    X5PHY_LS0: tslots::BEL,
+    X5PHY_LS1: tslots::BEL,
+    X5PHY_LS2: tslots::BEL,
+    X5PHY_LS3: tslots::BEL,
+    X5PHY_LS4: tslots::BEL,
+    X5PHY_LS5: tslots::BEL,
+    X5PHY_LS6: tslots::BEL,
+    X5PHY_LS7: tslots::BEL,
+    X5PHY_LS8: tslots::BEL,
+    X5PHY_LS9: tslots::BEL,
+    X5PHY_LS10: tslots::BEL,
+    X5PHY_HS0: tslots::BEL,
+    X5PHY_HS1: tslots::BEL,
+    X5PHY_HS2: tslots::BEL,
+    X5PHY_HS3: tslots::BEL,
+    X5PHY_HS4: tslots::BEL,
+    X5PHY_HS5: tslots::BEL,
+    X5PHY_HS6: tslots::BEL,
+    X5PHY_HS7: tslots::BEL,
+    X5PHY_HS8: tslots::BEL,
+    X5PHY_HS9: tslots::BEL,
+    X5PHY_HS10: tslots::BEL,
+    X5PHY_PLL_SELECT0: tslots::BEL,
+    X5PHY_PLL_SELECT1: tslots::BEL,
+    X5PHY_PLL_SELECT2: tslots::BEL,
+    X5PHY_PLL_SELECT3: tslots::BEL,
+    X5PHY_PLL_SELECT4: tslots::BEL,
+    X5PHY_PLL_SELECT5: tslots::BEL,
+    X5PHY_PLL_SELECT6: tslots::BEL,
+    X5PHY_PLL_SELECT7: tslots::BEL,
+    X5PHY_PLL_SELECT8: tslots::BEL,
+    X5PHY_PLL_SELECT9: tslots::BEL,
+    X5PHY_PLL_SELECT10: tslots::BEL,
+    XP5PIO_CMU_ANA: tslots::BEL,
+    XP5PIO_CMU_DIG_TOP: tslots::BEL,
+    ABUS_SWITCH_XP5IO0: tslots::BEL,
+    ABUS_SWITCH_XP5IO1: tslots::BEL,
+    VCC_XP5IO: tslots::BEL,
     CFG: tslots::BEL,
     ABUS_SWITCH_CFG: tslots::BEL,
     PMV: tslots::BEL,
@@ -282,6 +367,7 @@ bels![
     PCIE3: tslots::BEL,
     PCIE4: tslots::BEL,
     PCIE4C: tslots::BEL,
+    PCIE4CE: tslots::BEL,
     CMAC: tslots::BEL,
     ILKN: tslots::BEL,
     FE: tslots::BEL,
@@ -522,8 +608,11 @@ bels![
     BUFGCE_DIV3: tslots::CMT,
     PLL0: tslots::CMT,
     PLL1: tslots::CMT,
+    PLLXP0: tslots::CMT,
+    PLLXP1: tslots::CMT,
     MMCM: tslots::CMT,
     CMT: tslots::CMT,
+    CMTXP: tslots::CMT,
     VCC_CMT: tslots::CMT,
     BITSLICE0: tslots::BEL,
     BITSLICE1: tslots::BEL,
@@ -628,7 +717,8 @@ bels![
     RCLK_XIPHY: tslots::RCLK_BEL,
     VCC_RCLK_XIPHY: tslots::RCLK_BEL,
     RCLK_HDIO: tslots::RCLK_BEL,
-    RCLK_HDIOLC: tslots::RCLK_BEL,
+    RCLK_HDIOS: tslots::RCLK_BEL,
+    RCLK_HDIOL: tslots::RCLK_BEL,
     VCC_RCLK_HDIO: tslots::RCLK_BEL,
 ];
 
@@ -812,9 +902,10 @@ pub const HDIOLOGIC: [BelSlotId; 42] = [
     HDIOLOGIC41,
 ];
 
-pub const HDLOGIC_CSSD: [BelSlotId; 3] = [HDLOGIC_CSSD0, HDLOGIC_CSSD1, HDLOGIC_CSSD2];
+pub const HDLOGIC_CSSD: [BelSlotId; 4] =
+    [HDLOGIC_CSSD0, HDLOGIC_CSSD1, HDLOGIC_CSSD2, HDLOGIC_CSSD3];
 
-pub const HDIO_VREF: [BelSlotId; 2] = [HDIO_VREF0, HDIO_VREF1];
+pub const HDIO_VREF: [BelSlotId; 3] = [HDIO_VREF0, HDIO_VREF1, HDIO_VREF2];
 
 pub const BUFGCE_HDIO: [BelSlotId; 4] = [BUFGCE_HDIO0, BUFGCE_HDIO1, BUFGCE_HDIO2, BUFGCE_HDIO3];
 
@@ -832,6 +923,53 @@ pub const ABUS_SWITCH_HDIO: [BelSlotId; 12] = [
     ABUS_SWITCH_HDIO10,
     ABUS_SWITCH_HDIO11,
 ];
+
+pub const XP5IOB: [BelSlotId; 33] = [
+    XP5IOB0, XP5IOB1, XP5IOB2, XP5IOB3, XP5IOB4, XP5IOB5, XP5IOB6, XP5IOB7, XP5IOB8, XP5IOB9,
+    XP5IOB10, XP5IOB11, XP5IOB12, XP5IOB13, XP5IOB14, XP5IOB15, XP5IOB16, XP5IOB17, XP5IOB18,
+    XP5IOB19, XP5IOB20, XP5IOB21, XP5IOB22, XP5IOB23, XP5IOB24, XP5IOB25, XP5IOB26, XP5IOB27,
+    XP5IOB28, XP5IOB29, XP5IOB30, XP5IOB31, XP5IOB32,
+];
+
+pub const XP5IO_VREF: [BelSlotId; 11] = [
+    XP5IO_VREF0,
+    XP5IO_VREF1,
+    XP5IO_VREF2,
+    XP5IO_VREF3,
+    XP5IO_VREF4,
+    XP5IO_VREF5,
+    XP5IO_VREF6,
+    XP5IO_VREF7,
+    XP5IO_VREF8,
+    XP5IO_VREF9,
+    XP5IO_VREF10,
+];
+
+pub const X5PHY_LS: [BelSlotId; 11] = [
+    X5PHY_LS0, X5PHY_LS1, X5PHY_LS2, X5PHY_LS3, X5PHY_LS4, X5PHY_LS5, X5PHY_LS6, X5PHY_LS7,
+    X5PHY_LS8, X5PHY_LS9, X5PHY_LS10,
+];
+
+pub const X5PHY_HS: [BelSlotId; 11] = [
+    X5PHY_HS0, X5PHY_HS1, X5PHY_HS2, X5PHY_HS3, X5PHY_HS4, X5PHY_HS5, X5PHY_HS6, X5PHY_HS7,
+    X5PHY_HS8, X5PHY_HS9, X5PHY_HS10,
+];
+
+pub const X5PHY_PLL_SELECT: [BelSlotId; 11] = [
+    X5PHY_PLL_SELECT0,
+    X5PHY_PLL_SELECT1,
+    X5PHY_PLL_SELECT2,
+    X5PHY_PLL_SELECT3,
+    X5PHY_PLL_SELECT4,
+    X5PHY_PLL_SELECT5,
+    X5PHY_PLL_SELECT6,
+    X5PHY_PLL_SELECT7,
+    X5PHY_PLL_SELECT8,
+    X5PHY_PLL_SELECT9,
+    X5PHY_PLL_SELECT10,
+];
+
+pub const ABUS_SWITCH_XP5IO: [BelSlotId; 2] = [ABUS_SWITCH_XP5IO0, ABUS_SWITCH_XP5IO1];
 
 pub const BUFG_GT: [BelSlotId; 24] = [
     BUFG_GT0, BUFG_GT1, BUFG_GT2, BUFG_GT3, BUFG_GT4, BUFG_GT5, BUFG_GT6, BUFG_GT7, BUFG_GT8,
@@ -1042,6 +1180,7 @@ pub const BUFGCTRL: [BelSlotId; 8] = [
 pub const BUFGCE_DIV: [BelSlotId; 4] = [BUFGCE_DIV0, BUFGCE_DIV1, BUFGCE_DIV2, BUFGCE_DIV3];
 
 pub const PLL: [BelSlotId; 2] = [PLL0, PLL1];
+pub const PLLXP: [BelSlotId; 2] = [PLLXP0, PLLXP1];
 
 pub const VBUS_SWITCH: [BelSlotId; 3] = [VBUS_SWITCH0, VBUS_SWITCH1, VBUS_SWITCH2];
 

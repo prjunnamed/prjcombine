@@ -10,6 +10,7 @@ const W_DSP: f64 = 16.;
 const W_BRAM: f64 = 40.;
 const W_URAM: f64 = 120.;
 const W_HARD: f64 = 120.;
+const W_HDIOS: f64 = 160.;
 const W_IO: f64 = 240.;
 const W_TERM: f64 = 4.;
 const W_BRK: f64 = 2.;
@@ -41,6 +42,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             | ColumnKind::DfeDF
             | ColumnKind::DfeE
             | ColumnKind::Sdfec => W_HARD,
+            ColumnKind::HdioS => W_HDIOS,
             ColumnKind::ContUram | ColumnKind::ContHard => 0.0,
         };
         x += w;
@@ -85,6 +87,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     drawer.bel_class("hdio", "#ff66ff");
     drawer.bel_class("hdiolc", "#ff55ff");
     drawer.bel_class("hpio", "#ff00ff");
+    drawer.bel_class("xp5io", "#ee00ee");
     drawer.bel_class("gth", "#c000ff");
     drawer.bel_class("gty", "#8000ff");
     drawer.bel_class("gtm", "#4000ff");
@@ -182,7 +185,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             IoRowKind::None => continue,
                             IoRowKind::Hpio => "hpio",
                             IoRowKind::Hrio => "hrio",
-                            IoRowKind::HdioLc => "hdiolc",
+                            IoRowKind::HdioL => "hdiolc",
+                            IoRowKind::Xp5io => "xp5io",
                             IoRowKind::Gth => "gth",
                             IoRowKind::Gty => "gty",
                             IoRowKind::Gtm => "gtm",
@@ -198,6 +202,17 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             row_y[die][grid.row_reg_bot(reg)].0,
                             row_y[die][grid.row_reg_bot(reg + 1) - 1].1,
                             kind,
+                        )
+                    }
+                }
+                ColumnKind::HdioS => {
+                    for reg in grid.regs() {
+                        drawer.bel_rect(
+                            col_x[col].0,
+                            col_x[col].1,
+                            row_y[die][grid.row_reg_bot(reg)].0,
+                            row_y[die][grid.row_reg_bot(reg + 1) - 1].1,
+                            "hdiolc",
                         )
                     }
                 }
@@ -219,8 +234,10 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             HardRowKind::Ams => "sysmon",
                             HardRowKind::None => continue,
                             HardRowKind::Hdio | HardRowKind::HdioAms => "hdio",
-                            HardRowKind::HdioLc => "hdiolc",
-                            HardRowKind::Pcie | HardRowKind::PciePlus => "pcie",
+                            HardRowKind::HdioL => "hdiolc",
+                            HardRowKind::Pcie | HardRowKind::Pcie4C | HardRowKind::Pcie4CE => {
+                                "pcie"
+                            }
                             HardRowKind::Cmac => "cmac",
                             HardRowKind::Ilkn => "ilkn",
                             HardRowKind::DfeA => "dfea",

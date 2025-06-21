@@ -5,7 +5,9 @@ use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId, TileIobId
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::chip::{Chip, ChipKind, DisabledPart, HardRowKind, Interposer, IoRowKind, RegId};
+use crate::chip::{
+    Chip, ChipKind, ColumnKind, DisabledPart, HardRowKind, Interposer, IoRowKind, RegId,
+};
 
 use crate::bond::SharedCfgPad;
 
@@ -37,10 +39,19 @@ pub struct HdioCoord {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
+pub struct Xp5ioCoord {
+    pub die: DieId,
+    pub col: ColId,
+    pub reg: RegId,
+    pub iob: TileIobId,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum IoCoord {
     Hpio(HpioCoord),
     Hdio(HdioCoord),
     HdioLc(HdioCoord),
+    Xp5io(Xp5ioCoord),
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
@@ -55,6 +66,7 @@ pub enum IoKind {
     Hpio,
     Hrio,
     Hdio,
+    Xp5io,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
@@ -151,7 +163,7 @@ impl ExpandedDevice<'_> {
                     is_gc: matches!(idx, 21 | 22 | 23 | 24 | 26 | 27 | 28 | 29),
                     is_dbc: matches!(idx, 0 | 1 | 6 | 7 | 39 | 40 | 45 | 46),
                     is_qbc: matches!(idx, 13 | 14 | 19 | 20 | 26 | 27 | 32 | 33),
-                    sm_pair: if chip.has_csec {
+                    sm_pair: if chip.config_kind.is_csec() {
                         None
                     } else {
                         match idx {
@@ -237,6 +249,7 @@ impl ExpandedDevice<'_> {
                     self.bankylut[hdio.die][hdio.reg] + if hdio.iob.to_idx() >= 42 { 1 } else { 0 };
                 let bank = x + y;
                 let is_ams = hdio.reg == chip.reg_cfg() + 1;
+                let is_hdios = chip.columns[hdio.col].kind == ColumnKind::HdioS;
                 IoInfo {
                     kind: IoKind::Hdio,
                     bank,
@@ -254,10 +267,14 @@ impl ExpandedDevice<'_> {
                     is_vrp: false,
                     is_qbc: false,
                     is_dbc: false,
-                    is_gc: matches!(&hdio.iob.to_idx(), 10..14 | 42..46),
+                    is_gc: if is_hdios {
+                        matches!(&hdio.iob.to_idx(), 8 | 10 | 22 | 24)
+                    } else {
+                        matches!(&hdio.iob.to_idx(), 10..14 | 42..46)
+                    },
                     sm_pair: if !is_ams {
                         None
-                    } else {
+                    } else if !is_hdios {
                         match hdio.iob.to_idx() {
                             14 | 15 => Some(15),
                             16 | 17 => Some(13),
@@ -277,7 +294,54 @@ impl ExpandedDevice<'_> {
                             80 | 81 => Some(2),
                             _ => None,
                         }
+                    } else {
+                        match hdio.iob.to_idx() {
+                            0 | 1 => Some(15),
+                            2 | 3 => Some(13),
+                            4 | 5 => Some(12),
+                            8 | 9 => Some(9),
+                            12 | 13 => Some(14),
+                            16 | 17 => Some(11),
+                            18 | 19 => Some(10),
+                            20 | 21 => Some(8),
+                            24 | 25 => Some(5),
+                            28 | 29 => Some(3),
+                            30 | 31 => Some(1),
+                            32 | 33 => Some(0),
+                            34 | 35 => Some(7),
+                            36 | 37 => Some(6),
+                            38 | 39 => Some(4),
+                            40 | 41 => Some(2),
+                            _ => None,
+                        }
                     },
+                }
+            }
+            IoCoord::Xp5io(xp5io) => {
+                let x = self.bankxlut[xp5io.col];
+                let y = self.bankylut[xp5io.die][xp5io.reg];
+                let bank = x + y;
+                let nibble = xp5io.iob.to_idx() / 6;
+                let npin = xp5io.iob.to_idx() % 6;
+                IoInfo {
+                    kind: IoKind::Xp5io,
+                    bank,
+                    diff: if xp5io.iob.to_idx() % 2 == 0 {
+                        IoDiffKind::P(IoCoord::Xp5io(Xp5ioCoord {
+                            iob: TileIobId::from_idx(xp5io.iob.to_idx() ^ 1),
+                            ..xp5io
+                        }))
+                    } else {
+                        IoDiffKind::N(IoCoord::Xp5io(Xp5ioCoord {
+                            iob: TileIobId::from_idx(xp5io.iob.to_idx() ^ 1),
+                            ..xp5io
+                        }))
+                    },
+                    is_vrp: false,
+                    is_qbc: false,
+                    is_dbc: false,
+                    is_gc: matches!(nibble, 4 | 5 | 6 | 10) && matches!(npin, 0 | 1 | 4 | 5),
+                    sm_pair: None,
                 }
             }
         }
@@ -307,7 +371,7 @@ impl ExpandedDevice<'_> {
                 .iter()
                 .find(|hcol| hcol.col == crd.col)
                 .unwrap();
-            hcol.regs[crd.reg] == HardRowKind::HdioLc
+            hcol.regs[crd.reg] == HardRowKind::HdioL
         }
     }
 }

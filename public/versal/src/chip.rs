@@ -305,9 +305,9 @@ impl std::fmt::Display for Chip {
                     | ColumnKind::VNoc2
                     | ColumnKind::VNoc4
             ) {
-                write!(f, "\t\tX{col}-X{col1}: ", col1 = col + 1)?;
+                write!(f, "\t\t{col}-{col1}: ", col1 = col + 1)?;
             } else {
-                write!(f, "\t\tX{col}: ")?;
+                write!(f, "\t\t{col}: ")?;
             }
             match cd.kind {
                 ColumnKind::None => write!(f, "---")?,
@@ -338,14 +338,14 @@ impl std::fmt::Display for Chip {
             for hc in &self.cols_hard {
                 if hc.col == col {
                     for (reg, kind) in &hc.regs {
-                        writeln!(f, "\t\t\tY{y}: {kind:?}", y = self.row_reg_bot(reg))?;
+                        writeln!(f, "\t\t\t{y}: {kind:?}", y = self.row_reg_bot(reg))?;
                     }
                 }
             }
         }
         writeln!(f, "\tGT LEFT:")?;
         for (reg, kind) in &self.regs_gt_left {
-            writeln!(f, "\t\tY{y}: {kind:?}", y = self.row_reg_bot(reg))?;
+            writeln!(f, "\t\t{y}: {kind:?}", y = self.row_reg_bot(reg))?;
         }
         match self.right {
             RightKind::Term => {
@@ -357,7 +357,7 @@ impl std::fmt::Display for Chip {
             RightKind::Gt(ref regs_gt_right) => {
                 writeln!(f, "\tRIGHT: GT:\n")?;
                 for (reg, kind) in regs_gt_right {
-                    writeln!(f, "\t\tY{y}: {kind:?}", y = self.row_reg_bot(reg))?;
+                    writeln!(f, "\t\t{y}: {kind:?}", y = self.row_reg_bot(reg))?;
                 }
             }
             RightKind::HNicX => {
@@ -379,7 +379,7 @@ impl std::fmt::Display for Interposer {
             if !die_sll_columns.is_empty() {
                 write!(f, "\tSLL COLUMNS D{die}:")?;
                 for &col in die_sll_columns {
-                    write!(f, " X{col}")?;
+                    write!(f, " {col}")?;
                 }
                 writeln!(f)?;
             }

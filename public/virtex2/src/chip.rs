@@ -898,7 +898,7 @@ impl std::fmt::Display for Chip {
             if col == self.col_clk {
                 writeln!(f, "\t\t--- clock spine")?;
             }
-            write!(f, "\t\tX{c}: ", c = col.to_idx())?;
+            write!(f, "\t\t{col}: ")?;
             match cd.kind {
                 ColumnKind::Io => write!(f, "IO")?,
                 ColumnKind::Clb => write!(f, "CLB   ")?,
@@ -941,7 +941,7 @@ impl std::fmt::Display for Chip {
             if row == self.row_mid() {
                 writeln!(f, "\t\t--- spine row")?;
             }
-            write!(f, "\t\tY{r}: ", r = row.to_idx())?;
+            write!(f, "\t\t{row}: ")?;
             match rd {
                 RowIoKind::None => (),
                 RowIoKind::Single => write!(f, " IO: 1")?,
@@ -964,11 +964,11 @@ impl std::fmt::Display for Chip {
         for &(col, row) in &self.holes_ppc {
             writeln!(
                 f,
-                "\tPPC: X{xl}:X{xr} Y{yb}:Y{yt}",
-                xl = col.to_idx(),
-                xr = col.to_idx() + 10,
-                yb = row.to_idx(),
-                yt = row.to_idx() + 16
+                "\tPPC: {col_l}:{col_r} {row_b}:{row_t}",
+                col_l = col,
+                col_r = col + 10,
+                row_b = row,
+                row_t = row + 16
             )?;
         }
         if let Some(dcms) = self.dcms {

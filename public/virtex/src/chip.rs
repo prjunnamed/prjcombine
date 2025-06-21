@@ -244,8 +244,7 @@ impl std::fmt::Display for Chip {
             }
             writeln!(
                 f,
-                "\t\tX{c}: {kind}",
-                c = col.to_idx(),
+                "\t\t{col}: {kind}",
                 kind = if self.cols_bram.contains(&col) {
                     "BRAM"
                 } else if col == self.col_w() {

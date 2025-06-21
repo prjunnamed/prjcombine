@@ -545,7 +545,7 @@ impl std::fmt::Display for Chip {
         writeln!(f, "\tKIND: Spartan6")?;
         writeln!(f, "\tCOLS:")?;
         for (col, cd) in &self.columns {
-            write!(f, "\t\tX{col}: ")?;
+            write!(f, "\t\t{col}: ")?;
             match cd.kind {
                 ColumnKind::Io => write!(f, "IO")?,
                 ColumnKind::CleXL => write!(f, "CLEXL")?,
@@ -609,7 +609,7 @@ impl std::fmt::Display for Chip {
             if Some(row) == self.row_mcb_split {
                 writeln!(f, "\t\t--- MCB split")?;
             }
-            write!(f, "\t\tY{r}: ", r = row.to_idx())?;
+            write!(f, "\t\t{row}: ")?;
             if rd.lio {
                 write!(f, " LIO")?;
             }

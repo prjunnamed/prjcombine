@@ -39,9 +39,32 @@ pub struct Chip {
     pub regs: usize,
     pub ps: Option<Ps>,
     pub has_hbm: bool,
-    pub has_csec: bool,
+    pub config_kind: ConfigKind,
     pub is_dmc: bool,
     pub is_alt_cfg: bool,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+pub enum ConfigKind {
+    Config,
+    Csec,
+    CsecV2,
+}
+
+impl ConfigKind {
+    pub fn is_csec(self) -> bool {
+        matches!(self, Self::Csec | Self::CsecV2)
+    }
+}
+
+impl std::fmt::Display for ConfigKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ConfigKind::Config => write!(f, "CONFIG"),
+            ConfigKind::Csec => write!(f, "CSEC"),
+            ConfigKind::CsecV2 => write!(f, "CSEC_V2"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -72,6 +95,8 @@ pub enum ColumnKind {
     DfeDF,
     // E only; creates a ContHard on the next W
     DfeE,
+    // E only; creates a ContHard on the next W
+    HdioS,
     // URAM continuation, W only
     ContUram,
     // hard or DFE continuation, W only
@@ -105,6 +130,7 @@ impl std::fmt::Display for ColumnKind {
             ColumnKind::DfeC => write!(f, "DFE_C"),
             ColumnKind::DfeDF => write!(f, "DFE_DF"),
             ColumnKind::DfeE => write!(f, "DFE_E"),
+            ColumnKind::HdioS => write!(f, "HDIOS"),
             ColumnKind::ContUram => write!(f, "CONT_URAM"),
             ColumnKind::ContHard => write!(f, "CONT_HARD"),
         }
@@ -160,9 +186,10 @@ pub enum HardRowKind {
     Ams,
     Hdio,
     HdioAms,
-    HdioLc,
+    HdioL,
     Pcie,
-    PciePlus,
+    Pcie4C,
+    Pcie4CE,
     Cmac,
     Ilkn,
     DfeA,
@@ -180,7 +207,8 @@ pub enum IoRowKind {
     None,
     Hpio,
     Hrio,
-    HdioLc,
+    HdioL,
+    Xp5io,
     Gth,
     Gty,
     Gtm,
@@ -377,14 +405,15 @@ impl From<&HardColumn> for JsonValue {
                 HardRowKind::Cfg => "CFG".into(),
                 HardRowKind::Ams => "AMS".into(),
                 HardRowKind::Pcie => "PCIE".into(),
-                HardRowKind::PciePlus => "PCIE4C".into(),
+                HardRowKind::Pcie4C => "PCIE4C".into(),
+                HardRowKind::Pcie4CE => "PCIE4CE".into(),
                 HardRowKind::Cmac => "CMAC".into(),
                 HardRowKind::Ilkn => "ILKN".into(),
                 HardRowKind::DfeA => "DFE_A".into(),
                 HardRowKind::DfeG => "DFE_G".into(),
                 HardRowKind::Hdio => "HDIO".into(),
                 HardRowKind::HdioAms => "HDIO:AMS".into(),
-                HardRowKind::HdioLc => "HDIOLC".into(),
+                HardRowKind::HdioL => "HDIOL".into(),
             })),
         }
     }
@@ -398,7 +427,8 @@ impl From<&IoColumn> for JsonValue {
                 IoRowKind::None => JsonValue::Null,
                 IoRowKind::Hpio => "HPIO".into(),
                 IoRowKind::Hrio => "HRIO".into(),
-                IoRowKind::HdioLc => "HDIOLC".into(),
+                IoRowKind::HdioL => "HDIOL".into(),
+                IoRowKind::Xp5io => "XP5IO".into(),
                 IoRowKind::Gth => "GTH".into(),
                 IoRowKind::Gty => "GTY".into(),
                 IoRowKind::Gtm => "GTM".into(),
@@ -436,7 +466,7 @@ impl From<&Chip> for JsonValue {
                 },
             },
             has_hbm: chip.has_hbm,
-            has_csec: chip.has_csec,
+            config_kind: chip.config_kind.to_string(),
             is_alt_cfg: chip.is_alt_cfg,
             is_dmc: chip.is_dmc,
         }
@@ -464,9 +494,7 @@ impl std::fmt::Display for Chip {
         if self.has_hbm {
             writeln!(f, "\tHAS HBM")?;
         }
-        if self.has_csec {
-            writeln!(f, "\tHAS CSEC")?;
-        }
+        writeln!(f, "\tCONFIG: {}", self.config_kind)?;
         if self.is_dmc {
             writeln!(f, "\tIS DMC")?;
         }
@@ -492,9 +520,9 @@ impl std::fmt::Display for Chip {
                     | ColumnKind::DfeDF
                     | ColumnKind::DfeE
             ) {
-                write!(f, "\t\tX{col}-X{cr}: ", cr = col + 1)?;
+                write!(f, "\t\t{col}-{cr}: ", cr = col + 1)?;
             } else {
-                write!(f, "\t\tX{col}: ")?;
+                write!(f, "\t\t{col}: ")?;
             }
             write!(f, "{}", cd.kind)?;
             if cd.clk.iter().any(|x| x.is_some()) {
@@ -516,21 +544,13 @@ impl std::fmt::Display for Chip {
             if let ColumnKind::Io(idx) | ColumnKind::Gt(idx) = cd.kind {
                 let ioc = &self.cols_io[idx];
                 for (reg, kind) in &ioc.regs {
-                    writeln!(
-                        f,
-                        "\t\t\tY{y}: {kind:?}",
-                        y = self.row_reg_bot(reg).to_idx()
-                    )?;
+                    writeln!(f, "\t\t\t{y}: {kind:?}", y = self.row_reg_bot(reg))?;
                 }
             }
             if let ColumnKind::Hard(_, idx) = cd.kind {
                 let hc = &self.cols_hard[idx];
                 for (reg, kind) in &hc.regs {
-                    writeln!(
-                        f,
-                        "\t\t\tY{y}: {kind:?}",
-                        y = self.row_reg_bot(reg).to_idx()
-                    )?;
+                    writeln!(f, "\t\t\t{y}: {kind:?}", y = self.row_reg_bot(reg))?;
                 }
             }
         }

@@ -156,7 +156,7 @@ fn sort_key<'a>(name: &'a str, part: &TmpPart) -> SortKey<'a> {
         } else {
             DeviceKind::Zynq
         }
-    } else if chip.has_csec {
+    } else if chip.config_kind.is_csec() {
         DeviceKind::Spartan
     } else if chip.has_hbm {
         DeviceKind::VirtexHbm

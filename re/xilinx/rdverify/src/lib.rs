@@ -99,6 +99,7 @@ pub struct Verifier<'a> {
     pub grid: &'a ExpandedGrid<'a>,
     pub ngrid: &'a ExpandedGridNaming<'a>,
     pub tile_lut: HashMap<String, Coord>,
+    intf_aliases: HashMap<WireCoord, WireCoord>,
     dummy_in_nodes: HashSet<NodeOrWire>,
     dummy_out_nodes: HashSet<NodeOrWire>,
     claimed_nodes: EntityBitVec<rawdump::NodeId>,
@@ -182,6 +183,7 @@ impl<'a> Verifier<'a> {
             grid: ngrid.egrid,
             ngrid,
             tile_lut: rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect(),
+            intf_aliases: HashMap::new(),
             dummy_in_nodes: HashSet::new(),
             dummy_out_nodes: HashSet::new(),
             claimed_nodes: EntityBitVec::repeat(false, rd.nodes.len()),
@@ -228,6 +230,14 @@ impl<'a> Verifier<'a> {
             cond_stub_ins_tk: HashSet::new(),
             skip_bel_pins: HashSet::new(),
         }
+    }
+
+    pub fn alias_intf(&mut self, from: WireCoord, to: WireCoord) {
+        self.intf_aliases.insert(from, to);
+    }
+
+    fn get_intf_alias(&self, w: WireCoord) -> WireCoord {
+        self.intf_aliases.get(&w).copied().unwrap_or(w)
     }
 
     fn prep_int_wires(&mut self) {
@@ -425,6 +435,7 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn pin_int_intf_wire(&mut self, crd: Coord, wire: &str, iw: WireCoord) -> bool {
+        let iw = self.get_intf_alias(iw);
         if let Some(cnw) = self.rd.lookup_wire(crd, wire) {
             let iwd = self.int_wire_data.get_mut(&iw).unwrap();
             if let Some(nw) = iwd.intf_node {

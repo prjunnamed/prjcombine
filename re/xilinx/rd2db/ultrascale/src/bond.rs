@@ -1,3 +1,4 @@
+use prjcombine_interconnect::grid::TileIobId;
 use prjcombine_re_xilinx_naming_ultrascale::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::{Part, PkgPin};
 use prjcombine_ultrascale::bond::{
@@ -20,17 +21,22 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin, pgrid: &Chip) -> Option<BondPad> {
         "VCCAUX" => return Some(BondPad::VccAux),
         "VCCAUX_HPIO" => return Some(BondPad::VccAuxHpio),
         "VCCAUX_HDIO" => return Some(BondPad::VccAuxHdio),
+        "VCCAUX_XP5IO" => return Some(BondPad::VccAuxXp5io),
         "VCCBRAM" => return Some(BondPad::VccBram),
         "VCCINT_IO" => return Some(BondPad::VccIntIo),
+        "VCCINT_HPIO" => return Some(BondPad::VccIntHpio),
+        "VCCINT_XP5IO" => return Some(BondPad::VccIntXp5io),
         "VCCAUX_IO" => return Some(BondPad::VccAuxIo),
         "VBATT" => return Some(BondPad::VccBatt),
-        "D00_MOSI_0" if !pgrid.has_csec => return Some(BondPad::Cfg(CfgPad::Data(0))),
-        "D00_MOSI_DOUT_0" if pgrid.has_csec => return Some(BondPad::Cfg(CfgPad::Data(0))),
+        "D00_MOSI_0" if !pgrid.config_kind.is_csec() => return Some(BondPad::Cfg(CfgPad::Data(0))),
+        "D00_MOSI_DOUT_0" if pgrid.config_kind.is_csec() => {
+            return Some(BondPad::Cfg(CfgPad::Data(0)));
+        }
         "D01_DIN_0" => return Some(BondPad::Cfg(CfgPad::Data(1))),
-        "D02_0" if !pgrid.has_csec => return Some(BondPad::Cfg(CfgPad::Data(2))),
-        "D02_CS_B_0" if pgrid.has_csec => return Some(BondPad::Cfg(CfgPad::Data(2))),
-        "D03_0" if !pgrid.has_csec => return Some(BondPad::Cfg(CfgPad::Data(3))),
-        "D03_READY_0" if pgrid.has_csec => return Some(BondPad::Cfg(CfgPad::Data(3))),
+        "D02_0" if !pgrid.config_kind.is_csec() => return Some(BondPad::Cfg(CfgPad::Data(2))),
+        "D02_CS_B_0" if pgrid.config_kind.is_csec() => return Some(BondPad::Cfg(CfgPad::Data(2))),
+        "D03_0" if !pgrid.config_kind.is_csec() => return Some(BondPad::Cfg(CfgPad::Data(3))),
+        "D03_READY_0" if pgrid.config_kind.is_csec() => return Some(BondPad::Cfg(CfgPad::Data(3))),
         "RDWR_FCS_B_0" => return Some(BondPad::Cfg(CfgPad::RdWrB)),
         "TCK_0" => return Some(BondPad::Cfg(CfgPad::Tck)),
         "TDI_0" => return Some(BondPad::Cfg(CfgPad::Tdi)),
@@ -126,6 +132,9 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin, pgrid: &Chip) -> Option<BondPad> {
     if let Some(b) = pin.func.strip_prefix("VREF_") {
         return Some(BondPad::IoVref(b.parse().ok()?));
     }
+    if let Some(b) = pin.func.strip_prefix("VR_") {
+        return Some(BondPad::Xp5ioVr(b.parse().ok()?));
+    }
     if let Some(b) = pin.func.strip_prefix("VCC_HBM_") {
         return Some(BondPad::Hbm(b.parse().ok()?, HbmPad::Vcc));
     }
@@ -199,7 +208,13 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
         && !endev.edev.disabled.contains(&DisabledPart::Ps);
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
-            if let Some(&io) = io_lookup.get(&**pad) {
+            if let Some(&(mut io)) = io_lookup.get(&**pad) {
+                if let IoCoord::Xp5io(ref mut crd) = io {
+                    let s = pin.func.strip_prefix("IO_").unwrap();
+                    let s = s.split_once('_').unwrap().0;
+                    let pn = if s.ends_with('P') { 0 } else { 1 };
+                    crd.iob = TileIobId::from_idx((crd.iob.to_idx() & !1) | pn);
+                }
                 let io_info = endev.edev.get_io_info(io);
                 if pin.vcco_bank.unwrap() != io_info.bank
                     && (pin.vcco_bank != Some(64) || !matches!(io_info.bank, 84 | 94))
@@ -252,6 +267,15 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                         )
                         .unwrap();
                     }
+                    IoCoord::Xp5io(crd) => {
+                        write!(
+                            exp_func,
+                            "_L{}{}",
+                            crd.iob.to_idx() / 2,
+                            ['P', 'N'][crd.iob.to_idx() % 2]
+                        )
+                        .unwrap();
+                    }
                 }
                 if io_info.is_gc {
                     if io_info.kind == IoKind::Hdio {
@@ -269,6 +293,14 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                 if io_info.is_vrp {
                     exp_func += "_VRP";
                 }
+                if let IoCoord::Xp5io(crd) = io {
+                    let nibble = crd.iob.to_idx() / 6;
+                    let npin = crd.iob.to_idx() % 6;
+                    if npin < 2 {
+                        exp_func += "_XCC";
+                    }
+                    write!(exp_func, "_N{nibble}P{npin}").unwrap();
+                }
                 if let Some(sm) = io_info.sm_pair {
                     let pn = match io_info.diff {
                         IoDiffKind::P(_) => 'P',
@@ -283,11 +315,11 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                 {
                     Some(SharedCfgPad::Data(d)) => {
                         if !is_zynq {
-                            if d >= 16 && !pgrid.has_csec {
+                            if d >= 16 && !pgrid.config_kind.is_csec() {
                                 write!(exp_func, "_A{:02}", d - 16).unwrap();
                             }
                             write!(exp_func, "_D{d:02}").unwrap();
-                            if (4..12).contains(&d) && pgrid.has_csec {
+                            if (4..12).contains(&d) && pgrid.config_kind.is_csec() {
                                 write!(exp_func, "_OSPID{:02}", d - 4).unwrap();
                             }
                         }
@@ -324,7 +356,7 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                     }
                     Some(SharedCfgPad::CsiB) => {
                         if !is_zynq {
-                            if pgrid.has_csec {
+                            if pgrid.config_kind.is_csec() {
                                 exp_func += "_CSI_B"
                             } else {
                                 exp_func += "_CSI_ADV_B"
@@ -357,7 +389,7 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                         }
                     }
                     Some(SharedCfgPad::PerstN0) => {
-                        if pgrid.has_csec {
+                        if pgrid.config_kind.is_csec() {
                             exp_func += "_PERSTN0_B"
                         } else {
                             exp_func += "_PERSTN0"
@@ -367,7 +399,9 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                     Some(SharedCfgPad::SmbAlert) => exp_func += "_SMBALERT",
                     Some(SharedCfgPad::I2cSclk) => exp_func += "_I2C_SCLK",
                     Some(SharedCfgPad::I2cSda) => {
-                        exp_func += if endev.edev.kind == ChipKind::Ultrascale || pgrid.has_csec {
+                        exp_func += if endev.edev.kind == ChipKind::Ultrascale
+                            || pgrid.config_kind.is_csec()
+                        {
                             "_I2C_SDA"
                         } else {
                             "_PERSTN1_I2C_SDA"
@@ -387,6 +421,7 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                     IoCoord::Hpio(crd) => BondPad::Hpio(io_info.bank, crd.iob),
                     IoCoord::Hdio(crd) => BondPad::Hdio(io_info.bank, crd.iob),
                     IoCoord::HdioLc(crd) => BondPad::HdioLc(io_info.bank, crd.iob),
+                    IoCoord::Xp5io(crd) => BondPad::Xp5io(io_info.bank, crd.iob),
                 }
             } else if let Some(&gt) = gt_common_lookup.get(&**pad) {
                 let gt_info = endev.edev.get_gt_info(gt);
