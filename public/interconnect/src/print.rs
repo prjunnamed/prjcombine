@@ -17,7 +17,7 @@ impl IntDb {
             writeln!(
                 o,
                 "\tBEL SLOT {name}: {tile_slot}",
-                tile_slot = bslot.tile_slot
+                tile_slot = self.tile_slots[bslot.tile_slot]
             )?;
         }
         for (_, name, tcls) in &self.tile_classes {
