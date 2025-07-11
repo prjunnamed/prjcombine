@@ -56,7 +56,6 @@ fn resolve_intf_test_pip<'a>(
             IntfWireInNaming::Buf { name_in, .. } => name_in,
             IntfWireInNaming::TestBuf { name_out, .. } => name_out,
             IntfWireInNaming::Delay { name_out, .. } => name_out,
-            _ => unreachable!(),
         },
     ))
 }

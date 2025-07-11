@@ -1,8 +1,8 @@
 #![allow(clippy::unnecessary_unwrap)]
 
 use prjcombine_interconnect::db::{
-    BelInfo, BelSlotId, ConnectorWire, IntDb, IntfInfo, IriPin, PinDir, TileClassId, TileWireCoord,
-    WireId, WireKind,
+    BelInfo, BelSlotId, ConnectorWire, IntDb, IntfInfo, PinDir, TileClassId, TileWireCoord, WireId,
+    WireKind,
 };
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, Tile, TileCoord,
@@ -312,7 +312,7 @@ impl<'a> Verifier<'a> {
                             self.int_wire_data.entry(wf).or_default().used_i = true;
                         }
                     }
-                    IntfInfo::InputDelay | IntfInfo::InputIri(..) | IntfInfo::InputIriDelay(..) => {
+                    IntfInfo::InputDelay => {
                         let wf = self.grid.tile_wire(tcrd, w);
                         if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
                             let iwd = self.int_wire_data.entry(wf).or_default();
@@ -962,7 +962,6 @@ impl<'a> Verifier<'a> {
             }
         }
 
-        let mut iri_pins = kind.iris.map_values(|_| HashMap::new());
         for (&wt, ii) in &kind.intfs {
             let wti = self.grid.tile_wire(tcrd, wt);
             match ii {
@@ -1014,16 +1013,6 @@ impl<'a> Verifier<'a> {
                                     wfn
                                 }
                                 IntfWireInNaming::Delay {
-                                    name_out: ref wfon,
-                                    name_in: ref wfn,
-                                    ..
-                                }
-                                | IntfWireInNaming::Iri {
-                                    name_out: ref wfon,
-                                    name_in: ref wfn,
-                                    ..
-                                }
-                                | IntfWireInNaming::IriDelay {
                                     name_out: ref wfon,
                                     name_in: ref wfn,
                                     ..
@@ -1079,63 +1068,6 @@ impl<'a> Verifier<'a> {
                     self.claim_pip(crds[def_rt], name_out, name_in);
                     self.claim_pip(crds[def_rt], name_out, name_delay);
                 }
-                &IntfInfo::InputIri(iri, pin) => {
-                    let IntfWireInNaming::Iri {
-                        name_out,
-                        name_pin_out,
-                        name_pin_in,
-                        name_in,
-                    } = &naming.intf_wires_in[&wt]
-                    else {
-                        unreachable!();
-                    };
-                    if !self.pin_int_wire(crds[def_rt], name_in, wti) {
-                        let tname = &nnode.names[def_rt];
-                        println!(
-                            "INT NODE MISSING FOR {p} {tname} {name_in} {wn}",
-                            p = self.rd.part,
-                            wn = self.print_nw(wt),
-                        );
-                    }
-                    self.pin_int_intf_wire(crds[def_rt], name_out, wti);
-                    self.claim_node(&[(crds[def_rt], name_pin_out)]);
-                    self.claim_node(&[(crds[def_rt], name_pin_in)]);
-                    self.claim_pip(crds[def_rt], name_out, name_pin_out);
-                    self.claim_pip(crds[def_rt], name_pin_in, name_in);
-                    iri_pins[iri].insert(pin, (name_pin_out, name_pin_in));
-                }
-                &IntfInfo::InputIriDelay(iri, pin) => {
-                    let IntfWireInNaming::IriDelay {
-                        name_out,
-                        name_delay,
-                        name_pre_delay,
-                        name_pin_out,
-                        name_pin_in,
-                        name_in,
-                    } = &naming.intf_wires_in[&wt]
-                    else {
-                        unreachable!();
-                    };
-                    if !self.pin_int_wire(crds[def_rt], name_in, wti) {
-                        let tname = &nnode.names[def_rt];
-                        println!(
-                            "INT NODE MISSING FOR {p} {tname} {name_in} {wn}",
-                            p = self.rd.part,
-                            wn = self.print_nw(wt),
-                        );
-                    }
-                    self.pin_int_intf_wire(crds[def_rt], name_out, wti);
-                    self.claim_node(&[(crds[def_rt], name_pin_out)]);
-                    self.claim_node(&[(crds[def_rt], name_pin_in)]);
-                    self.claim_node(&[(crds[def_rt], name_delay)]);
-                    self.claim_node(&[(crds[def_rt], name_pre_delay)]);
-                    self.claim_pip(crds[def_rt], name_pre_delay, name_pin_out);
-                    self.claim_pip(crds[def_rt], name_pin_in, name_in);
-                    self.claim_pip(crds[def_rt], name_delay, name_pre_delay);
-                    self.claim_pip(crds[def_rt], name_out, name_pre_delay);
-                    self.claim_pip(crds[def_rt], name_out, name_delay);
-                    iri_pins[iri].insert(pin, (name_pin_out, name_pin_in));
-                }
             }
         }
         for (&wf, iwin) in &naming.intf_wires_in {
@@ -1148,37 +1080,6 @@ impl<'a> Verifier<'a> {
                     self.claim_pip(crds[def_rt], name_out, name_in);
                 }
             }
-        }
-        for (id, pins) in iri_pins {
-            let n = &naming.iris[id];
-            let pins: Vec<_> = pins
-                .into_iter()
-                .map(|(k, v)| {
-                    (
-                        match k {
-                            IriPin::Clk => ("CLK_O".to_string(), "CLK".to_string()),
-                            IriPin::Rst => ("RST_O".to_string(), "RST".to_string()),
-                            IriPin::Ce(i) => (format!("CE{i}_O"), format!("CE{i}")),
-                            IriPin::Imux(i) => (format!("IMUX_O{i}"), format!("IMUX_IN{i}")),
-                        },
-                        v,
-                    )
-                })
-                .collect();
-            let mut site_pins = vec![];
-            for ((po, pi), (wo, wi)) in &pins {
-                site_pins.push(SitePin {
-                    dir: SitePinDir::Out,
-                    pin: po,
-                    wire: Some(wo),
-                });
-                site_pins.push(SitePin {
-                    dir: SitePinDir::In,
-                    pin: pi,
-                    wire: Some(wi),
-                });
-            }
-            self.claim_site(crds[n.tile], &nnode.iri_names[id], &n.kind, &site_pins);
         }
     }
 

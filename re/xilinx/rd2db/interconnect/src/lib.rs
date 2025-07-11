@@ -5,15 +5,15 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use prjcombine_interconnect::{
     db::{
         BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId,
-        ConnectorWire, IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, PinDir, TileClass, TileClassId,
-        TileIriId, TileSlotId, TileWireCoord, WireId, WireKind,
+        ConnectorWire, IntDb, IntfInfo, MuxInfo, MuxKind, PinDir, TileClass, TileClassId,
+        TileSlotId, TileWireCoord, WireId, WireKind,
     },
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, BelPinNaming, ConnectorClassNamingId, ConnectorWireInFarNaming,
-    ConnectorWireOutNaming, IntfWireInNaming, IntfWireOutNaming, IriNaming, NamingDb, PipNaming,
-    RawTileId, TileClassNaming, TileClassNamingId,
+    ConnectorWireOutNaming, IntfWireInNaming, IntfWireOutNaming, NamingDb, PipNaming, RawTileId,
+    TileClassNaming, TileClassNamingId,
 };
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -66,7 +66,6 @@ pub struct XNodeInfo<'a, 'b> {
     pub refs: Vec<XNodeRef>,
     pub extract_intfs: bool,
     pub has_intf_out_bufs: bool,
-    pub iris: EntityVec<TileIriId, rawdump::TkSiteSlot>,
     pub skip_muxes: BTreeSet<WireId>,
     pub optin_muxes: BTreeSet<WireId>,
     pub optin_muxes_tile: BTreeSet<TileWireCoord>,
@@ -298,18 +297,6 @@ impl XNodeInfo<'_, '_> {
         self
     }
 
-    pub fn iris(mut self, iris: &[(&str, usize, usize)]) -> Self {
-        assert!(self.iris.is_empty());
-        for &(sn, sx, sy) in iris {
-            self.iris.push(rawdump::TkSiteSlot::Xy(
-                self.builder.rd.slot_kinds.get(sn).unwrap(),
-                sx as u8,
-                sy as u8,
-            ));
-        }
-        self
-    }
-
     pub fn bel(mut self, bel: ExtrBelInfo) -> Self {
         self.bels.push(bel);
         self
@@ -442,9 +429,7 @@ impl XNodeInfo<'_, '_> {
                             }
                         }
                         IntfWireInNaming::Buf { name_out: n, .. }
-                        | IntfWireInNaming::Delay { name_out: n, .. }
-                        | IntfWireInNaming::Iri { name_out: n, .. }
-                        | IntfWireInNaming::IriDelay { name_out: n, .. } => {
+                        | IntfWireInNaming::Delay { name_out: n, .. } => {
                             if let Some(nw) = rd.lookup_wire(r.xy, n) {
                                 names.entry(nw).or_insert((
                                     IntConnKind::IntfIn,
@@ -1167,83 +1152,6 @@ impl XNodeExtractor<'_, '_, '_> {
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
         let mut proxied_in = HashMap::new();
-        for (iri, slot) in &self.xnode.iris {
-            let (_, site) = tk.sites.get(slot).unwrap();
-            self.node.iris.push(());
-            self.node_naming.iris.push(IriNaming {
-                tile: RawTileId::from_idx(0),
-                kind: site.kind.clone(),
-            });
-            let mut pin_ins = HashMap::new();
-            let mut pin_outs = HashMap::new();
-            for (pname, spin) in &site.pins {
-                let (pin, dir) = match &**pname {
-                    "CLK" => (IriPin::Clk, PinDir::Input),
-                    "CLK_O" => (IriPin::Clk, PinDir::Output),
-                    "RST" => (IriPin::Rst, PinDir::Input),
-                    "RST_O" => (IriPin::Rst, PinDir::Output),
-                    _ => {
-                        if let Some(pn) = pname.strip_prefix("CE") {
-                            if let Some(pn) = pn.strip_suffix("_O") {
-                                (IriPin::Ce(pn.parse().unwrap()), PinDir::Output)
-                            } else {
-                                (IriPin::Ce(pn.parse().unwrap()), PinDir::Input)
-                            }
-                        } else if let Some(pn) = pname.strip_prefix("IMUX_IN") {
-                            (IriPin::Imux(pn.parse().unwrap()), PinDir::Input)
-                        } else if let Some(pn) = pname.strip_prefix("IMUX_O") {
-                            (IriPin::Imux(pn.parse().unwrap()), PinDir::Output)
-                        } else {
-                            unreachable!()
-                        }
-                    }
-                };
-                match dir {
-                    PinDir::Input => {
-                        pin_ins.insert(pin, spin.wire.unwrap());
-                    }
-                    PinDir::Output => {
-                        pin_outs.insert(pin, spin.wire.unwrap());
-                    }
-                    PinDir::Inout => unreachable!(),
-                }
-            }
-            assert_eq!(pin_ins.len(), pin_outs.len());
-            for (pin, wire_pin_in) in pin_ins {
-                let wire_pin_out = pin_outs[&pin];
-                let npi = self.rd.lookup_wire_raw_force(crd, wire_pin_in);
-                let npo = self.rd.lookup_wire_raw_force(crd, wire_pin_out);
-                let &(_, rt, wire_out, wpo) = self.buf_out.get(&npo).unwrap();
-                assert_eq!(rt, 0);
-                assert_eq!(wpo, wire_pin_out);
-                let &(_, rt, wpi, wire_in) = self.buf_in.get(&npi).unwrap();
-                assert_eq!(rt, 0);
-                assert_eq!(wpi, wire_pin_in);
-                let ni = self.rd.lookup_wire_raw_force(crd, wire_in);
-                if let Some(&(_, wf)) = self.names.get(&ni) {
-                    proxied_in.insert(wire_out, wf);
-                    self.node.intfs.insert(wf, IntfInfo::InputIri(iri, pin));
-                    self.node_naming.intf_wires_in.insert(
-                        wf,
-                        IntfWireInNaming::Iri {
-                            name_out: self.rd.wires[wire_out].to_string(),
-                            name_pin_out: self.rd.wires[wire_pin_out].to_string(),
-                            name_pin_in: self.rd.wires[wire_pin_in].to_string(),
-                            name_in: self.rd.wires[wire_in].to_string(),
-                        },
-                    );
-                } else {
-                    println!(
-                        "MISSING IRI {iri} {pin:?} {wo} {wpo} {wpi} {wi}",
-                        iri = iri.to_idx(),
-                        wo = self.rd.wires[wire_out],
-                        wpo = self.rd.wires[wire_pin_out],
-                        wpi = self.rd.wires[wire_pin_in],
-                        wi = self.rd.wires[wire_in],
-                    );
-                }
-            }
-        }
         if self.xnode.has_intf_out_bufs {
             for &(wfi, wdi) in tk.pips.keys() {
                 let nwf = self.rd.lookup_wire_raw_force(crd, wfi);
@@ -1275,35 +1183,6 @@ impl XNodeExtractor<'_, '_, '_> {
                     );
                     proxied_in.insert(wti, wf);
                     self.node.intfs.insert(wf, IntfInfo::InputDelay);
-                } else if let Some(&wf) = proxied_in.get(&wfi) {
-                    let IntfInfo::InputIri(iri, pin) = self.node.intfs[&wf] else {
-                        unreachable!();
-                    };
-                    self.node
-                        .intfs
-                        .insert(wf, IntfInfo::InputIriDelay(iri, pin));
-                    let Some(IntfWireInNaming::Iri {
-                        name_out,
-                        name_pin_out,
-                        name_pin_in,
-                        name_in,
-                    }) = self.node_naming.intf_wires_in.remove(&wf)
-                    else {
-                        unreachable!();
-                    };
-                    self.node_naming.intf_wires_in.insert(
-                        wf,
-                        IntfWireInNaming::IriDelay {
-                            name_out: self.rd.wires[wti].clone(),
-                            name_delay: self.rd.wires[wdi].clone(),
-                            name_pre_delay: name_out,
-                            name_pin_out,
-                            name_pin_in,
-                            name_in,
-                        },
-                    );
-                    proxied_in.remove(&wfi);
-                    proxied_in.insert(wti, wf);
                 }
             }
         }
@@ -2487,9 +2366,7 @@ impl<'a> IntBuilder<'a> {
                 for (k, v) in node.intfs {
                     let cv = cnode.intfs.get_mut(&k).unwrap();
                     match v {
-                        IntfInfo::InputDelay
-                        | IntfInfo::InputIri(..)
-                        | IntfInfo::InputIriDelay(..) => {
+                        IntfInfo::InputDelay => {
                             assert_eq!(*cv, v);
                         }
                         IntfInfo::OutputTestMux(ref wfs) => {
@@ -3751,7 +3628,6 @@ impl<'a> IntBuilder<'a> {
             refs: vec![],
             extract_intfs: false,
             has_intf_out_bufs: false,
-            iris: EntityVec::new(),
             skip_muxes: BTreeSet::new(),
             optin_muxes: BTreeSet::new(),
             optin_muxes_tile: BTreeSet::new(),

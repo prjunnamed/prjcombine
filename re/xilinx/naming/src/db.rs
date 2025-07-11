@@ -107,20 +107,6 @@ pub enum IntfWireInNaming {
         name_in: String,
         name_delay: String,
     },
-    Iri {
-        name_out: String,
-        name_pin_out: String,
-        name_pin_in: String,
-        name_in: String,
-    },
-    IriDelay {
-        name_out: String,
-        name_delay: String,
-        name_pre_delay: String,
-        name_pin_out: String,
-        name_pin_in: String,
-        name_in: String,
-    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
@@ -271,26 +257,6 @@ impl NamingDb {
                         name_delay,
                         name_in,
                     } => writeln!(o, "DELAY {name_out} <- {name_delay} <- {name_in}")?,
-                    IntfWireInNaming::Iri {
-                        name_out,
-                        name_pin_out,
-                        name_pin_in,
-                        name_in,
-                    } => writeln!(
-                        o,
-                        "IRI {name_out} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}"
-                    )?,
-                    IntfWireInNaming::IriDelay {
-                        name_out,
-                        name_delay,
-                        name_pre_delay,
-                        name_pin_out,
-                        name_pin_in,
-                        name_in,
-                    } => writeln!(
-                        o,
-                        "IRI.DELAY {name_out} <- {name_delay} <- {name_pre_delay} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}"
-                    )?,
                 }
             }
         }

@@ -204,7 +204,6 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
     writeln!(buf, r#"## Tile {tname}"#).unwrap();
     writeln!(buf).unwrap();
     writeln!(buf, r#"Cells: {}"#, tcls.cells.len()).unwrap();
-    writeln!(buf, r#"IRIs: {}"#, tcls.iris.len()).unwrap();
     writeln!(buf).unwrap();
 
     let single_cell = tcls.cells.len() == 1;
@@ -289,8 +288,6 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                     format!("TEST_MUX BASE {base} TEST {srcs}")
                 }
                 IntfInfo::InputDelay => "DELAY".to_string(),
-                IntfInfo::InputIri(iri, iri_pin) => format!("{iri}.{iri_pin}"),
-                IntfInfo::InputIriDelay(iri, iri_pin) => format!("{iri}.{iri_pin} + DELAY"),
             };
             writeln!(buf, r#"<tr><td>{wire}</td><td>{intf}</td></tr>"#).unwrap();
         }

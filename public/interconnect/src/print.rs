@@ -1,4 +1,4 @@
-use crate::db::{ConnectorWire, IntDb, IntfInfo, IriPin, PinDir};
+use crate::db::{ConnectorWire, IntDb, IntfInfo, PinDir};
 use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
 
@@ -43,9 +43,6 @@ impl IntDb {
                     )?;
                 }
                 writeln!(o)?;
-            }
-            if !tcls.iris.is_empty() {
-                writeln!(o, "\t\tIRI {n}", n = tcls.iris.len())?;
             }
             for (&wo, intf) in &tcls.intfs {
                 match intf {
@@ -92,36 +89,6 @@ impl IntDb {
                             wot = wo.cell.to_idx(),
                             won = self.wires.key(wo.wire)
                         )?;
-                    }
-                    IntfInfo::InputIri(iri, pin) => {
-                        write!(
-                            o,
-                            "\t\tINTF.IRI {wot}.{won} IRI.{iri} ",
-                            wot = wo.cell.to_idx(),
-                            won = self.wires.key(wo.wire),
-                            iri = iri.to_idx(),
-                        )?;
-                        match pin {
-                            IriPin::Clk => writeln!(o, "CLK")?,
-                            IriPin::Rst => writeln!(o, "RST")?,
-                            IriPin::Ce(i) => writeln!(o, "CE{i}")?,
-                            IriPin::Imux(i) => writeln!(o, "IMUX{i}")?,
-                        }
-                    }
-                    IntfInfo::InputIriDelay(iri, pin) => {
-                        write!(
-                            o,
-                            "\t\tINTF.IRI.DELAY {wot}.{won} IRI.{iri} ",
-                            wot = wo.cell.to_idx(),
-                            won = self.wires.key(wo.wire),
-                            iri = iri.to_idx(),
-                        )?;
-                        match pin {
-                            IriPin::Clk => writeln!(o, "CLK")?,
-                            IriPin::Rst => writeln!(o, "RST")?,
-                            IriPin::Ce(i) => writeln!(o, "CE{i}")?,
-                            IriPin::Imux(i) => writeln!(o, "IMUX{i}")?,
-                        }
                     }
                 }
             }

@@ -305,27 +305,6 @@ pub enum IntfInfo {
     OutputTestMux(BTreeSet<TileWireCoord>),
     OutputTestMuxPass(BTreeSet<TileWireCoord>, TileWireCoord),
     InputDelay,
-    InputIri(TileIriId, IriPin),
-    InputIriDelay(TileIriId, IriPin),
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
-pub enum IriPin {
-    Clk,
-    Rst,
-    Ce(u32),
-    Imux(u32),
-}
-
-impl std::fmt::Display for IriPin {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            IriPin::Clk => write!(f, "CLK"),
-            IriPin::Rst => write!(f, "RST"),
-            IriPin::Ce(i) => write!(f, "CE{i}"),
-            IriPin::Imux(i) => write!(f, "IMUX{i}"),
-        }
-    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
@@ -477,16 +456,6 @@ impl IntfInfo {
             },
             IntfInfo::InputDelay => jzon::object! {
                 kind: "INPUT_DELAY",
-            },
-            IntfInfo::InputIri(iri, pin) => jzon::object! {
-                kind: "INPUT_IRI",
-                iri: iri.to_idx(),
-                pin: pin.to_string(),
-            },
-            IntfInfo::InputIriDelay(iri, pin) => jzon::object! {
-                kind: "INPUT_IRI_DELAY",
-                iri: iri.to_idx(),
-                pin: pin.to_string(),
             },
         }
     }

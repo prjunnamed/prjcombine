@@ -1,10 +1,7 @@
 use std::collections::{BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
-    db::{
-        BelSlotId, CellSlotId, ConnectorWire, TileClass, TileClassId, TileIriId, TileWireCoord,
-        WireKind,
-    },
+    db::{BelSlotId, CellSlotId, ConnectorWire, TileClass, TileClassId, TileWireCoord, WireKind},
     grid::{
         BelCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, TileCoord, TilePip, WireCoord,
     },
@@ -33,7 +30,6 @@ pub struct TileNaming {
     pub names: EntityPartVec<RawTileId, String>,
     pub tie_name: Option<String>,
     pub tie_rt: RawTileId,
-    pub iri_names: EntityVec<TileIriId, String>,
     pub naming: TileClassNamingId,
     pub bels: EntityPartVec<BelSlotId, String>,
 }
@@ -313,7 +309,6 @@ impl<'a> ExpandedGridNaming<'a> {
                 .collect(),
             tie_name: None,
             tie_rt: RawTileId::from_idx(0),
-            iri_names: Default::default(),
             naming: self.db.get_tile_class_naming(naming),
             bels: EntityPartVec::new(),
         };
