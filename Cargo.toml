@@ -161,7 +161,7 @@ indexmap = { version = "2", features = ["serde"] }
 rand = { version = "0.9", features = ["small_rng"] }
 nix = { version = "0.30", features = ["fs"] }
 tempfile = "3.0"
-toml = "0.8"
+toml = { version = "0.9", features = ["serde", "std"] }
 simple-error = "0.3"
 regex = "1"
 rayon = "1.5"
