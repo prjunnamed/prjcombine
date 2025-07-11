@@ -519,9 +519,10 @@ pub fn name_device<'a>(
                             );
                             let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             for i in 0..4 {
-                                nnode
-                                    .iri_names
-                                    .push(iri_grid.name("IRI_QUAD", die.die, col, row, 0, i));
+                                nnode.add_bel(
+                                    bels::IRI[i],
+                                    iri_grid.name("IRI_QUAD", die.die, col, row, 0, i as i32),
+                                );
                             }
                         }
                         "INTF.E" | "INTF.E.TERM.GT" | "INTF.E.HDIO" | "INTF.E.HB" => {
@@ -547,9 +548,10 @@ pub fn name_device<'a>(
                             );
                             let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             for i in 0..4 {
-                                nnode
-                                    .iri_names
-                                    .push(iri_grid.name("IRI_QUAD", die.die, col, row, 0, i));
+                                nnode.add_bel(
+                                    bels::IRI[i],
+                                    iri_grid.name("IRI_QUAD", die.die, col, row, 0, i as i32),
+                                );
                             }
                         }
                         "INTF.BLI_CLE.W.S.0" | "INTF.BLI_CLE.W.S.1" | "INTF.BLI_CLE.W.S.2"
@@ -580,14 +582,10 @@ pub fn name_device<'a>(
                             );
                             let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             for i in 0..4 {
-                                nnode.iri_names.push(iri_grid.name(
-                                    "IRI_QUAD",
-                                    die.die,
-                                    col,
-                                    srow,
-                                    0,
-                                    dy + i,
-                                ));
+                                nnode.add_bel(
+                                    bels::IRI[i],
+                                    iri_grid.name("IRI_QUAD", die.die, col, srow, 0, dy + i as i32),
+                                );
                             }
                         }
                         "INTF.BLI_CLE.E.S.0" | "INTF.BLI_CLE.E.S.1" | "INTF.BLI_CLE.E.S.2"
@@ -630,14 +628,10 @@ pub fn name_device<'a>(
                             );
                             let nnode = ngrid.name_tile(tcrd, kind, [name]);
                             for i in 0..4 {
-                                nnode.iri_names.push(iri_grid.name(
-                                    "IRI_QUAD",
-                                    die.die,
-                                    col,
-                                    srow,
-                                    0,
-                                    dy + i,
-                                ));
+                                nnode.add_bel(
+                                    bels::IRI[i],
+                                    iri_grid.name("IRI_QUAD", die.die, col, srow, 0, dy + i as i32),
+                                );
                             }
                         }
                         "RCLK_INTF.W" | "RCLK_INTF.W.HALF" => {

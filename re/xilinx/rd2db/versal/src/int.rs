@@ -8,7 +8,7 @@ use prjcombine_re_xilinx_naming_versal::DeviceNaming;
 use prjcombine_re_xilinx_naming_versal::{
     BUFDIV_LEAF_SWZ_A, BUFDIV_LEAF_SWZ_AH, BUFDIV_LEAF_SWZ_B, BUFDIV_LEAF_SWZ_BH,
 };
-use prjcombine_re_xilinx_rawdump::{Coord, Part, TkWire};
+use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot, TkWire};
 use prjcombine_versal::expanded::REGION_LEAF;
 use prjcombine_versal::{bels, tslots};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -132,6 +132,7 @@ struct IntMaker<'a> {
     sng_fixup_map: BTreeMap<TileWireCoord, TileWireCoord>,
     term_wires: DirMap<EntityPartVec<WireId, ConnectorWire>>,
     term_wires_l: DirPartMap<EntityPartVec<WireId, ConnectorWire>>,
+    iri_wires: Vec<WireId>,
     bnodes: Vec<WireId>,
     bnode_outs: Vec<WireId>,
     bounces: Vec<WireId>,
@@ -984,6 +985,78 @@ impl IntMaker<'_> {
                 },
             );
         }
+
+        for iri in 0..4 {
+            let w = self.builder.mux_out(format!("IRI{iri}_CLK"), &[""]);
+            self.iri_wires.push(w);
+            let w = self.builder.mux_out(format!("IRI{iri}_RST"), &[""]);
+            self.iri_wires.push(w);
+            for j in 0..4 {
+                let w = self.builder.mux_out(format!("IRI{iri}_CE{j}"), &[""]);
+                self.iri_wires.push(w);
+            }
+            for j in 0..24 {
+                let w = self.builder.mux_out(format!("IRI{iri}_IMUX{j}"), &[""]);
+                self.iri_wires.push(w);
+            }
+        }
+        let slot_iri = self.builder.rd.slot_kinds.get("IRI_QUAD").unwrap();
+        for (_, tkn, tk) in &self.builder.rd.tile_kinds {
+            let mut buf_outs = HashMap::new();
+            for &(wf, wt) in tk.pips.keys() {
+                buf_outs.insert(wf, wt);
+            }
+            for (_, slot, site) in &tk.sites {
+                let TkSiteSlot::Xy(slot, x, y) = *slot else {
+                    continue;
+                };
+                if slot != slot_iri {
+                    continue;
+                }
+                assert_eq!(x, 0);
+                let sub = if tkn.starts_with("BLI_CLE_BOT") {
+                    3 - y / 4
+                } else {
+                    y / 4
+                } as usize;
+                let iri = y % 4;
+
+                let name = &self.builder.rd.wires[buf_outs[&site.pins["CLK_O"].wire.unwrap()]];
+                self.builder.extra_name_tile_sub(
+                    tkn,
+                    name,
+                    sub,
+                    self.builder.db.get_wire(&format!("IRI{iri}_CLK")),
+                );
+                let name = &self.builder.rd.wires[buf_outs[&site.pins["RST_O"].wire.unwrap()]];
+                self.builder.extra_name_tile_sub(
+                    tkn,
+                    name,
+                    sub,
+                    self.builder.db.get_wire(&format!("IRI{iri}_RST")),
+                );
+                for j in 0..4 {
+                    let name = &self.builder.rd.wires
+                        [buf_outs[&site.pins[&format!("CE{j}_O")].wire.unwrap()]];
+                    self.builder.extra_name_tile_sub(
+                        tkn,
+                        name,
+                        sub,
+                        self.builder.db.get_wire(&format!("IRI{iri}_CE{j}")),
+                    );
+                }
+                for j in 0..24 {
+                    let name = &self.builder.rd.wires
+                        [buf_outs[&site.pins[&format!("IMUX_O{j}")].wire.unwrap()]];
+                    self.builder.extra_name_tile_sub(
+                        tkn,
+                        name,
+                        sub,
+                        self.builder.db.get_wire(&format!("IRI{iri}_IMUX{j}")),
+                    );
+                }
+            }
+        }
     }
 
     fn fill_tiles_int(&mut self) {
@@ -1156,17 +1229,17 @@ impl IntMaker<'_> {
                     continue;
                 }
                 let int_xy = self.builder.walk_to_int(xy, !side, false).unwrap();
+                let mut bels = vec![];
+                for i in 0..4 {
+                    bels.push(self.builder.bel_xy(bels::IRI[i], "IRI_QUAD", 0, i));
+                }
                 self.builder
                     .xnode(tslots::INTF, name, name, xy)
                     .ref_int_side(int_xy, side, 0)
                     .extract_muxes()
                     .extract_intfs(true)
-                    .iris(&[
-                        ("IRI_QUAD", 0, 0),
-                        ("IRI_QUAD", 0, 1),
-                        ("IRI_QUAD", 0, 2),
-                        ("IRI_QUAD", 0, 3),
-                    ])
+                    .skip_muxes(&self.iri_wires)
+                    .bels(bels)
                     .extract();
                 break;
             }
@@ -1185,6 +1258,10 @@ impl IntMaker<'_> {
                     let iriy = if is_top { 4 * i } else { 4 * (3 - i) };
                     let cur_int_xy = self.builder.delta(int_xy, 0, i as i32);
                     let cur_cle_xy = self.builder.delta(cle_xy, 0, i as i32);
+                    let mut bels = vec![];
+                    for j in 0..4 {
+                        bels.push(self.builder.bel_xy(bels::IRI[j], "IRI_QUAD", 0, iriy + j));
+                    }
                     self.builder
                         .xnode(
                             tslots::INTF,
@@ -1203,12 +1280,8 @@ impl IntMaker<'_> {
                             cle_bc,
                         )
                         .extract_intfs(true)
-                        .iris(&[
-                            ("IRI_QUAD", 0, iriy),
-                            ("IRI_QUAD", 0, iriy + 1),
-                            ("IRI_QUAD", 0, iriy + 2),
-                            ("IRI_QUAD", 0, iriy + 3),
-                        ])
+                        .skip_muxes(&self.iri_wires)
+                        .bels(bels)
                         .extract();
                 }
             }
@@ -2908,6 +2981,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         sng_fixup_map: BTreeMap::new(),
         term_wires: DirMap::from_fn(|_| EntityPartVec::new()),
         term_wires_l: DirPartMap::new(),
+        iri_wires: vec![],
         bnodes: vec![],
         bnode_outs: vec![],
         bounces: vec![],

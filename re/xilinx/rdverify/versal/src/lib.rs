@@ -5,6 +5,15 @@ use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
 use prjcombine_versal::{bels, chip::DisabledPart, expanded::UbumpId};
 use unnamed_entity::EntityId;
 
+fn verify_iri(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let kind = if matches!(bel.slot, bels::IRI0 | bels::IRI2) {
+        "IRI_QUAD_EVEN"
+    } else {
+        "IRI_QUAD_ODD"
+    };
+    vrf.verify_bel(bel, kind, &[], &[]);
+}
+
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.info.pins.contains_key("WE") {
         "SLICEM"
@@ -970,6 +979,7 @@ fn verify_vcc(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
     match bel.slot {
+        bels::IRI0 | bels::IRI1 | bels::IRI2 | bels::IRI3 => verify_iri(vrf, bel),
         bels::LAGUNA => verify_laguna(endev, vrf, bel),
         bels::DSP0 | bels::DSP1 => verify_dsp(vrf, bel),
         bels::DSP_CPLX => verify_dsp_cplx(vrf, bel),
