@@ -546,7 +546,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 format!("MUX.{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire))
             };
             let out_name = intdb.wires.key(wire_to.wire);
-            if out_name.contains("OMUX") {
+            if out_name.ends_with(".BUF") || out_name.ends_with(".FAKE") {
+                continue;
+            } else if out_name.contains("OMUX") {
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(NodeMutexExclusive::new(wire_to))];
                 if tcname.starts_with("IO") {
                     for i in 0..4 {
@@ -1442,6 +1444,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             ctx.tiledb.insert(tcname, bel, &name, item);
                         }
                     }
+                    SwitchBoxItem::PermaBuf(_) => (),
+                    SwitchBoxItem::ProgInv(_) => (),
                     _ => unreachable!(),
                 }
             }

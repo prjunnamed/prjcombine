@@ -1077,7 +1077,8 @@ impl XNodeExtractor<'_, '_, '_> {
 
     fn extract_muxes(&mut self, pips: &mut Pips) {
         for &(wt, wf) in &self.xnode.force_pips {
-            pips.pips.insert((wt, wf), PipMode::Mux);
+            let mode = self.xnode.builder.pip_mode(wt.wire);
+            pips.pips.insert((wt, wf), mode);
         }
         for (i, rt) in self.xnode.raw_tiles.iter().enumerate() {
             let tile = &self.rd.tiles[&rt.xy];
@@ -1124,7 +1125,8 @@ impl XNodeExtractor<'_, '_, '_> {
                             assert_eq!(wf.cell, CellSlotId::from_idx(0));
                             continue;
                         }
-                        pips.pips.insert((wt, wf), PipMode::Mux);
+                        let mode = self.xnode.builder.pip_mode(wt.wire);
+                        pips.pips.insert((wt, wf), mode);
                     } else if self.xnode.builder.stub_outs.contains(&self.rd.wires[wfi]) {
                         // ignore
                     } else {
@@ -1278,6 +1280,7 @@ pub struct IntBuilder<'a> {
     pub ndb: NamingDb,
     pub term_slots: DirMap<ConnectorSlotId>,
     pub pips: BTreeMap<(TileClassId, BelSlotId), Pips>,
+    permabuf_wires: BTreeSet<WireId>,
     is_mirror_square: bool,
     allow_mux_to_branch: bool,
     main_passes: DirMap<EntityPartVec<WireId, WireId>>,
@@ -1335,6 +1338,7 @@ impl<'a> IntBuilder<'a> {
             db,
             ndb,
             term_slots,
+            permabuf_wires: Default::default(),
             pips: Default::default(),
             is_mirror_square: false,
             allow_mux_to_branch: false,
@@ -1573,6 +1577,12 @@ impl<'a> IntBuilder<'a> {
         self.wire(name, WireKind::MuxOut, raw_names)
     }
 
+    pub fn permabuf(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireId {
+        let w = self.wire(name, WireKind::MuxOut, raw_names);
+        self.permabuf_wires.insert(w);
+        w
+    }
+
     pub fn logic_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireId {
         self.wire(name, WireKind::LogicOut, raw_names)
     }
@@ -1596,6 +1606,14 @@ impl<'a> IntBuilder<'a> {
 
     pub fn conn_branch(&mut self, src: WireId, dir: Dir, dst: WireId) {
         self.main_passes[!dir].insert(dst, src);
+    }
+
+    fn pip_mode(&self, dst: WireId) -> PipMode {
+        if self.permabuf_wires.contains(&dst) {
+            PipMode::PermaBuf
+        } else {
+            PipMode::Mux
+        }
     }
 
     pub fn branch(
@@ -2140,7 +2158,8 @@ impl<'a> IntBuilder<'a> {
                         _ => continue,
                     }
                     if let Some(&(_, wf)) = names.get(&wfi) {
-                        pips.pips.insert((wt, wf), PipMode::Mux);
+                        let mode = self.pip_mode(wt.wire);
+                        pips.pips.insert((wt, wf), mode);
                     } else if self.stub_outs.contains(&self.rd.wires[wfi]) {
                         // ignore
                     } else {
@@ -2628,7 +2647,8 @@ impl<'a> IntBuilder<'a> {
                         cell: def_t,
                         wire: x,
                     };
-                    node_pips.pips.insert((wt, wf), PipMode::Mux);
+                    let mode = self.pip_mode(wt.wire);
+                    node_pips.pips.insert((wt, wf), mode);
                 }
             }
         }
@@ -3175,7 +3195,8 @@ impl<'a> IntBuilder<'a> {
                         wire: wt,
                     };
                     for wf in ins {
-                        node_pips.pips.insert((wt, wf), PipMode::Mux);
+                        let mode = self.pip_mode(wt.wire);
+                        node_pips.pips.insert((wt, wf), mode);
                     }
                 }
             }

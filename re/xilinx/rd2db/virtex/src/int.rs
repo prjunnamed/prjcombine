@@ -63,8 +63,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         bram_forbidden.push(w);
         bram_bt_forbidden.push(w);
         dll_forbidden.push(w);
-        builder.buf(
-            w,
+        builder.permabuf(
             format!("GCLK{i}.BUF"),
             &[format!("BOT_GCLK{i}"), format!("TOP_GCLK{i}")],
         );
@@ -90,19 +89,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             WireKind::MultiOut,
             &[format!("E{i}"), format!("LEFT_E{i}")],
         );
-        builder.buf(
-            w,
+        builder.permabuf(
             format!("SINGLE.E{i}.BUF"),
             &[format!("E_P{i}"), format!("LEFT_E_BUF{i}")],
         );
-        let w = builder.multi_branch(
+        builder.multi_branch(
             w,
             Dir::E,
             format!("SINGLE.W{i}"),
             &[format!("W{i}"), format!("RIGHT_W{i}")],
         );
-        builder.buf(
-            w,
+        builder.permabuf(
             format!("SINGLE.W{i}.BUF"),
             &[format!("W_P{i}"), format!("RIGHT_W_BUF{i}")],
         );
@@ -113,19 +110,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             WireKind::MultiOut,
             &[format!("S{i}"), format!("TOP_S{i}")],
         );
-        builder.buf(
-            w,
+        builder.permabuf(
             format!("SINGLE.S{i}.BUF"),
             &[format!("S_P{i}"), format!("TOP_S_BUF{i}")],
         );
-        let w = builder.multi_branch(
+        builder.multi_branch(
             w,
             Dir::S,
             format!("SINGLE.N{i}"),
             &[format!("N{i}"), format!("BOT_N{i}")],
         );
-        builder.buf(
-            w,
+        builder.permabuf(
             format!("SINGLE.N{i}.BUF"),
             &[format!("N_P{i}"), format!("BOT_N_BUF{i}")],
         );
@@ -180,17 +175,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         let m = builder.multi_out(format!("HEX.H{i}.3"), &hexnames("H6M", i));
         let b = builder.multi_branch(m, Dir::W, format!("HEX.H{i}.2"), &hexnames("H6B", i));
         let a = builder.multi_branch(b, Dir::W, format!("HEX.H{i}.1"), &hexnames("H6A", i));
-        let e = builder.multi_branch(a, Dir::W, format!("HEX.H{i}.0"), &hexnames("H6E", i));
+        builder.multi_branch(a, Dir::W, format!("HEX.H{i}.0"), &hexnames("H6E", i));
         let c = builder.multi_branch(m, Dir::E, format!("HEX.H{i}.4"), &hexnames("H6C", i));
         let d = builder.multi_branch(c, Dir::E, format!("HEX.H{i}.5"), &hexnames("H6D", i));
-        let w = builder.multi_branch(d, Dir::E, format!("HEX.H{i}.6"), &hexnames("H6W", i));
-        builder.buf(e, format!("HEX.H{i}.0.BUF"), &hexnames("H6E_BUF", i));
-        builder.buf(a, format!("HEX.H{i}.1.BUF"), &hexnames("H6A_BUF", i));
-        builder.buf(b, format!("HEX.H{i}.2.BUF"), &hexnames("H6B_BUF", i));
-        builder.buf(m, format!("HEX.H{i}.3.BUF"), &hexnames("H6M_BUF", i));
-        builder.buf(c, format!("HEX.H{i}.4.BUF"), &hexnames("H6C_BUF", i));
-        builder.buf(d, format!("HEX.H{i}.5.BUF"), &hexnames("H6D_BUF", i));
-        builder.buf(w, format!("HEX.H{i}.6.BUF"), &hexnames("H6W_BUF", i));
+        builder.multi_branch(d, Dir::E, format!("HEX.H{i}.6"), &hexnames("H6W", i));
+        builder.permabuf(format!("HEX.H{i}.0.BUF"), &hexnames("H6E_BUF", i));
+        builder.permabuf(format!("HEX.H{i}.1.BUF"), &hexnames("H6A_BUF", i));
+        builder.permabuf(format!("HEX.H{i}.2.BUF"), &hexnames("H6B_BUF", i));
+        builder.permabuf(format!("HEX.H{i}.3.BUF"), &hexnames("H6M_BUF", i));
+        builder.permabuf(format!("HEX.H{i}.4.BUF"), &hexnames("H6C_BUF", i));
+        builder.permabuf(format!("HEX.H{i}.5.BUF"), &hexnames("H6D_BUF", i));
+        builder.permabuf(format!("HEX.H{i}.6.BUF"), &hexnames("H6W_BUF", i));
     }
     for i in 4..6 {
         let m = builder.multi_out(format!("HEX.H{i}.3"), &hexnames_hio("H6M", i));
@@ -225,17 +220,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         let m = builder.multi_out(format!("HEX.V{i}.3"), &hexnames("V6M", i));
         let b = builder.branch(m, Dir::S, format!("HEX.V{i}.2"), &hexnames("V6B", i));
         let a = builder.branch(b, Dir::S, format!("HEX.V{i}.1"), &hexnames("V6A", i));
-        let n = builder.branch(a, Dir::S, format!("HEX.V{i}.0"), &hexnames("V6N", i));
+        builder.branch(a, Dir::S, format!("HEX.V{i}.0"), &hexnames("V6N", i));
         let c = builder.branch(m, Dir::N, format!("HEX.V{i}.4"), &hexnames("V6C", i));
         let d = builder.branch(c, Dir::N, format!("HEX.V{i}.5"), &hexnames("V6D", i));
-        let s = builder.branch(d, Dir::N, format!("HEX.V{i}.6"), &hexnames("V6S", i));
-        builder.buf(n, format!("HEX.V{i}.0.BUF"), &hexnames("V6N_BUF", i));
-        builder.buf(a, format!("HEX.V{i}.1.BUF"), &hexnames("V6A_BUF", i));
-        builder.buf(b, format!("HEX.V{i}.2.BUF"), &hexnames("V6B_BUF", i));
-        builder.buf(m, format!("HEX.V{i}.3.BUF"), &hexnames("V6M_BUF", i));
-        builder.buf(c, format!("HEX.V{i}.4.BUF"), &hexnames("V6C_BUF", i));
-        builder.buf(d, format!("HEX.V{i}.5.BUF"), &hexnames("V6D_BUF", i));
-        builder.buf(s, format!("HEX.V{i}.6.BUF"), &hexnames("V6S_BUF", i));
+        builder.branch(d, Dir::N, format!("HEX.V{i}.6"), &hexnames("V6S", i));
+        builder.permabuf(format!("HEX.V{i}.0.BUF"), &hexnames("V6N_BUF", i));
+        builder.permabuf(format!("HEX.V{i}.1.BUF"), &hexnames("V6A_BUF", i));
+        builder.permabuf(format!("HEX.V{i}.2.BUF"), &hexnames("V6B_BUF", i));
+        builder.permabuf(format!("HEX.V{i}.3.BUF"), &hexnames("V6M_BUF", i));
+        builder.permabuf(format!("HEX.V{i}.4.BUF"), &hexnames("V6C_BUF", i));
+        builder.permabuf(format!("HEX.V{i}.5.BUF"), &hexnames("V6D_BUF", i));
+        builder.permabuf(format!("HEX.V{i}.6.BUF"), &hexnames("V6S_BUF", i));
     }
     for i in 0..4 {
         let ii = 4 + i * 2;
@@ -280,8 +275,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..12 {
         builder.conn_branch(lh[i], Dir::E, lh[(i + 11) % 12]);
     }
-    builder.buf(lh[0], "LH.0.FAKE", &["TOP_FAKE_LH0", "BOT_FAKE_LH0"]);
-    builder.buf(lh[6], "LH.6.FAKE", &["TOP_FAKE_LH6", "BOT_FAKE_LH6"]);
+    builder.permabuf("LH.0.FAKE", &["TOP_FAKE_LH0", "BOT_FAKE_LH0"]);
+    builder.permabuf("LH.6.FAKE", &["TOP_FAKE_LH6", "BOT_FAKE_LH6"]);
 
     let lv: Vec<_> = (0..12)
         .map(|i| {
@@ -1552,7 +1547,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for pips in builder.pips.values_mut() {
         for (&(wt, _wf), mode) in &mut pips.pips {
             let wtn = builder.db.wires.key(wt.wire);
-            if wtn.starts_with("SINGLE") {
+            if wtn.starts_with("SINGLE") && *mode != PipMode::PermaBuf {
                 *mode = PipMode::Pass;
             }
         }
