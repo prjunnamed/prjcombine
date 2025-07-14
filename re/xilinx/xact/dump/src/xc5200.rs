@@ -109,12 +109,12 @@ pub fn make_intdb() -> IntDb {
     db.wires.insert("GND".into(), WireKind::Tie0);
 
     for i in 0..24 {
-        let w = db.wires.insert(format!("CLB.M{i}"), WireKind::MultiOut).0;
-        db.wires.insert(format!("CLB.M{i}.BUF"), WireKind::Buf(w));
+        db.wires.insert(format!("CLB.M{i}"), WireKind::MultiOut);
+        db.wires.insert(format!("CLB.M{i}.BUF"), WireKind::MuxOut);
     }
     for i in 0..16 {
-        let w = db.wires.insert(format!("IO.M{i}"), WireKind::MultiOut).0;
-        db.wires.insert(format!("IO.M{i}.BUF"), WireKind::Buf(w));
+        db.wires.insert(format!("IO.M{i}"), WireKind::MultiOut);
+        db.wires.insert(format!("IO.M{i}.BUF"), WireKind::MuxOut);
     }
 
     for i in 0..12 {
@@ -283,8 +283,8 @@ pub fn make_intdb() -> IntDb {
 
     for i in 0..8 {
         // only 4 of these outside CLB
-        let w0 = db.wires.insert(format!("OMUX{i}"), WireKind::MuxOut).0;
-        let w = db.wires.insert(format!("OMUX{i}.BUF"), WireKind::Buf(w0)).0;
+        db.wires.insert(format!("OMUX{i}"), WireKind::MuxOut);
+        let w = db.wires.insert(format!("OMUX{i}.BUF"), WireKind::MuxOut).0;
         if i < 4 {
             let ww = db
                 .wires
@@ -776,9 +776,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                     extractor.mark_tbuf_pseudo(net_o, net_i);
 
                     let wib = bel_info.pins["I"].wires.iter().next().unwrap().wire;
-                    let WireKind::Buf(wi) = intdb.wires[wib] else {
-                        unreachable!()
-                    };
+                    let wi = intdb.get_wire(intdb.wires.key(wib).strip_suffix(".BUF").unwrap());
                     assert_eq!(extractor.nets[net_i].pips_bwd.len(), 1);
                     let net_omux = *extractor.nets[net_i].pips_bwd.iter().next().unwrap().0;
                     extractor.net_int(net_omux, cell.wire(wi));
@@ -1181,7 +1179,9 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     let finisher = extractor.finish();
     finisher.finish(&mut intdb, &mut ndb, |db, _, wt, _| {
         let wtn = db.wires.key(wt.wire);
-        if wtn.starts_with("IMUX") || wtn.starts_with("OMUX") {
+        if wtn.ends_with(".BUF") {
+            PipMode::PermaBuf
+        } else if wtn.starts_with("IMUX") || wtn.starts_with("OMUX") {
             PipMode::Mux
         } else {
             PipMode::Pass

@@ -307,6 +307,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             ctx.tiledb.insert(tcname, bel, &name, item);
                         }
                     }
+                    SwitchBoxItem::PermaBuf(buf) => {
+                        let out_name = if tcls.cells.len() == 1 {
+                            intdb.wires.key(buf.dst.wire).to_string()
+                        } else {
+                            format!("{:#}.{}", buf.dst.cell, intdb.wires.key(buf.dst.wire))
+                        };
+                        let in_name = if tcls.cells.len() == 1 {
+                            intdb.wires.key(buf.src.wire).to_string()
+                        } else {
+                            format!("{:#}.{}", buf.src.cell, intdb.wires.key(buf.src.wire))
+                        };
+                        let diff =
+                            ctx.state
+                                .get_diff(tcname, "INT", format!("MUX.{out_name}"), &in_name);
+                        diff.assert_empty();
+                    }
+
                     _ => unreachable!(),
                 }
             }

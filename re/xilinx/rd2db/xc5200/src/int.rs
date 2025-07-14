@@ -29,15 +29,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
 
     for i in 0..24 {
-        let w = builder.wire(
+        builder.wire(
             format!("CLB.M{i}"),
             WireKind::MultiOut,
             &[format!("WIRE_M{i}_CLB")],
         );
-        builder.buf(w, format!("CLB.M{i}.BUF"), &[format!("WIRE_BUF{i}_CLB")]);
+        builder.permabuf(format!("CLB.M{i}.BUF"), &[format!("WIRE_BUF{i}_CLB")]);
     }
     for i in 0..16 {
-        let w = builder.wire(
+        builder.wire(
             format!("IO.M{i}"),
             WireKind::MultiOut,
             &[
@@ -47,8 +47,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 format!("WIRE_M{i}_TOP"),
             ],
         );
-        builder.buf(
-            w,
+        builder.permabuf(
             format!("IO.M{i}.BUF"),
             &[
                 format!("WIRE_BUF{i}_LEFT"),
@@ -299,7 +298,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for i in 0..8 {
         // only 4 of these outside CLB
-        let w = builder.mux_out(
+        builder.mux_out(
             format!("OMUX{i}"),
             &[
                 format!("WIRE_OMUX{i}_CLB"),
@@ -309,8 +308,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 format!("WIRE_QIN{i}_TOP"),
             ],
         );
-        let w = builder.buf(
-            w,
+        let w = builder.permabuf(
             format!("OMUX{i}.BUF"),
             &[
                 format!("WIRE_Q{i}_CLB"),
@@ -714,7 +712,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for pips in builder.pips.values_mut() {
         for (&(wt, _wf), mode) in &mut pips.pips {
             let wtn = builder.db.wires.key(wt.wire);
-            if !wtn.starts_with("IMUX") && !wtn.starts_with("OMUX") {
+            if !wtn.starts_with("IMUX") && !wtn.starts_with("OMUX") && *mode != PipMode::PermaBuf {
                 *mode = PipMode::Pass;
             }
         }
