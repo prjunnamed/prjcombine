@@ -7,6 +7,7 @@ use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,
 };
+use prjcombine_re_xilinx_naming::db::BelNaming;
 use prjcombine_re_xilinx_naming::grid::ExpandedGridNaming;
 use prjcombine_re_xilinx_xdl::{
     Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement, run_bitgen,
@@ -236,7 +237,11 @@ impl<'a> Backend for IseBackend<'a> {
                 site_to_tile.insert(name.to_string(), nnode.names[nnode.tie_rt].to_string());
             }
             for (id, name) in &nnode.bels {
-                let rt = self.ngrid.db.tile_class_namings[nnode.naming].bels[id].tile;
+                let BelNaming::Bel(bn) = &self.ngrid.db.tile_class_namings[nnode.naming].bels[id]
+                else {
+                    unreachable!()
+                };
+                let rt = bn.tile;
                 site_to_tile.insert(name.to_string(), nnode.names[rt].to_string());
             }
         }

@@ -16,8 +16,8 @@ use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, CellSlotId, IntDb, MuxInfo, MuxKind, PinDir, TileClass, TileClassId,
-        TileWireCoord,
+        Bel, BelInfo, BelPin, Buf, CellSlotId, IntDb, Mux, PinDir, ProgInv, SwitchBox,
+        SwitchBoxItem, TileClass, TileClassId, TileWireCoord,
     },
     dir::{Dir, DirH, DirPartMap, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
@@ -99,7 +99,7 @@ struct HarvestContext<'a> {
     gencfg: GeneratorConfig<'a>,
     harvester: Mutex<Harvester<BitOwner>>,
     speed: BTreeMap<(&'static str, &'static str), Mutex<SpeedCollector>>,
-    muxes: Mutex<BTreeMap<TileClassId, BTreeMap<TileWireCoord, MuxInfo>>>,
+    pips: Mutex<BTreeMap<TileClassId, BTreeSet<(TileWireCoord, TileWireCoord)>>>,
 }
 
 impl HarvestContext<'_> {
@@ -237,41 +237,39 @@ impl HarvestContext<'_> {
         harvester.process();
     }
 
-    fn muxes_complete(&self) -> bool {
+    fn pips_complete(&self) -> bool {
         let mut nodes_complete = 0;
-        let muxes = self.muxes.lock().unwrap();
-        for (&nk, muxes) in &*muxes {
+        let pips = self.pips.lock().unwrap();
+        for (&nk, pips) in &*pips {
             let mut stats: BTreeMap<String, usize> = BTreeMap::new();
             let nkn = self.edev.egrid.db.tile_classes.key(nk);
-            for (&wt, mux) in muxes {
+            for &(wt, wf) in pips {
                 let wtn = self.edev.egrid.db.wires.key(wt.wire);
-                for &wf in &mux.ins {
-                    let wfn = self.edev.egrid.db.wires.key(wf.wire);
-                    let bucket = if wtn.starts_with("QUAD.V") && wfn.starts_with("QUAD") {
-                        "QUAD-QUAD.V"
-                    } else if wtn.starts_with("QUAD.H") && wfn.starts_with("QUAD") {
-                        "QUAD-QUAD.H"
-                    } else if wtn.starts_with("QUAD.V") && wfn.starts_with("LONG") {
-                        "LONG-QUAD.V"
-                    } else if wtn.starts_with("QUAD.H") && wfn.starts_with("LONG") {
-                        "LONG-QUAD.H"
-                    } else if wtn.starts_with("QUAD.V") && wfn.starts_with("OUT") {
-                        "OUT-QUAD.V"
-                    } else if wtn.starts_with("QUAD.H") && wfn.starts_with("OUT") {
-                        "OUT-QUAD.H"
-                    } else if wtn.starts_with("LONG.V") && wfn.starts_with("LONG") {
-                        "LONG-LONG.V"
-                    } else if wtn.starts_with("LONG.H") && wfn.starts_with("LONG") {
-                        "LONG-LONG.H"
-                    } else if wtn.starts_with("LONG.V") && wfn.starts_with("OUT") {
-                        "OUT-LONG.V"
-                    } else if wtn.starts_with("LONG.H") && wfn.starts_with("OUT") {
-                        "OUT-LONG.H"
-                    } else {
-                        wtn
-                    };
-                    *stats.entry(bucket.to_string()).or_default() += 1;
-                }
+                let wfn = self.edev.egrid.db.wires.key(wf.wire);
+                let bucket = if wtn.starts_with("QUAD.V") && wfn.starts_with("QUAD") {
+                    "QUAD-QUAD.V"
+                } else if wtn.starts_with("QUAD.H") && wfn.starts_with("QUAD") {
+                    "QUAD-QUAD.H"
+                } else if wtn.starts_with("QUAD.V") && wfn.starts_with("LONG") {
+                    "LONG-QUAD.V"
+                } else if wtn.starts_with("QUAD.H") && wfn.starts_with("LONG") {
+                    "LONG-QUAD.H"
+                } else if wtn.starts_with("QUAD.V") && wfn.starts_with("OUT") {
+                    "OUT-QUAD.V"
+                } else if wtn.starts_with("QUAD.H") && wfn.starts_with("OUT") {
+                    "OUT-QUAD.H"
+                } else if wtn.starts_with("LONG.V") && wfn.starts_with("LONG") {
+                    "LONG-LONG.V"
+                } else if wtn.starts_with("LONG.H") && wfn.starts_with("LONG") {
+                    "LONG-LONG.H"
+                } else if wtn.starts_with("LONG.V") && wfn.starts_with("OUT") {
+                    "OUT-LONG.V"
+                } else if wtn.starts_with("LONG.H") && wfn.starts_with("OUT") {
+                    "OUT-LONG.H"
+                } else {
+                    wtn
+                };
+                *stats.entry(bucket.to_string()).or_default() += 1;
             }
             let golden_stats = get_golden_mux_stats(self.edev.chip.kind, nkn);
             if stats == golden_stats {
@@ -374,33 +372,26 @@ impl HarvestContext<'_> {
             &self.ctx.extra_node_locs,
         );
         let mut harvester = self.harvester.lock().unwrap();
-        let mut muxes = self.muxes.lock().unwrap();
+        let mut pips = self.pips.lock().unwrap();
         let mut ctr = 0;
         for pip in cur_pips {
-            let mux = muxes
-                .entry(pip.0)
-                .or_default()
-                .entry(TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: pip.1,
-                })
-                .or_insert_with(|| MuxInfo {
-                    kind: MuxKind::Plain,
-                    ins: BTreeSet::new(),
-                });
-
-            if mux.ins.insert(TileWireCoord {
+            let wt = TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire: pip.1,
+            };
+            let wf = TileWireCoord {
                 cell: CellSlotId::from_idx(0),
                 wire: pip.2,
-            }) {
+            };
+            if pips.entry(pip.0).or_default().insert((wt, wf)) {
                 ctr += 1;
                 changed = true;
             }
         }
         if self.ctx.debug >= 2 {
-            println!("{key} TOTAL NEW PIPS: {ctr} / {tot}", tot = muxes.len());
+            println!("{key} TOTAL NEW PIPS: {ctr} / {tot}", tot = pips.len());
         }
-        drop(muxes);
+        drop(pips);
         if let Some(sid) = harvester.add_sample(sample) {
             if self.ctx.debug >= 2 {
                 println!("SAMPLE {sid}: {key}");
@@ -471,7 +462,7 @@ impl HarvestContext<'_> {
         }
         println!("{ctr} cached full designs");
         while !self.speed_complete()
-            || !self.muxes_complete()
+            || !self.pips_complete()
             || self.harvester.get_mut().unwrap().has_unresolved()
         {
             (0..40).into_par_iter().for_each(|_| {
@@ -1530,8 +1521,6 @@ impl PartContext<'_> {
             let node = TileClass {
                 slot: tslots::PLL_STUB,
                 cells: EntityVec::from_iter([()]),
-                muxes: Default::default(),
-                iris: Default::default(),
                 intfs: Default::default(),
                 bels: Default::default(),
             };
@@ -1827,12 +1816,10 @@ impl PartContext<'_> {
         let mut node = TileClass {
             slot: tslots::SMCCLK,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
-        let mut bel = BelInfo::default();
+        let mut bel = Bel::default();
         bel.pins.insert(
             "CLK".into(),
             BelPin {
@@ -1844,7 +1831,7 @@ impl PartContext<'_> {
                 is_intf_in: false,
             },
         );
-        node.bels.insert(bels::SMCCLK, bel);
+        node.bels.insert(bels::SMCCLK, BelInfo::Bel(bel));
         self.intdb
             .tile_classes
             .insert(ExtraNodeLoc::SmcClk.tile_class(self.chip.kind), node);
@@ -1876,7 +1863,7 @@ impl PartContext<'_> {
         for (tile, key, bit) in [
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
-                "INT:INV.IMUX.IO.ICLK:BIT0",
+                "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
                 TileBit {
                     tile: 0,
                     frame: 9,
@@ -1885,7 +1872,7 @@ impl PartContext<'_> {
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
-                "INT:INV.IMUX.IO.OCLK:BIT0",
+                "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
                 TileBit {
                     tile: 0,
                     frame: 15,
@@ -1894,7 +1881,7 @@ impl PartContext<'_> {
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::E),
-                "INT:INV.IMUX.IO.ICLK:BIT0",
+                "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
                 TileBit {
                     tile: 0,
                     frame: 9,
@@ -1903,7 +1890,7 @@ impl PartContext<'_> {
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::E),
-                "INT:INV.IMUX.IO.OCLK:BIT0",
+                "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
                 TileBit {
                     tile: 0,
                     frame: 15,
@@ -1912,7 +1899,7 @@ impl PartContext<'_> {
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::S),
-                "INT:INV.IMUX.IO.ICLK:BIT0",
+                "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
                 TileBit {
                     tile: 0,
                     frame: 6,
@@ -1921,7 +1908,7 @@ impl PartContext<'_> {
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::S),
-                "INT:INV.IMUX.IO.OCLK:BIT0",
+                "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
                 TileBit {
                     tile: 0,
                     frame: 1,
@@ -1930,7 +1917,7 @@ impl PartContext<'_> {
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::N),
-                "INT:INV.IMUX.IO.ICLK:BIT0",
+                "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
                 TileBit {
                     tile: 0,
                     frame: 9,
@@ -1939,7 +1926,7 @@ impl PartContext<'_> {
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::N),
-                "INT:INV.IMUX.IO.OCLK:BIT0",
+                "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
                 TileBit {
                     tile: 0,
                     frame: 14,
@@ -1955,7 +1942,7 @@ impl PartContext<'_> {
     fn transplant_r04(
         &mut self,
         harvester: &mut Harvester<BitOwner>,
-        muxes: &mut BTreeMap<TileClassId, BTreeMap<TileWireCoord, MuxInfo>>,
+        pips: &mut BTreeMap<TileClassId, BTreeSet<(TileWireCoord, TileWireCoord)>>,
     ) {
         let db = Database::from_file("db/icecube/ice40p01.zstd").unwrap();
         for tcls in ["COLBUF_IO_W", "COLBUF_IO_E"] {
@@ -1976,7 +1963,24 @@ impl PartContext<'_> {
             let tile = self.chip.kind.tile_class_ioi(dir).unwrap();
             let node = db.int.tile_classes.get(tile).unwrap().1;
             let node_dst = self.intdb.tile_classes.get(tile).unwrap().0;
-            muxes.insert(node_dst, node.muxes.clone());
+            let BelInfo::SwitchBox(sb) = &node.bels[bels::INT] else {
+                unreachable!()
+            };
+            let mut tcls_pips = BTreeSet::new();
+            for item in &sb.items {
+                match item {
+                    SwitchBoxItem::Mux(mux) => {
+                        for src in &mux.src {
+                            tcls_pips.insert((mux.dst, src.tw));
+                        }
+                    }
+                    SwitchBoxItem::ProgBuf(buf) => {
+                        tcls_pips.insert((buf.dst, buf.src.tw));
+                    }
+                    _ => (),
+                }
+            }
+            pips.insert(node_dst, tcls_pips);
             let tile_data = &db.bsdata.tiles[tile];
             for (name, item) in &tile_data.items {
                 if name.ends_with(":PIN_TYPE") || name.starts_with("INT:INV") {
@@ -2028,15 +2032,75 @@ impl PartContext<'_> {
         }
     }
 
+    fn make_switchbox(&self, pips: &BTreeSet<(TileWireCoord, TileWireCoord)>) -> SwitchBox {
+        let mut muxes: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
+        let mut items = vec![];
+        let mut g2l = BTreeMap::new();
+        let mut has_g2l = false;
+        for &(wt, wf) in pips {
+            let wtn = self.intdb.wires.key(wt.wire);
+            let wfn = self.intdb.wires.key(wf.wire);
+            if wtn.starts_with("LOCAL") && wfn.starts_with("GLOBAL") {
+                has_g2l = true;
+                break;
+            }
+        }
+        if has_g2l {
+            for i in 0..4 {
+                let wt = TileWireCoord {
+                    cell: CellSlotId::from_idx(0),
+                    wire: self.intdb.get_wire(&format!("LOCAL.0.{ii}", ii = i + 4)),
+                };
+                let wf = TileWireCoord {
+                    cell: CellSlotId::from_idx(0),
+                    wire: self.intdb.get_wire(&format!("GOUT.{i}")),
+                };
+                g2l.insert(wt, wf);
+                muxes.entry(wt).or_default().insert(wf.pos());
+            }
+        }
+        for &(wt, wf) in pips {
+            let wtn = self.intdb.wires.key(wt.wire);
+            let wfn = self.intdb.wires.key(wf.wire);
+            if ((wtn.starts_with("LONG") || wtn.starts_with("QUAD")) && wfn.starts_with("OUT"))
+                || (wtn.starts_with("QUAD") && wfn.starts_with("LONG"))
+            {
+                items.push(SwitchBoxItem::ProgBuf(Buf {
+                    dst: wt,
+                    src: wf.pos(),
+                }));
+            } else if wtn.starts_with("LOCAL") && wfn.starts_with("GLOBAL") {
+                let wgo = g2l[&wt];
+                muxes.entry(wgo).or_default().insert(wf.pos());
+            } else {
+                muxes.entry(wt).or_default().insert(wf.pos());
+            }
+        }
+        for (wt, wf) in muxes {
+            items.push(SwitchBoxItem::Mux(Mux { dst: wt, src: wf }));
+
+            let wtn = self.intdb.wires.key(wt.wire);
+            if wtn.ends_with("CLK") {
+                let wi = TileWireCoord {
+                    cell: CellSlotId::from_idx(0),
+                    wire: self.intdb.get_wire(&format!("{wtn}.OPTINV")),
+                };
+                items.push(SwitchBoxItem::ProgInv(ProgInv { dst: wi, src: wt }));
+            }
+        }
+        items.sort();
+        SwitchBox { items }
+    }
+
     fn harvest(&mut self) {
         let mut harvester = Harvester::new();
-        let mut muxes = BTreeMap::new();
+        let mut pips = BTreeMap::new();
         if self.chip.kind.is_ice40() {
             self.inject_lut0_cascade(&mut harvester);
         }
         self.inject_io_inv_clk(&mut harvester);
         if self.chip.kind == ChipKind::Ice40R04 {
-            self.transplant_r04(&mut harvester, &mut muxes);
+            self.transplant_r04(&mut harvester, &mut pips);
         }
 
         let edev = self.chip.expand_grid(&self.intdb);
@@ -2048,7 +2112,7 @@ impl PartContext<'_> {
             rows_colbuf: vec![],
             extra_node_locs: &self.extra_node_locs,
         };
-        let muxes = Mutex::new(muxes);
+        let muxes = Mutex::new(pips);
         harvester.debug = self.debug;
         for key in wanted_keys_tiled(&edev) {
             harvester.want_tiled(key);
@@ -2074,88 +2138,50 @@ impl PartContext<'_> {
             gencfg,
             harvester,
             speed,
-            muxes,
+            pips: muxes,
         };
 
         hctx.run();
 
-        let mut muxes = hctx.muxes.into_inner().unwrap();
+        let mut pips = hctx.pips.into_inner().unwrap();
         let mut harvester = hctx.harvester.into_inner().unwrap();
         let io_iob = collect_iob(&edev, &mut harvester);
-        let mut bsdata = collect(&edev, &muxes, &harvester);
+        let sbs = BTreeMap::from_iter(
+            pips.iter()
+                .map(|(&tcid, pips)| (tcid, self.make_switchbox(pips))),
+        );
+        let mut bsdata = collect(&edev, &sbs, &harvester);
         let speed = hctx.speed;
         self.chip.rows_colbuf = hctx.gencfg.rows_colbuf;
         self.chip.io_iob = io_iob;
-
-        for tile_muxes in muxes.values_mut() {
-            let mut new_muxes = BTreeMap::new();
-            for (&wt, mux) in &mut *tile_muxes {
-                let wtn = self.intdb.wires.key(wt.wire);
-                if let Some(idx) = wtn.strip_prefix("LOCAL.") {
-                    let (a, b) = idx.split_once('.').unwrap();
-                    let a: usize = a.parse().unwrap();
-                    let b: usize = b.parse().unwrap();
-                    if a == 0 && b >= 4 {
-                        let g2l_wire = TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: self.intdb.get_wire(&format!("GOUT.{}", b - 4)),
-                        };
-                        let mut g2l_ins = BTreeSet::new();
-                        mux.ins.retain(|&wf| {
-                            let wfn = self.intdb.wires.key(wf.wire);
-                            if wfn.starts_with("GLOBAL") {
-                                g2l_ins.insert(wf);
-                                false
-                            } else {
-                                true
-                            }
-                        });
-                        if !g2l_ins.is_empty() {
-                            mux.ins.insert(g2l_wire);
-                            new_muxes.insert(
-                                g2l_wire,
-                                MuxInfo {
-                                    kind: MuxKind::Plain,
-                                    ins: g2l_ins,
-                                },
-                            );
-                        }
-                    }
-                }
-            }
-            for (wt, mux) in new_muxes {
-                tile_muxes.insert(wt, mux);
-            }
-        }
 
         if self.chip.kind != ChipKind::Ice40P03 {
             let tcls_plb = self.intdb.get_tile_class(self.chip.kind.tile_class_plb());
             let bsdata_plb = bsdata.tiles[self.chip.kind.tile_class_plb()].clone();
             let tcls_int_bram = self.intdb.get_tile_class("INT_BRAM");
-            let muxes_plb = muxes[&tcls_plb].clone();
-            let muxes_int_bram = muxes.get_mut(&tcls_int_bram).unwrap();
+            let pips_plb = pips[&tcls_plb].clone();
+            let pips_int_bram = pips.get_mut(&tcls_int_bram).unwrap();
             let bsdata_int_bram = bsdata.tiles.get_mut("INT_BRAM").unwrap();
-            for (k, v) in muxes_plb {
-                let wire_name = self.intdb.wires.key(k.wire);
-                match muxes_int_bram.entry(k) {
+            let mut copy_imuxes = BTreeSet::new();
+            for (wt, wf) in pips_plb {
+                let wtn = self.intdb.wires.key(wt.wire);
+                if wtn.starts_with("IMUX") && !wtn.ends_with("I3") {
+                    pips_int_bram.insert((wt, wf));
+                    copy_imuxes.insert(wt);
+                } else {
+                    assert!(pips_int_bram.contains(&(wt, wf)));
+                }
+            }
+            for wt in copy_imuxes {
+                let wtn = self.intdb.wires.key(wt.wire);
+                let mux_name = format!("INT:MUX.{wtn}");
+                let item = bsdata_plb.items.get(&mux_name).unwrap();
+                match bsdata_int_bram.items.entry(mux_name) {
                     btree_map::Entry::Vacant(e) => {
-                        assert!(wire_name.starts_with("IMUX"));
-                        e.insert(v);
+                        e.insert(item.clone());
                     }
                     btree_map::Entry::Occupied(e) => {
-                        assert_eq!(e.get(), &v);
-                    }
-                }
-                if wire_name.starts_with("IMUX") && !wire_name.ends_with("I3") {
-                    let mux_name = format!("INT:MUX.{wire_name}");
-                    let item = bsdata_plb.items.get(&mux_name).unwrap();
-                    match bsdata_int_bram.items.entry(mux_name) {
-                        btree_map::Entry::Vacant(e) => {
-                            e.insert(item.clone());
-                        }
-                        btree_map::Entry::Occupied(e) => {
-                            assert_eq!(e.get(), item);
-                        }
+                        assert_eq!(e.get(), item);
                     }
                 }
             }
@@ -2163,8 +2189,11 @@ impl PartContext<'_> {
 
         self.bsdata = bsdata;
 
-        for (nk, node_muxes) in muxes {
-            self.intdb.tile_classes[nk].muxes = node_muxes;
+        for (tcid, tcls_pips) in pips {
+            let sb = self.make_switchbox(&tcls_pips);
+            self.intdb.tile_classes[tcid]
+                .bels
+                .insert(bels::INT, BelInfo::SwitchBox(sb));
         }
 
         for (k, v) in speed {

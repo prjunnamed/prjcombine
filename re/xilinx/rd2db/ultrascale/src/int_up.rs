@@ -2,14 +2,14 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
     db::{
-        CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire, IntDb,
+        BelInfo, CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire, IntDb,
         TileWireCoord, WireId, WireKind,
     },
     dir::{Dir, DirMap, DirPartMap},
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 
-use prjcombine_re_xilinx_naming::db::NamingDb;
+use prjcombine_re_xilinx_naming::db::{BelNaming, NamingDb};
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XNodeInfo, XNodeRef};
 use prjcombine_ultrascale::{bels, expanded::REGION_LEAF, tslots};
@@ -772,21 +772,25 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_int(&mut self) {
-        self.builder.node_type(tslots::INT, "INT", "INT", "INT");
+        self.builder
+            .node_type(tslots::INT, bels::INT, "INT", "INT", "INT");
         let nk = self.builder.db.get_tile_class("INT");
         let node = &mut self.builder.db.tile_classes[nk];
         node.cells.push(());
-        for (wt, mux) in &mut node.muxes {
-            let wtn = self.builder.db.wires.key(wt.wire);
-            if !wtn.starts_with("INODE") && !wtn.starts_with("SDQNODE") {
-                continue;
-            }
-            mux.ins = BTreeSet::from_iter(
-                mux.ins
-                    .iter()
-                    .map(|w| self.sng_fixup_map.get(w).copied().unwrap_or(*w)),
-            );
-        }
+        let pips = self.builder.pips.get_mut(&(nk, bels::INT)).unwrap();
+        pips.pips = pips
+            .pips
+            .iter()
+            .map(|(&(wt, wf), &mode)| {
+                let wtn = self.builder.db.wires.key(wt.wire);
+                if wtn.starts_with("INODE") || wtn.starts_with("SDQNODE") {
+                    let nwf = self.sng_fixup_map.get(&wf).copied().unwrap_or(wf);
+                    ((wt, nwf), mode)
+                } else {
+                    ((wt, wf), mode)
+                }
+            })
+            .collect();
         let naming = self.builder.ndb.get_tile_class_naming("INT");
         let naming = &mut self.builder.ndb.tile_class_namings[naming];
         for (&wf, &wt) in &self.sng_fixup_map {
@@ -1042,7 +1046,7 @@ impl IntMaker<'_> {
                 }
                 let mut bel = self
                     .builder
-                    .bel_virtual(bels::RCLK_INT)
+                    .bel_virtual(bels::RCLK_INT_CLK)
                     .extra_wire("VCC", &["VCC_WIRE"]);
                 for i in 0..24 {
                     bel = bel.extra_wire(format!("HDISTR{i}"), &[format!("CLK_HDISTR_FT0_{i}")]);
@@ -1053,7 +1057,7 @@ impl IntMaker<'_> {
                     .num_tiles(4)
                     .ref_int_side(xy.delta(0, 1), Dir::W, 0)
                     .ref_int_side(xy.delta(0, 1), Dir::E, 1)
-                    .extract_muxes()
+                    .extract_muxes(bels::RCLK_INT)
                     .bels(bels)
                     .extract();
             }
@@ -3397,7 +3401,9 @@ impl IntMaker<'_> {
             xn.bels(bels).extract();
 
             let tcls = self.builder.db.tile_classes.get_mut("XP5IO").unwrap().1;
-            let bel = &mut tcls.bels[bels::LPDDRMC];
+            let BelInfo::Bel(ref mut bel) = tcls.bels[bels::LPDDRMC] else {
+                unreachable!()
+            };
             let tncls = self
                 .builder
                 .ndb
@@ -3405,7 +3411,9 @@ impl IntMaker<'_> {
                 .get_mut("XP5IO")
                 .unwrap()
                 .1;
-            let beln = &mut tncls.bels[bels::LPDDRMC];
+            let BelNaming::Bel(ref mut beln) = tncls.bels[bels::LPDDRMC] else {
+                unreachable!()
+            };
             for (pin, wire) in [
                 ("CFG2IOB_PUDC_B", "IMUX.IMUX.27"),
                 ("IJTAG_RESET_TAP", "IMUX.IMUX.28"),

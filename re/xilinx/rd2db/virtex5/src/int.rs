@@ -351,7 +351,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     builder.extract_main_passes();
 
-    builder.node_type(tslots::INT, "INT", "INT", "INT");
+    builder.node_type(tslots::INT, bels::INT, "INT", "INT", "INT");
 
     builder.extract_term_buf("TERM.W", Dir::W, "L_TERM_INT", "TERM.W", &[]);
     builder.extract_term_buf("TERM.W", Dir::W, "GTX_L_TERM_INT", "TERM.W", &[]);

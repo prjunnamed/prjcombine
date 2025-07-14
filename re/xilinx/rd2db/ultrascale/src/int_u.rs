@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use prjcombine_interconnect::{
     db::{
@@ -832,22 +832,28 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_int(&mut self) {
-        self.builder.node_type(tslots::INT, "INT", "INT", "INT");
+        self.builder
+            .node_type(tslots::INT, bels::INT, "INT", "INT", "INT");
         let nk = self.builder.db.get_tile_class("INT");
         let node = &mut self.builder.db.tile_classes[nk];
         node.cells.push(());
-        for (wt, mux) in &mut node.muxes {
-            let wtn = self.builder.db.wires.key(wt.wire);
-            if !wtn.starts_with("INODE") && !wtn.starts_with("SDNODE") && !wtn.starts_with("QLNODE")
-            {
-                continue;
-            }
-            mux.ins = BTreeSet::from_iter(
-                mux.ins
-                    .iter()
-                    .map(|w| self.sng_fixup_map.get(w).copied().unwrap_or(*w)),
-            );
-        }
+        let pips = self.builder.pips.get_mut(&(nk, bels::INT)).unwrap();
+        pips.pips = pips
+            .pips
+            .iter()
+            .map(|(&(wt, wf), &mode)| {
+                let wtn = self.builder.db.wires.key(wt.wire);
+                if wtn.starts_with("INODE")
+                    || wtn.starts_with("SDNODE")
+                    || wtn.starts_with("QLNODE")
+                {
+                    let nwf = self.sng_fixup_map.get(&wf).copied().unwrap_or(wf);
+                    ((wt, nwf), mode)
+                } else {
+                    ((wt, wf), mode)
+                }
+            })
+            .collect();
         let naming = self.builder.ndb.get_tile_class_naming("INT");
         let naming = &mut self.builder.ndb.tile_class_namings[naming];
         for (&wf, &wt) in &self.sng_fixup_map {
@@ -952,7 +958,7 @@ impl IntMaker<'_> {
                 }
                 let mut bel = self
                     .builder
-                    .bel_virtual(bels::RCLK_INT)
+                    .bel_virtual(bels::RCLK_INT_CLK)
                     .extra_wire("VCC", &["VCC_WIRE"]);
                 for i in 0..24 {
                     bel = bel.extra_wire(format!("HDISTR{i}"), &[format!("CLK_HDISTR_FT0_{i}")]);
@@ -963,7 +969,7 @@ impl IntMaker<'_> {
                     .num_tiles(4)
                     .ref_int_side(xy.delta(0, 1), Dir::W, 0)
                     .ref_int_side(xy.delta(0, 1), Dir::E, 1)
-                    .extract_muxes()
+                    .extract_muxes(bels::RCLK_INT)
                     .bels(bels)
                     .extract();
             }

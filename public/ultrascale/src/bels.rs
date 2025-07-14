@@ -3,6 +3,8 @@ use prjcombine_interconnect::{bels, db::BelSlotId};
 use crate::tslots;
 
 bels![
+    INT: tslots::INT,
+    RCLK_INT: tslots::RCLK_INT,
     SLICE: tslots::BEL,
     LAGUNA0: tslots::BEL,
     LAGUNA1: tslots::BEL,
@@ -513,7 +515,7 @@ bels![
     BUFCE_LEAF_N13: tslots::RCLK_INT,
     BUFCE_LEAF_N14: tslots::RCLK_INT,
     BUFCE_LEAF_N15: tslots::RCLK_INT,
-    RCLK_INT: tslots::RCLK_INT,
+    RCLK_INT_CLK: tslots::RCLK_INT,
     BUFCE_ROW_RCLK0: tslots::RCLK_V,
     BUFCE_ROW_RCLK1: tslots::RCLK_V,
     BUFCE_ROW_RCLK2: tslots::RCLK_V,

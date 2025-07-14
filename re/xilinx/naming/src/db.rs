@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
-use prjcombine_interconnect::db::{BelSlotId, IntDb, TileIriId, TileWireCoord, WireId};
+use prjcombine_interconnect::db::{BelSlotId, IntDb, TileWireCoord, WireId};
 use unnamed_entity::{
-    EntityId, EntityMap, EntityPartVec, EntityVec,
+    EntityId, EntityMap, EntityPartVec,
     id::{EntityIdU16, EntityTag},
 };
 
@@ -50,7 +50,6 @@ pub struct TileClassNaming {
     pub wire_bufs: BTreeMap<TileWireCoord, PipNaming>,
     pub ext_pips: BTreeMap<(TileWireCoord, TileWireCoord), PipNaming>,
     pub bels: EntityPartVec<BelSlotId, BelNaming>,
-    pub iris: EntityVec<TileIriId, IriNaming>,
     pub intf_wires_out: BTreeMap<TileWireCoord, IntfWireOutNaming>,
     pub intf_wires_in: BTreeMap<TileWireCoord, IntfWireInNaming>,
 }
@@ -63,7 +62,13 @@ pub struct PipNaming {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
-pub struct BelNaming {
+#[non_exhaustive]
+pub enum BelNaming {
+    Bel(ProperBelNaming),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct ProperBelNaming {
     pub tile: RawTileId,
     pub pins: BTreeMap<String, BelPinNaming>,
 }
@@ -75,12 +80,6 @@ pub struct BelPinNaming {
     pub pips: Vec<PipNaming>,
     pub int_pips: BTreeMap<TileWireCoord, PipNaming>,
     pub is_intf_out: bool,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
-pub struct IriNaming {
-    pub tile: RawTileId,
-    pub kind: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
@@ -175,53 +174,48 @@ impl NamingDb {
                 )?;
             }
             for (slot, bn) in &naming.bels {
-                writeln!(
-                    o,
-                    "\t\tBEL {slot} RT.{rt}:",
-                    slot = intdb.bel_slots.key(slot),
-                    rt = bn.tile,
-                )?;
-                for (k, v) in &bn.pins {
-                    write!(o, "\t\t\tPIN {k}: ")?;
-                    if v.name == v.name_far {
-                        write!(o, "{n}", n = v.name)?;
-                    } else {
-                        write!(o, "NEAR {nn} FAR {nf}", nn = v.name, nf = v.name_far)?;
-                    }
-                    if v.is_intf_out {
-                        write!(o, " INTF.OUT")?;
-                    }
-                    writeln!(o)?;
-                    for pip in &v.pips {
+                match bn {
+                    BelNaming::Bel(bn) => {
                         writeln!(
                             o,
-                            "\t\t\t\tPIP RT.{rt} {wt} <- {wf}",
-                            rt = pip.tile.to_idx(),
-                            wt = pip.wire_to,
-                            wf = pip.wire_from
+                            "\t\tBEL {slot} RT.{rt}:",
+                            slot = intdb.bel_slots.key(slot),
+                            rt = bn.tile,
                         )?;
-                    }
-                    for (w, pip) in &v.int_pips {
-                        writeln!(
-                            o,
-                            "\t\t\t\tINT PIP {wt:3}.{wn:20}: RT.{rt} {pt} <- {pf}",
-                            wt = w.cell.to_idx(),
-                            wn = intdb.wires.key(w.wire),
-                            rt = pip.tile.to_idx(),
-                            pt = pip.wire_to,
-                            pf = pip.wire_from
-                        )?;
+                        for (k, v) in &bn.pins {
+                            write!(o, "\t\t\tPIN {k}: ")?;
+                            if v.name == v.name_far {
+                                write!(o, "{n}", n = v.name)?;
+                            } else {
+                                write!(o, "NEAR {nn} FAR {nf}", nn = v.name, nf = v.name_far)?;
+                            }
+                            if v.is_intf_out {
+                                write!(o, " INTF.OUT")?;
+                            }
+                            writeln!(o)?;
+                            for pip in &v.pips {
+                                writeln!(
+                                    o,
+                                    "\t\t\t\tPIP RT.{rt} {wt} <- {wf}",
+                                    rt = pip.tile.to_idx(),
+                                    wt = pip.wire_to,
+                                    wf = pip.wire_from
+                                )?;
+                            }
+                            for (w, pip) in &v.int_pips {
+                                writeln!(
+                                    o,
+                                    "\t\t\t\tINT PIP {wt:3}.{wn:20}: RT.{rt} {pt} <- {pf}",
+                                    wt = w.cell.to_idx(),
+                                    wn = intdb.wires.key(w.wire),
+                                    rt = pip.tile.to_idx(),
+                                    pt = pip.wire_to,
+                                    pf = pip.wire_from
+                                )?;
+                            }
+                        }
                     }
                 }
-            }
-            for (i, iri) in &naming.iris {
-                writeln!(
-                    o,
-                    "\t\tIRI.{i}: RT.{rt} {kind}",
-                    i = i.to_idx(),
-                    rt = iri.tile.to_idx(),
-                    kind = iri.kind
-                )?;
             }
             for (w, wn) in &naming.intf_wires_out {
                 write!(

@@ -1,4 +1,4 @@
-use prjcombine_interconnect::db::PinDir;
+use prjcombine_interconnect::db::{BelInfo, PinDir};
 use prjcombine_re_fpga_hammer::{OcdMode, extract_bitvec_val};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bitvec::BitVec;
@@ -11,6 +11,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for tile in ["GIGABIT10.B", "GIGABIT10.T"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         let bel_data = &intdb.tile_classes[ctx.node_kind.unwrap()].bels[bels::GT10];
+        let BelInfo::Bel(bel_data) = bel_data else {
+            unreachable!()
+        };
         let mut bctx = ctx.bel(bels::GT10);
         let mode = "GT10";
         bctx.test_manual("ENABLE", "1").mode(mode).commit();
@@ -169,6 +172,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "GT10";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
         let bel_data = &egrid.db.tile_classes[node_kind].bels[bels::GT10];
+        let BelInfo::Bel(bel_data) = bel_data else {
+            unreachable!()
+        };
         for (pin, pin_data) in &bel_data.pins {
             if pin_data.dir != PinDir::Input {
                 continue;

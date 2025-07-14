@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{CellSlotId, TileWireCoord},
+    db::{BelInfo, CellSlotId, SwitchBoxItem, TileWireCoord},
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_enum_ocd};
@@ -117,6 +117,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDstFilter {
                     {
                         let mut found = false;
                         for bel in bram_node_kind.bels.values() {
+                            let BelInfo::Bel(bel) = bel else {
+                                unreachable!()
+                            };
                             for pin in bel.pins.values() {
                                 if pin.wires.contains(&TileWireCoord {
                                     cell: node_tile,
@@ -428,8 +431,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                             cell: CellSlotId::from_idx(0),
                             wire: self.wire.wire,
                         };
-                        let src_node_kind = &backend.egrid.db.tile_classes[src_tile.class];
-                        if let Some(mux) = src_node_kind.muxes.get(&dwire) {
+                        if let Some(ins) = backend.egrid.db_index.tile_classes[src_tile.class]
+                            .pips_bwd
+                            .get(&dwire)
+                        {
                             let Some(dnode) = backend
                                 .egrid
                                 .resolve_wire(backend.egrid.tile_wire(int_tcrd, dwire))
@@ -437,7 +442,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                                 continue;
                             };
                             assert_eq!(dnode, wnode);
-                            let swire = *mux.ins.first().unwrap();
+                            let swire = ins.iter().next().unwrap().tw;
                             let (tile, wa, wb) = resolve_int_pip(backend, int_tcrd, swire, dwire)?;
                             fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
                             return Some((fuzzer, false));
@@ -464,8 +469,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                         .with_col(src_col)
                         .tile(prjcombine_virtex2::tslots::INT);
                     if let Some(src_tile) = backend.egrid.get_tile(int_tcrd) {
-                        let src_node_kind = &backend.egrid.db.tile_classes[src_tile.class];
-                        for (&dwire, mux) in &src_node_kind.muxes {
+                        for (&dwire, ins) in
+                            &backend.egrid.db_index.tile_classes[src_tile.class].pips_bwd
+                        {
                             if !backend.egrid.db.wires.key(dwire.wire).starts_with("LH") {
                                 continue;
                             }
@@ -478,7 +484,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                             if dnode != wnode {
                                 continue;
                             }
-                            let swire = *mux.ins.first().unwrap();
+                            let swire = ins.iter().next().unwrap().tw;
                             let (tile, wa, wb) = resolve_int_pip(backend, int_tcrd, swire, dwire)?;
                             fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
                             return Some((fuzzer, false));
@@ -543,8 +549,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                             cell: CellSlotId::from_idx(0),
                             wire: self.wire.wire,
                         };
-                        let src_node_kind = &backend.egrid.db.tile_classes[src_tile.class];
-                        if let Some(mux) = src_node_kind.muxes.get(&dwire) {
+                        if let Some(ins) = backend.egrid.db_index.tile_classes[src_tile.class]
+                            .pips_bwd
+                            .get(&dwire)
+                        {
                             let Some(dnode) = backend
                                 .egrid
                                 .resolve_wire(backend.egrid.tile_wire(int_tcrd, dwire))
@@ -552,7 +560,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                                 continue;
                             };
                             assert_eq!(dnode, wnode);
-                            let swire = *mux.ins.first().unwrap();
+                            let swire = ins.iter().next().unwrap().tw;
                             let (tile, wa, wb) = resolve_int_pip(backend, int_tcrd, swire, dwire)?;
                             fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
                             return Some((fuzzer, false));
@@ -579,8 +587,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                         .with_row(src_row)
                         .tile(prjcombine_virtex2::tslots::INT);
                     if let Some(src_tile) = backend.egrid.get_tile(int_tcrd) {
-                        let src_node_kind = &backend.egrid.db.tile_classes[src_tile.class];
-                        for (&dwire, mux) in &src_node_kind.muxes {
+                        for (&dwire, ins) in
+                            &backend.egrid.db_index.tile_classes[src_tile.class].pips_bwd
+                        {
                             if !backend.egrid.db.wires.key(dwire.wire).starts_with("LV") {
                                 continue;
                             }
@@ -593,7 +602,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                             if dnode != wnode {
                                 continue;
                             }
-                            let swire = *mux.ins.first().unwrap();
+                            let swire = ins.iter().next().unwrap().tw;
                             let (tile, wa, wb) = resolve_int_pip(backend, int_tcrd, swire, dwire)?;
                             fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
                             return Some((fuzzer, false));
@@ -616,22 +625,20 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.egrid.db;
-    for (node_kind, name, node) in &intdb.tile_classes {
-        if node.muxes.is_empty() {
+    for (tcid, tcname, tcls) in &intdb.tile_classes {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
             continue;
-        }
-        if backend.egrid.tile_index[node_kind].is_empty() {
-            continue;
-        }
-        let mut ctx = FuzzCtx::new(session, backend, name);
-        for (&wire_to, mux) in &node.muxes {
-            let mux_name = if node.cells.len() == 1 {
+        };
+        let tcls_index = &backend.egrid.db_index.tile_classes[tcid];
+        for (&wire_to, ins) in &tcls_index.pips_bwd {
+            let mux_name = if tcls.cells.len() == 1 {
                 format!("MUX.{}", intdb.wires.key(wire_to.wire))
             } else {
                 format!("MUX.{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire))
             };
-            for &wire_from in &mux.ins {
-                let in_name = if node.cells.len() == 1 {
+            for &wire_from in ins {
+                let wire_from = wire_from.tw;
+                let in_name = if tcls.cells.len() == 1 {
                     intdb.wires.key(wire_from.wire).to_string()
                 } else {
                     format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
@@ -650,22 +657,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     ))
                     .prop(NodeMutexExclusive::new(wire_to))
                     .prop(FuzzIntPip::new(wire_to, wire_from));
-                if let Some(inmux) = node.muxes.get(&wire_from) {
-                    if inmux.ins.contains(&wire_to) {
-                        if name.starts_with("LLH") {
+                if let Some(inmux) = tcls_index.pips_bwd.get(&wire_from) {
+                    if inmux.contains(&wire_to.pos()) {
+                        if tcname.starts_with("LLH") {
                             builder = builder.prop(DriveLLH::new(wire_from));
-                        } else if name.starts_with("LLV") {
+                        } else if tcname.starts_with("LLV") {
                             builder = builder.prop(DriveLLV::new(wire_from));
                         } else {
                             let mut wire_help = None;
-                            for &help in &inmux.ins {
-                                if let Some(helpmux) = node.muxes.get(&help) {
-                                    if helpmux.ins.contains(&wire_from) {
+                            for &help in inmux {
+                                if let Some(helpmux) = tcls_index.pips_bwd.get(&help.tw) {
+                                    if helpmux.contains(&wire_from.pos()) {
                                         continue;
                                     }
                                 }
                                 // println!("HELP {} <- {} <- {}", intdb.wires.key(wire_to.1), intdb.wires.key(wire_from.1), intdb.wires.key(help.1));
-                                wire_help = Some(help);
+                                wire_help = Some(help.tw);
                                 break;
                             }
                             let wire_help = wire_help.unwrap();
@@ -691,84 +698,98 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let egrid = ctx.edev.egrid();
     let intdb = egrid.db;
-    for (node_kind, name, node) in &intdb.tile_classes {
-        if node.muxes.is_empty() {
+    for (_, tcname, tcls) in &intdb.tile_classes {
+        if !ctx.has_tile(tcname) {
             continue;
         }
-        if egrid.tile_index[node_kind].is_empty() {
-            continue;
-        }
-
-        for (&wire_to, mux) in &node.muxes {
-            let mux_name = if node.cells.len() == 1 {
-                format!("MUX.{}", intdb.wires.key(wire_to.wire))
-            } else {
-                format!("MUX.{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire))
+        for (bslot, bel) in &tcls.bels {
+            let BelInfo::SwitchBox(sb) = bel else {
+                continue;
             };
-            let mut inps = vec![];
-            let mut got_empty = false;
-            for &wire_from in &mux.ins {
-                let in_name = if node.cells.len() == 1 {
-                    intdb.wires.key(wire_from.wire).to_string()
-                } else {
-                    format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
-                };
-                let diff = ctx.state.get_diff(name, "INT", &mux_name, &in_name);
-                if let ExpandedDevice::Virtex2(edev) = ctx.edev {
-                    if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
-                        && name == "INT.IOI.S3A.LR"
-                        && mux_name == "MUX.IMUX.DATA3"
-                        && in_name == "OMUX10.N"
-                    {
-                        // ISE is bad and should feel bad.
-                        continue;
-                    }
-                }
-                if diff.bits.is_empty() {
-                    if intdb.wires.key(wire_to.wire).starts_with("IMUX")
-                        && !intdb.wires[wire_from.wire].is_tie()
-                    {
-                        // suppress message on known offenders.
-                        if name == "INT.BRAM.S3A.03"
-                            && (mux_name.starts_with("MUX.IMUX.CLK")
-                                || mux_name.starts_with("MUX.IMUX.CE"))
-                        {
-                            // these muxes don't actually exist.
-                            continue;
+            let bel = intdb.bel_slots.key(bslot);
+            for item in &sb.items {
+                match item {
+                    SwitchBoxItem::Mux(mux) => {
+                        let mux_name = if tcls.cells.len() == 1 {
+                            format!("MUX.{}", intdb.wires.key(mux.dst.wire))
+                        } else {
+                            format!("MUX.{:#}.{}", mux.dst.cell, intdb.wires.key(mux.dst.wire))
+                        };
+                        let mut inps = vec![];
+                        let mut got_empty = false;
+                        for &wire_from in &mux.src {
+                            let wire_from = wire_from.tw;
+                            let in_name = if tcls.cells.len() == 1 {
+                                intdb.wires.key(wire_from.wire).to_string()
+                            } else {
+                                format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
+                            };
+                            let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
+                            if let ExpandedDevice::Virtex2(edev) = ctx.edev {
+                                if edev.chip.kind
+                                    == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
+                                    && tcname == "INT.IOI.S3A.LR"
+                                    && mux_name == "MUX.IMUX.DATA3"
+                                    && in_name == "OMUX10.N"
+                                {
+                                    // ISE is bad and should feel bad.
+                                    continue;
+                                }
+                            }
+                            if diff.bits.is_empty() {
+                                if intdb.wires.key(mux.dst.wire).starts_with("IMUX")
+                                    && !intdb.wires[wire_from.wire].is_tie()
+                                {
+                                    // suppress message on known offenders.
+                                    if tcname == "INT.BRAM.S3A.03"
+                                        && (mux_name.starts_with("MUX.IMUX.CLK")
+                                            || mux_name.starts_with("MUX.IMUX.CE"))
+                                    {
+                                        // these muxes don't actually exist.
+                                        continue;
+                                    }
+                                    if tcname.starts_with("INT.IOI.S3")
+                                        && mux_name.starts_with("MUX.IMUX.DATA")
+                                        && (in_name.starts_with("OUT.FAN")
+                                            || in_name.starts_with("IMUX.FAN")
+                                            || in_name.starts_with("OMUX"))
+                                    {
+                                        // ISE is kind of bad. fill these from INT.CLB and verify later?
+                                        continue;
+                                    }
+                                    println!("UMMMMM PIP {tcname} {mux_name} {in_name} is empty");
+                                    continue;
+                                }
+                                got_empty = true;
+                            }
+                            inps.push((in_name.to_string(), diff));
                         }
-                        if name.starts_with("INT.IOI.S3")
-                            && mux_name.starts_with("MUX.IMUX.DATA")
-                            && (in_name.starts_with("OUT.FAN")
-                                || in_name.starts_with("IMUX.FAN")
-                                || in_name.starts_with("OMUX"))
-                        {
-                            // ISE is kind of bad. fill these from INT.CLB and verify later?
-                            continue;
+                        if !got_empty {
+                            inps.push(("NONE".to_string(), Diff::default()));
                         }
-                        println!("UMMMMM PIP {name} {mux_name} {in_name} is empty");
-                        continue;
+                        let ti = xlat_enum_ocd(inps, OcdMode::Mux);
+                        if ti.bits.is_empty()
+                            && !(tcname == "INT.GT.CLKPAD"
+                                && matches!(
+                                    &mux_name[..],
+                                    "MUX.IMUX.CE0"
+                                        | "MUX.IMUX.CE1"
+                                        | "MUX.IMUX.TS0"
+                                        | "MUX.IMUX.TS1"
+                                ))
+                            && !(tcname == "INT.BRAM.S3A.03"
+                                && (mux_name.starts_with("MUX.IMUX.CLK")
+                                    || mux_name.starts_with("MUX.IMUX.CE")))
+                        {
+                            println!("UMMM MUX {tcname} {mux_name} is empty");
+                        }
+                        ctx.tiledb.insert(tcname, bel, mux_name, ti);
                     }
-                    got_empty = true;
+                    SwitchBoxItem::PermaBuf(_) => (),
+                    SwitchBoxItem::ProgInv(_) => (),
+                    _ => unreachable!(),
                 }
-                inps.push((in_name.to_string(), diff));
             }
-            if !got_empty {
-                inps.push(("NONE".to_string(), Diff::default()));
-            }
-            let ti = xlat_enum_ocd(inps, OcdMode::Mux);
-            if ti.bits.is_empty()
-                && !(name == "INT.GT.CLKPAD"
-                    && matches!(
-                        &mux_name[..],
-                        "MUX.IMUX.CE0" | "MUX.IMUX.CE1" | "MUX.IMUX.TS0" | "MUX.IMUX.TS1"
-                    ))
-                && !(name == "INT.BRAM.S3A.03"
-                    && (mux_name.starts_with("MUX.IMUX.CLK")
-                        || mux_name.starts_with("MUX.IMUX.CE")))
-            {
-                println!("UMMM MUX {name} {mux_name} is empty");
-            }
-            ctx.tiledb.insert(name, "INT", mux_name, ti);
         }
     }
 }

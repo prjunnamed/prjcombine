@@ -22,7 +22,7 @@ pub trait FpgaBackend: Backend<State = State, FuzzerInfo = FuzzerInfo<Self::BitT
 
     fn node_bits(&self, nloc: TileCoord) -> Vec<Self::BitTile>;
 
-    fn egrid(&self) -> &ExpandedGrid;
+    fn egrid(&self) -> &ExpandedGrid<'_>;
 }
 
 #[derive(Clone, Debug)]

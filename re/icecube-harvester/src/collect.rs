@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use prjcombine_interconnect::{
-    db::{MuxInfo, TileClassId, TileWireCoord},
+    db::{SwitchBox, SwitchBoxItem, TileClassId},
     dir::{Dir, DirV},
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
@@ -123,7 +123,7 @@ pub fn collect_iob(
 
 pub fn collect(
     edev: &ExpandedDevice,
-    muxes: &BTreeMap<TileClassId, BTreeMap<TileWireCoord, MuxInfo>>,
+    sbs: &BTreeMap<TileClassId, SwitchBox>,
     harvester: &Harvester<BitOwner>,
 ) -> BsData {
     let mut tiledb = BsData::new();
@@ -179,82 +179,94 @@ pub fn collect(
         tiledb: &mut tiledb,
     };
 
-    for (&node_kind, tile_muxes) in muxes {
+    for (&node_kind, tile_sb) in sbs {
         let tile = edev.egrid.db.tile_classes.key(node_kind);
         let bel = "INT";
         if !tile.starts_with("IO") {
-            collector.collect_bit(tile, bel, "INV.IMUX.CLK", "");
+            collector.collect_bit(tile, bel, "INV.IMUX.CLK.OPTINV", "");
         }
-        for (&wt, mux) in tile_muxes {
-            let wtn = edev.egrid.db.wires.key(wt.wire);
-            let mux_name = format!("MUX.{wtn}");
-            let mut values = vec![];
-            if tile == edev.chip.kind.tile_class_plb()
-                && wtn.starts_with("IMUX.LC")
-                && wtn.ends_with(".I3")
-            {
-                values.push("CI");
+        let mut gout_mux = BTreeMap::new();
+        for item in &tile_sb.items {
+            if let SwitchBoxItem::Mux(mux) = item {
+                let wtn = edev.egrid.db.wires.key(mux.dst.wire);
+                if wtn.starts_with("GOUT") {
+                    gout_mux.insert(mux.dst, mux);
+                }
             }
-            for &wf in &mux.ins {
-                let wfn = edev.egrid.db.wires.key(wf.wire);
-                if (wfn.starts_with("OUT") && (wtn.starts_with("QUAD") || wtn.starts_with("LONG")))
-                    || (wfn.starts_with("LONG") && wtn.starts_with("QUAD"))
-                {
+        }
+        for item in &tile_sb.items {
+            match item {
+                SwitchBoxItem::Mux(mux) => {
+                    if gout_mux.contains_key(&mux.dst) {
+                        continue;
+                    }
+                    let wtn = edev.egrid.db.wires.key(mux.dst.wire);
+                    let mux_name = format!("MUX.{wtn}");
+                    let mut values = vec![];
+                    let mut diffs = vec![];
+                    if tile == edev.chip.kind.tile_class_plb()
+                        && wtn.starts_with("IMUX.LC")
+                        && wtn.ends_with(".I3")
+                    {
+                        values.push("CI");
+                        diffs.push(("CI", collector.state.get_diff(tile, bel, &mux_name, "CI")));
+                    }
+                    diffs.push(("NONE", Diff::default()));
+                    for &wf in &mux.src {
+                        if !gout_mux.contains_key(&wf) {
+                            let wfn = edev.egrid.db.wires.key(wf.wire);
+                            values.push(wfn);
+                            diffs.push((wfn, collector.state.get_diff(tile, bel, &mux_name, wfn)));
+                        }
+                    }
+                    for &wg in &mux.src {
+                        if let Some(gmux) = gout_mux.get(&wg) {
+                            let wgn = edev.egrid.db.wires.key(gmux.dst.wire);
+                            let mut bits_nog2l = HashSet::new();
+                            for (_, diff) in &diffs {
+                                for &bit in diff.bits.keys() {
+                                    bits_nog2l.insert(bit);
+                                }
+                            }
+                            let mut diffs_gout = vec![];
+                            for &wf in &gmux.src {
+                                let wfn = edev.egrid.db.wires.key(wf.wire).as_str();
+                                let mut diff_gout =
+                                    collector.state.get_diff(tile, bel, &mux_name, wfn);
+                                let diff = diff_gout.split_bits(&bits_nog2l);
+                                diffs_gout.push((wfn, diff_gout));
+                                diffs.push((wgn, diff));
+                            }
+                            if !diffs_gout.is_empty() {
+                                diffs_gout.push(("NONE", Diff::default()));
+                                collector.tiledb.insert(
+                                    tile,
+                                    bel,
+                                    format!("MUX.{wgn}"),
+                                    xlat_enum_ocd(diffs_gout, OcdMode::Mux),
+                                );
+                            }
+                        }
+                    }
+                    collector.tiledb.insert(
+                        tile,
+                        bel,
+                        &mux_name,
+                        xlat_enum_ocd(diffs, OcdMode::Mux),
+                    );
+                }
+                SwitchBoxItem::ProgBuf(buf) => {
+                    let wtn = edev.egrid.db.wires.key(buf.dst.wire);
+                    let wfn = edev.egrid.db.wires.key(buf.src.wire);
+                    let mux_name = format!("MUX.{wtn}");
                     let item = collector.extract_bit(tile, bel, &mux_name, wfn);
                     collector
                         .tiledb
                         .insert(tile, bel, format!("BUF.{wtn}.{wfn}"), item);
-                } else {
-                    values.push(wfn);
                 }
+                SwitchBoxItem::ProgInv(_) => (),
+                _ => unreachable!(),
             }
-            let mut diffs = vec![];
-            if values.is_empty() {
-                continue;
-            }
-            diffs.push(("NONE", Diff::default()));
-            for val in values {
-                diffs.push((val, collector.state.get_diff(tile, bel, &mux_name, val)));
-            }
-            if let Some(idx) = wtn.strip_prefix("LOCAL.") {
-                let (a, b) = idx.split_once('.').unwrap();
-                let a: usize = a.parse().unwrap();
-                let b: usize = b.parse().unwrap();
-                if a == 0 && b >= 4 {
-                    let g2l_wire = edev.egrid.db.get_wire(&format!("GOUT.{}", b - 4));
-                    let g2l_name = edev.egrid.db.wires.key(g2l_wire);
-
-                    let mut bits_nog2l = HashSet::new();
-                    for (wfn, diff) in &diffs {
-                        if !wfn.starts_with("GLOBAL") {
-                            for &bit in diff.bits.keys() {
-                                bits_nog2l.insert(bit);
-                            }
-                        }
-                    }
-                    let mut diffs_g2l = vec![];
-                    for (wfn, diff) in &mut diffs {
-                        if wfn.starts_with("GLOBAL") {
-                            let mut diff_g2l = std::mem::take(diff);
-                            *diff = diff_g2l.split_bits(&bits_nog2l);
-                            diffs_g2l.push((*wfn, diff_g2l));
-                            *wfn = g2l_name;
-                        }
-                    }
-                    if !diffs_g2l.is_empty() {
-                        diffs_g2l.push(("NONE", Diff::default()));
-                        collector.tiledb.insert(
-                            tile,
-                            bel,
-                            format!("MUX.{g2l_name}"),
-                            xlat_enum_ocd(diffs_g2l, OcdMode::Mux),
-                        );
-                    }
-                }
-            }
-            collector
-                .tiledb
-                .insert(tile, bel, &mux_name, xlat_enum_ocd(diffs, OcdMode::Mux));
         }
     }
     if let Some(tcls) = edev.chip.kind.tile_class_colbuf() {
@@ -304,8 +316,8 @@ pub fn collect(
         let Some(tile) = edev.chip.kind.tile_class_ioi(edge) else {
             continue;
         };
-        collector.collect_bit(tile, "INT", "INV.IMUX.IO.ICLK", "");
-        collector.collect_bit(tile, "INT", "INV.IMUX.IO.OCLK", "");
+        collector.collect_bit(tile, "INT", "INV.IMUX.IO.ICLK.OPTINV", "");
+        collector.collect_bit(tile, "INT", "INV.IMUX.IO.OCLK.OPTINV", "");
         for io in 0..2 {
             let bel = &format!("IO{io}");
             collector.collect_bitvec(tile, bel, "PIN_TYPE", "");

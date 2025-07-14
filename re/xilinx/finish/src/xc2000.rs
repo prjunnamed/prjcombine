@@ -4,7 +4,7 @@ use std::{
 };
 
 use itertools::Itertools;
-use prjcombine_interconnect::db::{BelInfo, CellSlotId, TileWireCoord};
+use prjcombine_interconnect::db::{Bel, BelInfo, CellSlotId, SwitchBoxItem, TileWireCoord};
 use prjcombine_types::bsdata::BsData;
 use prjcombine_xc2000::{
     bels,
@@ -259,19 +259,36 @@ pub fn finish(
             assert_eq!(key_i, "xc5200");
             let io_b = int_i.get_tile_class("IO.B");
             let io_b = &mut int_i.tile_classes[io_b];
-            io_b.bels.insert(bels::xc5200::SCANTEST, BelInfo::default());
+            io_b.bels
+                .insert(bels::xc5200::SCANTEST, BelInfo::Bel(Bel::default()));
             let key = TileWireCoord {
                 cell: CellSlotId::from_idx(0),
                 wire: int_i.get_wire("IMUX.BYPOSC.PUMP"),
             };
-            let imux_byposc_pump = int_i.tile_classes.get("CNR.TR").unwrap().1.muxes[&key].clone();
-            int_x
-                .tile_classes
-                .get_mut("CNR.TR")
+            let BelInfo::SwitchBox(ref src_cnr_tr) =
+                int_i.tile_classes.get("CNR.TR").unwrap().1.bels[bels::xc5200::INT]
+            else {
+                unreachable!()
+            };
+            let imux_byposc_pump = src_cnr_tr
+                .items
+                .iter()
+                .find(|item| {
+                    if let SwitchBoxItem::Mux(mux) = item {
+                        mux.dst == key
+                    } else {
+                        false
+                    }
+                })
                 .unwrap()
-                .1
-                .muxes
-                .insert(key, imux_byposc_pump);
+                .clone();
+            let BelInfo::SwitchBox(ref mut dst_cnr_tr) =
+                int_x.tile_classes.get_mut("CNR.TR").unwrap().1.bels[bels::xc5200::INT]
+            else {
+                unreachable!()
+            };
+            dst_cnr_tr.items.push(imux_byposc_pump);
+            dst_cnr_tr.items.sort();
             assert_eq!(int_x, int_i);
             int_x
         }

@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{CellSlotId, ConnectorWire, TileWireCoord, WireId},
+    db::{BelInfo, CellSlotId, ConnectorWire, SwitchBoxItem, TileWireCoord, WireId},
     dir::Dir,
     grid::{TileCoord, WireCoord},
 };
@@ -91,14 +91,14 @@ fn drive_wire<'a>(
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = backend.egrid.tile(tcrd);
-                let tcls = &backend.egrid.db.tile_classes[tile.class];
-                if let Some(mux) = tcls.muxes.get(&TileWireCoord {
+                let tcls = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
-                    for &inp in &mux.ins {
+                    for &inp in ins {
                         if backend.egrid.db.wires.key(inp.wire).starts_with("OUT") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp).unwrap();
+                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (
                                     tcrd,
@@ -106,7 +106,7 @@ fn drive_wire<'a>(
                                         cell: CellSlotId::from_idx(0),
                                         wire: w.slot,
                                     },
-                                    inp,
+                                    inp.tw,
                                 );
                             }
                         }
@@ -116,14 +116,14 @@ fn drive_wire<'a>(
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = backend.egrid.tile(tcrd);
-                let tcls = &backend.egrid.db.tile_classes[tile.class];
-                if let Some(mux) = tcls.muxes.get(&TileWireCoord {
+                let tcls = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
-                    for &inp in &mux.ins {
+                    for &inp in ins {
                         if backend.egrid.db.wires.key(inp.wire).starts_with("SINGLE.V") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp).unwrap();
+                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (
                                     tcrd,
@@ -131,7 +131,7 @@ fn drive_wire<'a>(
                                         cell: CellSlotId::from_idx(0),
                                         wire: w.slot,
                                     },
-                                    inp,
+                                    inp.tw,
                                 );
                             }
                         }
@@ -150,14 +150,14 @@ fn drive_wire<'a>(
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db.tile_classes[node.class];
-                if let Some(mux) = node_kind.muxes.get(&TileWireCoord {
+                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
+                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
-                    for &inp in &mux.ins {
+                    for &inp in ins {
                         if backend.egrid.db.wires.key(inp.wire).starts_with("SINGLE.V") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp).unwrap();
+                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (
                                     tcrd,
@@ -165,7 +165,7 @@ fn drive_wire<'a>(
                                         cell: CellSlotId::from_idx(0),
                                         wire: w.slot,
                                     },
-                                    inp,
+                                    inp.tw,
                                 );
                             }
                         }
@@ -443,14 +443,16 @@ impl HasBidi {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let intdb = backend.egrid.db;
-    for (_, tile, node) in &intdb.tile_classes {
-        if node.muxes.is_empty() {
+    for (tcid, tile, _) in &intdb.tile_classes {
+        let tcls_index = &backend.egrid.db_index.tile_classes[tcid];
+        if tcls_index.pips_bwd.is_empty() {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        for (&wire_to, mux) in &node.muxes {
+        for (&wire_to, ins) in &tcls_index.pips_bwd {
             let mux_name = format!("MUX.{}", intdb.wires.key(wire_to.wire));
-            for &wire_from in &mux.ins {
+            for &wire_from in ins {
+                let wire_from = wire_from.tw;
                 let wire_from_name = intdb.wires.key(wire_from.wire);
                 let in_name = format!("{:#}.{}", wire_from.cell, wire_from_name);
                 let mut f = ctx
@@ -520,15 +522,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "SINGLE.V"
         };
         let snode = intdb.get_tile_class(stile);
-        let snode = &intdb.tile_classes[snode];
-        for (wire, mux) in &snode.muxes {
+        let snode = &ctx.edev.egrid.db_index.tile_classes[snode];
+        for (wire, ins) in &snode.pips_bwd {
             let wn = intdb.wires.key(wire.wire);
             if wn.starts_with(filter) && !wn.ends_with(".E") && !wn.ends_with(".S") {
                 let attr = &format!("BIDI.{wn}");
                 if wn == "SINGLE.V.R0" {
                     let mux_name = format!("MUX.{wn}");
                     let mut diff_s = None;
-                    for &wire_from in &mux.ins {
+                    for &wire_from in ins {
                         let in_name =
                             format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
                         let diff =
@@ -564,86 +566,100 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
     for (_, tile, node) in &intdb.tile_classes {
-        if node.muxes.is_empty() {
-            continue;
-        }
-        for (&wire_to, mux) in &node.muxes {
-            assert_eq!(wire_to.cell, CellSlotId::from_idx(0));
-            let out_name = intdb.wires.key(wire_to.wire);
-            let mux_name = format!("MUX.{out_name}");
-
-            if out_name.starts_with("IMUX") || out_name.starts_with("IOCLK") {
-                let mut inps = vec![];
-                let mut got_empty = false;
-                for &wire_from in &mux.ins {
-                    let in_name =
-                        format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
-                    let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
-                    if diff.bits.is_empty() {
-                        got_empty = true;
+        for (bslot, bel) in &node.bels {
+            let BelInfo::SwitchBox(sb) = bel else {
+                continue;
+            };
+            let bel = intdb.bel_slots.key(bslot);
+            for item in &sb.items {
+                match item {
+                    SwitchBoxItem::Mux(mux) => {
+                        assert_eq!(mux.dst.cell, CellSlotId::from_idx(0));
+                        let out_name = intdb.wires.key(mux.dst.wire);
+                        let mux_name = format!("MUX.{out_name}");
+                        let mut inps = vec![];
+                        let mut got_empty = false;
+                        for &wire_from in &mux.src {
+                            let in_name =
+                                format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
+                            let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
+                            if diff.bits.is_empty() {
+                                got_empty = true;
+                            }
+                            inps.push((in_name.to_string(), diff));
+                        }
+                        if out_name.starts_with("IMUX") && out_name.ends_with("T") {
+                            let slot = match &out_name[5..10] {
+                                "LIOB0" => bels::IO_W[0],
+                                "LIOB1" => bels::IO_W[1],
+                                "RIOB0" => bels::IO_E[0],
+                                "RIOB1" => bels::IO_E[1],
+                                "BIOB0" => bels::IO_S[0],
+                                "BIOB1" => bels::IO_S[1],
+                                "TIOB0" => bels::IO_N[0],
+                                "TIOB1" => bels::IO_N[1],
+                                _ => unreachable!(),
+                            };
+                            let bel = ctx.edev.egrid.db.bel_slots.key(slot);
+                            assert!(!got_empty);
+                            inps.push(("VCC".to_string(), Diff::default()));
+                            inps.push((
+                                "GND".to_string(),
+                                ctx.state.get_diff(tile, bel, "BUF", "ON"),
+                            ));
+                        } else if out_name == "IMUX.CLB.K" {
+                            assert!(!got_empty);
+                            inps.push(("NONE".to_string(), Diff::default()));
+                            inps.push((
+                                "C".to_string(),
+                                ctx.state.get_diff(tile, "CLB", "CLK", "C"),
+                            ));
+                            inps.push((
+                                "G.INV".to_string(),
+                                ctx.state
+                                    .get_diff(tile, "CLB", "CLK", "G")
+                                    .combine(&!ctx.state.peek_diff(tile, "CLB", "CLK", "NOT")),
+                            ));
+                        } else {
+                            assert!(got_empty);
+                        }
+                        let item = xlat_enum_ocd(inps, OcdMode::Mux);
+                        if item.bits.is_empty() {
+                            println!("UMMM MUX {tile} {mux_name} is empty");
+                        }
+                        ctx.tiledb.insert(tile, bel, mux_name, item);
                     }
-                    inps.push((in_name.to_string(), diff));
-                }
-                if out_name.starts_with("IMUX") && out_name.ends_with("T") {
-                    let slot = match &out_name[5..10] {
-                        "LIOB0" => bels::IO_W[0],
-                        "LIOB1" => bels::IO_W[1],
-                        "RIOB0" => bels::IO_E[0],
-                        "RIOB1" => bels::IO_E[1],
-                        "BIOB0" => bels::IO_S[0],
-                        "BIOB1" => bels::IO_S[1],
-                        "TIOB0" => bels::IO_N[0],
-                        "TIOB1" => bels::IO_N[1],
-                        _ => unreachable!(),
-                    };
-                    let bel = ctx.edev.egrid.db.bel_slots.key(slot);
-                    assert!(!got_empty);
-                    inps.push(("VCC".to_string(), Diff::default()));
-                    inps.push((
-                        "GND".to_string(),
-                        ctx.state.get_diff(tile, bel, "BUF", "ON"),
-                    ));
-                } else if out_name == "IMUX.CLB.K" {
-                    assert!(!got_empty);
-                    inps.push(("NONE".to_string(), Diff::default()));
-                    inps.push(("C".to_string(), ctx.state.get_diff(tile, "CLB", "CLK", "C")));
-                    inps.push((
-                        "G.INV".to_string(),
-                        ctx.state
-                            .get_diff(tile, "CLB", "CLK", "G")
-                            .combine(&!ctx.state.peek_diff(tile, "CLB", "CLK", "NOT")),
-                    ));
-                } else {
-                    assert!(got_empty);
-                }
-                let item = xlat_enum_ocd(inps, OcdMode::Mux);
-                if item.bits.is_empty() {
-                    println!("UMMM MUX {tile} {mux_name} is empty");
-                }
-                ctx.tiledb.insert(tile, "INT", mux_name, item);
-            } else {
-                for &wire_from in &mux.ins {
-                    let in_name = intdb.wires.key(wire_from.wire);
-                    assert_eq!(wire_from.cell, CellSlotId::from_idx(0));
-                    let val_name = format!("{:#}.{}", wire_from.cell, in_name);
-                    let diff =
-                        ctx.state
-                            .get_diff(tile, "INT", format!("MUX.{out_name}"), &val_name);
-                    let item = xlat_bit(diff);
-                    let mut is_bidi = false;
-                    if let Some(omux) = node.muxes.get(&wire_from) {
-                        if omux.ins.contains(&wire_to) {
-                            is_bidi = true;
+                    SwitchBoxItem::PermaBuf(_) => (),
+                    SwitchBoxItem::Pass(pass) => {
+                        assert_eq!(pass.dst.cell, CellSlotId::from_idx(0));
+                        assert_eq!(pass.src.cell, CellSlotId::from_idx(0));
+                        let out_name = intdb.wires.key(pass.dst.wire);
+                        let mux_name = format!("MUX.{out_name}");
+                        let in_name = intdb.wires.key(pass.src.wire);
+                        let val_name = format!("{:#}.{}", pass.src.cell, in_name);
+                        let diff = ctx.state.get_diff(tile, "INT", mux_name, &val_name);
+                        let item = xlat_bit(diff);
+                        let name = format!("PASS.{out_name}.{in_name}");
+                        ctx.tiledb.insert(tile, bel, name, item);
+                    }
+                    SwitchBoxItem::BiPass(pass) => {
+                        assert_eq!(pass.a.cell, CellSlotId::from_idx(0));
+                        assert_eq!(pass.b.cell, CellSlotId::from_idx(0));
+                        let a_name = intdb.wires.key(pass.a.wire);
+                        let b_name = intdb.wires.key(pass.b.wire);
+                        let name = format!("BIPASS.{a_name}.{b_name}");
+
+                        for (wdst, wsrc) in [(pass.a, pass.b), (pass.b, pass.a)] {
+                            let out_name = intdb.wires.key(wdst.wire);
+                            let mux_name = format!("MUX.{out_name}");
+                            let in_name = intdb.wires.key(wsrc.wire);
+                            let val_name = format!("{:#}.{}", wsrc.cell, in_name);
+                            let diff = ctx.state.get_diff(tile, "INT", mux_name, &val_name);
+                            let item = xlat_bit(diff);
+                            ctx.tiledb.insert(tile, bel, &name, item);
                         }
                     }
-                    let name = if !is_bidi {
-                        format!("PASS.{out_name}.{in_name}")
-                    } else if wire_from < wire_to {
-                        format!("BIPASS.{in_name}.{out_name}")
-                    } else {
-                        format!("BIPASS.{out_name}.{in_name}")
-                    };
-                    ctx.tiledb.insert(tile, "INT", name, item);
+                    _ => unreachable!(),
                 }
             }
         }

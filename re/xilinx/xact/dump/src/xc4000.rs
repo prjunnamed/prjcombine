@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire,
-        IntDb, PinDir, TileClass, TileWireCoord, WireKind,
+        Bel, BelInfo, BelPin, CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId,
+        ConnectorWire, IntDb, PinDir, TileClass, TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{CellCoord, DieId, EdgeIoCoord},
@@ -19,10 +19,10 @@ use prjcombine_xc2000::{
 };
 use unnamed_entity::{EntityId, EntityVec};
 
-use crate::extractor::{Extractor, NetBinding};
+use crate::extractor::{Extractor, NetBinding, PipMode};
 
 fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
-    let mut bel = BelInfo::default();
+    let mut bel = Bel::default();
     let mut has_dec = false;
     for &(name, ref wire) in pins {
         let wire = wire.as_ref();
@@ -50,7 +50,7 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
             pin.dir = PinDir::Input;
         }
     }
-    bel
+    BelInfo::Bel(bel)
 }
 
 pub fn make_intdb(kind: ChipKind) -> IntDb {
@@ -122,13 +122,13 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         for i in 0..single_num {
             let w0 = db
                 .wires
-                .insert(format!("SINGLE.{hv}{i}"), WireKind::PipOut)
+                .insert(format!("SINGLE.{hv}{i}"), WireKind::MultiOut)
                 .0;
             let w1 = db
                 .wires
                 .insert(
                     format!("SINGLE.{hv}{i}.{dir}"),
-                    WireKind::PipBranch(term_slots[!dir]),
+                    WireKind::MultiBranch(term_slots[!dir]),
                 )
                 .0;
             main_terms[!dir].wires.insert(w1, ConnectorWire::Pass(w0));
@@ -139,20 +139,20 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         for i in 0..2 {
             let w0 = db
                 .wires
-                .insert(format!("DOUBLE.{hv}{i}.0"), WireKind::PipOut)
+                .insert(format!("DOUBLE.{hv}{i}.0"), WireKind::MultiOut)
                 .0;
             let w1 = db
                 .wires
                 .insert(
                     format!("DOUBLE.{hv}{i}.1"),
-                    WireKind::PipBranch(term_slots[!dir]),
+                    WireKind::MultiBranch(term_slots[!dir]),
                 )
                 .0;
             let w2 = db
                 .wires
                 .insert(
                     format!("DOUBLE.{hv}{i}.2"),
-                    WireKind::PipBranch(term_slots[!dir]),
+                    WireKind::MultiBranch(term_slots[!dir]),
                 )
                 .0;
             main_terms[!dir].wires.insert(w1, ConnectorWire::Pass(w0));
@@ -176,7 +176,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                     db.wires
                         .insert(
                             format!("IO.DOUBLE.{i}.{dir}.{j}"),
-                            WireKind::PipBranch(term_slots[bdir[dir]]),
+                            WireKind::MultiBranch(term_slots[bdir[dir]]),
                         )
                         .0,
                 );
@@ -405,11 +405,12 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::MAIN,
             cells: EntityVec::from_iter([(), (), ()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
+        node.bels
+            .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
+
         node.bels.insert(
             bels::CLB,
             bel_from_pins(
@@ -457,11 +458,12 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::MAIN,
             cells: Default::default(),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
+        node.bels
+            .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
+
         let num_tiles = if is_bot { 4 } else { 3 };
         for _ in 0..num_tiles {
             node.cells.push(());
@@ -554,11 +556,12 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::MAIN,
             cells: Default::default(),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
+        node.bels
+            .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
+
         let num_tiles = if is_left { 4 } else { 3 };
         for _ in 0..num_tiles {
             node.cells.push(());
@@ -667,11 +670,12 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::MAIN,
             cells: Default::default(),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
+        node.bels
+            .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
+
         for _ in 0..num_tiles {
             node.cells.push(());
         }
@@ -695,12 +699,8 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         }
         match name {
             "CNR.BR" => {
-                node.bels.insert(
-                    bels::COUT,
-                    BelInfo {
-                        pins: Default::default(),
-                    },
-                );
+                node.bels
+                    .insert(bels::COUT, BelInfo::Bel(Default::default()));
                 node.bels.insert(
                     bels::STARTUP,
                     bel_from_pins(
@@ -722,12 +722,8 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 );
             }
             "CNR.TR" => {
-                node.bels.insert(
-                    bels::COUT,
-                    BelInfo {
-                        pins: Default::default(),
-                    },
-                );
+                node.bels
+                    .insert(bels::COUT, BelInfo::Bel(Default::default()));
                 node.bels
                     .insert(bels::UPDATE, bel_from_pins(&db, &[("O", "OUT.UPDATE.O")]));
                 node.bels.insert(
@@ -747,12 +743,8 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 );
             }
             "CNR.BL" => {
-                node.bels.insert(
-                    bels::CIN,
-                    BelInfo {
-                        pins: Default::default(),
-                    },
-                );
+                node.bels
+                    .insert(bels::CIN, BelInfo::Bel(Default::default()));
                 node.bels
                     .insert(bels::MD0, bel_from_pins(&db, &[("I", "OUT.MD0.I")]));
                 node.bels.insert(
@@ -774,12 +766,8 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 );
             }
             "CNR.TL" => {
-                node.bels.insert(
-                    bels::CIN,
-                    BelInfo {
-                        pins: Default::default(),
-                    },
-                );
+                node.bels
+                    .insert(bels::CIN, BelInfo::Bel(Default::default()));
                 node.bels.insert(
                     bels::BSCAN,
                     bel_from_pins(
@@ -803,11 +791,12 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::EXTRA_COL,
             cells: Default::default(),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
+        node.bels
+            .insert(bels::LLH, BelInfo::SwitchBox(Default::default()));
+
         for _ in 0..2 {
             node.cells.push(());
         }
@@ -817,11 +806,12 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::EXTRA_ROW,
             cells: Default::default(),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
+        node.bels
+            .insert(bels::LLV, BelInfo::SwitchBox(Default::default()));
+
         for _ in 0..2 {
             node.cells.push(());
         }
@@ -903,6 +893,9 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             }
         }
         for (slot, bel_info) in &node_kind.bels {
+            let BelInfo::Bel(bel_info) = bel_info else {
+                continue;
+            };
             let bel = cell.bel(slot);
             let slot_name = intdb.bel_slots.key(slot);
 
@@ -1611,6 +1604,9 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         let nnode = &endev.ngrid.tiles[&tcrd];
         let node_kind = &intdb.tile_classes[tile.class];
         for (slot, bel_info) in &node_kind.bels {
+            let BelInfo::Bel(bel_info) = bel_info else {
+                continue;
+            };
             let bel = cell.bel(slot);
             match slot {
                 bels::TBUF0 | bels::TBUF1 => {
@@ -1741,7 +1737,27 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         .collect();
 
     let finisher = extractor.finish();
-    finisher.finish(&mut intdb, &mut ndb);
+    finisher.finish(&mut intdb, &mut ndb, |db, tslot, wt, wf| {
+        if tslot != tslots::MAIN {
+            PipMode::Pass
+        } else {
+            let wtn = db.wires.key(wt.wire);
+            let wfn = db.wires.key(wf.wire);
+            if wtn.starts_with("IMUX")
+                || wtn.starts_with("LONG.IO")
+                || wtn.starts_with("IO.DBUF")
+                || wtn.starts_with("OUT")
+            {
+                PipMode::Mux
+            } else if wtn.starts_with("LONG") && wfn.starts_with("SINGLE") {
+                PipMode::Buf
+            } else if wtn.starts_with("LONG") {
+                PipMode::Mux
+            } else {
+                PipMode::Pass
+            }
+        }
+    });
 
     for pad in noblock {
         let io = io_lookup[pad];

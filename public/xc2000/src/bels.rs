@@ -4,6 +4,7 @@ pub mod xc2000 {
     use crate::tslots;
 
     bels![
+        INT: tslots::MAIN,
         CLB: tslots::MAIN,
         TBUF0: tslots::MAIN,
         TBUF1: tslots::MAIN,
@@ -22,6 +23,8 @@ pub mod xc2000 {
         CLKIOB: tslots::MAIN,
         BUFG: tslots::MAIN,
         OSC: tslots::MAIN,
+        LLH: tslots::EXTRA_COL,
+        LLV: tslots::EXTRA_ROW,
     ];
 
     pub const IO_W: [BelSlotId; 2] = [IO_W0, IO_W1];
@@ -36,6 +39,7 @@ pub mod xc4000 {
     use crate::tslots;
 
     bels![
+        INT: tslots::MAIN,
         CLB: tslots::MAIN,
         TBUF0: tslots::MAIN,
         TBUF1: tslots::MAIN,
@@ -99,6 +103,8 @@ pub mod xc4000 {
         MD2: tslots::MAIN,
         RDBK: tslots::MAIN,
         BSCAN: tslots::MAIN,
+        LLH: tslots::EXTRA_COL,
+        LLV: tslots::EXTRA_ROW,
         CLKH: tslots::EXTRA_ROW,
         CLKC: tslots::EXTRA_CROSS,
         CLKQC: tslots::EXTRA_CROSS,
@@ -132,6 +138,7 @@ pub mod xc5200 {
     use crate::tslots;
 
     bels![
+        INT: tslots::MAIN,
         LC0: tslots::MAIN,
         LC1: tslots::MAIN,
         LC2: tslots::MAIN,
@@ -157,6 +164,8 @@ pub mod xc5200 {
         OSC: tslots::MAIN,
         BYPOSC: tslots::MAIN,
         BSUPD: tslots::MAIN,
+        LLH: tslots::EXTRA_COL,
+        LLV: tslots::EXTRA_ROW,
     ];
 
     pub const LC: [BelSlotId; 4] = [LC0, LC1, LC2, LC3];

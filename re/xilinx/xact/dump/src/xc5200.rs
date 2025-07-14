@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire,
-        IntDb, PinDir, TileClass, TileWireCoord, WireKind,
+        Bel, BelInfo, BelPin, CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId,
+        ConnectorWire, IntDb, PinDir, TileClass, TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{CellCoord, DieId, EdgeIoCoord},
@@ -19,10 +19,10 @@ use prjcombine_xc2000::{
 };
 use unnamed_entity::{EntityId, EntityVec};
 
-use crate::extractor::{Extractor, NetBinding};
+use crate::extractor::{Extractor, NetBinding, PipMode};
 
 fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
-    let mut bel = BelInfo::default();
+    let mut bel = Bel::default();
     for &(name, ref wire) in pins {
         let wire = wire.as_ref();
         bel.pins.insert(
@@ -41,7 +41,7 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
             },
         );
     }
-    bel
+    BelInfo::Bel(bel)
 }
 
 pub fn make_intdb() -> IntDb {
@@ -109,11 +109,11 @@ pub fn make_intdb() -> IntDb {
     db.wires.insert("GND".into(), WireKind::Tie0);
 
     for i in 0..24 {
-        let w = db.wires.insert(format!("CLB.M{i}"), WireKind::PipOut).0;
+        let w = db.wires.insert(format!("CLB.M{i}"), WireKind::MultiOut).0;
         db.wires.insert(format!("CLB.M{i}.BUF"), WireKind::Buf(w));
     }
     for i in 0..16 {
-        let w = db.wires.insert(format!("IO.M{i}"), WireKind::PipOut).0;
+        let w = db.wires.insert(format!("IO.M{i}"), WireKind::MultiOut).0;
         db.wires.insert(format!("IO.M{i}.BUF"), WireKind::Buf(w));
     }
 
@@ -121,10 +121,13 @@ pub fn make_intdb() -> IntDb {
         if matches!(i, 0 | 6) {
             continue;
         }
-        let w0 = db.wires.insert(format!("SINGLE.E{i}"), WireKind::PipOut).0;
+        let w0 = db
+            .wires
+            .insert(format!("SINGLE.E{i}"), WireKind::MultiOut)
+            .0;
         let w1 = db
             .wires
-            .insert(format!("SINGLE.W{i}"), WireKind::PipBranch(slot_w))
+            .insert(format!("SINGLE.W{i}"), WireKind::MultiBranch(slot_w))
             .0;
         main_terms[Dir::W].wires.insert(w1, ConnectorWire::Pass(w0));
     }
@@ -132,10 +135,13 @@ pub fn make_intdb() -> IntDb {
         if matches!(i, 0 | 6) {
             continue;
         }
-        let w0 = db.wires.insert(format!("SINGLE.S{i}"), WireKind::PipOut).0;
+        let w0 = db
+            .wires
+            .insert(format!("SINGLE.S{i}"), WireKind::MultiOut)
+            .0;
         let w1 = db
             .wires
-            .insert(format!("SINGLE.N{i}"), WireKind::PipBranch(slot_n))
+            .insert(format!("SINGLE.N{i}"), WireKind::MultiBranch(slot_n))
             .0;
         main_terms[Dir::N].wires.insert(w1, ConnectorWire::Pass(w0));
     }
@@ -143,44 +149,44 @@ pub fn make_intdb() -> IntDb {
     for i in 0..8 {
         let w_be = db
             .wires
-            .insert(format!("IO.SINGLE.B.E{i}"), WireKind::PipBranch(slot_w))
+            .insert(format!("IO.SINGLE.B.E{i}"), WireKind::MultiBranch(slot_w))
             .0;
         let w_bw = db
             .wires
-            .insert(format!("IO.SINGLE.B.W{i}"), WireKind::PipBranch(slot_w))
+            .insert(format!("IO.SINGLE.B.W{i}"), WireKind::MultiBranch(slot_w))
             .0;
         main_terms[Dir::W]
             .wires
             .insert(w_bw, ConnectorWire::Pass(w_be));
         let w_rn = db
             .wires
-            .insert(format!("IO.SINGLE.R.N{i}"), WireKind::PipBranch(slot_s))
+            .insert(format!("IO.SINGLE.R.N{i}"), WireKind::MultiBranch(slot_s))
             .0;
         let w_rs = db
             .wires
-            .insert(format!("IO.SINGLE.R.S{i}"), WireKind::PipBranch(slot_s))
+            .insert(format!("IO.SINGLE.R.S{i}"), WireKind::MultiBranch(slot_s))
             .0;
         main_terms[Dir::S]
             .wires
             .insert(w_rs, ConnectorWire::Pass(w_rn));
         let w_tw = db
             .wires
-            .insert(format!("IO.SINGLE.T.W{i}"), WireKind::PipBranch(slot_e))
+            .insert(format!("IO.SINGLE.T.W{i}"), WireKind::MultiBranch(slot_e))
             .0;
         let w_te = db
             .wires
-            .insert(format!("IO.SINGLE.T.E{i}"), WireKind::PipBranch(slot_e))
+            .insert(format!("IO.SINGLE.T.E{i}"), WireKind::MultiBranch(slot_e))
             .0;
         main_terms[Dir::E]
             .wires
             .insert(w_te, ConnectorWire::Pass(w_tw));
         let w_ls = db
             .wires
-            .insert(format!("IO.SINGLE.L.S{i}"), WireKind::PipBranch(slot_n))
+            .insert(format!("IO.SINGLE.L.S{i}"), WireKind::MultiBranch(slot_n))
             .0;
         let w_ln = db
             .wires
-            .insert(format!("IO.SINGLE.L.N{i}"), WireKind::PipBranch(slot_n))
+            .insert(format!("IO.SINGLE.L.N{i}"), WireKind::MultiBranch(slot_n))
             .0;
         main_terms[Dir::N]
             .wires
@@ -192,28 +198,28 @@ pub fn make_intdb() -> IntDb {
     }
 
     for i in [0, 6] {
-        let w = db.wires.insert(format!("DBL.H{i}.M"), WireKind::PipOut).0;
+        let w = db.wires.insert(format!("DBL.H{i}.M"), WireKind::MultiOut).0;
         let ww = db
             .wires
-            .insert(format!("DBL.H{i}.W"), WireKind::PipBranch(slot_e))
+            .insert(format!("DBL.H{i}.W"), WireKind::MultiBranch(slot_e))
             .0;
         main_terms[Dir::E].wires.insert(ww, ConnectorWire::Pass(w));
         let we = db
             .wires
-            .insert(format!("DBL.H{i}.E"), WireKind::PipBranch(slot_w))
+            .insert(format!("DBL.H{i}.E"), WireKind::MultiBranch(slot_w))
             .0;
         main_terms[Dir::W].wires.insert(we, ConnectorWire::Pass(w));
     }
     for i in [0, 6] {
-        let w = db.wires.insert(format!("DBL.V{i}.M"), WireKind::PipOut).0;
+        let w = db.wires.insert(format!("DBL.V{i}.M"), WireKind::MultiOut).0;
         let ws = db
             .wires
-            .insert(format!("DBL.V{i}.S"), WireKind::PipBranch(slot_n))
+            .insert(format!("DBL.V{i}.S"), WireKind::MultiBranch(slot_n))
             .0;
         main_terms[Dir::N].wires.insert(ws, ConnectorWire::Pass(w));
         let wn = db
             .wires
-            .insert(format!("DBL.V{i}.N"), WireKind::PipBranch(slot_s))
+            .insert(format!("DBL.V{i}.N"), WireKind::MultiBranch(slot_s))
             .0;
         main_terms[Dir::S].wires.insert(wn, ConnectorWire::Pass(w));
     }
@@ -399,11 +405,12 @@ pub fn make_intdb() -> IntDb {
         let mut node = TileClass {
             slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
+        node.bels
+            .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
+
         for i in 0..4 {
             node.bels.insert(
                 bels::LC[i],
@@ -452,11 +459,12 @@ pub fn make_intdb() -> IntDb {
         let mut node = TileClass {
             slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
+        node.bels
+            .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
+
         for i in 0..4 {
             node.bels.insert(
                 bels::IO[i],
@@ -490,7 +498,8 @@ pub fn make_intdb() -> IntDb {
         if name == "IO.B" {
             node.bels
                 .insert(bels::CIN, bel_from_pins(&db, &[("IN", "IMUX.BOT.CIN")]));
-            node.bels.insert(bels::SCANTEST, BelInfo::default());
+            node.bels
+                .insert(bels::SCANTEST, BelInfo::Bel(Bel::default()));
         }
         if name == "IO.T" {
             node.bels
@@ -507,11 +516,12 @@ pub fn make_intdb() -> IntDb {
         let mut node = TileClass {
             slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
+        node.bels
+            .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
+
         node.bels.insert(
             bels::BUFG,
             bel_from_pins(&db, &[("I", "IMUX.BUFG"), ("O", gout)]),
@@ -592,22 +602,23 @@ pub fn make_intdb() -> IntDb {
         }
         db.tile_classes.insert(name.into(), node);
     }
-    for (name, slot) in [
-        ("CLKV", tslots::EXTRA_COL),
-        ("CLKB", tslots::EXTRA_COL),
-        ("CLKT", tslots::EXTRA_COL),
-        ("CLKH", tslots::EXTRA_ROW),
-        ("CLKL", tslots::EXTRA_ROW),
-        ("CLKR", tslots::EXTRA_ROW),
+    for (name, slot, sbslot) in [
+        ("CLKV", tslots::EXTRA_COL, bels::LLH),
+        ("CLKB", tslots::EXTRA_COL, bels::LLH),
+        ("CLKT", tslots::EXTRA_COL, bels::LLH),
+        ("CLKH", tslots::EXTRA_ROW, bels::LLV),
+        ("CLKL", tslots::EXTRA_ROW, bels::LLV),
+        ("CLKR", tslots::EXTRA_ROW, bels::LLV),
     ] {
-        let node = TileClass {
+        let mut node = TileClass {
             slot,
             cells: EntityVec::from_iter([(), ()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
+        node.bels
+            .insert(sbslot, BelInfo::SwitchBox(Default::default()));
+
         db.tile_classes.insert(name.into(), node);
     }
 
@@ -700,6 +711,9 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             }
         }
         for (slot, bel_info) in &node_kind.bels {
+            let BelInfo::Bel(bel_info) = bel_info else {
+                continue;
+            };
             let bel = cell.bel(slot);
             let slot_name = intdb.bel_slots.key(slot);
             match slot {
@@ -1165,7 +1179,14 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     }
 
     let finisher = extractor.finish();
-    finisher.finish(&mut intdb, &mut ndb);
+    finisher.finish(&mut intdb, &mut ndb, |db, _, wt, _| {
+        let wtn = db.wires.key(wt.wire);
+        if wtn.starts_with("IMUX") || wtn.starts_with("OMUX") {
+            PipMode::Mux
+        } else {
+            PipMode::Pass
+        }
+    });
     (chip, intdb, ndb)
 }
 

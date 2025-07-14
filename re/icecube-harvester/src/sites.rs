@@ -1077,6 +1077,10 @@ pub fn find_bel_pins(
                                 InstPin::Simple(pin) => pin.clone(),
                                 InstPin::Indexed(pin, index) => format!("{pin}_{index}"),
                             };
+                            let mut wt = wt;
+                            if edev.egrid.db.wires.key(wt.slot) == "IMUX.CLK" {
+                                wt.slot = edev.egrid.db.get_wire("IMUX.CLK.OPTINV");
+                            }
                             result.ins.insert(pin, wt);
                         }
                     }

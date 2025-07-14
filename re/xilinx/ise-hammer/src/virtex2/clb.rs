@@ -915,7 +915,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, bel, "MODE", item);
     }
     let egrid = ctx.edev.egrid();
-    for (node_kind, name, node) in &egrid.db.tile_classes {
+    for (node_kind, name, _) in &egrid.db.tile_classes {
         if !name.starts_with("INT.") {
             continue;
         }
@@ -925,7 +925,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if egrid.tile_index[node_kind].is_empty() {
             continue;
         }
-        for &wire in node.muxes.keys() {
+        for &wire in egrid.db_index.tile_classes[node_kind].pips_bwd.keys() {
             let wire_name = egrid.db.wires.key(wire.wire);
             if name == "INT.GT.CLKPAD"
                 && matches!(

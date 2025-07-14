@@ -1,8 +1,10 @@
 use prjcombine_interconnect::{
-    db::{BelInfo, BelPin, CellSlotId, IntDb, PinDir, TileWireCoord, WireKind},
+    db::{Bel, BelInfo, BelPin, CellSlotId, IntDb, PinDir, TileWireCoord, WireKind},
     dir::Dir,
 };
-use prjcombine_re_xilinx_naming::db::{BelNaming, BelPinNaming, NamingDb, PipNaming, RawTileId};
+use prjcombine_re_xilinx_naming::db::{
+    BelNaming, BelPinNaming, NamingDb, PipNaming, ProperBelNaming, RawTileId,
+};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_virtex::{
     bels,
@@ -13,7 +15,7 @@ use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_grid::find_columns;
-use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
+use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, PipMode};
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
@@ -85,7 +87,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..24 {
         let w = builder.wire(
             format!("SINGLE.E{i}"),
-            WireKind::PipOut,
+            WireKind::MultiOut,
             &[format!("E{i}"), format!("LEFT_E{i}")],
         );
         builder.buf(
@@ -93,7 +95,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             format!("SINGLE.E{i}.BUF"),
             &[format!("E_P{i}"), format!("LEFT_E_BUF{i}")],
         );
-        let w = builder.pip_branch(
+        let w = builder.multi_branch(
             w,
             Dir::E,
             format!("SINGLE.W{i}"),
@@ -108,7 +110,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..24 {
         let w = builder.wire(
             format!("SINGLE.S{i}"),
-            WireKind::PipOut,
+            WireKind::MultiOut,
             &[format!("S{i}"), format!("TOP_S{i}")],
         );
         builder.buf(
@@ -116,7 +118,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             format!("SINGLE.S{i}.BUF"),
             &[format!("S_P{i}"), format!("TOP_S_BUF{i}")],
         );
-        let w = builder.pip_branch(
+        let w = builder.multi_branch(
             w,
             Dir::S,
             format!("SINGLE.N{i}"),
@@ -583,6 +585,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     builder.extract_node(
         tslots::MAIN,
+        bels::INT,
         "CENTER",
         "CLB",
         "CLB",
@@ -635,9 +638,23 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_int_out("BUS3", &["LEFT_TBUFO1"])
             .extra_wire("BUS3_E", &["LEFT_TBUF1_STUB"]),
     ];
-    builder.extract_node(tslots::MAIN, "LEFT", "IO.L", "IO.L", &bels_left);
-    builder.extract_node(tslots::MAIN, "LEFT_PCI_BOT", "IO.L", "IO.L", &bels_left);
-    builder.extract_node(tslots::MAIN, "LEFT_PCI_TOP", "IO.L", "IO.L", &bels_left);
+    builder.extract_node(tslots::MAIN, bels::INT, "LEFT", "IO.L", "IO.L", &bels_left);
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "LEFT_PCI_BOT",
+        "IO.L",
+        "IO.L",
+        &bels_left,
+    );
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "LEFT_PCI_TOP",
+        "IO.L",
+        "IO.L",
+        &bels_left,
+    );
 
     let bels_right = [
         builder.bel_indexed(bels::IO0, "IOB", 0),
@@ -661,9 +678,30 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_int_out("BUS2", &["RIGHT_TBUFO0"])
             .extra_int_out("BUS3", &["RIGHT_TBUFO1"]),
     ];
-    builder.extract_node(tslots::MAIN, "RIGHT", "IO.R", "IO.R", &bels_right);
-    builder.extract_node(tslots::MAIN, "RIGHT_PCI_BOT", "IO.R", "IO.R", &bels_right);
-    builder.extract_node(tslots::MAIN, "RIGHT_PCI_TOP", "IO.R", "IO.R", &bels_right);
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "RIGHT",
+        "IO.R",
+        "IO.R",
+        &bels_right,
+    );
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "RIGHT_PCI_BOT",
+        "IO.R",
+        "IO.R",
+        &bels_right,
+    );
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "RIGHT_PCI_TOP",
+        "IO.R",
+        "IO.R",
+        &bels_right,
+    );
 
     let bels_bot = [
         builder.bel_indexed(bels::IO0, "IOB", 0),
@@ -675,9 +713,23 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_wire_force("DLLFB", "BR_DLLIOB_IOFB"),
         builder.bel_indexed(bels::IO3, "IOB", 3),
     ];
-    builder.extract_node(tslots::MAIN, "BOT", "IO.B", "IO.B", &bels_bot);
-    builder.extract_node(tslots::MAIN, "BL_DLLIOB", "IO.B", "IO.B", &bels_bot);
-    builder.extract_node(tslots::MAIN, "BR_DLLIOB", "IO.B", "IO.B", &bels_bot);
+    builder.extract_node(tslots::MAIN, bels::INT, "BOT", "IO.B", "IO.B", &bels_bot);
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "BL_DLLIOB",
+        "IO.B",
+        "IO.B",
+        &bels_bot,
+    );
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "BR_DLLIOB",
+        "IO.B",
+        "IO.B",
+        &bels_bot,
+    );
 
     let bels_top = [
         builder.bel_indexed(bels::IO0, "IOB", 0),
@@ -689,20 +741,36 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_wire_force("DLLFB", "TR_DLLIOB_IOFB"),
         builder.bel_indexed(bels::IO3, "IOB", 3),
     ];
-    builder.extract_node(tslots::MAIN, "TOP", "IO.T", "IO.T", &bels_top);
-    builder.extract_node(tslots::MAIN, "TL_DLLIOB", "IO.T", "IO.T", &bels_top);
-    builder.extract_node(tslots::MAIN, "TR_DLLIOB", "IO.T", "IO.T", &bels_top);
+    builder.extract_node(tslots::MAIN, bels::INT, "TOP", "IO.T", "IO.T", &bels_top);
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "TL_DLLIOB",
+        "IO.T",
+        "IO.T",
+        &bels_top,
+    );
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "TR_DLLIOB",
+        "IO.T",
+        "IO.T",
+        &bels_top,
+    );
 
     builder.extract_node(
         tslots::MAIN,
+        bels::INT,
         "LL",
         "CNR.BL",
         "CNR.BL",
         &[builder.bel_single(bels::CAPTURE, "CAPTURE")],
     );
-    builder.extract_node(tslots::MAIN, "LR", "CNR.BR", "CNR.BR", &[]);
+    builder.extract_node(tslots::MAIN, bels::INT, "LR", "CNR.BR", "CNR.BR", &[]);
     builder.extract_node(
         tslots::MAIN,
+        bels::INT,
         "UL",
         "CNR.TL",
         "CNR.TL",
@@ -711,7 +779,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_single(bels::BSCAN, "BSCAN"),
         ],
     );
-    builder.extract_node(tslots::MAIN, "UR", "CNR.TR", "CNR.TR", &[]);
+    builder.extract_node(tslots::MAIN, bels::INT, "UR", "CNR.TR", "CNR.TR", &[]);
 
     for tkn in ["LBRAM", "RBRAM", "MBRAM"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
@@ -761,6 +829,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder.extract_xnode(
                 tslots::MAIN,
+                bels::INT,
                 tkn,
                 xy,
                 &[],
@@ -802,6 +871,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let coords = [xy, xy.delta(dx, 0)];
             builder.extract_xnode(
                 tslots::MAIN,
+                bels::INT,
                 node,
                 xy,
                 &[],
@@ -856,6 +926,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let coords = [xy, xy.delta(dx, 0)];
             builder.extract_xnode(
                 tslots::DLL,
+                bels::DLL_INT,
                 node,
                 xy,
                 &[],
@@ -1031,10 +1102,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .collect();
             naming.bels.insert(
                 bels::DLL,
-                BelNaming {
+                BelNaming::Bel(ProperBelNaming {
                     tile: RawTileId::from_idx(1),
                     pins,
-                },
+                }),
             );
         }
     }
@@ -1046,90 +1117,103 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("DLLS.BOT", 'S'),
         ("DLLS.TOP", 'S'),
     ] {
-        if let Some((_, node)) = builder.db.tile_classes.get_mut(node) {
+        if let Some((tcid, node)) = builder.db.tile_classes.get_mut(node) {
+            let pips = builder.pips.get_mut(&(tcid, bels::DLL_INT)).unwrap();
             let t_dll = CellSlotId::from_idx(0);
             let t_clk = CellSlotId::from_idx(2);
             let t_dlls = CellSlotId::from_idx(3);
             for i in 0..2 {
-                node.muxes
-                    .get_mut(&TileWireCoord {
-                        cell: t_dll,
-                        wire: clkin,
-                    })
-                    .unwrap()
-                    .ins
-                    .insert(TileWireCoord {
-                        cell: t_clk,
-                        wire: clkpad[i],
-                    });
-                node.muxes
-                    .get_mut(&TileWireCoord {
-                        cell: t_dll,
-                        wire: clkfb,
-                    })
-                    .unwrap()
-                    .ins
-                    .insert(TileWireCoord {
-                        cell: t_clk,
-                        wire: clkpad[i],
-                    });
+                pips.pips.insert(
+                    (
+                        TileWireCoord {
+                            cell: t_dll,
+                            wire: clkin,
+                        },
+                        TileWireCoord {
+                            cell: t_clk,
+                            wire: clkpad[i],
+                        },
+                    ),
+                    PipMode::Mux,
+                );
+                pips.pips.insert(
+                    (
+                        TileWireCoord {
+                            cell: t_dll,
+                            wire: clkfb,
+                        },
+                        TileWireCoord {
+                            cell: t_clk,
+                            wire: clkpad[i],
+                        },
+                    ),
+                    PipMode::Mux,
+                );
             }
             if mode != '_' {
                 for i in 0..2 {
-                    node.muxes
-                        .get_mut(&TileWireCoord {
-                            cell: t_dll,
-                            wire: clkin,
-                        })
-                        .unwrap()
-                        .ins
-                        .insert(TileWireCoord {
-                            cell: t_clk,
-                            wire: iofb[i],
-                        });
-                    node.muxes
-                        .get_mut(&TileWireCoord {
-                            cell: t_dll,
-                            wire: clkfb,
-                        })
-                        .unwrap()
-                        .ins
-                        .insert(TileWireCoord {
-                            cell: t_clk,
-                            wire: iofb[i],
-                        });
+                    pips.pips.insert(
+                        (
+                            TileWireCoord {
+                                cell: t_dll,
+                                wire: clkin,
+                            },
+                            TileWireCoord {
+                                cell: t_clk,
+                                wire: iofb[i],
+                            },
+                        ),
+                        PipMode::Mux,
+                    );
+                    pips.pips.insert(
+                        (
+                            TileWireCoord {
+                                cell: t_dll,
+                                wire: clkfb,
+                            },
+                            TileWireCoord {
+                                cell: t_clk,
+                                wire: iofb[i],
+                            },
+                        ),
+                        PipMode::Mux,
+                    );
                 }
                 if mode == 'P' {
-                    node.muxes
-                        .get_mut(&TileWireCoord {
-                            cell: t_dll,
-                            wire: clkin,
-                        })
-                        .unwrap()
-                        .ins
-                        .insert(TileWireCoord {
-                            cell: t_dlls,
-                            wire: clk2x,
-                        });
+                    pips.pips.insert(
+                        (
+                            TileWireCoord {
+                                cell: t_dll,
+                                wire: clkin,
+                            },
+                            TileWireCoord {
+                                cell: t_dlls,
+                                wire: clk2x,
+                            },
+                        ),
+                        PipMode::Mux,
+                    );
                 } else {
-                    node.muxes
-                        .get_mut(&TileWireCoord {
-                            cell: t_dll,
-                            wire: clkfb,
-                        })
-                        .unwrap()
-                        .ins
-                        .insert(TileWireCoord {
-                            cell: t_dll,
-                            wire: clk2x,
-                        });
+                    pips.pips.insert(
+                        (
+                            TileWireCoord {
+                                cell: t_dll,
+                                wire: clkfb,
+                            },
+                            TileWireCoord {
+                                cell: t_dll,
+                                wire: clk2x,
+                            },
+                        ),
+                        PipMode::Mux,
+                    );
                 }
             }
             node.bels.insert(
                 bels::DLL,
-                BelInfo {
+                BelInfo::Bel(Bel {
                     pins: dll_pins.clone(),
-                },
+                }),
             );
         }
     }
@@ -1226,7 +1310,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .extra_int_out("O", &["CLKB_IOFB1", "CLKT_IOFB1"]),
                 );
             }
-            builder.extract_xnode(tslots::CLKBT, tkn, xy, &[], &coords, tkn, &bels, &forbidden);
+            builder.extract_xnode(
+                tslots::CLKBT,
+                bels::GCLK_INT,
+                tkn,
+                xy,
+                &[],
+                &coords,
+                tkn,
+                &bels,
+                &forbidden,
+            );
         }
     }
 
@@ -1234,6 +1328,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for &xy in rd.tiles_by_kind_name(tkn) {
             builder.extract_xnode(
                 tslots::PCILOGIC,
+                bels::PCI_INT,
                 tkn,
                 xy,
                 &[],
@@ -1451,6 +1546,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 kind,
                 &[bel],
             );
+        }
+    }
+
+    for pips in builder.pips.values_mut() {
+        for (&(wt, _wf), mode) in &mut pips.pips {
+            let wtn = builder.db.wires.key(wt.wire);
+            if wtn.starts_with("SINGLE") {
+                *mode = PipMode::Pass;
+            }
         }
     }
 

@@ -1,10 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
-    db::{BelInfo, BelPin, CellSlotId, IntDb, PinDir, TileWireCoord, WireKind},
+    db::{Bel, BelInfo, BelPin, CellSlotId, IntDb, PinDir, TileWireCoord, WireKind},
     dir::Dir,
 };
-use prjcombine_re_xilinx_naming::db::{BelNaming, BelPinNaming, NamingDb, PipNaming, RawTileId};
+use prjcombine_re_xilinx_naming::db::{
+    BelNaming, BelPinNaming, NamingDb, PipNaming, ProperBelNaming, RawTileId,
+};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_virtex2::{
     bels,
@@ -824,10 +826,25 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ),
     ];
 
-    builder.extract_node(tslots::INT, "CENTER", "INT.CLB", "INT.CLB", &bels_int);
-    builder.extract_node(tslots::INT, "CENTER_SMALL", "INT.CLB", "INT.CLB", &bels_int);
     builder.extract_node(
         tslots::INT,
+        bels::INT,
+        "CENTER",
+        "INT.CLB",
+        "INT.CLB",
+        &bels_int,
+    );
+    builder.extract_node(
+        tslots::INT,
+        bels::INT,
+        "CENTER_SMALL",
+        "INT.CLB",
+        "INT.CLB",
+        &bels_int,
+    );
+    builder.extract_node(
+        tslots::INT,
+        bels::INT,
         "CENTER_SMALL_BRK",
         "INT.CLB",
         "INT.CLB.BRK",
@@ -836,6 +853,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     if rd.family.starts_with("spartan3a") {
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIOIS",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -843,6 +861,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIOIS_BRK",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR.BRK",
@@ -850,6 +869,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIOIS_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -857,6 +877,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIOIS_CLK_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -864,6 +885,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIOIS_CLK_PCI_BRK",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR.BRK",
@@ -871,6 +893,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIBUFS",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -878,6 +901,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIBUFS_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -885,6 +909,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIBUFS_CLK_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -892,6 +917,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIOIS",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -899,6 +925,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIOIS_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -906,6 +933,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIOIS_CLK_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -913,6 +941,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIBUFS",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -920,6 +949,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIBUFS_BRK",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR.BRK",
@@ -927,6 +957,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIBUFS_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -934,6 +965,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIBUFS_CLK_PCI",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR",
@@ -941,6 +973,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIBUFS_CLK_PCI_BRK",
             "INT.IOI.S3A.LR",
             "INT.IOI.S3A.LR.BRK",
@@ -948,6 +981,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BIOIS",
             "INT.IOI.S3A.TB",
             "INT.IOI.S3A.TB",
@@ -955,6 +989,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BIOIB",
             "INT.IOI.S3A.TB",
             "INT.IOI.S3A.TB",
@@ -962,6 +997,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "TIOIS",
             "INT.IOI.S3A.TB",
             "INT.IOI.S3A.TB",
@@ -969,15 +1005,24 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "TIOIB",
             "INT.IOI.S3A.TB",
             "INT.IOI.S3A.TB",
             &bels_int,
         );
     } else if rd.family == "spartan3e" {
-        builder.extract_node(tslots::INT, "LIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
         builder.extract_node(
             tslots::INT,
+            bels::INT,
+            "LIOIS",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
             "LIOIS_BRK",
             "INT.IOI.S3E",
             "INT.IOI.BRK",
@@ -985,6 +1030,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIOIS_PCI",
             "INT.IOI.S3E",
             "INT.IOI",
@@ -992,14 +1038,23 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIOIS_CLK_PCI",
             "INT.IOI.S3E",
             "INT.IOI",
             &bels_int,
         );
-        builder.extract_node(tslots::INT, "LIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
         builder.extract_node(
             tslots::INT,
+            bels::INT,
+            "LIBUFS",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
             "LIBUFS_PCI",
             "INT.IOI.S3E",
             "INT.IOI",
@@ -1007,14 +1062,23 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "LIBUFS_CLK_PCI",
             "INT.IOI.S3E",
             "INT.IOI",
             &bels_int,
         );
-        builder.extract_node(tslots::INT, "RIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
         builder.extract_node(
             tslots::INT,
+            bels::INT,
+            "RIOIS",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
             "RIOIS_PCI",
             "INT.IOI.S3E",
             "INT.IOI",
@@ -1022,14 +1086,23 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIOIS_CLK_PCI",
             "INT.IOI.S3E",
             "INT.IOI",
             &bels_int,
         );
-        builder.extract_node(tslots::INT, "RIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
         builder.extract_node(
             tslots::INT,
+            bels::INT,
+            "RIBUFS",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
             "RIBUFS_BRK",
             "INT.IOI.S3E",
             "INT.IOI.BRK",
@@ -1037,6 +1110,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIBUFS_PCI",
             "INT.IOI.S3E",
             "INT.IOI",
@@ -1044,26 +1118,111 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "RIBUFS_CLK_PCI",
             "INT.IOI.S3E",
             "INT.IOI",
             &bels_int,
         );
-        builder.extract_node(tslots::INT, "BIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node(tslots::INT, "BIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node(tslots::INT, "TIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
-        builder.extract_node(tslots::INT, "TIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "BIOIS",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "BIBUFS",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "TIOIS",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "TIBUFS",
+            "INT.IOI.S3E",
+            "INT.IOI",
+            &bels_int,
+        );
     } else if rd.family == "fpgacore" {
-        builder.extract_node(tslots::INT, "LIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
-        builder.extract_node(tslots::INT, "RIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
-        builder.extract_node(tslots::INT, "BIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
-        builder.extract_node(tslots::INT, "TIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "LIOIS",
+            "INT.IOI.FC",
+            "INT.IOI.FC",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "RIOIS",
+            "INT.IOI.FC",
+            "INT.IOI.FC",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "BIOIS",
+            "INT.IOI.FC",
+            "INT.IOI.FC",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "TIOIS",
+            "INT.IOI.FC",
+            "INT.IOI.FC",
+            &bels_int,
+        );
     } else {
         // NOTE: could be unified by pulling extra muxes from CLB
-        builder.extract_node(tslots::INT, "LIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
-        builder.extract_node(tslots::INT, "RIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
-        builder.extract_node(tslots::INT, "BIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
-        builder.extract_node(tslots::INT, "TIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "LIOIS",
+            "INT.IOI.S3",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "RIOIS",
+            "INT.IOI.S3",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "BIOIS",
+            "INT.IOI.S3",
+            "INT.IOI",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "TIOIS",
+            "INT.IOI.S3",
+            "INT.IOI",
+            &bels_int,
+        );
     }
     // NOTE:
     // - S3/S3E/S3A could be unified by pulling some extra muxes from CLB
@@ -1071,6 +1230,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     if rd.family == "spartan3adsp" {
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM0_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
@@ -1078,6 +1238,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM0_SMALL_BOT",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
@@ -1085,6 +1246,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM1_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
@@ -1092,6 +1254,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM2_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
@@ -1099,6 +1262,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM3_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
@@ -1106,6 +1270,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM3_SMALL_TOP",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP",
@@ -1113,6 +1278,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM3_SMALL_BRK",
             "INT.BRAM.S3ADSP",
             "INT.BRAM.S3ADSP.BRK",
@@ -1120,6 +1286,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "MACC0_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.MACC",
@@ -1127,6 +1294,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "MACC0_SMALL_BOT",
             "INT.BRAM.S3ADSP",
             "INT.MACC",
@@ -1134,6 +1302,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "MACC1_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.MACC",
@@ -1141,6 +1310,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "MACC2_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.MACC",
@@ -1148,6 +1318,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "MACC3_SMALL",
             "INT.BRAM.S3ADSP",
             "INT.MACC",
@@ -1155,6 +1326,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "MACC3_SMALL_TOP",
             "INT.BRAM.S3ADSP",
             "INT.MACC",
@@ -1162,6 +1334,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "MACC3_SMALL_BRK",
             "INT.BRAM.S3ADSP",
             "INT.MACC.BRK",
@@ -1170,6 +1343,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     } else if rd.family == "spartan3a" {
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM0_SMALL",
             "INT.BRAM.S3A.03",
             "INT.BRAM",
@@ -1177,6 +1351,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM0_SMALL_BOT",
             "INT.BRAM.S3A.03",
             "INT.BRAM",
@@ -1184,6 +1359,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM1_SMALL",
             "INT.BRAM.S3A.12",
             "INT.BRAM",
@@ -1191,6 +1367,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM2_SMALL",
             "INT.BRAM.S3A.12",
             "INT.BRAM",
@@ -1198,6 +1375,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM3_SMALL",
             "INT.BRAM.S3A.03",
             "INT.BRAM",
@@ -1205,6 +1383,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM3_SMALL_TOP",
             "INT.BRAM.S3A.03",
             "INT.BRAM",
@@ -1212,6 +1391,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM3_SMALL_BRK",
             "INT.BRAM.S3A.03",
             "INT.BRAM.BRK",
@@ -1220,6 +1400,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     } else if rd.family == "spartan3e" {
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM0_SMALL",
             "INT.BRAM.S3E",
             "INT.BRAM",
@@ -1227,6 +1408,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM1_SMALL",
             "INT.BRAM.S3E",
             "INT.BRAM",
@@ -1234,6 +1416,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM2_SMALL",
             "INT.BRAM.S3E",
             "INT.BRAM",
@@ -1241,6 +1424,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM3_SMALL",
             "INT.BRAM.S3E",
             "INT.BRAM",
@@ -1248,18 +1432,48 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM3_SMALL_BRK",
             "INT.BRAM.S3E",
             "INT.BRAM.BRK",
             &bels_int,
         );
     } else {
-        builder.extract_node(tslots::INT, "BRAM0", "INT.BRAM.S3", "INT.BRAM", &bels_int);
-        builder.extract_node(tslots::INT, "BRAM1", "INT.BRAM.S3", "INT.BRAM", &bels_int);
-        builder.extract_node(tslots::INT, "BRAM2", "INT.BRAM.S3", "INT.BRAM", &bels_int);
-        builder.extract_node(tslots::INT, "BRAM3", "INT.BRAM.S3", "INT.BRAM", &bels_int);
         builder.extract_node(
             tslots::INT,
+            bels::INT,
+            "BRAM0",
+            "INT.BRAM.S3",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "BRAM1",
+            "INT.BRAM.S3",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "BRAM2",
+            "INT.BRAM.S3",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
+            "BRAM3",
+            "INT.BRAM.S3",
+            "INT.BRAM",
+            &bels_int,
+        );
+        builder.extract_node(
+            tslots::INT,
+            bels::INT,
             "BRAM0_SMALL",
             "INT.BRAM.S3",
             "INT.BRAM",
@@ -1267,6 +1481,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM1_SMALL",
             "INT.BRAM.S3",
             "INT.BRAM",
@@ -1274,6 +1489,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM2_SMALL",
             "INT.BRAM.S3",
             "INT.BRAM",
@@ -1281,6 +1497,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         builder.extract_node(
             tslots::INT,
+            bels::INT,
             "BRAM3_SMALL",
             "INT.BRAM.S3",
             "INT.BRAM",
@@ -1289,6 +1506,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "BRAM_IOIS",
         "INT.DCM",
         "INT.DCM.S3",
@@ -1296,6 +1514,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "BRAM_IOIS_NODCM",
         "INT.DCM.S3.DUMMY",
         "INT.DCM.S3.DUMMY",
@@ -1303,6 +1522,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCMAUX_BL_CENTER",
         "INT.DCM.S3E.DUMMY",
         "INT.DCM.S3E.DUMMY",
@@ -1310,6 +1530,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCMAUX_TL_CENTER",
         "INT.DCM.S3E.DUMMY",
         "INT.DCM.S3E.DUMMY",
@@ -1317,6 +1538,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCM_BL_CENTER",
         "INT.DCM",
         "INT.DCM.S3E",
@@ -1324,6 +1546,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCM_TL_CENTER",
         "INT.DCM",
         "INT.DCM.S3E",
@@ -1331,6 +1554,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCM_BR_CENTER",
         "INT.DCM",
         "INT.DCM.S3E",
@@ -1338,6 +1562,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCM_TR_CENTER",
         "INT.DCM",
         "INT.DCM.S3E",
@@ -1345,6 +1570,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCM_H_BL_CENTER",
         "INT.DCM",
         "INT.DCM.S3E.H",
@@ -1352,6 +1578,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCM_H_TL_CENTER",
         "INT.DCM",
         "INT.DCM.S3E.H",
@@ -1359,6 +1586,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCM_H_BR_CENTER",
         "INT.DCM",
         "INT.DCM.S3E.H",
@@ -1366,6 +1594,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCM_H_TR_CENTER",
         "INT.DCM",
         "INT.DCM.S3E.H",
@@ -1373,6 +1602,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCM_BGAP",
         "INT.DCM",
         "INT.DCM.S3E.H",
@@ -1380,15 +1610,44 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::INT,
+        bels::INT,
         "DCM_SPLY",
         "INT.DCM",
         "INT.DCM.S3E.H",
         &bels_int_dcm,
     );
-    builder.extract_node(tslots::INT, "LL", "INT.CLB", "INT.CNR", &bels_int);
-    builder.extract_node(tslots::INT, "LR", "INT.CLB", "INT.CNR", &bels_int);
-    builder.extract_node(tslots::INT, "UL", "INT.CLB", "INT.CNR", &bels_int);
-    builder.extract_node(tslots::INT, "UR", "INT.CLB", "INT.CNR", &bels_int);
+    builder.extract_node(
+        tslots::INT,
+        bels::INT,
+        "LL",
+        "INT.CLB",
+        "INT.CNR",
+        &bels_int,
+    );
+    builder.extract_node(
+        tslots::INT,
+        bels::INT,
+        "LR",
+        "INT.CLB",
+        "INT.CNR",
+        &bels_int,
+    );
+    builder.extract_node(
+        tslots::INT,
+        bels::INT,
+        "UL",
+        "INT.CLB",
+        "INT.CNR",
+        &bels_int,
+    );
+    builder.extract_node(
+        tslots::INT,
+        bels::INT,
+        "UR",
+        "INT.CLB",
+        "INT.CNR",
+        &bels_int,
+    );
 
     let slicem_name_only = [
         "FXINA", "FXINB", "F5", "FX", "CIN", "COUT", "SHIFTIN", "SHIFTOUT", "ALTDIG", "DIG",
@@ -2062,7 +2321,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
         for tile in ["LL.FC", "UL.FC", "LR.FC", "UR.FC"] {
-            let mut bel = BelInfo::default();
+            let mut bel = Bel::default();
             bel.pins.insert(
                 "CLK".into(),
                 BelPin {
@@ -2075,7 +2334,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 },
             );
             let node = builder.db.tile_classes.get_mut(tile).unwrap().1;
-            node.bels.insert(bels::MISR, bel);
+            node.bels.insert(bels::MISR, BelInfo::Bel(bel));
             let pin_naming = BelPinNaming {
                 name: "CNR_CLK3".into(),
                 name_far: "CNR_CLK3".into(),
@@ -2083,13 +2342,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_pips: BTreeMap::new(),
                 is_intf_out: false,
             };
-            let mut bel_naming = BelNaming {
+            let mut bel_naming = ProperBelNaming {
                 tile: RawTileId::from_idx(0),
                 pins: BTreeMap::new(),
             };
             bel_naming.pins.insert("CLK".into(), pin_naming);
             let naming = builder.ndb.tile_class_namings.get_mut(tile).unwrap().1;
-            naming.bels.insert(bels::MISR, bel_naming);
+            naming.bels.insert(bels::MISR, BelNaming::Bel(bel_naming));
         }
     } else if rd.family == "spartan3e" {
         builder.extract_node_bels(tslots::BEL, "LL", "LL.S3E", "LL.S3E", &[]);
@@ -2310,7 +2569,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 None,
                 None,
                 None,
-                Some((tslots::VTERM, node, naming)),
+                Some((tslots::TERM_V, bels::LLV, node, naming)),
                 int_fwd_xy,
                 &[],
             );
@@ -2366,7 +2625,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 None,
                 None,
                 None,
-                Some((tslots::HTERM, node, "LLH")),
+                Some((tslots::TERM_H, bels::LLH, node, "LLH")),
                 int_fwd_xy,
                 &[],
             );
@@ -2519,6 +2778,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             if rd.family == "spartan3" {
                 builder.extract_xnode(
                     tslots::CLK,
+                    bels::CLK_INT,
                     "CLKB.S3",
                     xy,
                     &[],
@@ -2564,6 +2824,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             } else if rd.family == "fpgacore" {
                 builder.extract_xnode(
                     tslots::CLK,
+                    bels::CLK_INT,
                     "CLKB.FC",
                     xy,
                     &[],
@@ -2602,6 +2863,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 };
                 builder.extract_xnode(
                     tslots::CLK,
+                    bels::CLK_INT,
                     kind,
                     xy,
                     &[],
@@ -2725,6 +2987,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             if rd.family == "spartan3" {
                 builder.extract_xnode(
                     tslots::CLK,
+                    bels::CLK_INT,
                     "CLKT.S3",
                     xy,
                     &[],
@@ -2770,6 +3033,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             } else if rd.family == "fpgacore" {
                 builder.extract_xnode(
                     tslots::CLK,
+                    bels::CLK_INT,
                     "CLKT.FC",
                     xy,
                     &[],
@@ -2808,6 +3072,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 };
                 builder.extract_xnode(
                     tslots::CLK,
+                    bels::CLK_INT,
                     kind,
                     xy,
                     &[],

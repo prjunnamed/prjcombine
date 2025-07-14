@@ -89,9 +89,7 @@ impl<'a> ExpandedGridNaming<'a> {
                     (wire.cell.col, wire.cell.row) = cell.region_root[rslot];
                     break;
                 }
-                WireKind::MultiBranch(slot)
-                | WireKind::Branch(slot)
-                | WireKind::PipBranch(slot) => {
+                WireKind::MultiBranch(slot) | WireKind::Branch(slot) => {
                     if let Some(t) = cell.conns.get(slot) {
                         let ccls = &self.egrid.db.conn_classes[t.class];
                         match ccls.wires.get(wire.slot) {
@@ -147,9 +145,7 @@ impl<'a> ExpandedGridNaming<'a> {
                     (wire.cell.col, wire.cell.row) = tile.region_root[rslot];
                     break;
                 }
-                WireKind::MultiBranch(slot)
-                | WireKind::Branch(slot)
-                | WireKind::PipBranch(slot) => {
+                WireKind::MultiBranch(slot) | WireKind::Branch(slot) => {
                     if let Some(t) = tile.conns.get(slot) {
                         let term = &self.egrid.db.conn_classes[t.class];
                         match term.wires.get(wire.slot) {

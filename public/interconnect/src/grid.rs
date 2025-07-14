@@ -303,6 +303,7 @@ pub struct ExpandedGrid<'a> {
 }
 
 #[derive(Clone, Debug)]
+#[allow(clippy::type_complexity)]
 pub struct ExpandedDie {
     tiles: Array2<Cell>,
     pub region_root_cells:
@@ -524,7 +525,10 @@ impl<'a> ExpandedGrid<'a> {
     pub fn get_bel_pin(&self, bel: BelCoord, pin: &str) -> Vec<WireCoord> {
         let tcrd = self.get_tile_by_bel(bel);
         let tile = self.tile(tcrd);
-        let pin_info = &self.db.tile_classes[tile.class].bels[bel.slot].pins[pin];
+        let BelInfo::Bel(ref bel) = self.db.tile_classes[tile.class].bels[bel.slot] else {
+            unreachable!()
+        };
+        let pin_info = &bel.pins[pin];
         pin_info
             .wires
             .iter()
@@ -768,6 +772,7 @@ pub struct TilePip {
     pub wire_in: WireCoord,
     pub wire_out_raw: WireCoord,
     pub wire_in_raw: WireCoord,
+    pub inv: bool,
 
     pub tile: TileCoord,
     pub tile_wire_out: TileWireCoord,
@@ -784,9 +789,7 @@ impl ExpandedGrid<'_> {
                     (wire.cell.col, wire.cell.row) = cell.region_root[rslot];
                     break;
                 }
-                WireKind::MultiBranch(slot)
-                | WireKind::Branch(slot)
-                | WireKind::PipBranch(slot) => {
+                WireKind::MultiBranch(slot) | WireKind::Branch(slot) => {
                     if let Some(t) = cell.conns.get(slot) {
                         let ccls = &self.db.conn_classes[t.class];
                         match ccls.wires.get(wire.slot) {
@@ -829,9 +832,7 @@ impl ExpandedGrid<'_> {
                     (wire.cell.col, wire.cell.row) = cell.region_root[rslot];
                     break;
                 }
-                WireKind::MultiBranch(slot)
-                | WireKind::Branch(slot)
-                | WireKind::PipBranch(slot) => {
+                WireKind::MultiBranch(slot) | WireKind::Branch(slot) => {
                     if let Some(t) = cell.conns.get(slot) {
                         let ccls = &self.db.conn_classes[t.class];
                         match ccls.wires.get(wire.slot) {
@@ -908,10 +909,7 @@ impl ExpandedGrid<'_> {
         let mut wires = vec![wire];
         if matches!(
             self.db.wires[wire.slot],
-            WireKind::MultiOut
-                | WireKind::MultiBranch(_)
-                | WireKind::PipOut
-                | WireKind::PipBranch(_)
+            WireKind::MultiOut | WireKind::MultiBranch(_)
         ) {
             wires = self.wire_tree(wire);
         }
@@ -920,14 +918,14 @@ impl ExpandedGrid<'_> {
             for &(crd, tslot, tid) in &self.cell(w.cell).tile_index {
                 let tcrd = w.cell.with_cr(crd.0, crd.1).tile(tslot);
                 let tile = self.tile(tcrd);
-                let tcls = &self.db.tile_classes[tile.class];
+                let tcls = &self.db_index.tile_classes[tile.class];
                 let tcw = TileWireCoord {
                     cell: tid,
                     wire: w.slot,
                 };
-                if let Some(mux) = tcls.muxes.get(&tcw) {
-                    for &tcwi in &mux.ins {
-                        let wire_in_raw = self.tile_wire(tcrd, tcwi);
+                if let Some(ins) = tcls.pips_bwd.get(&tcw) {
+                    for &tcwi in ins {
+                        let wire_in_raw = self.tile_wire(tcrd, tcwi.tw);
                         if let Some(wire_in) = self.resolve_wire(wire_in_raw) {
                             res.push(TilePip {
                                 wire_out: wire,
@@ -936,7 +934,8 @@ impl ExpandedGrid<'_> {
                                 wire_in_raw,
                                 tile: tcrd,
                                 tile_wire_out: tcw,
-                                tile_wire_in: tcwi,
+                                tile_wire_in: tcwi.tw,
+                                inv: tcwi.inv,
                             });
                         }
                     }
@@ -958,9 +957,9 @@ impl ExpandedGrid<'_> {
                     cell: tid,
                     wire: w.slot,
                 };
-                if let Some(outs) = tcls.mux_ins.get(&tcw) {
+                if let Some(outs) = tcls.pips_fwd.get(&tcw) {
                     for &tcwo in outs {
-                        let wire_out_raw = self.tile_wire(tcrd, tcwo);
+                        let wire_out_raw = self.tile_wire(tcrd, tcwo.tw);
                         if let Some(wire_out) = self.resolve_wire(wire_out_raw) {
                             res.push(TilePip {
                                 wire_out,
@@ -968,8 +967,9 @@ impl ExpandedGrid<'_> {
                                 wire_out_raw,
                                 wire_in_raw: w,
                                 tile: tcrd,
-                                tile_wire_out: tcwo,
+                                tile_wire_out: tcwo.tw,
                                 tile_wire_in: tcw,
+                                inv: tcwo.inv,
                             });
                         }
                     }

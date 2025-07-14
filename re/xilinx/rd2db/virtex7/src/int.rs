@@ -393,12 +393,12 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     builder.extract_main_passes();
 
-    builder.node_type(tslots::INT, "INT_L", "INT", "INT.L");
-    builder.node_type(tslots::INT, "INT_R", "INT", "INT.R");
-    builder.node_type(tslots::INT, "INT_L_SLV_FLY", "INT", "INT.L");
-    builder.node_type(tslots::INT, "INT_R_SLV_FLY", "INT", "INT.R");
-    builder.node_type(tslots::INT, "INT_L_SLV", "INT", "INT.L.SLV");
-    builder.node_type(tslots::INT, "INT_R_SLV", "INT", "INT.R.SLV");
+    builder.node_type(tslots::INT, bels::INT, "INT_L", "INT", "INT.L");
+    builder.node_type(tslots::INT, bels::INT, "INT_R", "INT", "INT.R");
+    builder.node_type(tslots::INT, bels::INT, "INT_L_SLV_FLY", "INT", "INT.L");
+    builder.node_type(tslots::INT, bels::INT, "INT_R_SLV_FLY", "INT", "INT.R");
+    builder.node_type(tslots::INT, bels::INT, "INT_L_SLV", "INT", "INT.L.SLV");
+    builder.node_type(tslots::INT, bels::INT, "INT_R_SLV", "INT", "INT.R.SLV");
 
     let forced: Vec<_> = (0..6)
         .map(|i| {

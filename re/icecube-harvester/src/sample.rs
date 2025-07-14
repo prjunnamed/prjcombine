@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use prjcombine_interconnect::{
-    db::{PinDir, TileClassId, WireId},
+    db::{BelInfo, PinDir, TileClassId, WireId},
     dir::{Dir, DirH, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
 };
@@ -90,9 +90,12 @@ pub fn make_sample(
             let crd = *edev.chip.extra_nodes[&key].cells.first().unwrap();
             let node = edev.egrid.tile(crd.tile(tslots::OSC));
             let node_info = &edev.egrid.db.tile_classes[node.class];
-            for (bel, bel_info) in &node_info.bels {
-                for (pin, pin_info) in &bel_info.pins {
-                    for wire in edev.egrid.get_bel_pin(crd.bel(bel), pin) {
+            for (bslot, bel) in &node_info.bels {
+                let BelInfo::Bel(bel) = bel else {
+                    unreachable!()
+                };
+                for (pin, pin_info) in &bel.pins {
+                    for wire in edev.egrid.get_bel_pin(crd.bel(bslot), pin) {
                         if pin_info.dir == PinDir::Output {
                             io_hardip_outs.insert(wire);
                         }
@@ -100,6 +103,12 @@ pub fn make_sample(
                 }
             }
         }
+    }
+    let mut unoptinv = HashMap::new();
+    for w in ["IMUX.CLK", "IMUX.IO.ICLK", "IMUX.IO.OCLK"] {
+        let wo = edev.egrid.db.get_wire(&format!("{w}.OPTINV"));
+        let wi = edev.egrid.db.get_wire(w);
+        unoptinv.insert(wo, wi);
     }
     let mut int_source: HashMap<WireCoord, (InstId, InstPin)> = HashMap::new();
     let mut ibuf_used = HashSet::new();
@@ -584,11 +593,11 @@ pub fn make_sample(
                         if neg_trigger.ends_with('1') {
                             sample.add_tiled_pattern(
                                 &[btile],
-                                format!("{tcls_ioi}:INT:INV.IMUX.IO.ICLK:BIT0"),
+                                format!("{tcls_ioi}:INT:INV.IMUX.IO.ICLK.OPTINV:BIT0"),
                             );
                             sample.add_tiled_pattern(
                                 &[btile],
-                                format!("{tcls_ioi}:INT:INV.IMUX.IO.OCLK:BIT0"),
+                                format!("{tcls_ioi}:INT:INV.IMUX.IO.OCLK.OPTINV:BIT0"),
                             );
                         }
                     }
@@ -712,7 +721,7 @@ pub fn make_sample(
                     if let Some(rest) = kind.strip_prefix('N') {
                         sample.add_tiled_pattern_single(
                             &[BitOwner::Main(col, row)],
-                            format!("{tcls}:INT:INV.IMUX.CLK:BIT0"),
+                            format!("{tcls}:INT:INV.IMUX.CLK.OPTINV:BIT0"),
                         );
                         kind = rest;
                     }
@@ -759,7 +768,8 @@ pub fn make_sample(
                         BitOwner::Main(crd.col, crd.row + 1),
                     ];
                     for (key, pin, pinn) in [("NW", "WCLK", "WCLKN"), ("NR", "RCLK", "RCLKN")] {
-                        let wire = edev.egrid.get_bel_pin(bel, pin)[0];
+                        let mut wire = edev.egrid.get_bel_pin(bel, pin)[0];
+                        wire.slot = unoptinv[&wire.slot];
                         if kind.contains(key) {
                             let pin = InstPin::Simple(pinn.into());
                             if inst.pins.contains_key(&pin) {
@@ -768,7 +778,7 @@ pub fn make_sample(
                             }
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(wire.cell.col, wire.cell.row)],
-                                "INT_BRAM:INT:INV.IMUX.CLK:BIT0",
+                                "INT_BRAM:INT:INV.IMUX.CLK.OPTINV:BIT0",
                             );
                         } else {
                             let pin = InstPin::Simple(pin.into());
@@ -1052,7 +1062,7 @@ pub fn make_sample(
                                 if prop == "NEG_TRIGGER" {
                                     sample.add_tiled_pattern_single(
                                         &tiles[2..3],
-                                        format!("{tcls_plb}:INT:INV.IMUX.CLK:BIT0"),
+                                        format!("{tcls_plb}:INT:INV.IMUX.CLK.OPTINV:BIT0"),
                                     );
                                 } else {
                                     sample.add_tiled_pattern_single(
@@ -1452,14 +1462,16 @@ pub fn make_sample(
                             if edev.chip.kind == ChipKind::Ice40R04 {
                                 let nk = xnloc.tile_class(edev.chip.kind);
                                 let node_info = edev.egrid.db.tile_classes.get(&nk).unwrap().1;
-                                let bel = match xnloc {
+                                let bslot = match xnloc {
                                     ExtraNodeLoc::Spi(_) => bels::SPI,
                                     ExtraNodeLoc::I2c(_) => bels::I2C,
                                     ExtraNodeLoc::I2cFifo(_) => bels::I2C_FIFO,
                                     _ => unreachable!(),
                                 };
-                                let bel_info = &node_info.bels[bel];
-                                for (pin, pin_info) in &bel_info.pins {
+                                let BelInfo::Bel(bel) = &node_info.bels[bslot] else {
+                                    unreachable!()
+                                };
+                                for (pin, pin_info) in &bel.pins {
                                     let pin_wire = *pin_info.wires.iter().next().unwrap();
                                     let pin_crd = xnode.cells[pin_wire.cell];
                                     let pin_btile = BitOwner::Main(pin_crd.col, pin_crd.row);
@@ -1610,7 +1622,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     result.push(format!("{tile}:LC0:MUX.CI:0"));
     result.push(format!("{tile}:LC0:MUX.CI:1"));
     result.push(format!("{tile}:LC0:MUX.CI:CHAIN"));
-    result.push(format!("{tile}:INT:INV.IMUX.CLK:BIT0"));
+    result.push(format!("{tile}:INT:INV.IMUX.CLK.OPTINV:BIT0"));
     if let Some(tile) = edev.chip.kind.tile_class_colbuf() {
         for i in 0..8 {
             result.push(format!("{tile}:COLBUF:GLOBAL.{i}:BIT0"));
@@ -1638,7 +1650,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             result.push(format!("{tile}:BRAM:WRITE_MODE:2"));
             result.push(format!("{tile}:BRAM:WRITE_MODE:3"));
         }
-        result.push("INT_BRAM:INT:INV.IMUX.CLK:BIT0".into());
+        result.push("INT_BRAM:INT:INV.IMUX.CLK.OPTINV:BIT0".into());
         for i in 0..4096 {
             result.push(format!("BRAM_DATA:BRAM:INIT:BIT{i}"));
         }
@@ -1648,8 +1660,8 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         let Some(tile) = edev.chip.kind.tile_class_ioi(edge) else {
             continue;
         };
-        result.push(format!("{tile}:INT:INV.IMUX.IO.ICLK:BIT0"));
-        result.push(format!("{tile}:INT:INV.IMUX.IO.OCLK:BIT0"));
+        result.push(format!("{tile}:INT:INV.IMUX.IO.ICLK.OPTINV:BIT0"));
+        result.push(format!("{tile}:INT:INV.IMUX.IO.OCLK.OPTINV:BIT0"));
         for io in 0..2 {
             for i in 0..6 {
                 result.push(format!("{tile}:IO{io}:PIN_TYPE:BIT{i}"));

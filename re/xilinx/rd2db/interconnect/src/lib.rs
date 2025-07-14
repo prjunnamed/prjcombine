@@ -1,19 +1,19 @@
 #![allow(clippy::too_many_arguments)]
 
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId,
-        ConnectorWire, IntDb, IntfInfo, MuxInfo, MuxKind, PinDir, TileClass, TileClassId,
-        TileSlotId, TileWireCoord, WireId, WireKind,
+        Bel, BelInfo, BelPin, BelSlotId, BiPass, Buf, CellSlotId, ConnectorClass, ConnectorSlot,
+        ConnectorSlotId, ConnectorWire, IntDb, IntfInfo, Mux, Pass, PinDir, SwitchBox,
+        SwitchBoxItem, TileClass, TileClassId, TileSlotId, TileWireCoord, WireId, WireKind,
     },
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, BelPinNaming, ConnectorClassNamingId, ConnectorWireInFarNaming,
-    ConnectorWireOutNaming, IntfWireInNaming, IntfWireOutNaming, NamingDb, PipNaming, RawTileId,
-    TileClassNaming, TileClassNamingId,
+    ConnectorWireOutNaming, IntfWireInNaming, IntfWireOutNaming, NamingDb, PipNaming,
+    ProperBelNaming, RawTileId, TileClassNaming, TileClassNamingId,
 };
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -73,6 +73,7 @@ pub struct XNodeInfo<'a, 'b> {
     pub force_names: HashMap<(usize, rawdump::WireId), (IntConnKind, TileWireCoord)>,
     pub force_skip_pips: HashSet<(TileWireCoord, TileWireCoord)>,
     pub force_pips: HashSet<(TileWireCoord, TileWireCoord)>,
+    pub switchbox: Option<BelSlotId>,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -281,12 +282,19 @@ impl XNodeInfo<'_, '_> {
         self
     }
 
-    pub fn extract_muxes(mut self) -> Self {
+    pub fn switchbox(mut self, sb: BelSlotId) -> Self {
+        self.switchbox = Some(sb);
+        self
+    }
+
+    pub fn extract_muxes(mut self, sb: BelSlotId) -> Self {
+        self.switchbox = Some(sb);
         self.raw_tiles[0].extract_muxes = true;
         self
     }
 
-    pub fn extract_muxes_rt(mut self, rt: usize) -> Self {
+    pub fn extract_muxes_rt(mut self, sb: BelSlotId, rt: usize) -> Self {
+        self.switchbox = Some(sb);
         self.raw_tiles[rt].extract_muxes = true;
         self
     }
@@ -397,7 +405,7 @@ impl XNodeInfo<'_, '_> {
                     if round == 0
                         && matches!(
                             self.builder.db.wires[k.wire],
-                            WireKind::Branch(_) | WireKind::MultiBranch(_) | WireKind::PipBranch(_)
+                            WireKind::Branch(_) | WireKind::MultiBranch(_)
                         )
                     {
                         continue;
@@ -484,9 +492,7 @@ impl XNodeInfo<'_, '_> {
                             if round == 0
                                 && matches!(
                                     self.builder.db.wires[w.wire],
-                                    WireKind::Branch(_)
-                                        | WireKind::MultiBranch(_)
-                                        | WireKind::PipBranch(_)
+                                    WireKind::Branch(_) | WireKind::MultiBranch(_)
                                 )
                             {
                                 continue;
@@ -585,19 +591,20 @@ impl XNodeInfo<'_, '_> {
             node: TileClass {
                 slot: self.slot,
                 cells: (0..self.num_tiles).map(|_| ()).collect(),
-                muxes: Default::default(),
                 bels: Default::default(),
-                iris: Default::default(),
                 intfs: Default::default(),
             },
             node_naming: TileClassNaming::default(),
         };
 
+        let mut pips = BTreeMap::new();
         if self.raw_tiles.iter().any(|x| x.extract_muxes)
             || !self.optin_muxes.is_empty()
             || !self.optin_muxes_tile.is_empty()
         {
-            extractor.extract_muxes();
+            let mut sb_pips = Pips::default();
+            extractor.extract_muxes(&mut sb_pips);
+            pips.insert(self.switchbox.unwrap(), sb_pips);
         }
 
         if self.extract_intfs {
@@ -611,7 +618,7 @@ impl XNodeInfo<'_, '_> {
         let node = extractor.node;
         let node_naming = extractor.node_naming;
 
-        self.builder.insert_node_merge(&self.kind, node);
+        self.builder.insert_node_merge(&self.kind, node, pips);
         self.builder.insert_node_naming(&self.naming, node_naming);
     }
 }
@@ -1036,13 +1043,13 @@ impl XNodeExtractor<'_, '_, '_> {
                 _ => (),
             }
         }
-        self.node.bels.insert(bel.bel, BelInfo { pins });
+        self.node.bels.insert(bel.bel, BelInfo::Bel(Bel { pins }));
         self.node_naming.bels.insert(
             bel.bel,
-            BelNaming {
+            BelNaming::Bel(ProperBelNaming {
                 tile: RawTileId::from_idx(bel.raw_tile),
                 pins: naming_pins,
-            },
+            }),
         );
     }
 
@@ -1068,15 +1075,9 @@ impl XNodeExtractor<'_, '_, '_> {
         None
     }
 
-    fn extract_muxes(&mut self) {
+    fn extract_muxes(&mut self, pips: &mut Pips) {
         for &(wt, wf) in &self.xnode.force_pips {
-            let kind = MuxKind::Plain;
-            let mux = self.node.muxes.entry(wt).or_insert(MuxInfo {
-                kind,
-                ins: Default::default(),
-            });
-            assert_eq!(mux.kind, kind);
-            mux.ins.insert(wf);
+            pips.pips.insert((wt, wf), PipMode::Mux);
         }
         for (i, rt) in self.xnode.raw_tiles.iter().enumerate() {
             let tile = &self.rd.tiles[&rt.xy];
@@ -1123,14 +1124,7 @@ impl XNodeExtractor<'_, '_, '_> {
                             assert_eq!(wf.cell, CellSlotId::from_idx(0));
                             continue;
                         }
-                        // XXX
-                        let kind = MuxKind::Plain;
-                        let mux = self.node.muxes.entry(wt).or_insert(MuxInfo {
-                            kind,
-                            ins: Default::default(),
-                        });
-                        assert_eq!(mux.kind, kind);
-                        mux.ins.insert(wf);
+                        pips.pips.insert((wt, wf), PipMode::Mux);
                     } else if self.xnode.builder.stub_outs.contains(&self.rd.wires[wfi]) {
                         // ignore
                     } else {
@@ -1265,11 +1259,25 @@ struct NodeType {
     naming: TileClassNamingId,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum PipMode {
+    Mux,
+    Pass,
+    Buf,
+    PermaBuf,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct Pips {
+    pub pips: BTreeMap<(TileWireCoord, TileWireCoord), PipMode>,
+}
+
 pub struct IntBuilder<'a> {
     pub rd: &'a Part,
     pub db: IntDb,
     pub ndb: NamingDb,
     pub term_slots: DirMap<ConnectorSlotId>,
+    pub pips: BTreeMap<(TileClassId, BelSlotId), Pips>,
     is_mirror_square: bool,
     allow_mux_to_branch: bool,
     main_passes: DirMap<EntityPartVec<WireId, WireId>>,
@@ -1327,6 +1335,7 @@ impl<'a> IntBuilder<'a> {
             db,
             ndb,
             term_slots,
+            pips: Default::default(),
             is_mirror_square: false,
             allow_mux_to_branch: false,
             main_passes: Default::default(),
@@ -1613,18 +1622,6 @@ impl<'a> IntBuilder<'a> {
             WireKind::MultiBranch(self.term_slots[!dir]),
             raw_names,
         );
-        self.conn_branch(src, dir, res);
-        res
-    }
-
-    pub fn pip_branch(
-        &mut self,
-        src: WireId,
-        dir: Dir,
-        name: impl Into<String>,
-        raw_names: &[impl AsRef<str>],
-    ) -> WireId {
-        let res = self.wire(name, WireKind::PipBranch(self.term_slots[!dir]), raw_names);
         self.conn_branch(src, dir, res);
         res
     }
@@ -2078,13 +2075,13 @@ impl<'a> IntBuilder<'a> {
                     _ => (),
                 }
             }
-            node.bels.insert(bel.bel, BelInfo { pins });
+            node.bels.insert(bel.bel, BelInfo::Bel(Bel { pins }));
             naming.bels.insert(
                 bel.bel,
-                BelNaming {
+                BelNaming::Bel(ProperBelNaming {
                     tile: RawTileId::from_idx(0),
                     pins: naming_pins,
-                },
+                }),
             );
         }
     }
@@ -2092,6 +2089,7 @@ impl<'a> IntBuilder<'a> {
     pub fn extract_node(
         &mut self,
         slot: TileSlotId,
+        sb: BelSlotId,
         tile_kind: &str,
         kind: &str,
         naming: &str,
@@ -2103,11 +2101,10 @@ impl<'a> IntBuilder<'a> {
             let mut node = TileClass {
                 slot,
                 cells: [()].into_iter().collect(),
-                muxes: Default::default(),
                 bels: Default::default(),
-                iris: Default::default(),
                 intfs: Default::default(),
             };
+            let mut pips = Pips::default();
             let mut node_naming = TileClassNaming::default();
             let mut names = HashMap::new();
             for &wi in tk.wires.keys() {
@@ -2123,11 +2120,7 @@ impl<'a> IntBuilder<'a> {
             for &(wfi, wti) in tk.pips.keys() {
                 if let Some(&(_, wt)) = names.get(&wti) {
                     match self.db.wires[wt.wire] {
-                        WireKind::PipBranch(_)
-                        | WireKind::PipOut
-                        | WireKind::MultiBranch(_)
-                        | WireKind::MultiOut
-                        | WireKind::MuxOut => (),
+                        WireKind::MultiBranch(_) | WireKind::MultiOut | WireKind::MuxOut => (),
                         WireKind::Branch(_) => {
                             if !self.allow_mux_to_branch {
                                 continue;
@@ -2147,15 +2140,7 @@ impl<'a> IntBuilder<'a> {
                         _ => continue,
                     }
                     if let Some(&(_, wf)) = names.get(&wfi) {
-                        // XXX
-                        let kind = MuxKind::Plain;
-                        node.muxes.entry(wt).or_insert(MuxInfo {
-                            kind,
-                            ins: Default::default(),
-                        });
-                        let mux = node.muxes.get_mut(&wt).unwrap();
-                        assert_eq!(mux.kind, kind);
-                        mux.ins.insert(wf);
+                        pips.pips.insert((wt, wf), PipMode::Mux);
                     } else if self.stub_outs.contains(&self.rd.wires[wfi]) {
                         // ignore
                     } else {
@@ -2169,7 +2154,7 @@ impl<'a> IntBuilder<'a> {
 
             self.extract_bels(&mut node, &mut node_naming, bels, tki, &names);
 
-            self.insert_node_merge(kind, node);
+            self.insert_node_merge(kind, node, BTreeMap::from_iter([(sb, pips)]));
             let naming = self.insert_node_naming(naming, node_naming);
             self.node_types.push(NodeType { tki, naming });
         }
@@ -2195,21 +2180,26 @@ impl<'a> IntBuilder<'a> {
             let mut node = TileClass {
                 slot,
                 cells: [()].into_iter().collect(),
-                muxes: Default::default(),
                 bels: Default::default(),
-                iris: Default::default(),
                 intfs: Default::default(),
             };
             let mut node_naming = TileClassNaming::default();
             self.extract_bels(&mut node, &mut node_naming, bels, tki, &names);
 
-            self.insert_node_merge(kind, node);
+            self.insert_node_merge(kind, node, BTreeMap::new());
             self.insert_node_naming(naming, node_naming);
         }
     }
 
-    pub fn node_type(&mut self, slot: TileSlotId, tile_kind: &str, kind: &str, naming: &str) {
-        self.extract_node(slot, tile_kind, kind, naming, &[]);
+    pub fn node_type(
+        &mut self,
+        slot: TileSlotId,
+        sb: BelSlotId,
+        tile_kind: &str,
+        kind: &str,
+        naming: &str,
+    ) {
+        self.extract_node(slot, sb, tile_kind, kind, naming, &[]);
     }
 
     pub fn inject_node_type(&mut self, tile_kind: &str) {
@@ -2341,21 +2331,39 @@ impl<'a> IntBuilder<'a> {
             .collect()
     }
 
-    fn insert_node_merge(&mut self, name: &str, node: TileClass) -> TileClassId {
+    fn insert_node_merge(
+        &mut self,
+        name: &str,
+        node: TileClass,
+        pips: BTreeMap<BelSlotId, Pips>,
+    ) -> TileClassId {
         match self.db.tile_classes.get_mut(name) {
-            None => self.db.tile_classes.insert(name.to_string(), node).0,
+            None => {
+                let tcls = self.db.tile_classes.insert(name.to_string(), node).0;
+                for (slot, sb_pips) in pips {
+                    self.pips.insert((tcls, slot), sb_pips);
+                }
+                tcls
+            }
             Some((id, cnode)) => {
                 assert_eq!(node.cells, cnode.cells);
                 assert_eq!(node.bels, cnode.bels);
-                for (k, v) in node.muxes {
-                    match cnode.muxes.get_mut(&k) {
-                        None => {
-                            cnode.muxes.insert(k, v);
+                for (slot, sb_pips) in pips {
+                    match self.pips.entry((id, slot)) {
+                        btree_map::Entry::Vacant(e) => {
+                            e.insert(sb_pips);
                         }
-                        Some(cv) => {
-                            assert_eq!(cv.kind, v.kind);
-                            for x in v.ins {
-                                cv.ins.insert(x);
+                        btree_map::Entry::Occupied(mut e) => {
+                            let cur_pips = e.get_mut();
+                            for ((wt, wf), mode) in sb_pips.pips {
+                                match cur_pips.pips.entry((wt, wf)) {
+                                    btree_map::Entry::Vacant(ee) => {
+                                        ee.insert(mode);
+                                    }
+                                    btree_map::Entry::Occupied(ee) => {
+                                        assert_eq!(*ee.get(), mode);
+                                    }
+                                }
                             }
                         }
                     }
@@ -2520,7 +2528,7 @@ impl<'a> IntBuilder<'a> {
     pub fn extract_term_tile(
         &mut self,
         name: impl AsRef<str>,
-        node_name: Option<(TileSlotId, &str)>,
+        node_name: Option<(TileSlotId, BelSlotId, &str)>,
         dir: Dir,
         term_xy: Coord,
         naming: impl AsRef<str>,
@@ -2585,7 +2593,7 @@ impl<'a> IntBuilder<'a> {
                 }
             }
         }
-        let mut node_muxes = BTreeMap::new();
+        let mut node_pips = Pips::default();
         let mut node_names = BTreeMap::new();
         let mut wires = self.extract_term_tile_conn(dir, int_xy, &Default::default());
         for (k, v) in muxes {
@@ -2611,35 +2619,29 @@ impl<'a> IntBuilder<'a> {
                         tnames[x].to_string(),
                     );
                 }
-                node_muxes.insert(
-                    TileWireCoord {
+                let wt = TileWireCoord {
+                    cell: def_t,
+                    wire: k,
+                };
+                for x in v {
+                    let wf = TileWireCoord {
                         cell: def_t,
-                        wire: k,
-                    },
-                    MuxInfo {
-                        kind: MuxKind::Plain,
-                        ins: v
-                            .into_iter()
-                            .map(|x| TileWireCoord {
-                                cell: def_t,
-                                wire: x,
-                            })
-                            .collect(),
-                    },
-                );
+                        wire: x,
+                    };
+                    node_pips.pips.insert((wt, wf), PipMode::Mux);
+                }
             }
         }
-        if let Some((slot, nn)) = node_name {
+        if let Some((slot, sb, nn)) = node_name {
             self.insert_node_merge(
                 nn,
                 TileClass {
                     slot,
                     cells: [()].into_iter().collect(),
-                    muxes: node_muxes,
                     bels: Default::default(),
-                    iris: Default::default(),
                     intfs: Default::default(),
                 },
+                BTreeMap::from_iter([(sb, node_pips)]),
             );
             self.insert_node_naming(
                 naming.as_ref(),
@@ -2648,13 +2650,12 @@ impl<'a> IntBuilder<'a> {
                     wire_bufs: Default::default(),
                     ext_pips: Default::default(),
                     bels: Default::default(),
-                    iris: Default::default(),
                     intf_wires_in: Default::default(),
                     intf_wires_out: Default::default(),
                 },
             );
         } else {
-            assert!(node_muxes.is_empty());
+            assert!(node_pips.pips.is_empty());
         }
         let term = ConnectorClass {
             slot: self.term_slots[dir],
@@ -2826,7 +2827,7 @@ impl<'a> IntBuilder<'a> {
     pub fn extract_term(
         &mut self,
         name: impl AsRef<str>,
-        node_name: Option<(TileSlotId, &str)>,
+        node_name: Option<(TileSlotId, BelSlotId, &str)>,
         dir: Dir,
         tkn: impl AsRef<str>,
         naming: impl AsRef<str>,
@@ -2900,8 +2901,8 @@ impl<'a> IntBuilder<'a> {
         near: Option<Coord>,
         far: Option<Coord>,
         naming: Option<&str>,
-        node: Option<(TileSlotId, &str, &str)>,
-        splitter_node: Option<(TileSlotId, &str, &str)>,
+        node: Option<(TileSlotId, BelSlotId, &str, &str)>,
+        splitter_node: Option<(TileSlotId, BelSlotId, &str, &str)>,
         src_xy: Coord,
         force_pass: &[WireId],
     ) {
@@ -3051,7 +3052,7 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
             }
-            let mut node_muxes = BTreeMap::new();
+            let mut node_pips = Pips::default();
             let mut node_tiles = EntityVec::new();
             let mut node_names = BTreeMap::new();
             let mut node_wire_bufs = BTreeMap::new();
@@ -3169,29 +3170,25 @@ impl<'a> IntBuilder<'a> {
                             }
                         }
                     }
-                    node_muxes.insert(
-                        TileWireCoord {
-                            cell: nt_near,
-                            wire: wt,
-                        },
-                        MuxInfo {
-                            kind: MuxKind::Plain,
-                            ins,
-                        },
-                    );
+                    let wt = TileWireCoord {
+                        cell: nt_near,
+                        wire: wt,
+                    };
+                    for wf in ins {
+                        node_pips.pips.insert((wt, wf), PipMode::Mux);
+                    }
                 }
             }
-            if let Some((slot, nn, nnn)) = node {
+            if let Some((slot, sb, nn, nnn)) = node {
                 self.insert_node_merge(
                     nn,
                     TileClass {
                         slot,
                         cells: node_tiles,
-                        muxes: node_muxes,
                         bels: Default::default(),
-                        iris: Default::default(),
                         intfs: Default::default(),
                     },
+                    BTreeMap::from_iter([(sb, node_pips)]),
                 );
                 self.insert_node_naming(
                     nnn,
@@ -3200,16 +3197,15 @@ impl<'a> IntBuilder<'a> {
                         wire_bufs: node_wire_bufs,
                         ext_pips: Default::default(),
                         bels: Default::default(),
-                        iris: Default::default(),
                         intf_wires_in: Default::default(),
                         intf_wires_out: Default::default(),
                     },
                 );
             } else {
-                assert!(node_muxes.is_empty());
+                assert!(node_pips.pips.is_empty());
             }
             // splitters
-            let mut snode_muxes = BTreeMap::new();
+            let mut snode_pips = Pips::default();
             let mut snode_tiles = EntityVec::new();
             let mut snode_names = BTreeMap::new();
             let snt_far = snode_tiles.push(());
@@ -3246,51 +3242,30 @@ impl<'a> IntBuilder<'a> {
                                 },
                                 self.rd.wires[wfi].clone(),
                             );
-                            snode_muxes.insert(
-                                TileWireCoord {
-                                    cell: snt_near,
-                                    wire: wt,
-                                },
-                                MuxInfo {
-                                    kind: MuxKind::Plain,
-                                    ins: [TileWireCoord {
-                                        cell: snt_far,
-                                        wire: wf,
-                                    }]
-                                    .into_iter()
-                                    .collect(),
-                                },
-                            );
-                            snode_muxes.insert(
-                                TileWireCoord {
-                                    cell: snt_far,
-                                    wire: wf,
-                                },
-                                MuxInfo {
-                                    kind: MuxKind::Plain,
-                                    ins: [TileWireCoord {
-                                        cell: snt_near,
-                                        wire: wt,
-                                    }]
-                                    .into_iter()
-                                    .collect(),
-                                },
-                            );
+                            let wt = TileWireCoord {
+                                cell: snt_near,
+                                wire: wt,
+                            };
+                            let wf = TileWireCoord {
+                                cell: snt_far,
+                                wire: wf,
+                            };
+                            snode_pips.pips.insert((wt, wf), PipMode::Mux);
+                            snode_pips.pips.insert((wf, wt), PipMode::Mux);
                         }
                     }
                 }
             }
-            if let Some((slot, nn, nnn)) = splitter_node {
+            if let Some((slot, sb, nn, nnn)) = splitter_node {
                 self.insert_node_merge(
                     nn,
                     TileClass {
                         slot,
                         cells: snode_tiles,
-                        muxes: snode_muxes,
                         bels: Default::default(),
-                        iris: Default::default(),
                         intfs: Default::default(),
                     },
+                    BTreeMap::from_iter([(sb, snode_pips)]),
                 );
                 self.insert_node_naming(
                     nnn,
@@ -3299,13 +3274,12 @@ impl<'a> IntBuilder<'a> {
                         wire_bufs: Default::default(),
                         ext_pips: Default::default(),
                         bels: Default::default(),
-                        iris: Default::default(),
                         intf_wires_in: Default::default(),
                         intf_wires_out: Default::default(),
                     },
                 );
             } else {
-                assert!(snode_muxes.is_empty());
+                assert!(snode_pips.pips.is_empty());
             }
         }
 
@@ -3474,6 +3448,7 @@ impl<'a> IntBuilder<'a> {
     pub fn extract_xnode(
         &mut self,
         slot: TileSlotId,
+        sb: BelSlotId,
         name: &str,
         xy: Coord,
         buf_xy: &[Coord],
@@ -3485,7 +3460,7 @@ impl<'a> IntBuilder<'a> {
         let mut x = self
             .xnode(slot, name, naming, xy)
             .num_tiles(int_xy.len())
-            .extract_muxes()
+            .extract_muxes(sb)
             .skip_muxes(skip_wires);
         for &xy in buf_xy {
             x = x.raw_tile(xy);
@@ -3562,24 +3537,22 @@ impl<'a> IntBuilder<'a> {
         let mut bels = EntityPartVec::new();
         bels.insert(
             bel,
-            BelInfo {
+            BelInfo::Bel(Bel {
                 pins: Default::default(),
-            },
+            }),
         );
         let mut naming_bels = EntityPartVec::new();
         naming_bels.insert(
             bel,
-            BelNaming {
+            BelNaming::Bel(ProperBelNaming {
                 tile: RawTileId::from_idx(0),
                 pins: Default::default(),
-            },
+            }),
         );
         let node = TileClass {
             slot,
             cells: (0..ntiles).map(|_| ()).collect(),
-            muxes: Default::default(),
             bels,
-            iris: Default::default(),
             intfs: Default::default(),
         };
         let node_naming = TileClassNaming {
@@ -3587,11 +3560,10 @@ impl<'a> IntBuilder<'a> {
             wire_bufs: Default::default(),
             ext_pips: Default::default(),
             bels: naming_bels,
-            iris: Default::default(),
             intf_wires_in: Default::default(),
             intf_wires_out: Default::default(),
         };
-        self.insert_node_merge(name, node);
+        self.insert_node_merge(name, node, BTreeMap::new());
         self.insert_node_naming(naming, node_naming);
     }
 
@@ -3599,12 +3571,10 @@ impl<'a> IntBuilder<'a> {
         let node = TileClass {
             slot,
             cells: (0..ntiles).map(|_| ()).collect(),
-            muxes: Default::default(),
             bels: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
         };
-        self.insert_node_merge(name, node);
+        self.insert_node_merge(name, node, BTreeMap::new());
     }
 
     pub fn xnode<'b>(
@@ -3635,10 +3605,55 @@ impl<'a> IntBuilder<'a> {
             force_names: HashMap::new(),
             force_skip_pips: HashSet::new(),
             force_pips: HashSet::new(),
+            switchbox: None,
         }
     }
 
-    pub fn build(self) -> (IntDb, NamingDb) {
+    pub fn build(mut self) -> (IntDb, NamingDb) {
+        for ((tcls, bslot), pips) in self.pips {
+            let mut muxes: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
+            let mut items = vec![];
+            let mut passes = BTreeSet::new();
+            for ((wt, wf), mode) in pips.pips {
+                match mode {
+                    PipMode::Mux => {
+                        muxes.entry(wt).or_default().insert(wf.pos());
+                    }
+                    PipMode::PermaBuf => {
+                        items.push(SwitchBoxItem::PermaBuf(Buf {
+                            dst: wt,
+                            src: wf.pos(),
+                        }));
+                    }
+                    PipMode::Buf => {
+                        items.push(SwitchBoxItem::ProgBuf(Buf {
+                            dst: wt,
+                            src: wf.pos(),
+                        }));
+                    }
+                    PipMode::Pass => {
+                        passes.insert((wt, wf));
+                    }
+                }
+            }
+            for &(wt, wf) in &passes {
+                if passes.contains(&(wf, wt)) {
+                    if wt < wf {
+                        items.push(SwitchBoxItem::BiPass(BiPass { a: wt, b: wf }));
+                    }
+                } else {
+                    items.push(SwitchBoxItem::Pass(Pass { dst: wt, src: wf }));
+                }
+            }
+            for (wt, wf) in muxes {
+                items.push(SwitchBoxItem::Mux(Mux { dst: wt, src: wf }));
+            }
+            items.sort();
+            self.db.tile_classes[tcls]
+                .bels
+                .insert(bslot, BelInfo::SwitchBox(SwitchBox { items }));
+        }
+
         (self.db, self.ndb)
     }
 }

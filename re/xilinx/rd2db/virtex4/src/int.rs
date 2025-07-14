@@ -267,9 +267,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     builder.extract_main_passes();
 
-    builder.node_type(tslots::INT, "INT", "INT", "INT");
-    builder.node_type(tslots::INT, "INT_SO", "INT", "INT");
-    builder.node_type(tslots::INT, "INT_SO_DCM0", "INT", "INT.DCM0");
+    builder.node_type(tslots::INT, bels::INT, "INT", "INT", "INT");
+    builder.node_type(tslots::INT, bels::INT, "INT_SO", "INT", "INT");
+    builder.node_type(tslots::INT, bels::INT, "INT_SO_DCM0", "INT", "INT.DCM0");
 
     builder.extract_term("TERM.W", None, Dir::W, "L_TERM_INT", "TERM.W");
     builder.extract_term("TERM.E", None, Dir::E, "R_TERM_INT", "TERM.E");

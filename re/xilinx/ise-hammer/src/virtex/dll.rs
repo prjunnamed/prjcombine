@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::{
-    db::BelSlotId,
+    db::{BelInfo, BelSlotId},
     dir::DirH,
     grid::{CellCoord, DieId, TileCoord},
 };
@@ -76,6 +76,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for PinNodeMutexShared {
         let node = backend.egrid.tile(tcrd);
         let node_data = &backend.egrid.db.tile_classes[node.class];
         let bel_data = &node_data.bels[self.0];
+        let BelInfo::Bel(bel_data) = bel_data else {
+            unreachable!()
+        };
         let pin_data = &bel_data.pins[self.1];
         for &wire in &pin_data.wires {
             let node = backend

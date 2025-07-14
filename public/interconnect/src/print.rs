@@ -1,4 +1,4 @@
-use crate::db::{ConnectorWire, IntDb, IntfInfo, PinDir};
+use crate::db::{BelInfo, ConnectorWire, IntDb, IntfInfo, PinDir};
 use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
 
@@ -27,23 +27,6 @@ impl IntDb {
                 slot = self.tile_slots[tcls.slot],
                 nt = tcls.cells.len()
             )?;
-            for (&wo, mux) in &tcls.muxes {
-                write!(
-                    o,
-                    "\t\tMUX {wot}.{won:14} <-",
-                    wot = wo.cell.to_idx(),
-                    won = self.wires.key(wo.wire)
-                )?;
-                for &wi in &mux.ins {
-                    write!(
-                        o,
-                        " {wit}.{win:14}",
-                        wit = wi.cell.to_idx(),
-                        win = self.wires.key(wi.wire)
-                    )?;
-                }
-                writeln!(o)?;
-            }
             for (&wo, intf) in &tcls.intfs {
                 match intf {
                     IntfInfo::OutputTestMux(ins) => {
@@ -94,28 +77,82 @@ impl IntDb {
             }
             let mut wires: BTreeMap<_, Vec<_>> = BTreeMap::new();
             for (slot, bel) in &tcls.bels {
-                writeln!(o, "\t\tBEL {slot}:", slot = self.bel_slots.key(slot))?;
-                for (pn, pin) in &bel.pins {
-                    write!(
-                        o,
-                        "\t\t\t{d}{intf} {pn:20}",
-                        d = match pin.dir {
-                            PinDir::Input => " INPUT",
-                            PinDir::Output => "OUTPUT",
-                            PinDir::Inout => " INOUT",
-                        },
-                        intf = if pin.is_intf_in { ".INTF" } else { "     " }
-                    )?;
-                    for &wi in &pin.wires {
-                        wires.entry(wi).or_default().push((slot, pn));
-                        write!(
-                            o,
-                            " {wit}.{win}",
-                            wit = wi.cell.to_idx(),
-                            win = self.wires.key(wi.wire)
-                        )?;
+                match bel {
+                    BelInfo::SwitchBox(sb) => {
+                        writeln!(o, "\t\t{slot}: SWITCHBOX", slot = self.bel_slots.key(slot))?;
+                        for item in &sb.items {
+                            match item {
+                                crate::db::SwitchBoxItem::Mux(mux) => {
+                                    write!(
+                                        o,
+                                        "\t\t\tMUX      {dst:20} <- ",
+                                        dst = mux.dst.to_string(self, tcls)
+                                    )?;
+                                    for src in &mux.src {
+                                        write!(o, " {src:20}", src = src.to_string(self, tcls))?;
+                                    }
+                                    writeln!(o)?;
+                                }
+                                crate::db::SwitchBoxItem::ProgBuf(buf) => writeln!(
+                                    o,
+                                    "\t\t\tPROGBUF  {dst:20} <-  {src:20}",
+                                    dst = buf.dst.to_string(self, tcls),
+                                    src = buf.src.to_string(self, tcls),
+                                )?,
+                                crate::db::SwitchBoxItem::PermaBuf(buf) => writeln!(
+                                    o,
+                                    "\t\t\tPERMABUF {dst:20} <-  {src:20}",
+                                    dst = buf.dst.to_string(self, tcls),
+                                    src = buf.src.to_string(self, tcls),
+                                )?,
+                                crate::db::SwitchBoxItem::Pass(pass) => writeln!(
+                                    o,
+                                    "\t\t\tPASS     {dst:20} <-  {src:20}",
+                                    dst = pass.dst.to_string(self, tcls),
+                                    src = pass.src.to_string(self, tcls),
+                                )?,
+                                crate::db::SwitchBoxItem::BiPass(pass) => writeln!(
+                                    o,
+                                    "\t\t\tPASS     {a:20} <-> {b:20}",
+                                    a = pass.a.to_string(self, tcls),
+                                    b = pass.b.to_string(self, tcls),
+                                )?,
+                                crate::db::SwitchBoxItem::ProgInv(inv) => writeln!(
+                                    o,
+                                    "\t\t\tPROGINV  {dst:20} <-  {src:20}",
+                                    dst = inv.dst.to_string(self, tcls),
+                                    src = inv.src.to_string(self, tcls),
+                                )?,
+                                crate::db::SwitchBoxItem::ProgDelay(delay) => writeln!(
+                                    o,
+                                    "\t\t\tDELAY #{n} {dst:20} <-  {src:20}",
+                                    n = delay.num_steps,
+                                    dst = delay.dst.to_string(self, tcls),
+                                    src = delay.src.to_string(self, tcls),
+                                )?,
+                            }
+                        }
                     }
-                    writeln!(o)?;
+                    BelInfo::Bel(bel) => {
+                        writeln!(o, "\t\t{slot}: BEL", slot = self.bel_slots.key(slot))?;
+                        for (pn, pin) in &bel.pins {
+                            write!(
+                                o,
+                                "\t\t\t{d}{intf} {pn:20}",
+                                d = match pin.dir {
+                                    PinDir::Input => " INPUT",
+                                    PinDir::Output => "OUTPUT",
+                                    PinDir::Inout => " INOUT",
+                                },
+                                intf = if pin.is_intf_in { ".INTF" } else { "     " }
+                            )?;
+                            for &wi in &pin.wires {
+                                wires.entry(wi).or_default().push((slot, pn));
+                                write!(o, " {wire}", wire = wi.to_string(self, tcls))?;
+                            }
+                            writeln!(o)?;
+                        }
+                    }
                 }
             }
             for (wire, bels) in wires {

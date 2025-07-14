@@ -5,7 +5,10 @@ use std::{
 
 use ndarray::Array2;
 use prjcombine_interconnect::{
-    db::{BelSlotId, IntDb, MuxInfo, MuxKind, TileClassId, TileWireCoord, WireId, WireKind},
+    db::{
+        BelInfo, BelSlotId, BiPass, Buf, IntDb, Mux, Pass, SwitchBoxItem, TileClassId, TileSlotId,
+        TileWireCoord, WireId, WireKind,
+    },
     dir::Dir,
     grid::{BelCoord, CellCoord, ExpandedGrid, TileCoord, WireCoord},
 };
@@ -18,6 +21,13 @@ use unnamed_entity::{EntityBitVec, EntityId, EntityMap, EntityPartVec, EntityVec
 
 entity_id! {
     pub id NetId u32, reserve 1;
+}
+
+pub enum PipMode {
+    Mux,
+    Buf,
+    Pass,
+    PermaBuf,
 }
 
 pub struct PrimExtractor<'a> {
@@ -59,7 +69,7 @@ pub struct Extractor<'a> {
     pub int_pip_force_dst: BTreeMap<(NetId, NetId), TileWireCoord>,
     pub used_pips: BTreeSet<(NetId, NetId)>,
     pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
-    pub node_muxes: EntityPartVec<TileClassId, BTreeMap<TileWireCoord, MuxInfo>>,
+    pub tcls_pips: EntityPartVec<TileClassId, BTreeSet<(TileWireCoord, TileWireCoord)>>,
     pub int_pips:
         EntityPartVec<NodeNamingId, BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>>,
     pub net_by_cell_override: BTreeMap<CellCoord, BTreeMap<NetId, WireId>>,
@@ -68,7 +78,7 @@ pub struct Extractor<'a> {
 
 pub struct Finisher {
     pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
-    pub node_muxes: EntityPartVec<TileClassId, BTreeMap<TileWireCoord, MuxInfo>>,
+    pub tcls_pips: EntityPartVec<TileClassId, BTreeSet<(TileWireCoord, TileWireCoord)>>,
     pub int_pips:
         EntityPartVec<NodeNamingId, BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>>,
 }
@@ -128,7 +138,7 @@ impl<'a> Extractor<'a> {
                 .ids()
                 .map(|_| Default::default())
                 .collect(),
-            node_muxes: EntityPartVec::new(),
+            tcls_pips: EntityPartVec::new(),
             int_pips: EntityPartVec::new(),
             net_by_cell_override: Default::default(),
             junk_prim_names: Default::default(),
@@ -578,7 +588,7 @@ impl<'a> Extractor<'a> {
                     }
                 }
             }
-            let mut muxes = BTreeMap::new();
+            let mut muxes = BTreeSet::new();
             let mut int_pips = BTreeMap::new();
             let nnode = &self.ngrid.tiles[&tcrd];
             if let Some(boxes) = node_boxes.get(&tcrd) {
@@ -601,14 +611,7 @@ impl<'a> Extractor<'a> {
                                 let pip_t = self.xlat_pip_loc(tcrd, (tx, ty));
                                 let pip_f = self.xlat_pip_loc(tcrd, (fx, fy));
                                 int_pips.insert((nwt, nwf), IntPipNaming::Box(pip_t, pip_f));
-                                muxes
-                                    .entry(nwt)
-                                    .or_insert(MuxInfo {
-                                        kind: MuxKind::Plain,
-                                        ins: Default::default(),
-                                    })
-                                    .ins
-                                    .insert(nwf);
+                                muxes.insert((nwt, nwf));
                             }
                         }
                     }
@@ -643,22 +646,15 @@ impl<'a> Extractor<'a> {
                         save = false;
                     }
                     if save {
-                        muxes
-                            .entry(nwt)
-                            .or_insert(MuxInfo {
-                                kind: MuxKind::Plain,
-                                ins: Default::default(),
-                            })
-                            .ins
-                            .insert(nwf);
+                        muxes.insert((nwt, nwf));
                     }
                 }
             }
-            if !self.node_muxes.contains_id(tile.class) {
-                self.node_muxes.insert(tile.class, muxes);
+            if !self.tcls_pips.contains_id(tile.class) {
+                self.tcls_pips.insert(tile.class, muxes);
             } else {
                 assert_eq!(
-                    self.node_muxes[tile.class],
+                    self.tcls_pips[tile.class],
                     muxes,
                     "fail merging node {}",
                     self.egrid.db.tile_classes.key(tile.class)
@@ -709,13 +705,18 @@ impl<'a> Extractor<'a> {
         Finisher {
             bel_pips: self.bel_pips,
             int_pips: self.int_pips,
-            node_muxes: self.node_muxes,
+            tcls_pips: self.tcls_pips,
         }
     }
 }
 
 impl Finisher {
-    pub fn finish(mut self, db: &mut IntDb, ndb: &mut NamingDb) {
+    pub fn finish(
+        mut self,
+        db: &mut IntDb,
+        ndb: &mut NamingDb,
+        mut classify_pip: impl FnMut(&IntDb, TileSlotId, TileWireCoord, TileWireCoord) -> PipMode,
+    ) {
         let mut new_node_namings = EntityMap::new();
         for (naming, name, mut node_naming) in core::mem::take(&mut ndb.node_namings) {
             if let Some(int_pips) = self.int_pips.remove(naming) {
@@ -727,8 +728,54 @@ impl Finisher {
         ndb.node_namings = new_node_namings;
         let mut new_nodes = EntityMap::new();
         for (kind, name, mut node) in core::mem::take(&mut db.tile_classes) {
-            if let Some(muxes) = self.node_muxes.remove(kind) {
-                node.muxes = muxes;
+            if let Some(pips) = self.tcls_pips.remove(kind) {
+                let mut muxes: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
+                let mut items = vec![];
+                let mut passes = BTreeSet::new();
+                for (wt, wf) in pips {
+                    match classify_pip(db, node.slot, wt, wf) {
+                        PipMode::Mux => {
+                            muxes.entry(wt).or_default().insert(wf.pos());
+                        }
+                        PipMode::PermaBuf => {
+                            items.push(SwitchBoxItem::PermaBuf(Buf {
+                                dst: wt,
+                                src: wf.pos(),
+                            }));
+                        }
+                        PipMode::Buf => {
+                            items.push(SwitchBoxItem::ProgBuf(Buf {
+                                dst: wt,
+                                src: wf.pos(),
+                            }));
+                        }
+                        PipMode::Pass => {
+                            passes.insert((wt, wf));
+                        }
+                    }
+                }
+                for &(wt, wf) in &passes {
+                    if passes.contains(&(wf, wt)) {
+                        if wt < wf {
+                            items.push(SwitchBoxItem::BiPass(BiPass { a: wt, b: wf }));
+                        }
+                    } else {
+                        items.push(SwitchBoxItem::Pass(Pass { dst: wt, src: wf }));
+                    }
+                }
+                for (wt, wf) in muxes {
+                    items.push(SwitchBoxItem::Mux(Mux { dst: wt, src: wf }));
+                }
+                items.sort();
+                let mut found = false;
+                for bel in node.bels.values_mut() {
+                    if let BelInfo::SwitchBox(sb) = bel {
+                        found = true;
+                        sb.items = items;
+                        break;
+                    }
+                }
+                assert!(found);
                 new_nodes.insert(name, node);
             }
         }

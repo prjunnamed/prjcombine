@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_xilinx_rawdump::Part;
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
-use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
+use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, PipMode};
 use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
@@ -31,7 +31,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..24 {
         let w = builder.wire(
             format!("CLB.M{i}"),
-            WireKind::PipOut,
+            WireKind::MultiOut,
             &[format!("WIRE_M{i}_CLB")],
         );
         builder.buf(w, format!("CLB.M{i}.BUF"), &[format!("WIRE_BUF{i}_CLB")]);
@@ -39,7 +39,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..16 {
         let w = builder.wire(
             format!("IO.M{i}"),
-            WireKind::PipOut,
+            WireKind::MultiOut,
             &[
                 format!("WIRE_M{i}_LEFT"),
                 format!("WIRE_M{i}_RIGHT"),
@@ -65,10 +65,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         let w = builder.wire(
             format!("SINGLE.E{i}"),
-            WireKind::PipOut,
+            WireKind::MultiOut,
             &[format!("WIRE_E{i}_CLB"), format!("WIRE_E{i}_LEFT")],
         );
-        builder.pip_branch(
+        builder.multi_branch(
             w,
             Dir::E,
             format!("SINGLE.W{i}"),
@@ -81,10 +81,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         let w = builder.wire(
             format!("SINGLE.S{i}"),
-            WireKind::PipOut,
+            WireKind::MultiOut,
             &[format!("WIRE_S{i}_CLB"), format!("WIRE_S{i}_TOP")],
         );
-        builder.pip_branch(
+        builder.multi_branch(
             w,
             Dir::S,
             format!("SINGLE.N{i}"),
@@ -99,10 +99,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..8 {
         let w_be = builder.wire(
             format!("IO.SINGLE.B.E{i}"),
-            WireKind::PipBranch(builder.term_slots[Dir::W]),
+            WireKind::MultiBranch(builder.term_slots[Dir::W]),
             &[format!("WIRE_E{i}_BOT")],
         );
-        let w_bw = builder.pip_branch(
+        let w_bw = builder.multi_branch(
             w_be,
             Dir::E,
             format!("IO.SINGLE.B.W{i}"),
@@ -110,10 +110,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         let w_rn = builder.wire(
             format!("IO.SINGLE.R.N{i}"),
-            WireKind::PipBranch(builder.term_slots[Dir::S]),
+            WireKind::MultiBranch(builder.term_slots[Dir::S]),
             &[format!("WIRE_N{i}_RIGHT")],
         );
-        let w_rs = builder.pip_branch(
+        let w_rs = builder.multi_branch(
             w_rn,
             Dir::N,
             format!("IO.SINGLE.R.S{i}"),
@@ -121,10 +121,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         let w_tw = builder.wire(
             format!("IO.SINGLE.T.W{i}"),
-            WireKind::PipBranch(builder.term_slots[Dir::E]),
+            WireKind::MultiBranch(builder.term_slots[Dir::E]),
             &[format!("WIRE_W{i}_TOP")],
         );
-        let w_te = builder.pip_branch(
+        let w_te = builder.multi_branch(
             w_tw,
             Dir::W,
             format!("IO.SINGLE.T.E{i}"),
@@ -132,10 +132,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
         let w_ls = builder.wire(
             format!("IO.SINGLE.L.S{i}"),
-            WireKind::PipBranch(builder.term_slots[Dir::N]),
+            WireKind::MultiBranch(builder.term_slots[Dir::N]),
             &[format!("WIRE_S{i}_LEFT")],
         );
-        let w_ln = builder.pip_branch(
+        let w_ln = builder.multi_branch(
             w_ls,
             Dir::S,
             format!("IO.SINGLE.L.N{i}"),
@@ -166,20 +166,20 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in [0, 6] {
         let w = builder.wire(
             format!("DBL.H{i}.M"),
-            WireKind::PipOut,
+            WireKind::MultiOut,
             &[
                 format!("WIRE_DH{i}_CLB"),
                 format!("WIRE_DH{i}_LEFT"),
                 format!("WIRE_DH{i}_RIGHT"),
             ],
         );
-        builder.pip_branch(
+        builder.multi_branch(
             w,
             Dir::W,
             format!("DBL.H{i}.W"),
             &[format!("WIRE_DE{i}_CLB"), format!("WIRE_DE{i}_LEFT")],
         );
-        builder.pip_branch(
+        builder.multi_branch(
             w,
             Dir::E,
             format!("DBL.H{i}.E"),
@@ -189,20 +189,20 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in [0, 6] {
         let w = builder.wire(
             format!("DBL.V{i}.M"),
-            WireKind::PipOut,
+            WireKind::MultiOut,
             &[
                 format!("WIRE_DV{i}_CLB"),
                 format!("WIRE_DV{i}_BOT"),
                 format!("WIRE_DV{i}_TOP"),
             ],
         );
-        builder.pip_branch(
+        builder.multi_branch(
             w,
             Dir::S,
             format!("DBL.V{i}.S"),
             &[format!("WIRE_DN{i}_CLB"), format!("WIRE_DN{i}_BOT")],
         );
-        builder.pip_branch(
+        builder.multi_branch(
             w,
             Dir::N,
             format!("DBL.V{i}.N"),
@@ -474,6 +474,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     builder.extract_node(
         tslots::MAIN,
+        bels::INT,
         "CENTER",
         "CLB",
         "CLB",
@@ -549,16 +550,45 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .bel_virtual(bels::COUT)
             .extra_int_out("OUT", &["WIRE_COUT_TOP"]),
     );
-    builder.extract_node(tslots::MAIN, "LEFT", "IO.L", "IO.L", &bels_io);
-    builder.extract_node(tslots::MAIN, "LEFTCLK", "IO.L", "IO.L.CLK", &bels_io);
-    builder.extract_node(tslots::MAIN, "RIGHT", "IO.R", "IO.R", &bels_io);
-    builder.extract_node(tslots::MAIN, "RIGHTCLK", "IO.R", "IO.R.CLK", &bels_io);
-    builder.extract_node(tslots::MAIN, "BOT", "IO.B", "IO.B", &bels_io_b);
-    builder.extract_node(tslots::MAIN, "BOTCLK", "IO.B", "IO.B.CLK", &bels_io_b);
-    builder.extract_node(tslots::MAIN, "TOP", "IO.T", "IO.T", &bels_io_t);
-    builder.extract_node(tslots::MAIN, "TOPCLK", "IO.T", "IO.T.CLK", &bels_io_t);
+    builder.extract_node(tslots::MAIN, bels::INT, "LEFT", "IO.L", "IO.L", &bels_io);
     builder.extract_node(
         tslots::MAIN,
+        bels::INT,
+        "LEFTCLK",
+        "IO.L",
+        "IO.L.CLK",
+        &bels_io,
+    );
+    builder.extract_node(tslots::MAIN, bels::INT, "RIGHT", "IO.R", "IO.R", &bels_io);
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "RIGHTCLK",
+        "IO.R",
+        "IO.R.CLK",
+        &bels_io,
+    );
+    builder.extract_node(tslots::MAIN, bels::INT, "BOT", "IO.B", "IO.B", &bels_io_b);
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "BOTCLK",
+        "IO.B",
+        "IO.B.CLK",
+        &bels_io_b,
+    );
+    builder.extract_node(tslots::MAIN, bels::INT, "TOP", "IO.T", "IO.T", &bels_io_t);
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
+        "TOPCLK",
+        "IO.T",
+        "IO.T.CLK",
+        &bels_io_t,
+    );
+    builder.extract_node(
+        tslots::MAIN,
+        bels::INT,
         "LL",
         "CNR.BL",
         "CNR.BL",
@@ -572,6 +602,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::MAIN,
+        bels::INT,
         "LR",
         "CNR.BR",
         "CNR.BR",
@@ -585,6 +616,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::MAIN,
+        bels::INT,
         "UL",
         "CNR.TL",
         "CNR.TL",
@@ -598,6 +630,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     );
     builder.extract_node(
         tslots::MAIN,
+        bels::INT,
         "UR",
         "CNR.TR",
         "CNR.TR",
@@ -612,10 +645,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ],
     );
 
-    let node_bot = builder.db.tile_classes.get_mut("IO.B").unwrap().1;
-    for mux in node_bot.muxes.values_mut() {
-        mux.ins.retain(|&x| x.wire != bot_cin);
-    }
+    let node_bot = builder.db.tile_classes.get_mut("IO.B").unwrap().0;
+    let pips = builder.pips.get_mut(&(node_bot, bels::INT)).unwrap();
+    pips.pips.retain(|&(_, wf), _| wf.wire != bot_cin);
 
     for tkn in ["CLKV", "CLKB", "CLKT"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
@@ -629,7 +661,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 None,
                 None,
                 None,
-                Some((tslots::EXTRA_COL, tkn, tkn)),
+                Some((tslots::EXTRA_COL, bels::LLH, tkn, tkn)),
                 int_fwd_xy,
                 &[],
             );
@@ -660,7 +692,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 None,
                 None,
                 None,
-                Some((tslots::EXTRA_ROW, tkn, tkn)),
+                Some((tslots::EXTRA_ROW, bels::LLV, tkn, tkn)),
                 int_fwd_xy,
                 &[],
             );
@@ -676,6 +708,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_bwd_xy,
                 &[],
             );
+        }
+    }
+
+    for pips in builder.pips.values_mut() {
+        for (&(wt, _wf), mode) in &mut pips.pips {
+            let wtn = builder.db.wires.key(wt.wire);
+            if !wtn.starts_with("IMUX") && !wtn.starts_with("OMUX") {
+                *mode = PipMode::Pass;
+            }
         }
     }
 

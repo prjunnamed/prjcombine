@@ -217,16 +217,44 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     builder.extract_main_passes();
 
-    builder.extract_node(tslots::INT, "INT", "INT", "INT", &[]);
-    builder.extract_node(tslots::INT, "INT_BRK", "INT", "INT.BRK", &[]);
-    builder.extract_node(tslots::INT, "INT_BRAM", "INT", "INT", &[]);
-    builder.extract_node(tslots::INT, "INT_BRAM_BRK", "INT", "INT.BRK", &[]);
-    builder.extract_node(tslots::INT, "INT_GCLK", "INT", "INT", &[]);
-    builder.extract_node(tslots::INT, "INT_TERM", "INT", "INT.TERM", &[]);
-    builder.extract_node(tslots::INT, "INT_TERM_BRK", "INT", "INT.TERM.BRK", &[]);
-    builder.extract_node(tslots::INT, "IOI_INT", "INT.IOI", "INT.IOI", &[]);
-    builder.extract_node(tslots::INT, "LIOI_INT", "INT.IOI", "INT.IOI", &[]);
-    builder.extract_node(tslots::INT, "LIOI_INT_BRK", "INT.IOI", "INT.IOI.BRK", &[]);
+    builder.extract_node(tslots::INT, bels::INT, "INT", "INT", "INT", &[]);
+    builder.extract_node(tslots::INT, bels::INT, "INT_BRK", "INT", "INT.BRK", &[]);
+    builder.extract_node(tslots::INT, bels::INT, "INT_BRAM", "INT", "INT", &[]);
+    builder.extract_node(
+        tslots::INT,
+        bels::INT,
+        "INT_BRAM_BRK",
+        "INT",
+        "INT.BRK",
+        &[],
+    );
+    builder.extract_node(tslots::INT, bels::INT, "INT_GCLK", "INT", "INT", &[]);
+    builder.extract_node(tslots::INT, bels::INT, "INT_TERM", "INT", "INT.TERM", &[]);
+    builder.extract_node(
+        tslots::INT,
+        bels::INT,
+        "INT_TERM_BRK",
+        "INT",
+        "INT.TERM.BRK",
+        &[],
+    );
+    builder.extract_node(tslots::INT, bels::INT, "IOI_INT", "INT.IOI", "INT.IOI", &[]);
+    builder.extract_node(
+        tslots::INT,
+        bels::INT,
+        "LIOI_INT",
+        "INT.IOI",
+        "INT.IOI",
+        &[],
+    );
+    builder.extract_node(
+        tslots::INT,
+        bels::INT,
+        "LIOI_INT_BRK",
+        "INT.IOI",
+        "INT.IOI.BRK",
+        &[],
+    );
 
     for tkn in [
         "CNR_TL_LTERM",
@@ -1932,6 +1960,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .raw_tile(xy.delta(0, 1))
                         .raw_tile(xy.delta(2, 1)) // BUFPLL mux
                         .raw_tile_single(xy.delta(2, 3), 0)
+                        .switchbox(bels::REG_INT)
                         .optin_muxes(&regb_clk);
                 }
                 "REG_T" => {
@@ -1939,6 +1968,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .raw_tile(xy.delta(0, -1))
                         .raw_tile(xy.delta(2, -1)) // BUFPLL mux
                         .raw_tile_single(xy.delta(2, -2), 0)
+                        .switchbox(bels::REG_INT)
                         .optin_muxes(&regt_clk);
                 }
                 _ => unreachable!(),

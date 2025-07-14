@@ -1,5 +1,6 @@
 #![recursion_limit = "1024"]
 
+use prjcombine_interconnect::db::BelInfo;
 use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::{CellCoord, DieId, RowId, TileIobId};
 use prjcombine_re_xilinx_naming_ultrascale::ExpandedNamedDevice;
@@ -794,7 +795,7 @@ fn verify_bufce_leaf_x16(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let clk_in: [_; 16] = core::array::from_fn(|i| format!("CLK_IN{i}"));
     let pins: Vec<_> = clk_in.iter().map(|x| (&x[..], SitePinDir::In)).collect();
     vrf.verify_bel(bel, "BUFCE_LEAF_X16", &pins, &[]);
-    let obel = vrf.find_bel_sibling(bel, bels::RCLK_INT);
+    let obel = vrf.find_bel_sibling(bel, bels::RCLK_INT_CLK);
     for pin in &clk_in {
         vrf.claim_node(&[bel.fwire(pin)]);
         for j in 0..24 {
@@ -816,7 +817,7 @@ fn verify_bufce_leaf(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for (pin, _) in pins {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
-    let obel = vrf.find_bel_sibling(bel, bels::RCLK_INT);
+    let obel = vrf.find_bel_sibling(bel, bels::RCLK_INT_CLK);
     for j in 0..24 {
         vrf.claim_pip(
             bel.crd(),
@@ -5037,7 +5038,7 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
 
         _ if slot_name.starts_with("BUFCE_LEAF_X16") => verify_bufce_leaf_x16(vrf, bel),
         _ if slot_name.starts_with("BUFCE_LEAF") => verify_bufce_leaf(vrf, bel),
-        bels::RCLK_INT => verify_rclk_int(endev, vrf, bel),
+        bels::RCLK_INT_CLK => verify_rclk_int(endev, vrf, bel),
 
         bels::RCLK_SPLITTER => verify_rclk_splitter(endev, vrf, bel),
         bels::RCLK_HROUTE_SPLITTER => verify_rclk_hroute_splitter(endev, vrf, bel),
@@ -5455,7 +5456,9 @@ fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
 
 fn verify_pre(vrf: &mut Verifier) {
     if let Some((tcid, tcls)) = vrf.db.tile_classes.get("XP5IO") {
-        let bel = &tcls.bels[bels::LPDDRMC];
+        let BelInfo::Bel(bel) = &tcls.bels[bels::LPDDRMC] else {
+            unreachable!()
+        };
         for &tcrd in &vrf.grid.tile_index[tcid] {
             for (opin, ipin) in [
                 ("CFG2IOB_PUDC_B_O", "CFG2IOB_PUDC_B"),

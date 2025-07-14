@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashSet, btree_map};
 
 use prjcombine_interconnect::{
-    db::{CellSlotId, TileWireCoord},
+    db::{BelInfo, CellSlotId, SwitchBoxItem, TileWireCoord},
     grid::{TileCoord, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
@@ -271,14 +271,14 @@ fn drive_wire<'a>(
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db.tile_classes[node.class];
-                if let Some(mux) = node_kind.muxes.get(&TileWireCoord {
+                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
+                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
-                    for &inp in &mux.ins {
+                    for &inp in ins {
                         if backend.egrid.db.wires.key(inp.wire).starts_with("OUT") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp).unwrap();
+                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (
                                     tcrd,
@@ -286,7 +286,7 @@ fn drive_wire<'a>(
                                         cell: CellSlotId::from_idx(0),
                                         wire: w.slot,
                                     },
-                                    inp,
+                                    inp.tw,
                                 );
                             }
                         }
@@ -300,14 +300,14 @@ fn drive_wire<'a>(
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db.tile_classes[node.class];
-                if let Some(mux) = node_kind.muxes.get(&TileWireCoord {
+                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
+                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
-                    for &inp in &mux.ins {
+                    for &inp in ins {
                         if backend.egrid.db.wires.key(inp.wire).starts_with("SINGLE") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp).unwrap();
+                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (
                                     tcrd,
@@ -315,7 +315,7 @@ fn drive_wire<'a>(
                                         cell: CellSlotId::from_idx(0),
                                         wire: w.slot,
                                     },
-                                    inp,
+                                    inp.tw,
                                 );
                             }
                         }
@@ -329,12 +329,12 @@ fn drive_wire<'a>(
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db.tile_classes[node.class];
-                if let Some(mux) = node_kind.muxes.get(&TileWireCoord {
+                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
+                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
-                    for &inp in &mux.ins {
+                    for &inp in ins {
                         if backend
                             .egrid
                             .db
@@ -342,7 +342,7 @@ fn drive_wire<'a>(
                             .key(inp.wire)
                             .starts_with("IO.DOUBLE")
                         {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp).unwrap();
+                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (
                                     tcrd,
@@ -350,7 +350,7 @@ fn drive_wire<'a>(
                                         cell: CellSlotId::from_idx(0),
                                         wire: w.slot,
                                     },
-                                    inp,
+                                    inp.tw,
                                 );
                             }
                         }
@@ -549,12 +549,10 @@ fn apply_imux_finish<'a>(
     }
     if bels::IO.contains(&slot) && (pin == "O2" || pin == "O1") {
         let opin = if pin == "O1" { "O2" } else { "O1" };
-        let opin = node_kind.bels[slot].pins[opin]
-            .wires
-            .iter()
-            .copied()
-            .next()
-            .unwrap();
+        let BelInfo::Bel(ref bel_data) = node_kind.bels[slot] else {
+            unreachable!()
+        };
+        let opin = bel_data.pins[opin].wires.iter().copied().next().unwrap();
         let opin = backend.egrid.resolve_tile_wire_nobuf(tcrd, opin).unwrap();
         fuzzer = fuzzer
             .base(Key::NodeMutex(opin), "PROHIBIT")
@@ -716,15 +714,16 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ClbSpecialMux {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let intdb = backend.egrid.db;
-    for (_, tile, node) in &intdb.tile_classes {
-        if node.muxes.is_empty() {
+    for (tcid, tile, _) in &intdb.tile_classes {
+        let tcls_index = &backend.egrid.db_index.tile_classes[tcid];
+        if tcls_index.pips_bwd.is_empty() {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        for (&wire_to, mux) in &node.muxes {
+        for (&wire_to, ins) in &tcls_index.pips_bwd {
             let out_name = intdb.wires.key(wire_to.wire);
             let mux_name = if tile.starts_with("LL") {
-                format!("MUX.{wtt}.{out_name}", wtt = wire_to.cell)
+                format!("MUX.{wtt:#}.{out_name}", wtt = wire_to.cell)
             } else {
                 assert_eq!(wire_to.cell.to_idx(), 0);
                 format!("MUX.{out_name}")
@@ -752,7 +751,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             {
                 is_iob_o = true;
             }
-            for &wire_from in &mux.ins {
+            for &wire_from in ins {
+                let wire_from = wire_from.tw;
                 let wire_from_name = intdb.wires.key(wire_from.wire);
                 let in_name = format!("{:#}.{}", wire_from.cell, wire_from_name);
                 if is_iob_o {
@@ -851,451 +851,475 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let intdb = ctx.edev.egrid.db;
     let mut iob_o_diffs: BTreeMap<_, BTreeMap<_, _>> = BTreeMap::new();
     for (_, tile, node) in &intdb.tile_classes {
-        if node.muxes.is_empty() {
-            continue;
-        }
-        let mut hiob_o_diffs: BTreeMap<_, BTreeMap<_, _>> = BTreeMap::new();
-        let mut mux_diffs: BTreeMap<TileWireCoord, BTreeMap<TileWireCoord, Diff>> = BTreeMap::new();
-        for (&wire_to, mux) in &node.muxes {
-            let out_name = intdb.wires.key(wire_to.wire);
-            let mux_name = if tile.starts_with("LL") {
-                format!("MUX.{wtt}.{out_name}", wtt = wire_to.cell)
-            } else {
-                format!("MUX.{out_name}")
-            };
-            let mut iob_o = None;
-            if out_name.starts_with("IMUX.IO") && out_name.ends_with("O1") && tile.starts_with("IO")
-            {
-                iob_o = if out_name == "IMUX.IOB0.O1" {
-                    Some((&tile[..], "IO0", "O1", 0))
-                } else {
-                    Some((&tile[..], "IO1", "O1", 0))
-                };
-            }
-            if (out_name == "IMUX.CLB.F4" || out_name == "IMUX.CLB.G4") && tile.starts_with("IO.B")
-            {
-                iob_o = if out_name == "IMUX.CLB.F4" {
-                    Some((&tile[..], "IO0", "O2", 0))
-                } else {
-                    Some((&tile[..], "IO1", "O2", 0))
-                };
-            }
-            if (out_name == "IMUX.CLB.F2" || out_name == "IMUX.CLB.G2")
-                && tile.starts_with("CLB")
-                && tile.ends_with('T')
-            {
-                iob_o = if out_name == "IMUX.CLB.F2" {
-                    Some(("IO.T", "IO0", "O2", 3))
-                } else {
-                    Some(("IO.T", "IO1", "O2", 3))
-                };
-            }
-            if (out_name == "IMUX.CLB.F3" || out_name == "IMUX.CLB.G3") && tile.starts_with("CLB.L")
-            {
-                iob_o = if out_name == "IMUX.CLB.G3" {
-                    Some(("IO.L", "IO0", "O2", 2))
-                } else {
-                    Some(("IO.L", "IO1", "O2", 2))
-                };
-            }
-            if (out_name == "IMUX.CLB.F1" || out_name == "IMUX.CLB.G1") && tile.starts_with("IO.R")
-            {
-                iob_o = if out_name == "IMUX.CLB.G1" {
-                    Some((&tile[..], "IO0", "O2", 0))
-                } else {
-                    Some((&tile[..], "IO1", "O2", 0))
-                };
-            }
-            if let Some((prefix, bel, pin, bt)) = iob_o {
-                if ctx.edev.chip.kind == ChipKind::Xc4000H {
-                    let mut inps = vec![];
-                    let mut got_empty = false;
-                    for &wire_from in &mux.ins {
-                        let in_name =
-                            format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
-                        let diff0 =
-                            ctx.state
-                                .get_diff(tile, "INT", &mux_name, format!("{in_name}.HIOB0"));
-                        let diff1 =
-                            ctx.state
-                                .get_diff(tile, "INT", &mux_name, format!("{in_name}.HIOB1"));
-                        let (mut diff0, mut diff1, diff) = Diff::split(diff0, diff1);
-                        if diff.bits.is_empty() {
-                            got_empty = true;
-                        }
-                        inps.push((in_name.to_string(), diff));
-                        if bt != 0 {
-                            for diff in [&mut diff0, &mut diff1] {
-                                *diff = Diff {
-                                    bits: diff
-                                        .bits
-                                        .iter()
-                                        .map(|(&bit, &val)| {
-                                            assert_eq!(bit.tile, bt);
-                                            (TileBit { tile: 0, ..bit }, val)
-                                        })
-                                        .collect(),
-                                };
-                            }
-                        }
-                        let hiob = if bel == "IO0" {
-                            ["HIO0", "HIO1"]
-                        } else {
-                            ["HIO2", "HIO3"]
-                        };
-                        for (bel, diff) in [(hiob[0], diff0), (hiob[1], diff1)] {
-                            match hiob_o_diffs.entry((prefix, bel)).or_default().entry(pin) {
-                                btree_map::Entry::Vacant(entry) => {
-                                    entry.insert(diff);
-                                }
-                                btree_map::Entry::Occupied(entry) => {
-                                    assert_eq!(*entry.get(), diff);
-                                }
-                            }
-                        }
-                    }
-                    if pin == "O1" {
-                        assert!(!got_empty);
-                        inps.push(("GND".to_string(), Diff::default()));
-                    } else {
-                        assert!(got_empty);
-                    }
-                    let item = xlat_enum_ocd(inps, OcdMode::Mux);
-                    if item.bits.is_empty() {
-                        println!("UMMM MUX {tile} {mux_name} is empty");
-                    }
-                    ctx.tiledb.insert(tile, "INT", mux_name, item);
-                } else {
-                    for suffix in ["O", "OQ", "O.NOT", "OQ.NOT"] {
-                        let mut inps = vec![];
-                        for &wire_from in &mux.ins {
-                            let in_name =
-                                format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
-                            let diff = ctx.state.get_diff(
-                                tile,
-                                "INT",
-                                &mux_name,
-                                format!("{in_name}.{suffix}"),
-                            );
-                            inps.push((in_name.to_string(), diff));
-                        }
-                        let mut common = inps[0].1.clone();
-                        for (_, diff) in &inps {
-                            common.bits.retain(|bit, _| diff.bits.contains_key(bit));
-                        }
-                        let mut got_empty = false;
-                        for (_, diff) in &mut inps {
-                            *diff = diff.combine(&!&common);
-                            if diff.bits.is_empty() {
-                                got_empty = true;
-                            }
-                        }
-                        if pin == "O1" {
-                            assert!(!got_empty);
-                            inps.push(("GND".to_string(), Diff::default()));
-                        } else {
-                            assert!(got_empty);
-                        }
-                        let item = xlat_enum_ocd(inps, OcdMode::Mux);
-                        if item.bits.is_empty() {
-                            println!("UMMM MUX {tile} {mux_name} is empty");
-                        }
-                        ctx.tiledb.insert(tile, "INT", &mux_name, item);
-                        if bt != 0 {
-                            common = Diff {
-                                bits: common
-                                    .bits
-                                    .iter()
-                                    .map(|(&bit, &val)| {
-                                        assert_eq!(bit.tile, bt);
-                                        (TileBit { tile: 0, ..bit }, val)
-                                    })
-                                    .collect(),
-                            };
-                        }
-                        match iob_o_diffs
-                            .entry((&prefix[..4], bel))
-                            .or_default()
-                            .entry(format!("{pin}.{suffix}"))
-                        {
-                            btree_map::Entry::Vacant(entry) => {
-                                entry.insert(common);
-                            }
-                            btree_map::Entry::Occupied(entry) => {
-                                assert_eq!(*entry.get(), common);
-                            }
-                        }
-                    }
-                }
-            } else if out_name.starts_with("IMUX.TBUF") {
-                if out_name.ends_with("I") {
-                    continue;
-                }
-                let idx = if out_name == "IMUX.TBUF0.TS" {
-                    0
-                } else if out_name == "IMUX.TBUF1.TS" {
-                    1
-                } else {
-                    unreachable!()
-                };
-                let mut t_inps = vec![];
-                for &wire_from in &mux.ins {
-                    let in_name =
-                        format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
-                    t_inps.push((
-                        in_name.to_string(),
-                        ctx.state.get_diff(tile, "INT", &mux_name, &in_name),
-                    ));
-                }
-                let imux_i = TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: intdb.get_wire(&format!("IMUX.TBUF{idx}.I")),
-                };
-                let mux_name_i = format!("MUX.IMUX.TBUF{idx}.I");
-                let mux_i = &node.muxes[&imux_i];
-                let mut i_inps = vec![];
-                for &wire_from in &mux_i.ins {
-                    let in_name =
-                        format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
-                    i_inps.push((
-                        in_name.to_string(),
-                        ctx.state.get_diff(tile, "INT", &mux_name_i, &in_name),
-                    ));
-                }
-                let mut t_bits = HashSet::new();
-                for (_, diff) in &t_inps {
-                    for &bit in diff.bits.keys() {
-                        t_bits.insert(bit);
-                    }
-                }
-                for (_, diff) in &mut i_inps {
-                    let t_diff = diff.split_bits(&t_bits);
-                    t_inps.push(("GND".to_string(), t_diff));
-                }
-                i_inps.push(("GND".to_string(), Diff::default()));
-                let item_i = xlat_enum_ocd(i_inps, OcdMode::Mux);
-                if item_i.bits.is_empty() {
-                    println!("UMMM MUX {tile} {mux_name_i} is empty");
-                }
-                ctx.tiledb.insert(tile, "INT", mux_name_i, item_i);
-                let mut common = t_inps[0].1.clone();
-                for (_, diff) in &t_inps {
-                    common.bits.retain(|bit, _| diff.bits.contains_key(bit));
-                }
-                assert_eq!(common.bits.len(), 1);
-                let mut got_empty = false;
-                for (_, diff) in &mut t_inps {
-                    *diff = diff.combine(&!&common);
-                    if diff.bits.is_empty() {
-                        got_empty = true;
-                    }
-                }
-                assert!(!got_empty, "fuckup on {tile} {mux_name}");
-                t_inps.push(("VCC".to_string(), Diff::default()));
-                let item_t = xlat_enum_ocd(t_inps, OcdMode::Mux);
-                if item_t.bits.is_empty() {
-                    println!("UMMM MUX {tile} {mux_name} is empty");
-                }
-                ctx.tiledb.insert(tile, "INT", mux_name, item_t);
-                ctx.tiledb
-                    .insert(tile, format!("TBUF{idx}"), "DRIVE1", xlat_bit(!common));
-            } else if !out_name.starts_with("IMUX")
-                && !out_name.starts_with("IO.DBUF")
-                && !out_name.starts_with("OUT")
-            {
-                for &wire_from in &mux.ins {
-                    let wfname = intdb.wires.key(wire_from.wire);
-                    let in_name = format!("{:#}.{}", wire_from.cell, wfname);
-                    let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
-                    if diff.bits.is_empty() {
-                        panic!("weird lack of bits: {tile} {out_name} {wfname}");
-                    }
-                    mux_diffs
-                        .entry(wire_to)
-                        .or_default()
-                        .insert(wire_from, diff);
-                }
-            } else {
-                let mut inps = vec![];
-                let mut got_empty = false;
-                for &wire_from in &mux.ins {
-                    let in_name =
-                        format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
-                    let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
-                    if diff.bits.is_empty() {
-                        got_empty = true;
-                    }
-                    inps.push((in_name.to_string(), diff));
-                }
-                if tile.starts_with("CLB") && out_name == "IMUX.CLB.F4" {
-                    let diff = ctx.state.get_diff(tile, "INT", &mux_name, "CIN");
-                    inps.push(("CIN".to_string(), diff));
-                }
-                if (tile.starts_with("IO.B")
-                    || matches!(
-                        &tile[..],
-                        "CLB" | "CLB.L" | "CLB.R" | "CLB.B" | "CLB.LB" | "CLB.RB"
-                    ))
-                    && out_name == "IMUX.CLB.G2"
-                {
-                    let diff = ctx.state.get_diff(tile, "INT", &mux_name, "COUT0");
-                    inps.push(("COUT0".to_string(), diff));
-                }
-                if (tile.starts_with("IO.R")
-                    || matches!(
-                        &tile[..],
-                        "CLB" | "CLB.B" | "CLB.T" | "CLB.R" | "CLB.RB" | "CLB.RT"
-                    ))
-                    && out_name == "IMUX.CLB.G3"
-                {
-                    let diff = ctx.state.get_diff(tile, "INT", &mux_name, "CIN");
-                    inps.push(("CIN".to_string(), diff));
-                }
-                if out_name == "IMUX.IOB0.TS" || out_name == "IMUX.IOB1.TS" {
-                    inps.push(("GND".to_string(), Diff::default()));
-                    got_empty = true;
-                }
-
-                for (rtile, rwire, rbel, rattr) in [
-                    ("CNR.BL", "IMUX.IOB1.IK", "MD1", "ENABLE.T"),
-                    ("CNR.BL", "IMUX.IOB1.O1", "MD1", "ENABLE.O"),
-                    ("CNR.BL", "IMUX.RDBK.TRIG", "RDBK", "ENABLE"),
-                    ("CNR.BR", "IMUX.STARTUP.GTS", "STARTUP", "ENABLE.GTS"),
-                    ("CNR.BR", "IMUX.STARTUP.GSR", "STARTUP", "ENABLE.GSR"),
-                    ("CNR.TR", "IMUX.TDO.T", "TDO", "ENABLE.T"),
-                    ("CNR.TR", "IMUX.TDO.O", "TDO", "ENABLE.O"),
-                ] {
-                    if tile == rtile && out_name == rwire {
-                        let mut common = inps[0].1.clone();
-                        for (_, diff) in &inps {
-                            common.bits.retain(|bit, _| diff.bits.contains_key(bit));
-                        }
-                        assert_eq!(common.bits.len(), 1);
-                        for (_, diff) in &mut inps {
-                            *diff = diff.combine(&!&common);
-                            if diff.bits.is_empty() {
-                                got_empty = true;
-                            }
-                        }
-                        assert!(got_empty);
-                        ctx.tiledb.insert(tile, rbel, rattr, xlat_bit(common));
-                    }
-                }
-                if !got_empty {
-                    inps.push(("NONE".to_string(), Diff::default()));
-                }
-                let item = xlat_enum_ocd(inps, OcdMode::Mux);
-                if item.bits.is_empty() {
-                    println!("UMMM MUX {tile} {mux_name} is empty");
-                }
-                ctx.tiledb.insert(tile, "INT", mux_name, item);
-            }
-        }
-        let mut handled = HashSet::new();
-        for (&wire_to, ins) in &mux_diffs {
-            let wtname = intdb.wires.key(wire_to.wire);
-            for (&wire_from, diff) in ins {
-                if handled.contains(&(wire_to, wire_from)) {
-                    continue;
-                }
-                let wfname = intdb.wires.key(wire_from.wire);
-                if let Some(oins) = mux_diffs.get(&wire_from) {
-                    if let Some(odiff) = oins.get(&wire_to) {
-                        if odiff == diff {
-                            assert_eq!(diff.bits.len(), 1);
-                            handled.insert((wire_to, wire_from));
-                            handled.insert((wire_from, wire_to));
-                            let diff = diff.clone();
-                            let name = if tile.starts_with("LL") {
-                                format!(
-                                    "BIPASS.{:#}.{}.{:#}.{}",
-                                    wire_to.cell, wtname, wire_from.cell, wfname
-                                )
-                            } else {
-                                assert_eq!(wire_to.cell.to_idx(), 0);
-                                assert_eq!(wire_from.cell.to_idx(), 0);
-                                format!("BIPASS.{wtname}.{wfname}")
-                            };
-                            ctx.tiledb.insert(tile, "INT", name, xlat_bit(diff));
-                            continue;
-                        }
-                    }
-                }
-                if diff.bits.len() != 1 {
-                    continue;
-                }
-                let bit = *diff.bits.iter().next().unwrap().0;
-                let mut unique = true;
-                for (&owf, odiff) in ins {
-                    if owf != wire_from && odiff.bits.contains_key(&bit) {
-                        unique = false;
-                    }
-                }
-                if !unique {
-                    continue;
-                }
-                handled.insert((wire_to, wire_from));
-                let diff = diff.clone();
-                let oname = if tile.starts_with("LL") {
-                    format!("{:#}.{}", wire_to.cell, wtname)
-                } else {
-                    wtname.to_string()
-                };
-                let iname = format!("{:#}.{}", wire_from.cell, wfname);
-                if wtname.starts_with("SINGLE")
-                    || wtname.starts_with("DOUBLE")
-                    || wtname.starts_with("IO.DOUBLE")
-                {
-                    ctx.tiledb
-                        .insert(tile, "INT", format!("PASS.{oname}.{iname}"), xlat_bit(diff));
-                } else if wtname.starts_with("LONG") {
-                    ctx.tiledb
-                        .insert(tile, "INT", format!("BUF.{oname}.{iname}"), xlat_bit(diff));
-                } else {
-                    println!("MEOW {tile} {oname} {iname}");
-                }
-            }
-        }
-
-        for (wire_to, ins) in mux_diffs {
-            let out_name = intdb.wires.key(wire_to.wire);
-            let mux_name = if tile.starts_with("LL") {
-                format!("MUX.{wtt}.{out_name}", wtt = wire_to.cell)
-            } else {
-                format!("MUX.{out_name}")
-            };
-            let mut in_diffs = vec![];
-            let mut got_empty = false;
-            for (wire_from, diff) in ins {
-                if handled.contains(&(wire_to, wire_from)) {
-                    continue;
-                }
-                let wfname = intdb.wires.key(wire_from.wire);
-                let in_name = format!("{:#}.{}", wire_from.cell, wfname);
-                if diff.bits.is_empty() {
-                    got_empty = true;
-                }
-                in_diffs.push((in_name, diff));
-            }
-            if in_diffs.is_empty() {
+        for (bslot, bel) in &node.bels {
+            let BelInfo::SwitchBox(sb) = bel else {
                 continue;
-            }
-            if !got_empty {
-                in_diffs.push(("NONE".to_string(), Diff::default()));
-            }
-            ctx.tiledb
-                .insert(tile, "INT", mux_name, xlat_enum_ocd(in_diffs, OcdMode::Mux));
-        }
+            };
+            let bel = intdb.bel_slots.key(bslot);
+            let mut hiob_o_diffs: BTreeMap<_, BTreeMap<_, _>> = BTreeMap::new();
+            for item in &sb.items {
+                match item {
+                    SwitchBoxItem::Mux(mux) => {
+                        let out_name = intdb.wires.key(mux.dst.wire);
+                        let mux_name = if tile.starts_with("LL") {
+                            format!("MUX.{wtt:#}.{out_name}", wtt = mux.dst.cell)
+                        } else {
+                            format!("MUX.{out_name}")
+                        };
+                        let mut iob_o = None;
+                        if out_name.starts_with("IMUX.IO")
+                            && out_name.ends_with("O1")
+                            && tile.starts_with("IO")
+                        {
+                            iob_o = if out_name == "IMUX.IOB0.O1" {
+                                Some((&tile[..], "IO0", "O1", 0))
+                            } else {
+                                Some((&tile[..], "IO1", "O1", 0))
+                            };
+                        }
+                        if (out_name == "IMUX.CLB.F4" || out_name == "IMUX.CLB.G4")
+                            && tile.starts_with("IO.B")
+                        {
+                            iob_o = if out_name == "IMUX.CLB.F4" {
+                                Some((&tile[..], "IO0", "O2", 0))
+                            } else {
+                                Some((&tile[..], "IO1", "O2", 0))
+                            };
+                        }
+                        if (out_name == "IMUX.CLB.F2" || out_name == "IMUX.CLB.G2")
+                            && tile.starts_with("CLB")
+                            && tile.ends_with('T')
+                        {
+                            iob_o = if out_name == "IMUX.CLB.F2" {
+                                Some(("IO.T", "IO0", "O2", 3))
+                            } else {
+                                Some(("IO.T", "IO1", "O2", 3))
+                            };
+                        }
+                        if (out_name == "IMUX.CLB.F3" || out_name == "IMUX.CLB.G3")
+                            && tile.starts_with("CLB.L")
+                        {
+                            iob_o = if out_name == "IMUX.CLB.G3" {
+                                Some(("IO.L", "IO0", "O2", 2))
+                            } else {
+                                Some(("IO.L", "IO1", "O2", 2))
+                            };
+                        }
+                        if (out_name == "IMUX.CLB.F1" || out_name == "IMUX.CLB.G1")
+                            && tile.starts_with("IO.R")
+                        {
+                            iob_o = if out_name == "IMUX.CLB.G1" {
+                                Some((&tile[..], "IO0", "O2", 0))
+                            } else {
+                                Some((&tile[..], "IO1", "O2", 0))
+                            };
+                        }
+                        if let Some((prefix, bel, pin, bt)) = iob_o {
+                            if ctx.edev.chip.kind == ChipKind::Xc4000H {
+                                let mut inps = vec![];
+                                let mut got_empty = false;
+                                for &wire_from in &mux.src {
+                                    let in_name = format!(
+                                        "{:#}.{}",
+                                        wire_from.cell,
+                                        intdb.wires.key(wire_from.wire)
+                                    );
+                                    let diff0 = ctx.state.get_diff(
+                                        tile,
+                                        "INT",
+                                        &mux_name,
+                                        format!("{in_name}.HIOB0"),
+                                    );
+                                    let diff1 = ctx.state.get_diff(
+                                        tile,
+                                        "INT",
+                                        &mux_name,
+                                        format!("{in_name}.HIOB1"),
+                                    );
+                                    let (mut diff0, mut diff1, diff) = Diff::split(diff0, diff1);
+                                    if diff.bits.is_empty() {
+                                        got_empty = true;
+                                    }
+                                    inps.push((in_name.to_string(), diff));
+                                    if bt != 0 {
+                                        for diff in [&mut diff0, &mut diff1] {
+                                            *diff = Diff {
+                                                bits: diff
+                                                    .bits
+                                                    .iter()
+                                                    .map(|(&bit, &val)| {
+                                                        assert_eq!(bit.tile, bt);
+                                                        (TileBit { tile: 0, ..bit }, val)
+                                                    })
+                                                    .collect(),
+                                            };
+                                        }
+                                    }
+                                    let hiob = if bel == "IO0" {
+                                        ["HIO0", "HIO1"]
+                                    } else {
+                                        ["HIO2", "HIO3"]
+                                    };
+                                    for (bel, diff) in [(hiob[0], diff0), (hiob[1], diff1)] {
+                                        match hiob_o_diffs
+                                            .entry((prefix, bel))
+                                            .or_default()
+                                            .entry(pin)
+                                        {
+                                            btree_map::Entry::Vacant(entry) => {
+                                                entry.insert(diff);
+                                            }
+                                            btree_map::Entry::Occupied(entry) => {
+                                                assert_eq!(*entry.get(), diff);
+                                            }
+                                        }
+                                    }
+                                }
+                                if pin == "O1" {
+                                    assert!(!got_empty);
+                                    inps.push(("GND".to_string(), Diff::default()));
+                                } else {
+                                    assert!(got_empty);
+                                }
+                                let item = xlat_enum_ocd(inps, OcdMode::Mux);
+                                if item.bits.is_empty() {
+                                    println!("UMMM MUX {tile} {mux_name} is empty");
+                                }
+                                ctx.tiledb.insert(tile, "INT", mux_name, item);
+                            } else {
+                                for suffix in ["O", "OQ", "O.NOT", "OQ.NOT"] {
+                                    let mut inps = vec![];
+                                    for &wire_from in &mux.src {
+                                        let in_name = format!(
+                                            "{:#}.{}",
+                                            wire_from.cell,
+                                            intdb.wires.key(wire_from.wire)
+                                        );
+                                        let diff = ctx.state.get_diff(
+                                            tile,
+                                            "INT",
+                                            &mux_name,
+                                            format!("{in_name}.{suffix}"),
+                                        );
+                                        inps.push((in_name.to_string(), diff));
+                                    }
+                                    let mut common = inps[0].1.clone();
+                                    for (_, diff) in &inps {
+                                        common.bits.retain(|bit, _| diff.bits.contains_key(bit));
+                                    }
+                                    let mut got_empty = false;
+                                    for (_, diff) in &mut inps {
+                                        *diff = diff.combine(&!&common);
+                                        if diff.bits.is_empty() {
+                                            got_empty = true;
+                                        }
+                                    }
+                                    if pin == "O1" {
+                                        assert!(!got_empty);
+                                        inps.push(("GND".to_string(), Diff::default()));
+                                    } else {
+                                        assert!(got_empty);
+                                    }
+                                    let item = xlat_enum_ocd(inps, OcdMode::Mux);
+                                    if item.bits.is_empty() {
+                                        println!("UMMM MUX {tile} {mux_name} is empty");
+                                    }
+                                    ctx.tiledb.insert(tile, "INT", &mux_name, item);
+                                    if bt != 0 {
+                                        common = Diff {
+                                            bits: common
+                                                .bits
+                                                .iter()
+                                                .map(|(&bit, &val)| {
+                                                    assert_eq!(bit.tile, bt);
+                                                    (TileBit { tile: 0, ..bit }, val)
+                                                })
+                                                .collect(),
+                                        };
+                                    }
+                                    match iob_o_diffs
+                                        .entry((&prefix[..4], bel))
+                                        .or_default()
+                                        .entry(format!("{pin}.{suffix}"))
+                                    {
+                                        btree_map::Entry::Vacant(entry) => {
+                                            entry.insert(common);
+                                        }
+                                        btree_map::Entry::Occupied(entry) => {
+                                            assert_eq!(*entry.get(), common);
+                                        }
+                                    }
+                                }
+                            }
+                        } else if out_name.starts_with("IMUX.TBUF") {
+                            if out_name.ends_with("I") {
+                                continue;
+                            }
+                            let idx = if out_name == "IMUX.TBUF0.TS" {
+                                0
+                            } else if out_name == "IMUX.TBUF1.TS" {
+                                1
+                            } else {
+                                unreachable!()
+                            };
+                            let mut t_inps = vec![];
+                            for &wire_from in &mux.src {
+                                let in_name = format!(
+                                    "{:#}.{}",
+                                    wire_from.cell,
+                                    intdb.wires.key(wire_from.wire)
+                                );
+                                t_inps.push((
+                                    in_name.to_string(),
+                                    ctx.state.get_diff(tile, "INT", &mux_name, &in_name),
+                                ));
+                            }
+                            let imux_i = TileWireCoord {
+                                cell: CellSlotId::from_idx(0),
+                                wire: intdb.get_wire(&format!("IMUX.TBUF{idx}.I")),
+                            };
+                            let mux_name_i = format!("MUX.IMUX.TBUF{idx}.I");
+                            let mux_i = sb
+                                .items
+                                .iter()
+                                .filter_map(|item| {
+                                    if let SwitchBoxItem::Mux(mux) = item {
+                                        Some(mux)
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .find(|mux| mux.dst == imux_i)
+                                .unwrap();
+                            let mut i_inps = vec![];
+                            for &wire_from in &mux_i.src {
+                                let in_name = format!(
+                                    "{:#}.{}",
+                                    wire_from.cell,
+                                    intdb.wires.key(wire_from.wire)
+                                );
+                                i_inps.push((
+                                    in_name.to_string(),
+                                    ctx.state.get_diff(tile, "INT", &mux_name_i, &in_name),
+                                ));
+                            }
+                            let mut t_bits = HashSet::new();
+                            for (_, diff) in &t_inps {
+                                for &bit in diff.bits.keys() {
+                                    t_bits.insert(bit);
+                                }
+                            }
+                            for (_, diff) in &mut i_inps {
+                                let t_diff = diff.split_bits(&t_bits);
+                                t_inps.push(("GND".to_string(), t_diff));
+                            }
+                            i_inps.push(("GND".to_string(), Diff::default()));
+                            let item_i = xlat_enum_ocd(i_inps, OcdMode::Mux);
+                            if item_i.bits.is_empty() {
+                                println!("UMMM MUX {tile} {mux_name_i} is empty");
+                            }
+                            ctx.tiledb.insert(tile, "INT", mux_name_i, item_i);
+                            let mut common = t_inps[0].1.clone();
+                            for (_, diff) in &t_inps {
+                                common.bits.retain(|bit, _| diff.bits.contains_key(bit));
+                            }
+                            assert_eq!(common.bits.len(), 1);
+                            let mut got_empty = false;
+                            for (_, diff) in &mut t_inps {
+                                *diff = diff.combine(&!&common);
+                                if diff.bits.is_empty() {
+                                    got_empty = true;
+                                }
+                            }
+                            assert!(!got_empty, "fuckup on {tile} {mux_name}");
+                            t_inps.push(("VCC".to_string(), Diff::default()));
+                            let item_t = xlat_enum_ocd(t_inps, OcdMode::Mux);
+                            if item_t.bits.is_empty() {
+                                println!("UMMM MUX {tile} {mux_name} is empty");
+                            }
+                            ctx.tiledb.insert(tile, "INT", mux_name, item_t);
+                            ctx.tiledb.insert(
+                                tile,
+                                format!("TBUF{idx}"),
+                                "DRIVE1",
+                                xlat_bit(!common),
+                            );
+                        } else {
+                            let mut inps = vec![];
+                            let mut got_empty = false;
+                            for &wire_from in &mux.src {
+                                let in_name = format!(
+                                    "{:#}.{}",
+                                    wire_from.cell,
+                                    intdb.wires.key(wire_from.wire)
+                                );
+                                let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
+                                if diff.bits.is_empty() {
+                                    got_empty = true;
+                                }
+                                inps.push((in_name.to_string(), diff));
+                            }
+                            if tile.starts_with("CLB") && out_name == "IMUX.CLB.F4" {
+                                let diff = ctx.state.get_diff(tile, "INT", &mux_name, "CIN");
+                                inps.push(("CIN".to_string(), diff));
+                            }
+                            if (tile.starts_with("IO.B")
+                                || matches!(
+                                    &tile[..],
+                                    "CLB" | "CLB.L" | "CLB.R" | "CLB.B" | "CLB.LB" | "CLB.RB"
+                                ))
+                                && out_name == "IMUX.CLB.G2"
+                            {
+                                let diff = ctx.state.get_diff(tile, "INT", &mux_name, "COUT0");
+                                inps.push(("COUT0".to_string(), diff));
+                            }
+                            if (tile.starts_with("IO.R")
+                                || matches!(
+                                    &tile[..],
+                                    "CLB" | "CLB.B" | "CLB.T" | "CLB.R" | "CLB.RB" | "CLB.RT"
+                                ))
+                                && out_name == "IMUX.CLB.G3"
+                            {
+                                let diff = ctx.state.get_diff(tile, "INT", &mux_name, "CIN");
+                                inps.push(("CIN".to_string(), diff));
+                            }
+                            if out_name == "IMUX.IOB0.TS" || out_name == "IMUX.IOB1.TS" {
+                                inps.push(("GND".to_string(), Diff::default()));
+                                got_empty = true;
+                            }
 
-        for ((prefix, bel), diffs) in hiob_o_diffs {
-            let diffs = Vec::from_iter(diffs);
-            let item = xlat_enum(diffs);
-            if prefix == tile {
-                ctx.tiledb.insert(tile, bel, "MUX.O", item);
-            } else {
-                for tile in intdb.tile_classes.keys() {
-                    if tile.starts_with(prefix) {
-                        ctx.tiledb.insert(tile, bel, "MUX.O", item.clone());
+                            for (rtile, rwire, rbel, rattr) in [
+                                ("CNR.BL", "IMUX.IOB1.IK", "MD1", "ENABLE.T"),
+                                ("CNR.BL", "IMUX.IOB1.O1", "MD1", "ENABLE.O"),
+                                ("CNR.BL", "IMUX.RDBK.TRIG", "RDBK", "ENABLE"),
+                                ("CNR.BR", "IMUX.STARTUP.GTS", "STARTUP", "ENABLE.GTS"),
+                                ("CNR.BR", "IMUX.STARTUP.GSR", "STARTUP", "ENABLE.GSR"),
+                                ("CNR.TR", "IMUX.TDO.T", "TDO", "ENABLE.T"),
+                                ("CNR.TR", "IMUX.TDO.O", "TDO", "ENABLE.O"),
+                            ] {
+                                if tile == rtile && out_name == rwire {
+                                    let mut common = inps[0].1.clone();
+                                    for (_, diff) in &inps {
+                                        common.bits.retain(|bit, _| diff.bits.contains_key(bit));
+                                    }
+                                    assert_eq!(common.bits.len(), 1);
+                                    for (_, diff) in &mut inps {
+                                        *diff = diff.combine(&!&common);
+                                        if diff.bits.is_empty() {
+                                            got_empty = true;
+                                        }
+                                    }
+                                    assert!(got_empty);
+                                    ctx.tiledb.insert(tile, rbel, rattr, xlat_bit(common));
+                                }
+                            }
+                            if !got_empty {
+                                inps.push(("NONE".to_string(), Diff::default()));
+                            }
+                            let item = xlat_enum_ocd(inps, OcdMode::Mux);
+                            if item.bits.is_empty() {
+                                println!("UMMM MUX {tile} {mux_name} is empty");
+                            }
+                            ctx.tiledb.insert(tile, bel, mux_name, item);
+                        }
+                    }
+                    SwitchBoxItem::ProgBuf(buf) => {
+                        let out_name = intdb.wires.key(buf.dst.wire);
+                        let mux_name = if tile.starts_with("LL") {
+                            format!("MUX.{wtt:#}.{out_name}", wtt = buf.dst.cell)
+                        } else {
+                            format!("MUX.{out_name}")
+                        };
+                        let wfname = intdb.wires.key(buf.src.wire);
+                        let in_name = format!("{:#}.{}", buf.src.cell, wfname);
+                        let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
+                        if diff.bits.is_empty() {
+                            panic!("weird lack of bits: {tile} {out_name} {wfname}");
+                        }
+
+                        let oname = if tile.starts_with("LL") {
+                            format!("{:#}.{}", buf.dst.cell, out_name)
+                        } else {
+                            out_name.to_string()
+                        };
+                        let iname = format!("{:#}.{}", buf.src.cell, wfname);
+                        ctx.tiledb.insert(
+                            tile,
+                            "INT",
+                            format!("BUF.{oname}.{iname}"),
+                            xlat_bit(diff),
+                        );
+                    }
+                    SwitchBoxItem::Pass(pass) => {
+                        let out_name = intdb.wires.key(pass.dst.wire);
+                        let mux_name = if tile.starts_with("LL") {
+                            format!("MUX.{wtt:#}.{out_name}", wtt = pass.dst.cell)
+                        } else {
+                            format!("MUX.{out_name}")
+                        };
+                        let wfname = intdb.wires.key(pass.src.wire);
+                        let in_name = format!("{:#}.{}", pass.src.cell, wfname);
+                        let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
+                        if diff.bits.is_empty() {
+                            panic!("weird lack of bits: {tile} {out_name} {wfname}");
+                        }
+
+                        let oname = if tile.starts_with("LL") {
+                            format!("{:#}.{}", pass.dst.cell, out_name)
+                        } else {
+                            out_name.to_string()
+                        };
+                        let iname = format!("{:#}.{}", pass.src.cell, wfname);
+                        ctx.tiledb.insert(
+                            tile,
+                            "INT",
+                            format!("PASS.{oname}.{iname}"),
+                            xlat_bit(diff),
+                        );
+                    }
+                    SwitchBoxItem::BiPass(pass) => {
+                        let aname = intdb.wires.key(pass.a.wire);
+                        let bname = intdb.wires.key(pass.b.wire);
+                        let name = if tile.starts_with("LL") {
+                            format!(
+                                "BIPASS.{:#}.{}.{:#}.{}",
+                                pass.a.cell, aname, pass.b.cell, bname
+                            )
+                        } else {
+                            assert_eq!(pass.a.cell.to_idx(), 0);
+                            assert_eq!(pass.b.cell.to_idx(), 0);
+                            format!("BIPASS.{aname}.{bname}")
+                        };
+
+                        for (wdst, wsrc) in [(pass.a, pass.b), (pass.b, pass.a)] {
+                            let out_name = intdb.wires.key(wdst.wire);
+                            let mux_name = if tile.starts_with("LL") {
+                                format!("MUX.{wtt:#}.{out_name}", wtt = wdst.cell)
+                            } else {
+                                format!("MUX.{out_name}")
+                            };
+                            let wfname = intdb.wires.key(wsrc.wire);
+                            let in_name = format!("{:#}.{}", wsrc.cell, wfname);
+                            let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
+
+                            assert_eq!(diff.bits.len(), 1);
+                            ctx.tiledb.insert(tile, bel, &name, xlat_bit(diff));
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+
+            for ((prefix, bel), diffs) in hiob_o_diffs {
+                let diffs = Vec::from_iter(diffs);
+                let item = xlat_enum(diffs);
+                if prefix == tile {
+                    ctx.tiledb.insert(tile, bel, "MUX.O", item);
+                } else {
+                    for tile in intdb.tile_classes.keys() {
+                        if tile.starts_with(prefix) {
+                            ctx.tiledb.insert(tile, bel, "MUX.O", item.clone());
+                        }
                     }
                 }
             }

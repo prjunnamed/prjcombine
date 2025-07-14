@@ -1,5 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
+use prjcombine_interconnect::db::BelInfo;
 use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use prjcombine_types::bsdata::{DbValue, TileItem};
@@ -55,6 +56,18 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         !egrid.tile_index[node].is_empty()
     }
 
+    fn int_sb(&self, tcname: &str) -> &'a str {
+        let intdb = self.edev.egrid().db;
+        let int_tcls = intdb.tile_classes.get(tcname).unwrap().1;
+        let int_sb = int_tcls
+            .bels
+            .iter()
+            .find(|(_, bel)| matches!(bel, BelInfo::SwitchBox(_)))
+            .unwrap()
+            .0;
+        intdb.bel_slots.key(int_sb)
+    }
+
     pub fn insert_int_inv(
         &mut self,
         int_tiles: &[&str],
@@ -67,6 +80,9 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let slot = intdb.bel_slots.get(bel).unwrap().0;
         let node = intdb.tile_classes.get(tile).unwrap().1;
         let bel = &node.bels[slot];
+        let BelInfo::Bel(bel) = bel else {
+            unreachable!()
+        };
         let pin = &bel.pins[pin];
         assert_eq!(pin.wires.len(), 1);
         let wire = *pin.wires.first().unwrap();
@@ -75,12 +91,10 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         assert_eq!(wire.cell.to_idx(), bit.tile);
         bit.tile = 0;
         let wire_name = intdb.wires.key(wire.wire);
-        self.tiledb.insert(
-            int_tiles[wire.cell.to_idx()],
-            "INT",
-            format!("INV.{wire_name}"),
-            item,
-        );
+        let int_tcname = int_tiles[wire.cell.to_idx()];
+        let int_sb = self.int_sb(int_tcname);
+        self.tiledb
+            .insert(int_tcname, int_sb, format!("INV.{wire_name}"), item);
     }
 
     pub fn item_int_inv(&self, int_tiles: &[&str], tile: &str, bel: &str, pin: &str) -> TileItem {
@@ -88,17 +102,18 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let slot = intdb.bel_slots.get(bel).unwrap().0;
         let node = intdb.tile_classes.get(tile).unwrap().1;
         let bel = &node.bels[slot];
+        let BelInfo::Bel(bel) = bel else {
+            unreachable!()
+        };
         let pin = &bel.pins[pin];
         assert_eq!(pin.wires.len(), 1);
         let wire = *pin.wires.first().unwrap();
         let wire_name = intdb.wires.key(wire.wire);
+        let int_tcname = int_tiles[wire.cell.to_idx()];
+        let int_sb = self.int_sb(int_tcname);
         let mut item = self
             .tiledb
-            .item(
-                int_tiles[wire.cell.to_idx()],
-                "INT",
-                &format!("INV.{wire_name}"),
-            )
+            .item(int_tcname, int_sb, &format!("INV.{wire_name}"))
             .clone();
         assert_eq!(item.bits.len(), 1);
         let bit = &mut item.bits[0];

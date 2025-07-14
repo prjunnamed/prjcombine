@@ -1,8 +1,8 @@
 #![allow(clippy::unnecessary_unwrap)]
 
 use prjcombine_interconnect::db::{
-    BelInfo, BelSlotId, ConnectorWire, IntDb, IntfInfo, PinDir, TileClassId, TileWireCoord, WireId,
-    WireKind,
+    Bel, BelInfo, BelSlotId, ConnectorWire, IntDb, IntfInfo, PinDir, SwitchBoxItem, TileClassId,
+    TileWireCoord, WireId, WireKind,
 };
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, Tile, TileCoord,
@@ -10,7 +10,7 @@ use prjcombine_interconnect::grid::{
 };
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, ConnectorWireInFarNaming, ConnectorWireOutNaming, IntfWireInNaming,
-    IntfWireOutNaming, NamingDb, RawTileId,
+    IntfWireOutNaming, NamingDb, ProperBelNaming, RawTileId,
 };
 use prjcombine_re_xilinx_naming::grid::{ExpandedGridNaming, TileNaming};
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
@@ -28,8 +28,8 @@ pub struct BelContext<'a> {
     pub tile: &'a Tile,
     pub ntile: &'a TileNaming,
     pub tcls: &'a str,
-    pub info: &'a BelInfo,
-    pub naming: &'a BelNaming,
+    pub info: &'a Bel,
+    pub naming: &'a ProperBelNaming,
     pub name: Option<&'a str>,
     pub crds: EntityPartVec<RawTileId, Coord>,
 }
@@ -141,27 +141,65 @@ fn prep_node_used_info(db: &IntDb, nid: TileClassId) -> NodeUsedInfo {
     let node = &db.tile_classes[nid];
     let mut used_o = HashSet::new();
     let mut used_i = HashSet::new();
-    for (&k, v) in &node.muxes {
-        used_o.insert(k);
-        for &w in &v.ins {
-            if !db.wires[w.wire].is_tie() {
-                used_i.insert(w);
-            }
-        }
-    }
     for bel in node.bels.values() {
-        for pin in bel.pins.values() {
-            for &w in &pin.wires {
-                match pin.dir {
-                    PinDir::Input => {
-                        used_i.insert(w);
+        match bel {
+            BelInfo::SwitchBox(sb) => {
+                for item in &sb.items {
+                    match item {
+                        SwitchBoxItem::Mux(mux) => {
+                            used_o.insert(mux.dst);
+                            for &w in &mux.src {
+                                if !db.wires[w.wire].is_tie() {
+                                    used_i.insert(w.tw);
+                                }
+                            }
+                        }
+                        SwitchBoxItem::ProgBuf(buf) => {
+                            used_o.insert(buf.dst);
+                            if !db.wires[buf.src.wire].is_tie() {
+                                used_i.insert(buf.src.tw);
+                            }
+                        }
+                        SwitchBoxItem::PermaBuf(buf) => {
+                            used_o.insert(buf.dst);
+                            used_i.insert(buf.src.tw);
+                        }
+                        SwitchBoxItem::Pass(pass) => {
+                            used_o.insert(pass.dst);
+                            used_i.insert(pass.src);
+                        }
+                        SwitchBoxItem::BiPass(pass) => {
+                            used_o.insert(pass.a);
+                            used_o.insert(pass.b);
+                            used_i.insert(pass.a);
+                            used_i.insert(pass.b);
+                        }
+                        SwitchBoxItem::ProgInv(inv) => {
+                            used_o.insert(inv.dst);
+                            used_i.insert(inv.src);
+                        }
+                        SwitchBoxItem::ProgDelay(delay) => {
+                            used_o.insert(delay.dst);
+                            used_i.insert(delay.src.tw);
+                        }
                     }
-                    PinDir::Output => {
-                        used_o.insert(w);
-                    }
-                    PinDir::Inout => {
-                        used_i.insert(w);
-                        used_o.insert(w);
+                }
+            }
+            BelInfo::Bel(bel) => {
+                for pin in bel.pins.values() {
+                    for &w in &pin.wires {
+                        match pin.dir {
+                            PinDir::Input => {
+                                used_i.insert(w);
+                            }
+                            PinDir::Output => {
+                                used_o.insert(w);
+                            }
+                            PinDir::Inout => {
+                                used_i.insert(w);
+                                used_o.insert(w);
+                            }
+                        }
                     }
                 }
             }
@@ -691,118 +729,145 @@ impl<'a> Verifier<'a> {
         let mut wires_pinned = HashSet::new();
         let mut wires_missing = HashSet::new();
         let mut tie_pins_extra = HashMap::new();
-        for (&wt, wfs) in &kind.muxes {
+        let mut pips = vec![];
+        for bel in kind.bels.values() {
+            let BelInfo::SwitchBox(sb) = bel else {
+                continue;
+            };
+            for item in &sb.items {
+                match item {
+                    SwitchBoxItem::Mux(mux) => {
+                        for src in &mux.src {
+                            pips.push((mux.dst, src.tw));
+                        }
+                    }
+                    SwitchBoxItem::ProgBuf(buf) => {
+                        pips.push((buf.dst, buf.src.tw));
+                    }
+                    SwitchBoxItem::PermaBuf(buf) => {
+                        pips.push((buf.dst, buf.src.tw));
+                    }
+                    SwitchBoxItem::Pass(pass) => {
+                        pips.push((pass.dst, pass.src));
+                    }
+                    SwitchBoxItem::BiPass(pass) => {
+                        pips.push((pass.a, pass.b));
+                        pips.push((pass.b, pass.a));
+                    }
+                    _ => (),
+                }
+            }
+        }
+        for (wt, wf) in pips {
             let wti = &wire_lut[&wt];
             if wti.is_none() {
                 continue;
             }
             let wti = wti.unwrap();
-            for &wf in &wfs.ins {
-                let wftie = self.db.wires[wf.wire].is_tie();
-                let pip_found;
-                if let Some(en) = naming.ext_pips.get(&(wt, wf)) {
-                    if !crds.contains_id(en.tile) {
-                        pip_found = false;
-                    } else if wftie {
-                        if !wires_pinned.contains(&wf) {
-                            wires_pinned.insert(wf);
-                            self.claim_node(&[(crds[en.tile], &en.wire_from)]);
-                            tie_pins_extra.insert(wf.wire, &en.wire_from);
-                        }
-                        pip_found = self.pin_int_wire(crds[en.tile], &en.wire_to, wti);
-                        if pip_found {
-                            self.claim_pip(crds[en.tile], &en.wire_to, &en.wire_from);
-                        }
-                    } else {
-                        let wfi = &wire_lut[&wf];
-                        if wfi.is_none() {
-                            continue;
-                        }
-                        let wfi = wfi.unwrap();
-                        let wtf = self.pin_int_wire(crds[en.tile], &en.wire_to, wti);
-                        let wff = self.pin_int_wire(crds[en.tile], &en.wire_from, wfi);
-                        pip_found = wtf && wff;
-                        if pip_found {
-                            self.claim_pip(crds[en.tile], &en.wire_to, &en.wire_from);
-                        }
+            let wftie = self.db.wires[wf.wire].is_tie();
+            let pip_found;
+            if let Some(en) = naming.ext_pips.get(&(wt, wf)) {
+                if !crds.contains_id(en.tile) {
+                    pip_found = false;
+                } else if wftie {
+                    if !wires_pinned.contains(&wf) {
+                        wires_pinned.insert(wf);
+                        self.claim_node(&[(crds[en.tile], &en.wire_from)]);
+                        tie_pins_extra.insert(wf.wire, &en.wire_from);
+                    }
+                    pip_found = self.pin_int_wire(crds[en.tile], &en.wire_to, wti);
+                    if pip_found {
+                        self.claim_pip(crds[en.tile], &en.wire_to, &en.wire_from);
                     }
                 } else {
-                    let wtf;
-                    if wires_pinned.contains(&wt) {
-                        wtf = true;
-                    } else if wires_missing.contains(&wt) {
-                        wtf = false;
-                    } else if let Some(n) = naming.wires.get(&wt) {
-                        wtf = self.pin_int_wire(crds[def_rt], n, wti);
-                        if wtf {
-                            wires_pinned.insert(wt);
-                        } else {
-                            wires_missing.insert(wt);
-                        }
-                    } else {
-                        wtf = false;
-                        wires_missing.insert(wt);
+                    let wfi = &wire_lut[&wf];
+                    if wfi.is_none() {
+                        continue;
                     }
-                    let wff;
-                    if wires_pinned.contains(&wf) {
-                        wff = true;
-                    } else if wires_missing.contains(&wf) {
-                        wff = false;
-                    } else if wftie {
-                        self.claim_node(&[(crds[def_rt], &naming.wires[&wf])]);
-                        wires_pinned.insert(wf);
-                        wff = true;
-                    } else if let Some(n) = naming.wires.get(&wf) {
-                        let wfi = &wire_lut[&wf];
-                        if wfi.is_none() {
-                            continue;
-                        }
-                        let wfi = wfi.unwrap();
-                        if let Some(pip) = naming.wire_bufs.get(&wf) {
-                            wff = self.pin_int_wire(crds[pip.tile], &pip.wire_from, wfi);
-                            if wff {
-                                self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
-                                self.claim_node(&[
-                                    (crds[pip.tile], &pip.wire_to),
-                                    (crds[def_rt], &naming.wires[&wf]),
-                                ]);
-                            }
-                        } else {
-                            wff = self.pin_int_wire(crds[def_rt], n, wfi);
-                        }
-                        if wff {
-                            wires_pinned.insert(wf);
-                        } else {
-                            wires_missing.insert(wf);
-                        }
-                    } else {
-                        wff = false;
-                        wires_missing.insert(wf);
-                    }
-
+                    let wfi = wfi.unwrap();
+                    let wtf = self.pin_int_wire(crds[en.tile], &en.wire_to, wti);
+                    let wff = self.pin_int_wire(crds[en.tile], &en.wire_from, wfi);
                     pip_found = wtf && wff;
                     if pip_found {
-                        self.claim_pip(crds[def_rt], &naming.wires[&wt], &naming.wires[&wf]);
+                        self.claim_pip(crds[en.tile], &en.wire_to, &en.wire_from);
                     }
                 }
-                if !pip_found {
-                    let wtu = self.int_wire_data[&wti].used_i;
-                    let wfu = if wftie {
-                        true
+            } else {
+                let wtf;
+                if wires_pinned.contains(&wt) {
+                    wtf = true;
+                } else if wires_missing.contains(&wt) {
+                    wtf = false;
+                } else if let Some(n) = naming.wires.get(&wt) {
+                    wtf = self.pin_int_wire(crds[def_rt], n, wti);
+                    if wtf {
+                        wires_pinned.insert(wt);
                     } else {
-                        let wfi = &wire_lut[&wf];
-                        let wfi = wfi.unwrap();
-                        self.int_wire_data[&wfi].used_o
-                    };
-                    if wtu && wfu {
-                        println!(
-                            "MISSING PIP {part} {tile} {wt} {wf}",
-                            part = self.rd.part,
-                            tile = nnode.names[def_rt],
-                            wt = self.print_nw(wt),
-                            wf = self.print_nw(wf)
-                        );
+                        wires_missing.insert(wt);
                     }
+                } else {
+                    wtf = false;
+                    wires_missing.insert(wt);
+                }
+                let wff;
+                if wires_pinned.contains(&wf) {
+                    wff = true;
+                } else if wires_missing.contains(&wf) {
+                    wff = false;
+                } else if wftie {
+                    self.claim_node(&[(crds[def_rt], &naming.wires[&wf])]);
+                    wires_pinned.insert(wf);
+                    wff = true;
+                } else if let Some(n) = naming.wires.get(&wf) {
+                    let wfi = &wire_lut[&wf];
+                    if wfi.is_none() {
+                        continue;
+                    }
+                    let wfi = wfi.unwrap();
+                    if let Some(pip) = naming.wire_bufs.get(&wf) {
+                        wff = self.pin_int_wire(crds[pip.tile], &pip.wire_from, wfi);
+                        if wff {
+                            self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
+                            self.claim_node(&[
+                                (crds[pip.tile], &pip.wire_to),
+                                (crds[def_rt], &naming.wires[&wf]),
+                            ]);
+                        }
+                    } else {
+                        wff = self.pin_int_wire(crds[def_rt], n, wfi);
+                    }
+                    if wff {
+                        wires_pinned.insert(wf);
+                    } else {
+                        wires_missing.insert(wf);
+                    }
+                } else {
+                    wff = false;
+                    wires_missing.insert(wf);
+                }
+
+                pip_found = wtf && wff;
+                if pip_found {
+                    self.claim_pip(crds[def_rt], &naming.wires[&wt], &naming.wires[&wf]);
+                }
+            }
+            if !pip_found {
+                let wtu = self.int_wire_data[&wti].used_i;
+                let wfu = if wftie {
+                    true
+                } else {
+                    let wfi = &wire_lut[&wf];
+                    let wfi = wfi.unwrap();
+                    self.int_wire_data[&wfi].used_o
+                };
+                if wtu && wfu {
+                    println!(
+                        "MISSING PIP {part} {tile} {wt} {wf}",
+                        part = self.rd.part,
+                        tile = nnode.names[def_rt],
+                        wt = self.print_nw(wt),
+                        wf = self.print_nw(wf)
+                    );
                 }
             }
         }
@@ -879,85 +944,95 @@ impl<'a> Verifier<'a> {
         }
 
         for (slot, bel) in &kind.bels {
-            let bn = &naming.bels[slot];
-            for (k, v) in &bel.pins {
-                if self.skip_bel_pins.contains(&(tcrd.bel(slot), k)) {
-                    continue;
-                }
-                let n = &bn.pins[k];
-                let mut crd = crds[bn.tile];
-                let mut wn: &str = &n.name;
-                for pip in &n.pips {
-                    let ncrd = crds[pip.tile];
-                    wn = match v.dir {
-                        PinDir::Input => {
-                            self.claim_node(&[(crd, wn), (ncrd, &pip.wire_to)]);
-                            self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
-                            &pip.wire_from
-                        }
-                        PinDir::Output => {
-                            self.claim_node(&[(crd, wn), (ncrd, &pip.wire_from)]);
-                            self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
-                            &pip.wire_to
-                        }
-                        PinDir::Inout => unreachable!(),
+            match bel {
+                BelInfo::SwitchBox(_) => (),
+                BelInfo::Bel(bel) => {
+                    let BelNaming::Bel(bn) = &naming.bels[slot] else {
+                        unreachable!()
                     };
-                    crd = ncrd;
-                }
-                if n.pips.is_empty() {
-                    wn = &n.name_far;
-                }
-                let mut claim = true;
-                for &w in &v.wires {
-                    let wire = self
-                        .ngrid
-                        .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
-                        .unwrap();
-                    let wcrd;
-                    let ww: &str;
-                    if let Some(pip) = n.int_pips.get(&w) {
-                        self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
-                        if v.dir == PinDir::Input {
-                            self.verify_node(&[(crd, wn), (crds[pip.tile], &pip.wire_to)]);
-                            wcrd = crds[pip.tile];
-                            ww = &pip.wire_from;
-                        } else {
-                            self.verify_node(&[(crd, wn), (crds[pip.tile], &pip.wire_from)]);
-                            wcrd = crds[pip.tile];
-                            ww = &pip.wire_to;
+                    for (k, v) in &bel.pins {
+                        if self.skip_bel_pins.contains(&(tcrd.bel(slot), k)) {
+                            continue;
                         }
-                    } else {
-                        wcrd = crd;
-                        ww = wn;
-                        claim = false;
-                    }
-                    if v.is_intf_in || n.is_intf_out {
-                        if !self.pin_int_intf_wire(wcrd, ww, wire) {
-                            println!(
-                                "MISSING BEL PIN INTF WIRE {part} {tile} {k} {wire}",
-                                part = self.rd.part,
-                                tile = nnode.names[def_rt],
-                                wire = n.name_far
-                            );
+                        let n = &bn.pins[k];
+                        let mut crd = crds[bn.tile];
+                        let mut wn: &str = &n.name;
+                        for pip in &n.pips {
+                            let ncrd = crds[pip.tile];
+                            wn = match v.dir {
+                                PinDir::Input => {
+                                    self.claim_node(&[(crd, wn), (ncrd, &pip.wire_to)]);
+                                    self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
+                                    &pip.wire_from
+                                }
+                                PinDir::Output => {
+                                    self.claim_node(&[(crd, wn), (ncrd, &pip.wire_from)]);
+                                    self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
+                                    &pip.wire_to
+                                }
+                                PinDir::Inout => unreachable!(),
+                            };
+                            crd = ncrd;
                         }
-                    } else {
-                        if !self.pin_int_wire(wcrd, ww, wire) {
-                            let iwd = &self.int_wire_data[&wire];
-                            if (v.dir == PinDir::Input && iwd.used_o)
-                                || (v.dir == PinDir::Output && iwd.used_i)
-                            {
-                                println!(
-                                    "MISSING BEL PIN INT WIRE {part} {tile} {k} {wire}",
-                                    part = self.rd.part,
-                                    tile = nnode.names[def_rt],
-                                    wire = n.name_far
-                                );
+                        if n.pips.is_empty() {
+                            wn = &n.name_far;
+                        }
+                        let mut claim = true;
+                        for &w in &v.wires {
+                            let wire = self
+                                .ngrid
+                                .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
+                                .unwrap();
+                            let wcrd;
+                            let ww: &str;
+                            if let Some(pip) = n.int_pips.get(&w) {
+                                self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
+                                if v.dir == PinDir::Input {
+                                    self.verify_node(&[(crd, wn), (crds[pip.tile], &pip.wire_to)]);
+                                    wcrd = crds[pip.tile];
+                                    ww = &pip.wire_from;
+                                } else {
+                                    self.verify_node(&[
+                                        (crd, wn),
+                                        (crds[pip.tile], &pip.wire_from),
+                                    ]);
+                                    wcrd = crds[pip.tile];
+                                    ww = &pip.wire_to;
+                                }
+                            } else {
+                                wcrd = crd;
+                                ww = wn;
+                                claim = false;
+                            }
+                            if v.is_intf_in || n.is_intf_out {
+                                if !self.pin_int_intf_wire(wcrd, ww, wire) {
+                                    println!(
+                                        "MISSING BEL PIN INTF WIRE {part} {tile} {k} {wire}",
+                                        part = self.rd.part,
+                                        tile = nnode.names[def_rt],
+                                        wire = n.name_far
+                                    );
+                                }
+                            } else {
+                                if !self.pin_int_wire(wcrd, ww, wire) {
+                                    let iwd = &self.int_wire_data[&wire];
+                                    if (v.dir == PinDir::Input && iwd.used_o)
+                                        || (v.dir == PinDir::Output && iwd.used_i)
+                                    {
+                                        println!(
+                                            "MISSING BEL PIN INT WIRE {part} {tile} {k} {wire}",
+                                            part = self.rd.part,
+                                            tile = nnode.names[def_rt],
+                                            wire = n.name_far
+                                        );
+                                    }
+                                }
                             }
                         }
+                        if claim {
+                            self.claim_node(&[(crd, wn)]);
+                        }
                     }
-                }
-                if claim {
-                    self.claim_node(&[(crd, wn)]);
                 }
             }
         }
@@ -1289,8 +1364,12 @@ impl<'a> Verifier<'a> {
         let nk = &self.db.tile_classes[tile.class];
         let ntile = &self.ngrid.tiles[&tcrd];
         let nn = &self.ndb.tile_class_namings[ntile.naming];
-        let info = &nk.bels[bel.slot];
-        let naming = &nn.bels[bel.slot];
+        let BelInfo::Bel(info) = &nk.bels[bel.slot] else {
+            unreachable!()
+        };
+        let BelNaming::Bel(naming) = &nn.bels[bel.slot] else {
+            unreachable!()
+        };
         Some(BelContext {
             die: bel.cell.die,
             col: bel.cell.col,
@@ -1549,9 +1628,11 @@ pub fn verify(
     vrf.handle_int();
     for (tcrd, tile) in grid.egrid.tiles() {
         let nk = &grid.egrid.db.tile_classes[tile.class];
-        for slot in nk.bels.ids() {
-            let ctx = vrf.get_bel(tcrd.bel(slot));
-            bel_handler(&mut vrf, &ctx);
+        for (slot, bel) in &nk.bels {
+            if matches!(bel, BelInfo::Bel(_)) {
+                let ctx = vrf.get_bel(tcrd.bel(slot));
+                bel_handler(&mut vrf, &ctx);
+            }
         }
     }
     extra(&mut vrf);

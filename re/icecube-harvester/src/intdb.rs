@@ -2,8 +2,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId,
-        ConnectorWire, IntDb, PinDir, TileClass, TileSlotId, TileWireCoord, WireKind,
+        Bel, BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorSlot,
+        ConnectorSlotId, ConnectorWire, IntDb, PinDir, TileClass, TileSlotId, TileWireCoord,
+        WireKind,
     },
     dir::{Dir, DirMap},
     grid::{CellCoord, EdgeIoCoord},
@@ -18,7 +19,7 @@ use unnamed_entity::{EntityId, EntityVec};
 
 use crate::sites::BelPins;
 
-fn add_input(db: &IntDb, bel: &mut BelInfo, name: &str, cell: usize, wire: &str) {
+fn add_input(db: &IntDb, bel: &mut Bel, name: &str, cell: usize, wire: &str) {
     bel.pins.insert(
         name.into(),
         BelPin {
@@ -32,7 +33,7 @@ fn add_input(db: &IntDb, bel: &mut BelInfo, name: &str, cell: usize, wire: &str)
     );
 }
 
-fn add_output(db: &IntDb, bel: &mut BelInfo, name: &str, cell: usize, wires: &[&str]) {
+fn add_output(db: &IntDb, bel: &mut Bel, name: &str, cell: usize, wires: &[&str]) {
     bel.pins.insert(
         name.into(),
         BelPin {
@@ -183,6 +184,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
 
     for name in [
         "IMUX.CLK",
+        "IMUX.CLK.OPTINV",
         "IMUX.RST",
         "IMUX.CE",
         "IMUX.IO0.DOUT0",
@@ -192,7 +194,9 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         "IMUX.IO1.DOUT1",
         "IMUX.IO1.OE",
         "IMUX.IO.ICLK",
+        "IMUX.IO.ICLK.OPTINV",
         "IMUX.IO.OCLK",
+        "IMUX.IO.OCLK.OPTINV",
         "IMUX.IO.EXTRA",
     ] {
         db.wires.insert(name.into(), WireKind::MuxOut);
@@ -240,13 +244,11 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
         for i in 0..8 {
-            let mut bel = BelInfo::default();
+            let mut bel = Bel::default();
             for j in 0..4 {
                 add_input(
                     &db,
@@ -256,11 +258,11 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                     &format!("IMUX.LC{i}.I{j}"),
                 );
             }
-            for pin in ["CLK", "RST", "CE"] {
-                add_input(&db, &mut bel, pin, 0, &format!("IMUX.{pin}"));
-            }
+            add_input(&db, &mut bel, "CLK", 0, "IMUX.CLK.OPTINV");
+            add_input(&db, &mut bel, "RST", 0, "IMUX.RST");
+            add_input(&db, &mut bel, "CE", 0, "IMUX.CE");
             add_output(&db, &mut bel, "O", 0, &[&format!("OUT.LC{i}")]);
-            node.bels.insert(bels::LC[i], bel);
+            node.bels.insert(bels::LC[i], BelInfo::Bel(bel));
         }
         db.tile_classes.insert(kind.tile_class_plb().into(), node);
     }
@@ -268,8 +270,6 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let node = TileClass {
             slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
@@ -282,18 +282,16 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::MAIN,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
         for i in 0..2 {
-            let mut bel = BelInfo::default();
+            let mut bel = Bel::default();
             for pin in ["DOUT0", "DOUT1", "OE"] {
                 add_input(&db, &mut bel, pin, 0, &format!("IMUX.IO{i}.{pin}"));
             }
             for pin in ["ICLK", "OCLK"] {
-                add_input(&db, &mut bel, pin, 0, &format!("IMUX.IO.{pin}"));
+                add_input(&db, &mut bel, pin, 0, &format!("IMUX.IO.{pin}.OPTINV"));
             }
             add_input(&db, &mut bel, "CE", 0, "IMUX.CE");
             add_output(
@@ -316,7 +314,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                     &format!("OUT.LC{}", 2 * i + 5)[..],
                 ],
             );
-            node.bels.insert(bels::IO[i], bel);
+            node.bels.insert(bels::IO[i], BelInfo::Bel(bel));
         }
         db.tile_classes.insert(tile.into(), node);
         let Some(tile) = kind.tile_class_iob(dir) else {
@@ -325,8 +323,6 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let node = TileClass {
             slot: tslots::IOB,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
@@ -338,17 +334,15 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::BEL,
             cells: EntityVec::from_iter([(), ()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
-        let mut bel = BelInfo::default();
+        let mut bel = Bel::default();
         let (tile_w, tile_r) = if ice40_bramv2 { (1, 0) } else { (0, 1) };
-        add_input(&db, &mut bel, "WCLK", tile_w, "IMUX.CLK");
+        add_input(&db, &mut bel, "WCLK", tile_w, "IMUX.CLK.OPTINV");
         add_input(&db, &mut bel, "WE", tile_w, "IMUX.RST");
         add_input(&db, &mut bel, "WCLKE", tile_w, "IMUX.CE");
-        add_input(&db, &mut bel, "RCLK", tile_r, "IMUX.CLK");
+        add_input(&db, &mut bel, "RCLK", tile_r, "IMUX.CLK.OPTINV");
         add_input(&db, &mut bel, "RE", tile_r, "IMUX.RST");
         add_input(&db, &mut bel, "RCLKE", tile_r, "IMUX.CE");
         let addr_bits = if kind.is_ice40() { 11 } else { 8 };
@@ -397,7 +391,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 &[&format!("OUT.LC{lc}")],
             );
         }
-        node.bels.insert(bels::BRAM, bel);
+        node.bels.insert(bels::BRAM, BelInfo::Bel(bel));
         db.tile_classes.insert(kind.tile_class_bram().into(), node);
     }
 
@@ -406,8 +400,6 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             let node = TileClass {
                 slot: tslots::COLBUF,
                 cells: EntityVec::from_iter([()]),
-                muxes: Default::default(),
-                iris: Default::default(),
                 intfs: Default::default(),
                 bels: Default::default(),
             };
@@ -419,14 +411,12 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::BEL,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
-        let mut bel = BelInfo::default();
+        let mut bel = Bel::default();
         add_input(&db, &mut bel, "LATCH", 0, "IMUX.IO.EXTRA");
-        node.bels.insert(bels::IO_LATCH, bel);
+        node.bels.insert(bels::IO_LATCH, BelInfo::Bel(bel));
         db.tile_classes.insert("IO_LATCH".into(), node);
     }
 
@@ -434,14 +424,12 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::BEL,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
-        let mut bel = BelInfo::default();
+        let mut bel = Bel::default();
         add_input(&db, &mut bel, "I", 0, "IMUX.IO.EXTRA");
-        node.bels.insert(bels::GB_FABRIC, bel);
+        node.bels.insert(bels::GB_FABRIC, BelInfo::Bel(bel));
         db.tile_classes.insert("GB_FABRIC".into(), node);
     }
 
@@ -449,12 +437,10 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut node = TileClass {
             slot: tslots::GB_ROOT,
             cells: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
             intfs: Default::default(),
             bels: Default::default(),
         };
-        let mut bel = BelInfo::default();
+        let mut bel = Bel::default();
         for i in 0..8 {
             add_output(
                 &db,
@@ -464,7 +450,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 &[&format!("GLOBAL.{i}")],
             );
         }
-        node.bels.insert(bels::GB_ROOT, bel);
+        node.bels.insert(bels::GB_ROOT, BelInfo::Bel(bel));
         db.tile_classes
             .insert(kind.tile_class_gb_root().into(), node);
     }
@@ -494,8 +480,6 @@ impl<'a> MiscNodeBuilder<'a> {
             node: TileClass {
                 slot,
                 cells: EntityVec::from_iter(cells.iter().map(|_| ())),
-                muxes: Default::default(),
-                iris: Default::default(),
                 intfs: Default::default(),
                 bels: Default::default(),
             },
@@ -519,7 +503,7 @@ impl<'a> MiscNodeBuilder<'a> {
     }
 
     pub fn add_bel(&mut self, slot: BelSlotId, pins: &BelPins) {
-        let mut bel = BelInfo::default();
+        let mut bel = Bel::default();
         for (pin, &wire) in &pins.ins {
             let cell = self.get_cell(wire.cell);
             bel.pins.insert(
@@ -552,7 +536,7 @@ impl<'a> MiscNodeBuilder<'a> {
                 },
             );
         }
-        self.node.bels.insert(slot, bel);
+        self.node.bels.insert(slot, BelInfo::Bel(bel));
     }
 
     pub fn finish(mut self) -> (TileClass, ExtraNode) {
@@ -586,6 +570,9 @@ impl<'a> MiscNodeBuilder<'a> {
             }
         }
         for bel in self.node.bels.values_mut() {
+            let BelInfo::Bel(bel) = bel else {
+                unreachable!()
+            };
             for pin in bel.pins.values_mut() {
                 pin.wires = pin
                     .wires

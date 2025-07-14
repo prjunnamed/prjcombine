@@ -1,6 +1,10 @@
-use prjcombine_interconnect::{db::BelSlotId, grid::TileCoord};
+use prjcombine_interconnect::{
+    db::{BelInfo, BelSlotId},
+    grid::TileCoord,
+};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
+use prjcombine_re_xilinx_naming::db::BelNaming;
 
 use crate::backend::{IseBackend, Key, MultiValue, PinFromKind, Value};
 
@@ -225,7 +229,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinPips {
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let nnode = &backend.ngrid.tiles[&tcrd];
         let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
-        let bel_naming = &node_naming.bels[self.bel];
+        let BelNaming::Bel(bel_naming) = &node_naming.bels[self.bel] else {
+            unreachable!()
+        };
         let pin_naming = &bel_naming.pins[&self.pin];
         for pip in &pin_naming.pips {
             fuzzer = fuzzer.base(
@@ -262,7 +268,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinPips {
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let nnode = &backend.ngrid.tiles[&tcrd];
         let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
-        let bel_naming = &node_naming.bels[self.bel];
+        let BelNaming::Bel(bel_naming) = &node_naming.bels[self.bel] else {
+            unreachable!()
+        };
         let pin_naming = &bel_naming.pins[&self.pin];
         for pip in &pin_naming.pips {
             fuzzer = fuzzer.fuzz(
@@ -303,8 +311,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinIntPips {
         let nnode = &backend.ngrid.tiles[&tcrd];
         let node_naming = &backend.ngrid.db.tile_class_namings[nnode.naming];
         let bel_data = &node_data.bels[self.bel];
+        let BelInfo::Bel(bel_data) = bel_data else {
+            unreachable!()
+        };
         let pin_data = &bel_data.pins[&self.pin];
-        let bel_naming = &node_naming.bels[self.bel];
+        let BelNaming::Bel(bel_naming) = &node_naming.bels[self.bel] else {
+            unreachable!()
+        };
         let pin_naming = &bel_naming.pins[&self.pin];
         assert_eq!(pin_data.wires.len(), 1);
         let wire = *pin_data.wires.first().unwrap();

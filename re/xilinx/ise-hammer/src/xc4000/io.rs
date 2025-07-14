@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{BelSlotId, CellSlotId, TileWireCoord},
+    db::{BelInfo, BelSlotId, CellSlotId, TileWireCoord},
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum};
@@ -46,6 +46,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
         let tile = backend.egrid.tile(tcrd);
         let tcls = &backend.egrid.db.tile_classes[tile.class];
         let bel_data = &tcls.bels[self.slot];
+        let BelInfo::Bel(bel_data) = bel_data else {
+            unreachable!()
+        };
         let wire = *bel_data.pins[self.pin].wires.iter().next().unwrap();
         let res_wire = backend
             .egrid
@@ -55,13 +58,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
         if self.drive {
             let otcrd = res_wire.cell.tile(tslots::MAIN);
             let otile = backend.egrid.tile(otcrd);
-            let otcls = &backend.egrid.db.tile_classes[otile.class];
+            let otcls = &backend.egrid.db_index.tile_classes[otile.class];
             let wt = TileWireCoord {
                 cell: CellSlotId::from_idx(0),
                 wire: res_wire.slot,
             };
-            let mux = &otcls.muxes[&wt];
-            let wf = *mux.ins.iter().next().unwrap();
+            let ins = &otcls.pips_bwd[&wt];
+            let wf = ins.iter().next().unwrap().tw;
             let res_wf = backend
                 .egrid
                 .resolve_wire(backend.egrid.tile_wire(otcrd, wf))

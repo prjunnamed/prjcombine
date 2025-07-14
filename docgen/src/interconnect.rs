@@ -1,7 +1,13 @@
-use std::{collections::BTreeMap, fmt::Write};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt::Write,
+};
 
 use itertools::Itertools;
-use prjcombine_interconnect::db::{ConnectorWire, IntDb, IntfInfo, PinDir, TileClassId, WireKind};
+use prjcombine_interconnect::db::{
+    BelInfo, ConnectorWire, IntDb, IntfInfo, PinDir, SwitchBoxItem, TileClassId, TileWireCoord,
+    WireKind,
+};
 
 use crate::DocgenContext;
 
@@ -159,7 +165,7 @@ fn gen_intdb_basics(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb) {
         for (id, name, &kind) in &intdb.wires {
             if kind != WireKind::Branch(csid)
                 && kind != WireKind::MultiBranch(csid)
-                && kind != WireKind::PipBranch(csid)
+                && kind != WireKind::MultiBranch(csid)
             {
                 continue;
             }
@@ -207,38 +213,6 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
     writeln!(buf).unwrap();
 
     let single_cell = tcls.cells.len() == 1;
-    if !tcls.muxes.is_empty() {
-        writeln!(buf, r#"### Muxes"#).unwrap();
-        writeln!(buf).unwrap();
-        writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
-        writeln!(buf, r#"<caption>{dbname} {tname} muxes</caption>"#).unwrap();
-        writeln!(buf, r#"<thead>"#).unwrap();
-        writeln!(buf, r#"<tr><th>Destination</th><th>Sources</th></tr>"#).unwrap();
-        writeln!(buf, r#"</thead>"#).unwrap();
-        writeln!(buf, r#"<tbody>"#).unwrap();
-        for (wdst, mux) in &tcls.muxes {
-            let dst = if single_cell {
-                intdb.wires.key(wdst.wire).to_string()
-            } else {
-                format!("{}:{}", wdst.cell, intdb.wires.key(wdst.wire))
-            };
-            let src = mux
-                .ins
-                .iter()
-                .map(|wsrc| {
-                    if single_cell {
-                        intdb.wires.key(wsrc.wire).to_string()
-                    } else {
-                        format!("{}:{}", wsrc.cell, intdb.wires.key(wsrc.wire))
-                    }
-                })
-                .join(", ");
-            writeln!(buf, r#"<tr><td>{dst}</td><td>{src}</td></tr>"#).unwrap();
-        }
-        writeln!(buf, r#"</tbody>"#).unwrap();
-        writeln!(buf, r#"</table></div>"#).unwrap();
-        writeln!(buf).unwrap();
-    }
 
     if !tcls.intfs.is_empty() {
         writeln!(buf, r#"### Intf"#).unwrap();
@@ -301,45 +275,163 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
         let bname = intdb.bel_slots.key(slot).as_str();
         writeln!(buf, r#"### Bel {bname}"#).unwrap();
         writeln!(buf).unwrap();
-        writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
-        writeln!(buf, r#"<caption>{dbname} {tname} bel {bname}</caption>"#).unwrap();
-        writeln!(buf, r#"<thead>"#).unwrap();
-        writeln!(
-            buf,
-            r#"<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>"#
-        )
-        .unwrap();
-        writeln!(buf, r#"</thead>"#).unwrap();
-        writeln!(buf, r#"<tbody>"#).unwrap();
-        for (pname, pin) in &bel.pins {
-            let wires = pin
-                .wires
-                .iter()
-                .map(|wire| {
-                    if single_cell {
-                        intdb.wires.key(wire.wire).to_string()
-                    } else {
-                        format!("{}:{}", wire.cell, intdb.wires.key(wire.wire))
+        match bel {
+            BelInfo::SwitchBox(sb) => {
+                #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+                enum PipKind {
+                    Mux(bool),
+                    PermaBuf(bool),
+                    ProgBuf(bool),
+                    Pass,
+                    BiPass,
+                    ProgInv,
+                    ProgDelay(bool, u8),
+                }
+                let mut pips: BTreeMap<TileWireCoord, BTreeSet<(PipKind, TileWireCoord)>> =
+                    BTreeMap::new();
+                for item in &sb.items {
+                    match item {
+                        SwitchBoxItem::Mux(mux) => {
+                            for &src in &mux.src {
+                                pips.entry(mux.dst)
+                                    .or_default()
+                                    .insert((PipKind::Mux(src.inv), src.tw));
+                            }
+                        }
+                        SwitchBoxItem::ProgBuf(buf) => {
+                            pips.entry(buf.dst)
+                                .or_default()
+                                .insert((PipKind::ProgBuf(buf.src.inv), buf.src.tw));
+                        }
+                        SwitchBoxItem::PermaBuf(buf) => {
+                            pips.entry(buf.dst)
+                                .or_default()
+                                .insert((PipKind::PermaBuf(buf.src.inv), buf.src.tw));
+                        }
+                        SwitchBoxItem::Pass(pass) => {
+                            pips.entry(pass.dst)
+                                .or_default()
+                                .insert((PipKind::Pass, pass.src));
+                        }
+                        SwitchBoxItem::BiPass(pass) => {
+                            pips.entry(pass.a)
+                                .or_default()
+                                .insert((PipKind::BiPass, pass.b));
+                            pips.entry(pass.b)
+                                .or_default()
+                                .insert((PipKind::BiPass, pass.a));
+                        }
+                        SwitchBoxItem::ProgInv(inv) => {
+                            pips.entry(inv.dst)
+                                .or_default()
+                                .insert((PipKind::ProgInv, inv.src));
+                        }
+                        SwitchBoxItem::ProgDelay(delay) => {
+                            pips.entry(delay.dst).or_default().insert((
+                                PipKind::ProgDelay(delay.src.inv, delay.num_steps),
+                                delay.src.tw,
+                            ));
+                        }
                     }
-                })
-                .join(", ");
-            let dir = match pin.dir {
-                PinDir::Input => "input",
-                PinDir::Output => "output",
-                PinDir::Inout => "in-out",
-            };
-            writeln!(
-                buf,
-                r#"<tr><td>{pname}</td><td>{dir}</td><td>{wires}</td></tr>"#
-            )
-            .unwrap();
-            for &wire in &pin.wires {
-                wmap.entry(wire).or_default().push((slot, pname));
+                }
+                writeln!(buf, r#"### Switchbox {bname}"#).unwrap();
+                writeln!(buf).unwrap();
+                writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+                writeln!(
+                    buf,
+                    r#"<caption>{dbname} {tname} switchbox {bname}</caption>"#
+                )
+                .unwrap();
+                writeln!(buf, r#"<thead>"#).unwrap();
+                writeln!(
+                    buf,
+                    r#"<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>"#
+                )
+                .unwrap();
+                writeln!(buf, r#"</thead>"#).unwrap();
+                writeln!(buf, r#"<tbody>"#).unwrap();
+                for (dst, srcs) in &pips {
+                    let mut first = true;
+                    for &(kind, src) in srcs {
+                        write!(buf, r#"<tr>"#).unwrap();
+                        if first {
+                            write!(
+                                buf,
+                                r#"<td rowspan="{n}">{dst}</td>"#,
+                                n = srcs.len(),
+                                dst = dst.to_string(intdb, tcls)
+                            )
+                            .unwrap();
+                            first = false;
+                        }
+                        let k = match kind {
+                            PipKind::Mux(false) => "mux".to_string(),
+                            PipKind::Mux(true) => "inverted mux".to_string(),
+                            PipKind::PermaBuf(false) => "fixed buffer".to_string(),
+                            PipKind::PermaBuf(true) => "inverted fixed buffer".to_string(),
+                            PipKind::ProgBuf(false) => "buffer".to_string(),
+                            PipKind::ProgBuf(true) => "inverted buffer".to_string(),
+                            PipKind::Pass => "pass transistor".to_string(),
+                            PipKind::BiPass => "bidirectional pass transistor".to_string(),
+                            PipKind::ProgInv => "programmable inverter".to_string(),
+                            PipKind::ProgDelay(false, n) => format!("{n}-tap delay"),
+                            PipKind::ProgDelay(true, n) => format!("inverted {n}-tap delay"),
+                        };
+                        writeln!(
+                            buf,
+                            r#"<td>{src}</td><td>{k}</td>"#,
+                            src = src.to_string(intdb, tcls)
+                        )
+                        .unwrap();
+                        writeln!(buf, r#"</tr>"#).unwrap();
+                    }
+                }
+                writeln!(buf, r#"</tbody>"#).unwrap();
+                writeln!(buf, r#"</table></div>"#).unwrap();
+                writeln!(buf).unwrap();
+            }
+            BelInfo::Bel(bel) => {
+                writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+                writeln!(buf, r#"<caption>{dbname} {tname} bel {bname}</caption>"#).unwrap();
+                writeln!(buf, r#"<thead>"#).unwrap();
+                writeln!(
+                    buf,
+                    r#"<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>"#
+                )
+                .unwrap();
+                writeln!(buf, r#"</thead>"#).unwrap();
+                writeln!(buf, r#"<tbody>"#).unwrap();
+                for (pname, pin) in &bel.pins {
+                    let wires = pin
+                        .wires
+                        .iter()
+                        .map(|wire| {
+                            if single_cell {
+                                intdb.wires.key(wire.wire).to_string()
+                            } else {
+                                format!("{}:{}", wire.cell, intdb.wires.key(wire.wire))
+                            }
+                        })
+                        .join(", ");
+                    let dir = match pin.dir {
+                        PinDir::Input => "input",
+                        PinDir::Output => "output",
+                        PinDir::Inout => "in-out",
+                    };
+                    writeln!(
+                        buf,
+                        r#"<tr><td>{pname}</td><td>{dir}</td><td>{wires}</td></tr>"#
+                    )
+                    .unwrap();
+                    for &wire in &pin.wires {
+                        wmap.entry(wire).or_default().push((slot, pname));
+                    }
+                }
+                writeln!(buf, r#"</tbody>"#).unwrap();
+                writeln!(buf, r#"</table></div>"#).unwrap();
+                writeln!(buf).unwrap();
             }
         }
-        writeln!(buf, r#"</tbody>"#).unwrap();
-        writeln!(buf, r#"</table></div>"#).unwrap();
-        writeln!(buf).unwrap();
     }
     if !wmap.is_empty() {
         writeln!(buf, r#"### Bel wires"#).unwrap();

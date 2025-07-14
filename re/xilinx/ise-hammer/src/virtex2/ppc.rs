@@ -1,4 +1,4 @@
-use prjcombine_interconnect::db::PinDir;
+use prjcombine_interconnect::db::{BelInfo, PinDir};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex2::bels;
 
@@ -16,6 +16,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mode = "PPC405";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
         let bel_data = &intdb.tile_classes[node_kind].bels[bels::PPC405];
+        let BelInfo::Bel(bel_data) = bel_data else {
+            unreachable!()
+        };
         for (pin, pin_data) in &bel_data.pins {
             if pin_data.dir != PinDir::Input {
                 continue;
@@ -42,6 +45,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "PPC405";
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         let bel_data = &egrid.db.tile_classes[node_kind].bels[bels::PPC405];
+        let BelInfo::Bel(bel_data) = bel_data else {
+            unreachable!()
+        };
         for (pin, pin_data) in &bel_data.pins {
             if pin_data.dir != PinDir::Input {
                 continue;

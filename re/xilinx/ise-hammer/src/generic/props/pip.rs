@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
-use prjcombine_re_xilinx_naming::db::RawTileId;
+use prjcombine_re_xilinx_naming::db::{BelNaming, RawTileId};
 use unnamed_entity::EntityId;
 
 use crate::backend::{IseBackend, Key};
@@ -130,7 +130,9 @@ impl PipWire {
                 )
             }
             PipWire::BelPinNear(bel, pin) => {
-                let bel_naming = &node_naming.bels[*bel];
+                let BelNaming::Bel(bel_naming) = &node_naming.bels[*bel] else {
+                    unreachable!()
+                };
                 (
                     &nnode.names[bel_naming.tile],
                     &bel_naming
@@ -147,7 +149,9 @@ impl PipWire {
                 )
             }
             PipWire::BelPinFar(bel, pin) => {
-                let bel_naming = &node_naming.bels[*bel];
+                let BelNaming::Bel(bel_naming) = &node_naming.bels[*bel] else {
+                    unreachable!()
+                };
                 (
                     &nnode.names[bel_naming.tile],
                     &bel_naming

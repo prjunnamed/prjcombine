@@ -1,4 +1,7 @@
-use prjcombine_interconnect::{db::PinDir, grid::TileCoord};
+use prjcombine_interconnect::{
+    db::{BelInfo, PinDir},
+    grid::TileCoord,
+};
 use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -513,6 +516,9 @@ pub fn add_fuzzers<'a>(
                 let node_kind = backend.egrid.db.get_tile_class(tile);
                 let mut bctx = ctx.bel(bels::PTE2OMUX[i]);
                 let bel_data = &backend.egrid.db.tile_classes[node_kind].bels[bels::PTE2OMUX[i]];
+                let BelInfo::Bel(bel_data) = bel_data else {
+                    unreachable!()
+                };
                 for (pin_name, pin_data) in &bel_data.pins {
                     if pin_data.dir == PinDir::Output {
                         continue;
@@ -586,6 +592,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             if edev.chip.kind != ChipKind::FpgaCore {
                 let node_kind = intdb.get_tile_class(tile);
                 let bel = &intdb.tile_classes[node_kind].bels[bels::BUFGMUX[i]];
+                let BelInfo::Bel(bel) = bel else {
+                    unreachable!()
+                };
                 let pin = &bel.pins["S"];
                 let bel = format!("BUFGMUX{i}");
                 let bel = &bel;
@@ -595,7 +604,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 let sinv = ctx.extract_enum_bool(tile, bel, "SINV", "S", "S_B");
                 ctx.tiledb.insert(
                     tile,
-                    "INT",
+                    "CLK_INT",
                     format!("INV.{:#}.{}", wire.cell, intdb.wires.key(wire.wire)),
                     sinv,
                 );
@@ -782,6 +791,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             for i in 0..4 {
                 let bel_id = bels::PTE2OMUX[i];
                 let bel_data = &intdb.tile_classes[node_kind].bels[bel_id];
+                let BelInfo::Bel(bel_data) = bel_data else {
+                    unreachable!()
+                };
                 let mux_name = intdb.bel_slots.key(bel_id);
                 let mut diffs = vec![];
                 for (pin_name, pin_data) in &bel_data.pins {
