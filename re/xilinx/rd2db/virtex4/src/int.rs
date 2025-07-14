@@ -195,12 +195,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     // The data inputs.
     for i in 0..8 {
-        let w = builder.mux_out(format!("IMUX.BYP{i}"), &[format!("BYP_INT_B{i}")]);
-        builder.buf(
-            w,
-            format!("IMUX.BYP{i}.BOUNCE"),
-            &[format!("BYP_BOUNCE{i}")],
-        );
+        builder.mux_out(format!("IMUX.BYP{i}"), &[format!("BYP_INT_B{i}")]);
+        builder.permabuf(format!("IMUX.BYP{i}.BOUNCE"), &[format!("BYP_BOUNCE{i}")]);
     }
 
     for i in 0..32 {

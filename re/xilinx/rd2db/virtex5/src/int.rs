@@ -86,8 +86,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             );
             if let Some((xi, dmid)) = dmid {
                 if xi == i {
-                    let mid_buf = builder.buf(
-                        mid,
+                    let mid_buf = builder.permabuf(
                         format!("DBL.{name}{i}.1.BUF"),
                         &[format!("{name}2MID_FAKE{i}")],
                     );
@@ -176,8 +175,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             );
             if let Some((xi, dmid)) = dmid {
                 if xi == i {
-                    let mid_buf = builder.buf(
-                        mid,
+                    let mid_buf = builder.permabuf(
                         format!("PENT.{name}{i}.3.BUF"),
                         &[format!("{name}5MID_FAKE{i}")],
                     );
@@ -253,13 +251,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         clk.push(w);
     }
     for i in 0..4 {
-        let w = builder.mux_out(format!("IMUX.CTRL{i}"), &[format!("CTRL{i}")]);
-        builder.buf(w, format!("IMUX.CTRL{i}.SITE"), &[format!("CTRL_B{i}")]);
-        let b = builder.buf(
-            w,
-            format!("IMUX.CTRL{i}.BOUNCE"),
-            &[format!("CTRL_BOUNCE{i}")],
-        );
+        builder.mux_out(format!("IMUX.CTRL{i}"), &[format!("CTRL{i}")]);
+        builder.permabuf(format!("IMUX.CTRL{i}.SITE"), &[format!("CTRL_B{i}")]);
+        let b = builder.permabuf(format!("IMUX.CTRL{i}.BOUNCE"), &[format!("CTRL_BOUNCE{i}")]);
         let dir = match i {
             0 => Dir::S,
             3 => Dir::N,
@@ -273,13 +267,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
     for i in 0..8 {
-        let w = builder.mux_out(format!("IMUX.BYP{i}"), &[format!("BYP{i}")]);
-        builder.buf(w, format!("IMUX.BYP{i}.SITE"), &[format!("BYP_B{i}")]);
-        let b = builder.buf(
-            w,
-            format!("IMUX.BYP{i}.BOUNCE"),
-            &[format!("BYP_BOUNCE{i}")],
-        );
+        builder.mux_out(format!("IMUX.BYP{i}"), &[format!("BYP{i}")]);
+        builder.permabuf(format!("IMUX.BYP{i}.SITE"), &[format!("BYP_B{i}")]);
+        let b = builder.permabuf(format!("IMUX.BYP{i}.BOUNCE"), &[format!("BYP_BOUNCE{i}")]);
         let dir = match i {
             0 | 4 => Dir::S,
             3 | 7 => Dir::N,
@@ -293,13 +283,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
     for i in 0..8 {
-        let w = builder.mux_out(format!("IMUX.FAN{i}"), &[format!("FAN{i}")]);
-        builder.buf(w, format!("IMUX.FAN{i}.SITE"), &[format!("FAN_B{i}")]);
-        let b = builder.buf(
-            w,
-            format!("IMUX.FAN{i}.BOUNCE"),
-            &[format!("FAN_BOUNCE{i}")],
-        );
+        builder.mux_out(format!("IMUX.FAN{i}"), &[format!("FAN{i}")]);
+        builder.permabuf(format!("IMUX.FAN{i}.SITE"), &[format!("FAN_B{i}")]);
+        let b = builder.permabuf(format!("IMUX.FAN{i}.BOUNCE"), &[format!("FAN_BOUNCE{i}")]);
         let dir = match i {
             0 => Dir::S,
             7 => Dir::N,

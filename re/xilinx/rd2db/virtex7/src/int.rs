@@ -316,17 +316,12 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
     for i in 0..8 {
-        let w = builder.mux_out(format!("IMUX.BYP{i}"), &[format!("BYP_ALT{i}")]);
-        builder.buf(
-            w,
+        builder.mux_out(format!("IMUX.BYP{i}"), &[format!("BYP_ALT{i}")]);
+        builder.permabuf(
             format!("IMUX.BYP{i}.SITE"),
             &[format!("BYP{i}"), format!("BYP_L{i}")],
         );
-        let b = builder.buf(
-            w,
-            format!("IMUX.BYP{i}.BOUNCE"),
-            &[format!("BYP_BOUNCE{i}")],
-        );
+        let b = builder.permabuf(format!("IMUX.BYP{i}.BOUNCE"), &[format!("BYP_BOUNCE{i}")]);
         if matches!(i, 2 | 3 | 6 | 7) {
             builder.branch(
                 b,
@@ -337,17 +332,12 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
     for i in 0..8 {
-        let w = builder.mux_out(format!("IMUX.FAN{i}"), &[format!("FAN_ALT{i}")]);
-        builder.buf(
-            w,
+        builder.mux_out(format!("IMUX.FAN{i}"), &[format!("FAN_ALT{i}")]);
+        builder.permabuf(
             format!("IMUX.FAN{i}.SITE"),
             &[format!("FAN{i}"), format!("FAN_L{i}")],
         );
-        let b = builder.buf(
-            w,
-            format!("IMUX.FAN{i}.BOUNCE"),
-            &[format!("FAN_BOUNCE{i}")],
-        );
+        let b = builder.permabuf(format!("IMUX.FAN{i}.BOUNCE"), &[format!("FAN_BOUNCE{i}")]);
         if matches!(i, 0 | 2 | 4 | 6) {
             builder.branch(
                 b,
