@@ -7,7 +7,7 @@ use ndarray::Array2;
 use prjcombine_interconnect::{
     db::{
         BelInfo, BelSlotId, BiPass, Buf, IntDb, Mux, Pass, SwitchBoxItem, TileClassId, TileSlotId,
-        TileWireCoord, WireId, WireKind,
+        TileWireCoord, WireId,
     },
     dir::Dir,
     grid::{BelCoord, CellCoord, ExpandedGrid, TileCoord, WireCoord},
@@ -290,7 +290,7 @@ impl<'a> Extractor<'a> {
     }
 
     pub fn net_int(&mut self, net_id: NetId, wire: WireCoord) {
-        let wire = self.egrid.resolve_wire_nobuf(wire).unwrap();
+        let wire = self.egrid.resolve_wire(wire).unwrap();
         let net = &mut self.nets[net_id];
         let nbind = NetBinding::Int(wire);
         if net.binding == NetBinding::None {
@@ -338,7 +338,7 @@ impl<'a> Extractor<'a> {
 
     pub fn get_bel_int_net(&self, bel: BelCoord, pin: &'a str) -> NetId {
         let w = self.egrid.get_bel_pin(bel, pin);
-        let w = self.egrid.resolve_wire_nobuf(w[0]).unwrap();
+        let w = self.egrid.resolve_wire(w[0]).unwrap();
         self.int_nets[&w]
     }
 
@@ -558,7 +558,7 @@ impl<'a> Extractor<'a> {
         let mut net_by_cell: BTreeMap<_, BTreeMap<_, _>> = BTreeMap::new();
         for (cell, _) in self.egrid.cells() {
             for wire in self.egrid.db.wires.ids() {
-                let rw = self.egrid.resolve_wire_nobuf(cell.wire(wire)).unwrap();
+                let rw = self.egrid.resolve_wire(cell.wire(wire)).unwrap();
                 if let Some(&net) = self.int_nets.get(&rw) {
                     match net_by_cell.entry(cell).or_default().entry(net) {
                         btree_map::Entry::Vacant(entry) => {
@@ -636,16 +636,7 @@ impl<'a> Extractor<'a> {
                     let pip = self.xlat_pip_loc(tcrd, crd);
                     int_pips.insert((nwt, nwf), IntPipNaming::Pip(pip));
                     self.use_pip(nt, nf);
-                    let mut save = true;
-                    if self.tbuf_pseudos.contains(&(nt, nf)) {
-                        save = false;
-                    }
-                    if let WireKind::Buf(sw) = self.egrid.db.wires[nwt.wire] {
-                        assert_eq!(sw, nwf.wire);
-                        assert_eq!(nwt.cell, nwf.cell);
-                        save = false;
-                    }
-                    if save {
+                    if !self.tbuf_pseudos.contains(&(nt, nf)) {
                         muxes.insert((nwt, nwf));
                     }
                 }

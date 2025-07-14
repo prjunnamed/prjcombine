@@ -386,12 +386,12 @@ impl<'a> ExpandedGrid<'a> {
         }
     }
 
-    pub fn resolve_tile_wire_nobuf(
+    pub fn resolve_tile_wire(
         &self,
         tcrd: TileCoord,
         wire: TileWireCoord,
     ) -> Option<WireCoord> {
-        self.resolve_wire_nobuf(self.tile_wire(tcrd, wire))
+        self.resolve_wire(self.tile_wire(tcrd, wire))
     }
 
     pub fn cell(&self, ccrd: CellCoord) -> &Cell {
@@ -807,49 +807,6 @@ impl ExpandedGrid<'_> {
                         break;
                     }
                 }
-                WireKind::Buf(wf) => {
-                    wire.slot = wf;
-                }
-                _ => break,
-            }
-        }
-        if let Some(&twire) = self.extra_conns.get_by_left(&wire) {
-            wire = twire;
-        }
-        if self.blackhole_wires.contains(&wire) {
-            None
-        } else {
-            Some(wire)
-        }
-    }
-
-    pub fn resolve_wire_nobuf(&self, mut wire: WireCoord) -> Option<WireCoord> {
-        loop {
-            let cell = self.cell(wire.cell);
-            let wi = self.db.wires[wire.slot];
-            match wi {
-                WireKind::Regional(rslot) => {
-                    (wire.cell.col, wire.cell.row) = cell.region_root[rslot];
-                    break;
-                }
-                WireKind::MultiBranch(slot) | WireKind::Branch(slot) => {
-                    if let Some(t) = cell.conns.get(slot) {
-                        let ccls = &self.db.conn_classes[t.class];
-                        match ccls.wires.get(wire.slot) {
-                            Some(&ConnectorWire::BlackHole) => return None,
-                            Some(&ConnectorWire::Reflect(wf)) => {
-                                wire.slot = wf;
-                            }
-                            Some(&ConnectorWire::Pass(wf)) => {
-                                (wire.cell.col, wire.cell.row) = t.target.unwrap();
-                                wire.slot = wf;
-                            }
-                            None => break,
-                        }
-                    } else {
-                        break;
-                    }
-                }
                 _ => break,
             }
         }
@@ -884,9 +841,6 @@ impl ExpandedGrid<'_> {
                         }
                     }
                 }
-            }
-            for &wt in &self.db_index.buf_ins[wire.slot] {
-                queue.push(wire.cell.wire(wt));
             }
             for (slot, conn) in &tile.conns {
                 let oslot = self.db.conn_slots[slot].opposite;

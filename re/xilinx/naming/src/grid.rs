@@ -1,7 +1,7 @@
 use std::collections::{BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
-    db::{BelSlotId, CellSlotId, ConnectorWire, TileClass, TileClassId, TileWireCoord, WireKind},
+    db::{BelSlotId, ConnectorWire, TileClass, TileClassId, WireKind},
     grid::{
         BelCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, TileCoord, TilePip, WireCoord,
     },
@@ -237,28 +237,6 @@ impl<'a> ExpandedGridNaming<'a> {
                     } else {
                         break;
                     }
-                }
-                WireKind::Buf(wf) => {
-                    let slot = self
-                        .egrid
-                        .db
-                        .tile_slots
-                        .get("INT")
-                        .unwrap_or(self.egrid.db.tile_slots.get("MAIN").unwrap());
-                    let naming = &self.tiles[&wire.cell.tile(slot)];
-                    let nn = &self.db.tile_class_namings[naming.naming];
-                    trace.push(TracePip {
-                        tile: &naming.names[RawTileId::from_idx(0)],
-                        wire_to: &nn.wires[&TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: wire.slot,
-                        }],
-                        wire_from: &nn.wires[&TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: wf,
-                        }],
-                    });
-                    wire.slot = wf;
                 }
                 _ => break,
             }

@@ -1119,12 +1119,6 @@ impl XNodeExtractor<'_, '_, '_> {
                                 },
                             );
                         }
-                        if let WireKind::Buf(dwf) = self.db.wires[wt.wire] {
-                            assert_eq!(wf.wire, dwf);
-                            assert_eq!(wt.cell, CellSlotId::from_idx(0));
-                            assert_eq!(wf.cell, CellSlotId::from_idx(0));
-                            continue;
-                        }
                         let mode = self.xnode.builder.pip_mode(wt.wire);
                         pips.pips.insert((wt, wf), mode);
                     } else if self.xnode.builder.stub_outs.contains(&self.rd.wires[wfi]) {
@@ -1593,15 +1587,6 @@ impl<'a> IntBuilder<'a> {
 
     pub fn test_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireId {
         self.wire(name, WireKind::TestOut, raw_names)
-    }
-
-    pub fn buf(
-        &mut self,
-        src: WireId,
-        name: impl Into<String>,
-        raw_names: &[impl AsRef<str>],
-    ) -> WireId {
-        self.wire(name, WireKind::Buf(src), raw_names)
     }
 
     pub fn conn_branch(&mut self, src: WireId, dir: Dir, dst: WireId) {
@@ -2143,17 +2128,6 @@ impl<'a> IntBuilder<'a> {
                             if !self.allow_mux_to_branch {
                                 continue;
                             }
-                        }
-                        WireKind::Buf(dwf) => {
-                            let wf = names[&wfi].1;
-                            assert_eq!(
-                                wf,
-                                TileWireCoord {
-                                    cell: wt.cell,
-                                    wire: dwf
-                                }
-                            );
-                            continue;
                         }
                         _ => continue,
                     }

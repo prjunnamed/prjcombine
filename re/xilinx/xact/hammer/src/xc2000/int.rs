@@ -28,11 +28,11 @@ fn apply_int_pip<'a>(
 ) -> Fuzzer<XactBackend<'a>> {
     let rwf = backend
         .egrid
-        .resolve_tile_wire_nobuf(tcrd, wire_from)
+        .resolve_tile_wire(tcrd, wire_from)
         .unwrap();
     let rwt = backend
         .egrid
-        .resolve_tile_wire_nobuf(tcrd, wire_to)
+        .resolve_tile_wire(tcrd, wire_to)
         .unwrap();
     fuzzer = fuzzer.base(Key::NodeMutex(rwt), rwf);
     let crd = backend.ngrid.int_pip(tcrd, wire_to, wire_from);
@@ -98,7 +98,7 @@ fn drive_wire<'a>(
                 }) {
                     for &inp in ins {
                         if backend.egrid.db.wires.key(inp.wire).starts_with("OUT") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp.tw).unwrap();
+                            let rwf = backend.egrid.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (
                                     tcrd,
@@ -123,7 +123,7 @@ fn drive_wire<'a>(
                 }) {
                     for &inp in ins {
                         if backend.egrid.db.wires.key(inp.wire).starts_with("SINGLE.V") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp.tw).unwrap();
+                            let rwf = backend.egrid.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (
                                     tcrd,
@@ -157,7 +157,7 @@ fn drive_wire<'a>(
                 }) {
                     for &inp in ins {
                         if backend.egrid.db.wires.key(inp.wire).starts_with("SINGLE.V") {
-                            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, inp.tw).unwrap();
+                            let rwf = backend.egrid.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (
                                     tcrd,
@@ -177,7 +177,7 @@ fn drive_wire<'a>(
     } else {
         panic!("umm wtf is {wtn}")
     };
-    let nwt = backend.egrid.resolve_tile_wire_nobuf(ploc, pwf).unwrap();
+    let nwt = backend.egrid.resolve_tile_wire(ploc, pwf).unwrap();
     let (fuzzer, block, pin) = drive_wire(backend, fuzzer, nwt, wire_avoid);
     let fuzzer = apply_int_pip(backend, ploc, pwt, pwf, block, pin, fuzzer);
     (fuzzer, block, pin)
@@ -281,11 +281,11 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for IntPip {
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let rwt = backend
             .egrid
-            .resolve_tile_wire_nobuf(tcrd, self.wire_to)
+            .resolve_tile_wire(tcrd, self.wire_to)
             .unwrap();
         let rwf = backend
             .egrid
-            .resolve_tile_wire_nobuf(tcrd, self.wire_from)
+            .resolve_tile_wire(tcrd, self.wire_from)
             .unwrap();
         let (mut fuzzer, block, pin) = drive_wire(backend, fuzzer, rwf, rwt);
         fuzzer = fuzzer.fuzz(Key::NodeMutex(rwt), false, true);

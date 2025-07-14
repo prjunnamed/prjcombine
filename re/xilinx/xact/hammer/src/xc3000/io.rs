@@ -73,8 +73,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 wire: backend.egrid.db.get_wire("OUT.OSC"),
             };
             let crd = backend.ngrid.int_pip(tcrd, wt, wf);
-            let rwt = backend.egrid.resolve_tile_wire_nobuf(tcrd, wt).unwrap();
-            let rwf = backend.egrid.resolve_tile_wire_nobuf(tcrd, wf).unwrap();
+            let rwt = backend.egrid.resolve_tile_wire(tcrd, wt).unwrap();
+            let rwf = backend.egrid.resolve_tile_wire(tcrd, wf).unwrap();
             for val in ["ENABLE", "DIV2"] {
                 ctx.build()
                     .raw(Key::NodeMutex(rwt), "OSC_SPECIAL")

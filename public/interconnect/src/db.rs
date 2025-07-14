@@ -421,7 +421,6 @@ pub struct ConnectorSlot {
 pub struct IntDbIndex {
     pub tile_classes: EntityVec<TileClassId, TileClassIndex>,
     pub conn_classes: EntityVec<ConnectorClassId, ConnectorClassIndex>,
-    pub buf_ins: EntityVec<WireId, HashSet<WireId>>,
 }
 
 #[derive(Clone, Debug)]
@@ -440,12 +439,6 @@ pub struct ConnectorClassIndex {
 
 impl IntDbIndex {
     pub fn new(db: &IntDb) -> Self {
-        let mut buf_ins: EntityVec<_, _> = db.wires.ids().map(|_| HashSet::new()).collect();
-        for (w, _, wd) in &db.wires {
-            if let WireKind::Buf(wi) = *wd {
-                buf_ins[wi].insert(w);
-            }
-        }
         Self {
             tile_classes: db.tile_classes.values().map(TileClassIndex::new).collect(),
             conn_classes: db
@@ -453,7 +446,6 @@ impl IntDbIndex {
                 .values()
                 .map(|t| ConnectorClassIndex::new(t, db))
                 .collect(),
-            buf_ins,
         }
     }
 }

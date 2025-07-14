@@ -298,24 +298,6 @@ impl<'a> Verifier<'a> {
                     self.int_wire_data.entry(w).or_default().used_o = true;
                 }
             }
-            for nt in tile.cells.ids() {
-                for (wt, _, &wd) in &self.db.wires {
-                    if let WireKind::Buf(wf) = wd {
-                        let wt = TileWireCoord { cell: nt, wire: wt };
-                        let wf = TileWireCoord { cell: nt, wire: wf };
-                        if naming.wires.contains_key(&wt) {
-                            let w = self.grid.tile_wire(tcrd, wf);
-                            if let Some(w) = self.ngrid.resolve_wire_raw(w) {
-                                self.int_wire_data.entry(w).or_default().used_i = true;
-                            }
-                            let w = self.grid.tile_wire(tcrd, wt);
-                            if let Some(w) = self.ngrid.resolve_wire_raw(w) {
-                                self.int_wire_data.entry(w).or_default().used_o = true;
-                            }
-                        }
-                    }
-                }
-            }
             for (&w, ii) in &nk.intfs {
                 match *ii {
                     IntfInfo::OutputTestMux(ref wfs) => {
@@ -868,39 +850,6 @@ impl<'a> Verifier<'a> {
                         wt = self.print_nw(wt),
                         wf = self.print_nw(wf)
                     );
-                }
-            }
-        }
-        for (&wt, wtn) in &naming.wires {
-            if let WireKind::Buf(wfw) = self.db.wires[wt.wire] {
-                let wf = TileWireCoord {
-                    cell: wt.cell,
-                    wire: wfw,
-                };
-                let wti = self
-                    .ngrid
-                    .resolve_wire_raw(self.grid.tile_wire(tcrd, wt))
-                    .unwrap();
-                let wfi = self
-                    .ngrid
-                    .resolve_wire_raw(self.grid.tile_wire(tcrd, wf))
-                    .unwrap();
-                let wff = self.pin_int_wire(crds[def_rt], &naming.wires[&wf], wfi);
-                let wtf = self.pin_int_wire(crds[def_rt], wtn, wti);
-                if wff && wtf {
-                    self.claim_pip(crds[def_rt], wtn, &naming.wires[&wf]);
-                } else {
-                    let wtu = self.int_wire_data[&wti].used_i;
-                    let wfu = self.int_wire_data[&wfi].used_o;
-                    if wtu && wfu {
-                        println!(
-                            "MISSING BUF PIP {part} {tile} {wt} {wf}",
-                            part = self.rd.part,
-                            tile = nnode.names[def_rt],
-                            wf = self.print_nw(wf),
-                            wt = self.print_nw(wt)
-                        );
-                    }
                 }
             }
         }
