@@ -3271,8 +3271,8 @@ impl<'a> IntBuilder<'a> {
                                 cell: snt_far,
                                 wire: wf,
                             };
-                            snode_pips.pips.insert((wt, wf), PipMode::Mux);
-                            snode_pips.pips.insert((wf, wt), PipMode::Mux);
+                            snode_pips.pips.insert((wt, wf), PipMode::Buf);
+                            snode_pips.pips.insert((wf, wt), PipMode::Buf);
                         }
                     }
                 }

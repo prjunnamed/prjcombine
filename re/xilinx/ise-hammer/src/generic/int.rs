@@ -2,7 +2,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, CellSlotId, SwitchBoxItem, TileWireCoord},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_enum_ocd};
+use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::RawTileId;
@@ -785,7 +785,49 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                         ctx.tiledb.insert(tcname, bel, mux_name, ti);
                     }
-                    SwitchBoxItem::PermaBuf(_) => (),
+                    SwitchBoxItem::ProgBuf(buf) => {
+                        let mux_name = if tcls.cells.len() == 1 {
+                            format!("MUX.{}", intdb.wires.key(buf.dst.wire))
+                        } else {
+                            format!("MUX.{:#}.{}", buf.dst.cell, intdb.wires.key(buf.dst.wire))
+                        };
+                        let in_name = if tcls.cells.len() == 1 {
+                            intdb.wires.key(buf.src.wire).to_string()
+                        } else {
+                            format!("{:#}.{}", buf.src.cell, intdb.wires.key(buf.src.wire))
+                        };
+                        let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
+                        let buf_name = if tcls.cells.len() == 1 {
+                            format!(
+                                "BUF.{dst}.{src}",
+                                dst = intdb.wires.key(buf.dst.wire),
+                                src = intdb.wires.key(buf.src.wire)
+                            )
+                        } else {
+                            format!(
+                                "BUF.{dst_cell:#}.{dst}.{src_cell:#}.{src}",
+                                dst_cell = buf.dst.cell,
+                                src_cell = buf.src.cell,
+                                dst = intdb.wires.key(buf.dst.wire),
+                                src = intdb.wires.key(buf.src.wire)
+                            )
+                        };
+                        ctx.tiledb.insert(tcname, bel, buf_name, xlat_bit(diff));
+                    }
+                    SwitchBoxItem::PermaBuf(buf) => {
+                        let mux_name = if tcls.cells.len() == 1 {
+                            format!("MUX.{}", intdb.wires.key(buf.dst.wire))
+                        } else {
+                            format!("MUX.{:#}.{}", buf.dst.cell, intdb.wires.key(buf.dst.wire))
+                        };
+                        let in_name = if tcls.cells.len() == 1 {
+                            intdb.wires.key(buf.src.wire).to_string()
+                        } else {
+                            format!("{:#}.{}", buf.src.cell, intdb.wires.key(buf.src.wire))
+                        };
+                        let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
+                        diff.assert_empty();
+                    }
                     SwitchBoxItem::ProgInv(_) => (),
                     _ => unreachable!(),
                 }

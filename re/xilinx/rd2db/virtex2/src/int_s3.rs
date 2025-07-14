@@ -275,7 +275,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for xy in ['X', 'Y'] {
         for i in 0..4 {
-            let w = builder.mux_out(
+            builder.mux_out(
                 format!("IMUX.FAN.B{xy}{i}"),
                 &[
                     format!("B{xy}{i}"),
@@ -295,7 +295,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             if rd.family == "spartan3adsp" {
                 wires.extend([format!("BRAM_FAN_B{xy}{i}"), format!("MACC_FAN_B{xy}{i}")]);
             }
-            builder.buf(w, format!("IMUX.FAN.B{xy}{i}.BOUNCE"), &wires);
+            builder.permabuf(format!("IMUX.FAN.B{xy}{i}.BOUNCE"), &wires);
         }
     }
 
