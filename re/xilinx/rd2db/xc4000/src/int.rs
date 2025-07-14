@@ -458,11 +458,7 @@ fn fill_long_wires(builder: &mut IntBuilder) {
         if matches!(&*builder.rd.family, "xc4000xla" | "xc4000xv" | "spartanxl")
             && matches!(i, 2 | 3)
         {
-            let w = builder.buf(
-                w,
-                format!("LONG.H{i}.BUF"),
-                &[format!("CENTER_HLL{ii}_LOC")],
-            );
+            let w = builder.permabuf(format!("LONG.H{i}.BUF"), &[format!("CENTER_HLL{ii}_LOC")]);
             for k in LEFT_KINDS.into_iter().chain(RT_KINDS) {
                 builder.extra_name(format!("{k}_HLL{ii}_LOC"), w);
             }
@@ -904,16 +900,11 @@ fn fill_out_wires(builder: &mut IntBuilder) {
     for pin in ["FX", "FXQ"] {
         let mut w = builder.logic_out(format!("OUT.CLB.{pin}"), &[format!("CENTER_{pin}")]);
         if builder.rd.family != "xc4000e" {
-            builder.buf(
-                w,
+            builder.permabuf(
                 format!("OUT.CLB.{pin}.H"),
                 &[&format!("CENTER_{pin}_HORIZ")],
             );
-            w = builder.buf(
-                w,
-                format!("OUT.CLB.{pin}.V"),
-                &[&format!("CENTER_{pin}_VERT")],
-            );
+            w = builder.permabuf(format!("OUT.CLB.{pin}.V"), &[&format!("CENTER_{pin}_VERT")]);
         }
         let ws = builder.branch(
             w,
@@ -928,13 +919,8 @@ fn fill_out_wires(builder: &mut IntBuilder) {
     for pin in ["GY", "GYQ"] {
         let mut w = builder.logic_out(format!("OUT.CLB.{pin}"), &[format!("CENTER_{pin}")]);
         if builder.rd.family != "xc4000e" {
-            builder.buf(
-                w,
-                format!("OUT.CLB.{pin}.V"),
-                &[&format!("CENTER_{pin}_VERT")],
-            );
-            w = builder.buf(
-                w,
+            builder.permabuf(format!("OUT.CLB.{pin}.V"), &[&format!("CENTER_{pin}_VERT")]);
+            w = builder.permabuf(
                 format!("OUT.CLB.{pin}.H"),
                 &[&format!("CENTER_{pin}_HORIZ")],
             );
@@ -2828,6 +2814,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for (&(wt, wf), mode) in &mut pips.pips {
             let wtn = builder.db.wires.key(wt.wire);
             let wfn = builder.db.wires.key(wf.wire);
+            if *mode == PipMode::PermaBuf {
+                continue;
+            }
             if wtn.starts_with("BUFGE") {
                 *mode = PipMode::PermaBuf;
             } else if wtn.starts_with("SINGLE")
