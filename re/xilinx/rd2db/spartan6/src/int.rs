@@ -168,7 +168,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
     for i in 0..63 {
-        let w = builder.mux_out(
+        builder.mux_out(
             format!("IMUX.LOGICIN{i}"),
             &[format!("LOGICIN_B{i}"), format!("INT_TERM_LOGICIN_B{i}")],
         );
@@ -177,11 +177,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             21 | 28 | 52 | 60 => Dir::N,
             _ => continue,
         };
-        let b = builder.buf(
-            w,
-            format!("IMUX.LOGICIN{i}.BOUNCE"),
-            &[format!("LOGICIN{i}")],
-        );
+        let b = builder.permabuf(format!("IMUX.LOGICIN{i}.BOUNCE"), &[format!("LOGICIN{i}")]);
         builder.branch(
             b,
             dir,
