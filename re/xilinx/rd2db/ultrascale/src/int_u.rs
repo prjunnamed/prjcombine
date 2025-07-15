@@ -659,10 +659,11 @@ impl IntMaker<'_> {
             }
         }
         for i in 0..48 {
-            self.builder.mux_out_pair(
+            let w = self.builder.mux_out_pair(
                 format!("IMUX.IMUX.{i}"),
                 &[format!("IMUX_W{i}"), format!("IMUX_E{i}")],
             );
+            self.builder.delay(w, format!("IMUX.IMUX.{i}.DELAY"), &[""]);
         }
     }
 
@@ -977,32 +978,56 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_intf(&mut self) {
-        for (kind, naming, dir, tkn) in [
-            ("INTF", "INTF.W", Dir::W, "INT_INTERFACE_L"),
-            ("INTF", "INTF.E", Dir::E, "INT_INTERFACE_R"),
+        for (kind, naming, dir, tkn, sb_delay) in [
+            ("INTF", "INTF.W", Dir::W, "INT_INTERFACE_L", None),
+            ("INTF", "INTF.E", Dir::E, "INT_INTERFACE_R", None),
             (
                 "INTF.DELAY",
                 "INTF.W.IO",
                 Dir::W,
                 "INT_INT_INTERFACE_XIPHY_FT",
+                Some(bels::INTF_DELAY),
             ),
-            ("INTF.DELAY", "INTF.W.PCIE", Dir::W, "INT_INTERFACE_PCIE_L"),
-            ("INTF.DELAY", "INTF.E.PCIE", Dir::E, "INT_INTERFACE_PCIE_R"),
+            (
+                "INTF.DELAY",
+                "INTF.W.PCIE",
+                Dir::W,
+                "INT_INTERFACE_PCIE_L",
+                Some(bels::INTF_DELAY),
+            ),
+            (
+                "INTF.DELAY",
+                "INTF.E.PCIE",
+                Dir::E,
+                "INT_INTERFACE_PCIE_R",
+                Some(bels::INTF_DELAY),
+            ),
             (
                 "INTF.DELAY",
                 "INTF.W.GT",
                 Dir::W,
                 "INT_INT_INTERFACE_GT_LEFT_FT",
+                Some(bels::INTF_DELAY),
             ),
-            ("INTF.DELAY", "INTF.E.GT", Dir::E, "INT_INTERFACE_GT_R"),
+            (
+                "INTF.DELAY",
+                "INTF.E.GT",
+                Dir::E,
+                "INT_INTERFACE_GT_R",
+                Some(bels::INTF_DELAY),
+            ),
         ] {
             for &xy in self.builder.rd.tiles_by_kind_name(tkn.as_ref()) {
                 let int_xy = self.builder.walk_to_int(xy, !dir, false).unwrap();
-                self.builder
+                let mut xn = self
+                    .builder
                     .xnode(tslots::INTF, kind, naming, xy)
                     .extract_intfs(true)
-                    .ref_int_side(int_xy, dir, 0)
-                    .extract();
+                    .ref_int_side(int_xy, dir, 0);
+                if let Some(sb) = sb_delay {
+                    xn = xn.extract_delay(sb);
+                }
+                xn.extract();
             }
         }
     }

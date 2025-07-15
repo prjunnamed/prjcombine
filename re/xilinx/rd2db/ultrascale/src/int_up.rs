@@ -535,7 +535,7 @@ impl IntMaker<'_> {
         }
 
         for i in 0..16 {
-            match i {
+            let w = match i {
                 0 | 2 => {
                     let w = self.builder.mux_out_pair(
                         format!("IMUX.BYP.{i}"),
@@ -550,6 +550,7 @@ impl IntMaker<'_> {
                             format!("BOUNCE_E_BLS_{i}_FT0"),
                         ],
                     );
+                    w
                 }
                 13 | 15 => {
                     let w = self.builder.mux_out_pair(
@@ -565,21 +566,22 @@ impl IntMaker<'_> {
                             format!("BOUNCE_E_BLN_{i}_FT1"),
                         ],
                     );
+                    w
                 }
-                _ => {
-                    self.builder.mux_out_pair(
-                        format!("IMUX.BYP.{i}"),
-                        &[format!("BYPASS_W{i}"), format!("BYPASS_E{i}")],
-                    );
-                }
-            }
+                _ => self.builder.mux_out_pair(
+                    format!("IMUX.BYP.{i}"),
+                    &[format!("BYPASS_W{i}"), format!("BYPASS_E{i}")],
+                ),
+            };
+            self.builder.delay(w, format!("IMUX.BYP.{i}.DELAY"), &[""]);
         }
 
         for i in 0..48 {
-            self.builder.mux_out_pair(
+            let w = self.builder.mux_out_pair(
                 format!("IMUX.IMUX.{i}"),
                 &[format!("IMUX_W{i}"), format!("IMUX_E{i}")],
             );
+            self.builder.delay(w, format!("IMUX.IMUX.{i}.DELAY"), &[""]);
         }
     }
 
@@ -1065,44 +1067,105 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_intf(&mut self) {
-        for (kind, naming, dir, tkn) in [
-            ("INTF", "INTF.W", Dir::W, "INT_INTF_L"),
-            ("INTF", "INTF.E", Dir::E, "INT_INTF_R"),
-            ("INTF.IO", "INTF.PSS", Dir::W, "INT_INTF_LEFT_TERM_PSS"),
-            ("INTF.IO", "INTF.W.IO", Dir::W, "INT_INTF_LEFT_TERM_IO_FT"),
-            ("INTF.IO", "INTF.W.IO", Dir::W, "INT_INTF_L_CMT"),
-            ("INTF.IO", "INTF.W.IO", Dir::W, "INT_INTF_L_IO"),
-            ("INTF.IO", "INTF.E.IO", Dir::E, "INT_INTF_RIGHT_TERM_IO"),
+        for (kind, naming, dir, tkn, sb_delay) in [
+            ("INTF", "INTF.W", Dir::W, "INT_INTF_L", None),
+            ("INTF", "INTF.E", Dir::E, "INT_INTF_R", None),
+            (
+                "INTF.IO",
+                "INTF.PSS",
+                Dir::W,
+                "INT_INTF_LEFT_TERM_PSS",
+                Some(bels::INTF_DELAY),
+            ),
+            (
+                "INTF.IO",
+                "INTF.W.IO",
+                Dir::W,
+                "INT_INTF_LEFT_TERM_IO_FT",
+                Some(bels::INTF_DELAY),
+            ),
+            (
+                "INTF.IO",
+                "INTF.W.IO",
+                Dir::W,
+                "INT_INTF_L_CMT",
+                Some(bels::INTF_DELAY),
+            ),
+            (
+                "INTF.IO",
+                "INTF.W.IO",
+                Dir::W,
+                "INT_INTF_L_IO",
+                Some(bels::INTF_DELAY),
+            ),
+            (
+                "INTF.IO",
+                "INTF.E.IO",
+                Dir::E,
+                "INT_INTF_RIGHT_TERM_IO",
+                Some(bels::INTF_DELAY),
+            ),
             (
                 "INTF.IO",
                 "INTF.E.IO",
                 Dir::E,
                 "INT_INTF_RIGHT_TERM_XP5IO_FT",
+                Some(bels::INTF_DELAY),
             ),
-            ("INTF.DELAY", "INTF.W.PCIE", Dir::W, "INT_INTF_L_PCIE4"),
-            ("INTF.DELAY", "INTF.E.PCIE", Dir::E, "INT_INTF_R_PCIE4"),
-            ("INTF.DELAY", "INTF.W.GT", Dir::W, "INT_INTF_L_TERM_GT"),
-            ("INTF.DELAY", "INTF.E.GT", Dir::E, "INT_INTF_R_TERM_GT"),
+            (
+                "INTF.DELAY",
+                "INTF.W.PCIE",
+                Dir::W,
+                "INT_INTF_L_PCIE4",
+                Some(bels::INTF_DELAY),
+            ),
+            (
+                "INTF.DELAY",
+                "INTF.E.PCIE",
+                Dir::E,
+                "INT_INTF_R_PCIE4",
+                Some(bels::INTF_DELAY),
+            ),
+            (
+                "INTF.DELAY",
+                "INTF.W.GT",
+                Dir::W,
+                "INT_INTF_L_TERM_GT",
+                Some(bels::INTF_DELAY),
+            ),
+            (
+                "INTF.DELAY",
+                "INTF.E.GT",
+                Dir::E,
+                "INT_INTF_R_TERM_GT",
+                Some(bels::INTF_DELAY),
+            ),
             (
                 "INTF.DELAY",
                 "INTF.E.GT",
                 Dir::E,
                 "INT_INTF_20_2_RIGHT_TERM_GT_FT",
+                Some(bels::INTF_DELAY),
             ),
             (
                 "INTF.DELAY",
                 "INTF.E.GT",
                 Dir::E,
                 "INT_INTF_RIGHT_TERM_HDIO_FT",
+                Some(bels::INTF_DELAY),
             ),
         ] {
             for &xy in self.builder.rd.tiles_by_kind_name(tkn.as_ref()) {
                 let int_xy = self.builder.walk_to_int(xy, !dir, false).unwrap();
-                self.builder
+                let mut xn = self
+                    .builder
                     .xnode(tslots::INTF, kind, naming, xy)
                     .extract_intfs(true)
-                    .ref_int_side(int_xy, dir, 0)
-                    .extract();
+                    .ref_int_side(int_xy, dir, 0);
+                if let Some(sb) = sb_delay {
+                    xn = xn.extract_delay(sb);
+                }
+                xn.extract();
             }
         }
     }
@@ -3415,20 +3478,19 @@ impl IntMaker<'_> {
                 unreachable!()
             };
             for (pin, wire) in [
-                ("CFG2IOB_PUDC_B", "IMUX.IMUX.27"),
-                ("IJTAG_RESET_TAP", "IMUX.IMUX.28"),
-                ("CAPTURE_DR", "IMUX.IMUX.30"),
-                ("SELECT_DR", "IMUX.IMUX.31"),
+                ("CFG2IOB_PUDC_B", "IMUX.IMUX.27.DELAY"),
+                ("IJTAG_RESET_TAP", "IMUX.IMUX.28.DELAY"),
+                ("CAPTURE_DR", "IMUX.IMUX.30.DELAY"),
+                ("SELECT_DR", "IMUX.IMUX.31.DELAY"),
             ] {
                 let wire = TileWireCoord {
                     cell: CellSlotId::from_idx(34),
                     wire: self.builder.db.wires.get(wire).unwrap().0,
                 };
                 let bpin = bel.pins.get_mut(pin).unwrap();
-                bpin.is_intf_in = true;
                 bpin.wires = BTreeSet::from_iter([wire]);
                 let bnpin = beln.pins.get_mut(pin).unwrap();
-                bnpin.is_intf_out = false;
+                bnpin.is_intf = false;
             }
         }
     }

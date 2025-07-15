@@ -348,10 +348,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
     for i in 0..48 {
-        builder.mux_out(
+        let w = builder.mux_out(
             format!("IMUX.IMUX{i}"),
             &[format!("IMUX{i}"), format!("IMUX_L{i}")],
         );
+        builder.delay(w, format!("IMUX.IMUX{i}.DELAY"), &[""]);
     }
     for i in 0..48 {
         builder.test_out(
@@ -497,7 +498,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         (Dir::E, "R", "IO_INT_INTERFACE_R"),
         (Dir::W, "PSS", "INT_INTERFACE_PSS_L"),
     ] {
-        builder.extract_intf(tslots::INTF, "INTF", dir, tkn, format!("INTF.{n}"), true);
+        builder.extract_intf(
+            tslots::INTF,
+            "INTF",
+            dir,
+            tkn,
+            format!("INTF.{n}"),
+            true,
+            None,
+        );
     }
     for (dir, n, tkn) in [
         (Dir::W, "L", "BRAM_INT_INTERFACE_L"),
@@ -510,6 +519,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             format!("INTF.{n}"),
             true,
+            None,
         );
     }
     for (dir, n, tkn) in [
@@ -533,6 +543,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             format!("INTF.{n}"),
             true,
+            Some(bels::INTF_DELAY)
         );
     }
 

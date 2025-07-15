@@ -396,7 +396,6 @@ pub enum PinDir {
 pub enum IntfInfo {
     OutputTestMux(BTreeSet<TileWireCoord>),
     OutputTestMuxPass(BTreeSet<TileWireCoord>, TileWireCoord),
-    InputDelay,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
@@ -536,7 +535,6 @@ impl TileClassIndex {
                     }
                     intf_ins_pass.entry(main_in).or_default().insert(wo);
                 }
-                _ => (),
             }
         }
 
@@ -586,9 +584,6 @@ impl IntfInfo {
                     "{:#}:{}", wf.cell, db.wires.key(wf.wire)
                 ))),
                 default: format!("{:#}:{}", def.cell, db.wires.key(def.wire)),
-            },
-            IntfInfo::InputDelay => jzon::object! {
-                kind: "INPUT_DELAY",
             },
         }
     }

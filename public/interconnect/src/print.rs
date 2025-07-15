@@ -65,14 +65,6 @@ impl IntDb {
                         }
                         writeln!(o)?;
                     }
-                    IntfInfo::InputDelay => {
-                        writeln!(
-                            o,
-                            "\t\tINTF.DELAY {wot}.{won}",
-                            wot = wo.cell.to_idx(),
-                            won = self.wires.key(wo.wire)
-                        )?;
-                    }
                 }
             }
             let mut wires: BTreeMap<_, Vec<_>> = BTreeMap::new();

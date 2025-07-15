@@ -261,7 +261,6 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                     };
                     format!("TEST_MUX BASE {base} TEST {srcs}")
                 }
-                IntfInfo::InputDelay => "DELAY".to_string(),
             };
             writeln!(buf, r#"<tr><td>{wire}</td><td>{intf}</td></tr>"#).unwrap();
         }

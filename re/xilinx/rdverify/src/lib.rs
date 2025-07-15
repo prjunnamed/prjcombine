@@ -99,7 +99,7 @@ pub struct Verifier<'a> {
     pub grid: &'a ExpandedGrid<'a>,
     pub ngrid: &'a ExpandedGridNaming<'a>,
     pub tile_lut: HashMap<String, Coord>,
-    intf_aliases: HashMap<WireCoord, WireCoord>,
+    intf_int_aliases: HashMap<WireCoord, WireCoord>,
     dummy_in_nodes: HashSet<NodeOrWire>,
     dummy_out_nodes: HashSet<NodeOrWire>,
     claimed_nodes: EntityBitVec<rawdump::NodeId>,
@@ -221,7 +221,7 @@ impl<'a> Verifier<'a> {
             grid: ngrid.egrid,
             ngrid,
             tile_lut: rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect(),
-            intf_aliases: HashMap::new(),
+            intf_int_aliases: HashMap::new(),
             dummy_in_nodes: HashSet::new(),
             dummy_out_nodes: HashSet::new(),
             claimed_nodes: EntityBitVec::repeat(false, rd.nodes.len()),
@@ -270,12 +270,8 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn alias_intf(&mut self, from: WireCoord, to: WireCoord) {
-        self.intf_aliases.insert(from, to);
-    }
-
-    fn get_intf_alias(&self, w: WireCoord) -> WireCoord {
-        self.intf_aliases.get(&w).copied().unwrap_or(w)
+    pub fn alias_intf_int(&mut self, from: WireCoord, to: WireCoord) {
+        self.intf_int_aliases.insert(from, to);
     }
 
     fn prep_int_wires(&mut self) {
@@ -330,14 +326,6 @@ impl<'a> Verifier<'a> {
                         let wf = self.grid.tile_wire(tcrd, pwf);
                         if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
                             self.int_wire_data.entry(wf).or_default().used_i = true;
-                        }
-                    }
-                    IntfInfo::InputDelay => {
-                        let wf = self.grid.tile_wire(tcrd, w);
-                        if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
-                            let iwd = self.int_wire_data.entry(wf).or_default();
-                            iwd.used_i = true;
-                            iwd.has_intf_i = true;
                         }
                     }
                 }
@@ -455,7 +443,9 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn pin_int_intf_wire(&mut self, crd: Coord, wire: &str, iw: WireCoord) -> bool {
-        let iw = self.get_intf_alias(iw);
+        if let Some(&iw) = self.intf_int_aliases.get(&iw) {
+            return self.pin_int_wire(crd, wire, iw);
+        }
         if let Some(cnw) = self.rd.lookup_wire(crd, wire) {
             let iwd = self.int_wire_data.get_mut(&iw).unwrap();
             if let Some(nw) = iwd.intf_node {
@@ -736,16 +726,45 @@ impl<'a> Verifier<'a> {
                         pips.push((pass.a, pass.b));
                         pips.push((pass.b, pass.a));
                     }
+                    SwitchBoxItem::ProgDelay(delay) => {
+                        let Some(wti) = wire_lut[&delay.dst] else {
+                            continue;
+                        };
+                        let Some(wfi) = wire_lut[&delay.src.tw] else {
+                            continue;
+                        };
+                        let wtn = &naming.wires[&delay.dst];
+                        let wdn = &naming.delay_wires[&delay.dst];
+                        let wfn = &naming.wires[&delay.src];
+                        if !self.pin_int_wire(crds[def_rt], wfn, wfi) {
+                            let tname = &nnode.names[def_rt];
+                            println!(
+                                "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
+                                p = self.rd.part,
+                                wn = self.print_nw(delay.src.tw),
+                            );
+                        }
+                        if !self.pin_int_wire(crds[def_rt], wtn, wti)
+                            && self.int_wire_data[&wti].used_i
+                        {
+                            let tname = &nnode.names[def_rt];
+                            println!(
+                                "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
+                                p = self.rd.part,
+                                wn = self.print_nw(delay.dst),
+                            );
+                        }
+                        self.claim_node(&[(crds[def_rt], wdn)]);
+                        self.claim_pip(crds[def_rt], wtn, wfn);
+                        self.claim_pip(crds[def_rt], wtn, wdn);
+                        self.claim_pip(crds[def_rt], wdn, wfn);
+                    }
                     _ => (),
                 }
             }
         }
         for (wt, wf) in pips {
-            let wti = &wire_lut[&wt];
-            if wti.is_none() {
-                continue;
-            }
-            let wti = wti.unwrap();
+            let Some(wti) = wire_lut[&wt] else { continue };
             let wftie = self.db.wires[wf.wire].is_tie();
             let pip_found;
             if let Some(en) = naming.ext_pips.get(&(wt, wf)) {
@@ -762,11 +781,7 @@ impl<'a> Verifier<'a> {
                         self.claim_pip(crds[en.tile], &en.wire_to, &en.wire_from);
                     }
                 } else {
-                    let wfi = &wire_lut[&wf];
-                    if wfi.is_none() {
-                        continue;
-                    }
-                    let wfi = wfi.unwrap();
+                    let Some(wfi) = wire_lut[&wf] else { continue };
                     let wtf = self.pin_int_wire(crds[en.tile], &en.wire_to, wti);
                     let wff = self.pin_int_wire(crds[en.tile], &en.wire_from, wfi);
                     pip_found = wtf && wff;
@@ -953,7 +968,7 @@ impl<'a> Verifier<'a> {
                                 ww = wn;
                                 claim = false;
                             }
-                            if v.is_intf_in || n.is_intf_out {
+                            if n.is_intf {
                                 if !self.pin_int_intf_wire(wcrd, ww, wire) {
                                     println!(
                                         "MISSING BEL PIN INTF WIRE {part} {tile} {k} {wire}",
@@ -1068,29 +1083,6 @@ impl<'a> Verifier<'a> {
                             }
                         }
                     }
-                }
-                IntfInfo::InputDelay => {
-                    let IntfWireInNaming::Delay {
-                        name_out,
-                        name_delay,
-                        name_in,
-                    } = &naming.intf_wires_in[&wt]
-                    else {
-                        unreachable!();
-                    };
-                    if !self.pin_int_wire(crds[def_rt], name_in, wti) {
-                        let tname = &nnode.names[def_rt];
-                        println!(
-                            "INT NODE MISSING FOR {p} {tname} {name_in} {wn}",
-                            p = self.rd.part,
-                            wn = self.print_nw(wt),
-                        );
-                    }
-                    self.pin_int_intf_wire(crds[def_rt], name_out, wti);
-                    self.claim_node(&[(crds[def_rt], name_delay)]);
-                    self.claim_pip(crds[def_rt], name_delay, name_in);
-                    self.claim_pip(crds[def_rt], name_out, name_in);
-                    self.claim_pip(crds[def_rt], name_out, name_delay);
                 }
             }
         }

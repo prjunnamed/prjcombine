@@ -1687,7 +1687,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("TPPC_X0Y0_INT", "INTF.PPC", "INTF.PPC.T"),
         ("TPPC_X1Y0_INT", "INTF.PPC", "INTF.PPC.T"),
     ] {
-        builder.extract_intf(tslots::INTF, name, Dir::E, tkn, naming, false);
+        builder.extract_intf(tslots::INTF, name, Dir::E, tkn, naming, false, None);
     }
 
     for (nn, tkn) in [

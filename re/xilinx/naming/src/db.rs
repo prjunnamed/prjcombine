@@ -49,6 +49,7 @@ pub struct TileClassNaming {
     pub wires: BTreeMap<TileWireCoord, String>,
     pub wire_bufs: BTreeMap<TileWireCoord, PipNaming>,
     pub ext_pips: BTreeMap<(TileWireCoord, TileWireCoord), PipNaming>,
+    pub delay_wires: BTreeMap<TileWireCoord, String>,
     pub bels: EntityPartVec<BelSlotId, BelNaming>,
     pub intf_wires_out: BTreeMap<TileWireCoord, IntfWireOutNaming>,
     pub intf_wires_in: BTreeMap<TileWireCoord, IntfWireInNaming>,
@@ -79,7 +80,7 @@ pub struct BelPinNaming {
     pub name_far: String,
     pub pips: Vec<PipNaming>,
     pub int_pips: BTreeMap<TileWireCoord, PipNaming>,
-    pub is_intf_out: bool,
+    pub is_intf: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
@@ -173,6 +174,14 @@ impl NamingDb {
                     vf = v.wire_from,
                 )?;
             }
+            for (k, v) in &naming.delay_wires {
+                writeln!(
+                    o,
+                    "\t\tDELAY WIRE {wt:3}.{wn:20} {v}",
+                    wt = k.cell.to_idx(),
+                    wn = intdb.wires.key(k.wire)
+                )?;
+            }
             for (slot, bn) in &naming.bels {
                 match bn {
                     BelNaming::Bel(bn) => {
@@ -189,8 +198,8 @@ impl NamingDb {
                             } else {
                                 write!(o, "NEAR {nn} FAR {nf}", nn = v.name, nf = v.name_far)?;
                             }
-                            if v.is_intf_out {
-                                write!(o, " INTF.OUT")?;
+                            if v.is_intf {
+                                write!(o, " INTF")?;
                             }
                             writeln!(o)?;
                             for pip in &v.pips {

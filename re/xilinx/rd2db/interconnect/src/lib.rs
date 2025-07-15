@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map};
 use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, BelSlotId, BiPass, Buf, CellSlotId, ConnectorClass, ConnectorSlot,
-        ConnectorSlotId, ConnectorWire, IntDb, IntfInfo, Mux, Pass, PinDir, SwitchBox,
+        ConnectorSlotId, ConnectorWire, IntDb, IntfInfo, Mux, Pass, PinDir, ProgDelay, SwitchBox,
         SwitchBoxItem, TileClass, TileClassId, TileSlotId, TileWireCoord, WireId, WireKind,
     },
     dir::{Dir, DirMap},
@@ -65,6 +65,7 @@ pub struct XNodeInfo<'a, 'b> {
     pub num_tiles: usize,
     pub refs: Vec<XNodeRef>,
     pub extract_intfs: bool,
+    pub delay_sb: Option<BelSlotId>,
     pub has_intf_out_bufs: bool,
     pub skip_muxes: BTreeSet<WireId>,
     pub optin_muxes: BTreeSet<WireId>,
@@ -296,6 +297,11 @@ impl XNodeInfo<'_, '_> {
     pub fn extract_muxes_rt(mut self, sb: BelSlotId, rt: usize) -> Self {
         self.switchbox = Some(sb);
         self.raw_tiles[rt].extract_muxes = true;
+        self
+    }
+
+    pub fn extract_delay(mut self, sb: BelSlotId) -> Self {
+        self.delay_sb = Some(sb);
         self
     }
 
@@ -607,6 +613,7 @@ impl XNodeInfo<'_, '_> {
             pips.insert(self.switchbox.unwrap(), sb_pips);
         }
 
+        extractor.extract_delay();
         if self.extract_intfs {
             extractor.extract_intfs();
         }
@@ -851,7 +858,7 @@ impl XNodeExtractor<'_, '_, '_> {
                                 name_far: self.rd.wires[wnf].clone(),
                                 pips,
                                 int_pips,
-                                is_intf_out: ick == IntConnKind::IntfOut,
+                                is_intf: ick != IntConnKind::Raw,
                             },
                         );
                         pins.insert(
@@ -859,7 +866,7 @@ impl XNodeExtractor<'_, '_, '_> {
                             BelPin {
                                 wires,
                                 dir,
-                                is_intf_in: ick == IntConnKind::IntfIn,
+                                is_intf_in: false,
                             },
                         );
                     }
@@ -876,7 +883,7 @@ impl XNodeExtractor<'_, '_, '_> {
                                 name_far: wname.clone(),
                                 pips: Vec::new(),
                                 int_pips: BTreeMap::new(),
-                                is_intf_out: false,
+                                is_intf: false,
                             },
                         );
                         pins.insert(
@@ -903,7 +910,7 @@ impl XNodeExtractor<'_, '_, '_> {
                                     name_far: self.rd.wires[tksp.wire.unwrap()].clone(),
                                     pips: Vec::new(),
                                     int_pips: BTreeMap::new(),
-                                    is_intf_out: false,
+                                    is_intf: false,
                                 },
                             );
                         } else {
@@ -926,7 +933,7 @@ impl XNodeExtractor<'_, '_, '_> {
                                     name_far: self.rd.wires[wn].clone(),
                                     pips,
                                     int_pips: BTreeMap::new(),
-                                    is_intf_out: false,
+                                    is_intf: false,
                                 },
                             );
                         }
@@ -964,7 +971,7 @@ impl XNodeExtractor<'_, '_, '_> {
                             name_far: self.rd.wires[wnf].clone(),
                             pips,
                             int_pips,
-                            is_intf_out: ick == IntConnKind::IntfOut,
+                            is_intf: ick != IntConnKind::Raw,
                         },
                     );
                     pins.insert(
@@ -972,7 +979,7 @@ impl XNodeExtractor<'_, '_, '_> {
                         BelPin {
                             wires,
                             dir,
-                            is_intf_in: ick == IntConnKind::IntfIn,
+                            is_intf_in: false,
                         },
                     );
                 }
@@ -984,7 +991,7 @@ impl XNodeExtractor<'_, '_, '_> {
                             name_far: wname.clone(),
                             pips: vec![],
                             int_pips: BTreeMap::new(),
-                            is_intf_out: false,
+                            is_intf: false,
                         },
                     );
                     pins.insert(
@@ -1024,7 +1031,7 @@ impl XNodeExtractor<'_, '_, '_> {
                             name_far: self.rd.wires[wn].clone(),
                             pips: Vec::new(),
                             int_pips: BTreeMap::new(),
-                            is_intf_out: false,
+                            is_intf: false,
                         },
                     );
                 }
@@ -1036,7 +1043,7 @@ impl XNodeExtractor<'_, '_, '_> {
                             name_far: wname.clone(),
                             pips: pips.clone(),
                             int_pips: BTreeMap::new(),
-                            is_intf_out: false,
+                            is_intf: false,
                         },
                     );
                 }
@@ -1137,12 +1144,12 @@ impl XNodeExtractor<'_, '_, '_> {
         }
     }
 
-    fn extract_intfs(&mut self) {
+    fn extract_delay(&mut self) {
         let crd = self.xnode.raw_tiles[0].xy;
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
-        let mut proxied_in = HashMap::new();
-        if self.xnode.has_intf_out_bufs {
+        if let Some(sb) = self.xnode.delay_sb {
+            let mut items = vec![];
             for &(wfi, wdi) in tk.pips.keys() {
                 let nwf = self.rd.lookup_wire_raw_force(crd, wfi);
                 let nwd = self.rd.lookup_wire_raw_force(crd, wdi);
@@ -1158,24 +1165,47 @@ impl XNodeExtractor<'_, '_, '_> {
                 if !tk.pips.contains_key(&(wfi, wti)) {
                     continue;
                 }
+                let nwt = self.rd.lookup_wire_raw_force(crd, wti);
                 if let Some(&(_, wf)) = self.names.get(&nwf) {
                     if !matches!(self.db.wires[wf.wire], WireKind::MuxOut) {
                         continue;
                     }
+                    let Some(&wtw) = self.xnode.builder.delay_wires.get(&wf.wire) else {
+                        continue;
+                    };
+                    let wt = TileWireCoord {
+                        cell: wf.cell,
+                        wire: wtw,
+                    };
                     assert_eq!(bwdi, wdi);
-                    self.node_naming.intf_wires_in.insert(
-                        wf,
-                        IntfWireInNaming::Delay {
-                            name_out: self.rd.wires[wti].clone(),
-                            name_delay: self.rd.wires[wdi].clone(),
-                            name_in: self.rd.wires[wfi].clone(),
-                        },
-                    );
-                    proxied_in.insert(wti, wf);
-                    self.node.intfs.insert(wf, IntfInfo::InputDelay);
+                    self.node_naming
+                        .wires
+                        .insert(wf, self.rd.wires[wfi].clone());
+                    self.node_naming
+                        .wires
+                        .insert(wt, self.rd.wires[wti].clone());
+                    self.node_naming
+                        .delay_wires
+                        .insert(wt, self.rd.wires[wdi].clone());
+                    self.names.insert(nwt, (IntConnKind::Raw, wt));
+                    items.push(SwitchBoxItem::ProgDelay(ProgDelay {
+                        dst: wt,
+                        src: wf.pos(),
+                        num_steps: 2,
+                    }));
                 }
             }
+            items.sort();
+            self.node
+                .bels
+                .insert(sb, BelInfo::SwitchBox(SwitchBox { items }));
         }
+    }
+
+    fn extract_intfs(&mut self) {
+        let crd = self.xnode.raw_tiles[0].xy;
+        let tile = &self.rd.tiles[&crd];
+        let tk = &self.rd.tile_kinds[tile.kind];
         let mut out_muxes: HashMap<TileWireCoord, (Vec<TileWireCoord>, Option<TileWireCoord>)> =
             HashMap::new();
         for &(wfi, wti) in tk.pips.keys() {
@@ -1206,8 +1236,6 @@ impl XNodeExtractor<'_, '_, '_> {
                     } else {
                         out_muxes.entry(wt).or_default().0.push(wf);
                     }
-                } else if let Some(&wf) = proxied_in.get(&wfi) {
-                    out_muxes.entry(wt).or_default().0.push(wf);
                 } else if let Some(&(_, wf, rt, bwti, bwfi)) = self.int_in.get(&nwf) {
                     if !self.buf_in.contains_key(&nwf) {
                         assert!(!self.xnode.has_intf_out_bufs);
@@ -1275,6 +1303,7 @@ pub struct IntBuilder<'a> {
     pub term_slots: DirMap<ConnectorSlotId>,
     pub pips: BTreeMap<(TileClassId, BelSlotId), Pips>,
     permabuf_wires: BTreeSet<WireId>,
+    delay_wires: BTreeMap<WireId, WireId>,
     is_mirror_square: bool,
     allow_mux_to_branch: bool,
     main_passes: DirMap<EntityPartVec<WireId, WireId>>,
@@ -1333,6 +1362,7 @@ impl<'a> IntBuilder<'a> {
             ndb,
             term_slots,
             permabuf_wires: Default::default(),
+            delay_wires: Default::default(),
             pips: Default::default(),
             is_mirror_square: false,
             allow_mux_to_branch: false,
@@ -1574,6 +1604,17 @@ impl<'a> IntBuilder<'a> {
     pub fn permabuf(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireId {
         let w = self.wire(name, WireKind::MuxOut, raw_names);
         self.permabuf_wires.insert(w);
+        w
+    }
+
+    pub fn delay(
+        &mut self,
+        wire: WireId,
+        name: impl Into<String>,
+        raw_names: &[impl AsRef<str>],
+    ) -> WireId {
+        let w = self.wire(name, WireKind::MuxOut, raw_names);
+        self.delay_wires.insert(wire, w);
         w
     }
 
@@ -1909,7 +1950,7 @@ impl<'a> IntBuilder<'a> {
                                     name_far: self.rd.wires[wnf].clone(),
                                     pips,
                                     int_pips,
-                                    is_intf_out: ick == IntConnKind::IntfOut,
+                                    is_intf: ick != IntConnKind::Raw,
                                 },
                             );
                             pins.insert(
@@ -1917,7 +1958,7 @@ impl<'a> IntBuilder<'a> {
                                 BelPin {
                                     wires,
                                     dir,
-                                    is_intf_in: ick == IntConnKind::IntfIn,
+                                    is_intf_in: false,
                                 },
                             );
                         }
@@ -1934,7 +1975,7 @@ impl<'a> IntBuilder<'a> {
                                     name_far: wname.clone(),
                                     pips: Vec::new(),
                                     int_pips: BTreeMap::new(),
-                                    is_intf_out: false,
+                                    is_intf: false,
                                 },
                             );
                             pins.insert(
@@ -1955,7 +1996,7 @@ impl<'a> IntBuilder<'a> {
                                         name_far: self.rd.wires[tksp.wire.unwrap()].clone(),
                                         pips: Vec::new(),
                                         int_pips: BTreeMap::new(),
-                                        is_intf_out: false,
+                                        is_intf: false,
                                     },
                                 );
                             } else {
@@ -1972,7 +2013,7 @@ impl<'a> IntBuilder<'a> {
                                         name_far: self.rd.wires[wn].clone(),
                                         pips,
                                         int_pips: BTreeMap::new(),
-                                        is_intf_out: false,
+                                        is_intf: false,
                                     },
                                 );
                             }
@@ -2006,7 +2047,7 @@ impl<'a> IntBuilder<'a> {
                                 name_far: self.rd.wires[wnf].clone(),
                                 pips,
                                 int_pips,
-                                is_intf_out: ick == IntConnKind::IntfOut,
+                                is_intf: ick != IntConnKind::Raw,
                             },
                         );
                         pins.insert(
@@ -2014,7 +2055,7 @@ impl<'a> IntBuilder<'a> {
                             BelPin {
                                 wires,
                                 dir,
-                                is_intf_in: ick == IntConnKind::IntfIn,
+                                is_intf_in: false,
                             },
                         );
                     }
@@ -2026,7 +2067,7 @@ impl<'a> IntBuilder<'a> {
                                 name_far: wname.clone(),
                                 pips: vec![],
                                 int_pips: BTreeMap::new(),
-                                is_intf_out: false,
+                                is_intf: false,
                             },
                         );
                         pins.insert(
@@ -2059,7 +2100,7 @@ impl<'a> IntBuilder<'a> {
                                 name_far: self.rd.wires[wn].clone(),
                                 pips: Vec::new(),
                                 int_pips: BTreeMap::new(),
-                                is_intf_out: false,
+                                is_intf: false,
                             },
                         );
                     }
@@ -2071,7 +2112,7 @@ impl<'a> IntBuilder<'a> {
                                 name_far: wname.clone(),
                                 pips: pips.clone(),
                                 int_pips: BTreeMap::new(),
-                                is_intf_out: false,
+                                is_intf: false,
                             },
                         );
                     }
@@ -2367,9 +2408,6 @@ impl<'a> IntBuilder<'a> {
                 for (k, v) in node.intfs {
                     let cv = cnode.intfs.get_mut(&k).unwrap();
                     match v {
-                        IntfInfo::InputDelay => {
-                            assert_eq!(*cv, v);
-                        }
                         IntfInfo::OutputTestMux(ref wfs) => {
                             if let IntfInfo::OutputTestMux(cwfs) = cv {
                                 for &wf in wfs {
@@ -2407,6 +2445,7 @@ impl<'a> IntBuilder<'a> {
             Some((id, cnaming)) => {
                 assert_eq!(naming.ext_pips, cnaming.ext_pips);
                 assert_eq!(naming.wire_bufs, cnaming.wire_bufs);
+                assert_eq!(naming.delay_wires, cnaming.delay_wires);
                 assert_eq!(naming.bels, cnaming.bels);
                 for (k, v) in naming.wires {
                     match cnaming.wires.get(&k) {
@@ -2643,6 +2682,7 @@ impl<'a> IntBuilder<'a> {
                     wires: node_names,
                     wire_bufs: Default::default(),
                     ext_pips: Default::default(),
+                    delay_wires: Default::default(),
                     bels: Default::default(),
                     intf_wires_in: Default::default(),
                     intf_wires_out: Default::default(),
@@ -3191,6 +3231,7 @@ impl<'a> IntBuilder<'a> {
                         wires: node_names,
                         wire_bufs: node_wire_bufs,
                         ext_pips: Default::default(),
+                        delay_wires: Default::default(),
                         bels: Default::default(),
                         intf_wires_in: Default::default(),
                         intf_wires_out: Default::default(),
@@ -3268,6 +3309,7 @@ impl<'a> IntBuilder<'a> {
                         wires: snode_names,
                         wire_bufs: Default::default(),
                         ext_pips: Default::default(),
+                        delay_wires: Default::default(),
                         bels: Default::default(),
                         intf_wires_in: Default::default(),
                         intf_wires_out: Default::default(),
@@ -3395,11 +3437,15 @@ impl<'a> IntBuilder<'a> {
         int_xy: &[Coord],
         naming: impl AsRef<str>,
         has_out_bufs: bool,
+        sb_delay: Option<BelSlotId>,
     ) {
         let mut x = self
             .xnode(slot, name.as_ref(), naming.as_ref(), xy)
             .num_tiles(int_xy.len())
             .extract_intfs(has_out_bufs);
+        if let Some(sb) = sb_delay {
+            x = x.extract_delay(sb);
+        }
         for (i, &xy) in int_xy.iter().enumerate() {
             x = x.ref_int(xy, i);
         }
@@ -3414,8 +3460,9 @@ impl<'a> IntBuilder<'a> {
         int_xy: Coord,
         naming: impl AsRef<str>,
         has_out_bufs: bool,
+        sb_delay: Option<BelSlotId>,
     ) {
-        self.extract_intf_tile_multi(slot, name, xy, &[int_xy], naming, has_out_bufs);
+        self.extract_intf_tile_multi(slot, name, xy, &[int_xy], naming, has_out_bufs, sb_delay);
     }
 
     pub fn extract_intf(
@@ -3426,6 +3473,7 @@ impl<'a> IntBuilder<'a> {
         tkn: impl AsRef<str>,
         naming: impl AsRef<str>,
         has_out_bufs: bool,
+        sb_delay: Option<BelSlotId>,
     ) {
         for &xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
             let int_xy = self.walk_to_int(xy, !dir, false).unwrap();
@@ -3436,6 +3484,7 @@ impl<'a> IntBuilder<'a> {
                 int_xy,
                 naming.as_ref(),
                 has_out_bufs,
+                sb_delay,
             );
         }
     }
@@ -3554,6 +3603,7 @@ impl<'a> IntBuilder<'a> {
             wires: Default::default(),
             wire_bufs: Default::default(),
             ext_pips: Default::default(),
+            delay_wires: Default::default(),
             bels: naming_bels,
             intf_wires_in: Default::default(),
             intf_wires_out: Default::default(),
@@ -3592,6 +3642,7 @@ impl<'a> IntBuilder<'a> {
             num_tiles: 1,
             refs: vec![],
             extract_intfs: false,
+            delay_sb: None,
             has_intf_out_bufs: false,
             skip_muxes: BTreeSet::new(),
             optin_muxes: BTreeSet::new(),

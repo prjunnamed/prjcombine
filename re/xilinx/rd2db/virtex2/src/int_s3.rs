@@ -2340,7 +2340,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 name_far: "CNR_CLK3".into(),
                 pips: vec![],
                 int_pips: BTreeMap::new(),
-                is_intf_out: false,
+                is_intf: false,
             };
             let mut bel_naming = ProperBelNaming {
                 tile: RawTileId::from_idx(0),
@@ -3475,6 +3475,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     &int_xy,
                     "INTF.DSP",
                     false,
+                    None,
                 );
             }
         }

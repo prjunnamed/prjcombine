@@ -1090,7 +1090,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             name_far: name,
                             pips: Vec::new(),
                             int_pips: BTreeMap::new(),
-                            is_intf_out: false,
+                            is_intf: false,
                         },
                     )
                 })

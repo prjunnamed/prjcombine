@@ -403,12 +403,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     int_xy,
                     format!("INTF.{n}.{i}"),
                     false,
+                    None,
                 );
             }
         }
     }
     for tkn in ["IOIS_LC", "IOIS_NC"] {
-        builder.extract_intf(tslots::INTF, "INTF", Dir::E, tkn, "INTF.IOIS", false);
+        builder.extract_intf(tslots::INTF, "INTF", Dir::E, tkn, "INTF.IOIS", false, None);
     }
     for &xy in rd.tiles_by_kind_name("CFG_CENTER") {
         for i in 0..16 {
@@ -420,6 +421,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_xy,
                 format!("INTF.CFG.{i}"),
                 false,
+                None,
             );
         }
     }
@@ -446,6 +448,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     int_xy,
                     format!("INTF.MGT.{i}"),
                     false,
+                    None,
                 );
             }
         }
@@ -469,6 +472,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_w_xy,
                 format!("INTF.PPC.L{i}"),
                 false,
+                None,
             );
             builder.extract_intf_tile(
                 tslots::INTF,
@@ -477,6 +481,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_e_xy,
                 format!("INTF.PPC.R{i}"),
                 false,
+                None,
             );
         }
         for (i, delta) in [1, 3, 5, 7, 9, 11, 13].into_iter().enumerate() {
@@ -489,6 +494,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_s_xy,
                 format!("INTF.PPC.B{i}"),
                 false,
+                None,
             );
             builder.extract_intf_tile(
                 tslots::INTF,
@@ -497,6 +503,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_n_xy,
                 format!("INTF.PPC.T{i}"),
                 false,
+                None,
             );
         }
     }

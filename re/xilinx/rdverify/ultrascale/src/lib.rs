@@ -5470,7 +5470,7 @@ fn verify_pre(vrf: &mut Verifier) {
                 let wo = vrf.grid.tile_wire(tcrd, wo);
                 let wi = *bel.pins[ipin].wires.iter().next().unwrap();
                 let wi = vrf.grid.tile_wire(tcrd, wi);
-                vrf.alias_intf(wo, wi);
+                vrf.alias_intf_int(wo, wi);
             }
         }
     }

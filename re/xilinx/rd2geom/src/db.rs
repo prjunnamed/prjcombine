@@ -242,6 +242,7 @@ impl DbBuilder {
                             }
                             assert_eq!(v.wire_bufs, v2.wire_bufs);
                             assert_eq!(v.ext_pips, v2.ext_pips);
+                            assert_eq!(v.delay_wires, v2.delay_wires);
                             assert_eq!(v.bels, v2.bels);
                             for (kk, vv) in v.intf_wires_in {
                                 match v2.intf_wires_in.get(&kk) {

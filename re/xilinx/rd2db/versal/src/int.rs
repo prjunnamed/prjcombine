@@ -81,39 +81,39 @@ impl XNodeInfoExt for XNodeInfo<'_, '_> {
     }
 }
 
-const INTF_KINDS: &[(Dir, &str, &str, bool)] = &[
-    (Dir::W, "INTF_LOCF_BL_TILE", "INTF.W", false),
-    (Dir::W, "INTF_LOCF_TL_TILE", "INTF.W", false),
-    (Dir::E, "INTF_LOCF_BR_TILE", "INTF.E", false),
-    (Dir::E, "INTF_LOCF_TR_TILE", "INTF.E", false),
-    (Dir::W, "INTF_ROCF_BL_TILE", "INTF.W", false),
-    (Dir::W, "INTF_ROCF_TL_TILE", "INTF.W", false),
-    (Dir::E, "INTF_ROCF_BR_TILE", "INTF.E", false),
-    (Dir::E, "INTF_ROCF_TR_TILE", "INTF.E", false),
-    (Dir::W, "INTF_HB_LOCF_BL_TILE", "INTF.W.HB", false),
-    (Dir::W, "INTF_HB_LOCF_TL_TILE", "INTF.W.HB", false),
-    (Dir::E, "INTF_HB_LOCF_BR_TILE", "INTF.E.HB", false),
-    (Dir::E, "INTF_HB_LOCF_TR_TILE", "INTF.E.HB", false),
-    (Dir::W, "INTF_HB_ROCF_BL_TILE", "INTF.W.HB", false),
-    (Dir::W, "INTF_HB_ROCF_TL_TILE", "INTF.W.HB", false),
-    (Dir::E, "INTF_HB_ROCF_BR_TILE", "INTF.E.HB", false),
-    (Dir::E, "INTF_HB_ROCF_TR_TILE", "INTF.E.HB", false),
-    (Dir::W, "INTF_HDIO_LOCF_BL_TILE", "INTF.W.HDIO", false),
-    (Dir::W, "INTF_HDIO_LOCF_TL_TILE", "INTF.W.HDIO", false),
-    (Dir::E, "INTF_HDIO_LOCF_BR_TILE", "INTF.E.HDIO", false),
-    (Dir::E, "INTF_HDIO_LOCF_TR_TILE", "INTF.E.HDIO", false),
-    (Dir::W, "INTF_HDIO_ROCF_BL_TILE", "INTF.W.HDIO", false),
-    (Dir::W, "INTF_HDIO_ROCF_TL_TILE", "INTF.W.HDIO", false),
-    (Dir::E, "INTF_HDIO_ROCF_BR_TILE", "INTF.E.HDIO", false),
-    (Dir::E, "INTF_HDIO_ROCF_TR_TILE", "INTF.E.HDIO", false),
-    (Dir::W, "INTF_CFRM_BL_TILE", "INTF.W.PSS", false),
-    (Dir::W, "INTF_CFRM_TL_TILE", "INTF.W.PSS", false),
-    (Dir::W, "INTF_PSS_BL_TILE", "INTF.W.TERM.PSS", true),
-    (Dir::W, "INTF_PSS_TL_TILE", "INTF.W.TERM.PSS", true),
-    (Dir::W, "INTF_GT_BL_TILE", "INTF.W.TERM.GT", true),
-    (Dir::W, "INTF_GT_TL_TILE", "INTF.W.TERM.GT", true),
-    (Dir::E, "INTF_GT_BR_TILE", "INTF.E.TERM.GT", true),
-    (Dir::E, "INTF_GT_TR_TILE", "INTF.E.TERM.GT", true),
+const INTF_KINDS: &[(Dir, &str, &str, bool, bool)] = &[
+    (Dir::W, "INTF_LOCF_BL_TILE", "INTF.W", false, false),
+    (Dir::W, "INTF_LOCF_TL_TILE", "INTF.W", false, false),
+    (Dir::E, "INTF_LOCF_BR_TILE", "INTF.E", false, false),
+    (Dir::E, "INTF_LOCF_TR_TILE", "INTF.E", false, false),
+    (Dir::W, "INTF_ROCF_BL_TILE", "INTF.W", false, false),
+    (Dir::W, "INTF_ROCF_TL_TILE", "INTF.W", false, false),
+    (Dir::E, "INTF_ROCF_BR_TILE", "INTF.E", false, false),
+    (Dir::E, "INTF_ROCF_TR_TILE", "INTF.E", false, false),
+    (Dir::W, "INTF_HB_LOCF_BL_TILE", "INTF.W.HB", false, true),
+    (Dir::W, "INTF_HB_LOCF_TL_TILE", "INTF.W.HB", false, true),
+    (Dir::E, "INTF_HB_LOCF_BR_TILE", "INTF.E.HB", false, true),
+    (Dir::E, "INTF_HB_LOCF_TR_TILE", "INTF.E.HB", false, true),
+    (Dir::W, "INTF_HB_ROCF_BL_TILE", "INTF.W.HB", false, true),
+    (Dir::W, "INTF_HB_ROCF_TL_TILE", "INTF.W.HB", false, true),
+    (Dir::E, "INTF_HB_ROCF_BR_TILE", "INTF.E.HB", false, true),
+    (Dir::E, "INTF_HB_ROCF_TR_TILE", "INTF.E.HB", false, true),
+    (Dir::W, "INTF_HDIO_LOCF_BL_TILE", "INTF.W.HDIO", false, true),
+    (Dir::W, "INTF_HDIO_LOCF_TL_TILE", "INTF.W.HDIO", false, true),
+    (Dir::E, "INTF_HDIO_LOCF_BR_TILE", "INTF.E.HDIO", false, true),
+    (Dir::E, "INTF_HDIO_LOCF_TR_TILE", "INTF.E.HDIO", false, true),
+    (Dir::W, "INTF_HDIO_ROCF_BL_TILE", "INTF.W.HDIO", false, true),
+    (Dir::W, "INTF_HDIO_ROCF_TL_TILE", "INTF.W.HDIO", false, true),
+    (Dir::E, "INTF_HDIO_ROCF_BR_TILE", "INTF.E.HDIO", false, true),
+    (Dir::E, "INTF_HDIO_ROCF_TR_TILE", "INTF.E.HDIO", false, true),
+    (Dir::W, "INTF_CFRM_BL_TILE", "INTF.W.PSS", false, true),
+    (Dir::W, "INTF_CFRM_TL_TILE", "INTF.W.PSS", false, true),
+    (Dir::W, "INTF_PSS_BL_TILE", "INTF.W.TERM.PSS", true, true),
+    (Dir::W, "INTF_PSS_TL_TILE", "INTF.W.TERM.PSS", true, true),
+    (Dir::W, "INTF_GT_BL_TILE", "INTF.W.TERM.GT", true, true),
+    (Dir::W, "INTF_GT_TL_TILE", "INTF.W.TERM.GT", true, true),
+    (Dir::E, "INTF_GT_BR_TILE", "INTF.E.TERM.GT", true, true),
+    (Dir::E, "INTF_GT_TR_TILE", "INTF.E.TERM.GT", true, true),
 ];
 
 const BLI_CLE_INTF_KINDS: &[(Dir, &str, &str, bool)] = &[
@@ -406,7 +406,7 @@ impl IntMaker<'_> {
                     w_b = n_b;
                     match (fwd, length, j) {
                         (Dir::E, 2, 1) => {
-                            for &(side, tkn, _, term) in INTF_KINDS {
+                            for &(side, tkn, _, term, _) in INTF_KINDS {
                                 if term && side == Dir::W {
                                     let ii = i + 24;
                                     self.builder.extra_name_tile(
@@ -480,7 +480,7 @@ impl IntMaker<'_> {
                             }
                         }
                         (Dir::E, 4, 3) => {
-                            for &(side, tkn, _, term) in INTF_KINDS {
+                            for &(side, tkn, _, term, _) in INTF_KINDS {
                                 if term && side == Dir::W {
                                     let ii = i + 56;
                                     self.builder.extra_name_tile(
@@ -886,12 +886,12 @@ impl IntMaker<'_> {
                 _ => unreachable!(),
             };
             let w = self.builder.mux_out(format!("INTF.IMUX.IRI{i}.CLK"), &[""]);
-            for (_, tkn, _, _) in INTF_KINDS {
+            for (_, tkn, _, _, _) in INTF_KINDS {
                 self.builder
                     .extra_name_tile(tkn, format!("INTF_IRI_QUADRANT_{rg}_{i}_CLK"), w);
             }
             let w = self.builder.mux_out(format!("INTF.IMUX.IRI{i}.RST"), &[""]);
-            for (_, tkn, _, _) in INTF_KINDS {
+            for (_, tkn, _, _, _) in INTF_KINDS {
                 self.builder
                     .extra_name_tile(tkn, format!("INTF_IRI_QUADRANT_{rg}_{i}_RST"), w);
             }
@@ -899,7 +899,7 @@ impl IntMaker<'_> {
                 let w = self
                     .builder
                     .mux_out(format!("INTF.IMUX.IRI{i}.CE{j}"), &[""]);
-                for (_, tkn, _, _) in INTF_KINDS {
+                for (_, tkn, _, _, _) in INTF_KINDS {
                     self.builder.extra_name_tile(
                         tkn,
                         format!("INTF_IRI_QUADRANT_{rg}_{i}_CE{j}"),
@@ -998,6 +998,8 @@ impl IntMaker<'_> {
             for j in 0..24 {
                 let w = self.builder.mux_out(format!("IRI{iri}_IMUX{j}"), &[""]);
                 self.iri_wires.push(w);
+                self.builder
+                    .delay(w, format!("IRI{iri}_IMUX{j}_DELAY"), &[""]);
             }
         }
         let slot_iri = self.builder.rd.slot_kinds.get("IRI_QUAD").unwrap();
@@ -1222,7 +1224,7 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_intf(&mut self) {
-        for &(side, tkn, name, _) in INTF_KINDS {
+        for &(side, tkn, name, _, delay) in INTF_KINDS {
             for &xy in self.builder.rd.tiles_by_kind_name(tkn) {
                 let td = &self.builder.rd.tiles[&self.builder.delta(xy, 0, -1)];
                 if self.builder.rd.tile_kinds.key(td.kind) != tkn {
@@ -1237,13 +1239,17 @@ impl IntMaker<'_> {
                 for i in 0..4 {
                     bels.push(self.builder.bel_xy(bels::IRI[i], "IRI_QUAD", 0, i));
                 }
-                self.builder
+                let mut xn = self.builder
                     .xnode(tslots::INTF, name, name, xy)
                     .ref_int_side(int_xy, side, 0)
                     .extract_muxes(bels::INTF_INT)
                     .extract_intfs(true)
                     .skip_muxes(&self.iri_wires)
-                    .bels(bels)
+                    .bels(bels);
+                if delay {
+                    xn = xn.extract_delay(bels::INTF_DELAY);
+                }
+                xn
                     .extract();
                 break;
             }

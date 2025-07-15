@@ -5,6 +5,8 @@ use crate::tslots;
 bels![
     INT: tslots::INT,
     RCLK_INT: tslots::RCLK_INT,
+    INTF_DELAY: tslots::INTF,
+    INTF_TESTMUX: tslots::INTF,
     SLICE: tslots::BEL,
     LAGUNA0: tslots::BEL,
     LAGUNA1: tslots::BEL,

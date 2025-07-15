@@ -317,7 +317,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         (Dir::E, "UR_LOWER", "INTF.CNR"),
         (Dir::E, "UR_UPPER", "INTF.CNR"),
     ] {
-        builder.extract_intf(tslots::INTF, "INTF", dir, tkn, naming, true);
+        builder.extract_intf(tslots::INTF, "INTF", dir, tkn, naming, true, None);
     }
     builder.extract_intf(
         tslots::INTF,
@@ -326,9 +326,18 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT_INTERFACE_CARRY",
         "INTF",
         true,
+        None,
     );
     for tkn in ["INT_INTERFACE_IOI", "INT_INTERFACE_IOI_DCMBOT"] {
-        builder.extract_intf(tslots::INTF, "INTF.CMT.IOI", Dir::E, tkn, "INTF", true);
+        builder.extract_intf(
+            tslots::INTF,
+            "INTF.CMT.IOI",
+            Dir::E,
+            tkn,
+            "INTF",
+            true,
+            None,
+        );
     }
     for tkn in [
         "LIOI",
@@ -340,7 +349,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "BIOI_INNER",
         "BIOI_OUTER",
     ] {
-        builder.extract_intf(tslots::INTF, "INTF.IOI", Dir::E, tkn, "INTF.IOI", true);
+        builder.extract_intf(
+            tslots::INTF,
+            "INTF.IOI",
+            Dir::E,
+            tkn,
+            "INTF.IOI",
+            true,
+            None,
+        );
     }
 
     for tkn in ["CLEXL", "CLEXM"] {

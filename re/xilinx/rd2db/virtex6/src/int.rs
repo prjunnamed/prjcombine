@@ -263,7 +263,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
     for i in 0..48 {
-        builder.mux_out(format!("IMUX.IMUX{i}"), &[format!("IMUX_B{i}")]);
+        let w = builder.mux_out(format!("IMUX.IMUX{i}"), &[format!("IMUX_B{i}")]);
+        builder.delay(w, format!("IMUX.IMUX{i}.DELAY"), &[""]);
     }
 
     for i in 0..24 {
@@ -308,7 +309,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.make_blackhole_term("TERM.S.HOLE", Dir::S, &lv_bh_s);
     builder.make_blackhole_term("TERM.N.HOLE", Dir::N, &lv_bh_n);
 
-    builder.extract_intf(tslots::INTF, "INTF", Dir::E, "INT_INTERFACE", "INTF", true);
+    builder.extract_intf(
+        tslots::INTF,
+        "INTF",
+        Dir::E,
+        "INT_INTERFACE",
+        "INTF",
+        true,
+        None,
+    );
     builder.extract_intf(
         tslots::INTF,
         "INTF",
@@ -316,6 +325,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IOI_L_INT_INTERFACE",
         "INTF.IOI_L",
         true,
+        None,
     );
     for (n, tkn) in [
         ("GT_L", "GT_L_INT_INTERFACE"),
@@ -331,6 +341,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             format!("INTF.{n}"),
             true,
+            Some(bels::INTF_DELAY),
         );
     }
 

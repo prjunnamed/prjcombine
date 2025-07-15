@@ -102,68 +102,6 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfTestPip {
     }
 }
 
-fn resolve_intf_delay<'a>(
-    backend: &IseBackend<'a>,
-    tcrd: TileCoord,
-    wire: TileWireCoord,
-) -> Option<(&'a str, &'a str, &'a str, &'a str)> {
-    let nnode = &backend.ngrid.tiles[&tcrd];
-    let ndb = backend.ngrid.db;
-    let node_naming = &ndb.tile_class_namings[nnode.naming];
-    backend
-        .egrid
-        .resolve_wire(backend.egrid.tile_wire(tcrd, wire))?;
-    let IntfWireInNaming::Delay {
-        name_out,
-        name_in,
-        name_delay,
-    } = node_naming.intf_wires_in.get(&wire)?
-    else {
-        unreachable!()
-    };
-    Some((
-        &nnode.names[RawTileId::from_idx(0)],
-        name_in,
-        name_delay,
-        name_out,
-    ))
-}
-
-#[derive(Clone, Debug)]
-struct FuzzIntfDelay {
-    wire: TileWireCoord,
-    state: bool,
-}
-
-impl FuzzIntfDelay {
-    pub fn new(wire: TileWireCoord, state: bool) -> Self {
-        Self { wire, state }
-    }
-}
-
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfDelay {
-    fn dyn_clone(&self) -> Box<DynProp<'b>> {
-        Box::new(Clone::clone(self))
-    }
-
-    fn apply<'a>(
-        &self,
-        backend: &IseBackend<'a>,
-        nloc: TileCoord,
-        fuzzer: Fuzzer<IseBackend<'a>>,
-    ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let (tile, wa, wb, wc) = resolve_intf_delay(backend, nloc, self.wire)?;
-        let fuzzer = if self.state {
-            fuzzer
-                .fuzz(Key::Pip(tile, wa, wb), None, true)
-                .fuzz(Key::Pip(tile, wb, wc), None, true)
-        } else {
-            fuzzer.fuzz(Key::Pip(tile, wa, wc), None, true)
-        };
-        Some((fuzzer, false))
-    }
-}
-
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.egrid.db;
     for (node_kind, tile, node) in &intdb.tile_classes {
@@ -195,19 +133,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .prop(NodeMutexExclusive::new(wire))
                             .prop(NodeMutexExclusive::new(wire_from))
                             .prop(FuzzIntfTestPip::new(wire, wire_from))
-                            .commit();
-                    }
-                }
-                prjcombine_interconnect::db::IntfInfo::InputDelay => {
-                    assert_eq!(node.cells.len(), 1);
-                    let del_name = format!("DELAY.{}", intdb.wires.key(wire.wire));
-                    for val in ["0", "1"] {
-                        ctx.build()
-                            .prop(IntMutex::new("INTF".into()))
-                            .test_manual("INTF", &del_name, val)
-                            .prop(TileMutexExclusive::new("INTF".into()))
-                            .prop(NodeMutexExclusive::new(wire))
-                            .prop(FuzzIntfDelay::new(wire, val == "1"))
                             .commit();
                     }
                 }
@@ -256,10 +181,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         mux_inps.push((in_name, diff));
                     }
                     test_muxes.push((mux_name, mux_inps));
-                }
-                prjcombine_interconnect::db::IntfInfo::InputDelay => {
-                    let del_name = format!("DELAY.{}", intdb.wires.key(wire.wire));
-                    ctx.collect_enum_bool(name, "INTF", &del_name, "0", "1");
                 }
                 _ => unreachable!(),
             }

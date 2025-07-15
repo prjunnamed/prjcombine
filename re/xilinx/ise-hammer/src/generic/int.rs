@@ -1,5 +1,7 @@
+use std::collections::BTreeSet;
+
 use prjcombine_interconnect::{
-    db::{BelInfo, CellSlotId, SwitchBoxItem, TileWireCoord},
+    db::{BelInfo, CellSlotId, ProgDelay, SwitchBoxItem, TileWireCoord},
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
@@ -11,6 +13,7 @@ use unnamed_entity::EntityId;
 use crate::{
     backend::{IseBackend, Key, Value},
     collector::CollectorCtx,
+    generic::{fbuild::FuzzBuilderBase, props::mutex::TileMutexExclusive},
 };
 
 use super::{
@@ -623,12 +626,97 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
     }
 }
 
+fn resolve_intf_delay<'a>(
+    backend: &IseBackend<'a>,
+    tcrd: TileCoord,
+    delay: ProgDelay,
+) -> Option<(&'a str, &'a str, &'a str, &'a str)> {
+    let nnode = &backend.ngrid.tiles[&tcrd];
+    let ndb = backend.ngrid.db;
+    let node_naming = &ndb.tile_class_namings[nnode.naming];
+    backend
+        .egrid
+        .resolve_wire(backend.egrid.tile_wire(tcrd, delay.dst))?;
+    backend
+        .egrid
+        .resolve_wire(backend.egrid.tile_wire(tcrd, delay.src.tw))?;
+    let name_out = node_naming.wires[&delay.dst].as_str();
+    let name_delay = node_naming.delay_wires[&delay.dst].as_str();
+    let name_in = node_naming.wires[&delay.src.tw].as_str();
+    Some((
+        &nnode.names[RawTileId::from_idx(0)],
+        name_in,
+        name_delay,
+        name_out,
+    ))
+}
+
+#[derive(Clone, Debug)]
+struct FuzzIntfDelay {
+    delay: ProgDelay,
+    state: bool,
+}
+
+impl FuzzIntfDelay {
+    pub fn new(delay: ProgDelay, state: bool) -> Self {
+        Self { delay, state }
+    }
+}
+
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfDelay {
+    fn dyn_clone(&self) -> Box<DynProp<'b>> {
+        Box::new(Clone::clone(self))
+    }
+
+    fn apply<'a>(
+        &self,
+        backend: &IseBackend<'a>,
+        nloc: TileCoord,
+        fuzzer: Fuzzer<IseBackend<'a>>,
+    ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
+        let (tile, wa, wb, wc) = resolve_intf_delay(backend, nloc, self.delay)?;
+        let fuzzer = if self.state {
+            fuzzer
+                .fuzz(Key::Pip(tile, wa, wb), None, true)
+                .fuzz(Key::Pip(tile, wb, wc), None, true)
+        } else {
+            fuzzer.fuzz(Key::Pip(tile, wa, wc), None, true)
+        };
+        Some((fuzzer, false))
+    }
+}
+
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.egrid.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
             continue;
         };
+        let mut skip_pips = BTreeSet::new();
+        for (bslot, bel) in &tcls.bels {
+            let BelInfo::SwitchBox(sb) = bel else {
+                continue;
+            };
+            let mut bctx = ctx.bel(bslot);
+            for item in &sb.items {
+                let SwitchBoxItem::ProgDelay(delay) = *item else {
+                    continue;
+                };
+                skip_pips.insert((delay.dst, delay.src.tw));
+                assert_eq!(tcls.cells.len(), 1);
+                let del_name = format!("DELAY.{}", intdb.wires.key(delay.dst.wire));
+                for val in ["0", "1"] {
+                    bctx.build()
+                        .prop(IntMutex::new("INTF".into()))
+                        .test_manual(&del_name, val)
+                        .prop(TileMutexExclusive::new("INTF".into()))
+                        .prop(NodeMutexExclusive::new(delay.dst))
+                        .prop(NodeMutexExclusive::new(delay.src.tw))
+                        .prop(FuzzIntfDelay::new(delay, val == "1"))
+                        .commit();
+                }
+            }
+        }
         let tcls_index = &backend.egrid.db_index.tile_classes[tcid];
         for (&wire_to, ins) in &tcls_index.pips_bwd {
             let mux_name = if tcls.cells.len() == 1 {
@@ -638,6 +726,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             };
             for &wire_from in ins {
                 let wire_from = wire_from.tw;
+                if skip_pips.contains(&(wire_to, wire_from)) {
+                    continue;
+                }
                 let in_name = if tcls.cells.len() == 1 {
                     intdb.wires.key(wire_from.wire).to_string()
                 } else {
@@ -829,6 +920,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         diff.assert_empty();
                     }
                     SwitchBoxItem::ProgInv(_) => (),
+                    SwitchBoxItem::ProgDelay(delay) => {
+                        let del_name = format!("DELAY.{}", intdb.wires.key(delay.dst.wire));
+                        ctx.collect_enum_bool(tcname, bel, &del_name, "0", "1");
+                    }
                     _ => unreachable!(),
                 }
             }
