@@ -1518,15 +1518,10 @@ impl PartContext<'_> {
             };
             let xloc = ExtraNodeLoc::PllStub(DirV::S);
             self.chip.extra_nodes.insert(xloc, xnode);
-            let node = TileClass {
-                slot: tslots::PLL_STUB,
-                cells: EntityVec::from_iter([()]),
-                intfs: Default::default(),
-                bels: Default::default(),
-            };
+            let tcls = TileClass::new(tslots::PLL_STUB, 1);
             self.intdb
                 .tile_classes
-                .insert(xloc.tile_class(self.chip.kind), node);
+                .insert(xloc.tile_class(self.chip.kind), tcls);
         }
     }
 
@@ -1813,12 +1808,7 @@ impl PartContext<'_> {
             _ => return,
         };
         let wire = self.intdb.get_wire(wire);
-        let mut node = TileClass {
-            slot: tslots::SMCCLK,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+        let mut tcls = TileClass::new(tslots::SMCCLK, 1);
         let mut bel = Bel::default();
         bel.pins.insert(
             "CLK".into(),
@@ -1831,10 +1821,10 @@ impl PartContext<'_> {
                 is_intf_in: false,
             },
         );
-        node.bels.insert(bels::SMCCLK, BelInfo::Bel(bel));
+        tcls.bels.insert(bels::SMCCLK, BelInfo::Bel(bel));
         self.intdb
             .tile_classes
-            .insert(ExtraNodeLoc::SmcClk.tile_class(self.chip.kind), node);
+            .insert(ExtraNodeLoc::SmcClk.tile_class(self.chip.kind), tcls);
         self.chip.extra_nodes.insert(
             ExtraNodeLoc::SmcClk,
             ExtraNode {
@@ -1961,9 +1951,9 @@ impl PartContext<'_> {
         }
         for dir in [Dir::W, Dir::E] {
             let tile = self.chip.kind.tile_class_ioi(dir).unwrap();
-            let node = db.int.tile_classes.get(tile).unwrap().1;
-            let node_dst = self.intdb.tile_classes.get(tile).unwrap().0;
-            let BelInfo::SwitchBox(sb) = &node.bels[bels::INT] else {
+            let tcls = db.int.tile_classes.get(tile).unwrap().1;
+            let tcls_dst = self.intdb.tile_classes.get(tile).unwrap().0;
+            let BelInfo::SwitchBox(sb) = &tcls.bels[bels::INT] else {
                 unreachable!()
             };
             let mut tcls_pips = BTreeSet::new();
@@ -1980,7 +1970,7 @@ impl PartContext<'_> {
                     _ => (),
                 }
             }
-            pips.insert(node_dst, tcls_pips);
+            pips.insert(tcls_dst, tcls_pips);
             let tile_data = &db.bsdata.tiles[tile];
             for (name, item) in &tile_data.items {
                 if name.ends_with(":PIN_TYPE") || name.starts_with("INT:INV") {

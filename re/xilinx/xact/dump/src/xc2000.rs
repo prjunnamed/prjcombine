@@ -18,7 +18,7 @@ use prjcombine_xc2000::{
     expanded::REGION_GLOBAL,
     tslots,
 };
-use unnamed_entity::{EntityId, EntityVec};
+use unnamed_entity::EntityId;
 
 use crate::extractor::{Extractor, NetBinding, PipMode};
 
@@ -230,16 +230,11 @@ pub fn make_intdb() -> IntDb {
         "CLB", "CLB.L", "CLB.R", "CLB.B", "CLB.BL", "CLB.BR", "CLB.T", "CLB.TL", "CLB.TR",
         "CLB.ML", "CLB.MR", "CLB.BR1", "CLB.TR1",
     ] {
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let mut tcls = TileClass::new(tslots::MAIN, 1);
+        tcls.bels
             .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
 
-        node.bels.insert(
+        tcls.bels.insert(
             bels::CLB,
             bel_from_pins(
                 &db,
@@ -263,7 +258,7 @@ pub fn make_intdb() -> IntDb {
                 bels::IO_N
             };
             for i in 0..2 {
-                node.bels.insert(
+                tcls.bels.insert(
                     io[i],
                     bel_from_pins(
                         &db,
@@ -292,7 +287,7 @@ pub fn make_intdb() -> IntDb {
                 if i == 0 && (name.starts_with("CLB.T") || name.starts_with("CLB.M")) {
                     continue;
                 }
-                node.bels.insert(
+                tcls.bels.insert(
                     io[i],
                     bel_from_pins(
                         &db,
@@ -308,33 +303,28 @@ pub fn make_intdb() -> IntDb {
         }
 
         if name == "CLB.TL" {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::BUFG,
                 bel_from_pins(&db, &[("O", "GCLK"), ("I", "IMUX.BUFG")]),
             );
         }
         if name == "CLB.BR" {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::BUFG,
                 bel_from_pins(&db, &[("O", "ACLK"), ("I", "IMUX.BUFG")]),
             );
-            node.bels
+            tcls.bels
                 .insert(bels::OSC, bel_from_pins(&db, &[("O", "OUT.OSC")]));
         }
 
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
 
     for (name, slot, sbslot) in [
         ("BIDIH", tslots::EXTRA_COL, bels::LLH),
         ("BIDIV", tslots::EXTRA_ROW, bels::LLV),
     ] {
-        let mut tcls = TileClass {
-            slot,
-            cells: Default::default(),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+        let mut tcls = TileClass::new(slot, 0);
         tcls.bels
             .insert(sbslot, BelInfo::SwitchBox(Default::default()));
         db.tile_classes.insert(name.into(), tcls);

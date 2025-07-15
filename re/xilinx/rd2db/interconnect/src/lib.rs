@@ -594,13 +594,8 @@ impl XNodeInfo<'_, '_> {
             buf_in,
             int_out,
             int_in,
-            node: TileClass {
-                slot: self.slot,
-                cells: (0..self.num_tiles).map(|_| ()).collect(),
-                bels: Default::default(),
-                intfs: Default::default(),
-            },
-            node_naming: TileClassNaming::default(),
+            tcls: TileClass::new(self.slot, self.num_tiles),
+            tcls_naming: TileClassNaming::default(),
         };
 
         let mut pips = BTreeMap::new();
@@ -622,11 +617,11 @@ impl XNodeInfo<'_, '_> {
             extractor.extract_bel(bel);
         }
 
-        let node = extractor.node;
-        let node_naming = extractor.node_naming;
+        let tcls = extractor.tcls;
+        let tcls_naming = extractor.tcls_naming;
 
-        self.builder.insert_node_merge(&self.kind, node, pips);
-        self.builder.insert_node_naming(&self.naming, node_naming);
+        self.builder.insert_tcls_merge(&self.kind, tcls, pips);
+        self.builder.insert_tcls_naming(&self.naming, tcls_naming);
     }
 }
 
@@ -658,8 +653,8 @@ struct XNodeExtractor<'a, 'b, 'c> {
             rawdump::WireId,
         ),
     >,
-    node: TileClass,
-    node_naming: TileClassNaming,
+    tcls: TileClass,
+    tcls_naming: TileClassNaming,
 }
 
 impl XNodeExtractor<'_, '_, '_> {
@@ -1050,8 +1045,8 @@ impl XNodeExtractor<'_, '_, '_> {
                 _ => (),
             }
         }
-        self.node.bels.insert(bel.bel, BelInfo::Bel(Bel { pins }));
-        self.node_naming.bels.insert(
+        self.tcls.bels.insert(bel.bel, BelInfo::Bel(Bel { pins }));
+        self.tcls_naming.bels.insert(
             bel.bel,
             BelNaming::Bel(ProperBelNaming {
                 tile: RawTileId::from_idx(bel.raw_tile),
@@ -1110,14 +1105,14 @@ impl XNodeExtractor<'_, '_, '_> {
                             continue;
                         }
                         if i == 0 {
-                            self.node_naming
+                            self.tcls_naming
                                 .wires
                                 .insert(wt, self.rd.wires[wti].to_string());
-                            self.node_naming
+                            self.tcls_naming
                                 .wires
                                 .insert(wf, self.rd.wires[wfi].to_string());
                         } else {
-                            self.node_naming.ext_pips.insert(
+                            self.tcls_naming.ext_pips.insert(
                                 (wt, wf),
                                 PipNaming {
                                     tile: RawTileId::from_idx(i),
@@ -1178,13 +1173,13 @@ impl XNodeExtractor<'_, '_, '_> {
                         wire: wtw,
                     };
                     assert_eq!(bwdi, wdi);
-                    self.node_naming
+                    self.tcls_naming
                         .wires
                         .insert(wf, self.rd.wires[wfi].clone());
-                    self.node_naming
+                    self.tcls_naming
                         .wires
                         .insert(wt, self.rd.wires[wti].clone());
-                    self.node_naming
+                    self.tcls_naming
                         .delay_wires
                         .insert(wt, self.rd.wires[wdi].clone());
                     self.names.insert(nwt, (IntConnKind::Raw, wt));
@@ -1196,7 +1191,7 @@ impl XNodeExtractor<'_, '_, '_> {
                 }
             }
             items.sort();
-            self.node
+            self.tcls
                 .bels
                 .insert(sb, BelInfo::SwitchBox(SwitchBox { items }));
         }
@@ -1214,7 +1209,7 @@ impl XNodeExtractor<'_, '_, '_> {
                 if !matches!(self.db.wires[wt.wire], WireKind::LogicOut) {
                     continue;
                 }
-                self.node_naming
+                self.tcls_naming
                     .intf_wires_out
                     .entry(wt)
                     .or_insert_with(|| IntfWireOutNaming::Simple {
@@ -1222,13 +1217,13 @@ impl XNodeExtractor<'_, '_, '_> {
                     });
                 let nwf = self.rd.lookup_wire_raw_force(crd, wfi);
                 if let Some(&(_, wf)) = self.names.get(&nwf) {
-                    self.node_naming.intf_wires_in.insert(
+                    self.tcls_naming.intf_wires_in.insert(
                         wf,
                         IntfWireInNaming::Simple {
                             name: self.rd.wires[wfi].clone(),
                         },
                     );
-                    assert!(!self.node.intfs.contains_key(&wf));
+                    assert!(!self.tcls.intfs.contains_key(&wf));
                     if self.db.wires[wf.wire] == WireKind::LogicOut
                         || self.xnode.builder.test_mux_pass.contains(&wf.wire)
                     {
@@ -1243,18 +1238,18 @@ impl XNodeExtractor<'_, '_, '_> {
                     }
                     assert_eq!(rt, 0);
                     assert_eq!(bwti, wfi);
-                    self.node_naming.intf_wires_in.insert(
+                    self.tcls_naming.intf_wires_in.insert(
                         wf,
                         IntfWireInNaming::TestBuf {
                             name_out: self.rd.wires[wfi].clone(),
                             name_in: self.rd.wires[bwfi].clone(),
                         },
                     );
-                    assert!(!self.node.intfs.contains_key(&wf));
+                    assert!(!self.tcls.intfs.contains_key(&wf));
                     out_muxes.entry(wt).or_default().0.push(wf);
                 } else if self.xnode.has_intf_out_bufs {
                     out_muxes.entry(wt).or_default();
-                    self.node_naming.intf_wires_out.insert(
+                    self.tcls_naming.intf_wires_out.insert(
                         wt,
                         IntfWireOutNaming::Buf {
                             name_out: self.rd.wires[wti].clone(),
@@ -1266,7 +1261,7 @@ impl XNodeExtractor<'_, '_, '_> {
         }
         for (wt, (wfs, pwf)) in out_muxes {
             let wfs = wfs.into_iter().collect();
-            self.node.intfs.insert(
+            self.tcls.intfs.insert(
                 wt,
                 match pwf {
                     None => IntfInfo::OutputTestMux(wfs),
@@ -2142,14 +2137,9 @@ impl<'a> IntBuilder<'a> {
         if let Some((tki, _)) = self.rd.tile_kinds.get(tile_kind) {
             let tk = &self.rd.tile_kinds[tki];
             let tkn = self.rd.tile_kinds.key(tki);
-            let mut node = TileClass {
-                slot,
-                cells: [()].into_iter().collect(),
-                bels: Default::default(),
-                intfs: Default::default(),
-            };
+            let mut tcls = TileClass::new(slot, 1);
             let mut pips = Pips::default();
-            let mut node_naming = TileClassNaming::default();
+            let mut tcls_naming = TileClassNaming::default();
             let mut names = HashMap::new();
             for &wi in tk.wires.keys() {
                 if let Some(w) = self.get_wire_by_name(tki, &self.rd.wires[wi]) {
@@ -2158,7 +2148,7 @@ impl<'a> IntBuilder<'a> {
             }
 
             for (&k, &(_, v)) in &names {
-                node_naming.wires.insert(v, self.rd.wires[k].clone());
+                tcls_naming.wires.insert(v, self.rd.wires[k].clone());
             }
 
             for &(wfi, wti) in tk.pips.keys() {
@@ -2186,10 +2176,10 @@ impl<'a> IntBuilder<'a> {
                 }
             }
 
-            self.extract_bels(&mut node, &mut node_naming, bels, tki, &names);
+            self.extract_bels(&mut tcls, &mut tcls_naming, bels, tki, &names);
 
-            self.insert_node_merge(kind, node, BTreeMap::from_iter([(sb, pips)]));
-            let naming = self.insert_node_naming(naming, node_naming);
+            self.insert_tcls_merge(kind, tcls, BTreeMap::from_iter([(sb, pips)]));
+            let naming = self.insert_tcls_naming(naming, tcls_naming);
             self.node_types.push(NodeType { tki, naming });
         }
     }
@@ -2211,17 +2201,12 @@ impl<'a> IntBuilder<'a> {
                 }
             }
 
-            let mut node = TileClass {
-                slot,
-                cells: [()].into_iter().collect(),
-                bels: Default::default(),
-                intfs: Default::default(),
-            };
-            let mut node_naming = TileClassNaming::default();
-            self.extract_bels(&mut node, &mut node_naming, bels, tki, &names);
+            let mut tcls = TileClass::new(slot, 1);
+            let mut tcls_naming = TileClassNaming::default();
+            self.extract_bels(&mut tcls, &mut tcls_naming, bels, tki, &names);
 
-            self.insert_node_merge(kind, node, BTreeMap::new());
-            self.insert_node_naming(naming, node_naming);
+            self.insert_tcls_merge(kind, tcls, BTreeMap::new());
+            self.insert_tcls_naming(naming, tcls_naming);
         }
     }
 
@@ -2365,7 +2350,7 @@ impl<'a> IntBuilder<'a> {
             .collect()
     }
 
-    fn insert_node_merge(
+    fn insert_tcls_merge(
         &mut self,
         name: &str,
         node: TileClass,
@@ -2434,7 +2419,7 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    fn insert_node_naming(&mut self, name: &str, naming: TileClassNaming) -> TileClassNamingId {
+    fn insert_tcls_naming(&mut self, name: &str, naming: TileClassNaming) -> TileClassNamingId {
         match self.ndb.tile_class_namings.get_mut(name) {
             None => {
                 self.ndb
@@ -2666,17 +2651,12 @@ impl<'a> IntBuilder<'a> {
             }
         }
         if let Some((slot, sb, nn)) = node_name {
-            self.insert_node_merge(
+            self.insert_tcls_merge(
                 nn,
-                TileClass {
-                    slot,
-                    cells: [()].into_iter().collect(),
-                    bels: Default::default(),
-                    intfs: Default::default(),
-                },
+                TileClass::new(slot, 1),
                 BTreeMap::from_iter([(sb, node_pips)]),
             );
-            self.insert_node_naming(
+            self.insert_tcls_naming(
                 naming.as_ref(),
                 TileClassNaming {
                     wires: node_names,
@@ -3215,17 +3195,12 @@ impl<'a> IntBuilder<'a> {
                 }
             }
             if let Some((slot, sb, nn, nnn)) = node {
-                self.insert_node_merge(
+                self.insert_tcls_merge(
                     nn,
-                    TileClass {
-                        slot,
-                        cells: node_tiles,
-                        bels: Default::default(),
-                        intfs: Default::default(),
-                    },
+                    TileClass::new(slot, node_tiles.len()),
                     BTreeMap::from_iter([(sb, node_pips)]),
                 );
-                self.insert_node_naming(
+                self.insert_tcls_naming(
                     nnn,
                     TileClassNaming {
                         wires: node_names,
@@ -3293,17 +3268,12 @@ impl<'a> IntBuilder<'a> {
                 }
             }
             if let Some((slot, sb, nn, nnn)) = splitter_node {
-                self.insert_node_merge(
+                self.insert_tcls_merge(
                     nn,
-                    TileClass {
-                        slot,
-                        cells: snode_tiles,
-                        bels: Default::default(),
-                        intfs: Default::default(),
-                    },
+                    TileClass::new(slot, snode_tiles.len()),
                     BTreeMap::from_iter([(sb, snode_pips)]),
                 );
-                self.insert_node_naming(
+                self.insert_tcls_naming(
                     nnn,
                     TileClassNaming {
                         wires: snode_names,
@@ -3593,13 +3563,9 @@ impl<'a> IntBuilder<'a> {
                 pins: Default::default(),
             }),
         );
-        let node = TileClass {
-            slot,
-            cells: (0..ntiles).map(|_| ()).collect(),
-            bels,
-            intfs: Default::default(),
-        };
-        let node_naming = TileClassNaming {
+        let mut tcls = TileClass::new(slot, ntiles);
+        tcls.bels = bels;
+        let tcls_naming = TileClassNaming {
             wires: Default::default(),
             wire_bufs: Default::default(),
             ext_pips: Default::default(),
@@ -3608,18 +3574,13 @@ impl<'a> IntBuilder<'a> {
             intf_wires_in: Default::default(),
             intf_wires_out: Default::default(),
         };
-        self.insert_node_merge(name, node, BTreeMap::new());
-        self.insert_node_naming(naming, node_naming);
+        self.insert_tcls_merge(name, tcls, BTreeMap::new());
+        self.insert_tcls_naming(naming, tcls_naming);
     }
 
     pub fn make_marker_node(&mut self, slot: TileSlotId, name: &str, ntiles: usize) {
-        let node = TileClass {
-            slot,
-            cells: (0..ntiles).map(|_| ()).collect(),
-            bels: Default::default(),
-            intfs: Default::default(),
-        };
-        self.insert_node_merge(name, node, BTreeMap::new());
+        let tcls = TileClass::new(slot, ntiles);
+        self.insert_tcls_merge(name, tcls, BTreeMap::new());
     }
 
     pub fn xnode<'b>(

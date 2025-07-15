@@ -17,7 +17,7 @@ use prjcombine_xc2000::{
     chip::{Chip, ChipKind, SharedCfgPad},
     tslots,
 };
-use unnamed_entity::{EntityId, EntityVec};
+use unnamed_entity::EntityId;
 
 use crate::extractor::{Extractor, NetBinding, PipMode};
 
@@ -402,17 +402,12 @@ pub fn make_intdb() -> IntDb {
     }
 
     {
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let mut tcls = TileClass::new(tslots::MAIN, 1);
+        tcls.bels
             .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
 
         for i in 0..4 {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::LC[i],
                 bel_from_pins(
                     &db,
@@ -433,7 +428,7 @@ pub fn make_intdb() -> IntDb {
             );
         }
         for i in 0..4 {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::TBUF[i],
                 bel_from_pins(
                     &db,
@@ -445,9 +440,9 @@ pub fn make_intdb() -> IntDb {
                 ),
             );
         }
-        node.bels
+        tcls.bels
             .insert(bels::VCC_GND, bel_from_pins(&db, &[("O", "OUT.PWRGND")]));
-        db.tile_classes.insert("CLB".into(), node);
+        db.tile_classes.insert("CLB".into(), tcls);
     }
 
     for (name, gout) in [
@@ -456,17 +451,12 @@ pub fn make_intdb() -> IntDb {
         ("IO.B", "GLOBAL.B"),
         ("IO.T", "GLOBAL.T"),
     ] {
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let mut tcls = TileClass::new(tslots::MAIN, 1);
+        tcls.bels
             .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
 
         for i in 0..4 {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::IO[i],
                 bel_from_pins(
                     &db,
@@ -479,7 +469,7 @@ pub fn make_intdb() -> IntDb {
             );
         }
         for i in 0..4 {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::TBUF[i],
                 bel_from_pins(
                     &db,
@@ -491,21 +481,21 @@ pub fn make_intdb() -> IntDb {
                 ),
             );
         }
-        node.bels.insert(
+        tcls.bels.insert(
             bels::BUFR,
             bel_from_pins(&db, &[("IN", "IMUX.GIN"), ("OUT", gout)]),
         );
         if name == "IO.B" {
-            node.bels
+            tcls.bels
                 .insert(bels::CIN, bel_from_pins(&db, &[("IN", "IMUX.BOT.CIN")]));
-            node.bels
+            tcls.bels
                 .insert(bels::SCANTEST, BelInfo::Bel(Bel::default()));
         }
         if name == "IO.T" {
-            node.bels
+            tcls.bels
                 .insert(bels::COUT, bel_from_pins(&db, &[("OUT", "OUT.TOP.COUT")]));
         }
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
     for (name, gout) in [
         ("CNR.BL", "GLOBAL.BL"),
@@ -513,24 +503,19 @@ pub fn make_intdb() -> IntDb {
         ("CNR.TL", "GLOBAL.TL"),
         ("CNR.TR", "GLOBAL.TR"),
     ] {
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let mut tcls = TileClass::new(tslots::MAIN, 1);
+        tcls.bels
             .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
 
-        node.bels.insert(
+        tcls.bels.insert(
             bels::BUFG,
             bel_from_pins(&db, &[("I", "IMUX.BUFG"), ("O", gout)]),
         );
-        node.bels
+        tcls.bels
             .insert(bels::CLKIOB, bel_from_pins(&db, &[("OUT", "OUT.CLKIOB")]));
         match name {
             "CNR.BL" => {
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::RDBK,
                     bel_from_pins(
                         &db,
@@ -544,7 +529,7 @@ pub fn make_intdb() -> IntDb {
                 );
             }
             "CNR.BR" => {
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::STARTUP,
                     bel_from_pins(
                         &db,
@@ -561,7 +546,7 @@ pub fn make_intdb() -> IntDb {
                 );
             }
             "CNR.TL" => {
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::BSCAN,
                     bel_from_pins(
                         &db,
@@ -580,7 +565,7 @@ pub fn make_intdb() -> IntDb {
                 );
             }
             "CNR.TR" => {
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::OSC,
                     bel_from_pins(
                         &db,
@@ -591,16 +576,16 @@ pub fn make_intdb() -> IntDb {
                         ],
                     ),
                 );
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::BYPOSC,
                     bel_from_pins(&db, &[("I", "IMUX.BYPOSC.PUMP")]),
                 );
-                node.bels
+                tcls.bels
                     .insert(bels::BSUPD, bel_from_pins(&db, &[("O", "OUT.BSUPD")]));
             }
             _ => unreachable!(),
         }
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
     for (name, slot, sbslot) in [
         ("CLKV", tslots::EXTRA_COL, bels::LLH),
@@ -610,16 +595,11 @@ pub fn make_intdb() -> IntDb {
         ("CLKL", tslots::EXTRA_ROW, bels::LLV),
         ("CLKR", tslots::EXTRA_ROW, bels::LLV),
     ] {
-        let mut node = TileClass {
-            slot,
-            cells: EntityVec::from_iter([(), ()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let mut tcls = TileClass::new(slot, 2);
+        tcls.bels
             .insert(sbslot, BelInfo::SwitchBox(Default::default()));
 
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
 
     db

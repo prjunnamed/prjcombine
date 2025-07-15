@@ -241,12 +241,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     }
 
     {
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+        let mut node = TileClass::new(tslots::MAIN, 1);
         for i in 0..8 {
             let mut bel = Bel::default();
             for j in 0..4 {
@@ -267,24 +262,14 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         db.tile_classes.insert(kind.tile_class_plb().into(), node);
     }
     if kind != ChipKind::Ice40P03 {
-        let node = TileClass {
-            slot: tslots::MAIN,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+        let node = TileClass::new(tslots::MAIN, 1);
         db.tile_classes.insert("INT_BRAM".into(), node);
     }
     for dir in Dir::DIRS {
         let Some(tile) = kind.tile_class_ioi(dir) else {
             continue;
         };
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+        let mut node = TileClass::new(tslots::MAIN, 1);
         for i in 0..2 {
             let mut bel = Bel::default();
             for pin in ["DOUT0", "DOUT1", "OE"] {
@@ -320,23 +305,13 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let Some(tile) = kind.tile_class_iob(dir) else {
             continue;
         };
-        let node = TileClass {
-            slot: tslots::IOB,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+        let node = TileClass::new(tslots::IOB, 1);
         db.tile_classes.insert(tile.into(), node);
     }
 
     if kind != ChipKind::Ice40P03 {
         let ice40_bramv2 = kind.has_ice40_bramv2();
-        let mut node = TileClass {
-            slot: tslots::BEL,
-            cells: EntityVec::from_iter([(), ()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+        let mut node = TileClass::new(tslots::BEL, 2);
         let mut bel = Bel::default();
         let (tile_w, tile_r) = if ice40_bramv2 { (1, 0) } else { (0, 1) };
         add_input(&db, &mut bel, "WCLK", tile_w, "IMUX.CLK.OPTINV");
@@ -397,23 +372,13 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
 
     if let Some(tcls) = kind.tile_class_colbuf() {
         for tcls in [tcls, "COLBUF_IO_W", "COLBUF_IO_E"] {
-            let node = TileClass {
-                slot: tslots::COLBUF,
-                cells: EntityVec::from_iter([()]),
-                intfs: Default::default(),
-                bels: Default::default(),
-            };
+            let node = TileClass::new(tslots::COLBUF, 1);
             db.tile_classes.insert(tcls.into(), node);
         }
     }
 
     {
-        let mut node = TileClass {
-            slot: tslots::BEL,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+        let mut node = TileClass::new(tslots::BEL, 1);
         let mut bel = Bel::default();
         add_input(&db, &mut bel, "LATCH", 0, "IMUX.IO.EXTRA");
         node.bels.insert(bels::IO_LATCH, BelInfo::Bel(bel));
@@ -421,12 +386,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     }
 
     {
-        let mut node = TileClass {
-            slot: tslots::BEL,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+        let mut node = TileClass::new(tslots::BEL, 1);
         let mut bel = Bel::default();
         add_input(&db, &mut bel, "I", 0, "IMUX.IO.EXTRA");
         node.bels.insert(bels::GB_FABRIC, BelInfo::Bel(bel));
@@ -434,12 +394,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     }
 
     {
-        let mut node = TileClass {
-            slot: tslots::GB_ROOT,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+        let mut node = TileClass::new(tslots::GB_ROOT, 1);
         let mut bel = Bel::default();
         for i in 0..8 {
             add_output(
@@ -460,7 +415,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
 
 pub struct MiscNodeBuilder<'a> {
     pub chip: &'a Chip,
-    pub node: TileClass,
+    pub tcls: TileClass,
     pub io: BTreeMap<ExtraNodeIo, EdgeIoCoord>,
     pub fixed_tiles: usize,
     pub cells: EntityVec<CellSlotId, CellCoord>,
@@ -477,12 +432,7 @@ impl<'a> MiscNodeBuilder<'a> {
         }
         Self {
             chip,
-            node: TileClass {
-                slot,
-                cells: EntityVec::from_iter(cells.iter().map(|_| ())),
-                intfs: Default::default(),
-                bels: Default::default(),
-            },
+            tcls: TileClass::new(slot, cells.len()),
             io: Default::default(),
             fixed_tiles: fixed_tiles.len(),
             cells,
@@ -494,7 +444,7 @@ impl<'a> MiscNodeBuilder<'a> {
         match self.cells_map.entry(crd) {
             hash_map::Entry::Occupied(entry) => *entry.get(),
             hash_map::Entry::Vacant(entry) => {
-                let cell = self.node.cells.push(());
+                let cell = self.tcls.cells.push(());
                 self.cells.push(crd);
                 entry.insert(cell);
                 cell
@@ -536,7 +486,7 @@ impl<'a> MiscNodeBuilder<'a> {
                 },
             );
         }
-        self.node.bels.insert(slot, BelInfo::Bel(bel));
+        self.tcls.bels.insert(slot, BelInfo::Bel(bel));
     }
 
     pub fn finish(mut self) -> (TileClass, ExtraNode) {
@@ -569,7 +519,7 @@ impl<'a> MiscNodeBuilder<'a> {
                 }
             }
         }
-        for bel in self.node.bels.values_mut() {
+        for bel in self.tcls.bels.values_mut() {
             let BelInfo::Bel(bel) = bel else {
                 unreachable!()
             };
@@ -588,7 +538,7 @@ impl<'a> MiscNodeBuilder<'a> {
             }
         }
         (
-            self.node,
+            self.tcls,
             ExtraNode {
                 io: self.io,
                 cells: new_cells,

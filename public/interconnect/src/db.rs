@@ -249,6 +249,17 @@ pub struct TileClass {
     pub bels: EntityPartVec<BelSlotId, BelInfo>,
 }
 
+impl TileClass {
+    pub fn new(slot: TileSlotId, num_cells: usize) -> Self {
+        TileClass {
+            slot,
+            cells: EntityVec::from_iter(std::iter::repeat_n((), num_cells)),
+            intfs: Default::default(),
+            bels: Default::default(),
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct TileWireCoord {
     pub cell: CellSlotId,

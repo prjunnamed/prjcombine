@@ -17,7 +17,7 @@ use prjcombine_xc2000::{
     chip::{Chip, ChipKind, SharedCfgPad},
     tslots,
 };
-use unnamed_entity::{EntityId, EntityVec};
+use unnamed_entity::EntityId;
 
 use crate::extractor::{Extractor, NetBinding, PipMode};
 
@@ -402,16 +402,11 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     for name in [
         "CLB.LT", "CLB.T", "CLB.RT", "CLB.L", "CLB", "CLB.R", "CLB.LB", "CLB.B", "CLB.RB",
     ] {
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: EntityVec::from_iter([(), (), ()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let mut tcls = TileClass::new(tslots::MAIN, 3);
+        tcls.bels
             .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
 
-        node.bels.insert(
+        tcls.bels.insert(
             bels::CLB,
             bel_from_pins(
                 &db,
@@ -437,7 +432,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             ),
         );
         for i in 0..2 {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::TBUF[i],
                 bel_from_pins(
                     &db,
@@ -449,25 +444,16 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 ),
             );
         }
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
     for name in [
         "IO.B", "IO.B.R", "IO.BS", "IO.BS.L", "IO.T", "IO.T.R", "IO.TS", "IO.TS.L",
     ] {
         let is_bot = name.starts_with("IO.B");
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: Default::default(),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let num_cells = if is_bot { 4 } else { 3 };
+        let mut tcls = TileClass::new(tslots::MAIN, num_cells);
+        tcls.bels
             .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
-
-        let num_tiles = if is_bot { 4 } else { 3 };
-        for _ in 0..num_tiles {
-            node.cells.push(());
-        }
         if kind != ChipKind::Xc4000H {
             for i in 0..2 {
                 let mut pins = vec![
@@ -493,7 +479,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 ) {
                     pins.push(("CLKIN", "OUT.IOB.CLKIN".to_string()));
                 }
-                node.bels.insert(bels::IO[i], bel_from_pins(&db, &pins));
+                tcls.bels.insert(bels::IO[i], bel_from_pins(&db, &pins));
             }
         } else {
             for i in 0..4 {
@@ -526,7 +512,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 ) {
                     pins.push(("CLKIN", "OUT.IOB.CLKIN".to_string()));
                 }
-                node.bels.insert(bels::HIO[i], bel_from_pins(&db, &pins));
+                tcls.bels.insert(bels::HIO[i], bel_from_pins(&db, &pins));
             }
         }
         for (i, iwire) in [
@@ -545,27 +531,18 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             for j in 0..io_long_num {
                 pins.push((["O1", "O2", "O3", "O4"][j], format!("DEC.H{j}")));
             }
-            node.bels.insert(bels::DEC[i], bel_from_pins(&db, &pins));
+            tcls.bels.insert(bels::DEC[i], bel_from_pins(&db, &pins));
         }
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
     for name in [
         "IO.R", "IO.R.T", "IO.RS", "IO.RS.B", "IO.L", "IO.L.T", "IO.LS", "IO.LS.B",
     ] {
         let is_left = name.starts_with("IO.L");
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: Default::default(),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let num_cells = if is_left { 4 } else { 3 };
+        let mut tcls = TileClass::new(tslots::MAIN, num_cells);
+        tcls.bels
             .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
-
-        let num_tiles = if is_left { 4 } else { 3 };
-        for _ in 0..num_tiles {
-            node.cells.push(());
-        }
         if kind != ChipKind::Xc4000H {
             for i in 0..2 {
                 let mut pins = vec![
@@ -591,7 +568,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 ) {
                     pins.push(("CLKIN", "OUT.IOB.CLKIN".to_string()));
                 }
-                node.bels.insert(bels::IO[i], bel_from_pins(&db, &pins));
+                tcls.bels.insert(bels::IO[i], bel_from_pins(&db, &pins));
             }
         } else {
             for i in 0..4 {
@@ -624,11 +601,11 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 ) {
                     pins.push(("CLKIN", "OUT.IOB.CLKIN".to_string()));
                 }
-                node.bels.insert(bels::HIO[i], bel_from_pins(&db, &pins));
+                tcls.bels.insert(bels::HIO[i], bel_from_pins(&db, &pins));
             }
         }
         for i in 0..2 {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::TBUF[i],
                 bel_from_pins(
                     &db,
@@ -641,7 +618,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             );
         }
         for i in 0..2 {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::PULLUP_TBUF[i],
                 bel_from_pins(&db, &[("O", format!("LONG.H{}", long_num / 2 - 1 + i))]),
             );
@@ -662,46 +639,38 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             for j in 0..io_long_num {
                 pins.push((["O1", "O2", "O3", "O4"][j], format!("DEC.V{j}")));
             }
-            node.bels.insert(bels::DEC[i], bel_from_pins(&db, &pins));
+            tcls.bels.insert(bels::DEC[i], bel_from_pins(&db, &pins));
         }
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
-    for (name, num_tiles) in [("CNR.BR", 1), ("CNR.TR", 2), ("CNR.BL", 2), ("CNR.TL", 4)] {
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: Default::default(),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+    for (name, num_cells) in [("CNR.BR", 1), ("CNR.TR", 2), ("CNR.BL", 2), ("CNR.TL", 4)] {
+        let mut tcls = TileClass::new(tslots::MAIN, num_cells);
+        tcls.bels
             .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
 
-        for _ in 0..num_tiles {
-            node.cells.push(());
-        }
         for i in 0..io_long_num {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::PULLUP_DEC_H[i],
                 bel_from_pins(&db, &[("O", format!("DEC.H{i}"))]),
             );
         }
         for i in 0..io_long_num {
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::PULLUP_DEC_V[i],
                 bel_from_pins(&db, &[("O", format!("DEC.V{i}"))]),
             );
         }
         for (hv, slot) in [('H', bels::BUFGLS_H), ('V', bels::BUFGLS_V)] {
-            node.bels.insert(
+            tcls.bels.insert(
                 slot,
                 bel_from_pins(&db, &[("I", format!("IMUX.BUFG.{hv}"))]),
             );
         }
         match name {
             "CNR.BR" => {
-                node.bels
+                tcls.bels
                     .insert(bels::COUT, BelInfo::Bel(Default::default()));
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::STARTUP,
                     bel_from_pins(
                         &db,
@@ -716,17 +685,17 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                         ],
                     ),
                 );
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::READCLK,
                     bel_from_pins(&db, &[("I", "IMUX.READCLK.I")]),
                 );
             }
             "CNR.TR" => {
-                node.bels
+                tcls.bels
                     .insert(bels::COUT, BelInfo::Bel(Default::default()));
-                node.bels
+                tcls.bels
                     .insert(bels::UPDATE, bel_from_pins(&db, &[("O", "OUT.UPDATE.O")]));
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::OSC,
                     bel_from_pins(
                         &db,
@@ -737,23 +706,23 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                         ],
                     ),
                 );
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::TDO,
                     bel_from_pins(&db, &[("O", "IMUX.TDO.O"), ("T", "IMUX.TDO.T")]),
                 );
             }
             "CNR.BL" => {
-                node.bels
+                tcls.bels
                     .insert(bels::CIN, BelInfo::Bel(Default::default()));
-                node.bels
+                tcls.bels
                     .insert(bels::MD0, bel_from_pins(&db, &[("I", "OUT.MD0.I")]));
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::MD1,
                     bel_from_pins(&db, &[("O", "IMUX.IOB1.O1"), ("T", "IMUX.IOB1.IK")]),
                 );
-                node.bels
+                tcls.bels
                     .insert(bels::MD2, bel_from_pins(&db, &[("I", "OUT.BT.IOB1.I1")]));
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::RDBK,
                     bel_from_pins(
                         &db,
@@ -766,9 +735,9 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 );
             }
             "CNR.TL" => {
-                node.bels
+                tcls.bels
                     .insert(bels::CIN, BelInfo::Bel(Default::default()));
-                node.bels.insert(
+                tcls.bels.insert(
                     bels::BSCAN,
                     bel_from_pins(
                         &db,
@@ -785,37 +754,19 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             }
             _ => unreachable!(),
         }
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
     for name in ["LLH.IO.B", "LLH.IO.T", "LLH.CLB", "LLH.CLB.B"] {
-        let mut node = TileClass {
-            slot: tslots::EXTRA_COL,
-            cells: Default::default(),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let mut tcls = TileClass::new(tslots::EXTRA_COL, 2);
+        tcls.bels
             .insert(bels::LLH, BelInfo::SwitchBox(Default::default()));
-
-        for _ in 0..2 {
-            node.cells.push(());
-        }
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
     for name in ["LLV.IO.L", "LLV.IO.R", "LLV.CLB"] {
-        let mut node = TileClass {
-            slot: tslots::EXTRA_ROW,
-            cells: Default::default(),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let mut tcls = TileClass::new(tslots::EXTRA_ROW, 2);
+        tcls.bels
             .insert(bels::LLV, BelInfo::SwitchBox(Default::default()));
-
-        for _ in 0..2 {
-            node.cells.push(());
-        }
-        node.bels.insert(
+        tcls.bels.insert(
             bels::CLKH,
             bel_from_pins(
                 &db,
@@ -827,7 +778,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 ],
             ),
         );
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
 
     db

@@ -21,7 +21,7 @@ use prjcombine_xc2000::{
     chip::{Chip, ChipKind},
     expanded::REGION_GLOBAL,
 };
-use unnamed_entity::{EntityId, EntityVec};
+use unnamed_entity::EntityId;
 
 use crate::extractor::{Extractor, NetBinding, PipMode};
 
@@ -325,16 +325,11 @@ pub fn make_intdb() -> IntDb {
     for name in [
         "CLB", "CLB.L", "CLB.R", "CLB.B", "CLB.BL", "CLB.BR", "CLB.T", "CLB.TL", "CLB.TR",
     ] {
-        let mut node = TileClass {
-            slot: tslots::MAIN,
-            cells: EntityVec::from_iter([()]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let mut tcls = TileClass::new(tslots::MAIN, 1);
+        tcls.bels
             .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
 
-        node.bels.insert(
+        tcls.bels.insert(
             bels::CLB,
             bel_from_pins(
                 &db,
@@ -362,7 +357,7 @@ pub fn make_intdb() -> IntDb {
                 bels::IO_N
             };
             for i in 0..2 {
-                node.bels.insert(
+                tcls.bels.insert(
                     io[i],
                     bel_from_pins(
                         &db,
@@ -387,7 +382,7 @@ pub fn make_intdb() -> IntDb {
                 bels::IO_E
             };
             for i in 0..2 {
-                node.bels.insert(
+                tcls.bels.insert(
                     io[i],
                     bel_from_pins(
                         &db,
@@ -411,7 +406,7 @@ pub fn make_intdb() -> IntDb {
             if i >= 2 && !name.ends_with('R') {
                 continue;
             }
-            node.bels.insert(
+            tcls.bels.insert(
                 slot,
                 bel_from_pins(
                     &db,
@@ -425,7 +420,7 @@ pub fn make_intdb() -> IntDb {
         }
         if name.ends_with('L') || name.ends_with('R') {
             for i in 0..2 {
-                node.bels.insert(
+                tcls.bels.insert(
                     [bels::PULLUP_TBUF0, bels::PULLUP_TBUF1][i],
                     bel_from_pins(&db, &[("O", format!("LONG.H{}", i % 2))]),
                 );
@@ -433,9 +428,9 @@ pub fn make_intdb() -> IntDb {
         }
 
         if name == "CLB.TL" || name == "CLB.BR" {
-            node.bels
+            tcls.bels
                 .insert(bels::CLKIOB, bel_from_pins(&db, &[("I", "OUT.CLKIOB")]));
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::BUFG,
                 bel_from_pins(
                     &db,
@@ -447,7 +442,7 @@ pub fn make_intdb() -> IntDb {
             );
         }
         if name == "CLB.BR" {
-            node.bels
+            tcls.bels
                 .insert(bels::OSC, bel_from_pins(&db, &[("O", "OUT.OSC")]));
         }
 
@@ -456,10 +451,10 @@ pub fn make_intdb() -> IntDb {
                 continue;
             }
             db.tile_classes
-                .insert(format!("{name}.{subkind}"), node.clone());
+                .insert(format!("{name}.{subkind}"), tcls.clone());
             if matches!(name, "CLB.BL" | "CLB.BR" | "CLB.TL" | "CLB.TR" | "CLB.T") {
                 db.tile_classes
-                    .insert(format!("{name}S.{subkind}"), node.clone());
+                    .insert(format!("{name}S.{subkind}"), tcls.clone());
             }
         }
     }
@@ -472,15 +467,10 @@ pub fn make_intdb() -> IntDb {
         ("LLV.R", tslots::EXTRA_ROW, bels::LLV),
         ("LLV", tslots::EXTRA_ROW, bels::LLV),
     ] {
-        let mut node = TileClass {
-            slot,
-            cells: EntityVec::from_iter([(); 2]),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        node.bels
+        let mut tcls = TileClass::new(slot, 2);
+        tcls.bels
             .insert(sbslot, BelInfo::SwitchBox(Default::default()));
-        db.tile_classes.insert(name.into(), node);
+        db.tile_classes.insert(name.into(), tcls);
     }
 
     db
