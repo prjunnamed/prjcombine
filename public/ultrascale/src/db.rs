@@ -21,7 +21,7 @@ pub struct DeviceCombo {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
-pub struct Part {
+pub struct Device {
     pub name: String,
     pub chips: EntityVec<DieId, ChipId>,
     pub interposer: InterposerId,
@@ -36,7 +36,7 @@ pub struct Database {
     pub chips: EntityVec<ChipId, Chip>,
     pub interposers: EntityVec<InterposerId, Interposer>,
     pub bonds: EntityVec<BondId, Bond>,
-    pub parts: Vec<Part>,
+    pub devices: Vec<Device>,
     pub int: IntDb,
     pub bsdata: BsData,
 }
@@ -68,8 +68,8 @@ impl From<&DeviceCombo> for JsonValue {
     }
 }
 
-impl From<&Part> for JsonValue {
-    fn from(part: &Part) -> Self {
+impl From<&Device> for JsonValue {
+    fn from(part: &Device) -> Self {
         jzon::object! {
             name: part.name.as_str(),
             chips: Vec::from_iter(part.chips.values().map(|x| x.to_idx())),
@@ -88,7 +88,7 @@ impl From<&Database> for JsonValue {
             chips: Vec::from_iter(db.chips.values()),
             interposers: Vec::from_iter(db.interposers.values()),
             bonds: Vec::from_iter(db.bonds.values()),
-            parts: Vec::from_iter(db.parts.iter()),
+            devices: Vec::from_iter(db.devices.iter()),
             int: &db.int,
             bsdata: &db.bsdata,
         }

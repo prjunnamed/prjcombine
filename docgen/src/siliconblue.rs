@@ -22,7 +22,7 @@ pub fn gen_siliconblue(ctx: &mut DocgenContext) {
     gen_intdb(ctx, "siliconblue", &db.int);
     gen_bstiles(ctx, "siliconblue", &db.bsdata, |_| tile_orientation);
     let mut speeds = EntityPartVec::new();
-    for part in &db.parts {
+    for part in &db.devices {
         for (sname, &speedid) in &part.speeds {
             let speed = &db.speeds[speedid];
             if !speeds.contains_id(speedid) {

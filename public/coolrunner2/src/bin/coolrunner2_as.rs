@@ -179,7 +179,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let dev = dev.unwrap();
     let db = Database::from_file(arg_db)?;
     let mut part = None;
-    for p in &db.parts {
+    for p in &db.devices {
         if p.name == dev {
             part = Some(p);
             break;

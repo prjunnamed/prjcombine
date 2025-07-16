@@ -31,7 +31,7 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
         ctx.ctx.root.join("../databases/spartan6.zstd"),
     )
     .unwrap();
-    let part_names = Vec::from_iter(db.parts.iter().map(|part| part.name.as_str()));
+    let part_names = Vec::from_iter(db.devices.iter().map(|part| part.name.as_str()));
     gen_intdb(ctx, "spartan6", &db.int);
     gen_bstiles(ctx, "spartan6", &db.bsdata, orientation);
     let mut misc_used = HashSet::new();

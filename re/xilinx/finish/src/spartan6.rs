@@ -8,7 +8,7 @@ use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_spartan6::{
     bond::Bond,
     chip::{Chip, DisabledPart},
-    db::{Database, DeviceCombo, Part},
+    db::{Database, Device, DeviceCombo},
 };
 use prjcombine_types::bsdata::BsData;
 use regex::Regex;
@@ -160,7 +160,7 @@ pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
             });
         }
         let speeds = EntityVec::from_iter(speeds.into_values());
-        let part = Part {
+        let part = Device {
             name: name.into(),
             chip,
             bonds: dev_bonds,
@@ -181,7 +181,7 @@ pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
     Database {
         chips,
         bonds,
-        parts,
+        devices: parts,
         int,
         bsdata: tiledb,
     }

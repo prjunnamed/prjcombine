@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if flag_chips || flag_devices {
         for (cid, chip) in &db.chips {
             print!("CHIP {cid}:");
-            for dev in &db.parts {
+            for dev in &db.devices {
                 if dev.chip == cid {
                     print!(" {dev}", dev = dev.name);
                 }
@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if flag_packages || flag_devices {
         for (bid, bond) in &db.bonds {
             print!("BOND {bid}:");
-            for dev in &db.parts {
+            for dev in &db.devices {
                 for (pkg, &dbond) in &dev.bonds {
                     if dbond == bid {
                         print!(" {dev}-{pkg}", dev = dev.name);
@@ -85,7 +85,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if flag_speed || flag_devices {
         for (sid, speed) in &db.speeds {
             print!("SPEED {sid}:");
-            for dev in &db.parts {
+            for dev in &db.devices {
                 for (sname, &dspeed) in &dev.speeds {
                     if dspeed == sid {
                         print!(" {dev}-{sname}", dev = dev.name);
@@ -99,7 +99,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     if flag_devices {
-        for dev in &db.parts {
+        for dev in &db.devices {
             println!("DEVICE {n} GRID {g}", n = dev.name, g = dev.chip);
             for (pkg, bond) in &dev.bonds {
                 println!("\tBOND {pkg}: {bond}");

@@ -29,7 +29,7 @@ fn gen_devlist(ctx: &mut DocgenContext, db: &Database) {
     writeln!(buf, r#"</tr>"#).unwrap();
     writeln!(buf, r#"</thead>"#).unwrap();
     writeln!(buf, r#"<tbody>"#).unwrap();
-    for part in &db.parts {
+    for part in &db.devices {
         let chip = &db.chips[part.chip];
         writeln!(buf, r#"<tr>"#).unwrap();
         writeln!(buf, r#"<td>{}</td>"#, part.name).unwrap();
@@ -58,7 +58,7 @@ fn gen_devlist(ctx: &mut DocgenContext, db: &Database) {
 fn gen_devpkg(ctx: &mut DocgenContext, db: &Database) {
     let mut buf = String::new();
     let mut packages = IndexSet::new();
-    for part in &db.parts {
+    for part in &db.devices {
         for pkg in part.packages.keys() {
             if !pkg.starts_with("di") {
                 packages.insert(pkg.clone());
@@ -76,7 +76,7 @@ fn gen_devpkg(ctx: &mut DocgenContext, db: &Database) {
     writeln!(buf, r#"</tr>"#).unwrap();
     writeln!(buf, r#"</thead>"#).unwrap();
     writeln!(buf, r#"<tbody>"#).unwrap();
-    for part in &db.parts {
+    for part in &db.devices {
         writeln!(buf, r#"<tr>"#).unwrap();
         writeln!(buf, r#"<td>{}</td>"#, part.name).unwrap();
         for pkg in &packages {
@@ -124,7 +124,7 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
         let mut bonds = EntityPartVec::new();
         let mut speeds = EntityPartVec::new();
         let mut packages = IndexSet::new();
-        for part in &db.parts {
+        for part in &db.devices {
             if part.chip != chipid {
                 continue;
             }

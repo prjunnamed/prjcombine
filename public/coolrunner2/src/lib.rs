@@ -98,7 +98,7 @@ pub struct Bond {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
-pub struct Part {
+pub struct Device {
     pub name: String,
     pub chip: ChipId,
     pub packages: BTreeMap<String, BondId>,
@@ -110,7 +110,7 @@ pub struct Database {
     pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
     pub speeds: EntityVec<SpeedId, Speed>,
-    pub parts: Vec<Part>,
+    pub devices: Vec<Device>,
     pub jed_mc_bits_small: Vec<(String, usize)>,
     pub jed_mc_bits_large_iob: Vec<(String, usize)>,
     pub jed_mc_bits_large_buried: Vec<(String, usize)>,
@@ -143,78 +143,78 @@ fn jed_bits_to_json(jed_bits: &[(String, usize)]) -> JsonValue {
     .into()
 }
 
-impl Chip {
-    pub fn to_json(&self) -> JsonValue {
+impl From<&Chip> for JsonValue {
+    fn from(chip: &Chip) -> JsonValue {
         jzon::object! {
-            idcode_part: self.idcode_part,
-            ipads: self.ipads,
-            banks: self.banks,
-            has_vref: self.has_vref,
-            bs_cols: self.bs_cols,
-            xfer_cols: self.xfer_cols.clone(),
-            imux_width: self.imux_width,
-            mc_width: self.mc_width,
-            bs_layout: match self.bs_layout {
+            idcode_part: chip.idcode_part,
+            ipads: chip.ipads,
+            banks: chip.banks,
+            has_vref: chip.has_vref,
+            bs_cols: chip.bs_cols,
+            xfer_cols: chip.xfer_cols.clone(),
+            imux_width: chip.imux_width,
+            mc_width: chip.mc_width,
+            bs_layout: match chip.bs_layout {
                 BsLayout::Narrow => "NARROW",
                 BsLayout::Wide => "WIDE",
             },
-            block_rows: self.block_rows,
-            block_cols: self.block_cols.clone(),
+            block_rows: chip.block_rows,
+            block_cols: chip.block_cols.clone(),
             ios: jzon::object::Object::from_iter(
-                self.io.iter().map(|(&crd, io_data)| (crd.to_string(), jzon::object! {
+                chip.io.iter().map(|(&crd, io_data)| (crd.to_string(), jzon::object! {
                     bank: io_data.bank.to_idx(),
                     pad_distance: io_data.pad_distance,
                 }))
             ),
             io_special: jzon::object::Object::from_iter(
-                self.io_special.iter().map(|(key, mc)| {
+                chip.io_special.iter().map(|(key, mc)| {
                     (key, format!("IOB_{mc}"))
                 })
             ),
-            mc_bits: &self.mc_bits,
-            global_bits: &self.global_bits,
-            jed_global_bits: jed_bits_to_json(&self.jed_global_bits),
-            imux_bits: &self.imux_bits,
+            mc_bits: &chip.mc_bits,
+            global_bits: &chip.global_bits,
+            jed_global_bits: jed_bits_to_json(&chip.jed_global_bits),
+            imux_bits: &chip.imux_bits,
         }
     }
 }
 
-impl Bond {
-    pub fn to_json(&self) -> JsonValue {
+impl From<&Bond> for JsonValue {
+    fn from(bond: &Bond) -> JsonValue {
         jzon::object! {
-            idcode_part: self.idcode_part,
+            idcode_part: bond.idcode_part,
             pins: jzon::object::Object::from_iter(
-                self.pins.iter().map(|(k, v)| (k, v.to_string()))
+                bond.pins.iter().map(|(k, v)| (k, v.to_string()))
             ),
         }
     }
 }
 
-impl Part {
-    pub fn to_json(&self) -> JsonValue {
+impl From<&Device> for JsonValue {
+    fn from(device: &Device) -> Self {
         jzon::object! {
-            name: self.name.as_str(),
-            chip: self.chip.to_idx(),
+            name: device.name.as_str(),
+            chip: device.chip.to_idx(),
             packages: jzon::object::Object::from_iter(
-                self.packages.iter().map(|(name, bond)| (name, bond.to_idx()))
+                device.packages.iter().map(|(name, bond)| (name, bond.to_idx()))
             ),
             speeds: jzon::object::Object::from_iter(
-                self.speeds.iter().map(|(name, speed)| (name, speed.to_idx()))
+                device.speeds.iter().map(|(name, speed)| (name, speed.to_idx()))
             ),
         }
     }
 }
 
-impl Database {
-    pub fn to_json(&self) -> JsonValue {
+impl From<&Database> for JsonValue {
+    fn from(db: &Database) -> Self {
         jzon::object! {
-            chips: Vec::from_iter(self.chips.values().map(Chip::to_json)),
-            bonds: Vec::from_iter(self.bonds.values().map(Bond::to_json)),
-            speeds: Vec::from_iter(self.speeds.values()),
-            parts: Vec::from_iter(self.parts.iter().map(Part::to_json)),
-            jed_mc_bits_small: jed_bits_to_json(&self.jed_mc_bits_small),
-            jed_mc_bits_large_iob: jed_bits_to_json(&self.jed_mc_bits_large_iob),
-            jed_mc_bits_large_buried: jed_bits_to_json(&self.jed_mc_bits_large_buried),
+            chips: Vec::from_iter(db.chips.values()),
+            bonds: Vec::from_iter(db.bonds.values()),
+            speeds: Vec::from_iter(db.speeds.values()),
+            devices: Vec::from_iter(db.devices.iter()),
+            jed_mc_bits_small: jed_bits_to_json(&db.jed_mc_bits_small),
+            jed_mc_bits_large_iob: jed_bits_to_json(&db.jed_mc_bits_large_iob),
+            jed_mc_bits_large_buried: jed_bits_to_json(&db.jed_mc_bits_large_buried),
         }
     }
 }

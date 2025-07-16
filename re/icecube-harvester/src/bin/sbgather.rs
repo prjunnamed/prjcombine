@@ -5,7 +5,7 @@ use prjcombine_interconnect::db::IntDb;
 use prjcombine_siliconblue::{
     bond::Bond,
     chip::Chip,
-    db::{Database, Part},
+    db::{Database, Device},
 };
 use prjcombine_types::{
     bsdata::BsData,
@@ -107,7 +107,7 @@ fn main() {
         chips: Default::default(),
         bonds: Default::default(),
         speeds: Default::default(),
-        parts: Default::default(),
+        devices: Default::default(),
         int: Default::default(),
         bsdata: Default::default(),
     };
@@ -130,8 +130,8 @@ fn main() {
         let bonds = merge_bonds(&mut dst.bonds, &src.bonds);
         let speeds = merge_speeds(&mut dst.speeds, &src.speeds);
         let chips = merge_chips(&mut dst.chips, &src.chips);
-        for part in &src.parts {
-            dst.parts.push(Part {
+        for part in &src.devices {
+            dst.devices.push(Device {
                 name: part.name.clone(),
                 chip: chips[part.chip],
                 bonds: part

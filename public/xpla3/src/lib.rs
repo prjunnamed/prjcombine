@@ -81,7 +81,7 @@ pub struct Bond {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
-pub struct Part {
+pub struct Device {
     pub name: String,
     pub chip: ChipId,
     pub packages: BTreeMap<String, BondId>,
@@ -93,7 +93,7 @@ pub struct Database {
     pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
     pub speeds: EntityVec<SpeedId, Speed>,
-    pub parts: Vec<Part>,
+    pub devices: Vec<Device>,
     pub mc_bits: Tile,
     pub block_bits: Tile,
     pub jed_mc_bits_iob: Vec<(String, usize)>,
@@ -138,65 +138,65 @@ impl FbColumn {
     }
 }
 
-impl Chip {
-    pub fn to_json(&self) -> JsonValue {
+impl From<&Chip> for JsonValue {
+    fn from(chip: &Chip) -> JsonValue {
         jzon::object! {
-            idcode_part: self.idcode_part,
-            bs_cols: self.bs_cols,
-            imux_width: self.imux_width,
-            block_rows: self.block_rows,
-            block_cols: Vec::from_iter(self.block_cols.iter().map(|bcol| bcol.to_json())),
-            io_mcs: Vec::from_iter(self.io_mcs.iter().map(|mc| mc.to_idx())),
+            idcode_part: chip.idcode_part,
+            bs_cols: chip.bs_cols,
+            imux_width: chip.imux_width,
+            block_rows: chip.block_rows,
+            block_cols: Vec::from_iter(chip.block_cols.iter().map(|bcol| bcol.to_json())),
+            io_mcs: Vec::from_iter(chip.io_mcs.iter().map(|mc| mc.to_idx())),
             io_special: jzon::object::Object::from_iter(
-                self.io_special.iter().map(|(key, mc)| {
+                chip.io_special.iter().map(|(key, mc)| {
                     (key, format!("IOB_{mc}"))
                 })
             ),
-            global_bits: &self.global_bits,
-            jed_global_bits: jed_bits_to_json(&self.jed_global_bits),
-            imux_bits: &self.imux_bits,
+            global_bits: &chip.global_bits,
+            jed_global_bits: jed_bits_to_json(&chip.jed_global_bits),
+            imux_bits: &chip.imux_bits,
         }
     }
 }
 
-impl Bond {
-    pub fn to_json(&self) -> JsonValue {
+impl From<&Bond> for JsonValue {
+    fn from(bond: &Bond) -> JsonValue {
         jzon::object! {
-            idcode_part: self.idcode_part,
+            idcode_part: bond.idcode_part,
             pins: jzon::object::Object::from_iter(
-                self.pins.iter().map(|(k, v)| (k, v.to_string()))
+                bond.pins.iter().map(|(k, v)| (k, v.to_string()))
             ),
         }
     }
 }
 
-impl Part {
-    pub fn to_json(&self) -> JsonValue {
+impl From<&Device> for JsonValue {
+    fn from(device: &Device) -> Self {
         jzon::object! {
-            name: self.name.as_str(),
-            chip: self.chip.to_idx(),
+            name: device.name.as_str(),
+            chip: device.chip.to_idx(),
             packages: jzon::object::Object::from_iter(
-                self.packages.iter().map(|(name, bond)| (name, bond.to_idx()))
+                device.packages.iter().map(|(name, bond)| (name, bond.to_idx()))
             ),
             speeds: jzon::object::Object::from_iter(
-                self.speeds.iter().map(|(name, speed)| (name, speed.to_idx()))
+                device.speeds.iter().map(|(name, speed)| (name, speed.to_idx()))
             ),
         }
     }
 }
 
-impl Database {
-    pub fn to_json(&self) -> JsonValue {
+impl From<&Database> for JsonValue {
+    fn from(db: &Database) -> Self {
         jzon::object! {
-            chips: Vec::from_iter(self.chips.values().map(Chip::to_json)),
-            bonds: Vec::from_iter(self.bonds.values().map(Bond::to_json)),
-            speeds: Vec::from_iter(self.speeds.values()),
-            parts: Vec::from_iter(self.parts.iter().map(Part::to_json)),
-            mc_bits: &self.mc_bits,
-            block_bits: &self.block_bits,
-            jed_mc_bits_iob: jed_bits_to_json(&self.jed_mc_bits_iob),
-            jed_mc_bits_buried: jed_bits_to_json(&self.jed_mc_bits_buried),
-            jed_block_bits: jed_bits_to_json(&self.jed_block_bits),
+            chips: Vec::from_iter(db.chips.values()),
+            bonds: Vec::from_iter(db.bonds.values()),
+            speeds: Vec::from_iter(db.speeds.values()),
+            devices: Vec::from_iter(db.devices.iter()),
+            mc_bits: &db.mc_bits,
+            block_bits: &db.block_bits,
+            jed_mc_bits_iob: jed_bits_to_json(&db.jed_mc_bits_iob),
+            jed_mc_bits_buried: jed_bits_to_json(&db.jed_mc_bits_buried),
+            jed_block_bits: jed_bits_to_json(&db.jed_block_bits),
         }
     }
 }

@@ -27,7 +27,7 @@ fn gen_devlist(ctx: &mut DocgenContext, dbs: &[Database]) {
     writeln!(buf, r#"</thead>"#).unwrap();
     writeln!(buf, r#"<tbody>"#).unwrap();
     for db in dbs {
-        for part in &db.parts {
+        for part in &db.devices {
             let chip = &db.chips[part.chip];
             let notes = if chip.kind == ChipKind::Xc9500 && chip.blocks == 2 {
                 "Does not have block input feedback"
@@ -63,7 +63,7 @@ fn gen_devpkg(ctx: &mut DocgenContext, dbs: &[Database]) {
     let mut buf = String::new();
     let mut packages = IndexSet::new();
     for db in dbs {
-        for part in &db.parts {
+        for part in &db.devices {
             for pkg in part.packages.keys() {
                 packages.insert(pkg.clone());
             }
@@ -80,7 +80,7 @@ fn gen_devpkg(ctx: &mut DocgenContext, dbs: &[Database]) {
     writeln!(buf, r#"</thead>"#).unwrap();
     writeln!(buf, r#"<tbody>"#).unwrap();
     for db in dbs {
-        for part in &db.parts {
+        for part in &db.devices {
             writeln!(buf, r#"<tr>"#).unwrap();
             writeln!(buf, r#"<td>{}</td>"#, part.name).unwrap();
             for pkg in &packages {
@@ -120,7 +120,7 @@ fn gen_devices(ctx: &mut DocgenContext, dbs: &[Database]) {
             let mut bonds = EntityPartVec::new();
             let mut speeds = EntityPartVec::new();
             let mut packages = IndexSet::new();
-            for part in &db.parts {
+            for part in &db.devices {
                 if part.chip != chipid {
                     continue;
                 }

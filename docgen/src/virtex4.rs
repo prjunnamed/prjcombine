@@ -40,7 +40,7 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
             ctx.ctx.root.join(format!("../databases/{kind}.zstd")),
         )
         .unwrap();
-        let part_names = Vec::from_iter(db.parts.iter().map(|part| part.name.as_str()));
+        let part_names = Vec::from_iter(db.devices.iter().map(|part| part.name.as_str()));
         gen_intdb(ctx, kind, &db.int);
         gen_bstiles(ctx, kind, &db.bsdata, orientation);
         let mut misc_used = HashSet::new();

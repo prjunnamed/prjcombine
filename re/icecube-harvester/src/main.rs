@@ -2196,7 +2196,7 @@ impl PartContext<'_> {
             chips: EntityVec::new(),
             bonds: EntityVec::new(),
             speeds: EntityVec::new(),
-            parts: vec![],
+            devices: vec![],
             int: self.intdb.clone(),
             bsdata: self.bsdata.clone(),
         };
@@ -2235,7 +2235,7 @@ impl PartContext<'_> {
                     (sname.to_string(), sid)
                 })
                 .collect();
-            db.parts.push(prjcombine_siliconblue::db::Part {
+            db.devices.push(prjcombine_siliconblue::db::Device {
                 name: part.name.to_string(),
                 chip,
                 bonds,

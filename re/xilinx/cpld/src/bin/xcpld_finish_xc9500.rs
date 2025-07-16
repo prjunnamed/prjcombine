@@ -6,6 +6,7 @@ use std::{
 
 use clap::Parser;
 use enum_map::Enum;
+use jzon::JsonValue;
 use prjcombine_re_xilinx_cpld::{
     bits::{BitPos, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
     device::{Device, DeviceKind, JtagPin, PkgPin},
@@ -927,7 +928,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
 
     let mut bonds = EntityVec::new();
     let mut speeds = EntityVec::new();
-    let mut parts: Vec<xc9500::Part> = vec![];
+    let mut parts: Vec<xc9500::Device> = vec![];
     'parts: for spart in &db.parts {
         let package = &db.packages[spart.package];
         let chip = spart.device;
@@ -981,7 +982,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 continue 'parts;
             }
         }
-        parts.push(xc9500::Part {
+        parts.push(xc9500::Device {
             name: spart.dev_name.clone(),
             chip,
             packages: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
@@ -1014,14 +1015,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         chips,
         bonds,
         speeds,
-        parts,
+        devices: parts,
         mc_bits,
         block_bits: fb_bits,
         global_bits,
     };
     database.to_file(args.out)?;
 
-    let json = database.to_json();
+    let json = JsonValue::from(&database);
     std::fs::write(args.json, json.to_string())?;
 
     Ok(())

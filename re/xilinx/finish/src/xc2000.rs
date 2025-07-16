@@ -10,7 +10,7 @@ use prjcombine_xc2000::{
     bels,
     bond::Bond,
     chip::Chip,
-    db::{Database, DeviceCombo, Part},
+    db::{Database, Device, DeviceCombo},
 };
 use regex::Regex;
 use unnamed_entity::{EntityId, EntityMap, EntitySet, EntityVec};
@@ -229,7 +229,7 @@ pub fn finish(
             });
         }
         let speeds = EntityVec::from_iter(speeds.into_values());
-        let part = Part {
+        let part = Device {
             name: name.into(),
             chip,
             bonds: dev_bonds,
@@ -300,7 +300,7 @@ pub fn finish(
     Database {
         chips,
         bonds,
-        parts,
+        devices: parts,
         int,
         bsdata: tiledb,
     }

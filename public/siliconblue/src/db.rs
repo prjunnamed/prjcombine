@@ -13,7 +13,7 @@ use unnamed_entity::{EntityId, EntityVec};
 use crate::{bond::Bond, chip::Chip};
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
-pub struct Part {
+pub struct Device {
     pub name: String,
     pub chip: ChipId,
     pub bonds: BTreeMap<String, BondId>,
@@ -26,7 +26,7 @@ pub struct Database {
     pub chips: EntityVec<ChipId, Chip>,
     pub bonds: EntityVec<BondId, Bond>,
     pub speeds: EntityVec<SpeedId, Speed>,
-    pub parts: Vec<Part>,
+    pub devices: Vec<Device>,
     pub int: IntDb,
     pub bsdata: BsData,
 }
@@ -49,14 +49,14 @@ impl Database {
     }
 }
 
-impl From<&Part> for JsonValue {
-    fn from(part: &Part) -> Self {
+impl From<&Device> for JsonValue {
+    fn from(device: &Device) -> Self {
         jzon::object! {
-            name: part.name.as_str(),
-            chip: part.chip.to_idx(),
-            bonds: jzon::object::Object::from_iter(part.bonds.iter().map(|(name, bond)| (name.as_str(), bond.to_idx()))),
-            speeds: jzon::object::Object::from_iter(part.speeds.iter().map(|(name, speed)| (name.as_str(), speed.to_idx()))),
-            temps: Vec::from_iter(part.temps.iter().map(|x| x.as_str())),
+            name: device.name.as_str(),
+            chip: device.chip.to_idx(),
+            bonds: jzon::object::Object::from_iter(device.bonds.iter().map(|(name, bond)| (name.as_str(), bond.to_idx()))),
+            speeds: jzon::object::Object::from_iter(device.speeds.iter().map(|(name, speed)| (name.as_str(), speed.to_idx()))),
+            temps: Vec::from_iter(device.temps.iter().map(|x| x.as_str())),
         }
     }
 }
@@ -67,7 +67,7 @@ impl From<&Database> for JsonValue {
             chips: Vec::from_iter(db.chips.values()),
             bonds: Vec::from_iter(db.bonds.values()),
             speeds: Vec::from_iter(db.speeds.values()),
-            parts: Vec::from_iter(db.parts.iter()),
+            devices: Vec::from_iter(db.devices.iter()),
             int: &db.int,
             bsdata: &db.bsdata,
         }

@@ -10,7 +10,7 @@ use prjcombine_types::bsdata::BsData;
 use prjcombine_virtex4::{
     bond::Bond,
     chip::{Chip, DisabledPart, GtKind, Interposer},
-    db::{Database, DeviceCombo, Part},
+    db::{Database, Device, DeviceCombo},
 };
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
@@ -276,7 +276,7 @@ pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
             });
         }
         let speeds = EntityVec::from_iter(speeds.into_values());
-        let part = Part {
+        let part = Device {
             name: name.into(),
             chips,
             interposer,
@@ -300,7 +300,7 @@ pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
         chips,
         interposers,
         bonds,
-        parts,
+        devices: parts,
         int,
         bsdata: tiledb,
         gtz: geom.gtz,
