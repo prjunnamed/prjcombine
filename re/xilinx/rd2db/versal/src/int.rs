@@ -1181,10 +1181,10 @@ impl IntMaker<'_> {
                             wire: w,
                         }) {
                             let n = self.builder.rd.wires.get(n).unwrap();
-                            if let &TkWire::Connected(idx) = int_tk.wires.get(&n).unwrap().1 {
-                                if let Some(&cw) = nodes.get(&int_tile.conn_wires[idx]) {
-                                    wires.insert(w, ConnectorWire::Reflect(cw));
-                                }
+                            if let &TkWire::Connected(idx) = int_tk.wires.get(&n).unwrap().1
+                                && let Some(&cw) = nodes.get(&int_tile.conn_wires[idx])
+                            {
+                                wires.insert(w, ConnectorWire::Reflect(cw));
                             }
                         }
                     }
@@ -1239,7 +1239,8 @@ impl IntMaker<'_> {
                 for i in 0..4 {
                     bels.push(self.builder.bel_xy(bels::IRI[i], "IRI_QUAD", 0, i));
                 }
-                let mut xn = self.builder
+                let mut xn = self
+                    .builder
                     .xnode(tslots::INTF, name, name, xy)
                     .ref_int_side(int_xy, side, 0)
                     .extract_muxes(bels::INTF_INT)
@@ -1249,8 +1250,7 @@ impl IntMaker<'_> {
                 if delay {
                     xn = xn.extract_delay(bels::INTF_DELAY);
                 }
-                xn
-                    .extract();
+                xn.extract();
                 break;
             }
         }

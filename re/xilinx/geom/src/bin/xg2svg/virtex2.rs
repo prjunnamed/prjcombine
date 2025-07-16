@@ -31,10 +31,10 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         if edev.chip.col_clk == col {
             x += W_CLK;
         }
-        if let Some((cl, cr)) = edev.chip.cols_clkv {
-            if col == cl || col == cr {
-                x += W_CLKV;
-            }
+        if let Some((cl, cr)) = edev.chip.cols_clkv
+            && (col == cl || col == cr)
+        {
+            x += W_CLKV;
         }
         let l = x;
         if cd.kind == prjcombine_virtex2::chip::ColumnKind::Bram && !edev.chip.kind.is_spartan3ea()

@@ -239,10 +239,10 @@ impl Collector<'_> {
                     .keys()
                     .filter_map(|&inp| {
                         let fi = FuzzerInfo::Imux(fbid, imid, inp);
-                        if let ImuxInput::Ibuf(mc) = inp {
-                            if !self.backend.pin_map.contains_key(&mc) {
-                                return None;
-                            }
+                        if let ImuxInput::Ibuf(mc) = inp
+                            && !self.backend.pin_map.contains_key(&mc)
+                        {
+                            return None;
                         }
                         Some((fi, inp))
                     })

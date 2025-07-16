@@ -119,10 +119,10 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
                     Some(_) => unreachable!(),
                     None => (),
                 }
-                if !endev.edev.disabled.contains(&DisabledPart::SysMon) {
-                    if let Some(&(i, pn)) = vaux_lookup.get(&io) {
-                        write!(exp_func, "_SM{i}{pn}").unwrap();
-                    }
+                if !endev.edev.disabled.contains(&DisabledPart::SysMon)
+                    && let Some(&(i, pn)) = vaux_lookup.get(&io)
+                {
+                    write!(exp_func, "_SM{i}{pn}").unwrap();
                 }
                 write!(exp_func, "_{}", io_info.bank).unwrap();
                 if exp_func != pin.func {

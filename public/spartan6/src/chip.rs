@@ -567,23 +567,23 @@ impl std::fmt::Display for Chip {
                 ColumnIoKind::Outer => write!(f, " TIO: -O")?,
                 ColumnIoKind::Both => write!(f, " TIO: IO")?,
             }
-            if let Some((cl, cr)) = self.cols_clk_fold {
-                if col == cl || col == cr {
-                    write!(f, " FOLD")?;
-                }
+            if let Some((cl, cr)) = self.cols_clk_fold
+                && (col == cl || col == cr)
+            {
+                write!(f, " FOLD")?;
             }
             if col == self.cols_reg_buf.0 || col == self.cols_reg_buf.1 {
                 write!(f, " REGBUF")?;
             }
-            if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = self.gts {
-                if col == cl {
-                    write!(f, " LGT")?;
-                }
+            if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = self.gts
+                && col == cl
+            {
+                write!(f, " LGT")?;
             }
-            if let Gts::Double(_, cr) | Gts::Quad(_, cr) = self.gts {
-                if col == cr {
-                    write!(f, " RGT")?;
-                }
+            if let Gts::Double(_, cr) | Gts::Quad(_, cr) = self.gts
+                && col == cr
+            {
+                write!(f, " RGT")?;
             }
             writeln!(f,)?;
         }

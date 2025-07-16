@@ -342,10 +342,10 @@ impl JedFile {
                 });
             }
         }
-        if let Some(fuses_valid) = fuses_valid {
-            if !fuses_valid.all() {
-                Err(JedParserError::FuseMissingDefault)?
-            }
+        if let Some(fuses_valid) = fuses_valid
+            && !fuses_valid.all()
+        {
+            Err(JedParserError::FuseMissingDefault)?
         }
         if etx + 5 > jed.len() {
             Err(JedParserError::EtxChecksumMissing)?
@@ -374,10 +374,10 @@ impl JedFile {
             user,
             security,
         };
-        if let Some(checksum) = fuse_checksum {
-            if checksum != res.fuse_checksum() {
-                Err(JedParserError::FuseChecksumMismatch)?
-            }
+        if let Some(checksum) = fuse_checksum
+            && checksum != res.fuse_checksum()
+        {
+            Err(JedParserError::FuseChecksumMismatch)?
         }
         Ok(res)
     }

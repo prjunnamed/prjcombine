@@ -118,10 +118,10 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                     ok = false;
                 }
                 for (k, b, v, ki) in ti.config.iter() {
-                    if let Some(exp_ki) = ki {
-                        if exp_ki != &inst.kind {
-                            continue;
-                        }
+                    if let Some(exp_ki) = ki
+                        && exp_ki != &inst.kind
+                    {
+                        continue;
                     }
                     cfg_expect.insert(k.clone(), (b.clone(), v.clone()));
                 }
@@ -980,11 +980,11 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                     }
                 }
             }
-            if let Some(cnn) = nn {
-                if !nets_found.insert(cnn.clone()) {
-                    println!("duplicate net {cnn}");
-                    ok = false;
-                }
+            if let Some(cnn) = nn
+                && !nets_found.insert(cnn.clone())
+            {
+                println!("duplicate net {cnn}");
+                ok = false;
             }
         } else {
             let tval = net.typ == NetType::Vcc;

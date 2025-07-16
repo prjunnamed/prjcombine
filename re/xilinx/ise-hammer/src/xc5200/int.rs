@@ -94,68 +94,66 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .prop(NodeMutexExclusive::new(wire_from))
                     .prop(FuzzIntPip::new(wire_to, wire_from));
 
-                if let Some(rev) = tcls_index.pips_fwd.get(&wire_to) {
-                    if rev.contains(&wire_from.pos()) {
-                        if tcname.starts_with("CLK") || tcname.starts_with("CNR") {
-                            if wire_from_name.starts_with("LONG.H") {
-                                builder = builder.prop(DriveLLH::new(wire_from));
-                            } else if wire_from_name.starts_with("LONG.V") {
-                                builder = builder.prop(DriveLLV::new(wire_from));
-                            } else {
-                                panic!("AM HOUSECAT {tcname} {mux_name} {in_name}");
-                            }
+                if let Some(rev) = tcls_index.pips_fwd.get(&wire_to)
+                    && rev.contains(&wire_from.pos())
+                {
+                    if tcname.starts_with("CLK") || tcname.starts_with("CNR") {
+                        if wire_from_name.starts_with("LONG.H") {
+                            builder = builder.prop(DriveLLH::new(wire_from));
+                        } else if wire_from_name.starts_with("LONG.V") {
+                            builder = builder.prop(DriveLLV::new(wire_from));
                         } else {
-                            let mut wire_help = None;
-                            for &help in &tcls_index.pips_bwd[&wire_from] {
-                                if tcls_index.pips_fwd[&wire_from].contains(&help) {
+                            panic!("AM HOUSECAT {tcname} {mux_name} {in_name}");
+                        }
+                    } else {
+                        let mut wire_help = None;
+                        for &help in &tcls_index.pips_bwd[&wire_from] {
+                            if tcls_index.pips_fwd[&wire_from].contains(&help) {
+                                continue;
+                            }
+                            // println!("HELP {} <- {} <- {}", intdb.wires.key(wire_to.1), intdb.wires.key(wire_from.1), intdb.wires.key(help.1));
+                            wire_help = Some(help.tw);
+                            break;
+                        }
+                        if let Some(wire_help) = wire_help {
+                            builder = builder
+                                .prop(BaseIntPip::new(wire_from, wire_help))
+                                .prop(NodeMutexExclusive::new(wire_from))
+                                .prop(NodeMutexExclusive::new(wire_help));
+                        } else {
+                            let mut wire_help_a = None;
+                            let mut wire_help_b = None;
+                            'help_ab: for &help_a in &tcls_index.pips_bwd[&wire_from] {
+                                let help_a = help_a.tw;
+                                if help_a == wire_to {
                                     continue;
                                 }
-                                // println!("HELP {} <- {} <- {}", intdb.wires.key(wire_to.1), intdb.wires.key(wire_from.1), intdb.wires.key(help.1));
-                                wire_help = Some(help.tw);
-                                break;
-                            }
-                            if let Some(wire_help) = wire_help {
-                                builder = builder
-                                    .prop(BaseIntPip::new(wire_from, wire_help))
-                                    .prop(NodeMutexExclusive::new(wire_from))
-                                    .prop(NodeMutexExclusive::new(wire_help));
-                            } else {
-                                let mut wire_help_a = None;
-                                let mut wire_help_b = None;
-                                'help_ab: for &help_a in &tcls_index.pips_bwd[&wire_from] {
-                                    let help_a = help_a.tw;
-                                    if help_a == wire_to {
-                                        continue;
-                                    }
-                                    if let Some(helpmux_a) = tcls_index.pips_bwd.get(&help_a) {
-                                        for &help_b in helpmux_a {
-                                            let help_b = help_b.tw;
-                                            if help_b == wire_to || help_b == wire_from {
-                                                continue;
-                                            }
-                                            if let Some(helpmux_b) =
-                                                tcls_index.pips_bwd.get(&help_b)
-                                            {
-                                                if helpmux_b.contains(&help_a.pos()) {
-                                                    continue;
-                                                }
-                                            }
-                                            wire_help_a = Some(help_a);
-                                            wire_help_b = Some(help_b);
-                                            break 'help_ab;
+                                if let Some(helpmux_a) = tcls_index.pips_bwd.get(&help_a) {
+                                    for &help_b in helpmux_a {
+                                        let help_b = help_b.tw;
+                                        if help_b == wire_to || help_b == wire_from {
+                                            continue;
                                         }
+                                        if let Some(helpmux_b) = tcls_index.pips_bwd.get(&help_b)
+                                            && helpmux_b.contains(&help_a.pos())
+                                        {
+                                            continue;
+                                        }
+                                        wire_help_a = Some(help_a);
+                                        wire_help_b = Some(help_b);
+                                        break 'help_ab;
                                     }
                                 }
-                                if let (Some(wire_help_a), Some(wire_help_b)) =
-                                    (wire_help_a, wire_help_b)
-                                {
-                                    builder = builder
-                                        .prop(BaseIntPip::new(wire_from, wire_help_a))
-                                        .prop(BaseIntPip::new(wire_help_a, wire_help_b))
-                                        .prop(NodeMutexExclusive::new(wire_from))
-                                        .prop(NodeMutexExclusive::new(wire_help_a))
-                                        .prop(NodeMutexExclusive::new(wire_help_b));
-                                }
+                            }
+                            if let (Some(wire_help_a), Some(wire_help_b)) =
+                                (wire_help_a, wire_help_b)
+                            {
+                                builder = builder
+                                    .prop(BaseIntPip::new(wire_from, wire_help_a))
+                                    .prop(BaseIntPip::new(wire_help_a, wire_help_b))
+                                    .prop(NodeMutexExclusive::new(wire_from))
+                                    .prop(NodeMutexExclusive::new(wire_help_a))
+                                    .prop(NodeMutexExclusive::new(wire_help_b));
                             }
                         }
                     }

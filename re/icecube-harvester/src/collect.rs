@@ -333,14 +333,14 @@ pub fn collect(
             if edev.chip.kind.is_ice40() || (edev.chip.kind.has_vref() && edge == Dir::W) {
                 collector.collect_bit(tile, bel, "IBUF_ENABLE", "");
             }
-            if edev.chip.kind.is_ultra() {
-                if !(edge == Dir::N && edev.chip.kind == ChipKind::Ice40T01) {
-                    collector.collect_bit(tile, bel, "HARDIP_FABRIC_IN", "");
-                    collector.collect_bit(tile, bel, "HARDIP_DEDICATED_OUT", "");
-                    if (edev.chip.kind == ChipKind::Ice40T01 && iob == 0) || edge == Dir::N {
-                        collector.collect_bit(tile, bel, "SDA_INPUT_DELAYED", "");
-                        collector.collect_bit(tile, bel, "SDA_OUTPUT_DELAYED", "");
-                    }
+            if edev.chip.kind.is_ultra()
+                && !(edge == Dir::N && edev.chip.kind == ChipKind::Ice40T01)
+            {
+                collector.collect_bit(tile, bel, "HARDIP_FABRIC_IN", "");
+                collector.collect_bit(tile, bel, "HARDIP_DEDICATED_OUT", "");
+                if (edev.chip.kind == ChipKind::Ice40T01 && iob == 0) || edge == Dir::N {
+                    collector.collect_bit(tile, bel, "SDA_INPUT_DELAYED", "");
+                    collector.collect_bit(tile, bel, "SDA_OUTPUT_DELAYED", "");
                 }
             }
             if edge == Dir::W && edev.chip.kind.has_vref() {

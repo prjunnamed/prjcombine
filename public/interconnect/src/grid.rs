@@ -386,11 +386,7 @@ impl<'a> ExpandedGrid<'a> {
         }
     }
 
-    pub fn resolve_tile_wire(
-        &self,
-        tcrd: TileCoord,
-        wire: TileWireCoord,
-    ) -> Option<WireCoord> {
+    pub fn resolve_tile_wire(&self, tcrd: TileCoord, wire: TileWireCoord) -> Option<WireCoord> {
         self.resolve_wire(self.tile_wire(tcrd, wire))
     }
 
@@ -732,10 +728,10 @@ impl ExpandedDieRefMut<'_, '_> {
                 if self[(col, row)].tiles.iter().count() == 0 {
                     continue;
                 }
-                if let Some(prev) = prev {
-                    if !self[(col, row)].conns.contains_id(slot_w) {
-                        self.fill_conn_pair((prev, row), (col, row), pass_e, pass_w);
-                    }
+                if let Some(prev) = prev
+                    && !self[(col, row)].conns.contains_id(slot_w)
+                {
+                    self.fill_conn_pair((prev, row), (col, row), pass_e, pass_w);
                 }
                 if !self[(col, row)].conns.contains_id(slot_e) {
                     prev = Some(col);
@@ -751,10 +747,10 @@ impl ExpandedDieRefMut<'_, '_> {
                 if self[(col, row)].tiles.iter().count() == 0 {
                     continue;
                 }
-                if let Some(prev) = prev {
-                    if !self[(col, row)].conns.contains_id(slot_s) {
-                        self.fill_conn_pair((col, prev), (col, row), pass_n, pass_s);
-                    }
+                if let Some(prev) = prev
+                    && !self[(col, row)].conns.contains_id(slot_s)
+                {
+                    self.fill_conn_pair((col, prev), (col, row), pass_n, pass_s);
                 }
                 if !self[(col, row)].conns.contains_id(slot_n) {
                     prev = Some(row);
@@ -833,12 +829,12 @@ impl ExpandedGrid<'_> {
             let die = self.die(wire.cell.die);
             let tile = self.cell(wire.cell);
             res.push(wire);
-            if let WireKind::Regional(rslot) = self.db.wires[wire.slot] {
-                if tile.region_root[rslot] == (wire.cell.col, wire.cell.row) {
-                    for &crd in &die.region_root_cells[rslot][&(wire.cell.col, wire.cell.row)] {
-                        if crd != (wire.cell.col, wire.cell.row) {
-                            queue.push(wire.cell.with_cr(crd.0, crd.1).wire(wire.slot));
-                        }
+            if let WireKind::Regional(rslot) = self.db.wires[wire.slot]
+                && tile.region_root[rslot] == (wire.cell.col, wire.cell.row)
+            {
+                for &crd in &die.region_root_cells[rslot][&(wire.cell.col, wire.cell.row)] {
+                    if crd != (wire.cell.col, wire.cell.row) {
+                        queue.push(wire.cell.with_cr(crd.0, crd.1).wire(wire.slot));
                     }
                 }
             }

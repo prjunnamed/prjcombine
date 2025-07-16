@@ -803,17 +803,17 @@ fn verify_pci_ce_trunk_src(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel:
     let mut obel;
     if bel.row <= endev.chip.row_clk() {
         obel = vrf.find_bel_walk(bel, 0, 1, bels::PCI_CE_TRUNK_BUF);
-        if let Some(ref ob) = obel {
-            if ob.row > endev.chip.row_clk() {
-                obel = None;
-            }
+        if let Some(ref ob) = obel
+            && ob.row > endev.chip.row_clk()
+        {
+            obel = None;
         }
     } else {
         obel = vrf.find_bel_walk(bel, 0, -1, bels::PCI_CE_TRUNK_BUF);
-        if let Some(ref ob) = obel {
-            if ob.row <= endev.chip.row_clk() {
-                obel = None;
-            }
+        if let Some(ref ob) = obel
+            && ob.row <= endev.chip.row_clk()
+        {
+            obel = None;
         }
     }
     if let Some(obel) = obel {
@@ -855,10 +855,10 @@ fn verify_pci_ce_v_src(
     let mut obel;
     if bel.row < split_row {
         obel = vrf.find_bel_walk(bel, 0, 1, bels::PCI_CE_V_BUF);
-        if let Some(ref ob) = obel {
-            if ob.row > split_row {
-                obel = None;
-            }
+        if let Some(ref ob) = obel
+            && ob.row > split_row
+        {
+            obel = None;
         }
     } else {
         obel = if is_ioi {
@@ -869,10 +869,10 @@ fn verify_pci_ce_v_src(
         if obel.is_none() {
             obel = vrf.find_bel_walk(bel, 0, -1, bels::PCI_CE_V_BUF);
         }
-        if let Some(ref ob) = obel {
-            if ob.row < split_row {
-                obel = None;
-            }
+        if let Some(ref ob) = obel
+            && ob.row < split_row
+        {
+            obel = None;
         }
     }
     let obel = obel
@@ -1497,46 +1497,40 @@ fn verify_bufio2_ins(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
             }
         }
     } else if bel.row == endev.chip.row_tio_outer() {
-        let mut found_l = false;
-        let mut found_r = false;
-        if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = endev.chip.gts {
-            if let Some(obel) = vrf.find_bel(bel.cell.with_col(cl).bel(bels::GTP_BUF)) {
-                for i in 0..4 {
-                    vrf.verify_node(&[
-                        bel.fwire(&format!("GTPCLK{i}")),
-                        obel.fwire(&format!("GTPCLK{i}_O")),
-                    ]);
-                    vrf.verify_node(&[
-                        bel.fwire(&format!("GTPFB{i}")),
-                        obel.fwire(&format!("GTPFB{i}_O")),
-                    ]);
-                }
-                found_l = true;
+        if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = endev.chip.gts
+            && let Some(obel) = vrf.find_bel(bel.cell.with_col(cl).bel(bels::GTP_BUF))
+        {
+            for i in 0..4 {
+                vrf.verify_node(&[
+                    bel.fwire(&format!("GTPCLK{i}")),
+                    obel.fwire(&format!("GTPCLK{i}_O")),
+                ]);
+                vrf.verify_node(&[
+                    bel.fwire(&format!("GTPFB{i}")),
+                    obel.fwire(&format!("GTPFB{i}_O")),
+                ]);
             }
-        }
-        if !found_l {
+        } else {
             for i in 0..4 {
                 vrf.claim_node(&[bel.fwire(&format!("GTPCLK{i}"))]);
                 vrf.claim_node(&[bel.fwire(&format!("GTPFB{i}"))]);
             }
         }
-        if let Gts::Double(_, cr) | Gts::Quad(_, cr) = endev.chip.gts {
-            if let Some(obel) = vrf.find_bel(bel.cell.with_col(cr).bel(bels::GTP_BUF)) {
-                for i in 0..4 {
-                    let ii = i + 4;
-                    vrf.verify_node(&[
-                        bel.fwire(&format!("GTPCLK{ii}")),
-                        obel.fwire(&format!("GTPCLK{i}_O")),
-                    ]);
-                    vrf.verify_node(&[
-                        bel.fwire(&format!("GTPFB{ii}")),
-                        obel.fwire(&format!("GTPFB{i}_O")),
-                    ]);
-                }
-                found_r = true;
+        if let Gts::Double(_, cr) | Gts::Quad(_, cr) = endev.chip.gts
+            && let Some(obel) = vrf.find_bel(bel.cell.with_col(cr).bel(bels::GTP_BUF))
+        {
+            for i in 0..4 {
+                let ii = i + 4;
+                vrf.verify_node(&[
+                    bel.fwire(&format!("GTPCLK{ii}")),
+                    obel.fwire(&format!("GTPCLK{i}_O")),
+                ]);
+                vrf.verify_node(&[
+                    bel.fwire(&format!("GTPFB{ii}")),
+                    obel.fwire(&format!("GTPFB{i}_O")),
+                ]);
             }
-        }
-        if !found_r {
+        } else {
             for i in 4..8 {
                 vrf.claim_node(&[bel.fwire(&format!("GTPCLK{i}"))]);
                 vrf.claim_node(&[bel.fwire(&format!("GTPFB{i}"))]);

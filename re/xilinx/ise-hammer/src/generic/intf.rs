@@ -36,14 +36,13 @@ fn resolve_intf_test_pip<'a>(
     backend
         .egrid
         .resolve_wire(backend.egrid.tile_wire(tcrd, wire_from))?;
-    if let ExpandedDevice::Virtex4(edev) = backend.edev {
-        if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5
-            && ndb.tile_class_namings.key(nnode.naming) == "INTF.PPC_R"
-            && intdb.wires.key(wire_from.wire).starts_with("TEST")
-        {
-            // ISE.
-            return None;
-        }
+    if let ExpandedDevice::Virtex4(edev) = backend.edev
+        && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5
+        && ndb.tile_class_namings.key(nnode.naming) == "INTF.PPC_R"
+        && intdb.wires.key(wire_from.wire).starts_with("TEST")
+    {
+        // ISE.
+        return None;
     }
     Some((
         &nnode.names[RawTileId::from_idx(0)],
@@ -83,19 +82,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfTestPip {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        if let ExpandedDevice::Virtex4(edev) = backend.edev {
-            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4
-                && backend
-                    .egrid
-                    .db
-                    .wires
-                    .key(self.wire_from.wire)
-                    .starts_with("TEST")
-                && tcrd.col == edev.col_cfg
-            {
-                // interference.
-                return None;
-            }
+        if let ExpandedDevice::Virtex4(edev) = backend.edev
+            && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4
+            && backend
+                .egrid
+                .db
+                .wires
+                .key(self.wire_from.wire)
+                .starts_with("TEST")
+            && tcrd.col == edev.col_cfg
+        {
+            // interference.
+            return None;
         }
         let (tile, wt, wf) = resolve_intf_test_pip(backend, tcrd, self.wire_to, self.wire_from)?;
         Some((fuzzer.fuzz(Key::Pip(tile, wf, wt), None, true), false))

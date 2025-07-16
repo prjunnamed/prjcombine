@@ -103,15 +103,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 format!("SNG.{dir}{lr}{i}.1"),
                 &[format!("{dir}{lr}1END{i}")],
             );
-            if let Some((xi, dend, n)) = dend {
-                if i == xi {
-                    builder.branch(
-                        end,
-                        dend,
-                        format!("SNG.{dir}{lr}{i}.2"),
-                        &[format!("{dir}{lr}1END_{dend}{n}_{i}")],
-                    );
-                }
+            if let Some((xi, dend, n)) = dend
+                && i == xi
+            {
+                builder.branch(
+                    end,
+                    dend,
+                    format!("SNG.{dir}{lr}{i}.2"),
+                    &[format!("{dir}{lr}1END_{dend}{n}_{i}")],
+                );
             }
         }
     }
@@ -140,15 +140,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 format!("DBL.{da}{db}{i}.2"),
                 &[format!("{da}{db}2END{i}")],
             );
-            if let Some((xi, dend, n)) = dend {
-                if i == xi {
-                    builder.branch(
-                        e,
-                        dend,
-                        format!("DBL.{da}{db}{i}.3"),
-                        &[format!("{da}{db}2END_{dend}{n}_{i}")],
-                    );
-                }
+            if let Some((xi, dend, n)) = dend
+                && i == xi
+            {
+                builder.branch(
+                    e,
+                    dend,
+                    format!("DBL.{da}{db}{i}.3"),
+                    &[format!("{da}{db}2END_{dend}{n}_{i}")],
+                );
             }
         }
     }
@@ -189,15 +189,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 format!("QUAD.{da}{db}{i}.4"),
                 &[format!("{da}{db}4END{i}")],
             );
-            if let Some((xi, dend, n)) = dend {
-                if i == xi {
-                    builder.branch(
-                        e,
-                        dend,
-                        format!("QUAD.{da}{db}{i}.5"),
-                        &[format!("{da}{db}4END_{dend}{n}_{i}")],
-                    );
-                }
+            if let Some((xi, dend, n)) = dend
+                && i == xi
+            {
+                builder.branch(
+                    e,
+                    dend,
+                    format!("QUAD.{da}{db}{i}.5"),
+                    &[format!("{da}{db}4END_{dend}{n}_{i}")],
+                );
             }
         }
     }

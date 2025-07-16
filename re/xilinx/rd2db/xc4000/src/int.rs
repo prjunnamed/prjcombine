@@ -1336,46 +1336,46 @@ fn extract_bot(
                     },
                 );
             }
-            if let Some(eclk_h) = eclk_h {
-                if tkn == "BOTSL" {
-                    xn = xn
-                        .force_name(
-                            3,
-                            "LL_FCLK",
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: eclk_h,
-                            },
-                        )
-                        .force_name(
-                            3,
-                            "LL_BHLL1",
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: long_io[0],
-                            },
-                        )
-                        .force_name(
-                            3,
-                            "LL_BHLL2",
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: long_io[1],
-                            },
-                        )
-                        .force_name(
-                            3,
-                            "LL_BHLL4",
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: long_io[2],
-                            },
-                        )
-                        .optin_muxes_tile(&[TileWireCoord {
+            if let Some(eclk_h) = eclk_h
+                && tkn == "BOTSL"
+            {
+                xn = xn
+                    .force_name(
+                        3,
+                        "LL_FCLK",
+                        TileWireCoord {
                             cell: CellSlotId::from_idx(0),
                             wire: eclk_h,
-                        }]);
-                }
+                        },
+                    )
+                    .force_name(
+                        3,
+                        "LL_BHLL1",
+                        TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: long_io[0],
+                        },
+                    )
+                    .force_name(
+                        3,
+                        "LL_BHLL2",
+                        TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: long_io[1],
+                        },
+                    )
+                    .force_name(
+                        3,
+                        "LL_BHLL4",
+                        TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: long_io[2],
+                        },
+                    )
+                    .optin_muxes_tile(&[TileWireCoord {
+                        cell: CellSlotId::from_idx(0),
+                        wire: eclk_h,
+                    }]);
             }
             for (wt, wf) in [
                 ("IMUX.CLB.F4", "IMUX.IOB0.O1"),
@@ -1455,46 +1455,46 @@ fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileW
             if is_xv {
                 xn = xn.raw_tile(crd.delta(-1, 0)).extract_muxes_rt(bels::INT, 3);
             }
-            if let Some(eclk_h) = eclk_h {
-                if tkn == "TOPSL" {
-                    xn = xn
-                        .force_name(
-                            2,
-                            "UL_FCLK",
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: eclk_h,
-                            },
-                        )
-                        .force_name(
-                            2,
-                            "UL_THLL1",
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: long_io[0],
-                            },
-                        )
-                        .force_name(
-                            2,
-                            "UL_THLL2",
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: long_io[1],
-                            },
-                        )
-                        .force_name(
-                            2,
-                            "UL_THLL4",
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: long_io[2],
-                            },
-                        )
-                        .optin_muxes_tile(&[TileWireCoord {
+            if let Some(eclk_h) = eclk_h
+                && tkn == "TOPSL"
+            {
+                xn = xn
+                    .force_name(
+                        2,
+                        "UL_FCLK",
+                        TileWireCoord {
                             cell: CellSlotId::from_idx(0),
                             wire: eclk_h,
-                        }]);
-                }
+                        },
+                    )
+                    .force_name(
+                        2,
+                        "UL_THLL1",
+                        TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: long_io[0],
+                        },
+                    )
+                    .force_name(
+                        2,
+                        "UL_THLL2",
+                        TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: long_io[1],
+                        },
+                    )
+                    .force_name(
+                        2,
+                        "UL_THLL4",
+                        TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: long_io[2],
+                        },
+                    )
+                    .optin_muxes_tile(&[TileWireCoord {
+                        cell: CellSlotId::from_idx(0),
+                        wire: eclk_h,
+                    }]);
             }
             xn.extract();
             found_naming = Some(naming);
@@ -1605,22 +1605,22 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWi
             if is_xv {
                 xn = xn.raw_tile(crd.delta(0, 1)).extract_muxes_rt(bels::INT, 3);
             }
-            if let Some(eclk_v) = eclk_v {
-                if tkn == "RTT" {
-                    xn = xn
-                        .force_name(
-                            2,
-                            "UR_URKX",
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: eclk_v,
-                            },
-                        )
-                        .optin_muxes_tile(&[TileWireCoord {
+            if let Some(eclk_v) = eclk_v
+                && tkn == "RTT"
+            {
+                xn = xn
+                    .force_name(
+                        2,
+                        "UR_URKX",
+                        TileWireCoord {
                             cell: CellSlotId::from_idx(0),
                             wire: eclk_v,
-                        }]);
-                }
+                        },
+                    )
+                    .optin_muxes_tile(&[TileWireCoord {
+                        cell: CellSlotId::from_idx(0),
+                        wire: eclk_v,
+                    }]);
             }
             xn.extract();
             found_naming = Some(naming);
@@ -1694,22 +1694,22 @@ fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[Tile
             if is_xv {
                 xn = xn.raw_tile(crd.delta(0, 1)).extract_muxes_rt(bels::INT, 4);
             }
-            if let Some(eclk_v) = eclk_v {
-                if tkn == "LEFTT" {
-                    xn = xn
-                        .force_name(
-                            3,
-                            "UL_KX",
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: eclk_v,
-                            },
-                        )
-                        .optin_muxes_tile(&[TileWireCoord {
+            if let Some(eclk_v) = eclk_v
+                && tkn == "LEFTT"
+            {
+                xn = xn
+                    .force_name(
+                        3,
+                        "UL_KX",
+                        TileWireCoord {
                             cell: CellSlotId::from_idx(0),
                             wire: eclk_v,
-                        }]);
-                }
+                        },
+                    )
+                    .optin_muxes_tile(&[TileWireCoord {
+                        cell: CellSlotId::from_idx(0),
+                        wire: eclk_v,
+                    }]);
             }
             xn.extract();
             found_naming = Some(naming);

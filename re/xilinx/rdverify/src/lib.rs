@@ -424,21 +424,21 @@ impl<'a> Verifier<'a> {
 
     pub fn claim_dummy_in(&mut self, wire: (Coord, &str)) {
         let (crd, wn) = wire;
-        if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
-            if !self.dummy_in_nodes.contains(&cnw) {
-                self.dummy_in_nodes.insert(cnw);
-                self.claim_raw_node(cnw, crd, wn);
-            }
+        if let Some(cnw) = self.rd.lookup_wire(crd, wn)
+            && !self.dummy_in_nodes.contains(&cnw)
+        {
+            self.dummy_in_nodes.insert(cnw);
+            self.claim_raw_node(cnw, crd, wn);
         }
     }
 
     pub fn claim_dummy_out(&mut self, wire: (Coord, &str)) {
         let (crd, wn) = wire;
-        if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
-            if !self.dummy_out_nodes.contains(&cnw) {
-                self.dummy_out_nodes.insert(cnw);
-                self.claim_raw_node(cnw, crd, wn);
-            }
+        if let Some(cnw) = self.rd.lookup_wire(crd, wn)
+            && !self.dummy_out_nodes.contains(&cnw)
+        {
+            self.dummy_out_nodes.insert(cnw);
+            self.claim_raw_node(cnw, crd, wn);
         }
     }
 
@@ -1091,10 +1091,10 @@ impl<'a> Verifier<'a> {
                 self.claim_node(&[(crds[def_rt], name_out)]);
                 self.claim_pip(crds[def_rt], name_out, name_in);
             }
-            if let IntfWireInNaming::Buf { name_out, name_in } = iwin {
-                if self.pin_int_intf_wire(crds[def_rt], name_out, self.grid.tile_wire(tcrd, wf)) {
-                    self.claim_pip(crds[def_rt], name_out, name_in);
-                }
+            if let IntfWireInNaming::Buf { name_out, name_in } = iwin
+                && self.pin_int_intf_wire(crds[def_rt], name_out, self.grid.tile_wire(tcrd, wf))
+            {
+                self.claim_pip(crds[def_rt], name_out, name_in);
             }
         }
     }
@@ -1433,10 +1433,10 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn kill_stub_in_cond_tk(&mut self, tk: &str, name: &str) {
-        if let Some((tki, _)) = self.rd.tile_kinds.get(tk) {
-            if let Some(wi) = self.rd.wires.get(name) {
-                self.cond_stub_ins_tk.insert((tki, wi));
-            }
+        if let Some((tki, _)) = self.rd.tile_kinds.get(tk)
+            && let Some(wi) = self.rd.wires.get(name)
+        {
+            self.cond_stub_ins_tk.insert((tki, wi));
         }
     }
 
@@ -1475,16 +1475,14 @@ impl<'a> Verifier<'a> {
         for (&crd, tile) in &self.rd.tiles {
             let tk = &self.rd.tile_kinds[tile.kind];
             for &(wf, wt) in tk.pips.keys() {
-                if let Some(nwf) = self.rd.lookup_wire(crd, &self.rd.wires[wf]) {
-                    if let Some(nwt) = self.rd.lookup_wire(crd, &self.rd.wires[wt]) {
-                        if self.stub_outs.contains(&wt)
-                            || self.stub_ins.contains(&wf)
-                            || cond_stub_outs.contains_key(&nwt)
-                            || cond_stub_ins.contains_key(&nwf)
-                        {
-                            self.claim_pip(crd, &self.rd.wires[wt], &self.rd.wires[wf]);
-                        }
-                    }
+                if let Some(nwf) = self.rd.lookup_wire(crd, &self.rd.wires[wf])
+                    && let Some(nwt) = self.rd.lookup_wire(crd, &self.rd.wires[wt])
+                    && (self.stub_outs.contains(&wt)
+                        || self.stub_ins.contains(&wf)
+                        || cond_stub_outs.contains_key(&nwt)
+                        || cond_stub_ins.contains_key(&nwf))
+                {
+                    self.claim_pip(crd, &self.rd.wires[wt], &self.rd.wires[wf]);
                 }
             }
         }
@@ -1537,16 +1535,16 @@ impl<'a> Verifier<'a> {
                             }
                         }
                         rawdump::TkWire::Connected(ci) => {
-                            if let Some(&node) = tile.conn_wires.get(ci) {
-                                if !self.claimed_nodes[node] {
-                                    println!(
-                                        "UNCLAIMED CONN WIRE {part} {tile} {wire} {node}",
-                                        part = self.rd.part,
-                                        tile = tile.name,
-                                        wire = self.rd.wires[w],
-                                        node = node.to_idx()
-                                    );
-                                }
+                            if let Some(&node) = tile.conn_wires.get(ci)
+                                && !self.claimed_nodes[node]
+                            {
+                                println!(
+                                    "UNCLAIMED CONN WIRE {part} {tile} {wire} {node}",
+                                    part = self.rd.part,
+                                    tile = tile.name,
+                                    wire = self.rd.wires[w],
+                                    node = node.to_idx()
+                                );
                             }
                         }
                     }

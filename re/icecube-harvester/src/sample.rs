@@ -395,68 +395,67 @@ pub fn make_sample(
                     );
                     let btile = BitOwner::Main(crd.col, crd.row);
                     let lc = loc.loc.bel;
-                    if let Some(lut_init) = inst.props.get("LUT_INIT") {
-                        if lut_init != "16'h0000" {
-                            let lut_init =
-                                u16::from_str_radix(lut_init.strip_prefix("16'h").unwrap(), 16)
-                                    .unwrap();
-                            let mut swz_init: u16 = 0;
-                            let pin_to_orig: HashMap<_, _> = (0..4)
-                                .map(|idx| {
-                                    let src = &inst.pins[&InstPin::Simple(format!("I{idx}"))];
-                                    let InstPinSource::FromInst(si, ref sp) = *src else {
-                                        unreachable!()
-                                    };
-                                    ((si, sp.clone()), idx)
-                                })
-                                .collect();
-                            let swz_to_orig =
-                                Vec::from_iter((0..4).map(|idx| {
-                                    if let Some(src) = int_source.get(&crd.wire(
-                                        edev.egrid.db.get_wire(&format!("IMUX.LC{lc}.I{idx}")),
-                                    )) {
-                                        pin_to_orig[src]
-                                    } else if idx == 3 {
-                                        let InstPinSource::FromInst(_cid, cpin) =
-                                            &inst.pins[&InstPin::Simple("I3".into())]
-                                        else {
-                                            unreachable!();
-                                        };
-                                        assert_eq!(*cpin, InstPin::Simple("CO".into()));
-                                        sample.add_tiled_pattern(
-                                            &[btile],
-                                            format!("{tcls}:INT:MUX.IMUX.LC{lc}.I3:CI"),
-                                        );
-                                        if lc == 0 {
-                                            sample.add_tiled_pattern(
-                                                &[btile],
-                                                format!("{tcls}:LC{lc}:MUX.CI:CHAIN"),
-                                            );
-                                        }
-                                        3
-                                    } else {
-                                        panic!("NO LUT INPUT {iid} {idx}");
-                                    }
-                                }));
-                            for swz_index in 0..16 {
-                                let mut orig_index = 0;
-                                for swz_input in 0..4 {
-                                    if (swz_index & (1 << swz_input)) != 0 {
-                                        let orig_input = swz_to_orig[swz_input];
-                                        orig_index |= 1 << orig_input;
-                                    }
-                                }
-                                if (lut_init & (1 << orig_index)) != 0 {
-                                    swz_init |= 1 << swz_index;
-                                }
-                            }
-                            for i in 0..16 {
-                                if (swz_init & (1 << i)) != 0 {
-                                    sample.add_tiled_pattern_single(
+                    if let Some(lut_init) = inst.props.get("LUT_INIT")
+                        && lut_init != "16'h0000"
+                    {
+                        let lut_init =
+                            u16::from_str_radix(lut_init.strip_prefix("16'h").unwrap(), 16)
+                                .unwrap();
+                        let mut swz_init: u16 = 0;
+                        let pin_to_orig: HashMap<_, _> = (0..4)
+                            .map(|idx| {
+                                let src = &inst.pins[&InstPin::Simple(format!("I{idx}"))];
+                                let InstPinSource::FromInst(si, ref sp) = *src else {
+                                    unreachable!()
+                                };
+                                ((si, sp.clone()), idx)
+                            })
+                            .collect();
+                        let swz_to_orig = Vec::from_iter((0..4).map(|idx| {
+                            if let Some(src) = int_source.get(
+                                &crd.wire(edev.egrid.db.get_wire(&format!("IMUX.LC{lc}.I{idx}"))),
+                            ) {
+                                pin_to_orig[src]
+                            } else if idx == 3 {
+                                let InstPinSource::FromInst(_cid, cpin) =
+                                    &inst.pins[&InstPin::Simple("I3".into())]
+                                else {
+                                    unreachable!();
+                                };
+                                assert_eq!(*cpin, InstPin::Simple("CO".into()));
+                                sample.add_tiled_pattern(
+                                    &[btile],
+                                    format!("{tcls}:INT:MUX.IMUX.LC{lc}.I3:CI"),
+                                );
+                                if lc == 0 {
+                                    sample.add_tiled_pattern(
                                         &[btile],
-                                        format!("{tcls}:LC{lc}:LUT_INIT:BIT{i}"),
+                                        format!("{tcls}:LC{lc}:MUX.CI:CHAIN"),
                                     );
                                 }
+                                3
+                            } else {
+                                panic!("NO LUT INPUT {iid} {idx}");
+                            }
+                        }));
+                        for swz_index in 0..16 {
+                            let mut orig_index = 0;
+                            for swz_input in 0..4 {
+                                if (swz_index & (1 << swz_input)) != 0 {
+                                    let orig_input = swz_to_orig[swz_input];
+                                    orig_index |= 1 << orig_input;
+                                }
+                            }
+                            if (lut_init & (1 << orig_index)) != 0 {
+                                swz_init |= 1 << swz_index;
+                            }
+                        }
+                        for i in 0..16 {
+                            if (swz_init & (1 << i)) != 0 {
+                                sample.add_tiled_pattern_single(
+                                    &[btile],
+                                    format!("{tcls}:LC{lc}:LUT_INIT:BIT{i}"),
+                                );
                             }
                         }
                     }
@@ -500,10 +499,10 @@ pub fn make_sample(
                     let tcls_iob = edev.chip.kind.tile_class_iob(io.edge()).unwrap();
                     let mut global_idx = None;
                     for (&loc, node) in &edev.chip.extra_nodes {
-                        if let ExtraNodeLoc::GbIo(idx) = loc {
-                            if node.io[&ExtraNodeIo::GbIn] == io {
-                                global_idx = Some(idx);
-                            }
+                        if let ExtraNodeLoc::GbIo(idx) = loc
+                            && node.io[&ExtraNodeIo::GbIn] == io
+                        {
+                            global_idx = Some(idx);
                         }
                     }
 
@@ -549,35 +548,33 @@ pub fn make_sample(
                         {
                             let global_idx = global_idx.unwrap();
                             let mut handled = false;
-                            if edev.chip.kind != ChipKind::Ice40P01 {
-                                if let Some((side, ab)) = match global_idx {
+                            if edev.chip.kind != ChipKind::Ice40P01
+                                && let Some((side, ab)) = match global_idx {
                                     6 => Some((DirV::S, 'A')),
                                     3 => Some((DirV::S, 'B')),
                                     7 => Some((DirV::N, 'A')),
                                     2 => Some((DirV::N, 'B')),
                                     _ => None,
-                                } {
-                                    for xloc in
-                                        [ExtraNodeLoc::Pll(side), ExtraNodeLoc::PllStub(side)]
-                                    {
-                                        if let Some(xnode) = edev.chip.extra_nodes.get(&xloc) {
-                                            let xnode_kind = xloc.tile_class(edev.chip.kind);
-                                            let tiles =
-                                                if edev.chip.kind.is_ice65() {
-                                                    vec![BitOwner::Pll(0), BitOwner::Pll(1)]
-                                                } else {
-                                                    Vec::from_iter(xnode.cells.values().map(
-                                                        |&crd| BitOwner::Main(crd.col, crd.row),
-                                                    ))
-                                                };
-                                            sample.add_tiled_pattern(
-                                                &tiles,
-                                                format!(
-                                                    "{xnode_kind}:PLL:LATCH_GLOBAL_OUT_{ab}:BIT0"
-                                                ),
-                                            );
-                                            handled = true;
-                                        }
+                                }
+                            {
+                                for xloc in [ExtraNodeLoc::Pll(side), ExtraNodeLoc::PllStub(side)] {
+                                    if let Some(xnode) = edev.chip.extra_nodes.get(&xloc) {
+                                        let xnode_kind = xloc.tile_class(edev.chip.kind);
+                                        let tiles = if edev.chip.kind.is_ice65() {
+                                            vec![BitOwner::Pll(0), BitOwner::Pll(1)]
+                                        } else {
+                                            Vec::from_iter(
+                                                xnode
+                                                    .cells
+                                                    .values()
+                                                    .map(|&crd| BitOwner::Main(crd.col, crd.row)),
+                                            )
+                                        };
+                                        sample.add_tiled_pattern(
+                                            &tiles,
+                                            format!("{xnode_kind}:PLL:LATCH_GLOBAL_OUT_{ab}:BIT0"),
+                                        );
+                                        handled = true;
                                     }
                                 }
                             }
@@ -589,17 +586,17 @@ pub fn make_sample(
                             }
                         }
                     }
-                    if let Some(neg_trigger) = inst.props.get("NEG_TRIGGER") {
-                        if neg_trigger.ends_with('1') {
-                            sample.add_tiled_pattern(
-                                &[btile],
-                                format!("{tcls_ioi}:INT:INV.IMUX.IO.ICLK.OPTINV:BIT0"),
-                            );
-                            sample.add_tiled_pattern(
-                                &[btile],
-                                format!("{tcls_ioi}:INT:INV.IMUX.IO.OCLK.OPTINV:BIT0"),
-                            );
-                        }
+                    if let Some(neg_trigger) = inst.props.get("NEG_TRIGGER")
+                        && neg_trigger.ends_with('1')
+                    {
+                        sample.add_tiled_pattern(
+                            &[btile],
+                            format!("{tcls_ioi}:INT:INV.IMUX.IO.ICLK.OPTINV:BIT0"),
+                        );
+                        sample.add_tiled_pattern(
+                            &[btile],
+                            format!("{tcls_ioi}:INT:INV.IMUX.IO.OCLK.OPTINV:BIT0"),
+                        );
                     }
 
                     if inst.kind == "SB_IO_I3C" {
@@ -638,17 +635,17 @@ pub fn make_sample(
                                     &[btile],
                                     format!("{tcls_iob}:IOB{iob:#}:WEAK_PULLUP:DISABLE"),
                                 );
-                            } else if let Some(pullup_kind) = inst.props.get("PULLUP_RESISTOR") {
-                                if pullup_kind != "100K" {
-                                    sample.add_tiled_pattern_single(
-                                        &[btile],
-                                        format!("{tcls_iob}:IOB{iob:#}:WEAK_PULLUP:DISABLE"),
-                                    );
-                                    sample.add_tiled_pattern_single(
-                                        &[btile],
-                                        format!("{tcls_iob}:IOB{iob:#}:PULLUP:{pullup_kind}"),
-                                    );
-                                }
+                            } else if let Some(pullup_kind) = inst.props.get("PULLUP_RESISTOR")
+                                && pullup_kind != "100K"
+                            {
+                                sample.add_tiled_pattern_single(
+                                    &[btile],
+                                    format!("{tcls_iob}:IOB{iob:#}:WEAK_PULLUP:DISABLE"),
+                                );
+                                sample.add_tiled_pattern_single(
+                                    &[btile],
+                                    format!("{tcls_iob}:IOB{iob:#}:PULLUP:{pullup_kind}"),
+                                );
                             }
                         } else if edev.chip.kind != ChipKind::Ice40P01 {
                             if !pullup && !(io.edge() == Dir::W && edev.chip.kind.has_vref()) {
@@ -685,13 +682,14 @@ pub fn make_sample(
                             }
                         }
                     }
-                    if matches!(io, EdgeIoCoord::W(..)) && edev.chip.kind.has_vref() {
-                        if let Some(iostd) = iostd {
-                            sample.add_tiled_pattern(
-                                &[btile],
-                                format!("{tcls_iob}:IOB{iob:#}:IOSTD:{iostd}"),
-                            );
-                        }
+                    if matches!(io, EdgeIoCoord::W(..))
+                        && edev.chip.kind.has_vref()
+                        && let Some(iostd) = iostd
+                    {
+                        sample.add_tiled_pattern(
+                            &[btile],
+                            format!("{tcls_iob}:IOB{iob:#}:IOSTD:{iostd}"),
+                        );
                     }
 
                     if ((edev.chip.kind.is_ice40() && !is_lvds)
@@ -1082,13 +1080,13 @@ pub fn make_sample(
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
                     let tcls_trim = ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
-                    if let Some(val) = design.props.get("VPP_2V5_TO_1P8V") {
-                        if val == "1" {
-                            sample.add_tiled_pattern(
-                                &tiles,
-                                format!("{tcls_trim}:HFOSC:TRIM_FABRIC:BIT0"),
-                            );
-                        }
+                    if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
+                        && val == "1"
+                    {
+                        sample.add_tiled_pattern(
+                            &tiles,
+                            format!("{tcls_trim}:HFOSC:TRIM_FABRIC:BIT0"),
+                        );
                     }
                     let clkhf_div = &inst.props["CLKHF_DIV"];
                     for (i, c) in clkhf_div.chars().rev().enumerate() {
@@ -1112,13 +1110,13 @@ pub fn make_sample(
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
                     let tcls_trim = ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
-                    if let Some(val) = design.props.get("VPP_2V5_TO_1P8V") {
-                        if val == "1" {
-                            sample.add_tiled_pattern(
-                                &tiles,
-                                format!("{tcls_trim}:LFOSC:TRIM_FABRIC:BIT0"),
-                            );
-                        }
+                    if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
+                        && val == "1"
+                    {
+                        sample.add_tiled_pattern(
+                            &tiles,
+                            format!("{tcls_trim}:LFOSC:TRIM_FABRIC:BIT0"),
+                        );
                     }
                 }
                 "SB_LED_DRV_CUR" => {
@@ -1139,13 +1137,13 @@ pub fn make_sample(
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
                     let tcls_trim = ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
-                    if let Some(val) = design.props.get("VPP_2V5_TO_1P8V") {
-                        if val == "1" {
-                            sample.add_tiled_pattern_single(
-                                &tiles,
-                                format!("{tcls_trim}:LED_DRV_CUR:TRIM_FABRIC:BIT0"),
-                            );
-                        }
+                    if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
+                        && val == "1"
+                    {
+                        sample.add_tiled_pattern_single(
+                            &tiles,
+                            format!("{tcls_trim}:LED_DRV_CUR:TRIM_FABRIC:BIT0"),
+                        );
                     }
                 }
                 "SB_RGB_DRV" => {
@@ -1417,12 +1415,11 @@ pub fn make_sample(
                                 let mut ded_in = false;
                                 let mut ded_out =
                                     runres.dedio.contains(&(iid, InstPin::Simple(o.into())));
-                                if let Some(i) = i {
-                                    if let Some(&InstPinSource::FromInst(ioiid, ref pin)) =
+                                if let Some(i) = i
+                                    && let Some(&InstPinSource::FromInst(ioiid, ref pin)) =
                                         inst.pins.get(&InstPin::Simple(i.into()))
-                                    {
-                                        ded_in = runres.dedio.contains(&(ioiid, pin.clone()))
-                                    }
+                                {
+                                    ded_in = runres.dedio.contains(&(ioiid, pin.clone()))
                                 }
                                 if ded_in && edev.chip.kind == ChipKind::Ice40T01 {
                                     ded_out = true;
@@ -1538,18 +1535,18 @@ pub fn make_sample(
                                 }
                             }
                             for prop in ["SDA_INPUT_DELAYED", "SDA_OUTPUT_DELAYED"] {
-                                if let Some(val) = inst.props.get(prop) {
-                                    if val == "1" {
-                                        let crd = xnode.io[&ExtraNodeIo::I2cSda];
-                                        let iobel = edev.chip.get_io_loc(crd);
-                                        let iob = crd.iob();
-                                        let tcls_iob =
-                                            edev.chip.kind.tile_class_iob(crd.edge()).unwrap();
-                                        sample.add_tiled_pattern_single(
-                                            &[BitOwner::Main(iobel.col, iobel.row)],
-                                            format!("{tcls_iob}:IOB{iob:#}:{prop}:BIT0"),
-                                        );
-                                    }
+                                if let Some(val) = inst.props.get(prop)
+                                    && val == "1"
+                                {
+                                    let crd = xnode.io[&ExtraNodeIo::I2cSda];
+                                    let iobel = edev.chip.get_io_loc(crd);
+                                    let iob = crd.iob();
+                                    let tcls_iob =
+                                        edev.chip.kind.tile_class_iob(crd.edge()).unwrap();
+                                    sample.add_tiled_pattern_single(
+                                        &[BitOwner::Main(iobel.col, iobel.row)],
+                                        format!("{tcls_iob}:IOB{iob:#}:{prop}:BIT0"),
+                                    );
                                 }
                             }
                         }
@@ -1570,19 +1567,19 @@ pub fn make_sample(
             sample.add_tiled_pattern(&tiles, "IR500_DRV:IR500_DRV:CURRENT_MODE:BIT0");
         }
         let tcls_trim = ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
-        if let Some(val) = design.props.get("VPP_2V5_TO_1P8V") {
-            if val == "1" {
-                let tiles = Vec::from_iter(
-                    edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
-                        .cells
-                        .values()
-                        .map(|&cell| BitOwner::Main(cell.col, cell.row)),
-                );
-                sample.add_tiled_pattern_single(
-                    &tiles,
-                    format!("{tcls_trim}:LED_DRV_CUR:TRIM_FABRIC:BIT0"),
-                );
-            }
+        if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
+            && val == "1"
+        {
+            let tiles = Vec::from_iter(
+                edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
+                    .cells
+                    .values()
+                    .map(|&cell| BitOwner::Main(cell.col, cell.row)),
+            );
+            sample.add_tiled_pattern_single(
+                &tiles,
+                format!("{tcls_trim}:LED_DRV_CUR:TRIM_FABRIC:BIT0"),
+            );
         }
     }
     for opt in &design.opts {
@@ -1689,14 +1686,14 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             if edev.chip.kind.is_ice40() || (edge == Dir::W && edev.chip.kind.has_vref()) {
                 result.push(format!("{tile}:IOB{iob}:IBUF_ENABLE:BIT0"));
             }
-            if edev.chip.kind.is_ultra() {
-                if !(edge == Dir::N && edev.chip.kind == ChipKind::Ice40T01) {
-                    result.push(format!("{tile}:IOB{iob}:HARDIP_FABRIC_IN:BIT0"));
-                    result.push(format!("{tile}:IOB{iob}:HARDIP_DEDICATED_OUT:BIT0"));
-                    if (edev.chip.kind == ChipKind::Ice40T01 && iob == 0) || edge == Dir::N {
-                        result.push(format!("{tile}:IOB{iob}:SDA_INPUT_DELAYED:BIT0"));
-                        result.push(format!("{tile}:IOB{iob}:SDA_OUTPUT_DELAYED:BIT0"));
-                    }
+            if edev.chip.kind.is_ultra()
+                && !(edge == Dir::N && edev.chip.kind == ChipKind::Ice40T01)
+            {
+                result.push(format!("{tile}:IOB{iob}:HARDIP_FABRIC_IN:BIT0"));
+                result.push(format!("{tile}:IOB{iob}:HARDIP_DEDICATED_OUT:BIT0"));
+                if (edev.chip.kind == ChipKind::Ice40T01 && iob == 0) || edge == Dir::N {
+                    result.push(format!("{tile}:IOB{iob}:SDA_INPUT_DELAYED:BIT0"));
+                    result.push(format!("{tile}:IOB{iob}:SDA_OUTPUT_DELAYED:BIT0"));
                 }
             }
             if edge == Dir::W && edev.chip.kind.has_vref() {

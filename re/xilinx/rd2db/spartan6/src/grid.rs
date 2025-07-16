@@ -314,33 +314,33 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
         let tkn = rd.tile_kinds.key(tile.kind);
         let tk = &rd.tile_kinds[tile.kind];
         for (k, v) in &tile.sites {
-            if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
-                if rd.slot_kinds[sn] == "IOB" {
-                    let crd = if tkn.starts_with('T') {
-                        EdgeIoCoord::N(
-                            int.lookup_column(crd.x.into()),
-                            TileIobId::from_idx(3 - (idx as usize)),
-                        )
-                    } else if tkn.starts_with('B') {
-                        EdgeIoCoord::S(
-                            int.lookup_column(crd.x.into()),
-                            TileIobId::from_idx([1, 0, 2, 3][idx as usize]),
-                        )
-                    } else if tkn.starts_with('L') {
-                        EdgeIoCoord::W(
-                            int.lookup_row(crd.y.into()),
-                            TileIobId::from_idx(idx as usize ^ 1),
-                        )
-                    } else if tkn.starts_with('R') {
-                        EdgeIoCoord::E(
-                            int.lookup_row(crd.y.into()),
-                            TileIobId::from_idx(idx as usize ^ 1),
-                        )
-                    } else {
-                        unreachable!();
-                    };
-                    io_lookup.insert(v.clone(), crd);
-                }
+            if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k)
+                && rd.slot_kinds[sn] == "IOB"
+            {
+                let crd = if tkn.starts_with('T') {
+                    EdgeIoCoord::N(
+                        int.lookup_column(crd.x.into()),
+                        TileIobId::from_idx(3 - (idx as usize)),
+                    )
+                } else if tkn.starts_with('B') {
+                    EdgeIoCoord::S(
+                        int.lookup_column(crd.x.into()),
+                        TileIobId::from_idx([1, 0, 2, 3][idx as usize]),
+                    )
+                } else if tkn.starts_with('L') {
+                    EdgeIoCoord::W(
+                        int.lookup_row(crd.y.into()),
+                        TileIobId::from_idx(idx as usize ^ 1),
+                    )
+                } else if tkn.starts_with('R') {
+                    EdgeIoCoord::E(
+                        int.lookup_row(crd.y.into()),
+                        TileIobId::from_idx(idx as usize ^ 1),
+                    )
+                } else {
+                    unreachable!();
+                };
+                io_lookup.insert(v.clone(), crd);
             }
         }
     }

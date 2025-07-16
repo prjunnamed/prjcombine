@@ -32,19 +32,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                     println!("OOPS {tkn} {wn}");
                 }
                 let w = tk.wires.get(&wni).unwrap().1;
-                if let TkWire::Connected(cwi) = *w {
-                    if let Some(ni) = tile.conn_wires.get(cwi) {
-                        match n2w.entry(ni) {
-                            hash_map::Entry::Occupied(mut entry) => {
-                                let list = entry.get_mut();
-                                assert_eq!(list.len(), 1);
-                                pairs.push((Some(list[0]), Some((crd, wn))));
-                                pairs.push((Some((crd, wn)), Some(list[0])));
-                                list.push((crd, wn));
-                            }
-                            hash_map::Entry::Vacant(entry) => {
-                                entry.insert(vec![(crd, wn)]);
-                            }
+                if let TkWire::Connected(cwi) = *w
+                    && let Some(ni) = tile.conn_wires.get(cwi)
+                {
+                    match n2w.entry(ni) {
+                        hash_map::Entry::Occupied(mut entry) => {
+                            let list = entry.get_mut();
+                            assert_eq!(list.len(), 1);
+                            pairs.push((Some(list[0]), Some((crd, wn))));
+                            pairs.push((Some((crd, wn)), Some(list[0])));
+                            list.push((crd, wn));
+                        }
+                        hash_map::Entry::Vacant(entry) => {
+                            entry.insert(vec![(crd, wn)]);
                         }
                     }
                 }

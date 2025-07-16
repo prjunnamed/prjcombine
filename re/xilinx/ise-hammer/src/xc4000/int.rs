@@ -939,10 +939,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let in_name = format!("{:#}.{}", wire_from.cell, wire_from_name);
 
                 let mut is_bidi = false;
-                if let Some(mux) = tcls_index.pips_bwd.get(&wire_from) {
-                    if mux.contains(&wire_to.pos()) {
-                        is_bidi = true;
-                    }
+                if let Some(mux) = tcls_index.pips_bwd.get(&wire_from)
+                    && mux.contains(&wire_to.pos())
+                {
+                    is_bidi = true;
                 }
                 let tbuf_i_wire = if wire_from_name == "LONG.H2" {
                     Some("IMUX.TBUF0.I")
@@ -956,10 +956,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     if let Some(mux) = tcls_index.pips_bwd.get(&TileWireCoord {
                         cell: CellSlotId::from_idx(0),
                         wire: tbuf_i_wire,
-                    }) {
-                        if mux.contains(&wire_to.pos()) {
-                            is_bidi = true;
-                        }
+                    }) && mux.contains(&wire_to.pos())
+                    {
+                        is_bidi = true;
                     }
                 }
 

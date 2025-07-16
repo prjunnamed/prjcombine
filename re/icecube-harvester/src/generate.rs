@@ -124,29 +124,29 @@ impl Generator<'_> {
         let mut global_idx = None;
         let mut pll = None;
         for (&loc, node) in &self.cfg.edev.chip.extra_nodes {
-            if let ExtraNodeLoc::GbIo(idx) = loc {
-                if node.io[&ExtraNodeIo::GbIn] == crd {
-                    global_idx = Some(idx);
-                }
+            if let ExtraNodeLoc::GbIo(idx) = loc
+                && node.io[&ExtraNodeIo::GbIn] == crd
+            {
+                global_idx = Some(idx);
             }
-            if let ExtraNodeLoc::Pll(side) = loc {
-                if node.io[&ExtraNodeIo::PllA] == crd {
-                    pll = Some(side);
-                }
+            if let ExtraNodeLoc::Pll(side) = loc
+                && node.io[&ExtraNodeIo::PllA] == crd
+            {
+                pll = Some(side);
             }
         }
         if !self.cfg.allow_global {
             global_idx = None;
         }
-        if let Some(idx) = global_idx {
-            if self.gb_net[idx].is_some() {
-                global_idx = None;
-            }
+        if let Some(idx) = global_idx
+            && self.gb_net[idx].is_some()
+        {
+            global_idx = None;
         }
-        if let Some(side) = pll {
-            if self.rng.random_bool(0.9) {
-                return self.emit_pll(side);
-            }
+        if let Some(side) = pll
+            && self.rng.random_bool(0.9)
+        {
+            return self.emit_pll(side);
         }
         if self.rng.random() {
             global_idx = None;
@@ -1459,32 +1459,29 @@ impl Generator<'_> {
         let xnode = &self.cfg.edev.chip.extra_nodes[&xnloc];
         for &(key, o, oe, i) in dedio {
             let crd = xnode.io[&key];
-            if self.rng.random_bool(0.7) && *actual_ios > 6 {
-                if let Some(io_idx) = self.unused_io.iter().position(|&x| x == crd) {
-                    *actual_ios -= 1;
-                    self.unused_io.swap_remove(io_idx);
-                    ded_pins.insert(o);
-                    ded_pins.insert(oe);
-                    let pad = self.io_map[&crd];
-                    let mut io = Instance::new("SB_IO");
-                    io.prop("IO_STANDARD", "SB_LVCMOS");
-                    io.io
-                        .insert(InstPin::Simple("PACKAGE_PIN".into()), pad.to_string());
-                    io.prop("PULLUP", "1");
-                    io.prop("PIN_TYPE", "101001");
-                    io.connect("D_OUT_0", inst, InstPin::Simple(o.into()));
-                    io.connect("OUTPUT_ENABLE", inst, InstPin::Simple(oe.into()));
-                    let io = self.design.insts.push(io);
-                    if let Some(i) = i {
-                        if self.rng.random() {
-                            ded_pins.insert(i);
-                            self.design.insts[inst].connect(
-                                i,
-                                io,
-                                InstPin::Simple("D_IN_0".into()),
-                            );
-                        }
-                    }
+            if self.rng.random_bool(0.7)
+                && *actual_ios > 6
+                && let Some(io_idx) = self.unused_io.iter().position(|&x| x == crd)
+            {
+                *actual_ios -= 1;
+                self.unused_io.swap_remove(io_idx);
+                ded_pins.insert(o);
+                ded_pins.insert(oe);
+                let pad = self.io_map[&crd];
+                let mut io = Instance::new("SB_IO");
+                io.prop("IO_STANDARD", "SB_LVCMOS");
+                io.io
+                    .insert(InstPin::Simple("PACKAGE_PIN".into()), pad.to_string());
+                io.prop("PULLUP", "1");
+                io.prop("PIN_TYPE", "101001");
+                io.connect("D_OUT_0", inst, InstPin::Simple(o.into()));
+                io.connect("OUTPUT_ENABLE", inst, InstPin::Simple(oe.into()));
+                let io = self.design.insts.push(io);
+                if let Some(i) = i
+                    && self.rng.random()
+                {
+                    ded_pins.insert(i);
+                    self.design.insts[inst].connect(i, io, InstPin::Simple("D_IN_0".into()));
                 }
             }
         }

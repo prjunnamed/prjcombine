@@ -405,10 +405,10 @@ fn get_cols_hard(
                     let col = int.lookup_column_inter(crd.x as i32) - 1;
                     let reg = RegId::from_idx(int.lookup_row(crd.y as i32).to_idx() / 60);
                     let tile = &int.int.rd.tiles[crd];
-                    if let Some(&n) = tile.conn_wires.get(i) {
-                        if vp_aux0.contains(&n) {
-                            cells.insert((col, reg), HardRowKind::HdioAms);
-                        }
+                    if let Some(&n) = tile.conn_wires.get(i)
+                        && vp_aux0.contains(&n)
+                    {
+                        cells.insert((col, reg), HardRowKind::HdioAms);
                     }
                 }
             }
@@ -699,14 +699,12 @@ pub fn make_grids(
             for i in 0..4 {
                 let w = format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = i * 2 + 1);
                 let wp = format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN_PIN", ii = i * 2 + 1);
-                if let Some(wi) = rd.wires.get(&w) {
-                    if tk.wires.contains_key(&wi) {
-                        if let Some(wpi) = rd.wires.get(&wp) {
-                            if tk.wires.contains_key(&wpi) {
-                                has_pin = true;
-                            }
-                        }
-                    }
+                if let Some(wi) = rd.wires.get(&w)
+                    && tk.wires.contains_key(&wi)
+                    && let Some(wpi) = rd.wires.get(&wp)
+                    && tk.wires.contains_key(&wpi)
+                {
+                    has_pin = true;
                 }
                 has_any = true;
             }

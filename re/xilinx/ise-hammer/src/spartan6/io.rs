@@ -2973,14 +2973,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     format!("{sn}:{drive}:{slew}:{vccaux}:{kind}", sn = std.name)
                                 };
                                 let mut diff = ctx.state.get_diff(tile, bel, "OSTD", val);
-                                if let Some(vcco) = std.vcco {
-                                    if vcco < 2500 {
-                                        diff.apply_bit_diff(
-                                            ctx.tiledb.item(tile, bel, "OUTPUT_LOW_VOLTAGE"),
-                                            true,
-                                            false,
-                                        );
-                                    }
+                                if let Some(vcco) = std.vcco
+                                    && vcco < 2500
+                                {
+                                    diff.apply_bit_diff(
+                                        ctx.tiledb.item(tile, bel, "OUTPUT_LOW_VOLTAGE"),
+                                        true,
+                                        false,
+                                    );
                                 }
                                 if std.name.starts_with("PCI") {
                                     diff.apply_bit_diff(
@@ -3042,14 +3042,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     )
                                 };
                                 let mut diff = ctx.state.get_diff(tile, bel, "OSTD", val);
-                                if let Some(vcco) = std.vcco {
-                                    if vcco < 2500 {
-                                        diff.apply_bit_diff(
-                                            ctx.tiledb.item(tile, bel, "OUTPUT_LOW_VOLTAGE"),
-                                            true,
-                                            false,
-                                        );
-                                    }
+                                if let Some(vcco) = std.vcco
+                                    && vcco < 2500
+                                {
+                                    diff.apply_bit_diff(
+                                        ctx.tiledb.item(tile, bel, "OUTPUT_LOW_VOLTAGE"),
+                                        true,
+                                        false,
+                                    );
                                 }
                                 for (attr, base) in [
                                     ("PDRIVE", BitVec::repeat(false, 6)),

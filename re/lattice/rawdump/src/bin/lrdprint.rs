@@ -26,15 +26,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("DB {family}", family = lrd.family);
     let mut gids = EntityBitVec::repeat(false, lrd.grids.len());
     for part in &lrd.parts {
-        if let Some(ref opart) = args.part {
-            if &part.name != opart {
-                continue;
-            }
+        if let Some(ref opart) = args.part
+            && &part.name != opart
+        {
+            continue;
         }
-        if let Some(ref opkg) = args.package {
-            if &part.package != opkg {
-                continue;
-            }
+        if let Some(ref opkg) = args.package
+            && &part.package != opkg
+        {
+            continue;
         }
         print!(
             "PART {arch} {name} {package} GRID {gid} SPEEDS",

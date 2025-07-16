@@ -31,12 +31,11 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let mut done = HashSet::new();
     rayon::scope(|scope| {
         for part in &db.parts {
-            if let Some(ref filter) = args.device {
-                if *filter != part.dev_name
-                    && *filter != format!("{d}{p}", d = part.dev_name, p = part.pkg_name)
-                {
-                    continue;
-                }
+            if let Some(ref filter) = args.device
+                && *filter != part.dev_name
+                && *filter != format!("{d}{p}", d = part.dev_name, p = part.pkg_name)
+            {
+                continue;
             }
             let device = &db.devices[part.device];
             let package = &db.packages[part.package];

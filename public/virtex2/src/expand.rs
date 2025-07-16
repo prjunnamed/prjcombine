@@ -953,12 +953,12 @@ impl Expander<'_, '_> {
                     self.die.add_tile((col, row), kind, &[]);
                 }
             }
-            if self.chip.kind == ChipKind::Spartan3A {
-                if let Some((col_l, col_r)) = self.chip.cols_clkv {
-                    for row in [self.chip.row_s(), self.chip.row_n()] {
-                        self.die.add_tile((col_l, row), "PCI_CE_E", &[]);
-                        self.die.add_tile((col_r, row), "PCI_CE_W", &[]);
-                    }
+            if self.chip.kind == ChipKind::Spartan3A
+                && let Some((col_l, col_r)) = self.chip.cols_clkv
+            {
+                for row in [self.chip.row_s(), self.chip.row_n()] {
+                    self.die.add_tile((col_l, row), "PCI_CE_E", &[]);
+                    self.die.add_tile((col_r, row), "PCI_CE_W", &[]);
                 }
             }
         }

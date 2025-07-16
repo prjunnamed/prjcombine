@@ -45,10 +45,8 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
             },
         );
     }
-    if has_dec {
-        if let Some(pin) = bel.pins.get_mut("I") {
-            pin.dir = PinDir::Input;
-        }
+    if has_dec && let Some(pin) = bel.pins.get_mut("I") {
+        pin.dir = PinDir::Input;
     }
     BelInfo::Bel(bel)
 }

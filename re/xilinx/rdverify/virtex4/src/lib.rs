@@ -632,24 +632,24 @@ fn verify_ioclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
     vrf.claim_pip(bel.crd(), bel.wire("IOCLK1"), bel.wire("VIOCLK1"));
 
     let mut claim_s = bel.col != endev.edev.col_cfg;
-    if let Some(obel) = vrf.find_bel_delta(bel, 0, 16, bels::IOCLK) {
-        if vrf.find_bel_delta(bel, 0, 0, bels::STARTUP).is_none() {
-            vrf.verify_node(&[bel.fwire("VIOCLK_S0"), obel.fwire("VIOCLK0")]);
-            vrf.verify_node(&[bel.fwire("VIOCLK_S1"), obel.fwire("VIOCLK1")]);
-            vrf.claim_pip(bel.crd(), bel.wire("IOCLK_S0"), bel.wire("VIOCLK_S0"));
-            vrf.claim_pip(bel.crd(), bel.wire("IOCLK_S1"), bel.wire("VIOCLK_S1"));
-            claim_s = true;
-        }
+    if let Some(obel) = vrf.find_bel_delta(bel, 0, 16, bels::IOCLK)
+        && vrf.find_bel_delta(bel, 0, 0, bels::STARTUP).is_none()
+    {
+        vrf.verify_node(&[bel.fwire("VIOCLK_S0"), obel.fwire("VIOCLK0")]);
+        vrf.verify_node(&[bel.fwire("VIOCLK_S1"), obel.fwire("VIOCLK1")]);
+        vrf.claim_pip(bel.crd(), bel.wire("IOCLK_S0"), bel.wire("VIOCLK_S0"));
+        vrf.claim_pip(bel.crd(), bel.wire("IOCLK_S1"), bel.wire("VIOCLK_S1"));
+        claim_s = true;
     }
     let mut claim_n = bel.col != endev.edev.col_cfg;
-    if let Some(obel) = vrf.find_bel_delta(bel, 0, -16, bels::IOCLK) {
-        if vrf.find_bel_delta(bel, 0, -16, bels::STARTUP).is_none() {
-            vrf.verify_node(&[bel.fwire("VIOCLK_N0"), obel.fwire("VIOCLK0")]);
-            vrf.verify_node(&[bel.fwire("VIOCLK_N1"), obel.fwire("VIOCLK1")]);
-            vrf.claim_pip(bel.crd(), bel.wire("IOCLK_N0"), bel.wire("VIOCLK_N0"));
-            vrf.claim_pip(bel.crd(), bel.wire("IOCLK_N1"), bel.wire("VIOCLK_N1"));
-            claim_n = true;
-        }
+    if let Some(obel) = vrf.find_bel_delta(bel, 0, -16, bels::IOCLK)
+        && vrf.find_bel_delta(bel, 0, -16, bels::STARTUP).is_none()
+    {
+        vrf.verify_node(&[bel.fwire("VIOCLK_N0"), obel.fwire("VIOCLK0")]);
+        vrf.verify_node(&[bel.fwire("VIOCLK_N1"), obel.fwire("VIOCLK1")]);
+        vrf.claim_pip(bel.crd(), bel.wire("IOCLK_N0"), bel.wire("VIOCLK_N0"));
+        vrf.claim_pip(bel.crd(), bel.wire("IOCLK_N1"), bel.wire("VIOCLK_N1"));
+        claim_n = true;
     }
     let mut wires0 = vec![bel.fwire("IOCLK0")];
     let mut wires1 = vec![bel.fwire("IOCLK1")];

@@ -108,27 +108,27 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     }
                 } else {
                     'intf: {
-                        if let Some(ref hard) = chip.col_hard {
-                            if hard.col == col {
-                                for &hrow in &hard.rows_emac {
-                                    if row >= hrow && row < hrow + 10 {
-                                        namer.ngrid.name_tile(
-                                            tcrd,
-                                            "INTF.EMAC",
-                                            [format!("EMAC_INT_INTERFACE_X{x}Y{y}")],
-                                        );
-                                        break 'intf;
-                                    }
+                        if let Some(ref hard) = chip.col_hard
+                            && hard.col == col
+                        {
+                            for &hrow in &hard.rows_emac {
+                                if row >= hrow && row < hrow + 10 {
+                                    namer.ngrid.name_tile(
+                                        tcrd,
+                                        "INTF.EMAC",
+                                        [format!("EMAC_INT_INTERFACE_X{x}Y{y}")],
+                                    );
+                                    break 'intf;
                                 }
-                                for &hrow in &hard.rows_pcie {
-                                    if row >= hrow && row < hrow + 40 {
-                                        namer.ngrid.name_tile(
-                                            tcrd,
-                                            "INTF.PCIE",
-                                            [format!("PCIE_INT_INTERFACE_X{x}Y{y}")],
-                                        );
-                                        break 'intf;
-                                    }
+                            }
+                            for &hrow in &hard.rows_pcie {
+                                if row >= hrow && row < hrow + 40 {
+                                    namer.ngrid.name_tile(
+                                        tcrd,
+                                        "INTF.PCIE",
+                                        [format!("PCIE_INT_INTERFACE_X{x}Y{y}")],
+                                    );
+                                    break 'intf;
                                 }
                             }
                         }
@@ -192,10 +192,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
             "BRAM" => {
                 let mut tk = "BRAM";
-                if let Some(ref hard) = chip.col_hard {
-                    if hard.col == col {
-                        tk = "PCIE_BRAM";
-                    }
+                if let Some(ref hard) = chip.col_hard
+                    && hard.col == col
+                {
+                    tk = "PCIE_BRAM";
                 }
                 let nnode = namer
                     .ngrid
@@ -493,10 +493,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
             "PMVBRAM" => {
                 let mut kind = "BRAM";
-                if let Some(ref hard) = chip.col_hard {
-                    if hard.col == col {
-                        kind = "PCIE_BRAM";
-                    }
+                if let Some(ref hard) = chip.col_hard
+                    && hard.col == col
+                {
+                    kind = "PCIE_BRAM";
                 }
                 let name = format!("HCLK_{kind}_X{x}Y{y}", y = y - 1);
                 let name_bram = format!("{kind}_X{x}Y{y}");

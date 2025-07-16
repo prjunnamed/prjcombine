@@ -46,19 +46,19 @@ fn verify_pci_ce(
         let pip = &obel.naming.pins["PCI_CE"].pips[0];
         vrf.verify_node(&[(obel.crds[pip.tile], &pip.wire_to), (crd, wire)]);
     } else {
-        if endev.chip.kind == ChipKind::Spartan3A {
-            if let Some((col_l, col_r)) = endev.chip.cols_clkv {
-                if cell.col >= col_l && cell.col < col_r {
-                    let (scol, slot) = if cell.col < endev.chip.col_clk {
-                        (col_l, bels::PCI_CE_E)
-                    } else {
-                        (col_r, bels::PCI_CE_W)
-                    };
-                    let obel = vrf.get_bel(cell.with_col(scol).bel(slot));
-                    vrf.verify_node(&[obel.fwire("O"), (crd, wire)]);
-                    return;
-                }
-            }
+        if endev.chip.kind == ChipKind::Spartan3A
+            && let Some((col_l, col_r)) = endev.chip.cols_clkv
+            && cell.col >= col_l
+            && cell.col < col_r
+        {
+            let (scol, slot) = if cell.col < endev.chip.col_clk {
+                (col_l, bels::PCI_CE_E)
+            } else {
+                (col_r, bels::PCI_CE_W)
+            };
+            let obel = vrf.get_bel(cell.with_col(scol).bel(slot));
+            vrf.verify_node(&[obel.fwire("O"), (crd, wire)]);
+            return;
         }
         let scol = if cell.col < endev.chip.col_clk {
             endev.chip.col_w()

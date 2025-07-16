@@ -466,10 +466,10 @@ impl HarvestContext<'_> {
             || self.harvester.get_mut().unwrap().has_unresolved()
         {
             (0..40).into_par_iter().for_each(|_| {
-                if let Some((key, design, result)) = self.new_sample() {
-                    if !self.add_sample(&key, design, result) {
-                        remove_cache_key(self.ctx.chip.kind, &key);
-                    }
+                if let Some((key, design, result)) = self.new_sample()
+                    && !self.add_sample(&key, design, result)
+                {
+                    remove_cache_key(self.ctx.chip.kind, &key);
                 }
             });
             self.harvester.get_mut().unwrap().process();
@@ -986,12 +986,12 @@ impl PartContext<'_> {
                 x3.insert(io, (ior0, ior1));
             }
             for bpin in pkg_info.bond.pins.values_mut() {
-                if let BondPad::Io(io) = *bpin {
-                    if let Some(&(ior0, ior1)) = x3.get(&io) {
-                        let mut ior = [ior0, ior1];
-                        ior.sort();
-                        *bpin = BondPad::IoTriple([io, ior[0], ior[1]]);
-                    }
+                if let BondPad::Io(io) = *bpin
+                    && let Some(&(ior0, ior1)) = x3.get(&io)
+                {
+                    let mut ior = [ior0, ior1];
+                    ior.sort();
+                    *bpin = BondPad::IoTriple([io, ior[0], ior[1]]);
                 }
             }
             if pkg != "DI" {

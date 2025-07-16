@@ -145,10 +145,11 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                 if let Some(byte) = io_info.byte {
                     write!(exp_func, "_T{byte}").unwrap();
                 }
-                if io_info.bank == 35 && matches!(io_info.biob, 21 | 22) {
-                    if let Some(&(i, pn)) = vaux_lookup.get(&io) {
-                        write!(exp_func, "_AD{i}{pn}").unwrap();
-                    }
+                if io_info.bank == 35
+                    && matches!(io_info.biob, 21 | 22)
+                    && let Some(&(i, pn)) = vaux_lookup.get(&io)
+                {
+                    write!(exp_func, "_AD{i}{pn}").unwrap();
                 }
                 if io_info.is_srcc {
                     exp_func += "_SRCC";
@@ -203,10 +204,10 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                     }
                     None => (),
                 }
-                if !(io_info.bank == 35 && matches!(io_info.biob, 21 | 22)) {
-                    if let Some(&(i, pn)) = vaux_lookup.get(&io) {
-                        write!(exp_func, "_AD{i}{pn}").unwrap();
-                    }
+                if !(io_info.bank == 35 && matches!(io_info.biob, 21 | 22))
+                    && let Some(&(i, pn)) = vaux_lookup.get(&io)
+                {
+                    write!(exp_func, "_AD{i}{pn}").unwrap();
                 }
                 if io_info.is_vref {
                     exp_func += "_VREF";

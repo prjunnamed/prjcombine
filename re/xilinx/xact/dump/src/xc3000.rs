@@ -890,12 +890,11 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 // horizontal joiner
                 let net_r = extractor.matrix_nets[(x + 1, y)].net_l.unwrap();
                 let net_l = extractor.matrix_nets[(x, y)].net_l.unwrap();
-                if let NetBinding::Int(rw) = extractor.nets[net_r].binding {
-                    if extractor.nets[net_l].binding == NetBinding::None {
-                        let sw =
-                            intdb.get_wire(&format!("{wn}.STUB", wn = intdb.wires.key(rw.slot)));
-                        extractor.net_int(net_l, rw.cell.wire(sw));
-                    }
+                if let NetBinding::Int(rw) = extractor.nets[net_r].binding
+                    && extractor.nets[net_l].binding == NetBinding::None
+                {
+                    let sw = intdb.get_wire(&format!("{wn}.STUB", wn = intdb.wires.key(rw.slot)));
+                    extractor.net_int(net_l, rw.cell.wire(sw));
                 }
             }
         }

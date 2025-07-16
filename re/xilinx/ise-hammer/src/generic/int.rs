@@ -748,27 +748,27 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     ))
                     .prop(NodeMutexExclusive::new(wire_to))
                     .prop(FuzzIntPip::new(wire_to, wire_from));
-                if let Some(inmux) = tcls_index.pips_bwd.get(&wire_from) {
-                    if inmux.contains(&wire_to.pos()) {
-                        if tcname.starts_with("LLH") {
-                            builder = builder.prop(DriveLLH::new(wire_from));
-                        } else if tcname.starts_with("LLV") {
-                            builder = builder.prop(DriveLLV::new(wire_from));
-                        } else {
-                            let mut wire_help = None;
-                            for &help in inmux {
-                                if let Some(helpmux) = tcls_index.pips_bwd.get(&help.tw) {
-                                    if helpmux.contains(&wire_from.pos()) {
-                                        continue;
-                                    }
-                                }
-                                // println!("HELP {} <- {} <- {}", intdb.wires.key(wire_to.1), intdb.wires.key(wire_from.1), intdb.wires.key(help.1));
-                                wire_help = Some(help.tw);
-                                break;
+                if let Some(inmux) = tcls_index.pips_bwd.get(&wire_from)
+                    && inmux.contains(&wire_to.pos())
+                {
+                    if tcname.starts_with("LLH") {
+                        builder = builder.prop(DriveLLH::new(wire_from));
+                    } else if tcname.starts_with("LLV") {
+                        builder = builder.prop(DriveLLV::new(wire_from));
+                    } else {
+                        let mut wire_help = None;
+                        for &help in inmux {
+                            if let Some(helpmux) = tcls_index.pips_bwd.get(&help.tw)
+                                && helpmux.contains(&wire_from.pos())
+                            {
+                                continue;
                             }
-                            let wire_help = wire_help.unwrap();
-                            builder = builder.prop(BaseIntPip::new(wire_from, wire_help));
+                            // println!("HELP {} <- {} <- {}", intdb.wires.key(wire_to.1), intdb.wires.key(wire_from.1), intdb.wires.key(help.1));
+                            wire_help = Some(help.tw);
+                            break;
                         }
+                        let wire_help = wire_help.unwrap();
+                        builder = builder.prop(BaseIntPip::new(wire_from, wire_help));
                     }
                 }
                 if matches!(backend.edev, ExpandedDevice::Virtex2(_)) {
@@ -816,16 +816,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                             };
                             let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
-                            if let ExpandedDevice::Virtex2(edev) = ctx.edev {
-                                if edev.chip.kind
+                            if let ExpandedDevice::Virtex2(edev) = ctx.edev
+                                && edev.chip.kind
                                     == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
-                                    && tcname == "INT.IOI.S3A.LR"
-                                    && mux_name == "MUX.IMUX.DATA3"
-                                    && in_name == "OMUX10.N"
-                                {
-                                    // ISE is bad and should feel bad.
-                                    continue;
-                                }
+                                && tcname == "INT.IOI.S3A.LR"
+                                && mux_name == "MUX.IMUX.DATA3"
+                                && in_name == "OMUX10.N"
+                            {
+                                // ISE is bad and should feel bad.
+                                continue;
                             }
                             if diff.bits.is_empty() {
                                 if intdb.wires.key(mux.dst.wire).starts_with("IMUX")

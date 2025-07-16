@@ -1330,12 +1330,12 @@ fn verify_ioclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
         }
         let obel_s = vrf.find_bel_delta(bel, 0, 20, bels::IOCLK);
         let mut got_s = false;
-        if let Some(ref obel) = obel_s {
-            if obel.naming.pins.contains_key("VRCLK0") {
-                vrf.verify_node(&[bel.fwire("VRCLK_S0"), obel.fwire("VRCLK0")]);
-                vrf.verify_node(&[bel.fwire("VRCLK_S1"), obel.fwire("VRCLK1")]);
-                got_s = true;
-            }
+        if let Some(ref obel) = obel_s
+            && obel.naming.pins.contains_key("VRCLK0")
+        {
+            vrf.verify_node(&[bel.fwire("VRCLK_S0"), obel.fwire("VRCLK0")]);
+            vrf.verify_node(&[bel.fwire("VRCLK_S1"), obel.fwire("VRCLK1")]);
+            got_s = true;
         }
         if !got_s {
             vrf.claim_node(&[bel.fwire("VRCLK_S0")]);
@@ -1343,12 +1343,12 @@ fn verify_ioclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
         }
         let obel_n = vrf.find_bel_delta(bel, 0, -20, bels::IOCLK);
         let mut got_n = false;
-        if let Some(ref obel) = obel_n {
-            if obel.naming.pins.contains_key("VRCLK0") {
-                vrf.verify_node(&[bel.fwire("VRCLK_N0"), obel.fwire("VRCLK0")]);
-                vrf.verify_node(&[bel.fwire("VRCLK_N1"), obel.fwire("VRCLK1")]);
-                got_n = true;
-            }
+        if let Some(ref obel) = obel_n
+            && obel.naming.pins.contains_key("VRCLK0")
+        {
+            vrf.verify_node(&[bel.fwire("VRCLK_N0"), obel.fwire("VRCLK0")]);
+            vrf.verify_node(&[bel.fwire("VRCLK_N1"), obel.fwire("VRCLK1")]);
+            got_n = true;
         }
         if !got_n {
             vrf.claim_node(&[bel.fwire("VRCLK_N0")]);

@@ -107,22 +107,21 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
             unreachable!()
         };
         let mut sad = true;
-        if tcrd.col <= edev.col_clk {
-            if let Some(ntcrd) = backend
+        if tcrd.col <= edev.col_clk
+            && let Some(ntcrd) = backend
                 .egrid
                 .find_tile_by_class(tcrd.with_col(edev.col_clk), |kind| kind == self.0)
-            {
-                fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
-                        tile: self.0.into(),
-                        bel: self.1.into(),
-                        attr: self.2.clone(),
-                        val: self.3.into(),
-                    },
-                    tiles: edev.tile_bits(ntcrd),
-                });
-                sad = false;
-            }
+        {
+            fuzzer.info.features.push(FuzzerFeature {
+                id: FeatureId {
+                    tile: self.0.into(),
+                    bel: self.1.into(),
+                    attr: self.2.clone(),
+                    val: self.3.into(),
+                },
+                tiles: edev.tile_bits(ntcrd),
+            });
+            sad = false;
         }
         Some((fuzzer, sad))
     }

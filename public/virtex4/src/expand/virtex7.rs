@@ -742,36 +742,35 @@ impl DieExpander<'_, '_, '_> {
         for &reg in &regs {
             for (col, &cd) in &self.chip.columns {
                 self.frames.col_frame[reg].push(self.frame_info.len());
-                if let Some(gtcol) = self.chip.get_col_gt(col) {
-                    if gtcol.regs[reg].is_some()
-                        && (gtcol.col == self.chip.columns.last_id().unwrap()
-                            || gtcol.col == self.chip.columns.last_id().unwrap() - 6)
-                    {
-                        self.frames.col_width[reg].push(32);
-                        for minor in 0..32 {
-                            let mut mask_mode = [FrameMaskMode::None; 2];
-                            if matches!(minor, 28..32) {
-                                mask_mode = [
-                                    FrameMaskMode::DrpHclk(24, 13),
-                                    FrameMaskMode::DrpHclk(25, 13),
-                                ];
-                            }
-                            self.frame_info.push(FrameInfo {
-                                addr: FrameAddr {
-                                    typ: 0,
-                                    region: if self.chip.regs == 1 {
-                                        0
-                                    } else {
-                                        (reg - self.chip.reg_cfg) as i32
-                                    },
-                                    major: col.to_idx() as u32,
-                                    minor,
-                                },
-                                mask_mode: mask_mode.into_iter().collect(),
-                            });
+                if let Some(gtcol) = self.chip.get_col_gt(col)
+                    && gtcol.regs[reg].is_some()
+                    && (gtcol.col == self.chip.columns.last_id().unwrap()
+                        || gtcol.col == self.chip.columns.last_id().unwrap() - 6)
+                {
+                    self.frames.col_width[reg].push(32);
+                    for minor in 0..32 {
+                        let mut mask_mode = [FrameMaskMode::None; 2];
+                        if matches!(minor, 28..32) {
+                            mask_mode = [
+                                FrameMaskMode::DrpHclk(24, 13),
+                                FrameMaskMode::DrpHclk(25, 13),
+                            ];
                         }
-                        break;
+                        self.frame_info.push(FrameInfo {
+                            addr: FrameAddr {
+                                typ: 0,
+                                region: if self.chip.regs == 1 {
+                                    0
+                                } else {
+                                    (reg - self.chip.reg_cfg) as i32
+                                },
+                                major: col.to_idx() as u32,
+                                minor,
+                            },
+                            mask_mode: mask_mode.into_iter().collect(),
+                        });
                     }
+                    break;
                 }
                 let width = match cd {
                     ColumnKind::ClbLL => 36,
@@ -861,12 +860,11 @@ impl DieExpander<'_, '_, '_> {
                 if cd != ColumnKind::Bram {
                     continue;
                 }
-                if let Some(gtcol) = self.chip.get_col_gt(col) {
-                    if gtcol.col != self.chip.columns.last_id().unwrap()
-                        && gtcol.regs[reg].is_some()
-                    {
-                        break;
-                    }
+                if let Some(gtcol) = self.chip.get_col_gt(col)
+                    && gtcol.col != self.chip.columns.last_id().unwrap()
+                    && gtcol.regs[reg].is_some()
+                {
+                    break;
                 }
                 self.frames.bram_frame[reg].insert(col, self.frame_info.len());
                 for minor in 0..128 {

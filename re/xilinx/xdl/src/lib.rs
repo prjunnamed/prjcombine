@@ -346,10 +346,10 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
                 _ => return None,
             }
         }
-        if stack.len() == 1 {
-            if let StackEntry::Val(r) = stack[0] {
-                return Some(r & mask);
-            }
+        if stack.len() == 1
+            && let StackEntry::Val(r) = stack[0]
+        {
+            return Some(r & mask);
         }
         None
     }

@@ -874,10 +874,10 @@ pub fn expand_grid<'a>(
 
     let mut col_cfg_io = None;
     for (col, &cd) in &pchip.columns {
-        if let ColumnKind::Io(_) = cd.kind {
-            if col_cfg_io.is_none() || pchip.col_side(col) == DirH::W {
-                col_cfg_io = Some(col);
-            }
+        if let ColumnKind::Io(_) = cd.kind
+            && (col_cfg_io.is_none() || pchip.col_side(col) == DirH::W)
+        {
+            col_cfg_io = Some(col);
         }
         if cd.kind == ColumnKind::HdioS {
             col_cfg_io = Some(col);

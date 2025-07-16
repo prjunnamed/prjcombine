@@ -727,41 +727,39 @@ pub fn run(toolchain: &Toolchain, design: &Design, key: &str) -> Result<RunResul
         .join("icecube")
         .join(design.kind.to_string());
     let ok_path = cache_dir.join("ok").join(format!("{key}.zip"));
-    if let Ok(ok_zip) = File::open(&ok_path) {
-        if let Ok(mut ok_zip) = ZipArchive::new(ok_zip) {
-            let mut design_file = ok_zip.by_name("design").unwrap();
-            let config = bincode::config::standard();
-            let cur_design: Design =
-                bincode::decode_from_std_read(&mut design_file, config).unwrap();
-            core::mem::drop(design_file);
-            if cur_design == *design {
-                return Ok(get_result(&mut ok_zip));
-            }
+    if let Ok(ok_zip) = File::open(&ok_path)
+        && let Ok(mut ok_zip) = ZipArchive::new(ok_zip)
+    {
+        let mut design_file = ok_zip.by_name("design").unwrap();
+        let config = bincode::config::standard();
+        let cur_design: Design = bincode::decode_from_std_read(&mut design_file, config).unwrap();
+        core::mem::drop(design_file);
+        if cur_design == *design {
+            return Ok(get_result(&mut ok_zip));
         }
     }
     let fail_path = cache_dir.join("fail").join(format!("{key}.zip"));
-    if let Ok(fail_zip) = File::open(&fail_path) {
-        if let Ok(mut fail_zip) = ZipArchive::new(fail_zip) {
-            let mut design_file = fail_zip.by_name("design").unwrap();
-            let config = bincode::config::standard();
-            let cur_design: Design =
-                bincode::decode_from_std_read(&mut design_file, config).unwrap();
-            core::mem::drop(design_file);
-            if cur_design == *design {
-                let mut stdout = String::new();
-                let mut stderr = String::new();
-                fail_zip
-                    .by_name("stdout")
-                    .unwrap()
-                    .read_to_string(&mut stdout)
-                    .unwrap();
-                fail_zip
-                    .by_name("stderr")
-                    .unwrap()
-                    .read_to_string(&mut stderr)
-                    .unwrap();
-                return Err(RunError { stdout, stderr });
-            }
+    if let Ok(fail_zip) = File::open(&fail_path)
+        && let Ok(mut fail_zip) = ZipArchive::new(fail_zip)
+    {
+        let mut design_file = fail_zip.by_name("design").unwrap();
+        let config = bincode::config::standard();
+        let cur_design: Design = bincode::decode_from_std_read(&mut design_file, config).unwrap();
+        core::mem::drop(design_file);
+        if cur_design == *design {
+            let mut stdout = String::new();
+            let mut stderr = String::new();
+            fail_zip
+                .by_name("stdout")
+                .unwrap()
+                .read_to_string(&mut stdout)
+                .unwrap();
+            fail_zip
+                .by_name("stderr")
+                .unwrap()
+                .read_to_string(&mut stderr)
+                .unwrap();
+            return Err(RunError { stdout, stderr });
         }
     }
 

@@ -272,13 +272,12 @@ impl PartBuilder {
                     && tile_kind == "HPIO_L"
                     && base == "IOB"
                     && y >= 13
+                    && !all_y[&base_id].contains(&(by + 13))
                 {
-                    if !all_y[&base_id].contains(&(by + 13)) {
-                        if all_y[&base_id].contains(&(by + 20)) {
-                            y -= 7;
-                        } else {
-                            y -= 17;
-                        }
+                    if all_y[&base_id].contains(&(by + 20)) {
+                        y -= 7;
+                    } else {
+                        y -= 17;
                     }
                 }
                 TkSiteSlot::Xy(base_id, x as u8, y as u8)
@@ -525,13 +524,13 @@ impl PartBuilder {
                     }
                 }
                 for (_, &k, v) in tk.wires.iter_mut() {
-                    if !wire_set.contains(&k) {
-                        if let TkWire::Internal(_, cnc) = *v {
-                            let i = tk.conn_wires.push(k);
-                            *v = TkWire::Connected(i);
-                            for &crd in &tk.tiles {
-                                self.pending_wires.get_mut(&crd).unwrap().insert(i, cnc);
-                            }
+                    if !wire_set.contains(&k)
+                        && let TkWire::Internal(_, cnc) = *v
+                    {
+                        let i = tk.conn_wires.push(k);
+                        *v = TkWire::Connected(i);
+                        for &crd in &tk.tiles {
+                            self.pending_wires.get_mut(&crd).unwrap().insert(i, cnc);
                         }
                     }
                 }
@@ -659,10 +658,10 @@ impl PartBuilder {
             let (coord, wire, speed) = wires[0];
             let tile = &self.part.tiles[&coord];
             let tk = &self.part.tile_kinds[tile.kind];
-            if let &TkWire::Internal(s, _) = tk.wires.get(&wire).unwrap().1 {
-                if s == speed {
-                    return;
-                }
+            if let &TkWire::Internal(s, _) = tk.wires.get(&wire).unwrap().1
+                && s == speed
+            {
+                return;
             }
         }
         let bx = wires.iter().map(|(t, _, _)| t.x).min().unwrap();

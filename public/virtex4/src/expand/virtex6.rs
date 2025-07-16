@@ -228,10 +228,11 @@ impl Expander<'_, '_> {
                 if row.to_idx() % 5 != 0 {
                     continue;
                 }
-                if let Some(ref hard) = self.chip.col_hard {
-                    if hard.col == col && self.hard_skip.contains(&row) {
-                        continue;
-                    }
+                if let Some(ref hard) = self.chip.col_hard
+                    && hard.col == col
+                    && self.hard_skip.contains(&row)
+                {
+                    continue;
                 }
                 self.die.add_tile(
                     (col, row),
@@ -430,13 +431,12 @@ impl Expander<'_, '_> {
                         mask_mode[0] = FrameMaskMode::DrpHclk(23, 13);
                         mask_mode[1] = FrameMaskMode::DrpHclk(23, 13);
                     }
-                    if let Some(ref hard) = self.chip.col_hard {
-                        if col == hard.col
-                            && hard.rows_pcie.contains(&self.chip.row_reg_bot(reg))
-                            && matches!(minor, 26 | 27)
-                        {
-                            mask_mode[0] = FrameMaskMode::DrpHclk(24, 13);
-                        }
+                    if let Some(ref hard) = self.chip.col_hard
+                        && col == hard.col
+                        && hard.rows_pcie.contains(&self.chip.row_reg_bot(reg))
+                        && matches!(minor, 26 | 27)
+                    {
+                        mask_mode[0] = FrameMaskMode::DrpHclk(24, 13);
                     }
 
                     self.frame_info.push(FrameInfo {

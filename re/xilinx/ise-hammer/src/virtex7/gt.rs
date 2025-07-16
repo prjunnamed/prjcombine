@@ -1436,10 +1436,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TouchHout {
         let mut tgt_col_cmt = None;
         let mut tgt_col_gt = None;
         if tcrd.col < edev.col_clk {
-            if let Some(col_io) = edev.col_lio {
-                if tcrd.col < col_io {
-                    tgt_col_cmt = Some(col_io + 1);
-                }
+            if let Some(col_io) = edev.col_lio
+                && tcrd.col < col_io
+            {
+                tgt_col_cmt = Some(col_io + 1);
             }
             if let Some((col_gt, _)) = edev.col_mgt {
                 let gtcol = chip.get_col_gt(col_gt).unwrap();
@@ -1448,10 +1448,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TouchHout {
                 }
             }
         } else {
-            if let Some(col_io) = edev.col_rio {
-                if tcrd.col > col_io {
-                    tgt_col_cmt = Some(col_io - 1);
-                }
+            if let Some(col_io) = edev.col_rio
+                && tcrd.col > col_io
+            {
+                tgt_col_cmt = Some(col_io - 1);
             }
             if let Some((_, col_gt)) = edev.col_mgt {
                 let gtcol = chip.get_col_gt(col_gt).unwrap();

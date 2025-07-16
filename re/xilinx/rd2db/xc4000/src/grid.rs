@@ -25,41 +25,41 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
     for (&crd, tile) in &rd.tiles {
         let tk = &rd.tile_kinds[tile.kind];
         for (k, v) in &tile.sites {
-            if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
-                if rd.slot_kinds[sn] == "IOB" {
-                    io_lookup.insert(
-                        v.clone(),
-                        chip.get_io_crd(
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                int.lookup_column(crd.x.into()),
-                                int.lookup_row(crd.y.into()),
-                            )
-                            .bel(bels::IO[idx as usize - 1]),
-                        ),
-                    );
-                }
+            if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k)
+                && rd.slot_kinds[sn] == "IOB"
+            {
+                io_lookup.insert(
+                    v.clone(),
+                    chip.get_io_crd(
+                        CellCoord::new(
+                            DieId::from_idx(0),
+                            int.lookup_column(crd.x.into()),
+                            int.lookup_row(crd.y.into()),
+                        )
+                        .bel(bels::IO[idx as usize - 1]),
+                    ),
+                );
             }
         }
     }
 
     for pins in rd.packages.values() {
         for pin in pins {
-            if let Some(ref pad) = pin.pad {
-                if let Some(&io) = io_lookup.get(pad) {
-                    let cfg = match &pin.func[..] {
-                        "IO" => continue,
-                        "IO_TCK" => SharedCfgPad::Tck,
-                        "IO_TDI" => SharedCfgPad::Tdi,
-                        "IO_TMS" => SharedCfgPad::Tms,
-                        _ => {
-                            println!("UNK FUNC {}", pin.func);
-                            continue;
-                        }
-                    };
-                    let old = chip.cfg_io.insert(cfg, io);
-                    assert!(old.is_none() || old == Some(io));
-                }
+            if let Some(ref pad) = pin.pad
+                && let Some(&io) = io_lookup.get(pad)
+            {
+                let cfg = match &pin.func[..] {
+                    "IO" => continue,
+                    "IO_TCK" => SharedCfgPad::Tck,
+                    "IO_TDI" => SharedCfgPad::Tdi,
+                    "IO_TMS" => SharedCfgPad::Tms,
+                    _ => {
+                        println!("UNK FUNC {}", pin.func);
+                        continue;
+                    }
+                };
+                let old = chip.cfg_io.insert(cfg, io);
+                assert!(old.is_none() || old == Some(io));
             }
         }
     }

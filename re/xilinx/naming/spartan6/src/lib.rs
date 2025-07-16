@@ -1334,10 +1334,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}", y = y - 1);
                     }
                 }
-                if let Gts::Double(_, cr) | Gts::Quad(_, cr) = grid.gts {
-                    if col == cr + 6 && row == grid.row_top() - 8 {
-                        name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}", y = y - 1);
-                    }
+                if let Gts::Double(_, cr) | Gts::Quad(_, cr) = grid.gts
+                    && col == cr + 6
+                    && row == grid.row_top() - 8
+                {
+                    name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}", y = y - 1);
                 }
                 if let Gts::Quad(cl, cr) = grid.gts {
                     if col == cl - 6 && row == grid.row_bio_outer() + 8 {
@@ -1365,11 +1366,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let ry = namer.rylut[row];
                 let mut name = format!("DSP_HCLK_GCLK_FOLD_X{x}Y{y}", y = y - 1);
                 let mut naming = "DSP_HCLK_GCLK_FOLD";
-                if let Gts::Double(_, cr) | Gts::Quad(_, cr) = grid.gts {
-                    if col == cr + 6 && row == grid.row_top() - 8 {
-                        name = format!("GTPDUAL_DSP_FEEDTHRU_X{rx}Y{ry}", rx = rx + 1);
-                        naming = "GTPDUAL_DSP_FEEDTHRU";
-                    }
+                if let Gts::Double(_, cr) | Gts::Quad(_, cr) = grid.gts
+                    && col == cr + 6
+                    && row == grid.row_top() - 8
+                {
+                    name = format!("GTPDUAL_DSP_FEEDTHRU_X{rx}Y{ry}", rx = rx + 1);
+                    naming = "GTPDUAL_DSP_FEEDTHRU";
                 }
                 if let Gts::Quad(cl, cr) = grid.gts {
                     if col == cl - 6 && row == grid.row_bio_outer() + 8 {

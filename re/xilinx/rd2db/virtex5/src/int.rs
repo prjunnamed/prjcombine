@@ -84,19 +84,19 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 format!("DBL.{name}{i}.1"),
                 &[format!("{name}2MID{i}")],
             );
-            if let Some((xi, dmid)) = dmid {
-                if xi == i {
-                    let mid_buf = builder.permabuf(
-                        format!("DBL.{name}{i}.1.BUF"),
-                        &[format!("{name}2MID_FAKE{i}")],
-                    );
-                    builder.branch(
-                        mid_buf,
-                        dmid,
-                        format!("DBL.{name}{i}.1.{dmid}"),
-                        &[format!("{name}2MID_{dmid}{i}")],
-                    );
-                }
+            if let Some((xi, dmid)) = dmid
+                && xi == i
+            {
+                let mid_buf = builder.permabuf(
+                    format!("DBL.{name}{i}.1.BUF"),
+                    &[format!("{name}2MID_FAKE{i}")],
+                );
+                builder.branch(
+                    mid_buf,
+                    dmid,
+                    format!("DBL.{name}{i}.1.{dmid}"),
+                    &[format!("{name}2MID_{dmid}{i}")],
+                );
             }
             let end = builder.branch(
                 mid,
@@ -104,15 +104,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 format!("DBL.{name}{i}.2"),
                 &[format!("{name}2END{i}")],
             );
-            if let Some((xi, dend)) = dend {
-                if xi == i {
-                    builder.branch(
-                        end,
-                        dend,
-                        format!("DBL.{name}{i}.2.{dend}"),
-                        &[format!("{name}2END_{dend}{i}")],
-                    );
-                }
+            if let Some((xi, dend)) = dend
+                && xi == i
+            {
+                builder.branch(
+                    end,
+                    dend,
+                    format!("DBL.{name}{i}.2.{dend}"),
+                    &[format!("{name}2END_{dend}{i}")],
+                );
             }
         }
     }
@@ -173,19 +173,19 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 format!("PENT.{name}{i}.3"),
                 &[format!("{name}5MID{i}")],
             );
-            if let Some((xi, dmid)) = dmid {
-                if xi == i {
-                    let mid_buf = builder.permabuf(
-                        format!("PENT.{name}{i}.3.BUF"),
-                        &[format!("{name}5MID_FAKE{i}")],
-                    );
-                    builder.branch(
-                        mid_buf,
-                        dmid,
-                        format!("PENT.{name}{i}.3.{dmid}"),
-                        &[format!("{name}5MID_{dmid}{i}")],
-                    );
-                }
+            if let Some((xi, dmid)) = dmid
+                && xi == i
+            {
+                let mid_buf = builder.permabuf(
+                    format!("PENT.{name}{i}.3.BUF"),
+                    &[format!("{name}5MID_FAKE{i}")],
+                );
+                builder.branch(
+                    mid_buf,
+                    dmid,
+                    format!("PENT.{name}{i}.3.{dmid}"),
+                    &[format!("{name}5MID_{dmid}{i}")],
+                );
             }
             let c = builder.branch(
                 mid,
@@ -199,15 +199,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 format!("PENT.{name}{i}.5"),
                 &[format!("{name}5END{i}")],
             );
-            if let Some((xi, dend)) = dend {
-                if xi == i {
-                    builder.branch(
-                        end,
-                        dend,
-                        format!("PENT.{name}{i}.5.{dend}"),
-                        &[format!("{name}5END_{dend}{i}")],
-                    );
-                }
+            if let Some((xi, dend)) = dend
+                && xi == i
+            {
+                builder.branch(
+                    end,
+                    dend,
+                    format!("PENT.{name}{i}.5.{dend}"),
+                    &[format!("{name}5END_{dend}{i}")],
+                );
             }
         }
     }

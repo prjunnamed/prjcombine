@@ -416,16 +416,16 @@ impl XNodeInfo<'_, '_> {
                     {
                         continue;
                     }
-                    if let Some(nw) = rd.lookup_wire(r.xy, v) {
-                        if let Some(&ti) = r.tile_map.get(k.cell) {
-                            names.entry(nw).or_insert((
-                                IntConnKind::Raw,
-                                TileWireCoord {
-                                    cell: ti,
-                                    wire: k.wire,
-                                },
-                            ));
-                        }
+                    if let Some(nw) = rd.lookup_wire(r.xy, v)
+                        && let Some(&ti) = r.tile_map.get(k.cell)
+                    {
+                        names.entry(nw).or_insert((
+                            IntConnKind::Raw,
+                            TileWireCoord {
+                                cell: ti,
+                                wire: k.wire,
+                            },
+                        ));
                     }
                 }
                 for (&k, v) in &naming.intf_wires_in {
@@ -493,26 +493,26 @@ impl XNodeInfo<'_, '_> {
                 }
 
                 for &wi in tk.wires.keys() {
-                    if let Some(nw) = rd.lookup_wire_raw(r.xy, wi) {
-                        if let Some(w) = self.builder.get_wire_by_name(tile.kind, &rd.wires[wi]) {
-                            if round == 0
-                                && matches!(
-                                    self.builder.db.wires[w.wire],
-                                    WireKind::Branch(_) | WireKind::MultiBranch(_)
-                                )
-                            {
-                                continue;
-                            }
-                            if let Some(&t) = r.tile_map.get(w.cell) {
-                                names.entry(nw).or_insert((
-                                    IntConnKind::Raw,
-                                    TileWireCoord {
-                                        cell: t,
-                                        wire: w.wire,
-                                    },
-                                ));
-                                continue;
-                            }
+                    if let Some(nw) = rd.lookup_wire_raw(r.xy, wi)
+                        && let Some(w) = self.builder.get_wire_by_name(tile.kind, &rd.wires[wi])
+                    {
+                        if round == 0
+                            && matches!(
+                                self.builder.db.wires[w.wire],
+                                WireKind::Branch(_) | WireKind::MultiBranch(_)
+                            )
+                        {
+                            continue;
+                        }
+                        if let Some(&t) = r.tile_map.get(w.cell) {
+                            names.entry(nw).or_insert((
+                                IntConnKind::Raw,
+                                TileWireCoord {
+                                    cell: t,
+                                    wire: w.wire,
+                                },
+                            ));
+                            continue;
                         }
                     }
                 }
@@ -946,11 +946,11 @@ impl XNodeExtractor<'_, '_, '_> {
                 BelPinInfo::ExtraInt(dir, ref names) => {
                     let mut wn = None;
                     for w in names {
-                        if let Some(w) = self.rd.wires.get(w) {
-                            if tk.wires.contains_key(&w) {
-                                assert!(wn.is_none());
-                                wn = Some(w);
-                            }
+                        if let Some(w) = self.rd.wires.get(w)
+                            && tk.wires.contains_key(&w)
+                        {
+                            assert!(wn.is_none());
+                            wn = Some(w);
                         }
                     }
                     if wn.is_none() {
@@ -1001,18 +1001,18 @@ impl XNodeExtractor<'_, '_, '_> {
                 BelPinInfo::ExtraWire(ref names) => {
                     let mut wn = None;
                     for w in names {
-                        if let Some(w) = self.rd.wires.get(w) {
-                            if tk.wires.contains_key(&w) {
-                                if let Some(wn) = wn {
-                                    println!(
-                                        "COLLISION {wn} {w}",
-                                        wn = self.rd.wires[wn],
-                                        w = self.rd.wires[w]
-                                    );
-                                }
-                                assert!(wn.is_none());
-                                wn = Some(w);
+                        if let Some(w) = self.rd.wires.get(w)
+                            && tk.wires.contains_key(&w)
+                        {
+                            if let Some(wn) = wn {
+                                println!(
+                                    "COLLISION {wn} {w}",
+                                    wn = self.rd.wires[wn],
+                                    w = self.rd.wires[w]
+                                );
                             }
+                            assert!(wn.is_none());
+                            wn = Some(w);
                         }
                     }
                     if wn.is_none() {
@@ -1065,10 +1065,9 @@ impl XNodeExtractor<'_, '_, '_> {
             .xnode
             .builder
             .get_wire_by_name(tile.kind, &self.rd.wires[name])
+            && let Some(&xt) = rt.tile_map.as_ref().and_then(|x| x.get(t))
         {
-            if let Some(&xt) = rt.tile_map.as_ref().and_then(|x| x.get(t)) {
-                return Some(TileWireCoord { cell: xt, wire: w });
-            }
+            return Some(TileWireCoord { cell: xt, wire: w });
         }
         let nw = self.rd.lookup_wire_raw_force(rt.xy, name);
         if let Some(&(_, w)) = self.names.get(&nw) {
@@ -2023,11 +2022,11 @@ impl<'a> IntBuilder<'a> {
                     BelPinInfo::ExtraInt(dir, ref names) => {
                         let mut wn = None;
                         for w in names {
-                            if let Some(w) = self.rd.wires.get(w) {
-                                if tk.wires.contains_key(&w) {
-                                    assert!(wn.is_none());
-                                    wn = Some(w);
-                                }
+                            if let Some(w) = self.rd.wires.get(w)
+                                && tk.wires.contains_key(&w)
+                            {
+                                assert!(wn.is_none());
+                                wn = Some(w);
                             }
                         }
                         if wn.is_none() {
@@ -2077,11 +2076,11 @@ impl<'a> IntBuilder<'a> {
                     BelPinInfo::ExtraWire(ref names) => {
                         let mut wn = None;
                         for w in names {
-                            if let Some(w) = self.rd.wires.get(w) {
-                                if tk.wires.contains_key(&w) {
-                                    assert!(wn.is_none());
-                                    wn = Some(w);
-                                }
+                            if let Some(w) = self.rd.wires.get(w)
+                                && tk.wires.contains_key(&w)
+                            {
+                                assert!(wn.is_none());
+                                wn = Some(w);
                             }
                         }
                         if wn.is_none() {
@@ -2269,10 +2268,10 @@ impl<'a> IntBuilder<'a> {
         tk: &rawdump::TileKind,
         wi: rawdump::WireId,
     ) -> Option<rawdump::NodeId> {
-        if let Some((_, &rawdump::TkWire::Connected(idx))) = tk.wires.get(&wi) {
-            if let Some(&nidx) = tile.conn_wires.get(idx) {
-                return Some(nidx);
-            }
+        if let Some((_, &rawdump::TkWire::Connected(idx))) = tk.wires.get(&wi)
+            && let Some(&nidx) = tile.conn_wires.get(idx)
+        {
+            return Some(nidx);
         }
         None
     }
@@ -2283,12 +2282,11 @@ impl<'a> IntBuilder<'a> {
         let int_rev_naming = self.get_int_rev_naming(int_xy);
         let mut res: HashMap<_, Vec<_>> = HashMap::new();
         for (_, &wi, &tkw) in &int_tk.wires {
-            if let Some(&w) = int_rev_naming.get(&self.rd.wires[wi]) {
-                if let rawdump::TkWire::Connected(idx) = tkw {
-                    if let Some(&nidx) = int_tile.conn_wires.get(idx) {
-                        res.entry(nidx).or_default().push(w);
-                    }
-                }
+            if let Some(&w) = int_rev_naming.get(&self.rd.wires[wi])
+                && let rawdump::TkWire::Connected(idx) = tkw
+                && let Some(&nidx) = int_tile.conn_wires.get(idx)
+            {
+                res.entry(nidx).or_default().push(w);
             }
         }
         res
@@ -2319,12 +2317,11 @@ impl<'a> IntBuilder<'a> {
             for (_, &wi, &tkw) in &tk.wires {
                 if let Some(w) = self.get_wire_by_name(tile.kind, &self.rd.wires[wi]) {
                     res.insert(wi, vec![w.wire]);
-                } else if let rawdump::TkWire::Connected(idx) = tkw {
-                    if let Some(&nidx) = tile.conn_wires.get(idx) {
-                        if let Some(w) = node2wires.get(&nidx) {
-                            res.insert(wi, w.clone());
-                        }
-                    }
+                } else if let rawdump::TkWire::Connected(idx) = tkw
+                    && let Some(&nidx) = tile.conn_wires.get(idx)
+                    && let Some(w) = node2wires.get(&nidx)
+                {
+                    res.insert(wi, w.clone());
                 }
             }
             res
@@ -2943,16 +2940,16 @@ impl<'a> IntBuilder<'a> {
                 wire: wn,
             }) {
                 let wni = self.rd.wires.get(wnn).unwrap();
-                if let Some(nidx) = self.get_node(int_tile, int_tk, wni) {
-                    if let Some(w) = src_node2wires.get(&nidx) {
-                        let w: Vec<_> = w
-                            .iter()
-                            .copied()
-                            .filter(|x| cand_inps_far.contains(x))
-                            .collect();
-                        if w.len() == 1 {
-                            wires.insert(wn, ConnectorWire::Pass(w[0]));
-                        }
+                if let Some(nidx) = self.get_node(int_tile, int_tk, wni)
+                    && let Some(w) = src_node2wires.get(&nidx)
+                {
+                    let w: Vec<_> = w
+                        .iter()
+                        .copied()
+                        .filter(|x| cand_inps_far.contains(x))
+                        .collect();
+                    if w.len() == 1 {
+                        wires.insert(wn, ConnectorWire::Pass(w[0]));
                     }
                 }
             }
@@ -2979,17 +2976,17 @@ impl<'a> IntBuilder<'a> {
                 } else {
                     let mut nodes = HashMap::new();
                     for (wti, wfi) in far_bufs {
-                        if let Some(&wf) = far_names.get(&wfi) {
-                            if let Some(nidx) = self.get_node(far_tile, far_tk, wti) {
-                                nodes.insert(nidx, (wf, wti, wfi));
-                            }
+                        if let Some(&wf) = far_names.get(&wfi)
+                            && let Some(nidx) = self.get_node(far_tile, far_tk, wti)
+                        {
+                            nodes.insert(nidx, (wf, wti, wfi));
                         }
                     }
                     for &wi in tk.wires.keys() {
-                        if let Some(nidx) = self.get_node(tile, tk, wi) {
-                            if let Some(&x) = nodes.get(&nidx) {
-                                names_far_buf.insert(wi, x);
-                            }
+                        if let Some(nidx) = self.get_node(tile, tk, wi)
+                            && let Some(&x) = nodes.get(&nidx)
+                        {
+                            names_far_buf.insert(wi, x);
                         }
                     }
                 }
@@ -3305,33 +3302,33 @@ impl<'a> IntBuilder<'a> {
         force_pass: &[WireId],
     ) {
         for &xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
-            if let Some(int_fwd_xy) = self.walk_to_int(xy, dir, false) {
-                if let Some(int_bwd_xy) = self.walk_to_int(xy, !dir, false) {
-                    self.extract_pass_tile(
-                        format!("{}.{}", name.as_ref(), dir),
-                        dir,
-                        int_bwd_xy,
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
-                        int_fwd_xy,
-                        force_pass,
-                    );
-                    self.extract_pass_tile(
-                        format!("{}.{}", name.as_ref(), !dir),
-                        !dir,
-                        int_fwd_xy,
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
-                        int_bwd_xy,
-                        force_pass,
-                    );
-                }
+            if let Some(int_fwd_xy) = self.walk_to_int(xy, dir, false)
+                && let Some(int_bwd_xy) = self.walk_to_int(xy, !dir, false)
+            {
+                self.extract_pass_tile(
+                    format!("{}.{}", name.as_ref(), dir),
+                    dir,
+                    int_bwd_xy,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    int_fwd_xy,
+                    force_pass,
+                );
+                self.extract_pass_tile(
+                    format!("{}.{}", name.as_ref(), !dir),
+                    !dir,
+                    int_fwd_xy,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    int_bwd_xy,
+                    force_pass,
+                );
             }
         }
     }
@@ -3345,35 +3342,35 @@ impl<'a> IntBuilder<'a> {
         force_pass: &[WireId],
     ) {
         for &xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
-            if let Some(int_fwd_xy) = self.walk_to_int(xy, dir, false) {
-                if let Some(int_bwd_xy) = self.walk_to_int(xy, !dir, false) {
-                    let naming_fwd = format!("{}.{}", naming.as_ref(), dir);
-                    let naming_bwd = format!("{}.{}", naming.as_ref(), !dir);
-                    self.extract_pass_tile(
-                        format!("{}.{}", name.as_ref(), dir),
-                        dir,
-                        int_bwd_xy,
-                        Some(xy),
-                        None,
-                        Some(&naming_bwd),
-                        None,
-                        None,
-                        int_fwd_xy,
-                        force_pass,
-                    );
-                    self.extract_pass_tile(
-                        format!("{}.{}", name.as_ref(), !dir),
-                        !dir,
-                        int_fwd_xy,
-                        Some(xy),
-                        None,
-                        Some(&naming_fwd),
-                        None,
-                        None,
-                        int_bwd_xy,
-                        force_pass,
-                    );
-                }
+            if let Some(int_fwd_xy) = self.walk_to_int(xy, dir, false)
+                && let Some(int_bwd_xy) = self.walk_to_int(xy, !dir, false)
+            {
+                let naming_fwd = format!("{}.{}", naming.as_ref(), dir);
+                let naming_bwd = format!("{}.{}", naming.as_ref(), !dir);
+                self.extract_pass_tile(
+                    format!("{}.{}", name.as_ref(), dir),
+                    dir,
+                    int_bwd_xy,
+                    Some(xy),
+                    None,
+                    Some(&naming_bwd),
+                    None,
+                    None,
+                    int_fwd_xy,
+                    force_pass,
+                );
+                self.extract_pass_tile(
+                    format!("{}.{}", name.as_ref(), !dir),
+                    !dir,
+                    int_fwd_xy,
+                    Some(xy),
+                    None,
+                    Some(&naming_fwd),
+                    None,
+                    None,
+                    int_bwd_xy,
+                    force_pass,
+                );
             }
         }
     }

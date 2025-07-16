@@ -1514,15 +1514,15 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
                 let inst =
                     InstId::from_idx(inst.unwrap().strip_prefix('i').unwrap().parse().unwrap());
                 let inst = &design.insts[inst];
-                if let Some(val) = inst.props.get("SDA_INPUT_DELAYED") {
-                    if val == "1" {
-                        continue;
-                    }
+                if let Some(val) = inst.props.get("SDA_INPUT_DELAYED")
+                    && val == "1"
+                {
+                    continue;
                 }
-                if let Some(val) = inst.props.get("SDA_OUTPUT_DELAYED") {
-                    if val == "1" {
-                        continue;
-                    }
+                if let Some(val) = inst.props.get("SDA_OUTPUT_DELAYED")
+                    && val == "1"
+                {
+                    continue;
                 }
                 collect_simple(&mut res, &cell.typ[3..], cell);
             }

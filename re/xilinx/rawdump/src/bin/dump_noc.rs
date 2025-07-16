@@ -1004,11 +1004,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     println!("OOPS {tkn} {wn}");
                 }
                 let w = tk.wires.get(&wni).unwrap().1;
-                if let TkWire::Connected(cwi) = *w {
-                    if let Some(ni) = tile.conn_wires.get(cwi) {
-                        assert!(!n2iw.contains_key(&ni));
-                        n2iw.insert(ni, (crd, wn));
-                    }
+                if let TkWire::Connected(cwi) = *w
+                    && let Some(ni) = tile.conn_wires.get(cwi)
+                {
+                    assert!(!n2iw.contains_key(&ni));
+                    n2iw.insert(ni, (crd, wn));
                 }
             }
             for &wn in wires_out {
@@ -1020,11 +1020,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     println!("OOPS {tkn} {wn}");
                 }
                 let w = tk.wires.get(&wni).unwrap().1;
-                if let TkWire::Connected(cwi) = *w {
-                    if let Some(ni) = tile.conn_wires.get(cwi) {
-                        assert!(!n2ow.contains_key(&ni));
-                        n2ow.insert(ni, (crd, wn));
-                    }
+                if let TkWire::Connected(cwi) = *w
+                    && let Some(ni) = tile.conn_wires.get(cwi)
+                {
+                    assert!(!n2ow.contains_key(&ni));
+                    n2ow.insert(ni, (crd, wn));
                 }
             }
         }

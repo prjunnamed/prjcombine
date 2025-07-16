@@ -755,17 +755,17 @@ fn verify_clk_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
         }
         if !has_gtp_mid {
             let mut has_io = false;
-            if let Some(iocol) = iocol {
-                if iocol.regs[reg].is_some() {
-                    has_io = true;
-                    let scol = ColId::from_idx(iocol.col.to_idx() ^ 1);
-                    let obel = vrf.get_bel(bel.cell.with_col(scol).bel(bels::HCLK_CMT));
-                    for i in 0..14 {
-                        vrf.verify_node(&[
-                            bel.fwire(&format!("HIN{i}_{lr}")),
-                            obel.fwire(&format!("HOUT{i}")),
-                        ]);
-                    }
+            if let Some(iocol) = iocol
+                && iocol.regs[reg].is_some()
+            {
+                has_io = true;
+                let scol = ColId::from_idx(iocol.col.to_idx() ^ 1);
+                let obel = vrf.get_bel(bel.cell.with_col(scol).bel(bels::HCLK_CMT));
+                for i in 0..14 {
+                    vrf.verify_node(&[
+                        bel.fwire(&format!("HIN{i}_{lr}")),
+                        obel.fwire(&format!("HOUT{i}")),
+                    ]);
                 }
             }
             if !has_io {
@@ -2230,14 +2230,14 @@ fn verify_cmt_a(vrf: &mut Verifier, bel: &BelContext<'_>) {
     });
     let obel_pc = vrf.find_bel_sibling(bel, bels::PHY_CONTROL);
     let mut has_conn = false;
-    if let Some(ref obel_s) = obel_s {
-        if obel_s.die == bel.die {
-            vrf.verify_node(&[bel.fwire("SYNC_BB"), obel_pc.fwire("SYNC_BB")]);
-            vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB_S"), bel.wire("SYNC_BB"));
-            vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB"), bel.wire("SYNC_BB_S"));
-            vrf.claim_node(&[bel.fwire("SYNC_BB_S"), obel_s.fwire("SYNC_BB_N")]);
-            has_conn = true;
-        }
+    if let Some(ref obel_s) = obel_s
+        && obel_s.die == bel.die
+    {
+        vrf.verify_node(&[bel.fwire("SYNC_BB"), obel_pc.fwire("SYNC_BB")]);
+        vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB_S"), bel.wire("SYNC_BB"));
+        vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB"), bel.wire("SYNC_BB_S"));
+        vrf.claim_node(&[bel.fwire("SYNC_BB_S"), obel_s.fwire("SYNC_BB_N")]);
+        has_conn = true;
     }
     if !has_conn && vrf.rd.source == Source::Vivado {
         vrf.verify_node(&[bel.fwire("SYNC_BB"), obel_pc.fwire("SYNC_BB")]);

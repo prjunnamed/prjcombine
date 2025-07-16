@@ -511,15 +511,15 @@ fn has_any_vr<'a>(
                     if crd == alt_vr.0 || crd == alt_vr.1 {
                         return Some((pkg, Some(true)));
                     }
-                    if let Some(vr) = edev.chip.dci_io_alt.get(&bank) {
-                        if crd == vr.0 || crd == vr.1 {
-                            return Some((pkg, Some(false)));
-                        }
+                    if let Some(vr) = edev.chip.dci_io_alt.get(&bank)
+                        && (crd == vr.0 || crd == vr.1)
+                    {
+                        return Some((pkg, Some(false)));
                     }
-                } else if let Some(vr) = edev.chip.dci_io.get(&bank) {
-                    if crd == vr.0 || crd == vr.1 {
-                        return Some((pkg, None));
-                    }
+                } else if let Some(vr) = edev.chip.dci_io.get(&bank)
+                    && (crd == vr.0 || crd == vr.1)
+                {
+                    return Some((pkg, None));
                 }
             }
         }
@@ -3853,13 +3853,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 if std.diff != DiffKind::None {
                     let mut diff = ctx.state.get_diff(tile, bel, "ISTD.COMP", std.name);
-                    if std.diff == DiffKind::TrueTerm {
-                        if let IobDiff::Comp(other) = iob.diff {
-                            let bel_p = [
-                                "IOB0", "IOB1", "IOB2", "IOB3", "IOB4", "IOB5", "IOB6", "IOB7",
-                            ][other];
-                            diff.discard_bits(ctx.tiledb.item(tile, bel_p, "OUTPUT_DIFF"));
-                        }
+                    if std.diff == DiffKind::TrueTerm
+                        && let IobDiff::Comp(other) = iob.diff
+                    {
+                        let bel_p = [
+                            "IOB0", "IOB1", "IOB2", "IOB3", "IOB4", "IOB5", "IOB6", "IOB7",
+                        ][other];
+                        diff.discard_bits(ctx.tiledb.item(tile, bel_p, "OUTPUT_DIFF"));
                     }
                     if matches!(edev.chip.kind, ChipKind::Spartan3 | ChipKind::Spartan3E) {
                         diff.discard_bits(ctx.tiledb.item(tile, bel, "IBUF_MODE"));

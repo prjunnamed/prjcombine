@@ -554,10 +554,11 @@ pub fn add_fuzzers<'a>(
                 let mut coords = HashSet::new();
                 let other_bank = if bank == 4 { 5 } else { 4 };
                 let mut io_vr = None;
-                if let Some(&(vrp, vrn)) = edev.chip.dci_io.get(&bank) {
-                    if ebond.ios.contains_key(&vrp) && ebond.ios.contains_key(&vrn) {
-                        io_vr = Some((vrp, vrn));
-                    }
+                if let Some(&(vrp, vrn)) = edev.chip.dci_io.get(&bank)
+                    && ebond.ios.contains_key(&vrp)
+                    && ebond.ios.contains_key(&vrn)
+                {
+                    io_vr = Some((vrp, vrn));
                 }
                 if io_vr.is_none() {
                     io_vr = Some(edev.chip.dci_io_alt[&bank]);

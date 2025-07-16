@@ -603,10 +603,10 @@ impl<'a> Backend for IseBackend<'a> {
             instances: insts.into_values().collect(),
             nets: nets.into_values().collect(),
         };
-        if let ExpandedDevice::Xc2000(edev) = self.edev {
-            if !edev.chip.kind.is_xc4000() {
-                xdl.version = "".to_string();
-            }
+        if let ExpandedDevice::Xc2000(edev) = self.edev
+            && !edev.chip.kind.is_xc4000()
+        {
+            xdl.version = "".to_string();
         }
         xdl.instances.shuffle(&mut rand::rng());
         let vccaux = if let Some(Value::String(val)) = kv.get(&Key::VccAux) {
@@ -655,10 +655,10 @@ impl<'a> Backend for IseBackend<'a> {
             vccosensemode,
         };
         let mut key = KeyData::None;
-        if let Some(encrypt) = gopts.get("ENCRYPT") {
-            if encrypt == "YES" {
-                key = self.gen_key(&mut gopts);
-            }
+        if let Some(encrypt) = gopts.get("ENCRYPT")
+            && encrypt == "YES"
+        {
+            key = self.gen_key(&mut gopts);
         }
         if self.device.name.contains("7s15") || self.device.name.contains("7s6") {
             // frankenstein ISE breaks non-compressed non-debug bitstreams on those for some reason

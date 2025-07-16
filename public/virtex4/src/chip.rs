@@ -364,20 +364,20 @@ impl std::fmt::Display for Chip {
             if self.cols_mgt_buf.contains(&col) {
                 write!(f, " MGT_BUF")?;
             }
-            if let Some((cl, cr)) = self.cols_qbuf {
-                if col == cl || col == cr {
-                    write!(f, " QBUF")?;
-                }
+            if let Some((cl, cr)) = self.cols_qbuf
+                && (col == cl || col == cr)
+            {
+                write!(f, " QBUF")?;
             }
             writeln!(f)?;
-            if let Some(ref hard) = self.col_hard {
-                if hard.col == col {
-                    for &row in &hard.rows_pcie {
-                        writeln!(f, "\t\t\t{row}: PCIE")?;
-                    }
-                    for &row in &hard.rows_emac {
-                        writeln!(f, "\t\t\t{row}: EMAC")?;
-                    }
+            if let Some(ref hard) = self.col_hard
+                && hard.col == col
+            {
+                for &row in &hard.rows_pcie {
+                    writeln!(f, "\t\t\t{row}: PCIE")?;
+                }
+                for &row in &hard.rows_emac {
+                    writeln!(f, "\t\t\t{row}: EMAC")?;
                 }
             }
             for ioc in &self.cols_io {

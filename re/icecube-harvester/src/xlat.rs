@@ -551,21 +551,21 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
     let wire = edev.egrid.db.get_wire(&wname);
     let mut wire = edev.egrid.resolve_wire(cell.wire(wire)).unwrap();
     let wname = edev.egrid.db.wires.key(wire.slot);
-    if let Some(suf) = wname.strip_prefix("OUT.LC") {
-        if !suf.contains('.') {
-            let mut idx: u32 = suf.parse().unwrap();
-            if (wire.cell.col == edev.chip.col_w() || wire.cell.col == edev.chip.col_e())
-                && (wire.cell.row == edev.chip.row_s() || wire.cell.row == edev.chip.row_n())
-            {
-                wire.slot = edev.egrid.db.get_wire("OUT.LC0");
-            } else if wire.cell.row == edev.chip.row_s()
-                || wire.cell.row == edev.chip.row_n()
-                || (wire.cell.col == edev.chip.col_w() && edev.chip.kind.has_ioi_we())
-                || (wire.cell.col == edev.chip.col_e() && edev.chip.kind.has_ioi_we())
-            {
-                idx %= 4;
-                wire.slot = edev.egrid.db.get_wire(&format!("OUT.LC{idx}"));
-            }
+    if let Some(suf) = wname.strip_prefix("OUT.LC")
+        && !suf.contains('.')
+    {
+        let mut idx: u32 = suf.parse().unwrap();
+        if (wire.cell.col == edev.chip.col_w() || wire.cell.col == edev.chip.col_e())
+            && (wire.cell.row == edev.chip.row_s() || wire.cell.row == edev.chip.row_n())
+        {
+            wire.slot = edev.egrid.db.get_wire("OUT.LC0");
+        } else if wire.cell.row == edev.chip.row_s()
+            || wire.cell.row == edev.chip.row_n()
+            || (wire.cell.col == edev.chip.col_w() && edev.chip.kind.has_ioi_we())
+            || (wire.cell.col == edev.chip.col_e() && edev.chip.kind.has_ioi_we())
+        {
+            idx %= 4;
+            wire.slot = edev.egrid.db.get_wire(&format!("OUT.LC{idx}"));
         }
     }
     GenericNet::Int(wire)

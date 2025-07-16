@@ -392,16 +392,16 @@ impl<'b, B: Backend> Session<'b, B> {
         fgen: &(dyn FuzzerGen<'b, B> + 'b),
     ) -> (FuzzerId, Option<Box<dyn FuzzerGen<'b, B> + 'b>>) {
         for (bid, batch) in &mut self.batches {
-            if let Some((fuzzer, chain)) = fgen.generate(self.backend, state, &batch.kv) {
-                if let Some(fid) = batch.install_fuzzer(fuzzer) {
-                    return (
-                        FuzzerId {
-                            batch: bid,
-                            fuzzer: fid,
-                        },
-                        chain,
-                    );
-                }
+            if let Some((fuzzer, chain)) = fgen.generate(self.backend, state, &batch.kv)
+                && let Some(fid) = batch.install_fuzzer(fuzzer)
+            {
+                return (
+                    FuzzerId {
+                        batch: bid,
+                        fuzzer: fid,
+                    },
+                    chain,
+                );
             }
         }
         let mut batch = Batch {

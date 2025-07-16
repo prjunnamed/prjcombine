@@ -374,19 +374,21 @@ impl Chip {
     }
 
     pub fn in_int_hole(&self, col: ColId, row: RowId) -> bool {
-        if let Some(ps) = self.ps {
-            if row.to_idx() < ps.height() && col < ps.col {
-                return true;
-            }
+        if let Some(ps) = self.ps
+            && row.to_idx() < ps.height()
+            && col < ps.col
+        {
+            return true;
         }
         false
     }
 
     pub fn in_site_hole(&self, col: ColId, row: RowId) -> bool {
-        if let Some(ps) = self.ps {
-            if row.to_idx() < ps.height() && col <= ps.col {
-                return true;
-            }
+        if let Some(ps) = self.ps
+            && row.to_idx() < ps.height()
+            && col <= ps.col
+        {
+            return true;
         }
         if self.has_hbm && matches!(self.columns[col].kind, ColumnKind::Dsp(_)) && row.to_idx() < 15
         {
@@ -535,10 +537,10 @@ impl std::fmt::Display for Chip {
                     }
                 }
             }
-            if let Some(ps) = self.ps {
-                if ps.col == col {
-                    write!(f, " PS")?;
-                }
+            if let Some(ps) = self.ps
+                && ps.col == col
+            {
+                write!(f, " PS")?;
             }
             writeln!(f,)?;
             if let ColumnKind::Io(idx) | ColumnKind::Gt(idx) = cd.kind {
