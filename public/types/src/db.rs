@@ -1,4 +1,6 @@
-use unnamed_entity::id::{EntityIdU8, EntityIdU16, EntityTag};
+use bincode::{Decode, Encode};
+use jzon::JsonValue;
+use unnamed_entity::{id::{EntityIdU16, EntityIdU8, EntityTag}, EntityId};
 
 pub struct ChipTag;
 pub struct SpeedTag;
@@ -32,3 +34,18 @@ pub type BondId = EntityIdU16<BondTag>;
 pub type InterposerId = EntityIdU16<InterposerTag>;
 pub type DevBondId = EntityIdU8<DevBondTag>;
 pub type DevSpeedId = EntityIdU8<DevSpeedTag>;
+
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
+pub struct DeviceCombo {
+    pub devbond: DevBondId,
+    pub speed: DevSpeedId,
+}
+
+impl From<&DeviceCombo> for JsonValue {
+    fn from(combo: &DeviceCombo) -> Self {
+        jzon::object! {
+            devbond: combo.devbond.to_idx(),
+            speed: combo.speed.to_idx(),
+        }
+    }
+}

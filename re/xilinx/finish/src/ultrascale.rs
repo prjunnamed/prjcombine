@@ -6,11 +6,11 @@ use std::{
 use itertools::Itertools;
 use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_xilinx_geom::GeomDb;
-use prjcombine_types::bsdata::BsData;
+use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
 use prjcombine_ultrascale::{
     bond::Bond,
     chip::{Chip, CleMKind, ColumnKind, DisabledPart, HardRowKind, Interposer, IoRowKind},
-    db::{Database, Device, DeviceCombo},
+    db::{Database, Device},
 };
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};

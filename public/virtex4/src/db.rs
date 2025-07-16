@@ -5,7 +5,7 @@ use jzon::JsonValue;
 use prjcombine_interconnect::{db::IntDb, grid::DieId};
 use prjcombine_types::{
     bsdata::BsData,
-    db::{BondId, ChipId, DevBondId, DevSpeedId, InterposerId},
+    db::{BondId, ChipId, DevBondId, DevSpeedId, DeviceCombo, InterposerId},
 };
 use unnamed_entity::{EntityId, EntityMap, EntityVec};
 
@@ -14,12 +14,6 @@ use crate::{
     chip::{Chip, DisabledPart, Interposer},
     gtz::GtzDb,
 };
-
-#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
-pub struct DeviceCombo {
-    pub devbond: DevBondId,
-    pub speed: DevSpeedId,
-}
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Device {
@@ -58,15 +52,6 @@ impl Database {
         bincode::encode_into_std_write(self, &mut cf, config)?;
         cf.finish()?;
         Ok(())
-    }
-}
-
-impl From<&DeviceCombo> for JsonValue {
-    fn from(combo: &DeviceCombo) -> Self {
-        jzon::object! {
-            devbond: combo.devbond.to_idx(),
-            speed: combo.speed.to_idx(),
-        }
     }
 }
 

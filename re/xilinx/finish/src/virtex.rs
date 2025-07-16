@@ -5,11 +5,11 @@ use std::{
 
 use itertools::Itertools;
 use prjcombine_re_xilinx_geom::GeomDb;
-use prjcombine_types::bsdata::BsData;
+use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
 use prjcombine_virtex::{
     bond::Bond,
     chip::{Chip, ChipKind, DisabledPart},
-    db::{Database, Device, DeviceCombo},
+    db::{Database, Device},
 };
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};

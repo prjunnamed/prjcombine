@@ -5,12 +5,12 @@ use std::{
 
 use itertools::Itertools;
 use prjcombine_interconnect::db::{Bel, BelInfo, CellSlotId, SwitchBoxItem, TileWireCoord};
-use prjcombine_types::bsdata::BsData;
+use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
 use prjcombine_xc2000::{
     bels,
     bond::Bond,
     chip::Chip,
-    db::{Database, Device, DeviceCombo},
+    db::{Database, Device},
 };
 use regex::Regex;
 use unnamed_entity::{EntityId, EntityMap, EntitySet, EntityVec};

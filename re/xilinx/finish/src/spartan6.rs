@@ -8,9 +8,9 @@ use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_spartan6::{
     bond::Bond,
     chip::{Chip, DisabledPart},
-    db::{Database, Device, DeviceCombo},
+    db::{Database, Device},
 };
-use prjcombine_types::bsdata::BsData;
+use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
 use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
