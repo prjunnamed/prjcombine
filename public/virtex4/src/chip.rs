@@ -1,6 +1,9 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use prjcombine_interconnect::grid::{ColId, DieId, RowId};
+use prjcombine_interconnect::{
+    dir::DirH,
+    grid::{ColId, DieId, RowId},
+};
 use std::collections::BTreeSet;
 use unnamed_entity::{
     EntityId, EntityIds, EntityVec,
@@ -198,6 +201,15 @@ impl Chip {
 
     pub fn rows(&self) -> EntityIds<RowId> {
         EntityIds::new(self.regs * self.rows_per_reg())
+    }
+
+    pub fn col_side(&self, col: ColId) -> DirH {
+        assert_eq!(self.kind, ChipKind::Virtex7);
+        if col.to_idx().is_multiple_of(2) {
+            DirH::W
+        } else {
+            DirH::E
+        }
     }
 
     pub fn get_xadc_io_loc(&self) -> XadcIoLoc {

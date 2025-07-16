@@ -515,7 +515,7 @@ impl DieExpander<'_, '_, '_> {
                 _ => continue,
             };
             for row in self.die.rows() {
-                if row.to_idx() % 5 != 0 {
+                if !row.to_idx().is_multiple_of(5) {
                     continue;
                 }
                 if self.is_site_hole(col, row) {
@@ -564,7 +564,7 @@ impl DieExpander<'_, '_, '_> {
                     if matches!(row.to_idx() % 50, 0 | 49) {
                         self.die.add_tile(
                             (col, row),
-                            if row.to_idx() % 50 == 0 {
+                            if row.to_idx().is_multiple_of(50) {
                                 if kind == IoKind::Hpio {
                                     "IO_HP_BOT"
                                 } else {
@@ -695,7 +695,7 @@ impl DieExpander<'_, '_, '_> {
             } else {
                 self.col_clk + 1
             };
-            if col.to_idx() % 2 != 0 {
+            if !col.to_idx().is_multiple_of(2) {
                 continue;
             }
             for row in self.die.rows() {

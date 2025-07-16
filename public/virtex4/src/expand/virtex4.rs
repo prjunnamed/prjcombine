@@ -170,7 +170,7 @@ impl Expander<'_, '_> {
                         },
                         &crds,
                     );
-                    if row.to_idx() % 8 == 0 {
+                    if row.to_idx().is_multiple_of(8) {
                         let bt = if row < row_cfg { 'B' } else { 'T' };
                         self.die.add_tile((col, row), &format!("CLK_DCM_{bt}"), &[]);
                     }
@@ -304,7 +304,7 @@ impl Expander<'_, '_> {
         let term_n = "BRKH.N";
         for col in self.die.cols() {
             for row in self.die.rows() {
-                if row.to_idx() % 8 != 0 || row.to_idx() == 0 {
+                if !row.to_idx().is_multiple_of(8) || row.to_idx() == 0 {
                     continue;
                 }
                 if self.is_int_hole(col, row) {
@@ -350,7 +350,7 @@ impl Expander<'_, '_> {
                 _ => continue,
             };
             for row in self.die.rows() {
-                if row.to_idx() % 4 != 0 {
+                if !row.to_idx().is_multiple_of(4) {
                     continue;
                 }
                 if self.is_site_hole(col, row) {
@@ -375,7 +375,7 @@ impl Expander<'_, '_> {
                 continue;
             }
             for reg in self.chip.regs() {
-                if reg.to_idx() % 2 != 0 {
+                if !reg.to_idx().is_multiple_of(2) {
                     continue;
                 }
                 let row = self.chip.row_reg_bot(reg);

@@ -38,7 +38,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     y += H_TERM;
     let mut row_y = EntityVec::new();
     for row in edev.chip.rows.ids() {
-        if row.to_idx() % 16 == 0 && row.to_idx() != 0 {
+        if row.to_idx().is_multiple_of(16) && row.to_idx() != 0 {
             y += H_BRKH;
         }
         if row.to_idx() % 16 == 8 {

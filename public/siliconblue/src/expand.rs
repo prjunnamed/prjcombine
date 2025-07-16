@@ -62,7 +62,7 @@ impl Chip {
                         }
                     } else if self.cols_bram.contains(&col) {
                         die.fill_tile((col, row), "INT_BRAM");
-                        if (row.to_idx() - 1) % 2 == 0 {
+                        if (row.to_idx() - 1).is_multiple_of(2) {
                             die.add_tile(
                                 (col, row),
                                 self.kind.tile_class_bram(),

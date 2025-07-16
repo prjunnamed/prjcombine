@@ -38,7 +38,7 @@ fn parse_xc2000_bitstream(bs: &mut Bitstream, data: &[u8]) {
     let post = &data[pos..(pos + 4)];
     assert_eq!(post, &bits![1, 1, 1, 1]);
     pos += 4;
-    while pos % 8 != 0 {
+    while !pos.is_multiple_of(8) {
         assert!(data[pos]);
         pos += 1;
     }
@@ -196,7 +196,7 @@ fn parse_xc4000_bitstream(bs: &mut Bitstream, data: &[u8]) {
         let post = &data[pos..(pos + 8)];
         assert_eq!(post, &bits![0, 1, 1, 1, 1, 1, 1, 1]);
         pos += 8;
-        while pos % 8 != 0 {
+        while !pos.is_multiple_of(8) {
             assert!(data[pos]);
             pos += 1;
         }
@@ -1353,7 +1353,7 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                     }
                 }
                 let mut real_num = num + 2;
-                while real_num % 8 != 0 {
+                while !real_num.is_multiple_of(8) {
                     real_num += 1;
                 }
                 let exp_nops = 24 - (real_num - num - 2);

@@ -2,7 +2,11 @@ use prjcombine_interconnect::grid::CellCoord;
 use prjcombine_re_xilinx_naming_versal::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
-use prjcombine_versal::{bels, chip::DisabledPart, expanded::UbumpId};
+use prjcombine_versal::{
+    bels,
+    chip::{Chip, DisabledPart},
+    expanded::UbumpId,
+};
 use unnamed_entity::EntityId;
 
 fn verify_iri(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -41,7 +45,7 @@ fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
     if kind == "SLICEM" {
         vrf.claim_node(&[bel.fwire_far("SRL_OUT_B")]);
-        if bel.row.to_idx() % 48 != 0 {
+        if !bel.row.to_idx().is_multiple_of(Chip::ROWS_PER_REG) {
             if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.slot) {
                 vrf.verify_node(&[bel.fwire_far("SRL_IN_B"), obel.fwire_far("SRL_OUT_B")]);
             } else {
@@ -608,7 +612,7 @@ fn verify_dpll_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
         vrf.verify_node(&[bel.fwire("CLKIN_RCLK"), obel.fwire("OUT_N")]);
     } else {
         let obel = vrf
-            .find_bel_delta(bel, 0, 48, bels::RCLK_HDIO_DPLL)
+            .find_bel_delta(bel, 0, Chip::ROWS_PER_REG as isize, bels::RCLK_HDIO_DPLL)
             .unwrap();
         vrf.verify_node(&[bel.fwire("CLKIN_RCLK"), obel.fwire("OUT_S")]);
     }
@@ -714,7 +718,9 @@ fn verify_rclk_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
     }
     if reg.to_idx() % 2 == 1 {
         for i in 0..4 {
-            if let Some(obel) = vrf.find_bel_delta(bel, 0, -48, bels::BUFGCE_HDIO[i]) {
+            if let Some(obel) =
+                vrf.find_bel_delta(bel, 0, -(Chip::ROWS_PER_REG as isize), bels::BUFGCE_HDIO[i])
+            {
                 vrf.verify_node(&[bel.fwire(&format!("BUFGCE_OUT_S{i}")), obel.fwire_far("O")]);
             } else {
                 vrf.claim_node(&[bel.fwire(&format!("BUFGCE_OUT_S{i}"))]);
@@ -767,7 +773,9 @@ fn verify_rclk_hb_hdio(_endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
         }
     }
     for i in 0..4 {
-        if let Some(obel) = vrf.find_bel_delta(bel, 0, -48, bels::BUFGCE_HDIO[i]) {
+        if let Some(obel) =
+            vrf.find_bel_delta(bel, 0, -(Chip::ROWS_PER_REG as isize), bels::BUFGCE_HDIO[i])
+        {
             vrf.verify_node(&[bel.fwire(&format!("BUFGCE_OUT_S{i}")), obel.fwire_far("O")]);
         } else {
             vrf.claim_node(&[bel.fwire(&format!("BUFGCE_OUT_S{i}"))]);
@@ -838,23 +846,23 @@ fn verify_vnoc_nps(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_node(&[bel.fwire_far("IN_3"), obel_nxu.fwire_far("TO_NOC")]);
     vrf.verify_node(&[bel.fwire_far("IN_1"), obel_nps.fwire_far("OUT_1")]);
     if is_a {
-        if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -48, bel.slot) {
+        if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -(Chip::ROWS_PER_REG as isize), bel.slot) {
             vrf.verify_node(&[bel.fwire_far("IN_0"), obel_s.fwire_far("OUT_2")]);
         } else {
             vrf.claim_node(&[bel.fwire_far("IN_0")]);
         }
-        if let Some(obel_n) = vrf.find_bel_delta(bel, 0, 48, bel.slot) {
+        if let Some(obel_n) = vrf.find_bel_delta(bel, 0, Chip::ROWS_PER_REG as isize, bel.slot) {
             vrf.verify_node(&[bel.fwire_far("IN_2"), obel_n.fwire_far("OUT_0")]);
         } else {
             vrf.claim_node(&[bel.fwire_far("IN_2")]);
         }
     } else {
-        if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -48, bel.slot) {
+        if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -(Chip::ROWS_PER_REG as isize), bel.slot) {
             vrf.verify_node(&[bel.fwire_far("IN_2"), obel_s.fwire_far("OUT_0")]);
         } else {
             vrf.claim_node(&[bel.fwire_far("IN_2")]);
         }
-        if let Some(obel_n) = vrf.find_bel_delta(bel, 0, 48, bel.slot) {
+        if let Some(obel_n) = vrf.find_bel_delta(bel, 0, Chip::ROWS_PER_REG as isize, bel.slot) {
             vrf.verify_node(&[bel.fwire_far("IN_0"), obel_n.fwire_far("OUT_2")]);
         } else {
             vrf.claim_node(&[bel.fwire_far("IN_0")]);
@@ -902,14 +910,14 @@ fn verify_vnoc_nps6x(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.verify_node(&[bel.fwire_far("IN_0"), obel_nxu.fwire_far("TO_NOC")]);
         vrf.verify_node(&[bel.fwire_far("IN_3"), obel_nps.fwire_far("OUT_0")]);
     }
-    if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -48, bel.slot) {
+    if let Some(obel_s) = vrf.find_bel_delta(bel, 0, -(Chip::ROWS_PER_REG as isize), bel.slot) {
         vrf.verify_node(&[bel.fwire_far("IN_4"), obel_s.fwire_far("OUT_2")]);
         vrf.verify_node(&[bel.fwire_far("IN_5"), obel_s.fwire_far("OUT_1")]);
     } else {
         vrf.claim_node(&[bel.fwire_far("IN_4")]);
         vrf.claim_node(&[bel.fwire_far("IN_5")]);
     }
-    if let Some(obel_n) = vrf.find_bel_delta(bel, 0, 48, bel.slot) {
+    if let Some(obel_n) = vrf.find_bel_delta(bel, 0, Chip::ROWS_PER_REG as isize, bel.slot) {
         vrf.verify_node(&[bel.fwire_far("IN_2"), obel_n.fwire_far("OUT_4")]);
         vrf.verify_node(&[bel.fwire_far("IN_1"), obel_n.fwire_far("OUT_5")]);
     } else {

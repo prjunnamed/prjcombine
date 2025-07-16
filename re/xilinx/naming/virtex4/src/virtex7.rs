@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    dir::{Dir, DirPartMap},
+    dir::{Dir, DirH, DirPartMap},
     grid::{CellCoord, RowId},
 };
 use prjcombine_re_xilinx_naming::{
@@ -32,12 +32,12 @@ fn make_int_tie_grid(
     let pchip = edev.chips[edev.interposer.unwrap().primary];
     let mut tiex = 0;
     for col in int_grid.xlut.ids() {
-        if pchip.columns[col] == ColumnKind::Dsp && col.to_idx() % 2 == 0 {
+        if pchip.columns[col] == ColumnKind::Dsp && edev.col_side(col) == DirH::W {
             tiex += 1;
         }
         tiexlut.insert(col, tiex);
         tiex += 1;
-        if pchip.columns[col] == ColumnKind::Dsp && col.to_idx() % 2 == 1 {
+        if pchip.columns[col] == ColumnKind::Dsp && edev.col_side(col) == DirH::E {
             tiex += 1;
         }
     }
@@ -83,7 +83,7 @@ fn make_raw_grid(edev: &ExpandedDevice) -> BelMultiGrid {
     }
     for (die, dylut) in &mut ylut {
         for row in edev.egrid.die(die).rows() {
-            if row.to_idx() % 25 == 0 {
+            if row.to_idx().is_multiple_of(25) {
                 ry += 1;
             }
             dylut.insert(row, ry);
@@ -272,7 +272,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             dir,
             ExpandedNamedGtz {
                 int_tiles: egt.cols.map_values(|&col| {
-                    let lr = if col.to_idx() % 2 == 0 { 'L' } else { 'R' };
+                    let lr = match edev.col_side(col) {
+                        DirH::W => 'L',
+                        DirH::E => 'R',
+                    };
                     let x = int_grid.xlut[col];
                     let y = if dir == Dir::S {
                         int_grid.ylut[egt.die][RowId::from_idx(0)] - 1
@@ -354,7 +357,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let kind = egrid.db.tile_classes.key(tile.class);
         let x = int_grid.xlut[col];
         let y = int_grid.ylut[die][row];
-        let int_lr = if col.to_idx() % 2 == 0 { 'L' } else { 'R' };
+        let int_lr = match edev.col_side(col) {
+            DirH::W => 'L',
+            DirH::E => 'R',
+        };
         match &kind[..] {
             "INT" => {
                 let nnode = ngrid.name_tile(
@@ -619,7 +625,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::TIEOFF_DSP, format!("TIEOFF_X{tx}Y{ty}"));
             }
             "PCIE" => {
-                let (naming, left, rx) = if col.to_idx() % 2 == 0 {
+                let (naming, left, rx) = if edev.col_side(col) == DirH::W {
                     ("PCIE_L", "_LEFT", raw_grid.xlut[col - 3] + 2)
                 } else {
                     ("PCIE_R", "", raw_grid.xlut[col] + 2)
@@ -810,7 +816,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 }
             }
             "CMT_FIFO" => {
-                let is_l = col.to_idx() % 2 == 0;
+                let is_l = edev.col_side(col) == DirH::W;
                 let naming = if is_l { "CMT_FIFO_L" } else { "CMT_FIFO_R" };
                 let rx = if is_l {
                     raw_grid.xlut[col] + 1
@@ -826,7 +832,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::OUT_FIFO, format!("OUT_FIFO_X{fx}Y{fy}"));
             }
             "CMT" => {
-                let is_l = col.to_idx() % 2 == 0;
+                let is_l = edev.col_side(col) == DirH::W;
                 let naming = if is_l { "CMT.L" } else { "CMT.R" };
                 let rx = if is_l {
                     raw_grid.xlut[col]

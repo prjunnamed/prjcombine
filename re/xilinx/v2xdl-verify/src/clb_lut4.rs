@@ -2095,7 +2095,7 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
             }
         }
         let ncd = test.make_out(ctx);
-        if i % 2 == 0 {
+        if i.is_multiple_of(2) {
             inst.attr_str("BEL", "G");
             let mut ti = TgtInst::new(slice_kind(mode));
             ti.cfg("CLKINV", if clk_inv { "CLK_B" } else { "CLK" });
@@ -2108,7 +2108,7 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
             ti.bel_ram("G", &inst.name, 4, val);
             ti.cfg("G_ATTR", "SHIFT_REG");
             ti.bel("GMC15_BLACKBOX", "DUMMY", "");
-            if i == 0 || (mode != Mode::Virtex2 && i % 4 == 0) {
+            if i == 0 || (mode != Mode::Virtex2 && i.is_multiple_of(4)) {
                 ti.cfg("DIG_MUX", "BY");
                 ti.cfg("BYINV", "BY");
                 ti.pin_in("BY", &cd);

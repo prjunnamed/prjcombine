@@ -296,6 +296,7 @@ impl IntMaker<'_> {
             (Dir::N, "QUAD", 4, false, true),
             (Dir::S, "QUAD", 4, true, false),
         ] {
+            let length: u8 = length;
             let ftd = d2n[!dir];
             for i in 0..8 {
                 let name_w = if length == 1 && dir == Dir::E {
@@ -338,7 +339,7 @@ impl IntMaker<'_> {
                 for j in 1..length {
                     let nn = match dir {
                         Dir::W | Dir::E => {
-                            if j % 2 == 0 {
+                            if j.is_multiple_of(2) {
                                 Some((b'A' + (j / 2 - 1)) as char)
                             } else {
                                 None

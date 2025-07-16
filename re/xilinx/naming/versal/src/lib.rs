@@ -761,7 +761,7 @@ pub fn name_device<'a>(
                                 ),
                                 ColumnKind::ContHard => {
                                     let hc = chip.get_col_hard(col - 1).unwrap();
-                                    if reg.to_idx() % 2 == 0 {
+                                    if reg.to_idx().is_multiple_of(2) {
                                         if hc.regs[reg] == HardRowKind::Hdio {
                                             (
                                                 if chip.is_vr { "HDIO.VR" } else { "HDIO" },
@@ -1152,7 +1152,7 @@ pub fn name_device<'a>(
                                 ),
                                 ColumnKind::Hard => {
                                     let hc = chip.get_col_hard(col).unwrap();
-                                    if reg.to_idx() % 2 == 0 {
+                                    if reg.to_idx().is_multiple_of(2) {
                                         if hc.regs[reg] == HardRowKind::Hdio {
                                             (
                                                 if chip.is_vr { "HDIO.VR" } else { "HDIO" },
@@ -1943,7 +1943,11 @@ pub fn name_device<'a>(
                                     "MISR_TILE",
                                     die.die,
                                     col,
-                                    if reg.to_idx() % 2 == 0 { row } else { row - 1 },
+                                    if reg.to_idx().is_multiple_of(2) {
+                                        row
+                                    } else {
+                                        row - 1
+                                    },
                                     0,
                                     0,
                                 )],

@@ -2,7 +2,7 @@
 
 use prjcombine_interconnect::{
     db::PinDir,
-    dir::DirV,
+    dir::{DirH, DirV},
     grid::{CellCoord, ColId, DieId, RowId},
 };
 use prjcombine_re_xilinx_naming_virtex4::{ExpandedNamedDevice, ExpandedNamedGtz};
@@ -11,7 +11,7 @@ use prjcombine_re_xilinx_rdverify::{BelContext, SitePin, SitePinDir, Verifier, v
 use prjcombine_virtex4::{
     bels,
     chip::DisabledPart,
-    expanded::ExpandedGtz,
+    expanded::{ExpandedDevice, ExpandedGtz},
     gtz::{GtzIntColId, GtzIntRowId},
 };
 use std::collections::{HashMap, HashSet};
@@ -558,7 +558,7 @@ fn verify_clk_rebuf(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_pip(bel.crd(), bel.wire(&pin_u), bel.wire(&pin_d));
         let obel_buf_d = vrf.find_bel_sibling(bel, bels::GCLK_TEST_BUF_REBUF_S[i / 2]);
         let obel_buf_u = vrf.find_bel_sibling(bel, bels::GCLK_TEST_BUF_REBUF_N[i / 2]);
-        if i % 2 == 0 {
+        if i.is_multiple_of(2) {
             vrf.claim_pip(bel.crd(), obel_buf_d.wire("CLKIN"), bel.wire(&pin_d));
             vrf.claim_pip(bel.crd(), bel.wire(&pin_u), obel_buf_u.wire("CLKOUT"));
         } else {
@@ -878,7 +878,7 @@ fn verify_bufgctrl(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("FB"), bel.wire("O"));
     vrf.claim_pip(bel.crd(), bel.wire("GCLK"), bel.wire("O"));
 
-    let is_b = bel.row.to_idx() % 50 != 0;
+    let is_b = !bel.row.to_idx().is_multiple_of(50);
     let obel_buf = vrf.find_bel_walk(bel, 0, -1, bels::CLK_REBUF).unwrap();
     if is_b {
         vrf.verify_node(&[bel.fwire("GCLK"), obel_buf.fwire(&format!("GCLK{idx}_U"))]);
@@ -1590,7 +1590,11 @@ fn verify_phaser_in(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_pip(bel.crd(), bel.wire_far("PHASEREFCLK"), obel_cmt.wire(pin));
     }
 
-    let dx = if bel.col.to_idx() % 2 == 0 { 1 } else { -1 };
+    let dx = if bel.col.to_idx().is_multiple_of(2) {
+        1
+    } else {
+        -1
+    };
     let dy = [-18, -6, 6, 18][idx];
     let obel_ilogic = vrf.find_bel_delta(bel, dx, dy, bels::ILOGIC1).unwrap();
     vrf.verify_node(&[bel.fwire("DQS_PAD"), obel_ilogic.fwire("CLKOUT")]);
@@ -3602,8 +3606,16 @@ fn verify_gtz(
         };
         format!("GTZ_INT_R_SLV_{x}_{y}")
     }
-    fn int_wire_name_int_i(side: DirV, gcol: ColId, row: GtzIntRowId) -> String {
-        let lr = if gcol.to_idx() % 2 == 0 { 'L' } else { 'R' };
+    fn int_wire_name_int_i(
+        edev: &ExpandedDevice,
+        side: DirV,
+        gcol: ColId,
+        row: GtzIntRowId,
+    ) -> String {
+        let lr = match edev.col_side(gcol) {
+            DirH::W => 'L',
+            DirH::E => 'R',
+        };
         let bt = if side == DirV::S { 'T' } else { 'B' };
         let y = row.to_idx();
         format!("GTZ_INT_{lr}{bt}_SLV_{y}")
@@ -3749,7 +3761,7 @@ fn verify_gtz(
                 let wire_l = int_wire_name_int_l(gtz.side, icol, col, row);
                 let wire_r = int_wire_name_int_r(gtz.side, icol, col, row);
                 if col == icol {
-                    let wire_i = int_wire_name_int_i(gtz.side, gcol, row);
+                    let wire_i = int_wire_name_int_i(endev.edev, gtz.side, gcol, row);
                     vrf.claim_pip(crd, &wire_i, &wire_r);
                     vrf.claim_pip(crd, &wire_r, &wire_i);
                     let rw = CellCoord::new(egt.die, gcol, egt.rows[row]).wire(sll_wire);

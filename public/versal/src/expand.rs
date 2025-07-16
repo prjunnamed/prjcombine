@@ -57,7 +57,7 @@ impl Expander<'_> {
                     }
                     if chip.col_side(col) == DirH::W {
                         die.add_tile((col, row), "INT", &[(col, row), (col + 1, row)]);
-                        if row.to_idx() % Chip::ROWS_PER_REG == 0 && chip.is_reg_n(reg) {
+                        if row.to_idx().is_multiple_of(Chip::ROWS_PER_REG) && chip.is_reg_n(reg) {
                             die.add_tile((col, row), "RCLK", &[(col, row), (col + 1, row)]);
                         }
                     }
@@ -170,7 +170,7 @@ impl Expander<'_> {
                             die.fill_conn_term((col + 1, row), "CLE.W");
                         }
                         let reg = chip.row_to_reg(row);
-                        if row.to_idx() % Chip::ROWS_PER_REG == 0 {
+                        if row.to_idx().is_multiple_of(Chip::ROWS_PER_REG) {
                             if chip.is_reg_half(reg) {
                                 die.add_tile((col + 1, row), "RCLK_CLE.HALF", &[(col + 1, row)]);
                             } else if chip.is_reg_n(reg) {
@@ -250,7 +250,7 @@ impl Expander<'_> {
                         );
                     }
                     let reg = chip.row_to_reg(row);
-                    if row.to_idx() % Chip::ROWS_PER_REG == 0
+                    if row.to_idx().is_multiple_of(Chip::ROWS_PER_REG)
                         && chip.is_reg_n(reg)
                         && !matches!(cd.kind, ColumnKind::Cle(_) | ColumnKind::None)
                         && !(chip.col_side(col) == DirH::E
@@ -280,7 +280,8 @@ impl Expander<'_> {
                             let hc = chip.get_col_hard(col).unwrap();
                             if hc.regs[reg] == HardRowKind::Hdio {
                                 die.add_tile((col, row), "RCLK_HDIO", &[]);
-                            } else if reg.to_idx() % 2 != 0 && hc.regs[reg - 1] == HardRowKind::Hdio
+                            } else if !reg.to_idx().is_multiple_of(2)
+                                && hc.regs[reg - 1] == HardRowKind::Hdio
                             {
                                 die.add_tile((col, row), "RCLK_HB_HDIO", &[]);
                             }
@@ -335,7 +336,7 @@ impl Expander<'_> {
                     continue;
                 }
                 for row in die.rows() {
-                    if row.to_idx() % 2 != 0 {
+                    if !row.to_idx().is_multiple_of(2) {
                         continue;
                     }
                     if cd.has_bli_s && row.to_idx() < 4 {
@@ -370,7 +371,7 @@ impl Expander<'_> {
                     continue;
                 }
                 for row in die.rows() {
-                    if row.to_idx() % 4 != 0 {
+                    if !row.to_idx().is_multiple_of(4) {
                         continue;
                     }
                     if cd.has_bli_s && row.to_idx() < 4 {
@@ -404,7 +405,7 @@ impl Expander<'_> {
                     continue;
                 }
                 for row in die.rows() {
-                    if row.to_idx() % 4 != 0 {
+                    if !row.to_idx().is_multiple_of(4) {
                         continue;
                     }
                     if cd.has_bli_s && row.to_idx() < 4 {

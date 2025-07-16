@@ -362,7 +362,7 @@ impl Iterator for PacketParser<'_> {
                                     // rollback CRC changes.
                                     self.crc.set(prev_crc);
                                     let mut real_num = num + 2;
-                                    while real_num % 8 != 0 {
+                                    while !real_num.is_multiple_of(8) {
                                         real_num += 1;
                                     }
                                     let epos = dpos + real_num * 2;
@@ -765,7 +765,7 @@ impl Iterator for PacketParser<'_> {
                                 let ctb: [u8; 8] = core::array::from_fn(|j| ct[i * 8 + (j ^ 4)]);
                                 let mut ptb = ctb;
                                 for kidx in start_key..=last_key {
-                                    if (kidx - start_key) % 2 == 0 {
+                                    if (kidx - start_key).is_multiple_of(2) {
                                         cipher[kidx].decrypt_block((&mut ptb).into());
                                     } else {
                                         cipher[kidx].encrypt_block((&mut ptb).into());

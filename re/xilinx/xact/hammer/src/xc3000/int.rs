@@ -25,14 +25,8 @@ fn apply_int_pip<'a>(
     pin: &'static str,
     mut fuzzer: Fuzzer<XactBackend<'a>>,
 ) -> Fuzzer<XactBackend<'a>> {
-    let rwf = backend
-        .egrid
-        .resolve_tile_wire(tcrd, wire_from)
-        .unwrap();
-    let rwt = backend
-        .egrid
-        .resolve_tile_wire(tcrd, wire_to)
-        .unwrap();
+    let rwf = backend.egrid.resolve_tile_wire(tcrd, wire_from).unwrap();
+    let rwt = backend.egrid.resolve_tile_wire(tcrd, wire_to).unwrap();
     fuzzer = fuzzer.base(Key::NodeMutex(rwt), rwf);
     let crd = backend.ngrid.int_pip(tcrd, wire_to, wire_from);
     fuzzer.base(Key::Pip(crd), Value::FromPin(block, pin.into()))
@@ -515,10 +509,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for IntPip {
         tcrd: prjcombine_interconnect::grid::TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let rwt = backend
-            .egrid
-            .resolve_tile_wire(tcrd, self.wire_to)
-            .unwrap();
+        let rwt = backend.egrid.resolve_tile_wire(tcrd, self.wire_to).unwrap();
         let rwf = backend
             .egrid
             .resolve_tile_wire(tcrd, self.wire_from)
@@ -555,10 +546,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ProhibitInt {
         tcrd: prjcombine_interconnect::grid::TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let rw = backend
-            .egrid
-            .resolve_tile_wire(tcrd, self.wire)
-            .unwrap();
+        let rw = backend.egrid.resolve_tile_wire(tcrd, self.wire).unwrap();
         fuzzer = fuzzer.base(Key::NodeMutex(rw), "PROHIBIT");
         Some((fuzzer, false))
     }

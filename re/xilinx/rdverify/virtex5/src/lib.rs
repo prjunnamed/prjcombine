@@ -273,7 +273,7 @@ fn verify_clk_mux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
     }
 
     let is_b = bel.row < endev.edev.chips[bel.die].row_bufg();
-    let is_hrow_b = bel.row.to_idx() % 20 == 0;
+    let is_hrow_b = bel.row.to_idx().is_multiple_of(20);
 
     if is_b != is_hrow_b {
         let dy = if is_hrow_b { 10 } else { 0 };

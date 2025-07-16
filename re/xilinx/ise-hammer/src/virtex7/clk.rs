@@ -26,10 +26,12 @@ pub struct ColPair(pub &'static str);
 
 impl TileRelation for ColPair {
     fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
-        let col = if tcrd.col.to_idx() % 2 == 0 {
-            tcrd.col + 1
-        } else {
-            tcrd.col - 1
+        let ExpandedDevice::Virtex4(edev) = backend.edev else {
+            unreachable!()
+        };
+        let col = match edev.col_side(tcrd.col) {
+            DirH::W => tcrd.col + 1,
+            DirH::E => tcrd.col - 1,
         };
         backend
             .egrid
@@ -607,7 +609,7 @@ pub fn add_fuzzers<'a>(
         for i in 0..32 {
             let bel_d = bels::GCLK_TEST_BUF_REBUF_S[i / 2];
             let bel_u = bels::GCLK_TEST_BUF_REBUF_N[i / 2];
-            if i % 2 == 0 {
+            if i.is_multiple_of(2) {
                 if edev.chips.values().any(|grid| grid.regs > 1) {
                     bctx.build()
                         .global_mutex("GCLK", "REBUF_D0")

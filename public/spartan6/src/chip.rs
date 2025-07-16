@@ -589,7 +589,7 @@ impl std::fmt::Display for Chip {
         }
         writeln!(f, "\tROWS:")?;
         for (row, rd) in &self.rows {
-            if row.to_idx() != 0 && row.to_idx() % 16 == 0 {
+            if row.to_idx() != 0 && row.to_idx().is_multiple_of(16) {
                 writeln!(f, "\t\t--- clock break")?;
             }
             if row.to_idx() % 16 == 8 {

@@ -244,7 +244,7 @@ fn pin_pterms<'a>(
     fuzzer = pin_imux_inps(backend, fuzzer, fb);
     for pt in backend.device.fb_pterms() {
         let imid = ImuxId::from_idx(pt.to_idx() / 2);
-        let val = pt.to_idx() % 2 != 0;
+        let val = !pt.to_idx().is_multiple_of(2);
         fuzzer = fuzzer
             .base(Key::PlaTermMutex(fb), Value::MutexPin)
             .base(Key::PlaHasTerm(fb, pt), true)

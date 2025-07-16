@@ -1,5 +1,5 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
-use prjcombine_ultrascale::chip::{CleMKind, ColumnKind, HardRowKind, IoRowKind};
+use prjcombine_ultrascale::chip::{Chip, CleMKind, ColumnKind, HardRowKind, IoRowKind};
 use prjcombine_ultrascale::expanded::ExpandedDevice;
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -62,10 +62,10 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             y += H_HBM;
         }
         for row in grid.rows() {
-            if row.to_idx() % 60 == 0 {
+            if row.to_idx().is_multiple_of(Chip::ROWS_PER_REG) {
                 y += H_BRKH;
             }
-            if row.to_idx() % 60 == 60 / 2 {
+            if row.to_idx() % Chip::ROWS_PER_REG == Chip::ROWS_PER_REG / 2 {
                 y += H_HCLK;
             }
             die_row_y.push((y, y + H_CLB));
@@ -282,7 +282,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         if let Some(ps) = grid.ps {
             let col_l = ColId::from_idx(0);
             let row_b = if ps.has_vcu {
-                let row_t = RowId::from_idx(60);
+                let row_t = RowId::from_idx(Chip::ROWS_PER_REG);
                 drawer.bel_rect(
                     col_x[col_l].0,
                     col_x[ps.col].1,
@@ -298,7 +298,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 col_x[col_l].0,
                 col_x[ps.col].1,
                 row_y[die][row_b].0,
-                row_y[die][row_b + 3 * 60 - 1].1,
+                row_y[die][row_b + 3 * Chip::ROWS_PER_REG - 1].1,
                 "ps",
             )
         }

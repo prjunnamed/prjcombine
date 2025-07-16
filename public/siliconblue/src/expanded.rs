@@ -113,7 +113,7 @@ impl ExpandedDevice<'_> {
                     Some((self.btile_main(col, row), BitOwner::Main(col, row)))
                 } else {
                     if frame < 16 {
-                        if bank % 2 == 0 {
+                        if (bank & 1) == 0 {
                             Some((self.btile_pll()[bank / 2], BitOwner::Pll(bank / 2)))
                         } else {
                             None

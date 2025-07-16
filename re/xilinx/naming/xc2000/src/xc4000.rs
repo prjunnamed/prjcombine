@@ -25,18 +25,18 @@ fn get_tile_kind(chip: &Chip, col: ColId, row: RowId) -> &'static str {
         } else if row == chip.row_n() - 1 {
             "LEFTT"
         } else if chip.kind.is_xl() && row == chip.row_qb() {
-            if row.to_idx() % 2 == 0 {
+            if row.to_idx().is_multiple_of(2) {
                 "LEFTF"
             } else {
                 "LEFTSF"
             }
         } else if chip.kind.is_xl() && row == chip.row_qt() - 1 {
-            if row.to_idx() % 2 == 0 {
+            if row.to_idx().is_multiple_of(2) {
                 "LEFTF1"
             } else {
                 "LEFTSF1"
             }
-        } else if row.to_idx() % 2 == 0 {
+        } else if row.to_idx().is_multiple_of(2) {
             "LEFT"
         } else {
             "LEFTS"
@@ -61,14 +61,18 @@ fn get_tile_kind(chip: &Chip, col: ColId, row: RowId) -> &'static str {
         } else if row == chip.row_n() - 1 {
             "RTT"
         } else if chip.kind.is_xl() && row == row_f {
-            if row.to_idx() % 2 == 0 { "RTF" } else { "RTSF" }
+            if row.to_idx().is_multiple_of(2) {
+                "RTF"
+            } else {
+                "RTSF"
+            }
         } else if chip.kind.is_xl() && row == row_f1 {
-            if row.to_idx() % 2 == 0 {
+            if row.to_idx().is_multiple_of(2) {
                 "RTF1"
             } else {
                 "RTSF1"
             }
-        } else if row.to_idx() % 2 == 0 {
+        } else if row.to_idx().is_multiple_of(2) {
             "RT"
         } else {
             "RTS"
@@ -78,7 +82,7 @@ fn get_tile_kind(chip: &Chip, col: ColId, row: RowId) -> &'static str {
             "BOTSL"
         } else if col == chip.col_e() - 1 {
             "BOTRR"
-        } else if col.to_idx() % 2 == 0 {
+        } else if col.to_idx().is_multiple_of(2) {
             "BOT"
         } else {
             "BOTS"
@@ -88,7 +92,7 @@ fn get_tile_kind(chip: &Chip, col: ColId, row: RowId) -> &'static str {
             "TOPSL"
         } else if col == chip.col_e() - 1 {
             "TOPRR"
-        } else if col.to_idx() % 2 == 0 {
+        } else if col.to_idx().is_multiple_of(2) {
             "TOP"
         } else {
             "TOPS"

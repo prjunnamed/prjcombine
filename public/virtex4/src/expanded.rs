@@ -4,7 +4,7 @@ use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use crate::tslots;
 use bimap::BiHashMap;
 use prjcombine_interconnect::db::RegionSlotId;
-use prjcombine_interconnect::dir::DirPartMap;
+use prjcombine_interconnect::dir::{DirH, DirPartMap};
 use prjcombine_interconnect::grid::{
     CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord, TileIobId,
 };
@@ -132,6 +132,15 @@ impl ExpandedDevice<'_> {
                 }
             }
             self.egrid.blackhole_wires.extend(cursed_wires);
+        }
+    }
+
+    pub fn col_side(&self, col: ColId) -> DirH {
+        assert_eq!(self.kind, ChipKind::Virtex7);
+        if col.to_idx().is_multiple_of(2) {
+            DirH::W
+        } else {
+            DirH::E
         }
     }
 
@@ -384,12 +393,13 @@ impl ExpandedDevice<'_> {
                     unreachable!()
                 } - chip.reg_cfg.to_idx()
                     + reg.to_idx()) as u32;
-                let is_vr = match bank {
-                    34 => io.cell.row.to_idx() % 40 == 0,
-                    24 => io.cell.row.to_idx() % 40 == 4,
-                    15 | 25 | 35 => io.cell.row.to_idx() % 40 == 6,
-                    _ => io.cell.row.to_idx() % 40 == 14,
-                };
+                let is_vr = io.cell.row.to_idx() % 40
+                    == match bank {
+                        34 => 0,
+                        24 => 4,
+                        15 | 25 | 35 => 6,
+                        _ => 14,
+                    };
                 IoInfo {
                     bank,
                     biob: (io.cell.row.to_idx() % 40 + io.iob.to_idx()) as u32,
@@ -1036,7 +1046,7 @@ impl ExpandedDevice<'_> {
             res.push(self.btile_hclk(die, col, row + 10));
             res
         } else if kind == "GTP_COMMON_MID" {
-            let col = if col.to_idx() % 2 == 0 {
+            let col = if self.col_side(col) == DirH::W {
                 col - 1
             } else {
                 col + 1
@@ -1051,7 +1061,7 @@ impl ExpandedDevice<'_> {
                 self.btile_hclk(die, col, row),
             ]
         } else if kind == "GTP_CHANNEL_MID" {
-            let col = if col.to_idx() % 2 == 0 {
+            let col = if self.col_side(col) == DirH::W {
                 col - 1
             } else {
                 col + 1

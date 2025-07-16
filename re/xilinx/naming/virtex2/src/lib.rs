@@ -1522,7 +1522,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         bels::SLICE3,
                         format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy + 1),
                     );
-                    if sx % 4 == 0 {
+                    if sx.is_multiple_of(4) {
                         nnode.add_bel(bels::TBUF0, format!("TBUF_X{sx}Y{sy}"));
                         nnode.add_bel(bels::TBUF1, format!("TBUF_X{x}Y{y}", x = sx, y = sy + 1));
                     } else {

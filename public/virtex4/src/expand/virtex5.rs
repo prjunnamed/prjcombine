@@ -223,7 +223,7 @@ impl Expander<'_, '_> {
                 _ => continue,
             };
             for row in self.die.rows() {
-                if row.to_idx() % 5 != 0 {
+                if !row.to_idx().is_multiple_of(5) {
                     continue;
                 }
                 if self.is_site_hole(col, row) {
@@ -406,7 +406,7 @@ impl Expander<'_, '_> {
         for gtc in &self.chip.cols_gt {
             let col = gtc.col;
             for row in self.die.rows() {
-                if row.to_idx() % 20 != 0 {
+                if !row.to_idx().is_multiple_of(20) {
                     continue;
                 }
                 let reg = self.chip.row_to_reg(row);

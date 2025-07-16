@@ -13,7 +13,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new(session, backend, "CLB");
     for i in 0..4 {
         let mut bctx = ctx.bel(bels::LC[i]);
-        let mode = if i % 2 == 0 { "LC5A" } else { "LC5B" };
+        let mode = if i.is_multiple_of(2) { "LC5A" } else { "LC5B" };
         bctx.mode(mode)
             .test_multi_attr("LUT", MultiValue::OldLut('F'), 16);
         bctx.mode(mode)
@@ -72,9 +72,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "CLB";
     for i in 0..4 {
+        let i: usize = i;
         let bel = &format!("LC{i}");
         ctx.collect_bitvec(tile, bel, "LUT", "");
-        if i % 2 == 0 {
+        if i.is_multiple_of(2) {
             ctx.collect_enum(tile, bel, "DOMUX", &["DI", "F5O", "CO"]);
         } else {
             ctx.collect_enum(tile, bel, "DOMUX", &["DI", "CO"]);

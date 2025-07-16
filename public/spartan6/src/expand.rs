@@ -701,7 +701,7 @@ impl Expander<'_, '_> {
                 continue;
             }
             for row in self.die.rows() {
-                if row.to_idx() % 4 != 0 {
+                if !row.to_idx().is_multiple_of(4) {
                     continue;
                 }
                 let reg = self.chip.row_to_reg(row);
@@ -732,7 +732,7 @@ impl Expander<'_, '_> {
                 continue;
             }
             for row in self.die.rows() {
-                if row.to_idx() % 4 != 0 {
+                if !row.to_idx().is_multiple_of(4) {
                     continue;
                 }
                 let reg = self.chip.row_to_reg(row);

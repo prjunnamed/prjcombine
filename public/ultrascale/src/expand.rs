@@ -295,7 +295,7 @@ impl DieExpander<'_, '_, '_> {
                 continue;
             }
             for row in self.die.rows() {
-                if row.to_idx() % 5 != 0 {
+                if !row.to_idx().is_multiple_of(5) {
                     continue;
                 }
                 if self.chip.in_site_hole(col, row) {
@@ -339,7 +339,7 @@ impl DieExpander<'_, '_, '_> {
                 continue;
             }
             for row in self.die.rows() {
-                if row.to_idx() % 5 != 0 {
+                if !row.to_idx().is_multiple_of(5) {
                     continue;
                 }
                 if self.chip.in_int_hole(col, row) {
@@ -403,7 +403,7 @@ impl DieExpander<'_, '_, '_> {
                 continue;
             }
             for row in self.die.rows() {
-                if row.to_idx() % 15 != 0 {
+                if !row.to_idx().is_multiple_of(15) {
                     continue;
                 }
                 if self.chip.in_int_hole(col, row) {

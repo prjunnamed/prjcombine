@@ -122,7 +122,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &mut DevData) {
                 coolrunner2::BsLayout::Wide => row - fbr * 48 - mc.to_idx() * 3,
             };
             let column = dd.bs_cols - 1 - column;
-            let column = if fb.to_idx() % 2 == 0 {
+            let column = if fb.to_idx().is_multiple_of(2) {
                 column - dd.fb_cols[fbc]
             } else {
                 dd.imux_width * 2

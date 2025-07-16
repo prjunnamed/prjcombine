@@ -148,7 +148,7 @@ impl ExpandedDevice<'_> {
                     bank,
                     diff: if idx % 13 == 12 {
                         IoDiffKind::None
-                    } else if idx % 13 % 2 == 0 {
+                    } else if (idx % 13).is_multiple_of(2) {
                         IoDiffKind::P(IoCoord::Hpio(HpioCoord {
                             iob: TileIobId::from_idx(idx + 1),
                             ..hpio
@@ -202,7 +202,7 @@ impl ExpandedDevice<'_> {
                 IoInfo {
                     kind: IoKind::Hdio,
                     bank,
-                    diff: if hdio.iob.to_idx() % 2 == 0 {
+                    diff: if hdio.iob.to_idx().is_multiple_of(2) {
                         IoDiffKind::P(IoCoord::Hdio(HdioCoord {
                             iob: TileIobId::from_idx(hdio.iob.to_idx() ^ 1),
                             ..hdio
@@ -253,7 +253,7 @@ impl ExpandedDevice<'_> {
                 IoInfo {
                     kind: IoKind::Hdio,
                     bank,
-                    diff: if hdio.iob.to_idx() % 2 == 0 {
+                    diff: if hdio.iob.to_idx().is_multiple_of(2) {
                         IoDiffKind::P(IoCoord::Hdio(HdioCoord {
                             iob: TileIobId::from_idx(hdio.iob.to_idx() ^ 1),
                             ..hdio
@@ -326,7 +326,7 @@ impl ExpandedDevice<'_> {
                 IoInfo {
                     kind: IoKind::Xp5io,
                     bank,
-                    diff: if xp5io.iob.to_idx() % 2 == 0 {
+                    diff: if xp5io.iob.to_idx().is_multiple_of(2) {
                         IoDiffKind::P(IoCoord::Xp5io(Xp5ioCoord {
                             iob: TileIobId::from_idx(xp5io.iob.to_idx() ^ 1),
                             ..xp5io

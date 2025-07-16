@@ -138,7 +138,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
                 row - mc.to_idx() * 3
             };
             let column = dd.bs_cols - 1 - column;
-            let column = if fb.to_idx() % 2 == 0 {
+            let column = if fb.to_idx().is_multiple_of(2) {
                 column - dd.fb_cols[fbc].mc_col
             } else {
                 9 - (column - dd.fb_cols[fbc].mc_col)
@@ -356,7 +356,7 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile {
             let row = row & row_mask;
             let row = row - fbr * 52 - 24;
             let column = dd.bs_cols - 1 - column;
-            let column = if fb.to_idx() % 2 == 0 {
+            let column = if fb.to_idx().is_multiple_of(2) {
                 column - dd.fb_cols[fbc].mc_col
             } else {
                 9 - (column - dd.fb_cols[fbc].mc_col)

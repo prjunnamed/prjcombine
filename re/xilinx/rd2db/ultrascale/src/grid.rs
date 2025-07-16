@@ -235,7 +235,7 @@ fn make_columns(int: &IntGridWrapper) -> EntityVec<ColId, Column> {
                 .lookup_wire(crd, &format!("CLK_HDISTR_FT0_{i}"))
                 .unwrap()
         });
-        if col.to_idx() % 2 == 0 {
+        if col.to_idx().is_multiple_of(2) {
             if let Some((xy, num)) = match cd.kind {
                 ColumnKind::CleL(_) => Some((crd.delta(-1, 0), 1)),
                 ColumnKind::CleM(CleMKind::ClkBuf) => None,
@@ -353,7 +353,7 @@ fn get_cols_hard(
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
             let col = int.lookup_column_inter(x) - 1;
-            let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 60);
+            let reg = RegId::from_idx(int.lookup_row(y).to_idx() / Chip::ROWS_PER_REG);
             cells.insert((col, reg), kind);
             let crd = Coord {
                 x: x as u16,
@@ -403,7 +403,8 @@ fn get_cols_hard(
                         continue;
                     }
                     let col = int.lookup_column_inter(crd.x as i32) - 1;
-                    let reg = RegId::from_idx(int.lookup_row(crd.y as i32).to_idx() / 60);
+                    let reg =
+                        RegId::from_idx(int.lookup_row(crd.y as i32).to_idx() / Chip::ROWS_PER_REG);
                     let tile = &int.int.rd.tiles[crd];
                     if let Some(&n) = tile.conn_wires.get(i)
                         && vp_aux0.contains(&n)
@@ -418,7 +419,7 @@ fn get_cols_hard(
     let mut res = Vec::new();
     for col in cols {
         let mut regs = EntityVec::new();
-        for _ in 0..(int.int.rows.len() / 60) {
+        for _ in 0..(int.int.rows.len() / Chip::ROWS_PER_REG) {
             regs.push(HardRowKind::None);
         }
         for (&(c, r), &kind) in cells.iter() {
@@ -454,7 +455,7 @@ fn get_cols_io(
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
             let col = int.lookup_column_inter(x);
-            let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 60);
+            let reg = RegId::from_idx(int.lookup_row(y).to_idx() / Chip::ROWS_PER_REG);
             cells.insert((col, reg), kind);
             let crd = Coord {
                 x: x as u16,
@@ -464,7 +465,11 @@ fn get_cols_io(
             let tk = &int.int.rd.tile_kinds[tile.kind];
             if tt == "HPIO_L" {
                 let sk = int.int.rd.slot_kinds.get("IOB").unwrap();
-                let bi = if int.lookup_row(y).to_idx() % 60 == 0 {
+                let bi = if int
+                    .lookup_row(y)
+                    .to_idx()
+                    .is_multiple_of(Chip::ROWS_PER_REG)
+                {
                     0
                 } else {
                     26
@@ -534,7 +539,7 @@ fn get_cols_io(
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
             let col = int.lookup_column_inter(x) - 1;
-            let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 60);
+            let reg = RegId::from_idx(int.lookup_row(y).to_idx() / Chip::ROWS_PER_REG);
             cells.insert((col, reg), kind);
             let crd = Coord {
                 x: x as u16,
@@ -593,7 +598,7 @@ fn get_cols_io(
     let mut res = Vec::new();
     for col in cols {
         let mut regs = EntityVec::new();
-        for _ in 0..(int.int.rows.len() / 60) {
+        for _ in 0..(int.int.rows.len() / Chip::ROWS_PER_REG) {
             regs.push(IoRowKind::None);
         }
         for (&(c, r), &kind) in cells.iter() {
@@ -746,7 +751,7 @@ pub fn make_grids(
                 ])
                 .is_empty();
 
-        assert_eq!(int.int.rows.len() % 60, 0);
+        assert_eq!(int.int.rows.len() % Chip::ROWS_PER_REG, 0);
         chips.push(Chip {
             kind,
             columns,
@@ -754,7 +759,7 @@ pub fn make_grids(
             cols_fsr_gap,
             cols_hard,
             cols_io,
-            regs: int.int.rows.len() / 60,
+            regs: int.int.rows.len() / Chip::ROWS_PER_REG,
             ps: get_ps(&int),
             has_hbm: int.find_column(&["HBM_DMAH_FT"]).is_some(),
             config_kind: if int.find_column(&["CSEC_CONFIG_VER2_FT"]).is_some() {

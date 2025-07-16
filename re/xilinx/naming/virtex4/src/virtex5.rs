@@ -243,7 +243,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::IOB1, format!("IOB_X{iox}Y{ioy1}"));
             }
             "CMT" => {
-                let naming = if row.to_idx() % 20 == 0 {
+                let naming = if row.to_idx().is_multiple_of(20) {
                     "CMT_BOT"
                 } else {
                     "CMT_TOP"

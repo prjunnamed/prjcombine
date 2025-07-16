@@ -52,16 +52,15 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     let mut die_y: EntityVec<DieId, _> = EntityVec::new();
     let mut row_y = EntityVec::new();
     let mut y = 0.;
-    let rpr = fgrid.rows_per_reg();
     for (_, grid) in &edev.chips {
         let term_y_b = y;
         let mut die_row_y = EntityVec::new();
         y += H_TERM;
         for row in grid.rows() {
-            if row.to_idx() % rpr == 0 {
+            if row.to_idx().is_multiple_of(fgrid.rows_per_reg()) {
                 y += H_BRKH;
             }
-            if row.to_idx() % rpr == rpr / 2 {
+            if row.to_idx() % fgrid.rows_per_reg() == fgrid.rows_per_reg() / 2 {
                 y += H_HCLK;
             }
             die_row_y.push((y, y + H_CLB));
@@ -268,7 +267,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             ChipKind::Virtex7 => {
                                 if matches!(row.to_idx() % 50, 0 | 49) {
                                     1
-                                } else if row.to_idx() % 2 == 0 {
+                                } else if row.to_idx().is_multiple_of(2) {
                                     continue;
                                 } else {
                                     2

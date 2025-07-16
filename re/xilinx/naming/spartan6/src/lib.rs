@@ -207,7 +207,7 @@ impl Namer<'_> {
     }
 
     fn get_ioi_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
-        let is_brk = row.to_idx() % 16 == 0 && row != self.grid.row_clk();
+        let is_brk = row.to_idx().is_multiple_of(16) && row != self.grid.row_clk();
         let cd = self.grid.columns[col];
         let naming = if col == self.grid.col_lio() {
             if is_brk { "LIOI_BRK" } else { "LIOI" }
@@ -413,7 +413,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let cd = grid.columns[col];
                 let x = col.to_idx();
                 let y = row.to_idx();
-                let mut is_brk = y % 16 == 0;
+                let mut is_brk = y.is_multiple_of(16);
                 if y == 0
                     && !matches!(
                         cd.kind,
@@ -437,7 +437,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         && col == hole.col_r - 1
                         && hole.col_l != hole.col_r - 1
                     {
-                        let is_brk = y % 16 == 0 && y != 0;
+                        let is_brk = y.is_multiple_of(16) && y != 0;
                         naming = if is_brk { "INT.TERM.BRK" } else { "INT.TERM" };
                     }
                 }
@@ -449,7 +449,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             "INT.IOI" => {
                 let x = col.to_idx();
                 let y = row.to_idx();
-                let is_brk = y % 16 == 0 && row != grid.row_clk() && y != 0;
+                let is_brk = y.is_multiple_of(16) && row != grid.row_clk() && y != 0;
                 let name = if is_brk {
                     format!("INT_X{x}Y{y}")
                 } else if col == grid.col_lio() {
@@ -476,7 +476,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         name = format!("UL_X{x}Y{y}");
                         naming = "INTF.CNR";
                     } else {
-                        let is_brk = y % 16 == 0 && row != grid.row_clk();
+                        let is_brk = y.is_multiple_of(16) && row != grid.row_clk();
                         let carry = if is_brk { "_CARRY" } else { "" };
                         name = format!("INT_INTERFACE{carry}_X{x}Y{y}");
                     }
@@ -494,7 +494,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         name = format!("UR_UPPER_X{x}Y{y}");
                         naming = "INTF.CNR";
                     } else {
-                        let is_brk = y % 16 == 0 && row != grid.row_clk();
+                        let is_brk = y.is_multiple_of(16) && row != grid.row_clk();
                         let carry = if is_brk { "_CARRY" } else { "" };
                         name = format!("INT_INTERFACE{carry}_X{x}Y{y}");
                     }

@@ -290,20 +290,24 @@ impl std::fmt::Display for DisabledPart {
 }
 
 impl Chip {
+    pub const ROWS_PER_REG: usize = 60;
+
     pub fn row_to_reg(&self, row: RowId) -> RegId {
-        RegId::from_idx(row.to_idx() / 60)
+        RegId::from_idx(row.to_idx() / Chip::ROWS_PER_REG)
     }
 
     pub fn row_reg_bot(&self, reg: RegId) -> RowId {
-        RowId::from_idx(reg.to_idx() * 60)
+        RowId::from_idx(reg.to_idx() * Chip::ROWS_PER_REG)
     }
 
     pub fn row_reg_rclk(&self, reg: RegId) -> RowId {
-        RowId::from_idx(reg.to_idx() * 60 + 30)
+        RowId::from_idx(reg.to_idx() * Chip::ROWS_PER_REG + 30)
     }
 
     pub fn row_rclk(&self, row: RowId) -> RowId {
-        RowId::from_idx(row.to_idx() / 60 * 60 + 30)
+        RowId::from_idx(
+            row.to_idx() / Chip::ROWS_PER_REG * Chip::ROWS_PER_REG + Chip::ROWS_PER_REG / 2,
+        )
     }
 
     pub fn regs(&self) -> EntityIds<RegId> {
@@ -311,7 +315,7 @@ impl Chip {
     }
 
     pub fn rows(&self) -> EntityIds<RowId> {
-        EntityIds::new(self.regs * 60)
+        EntityIds::new(self.regs * Chip::ROWS_PER_REG)
     }
 
     pub fn is_laguna_row(&self, row: RowId) -> bool {
@@ -366,7 +370,7 @@ impl Chip {
     }
 
     pub fn col_side(&self, col: ColId) -> DirH {
-        if col.to_idx() % 2 == 0 {
+        if col.to_idx().is_multiple_of(2) {
             DirH::W
         } else {
             DirH::E

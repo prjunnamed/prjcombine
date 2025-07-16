@@ -1,9 +1,8 @@
-use prjcombine_interconnect::grid::TileCoord;
+use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::{bels, tslots};
-use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
@@ -644,10 +643,9 @@ impl TileRelation for PcieHclkPair {
         let ExpandedDevice::Virtex4(edev) = backend.edev else {
             unreachable!()
         };
-        let col = if tcrd.col.to_idx() % 2 == 0 {
-            tcrd.col - 4
-        } else {
-            tcrd.col - 1
+        let col = match edev.col_side(tcrd.col) {
+            DirH::W => tcrd.col - 4,
+            DirH::E => tcrd.col - 1,
         };
         let row = tcrd.row + edev.chips[tcrd.die].rows_per_reg() / 2;
         Some(tcrd.with_cr(col, row).tile(tslots::HCLK))

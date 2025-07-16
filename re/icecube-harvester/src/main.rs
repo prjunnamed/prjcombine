@@ -406,7 +406,7 @@ impl HarvestContext<'_> {
         get_cached_designs(self.ctx.chip.kind, "gen-noglobal").for_each(|(key, design, result)| {
             self.add_sample(&key, design, result);
             let new_cnt = ctr.fetch_add(1, Ordering::Relaxed) + 1;
-            if new_cnt % 20 == 0 {
+            if new_cnt.is_multiple_of(20) {
                 self.harvester.lock().unwrap().process();
             }
         });
@@ -428,7 +428,7 @@ impl HarvestContext<'_> {
         get_cached_designs(self.ctx.chip.kind, "gen-nocolbuf").for_each(|(key, design, result)| {
             self.add_sample(&key, design, result);
             let new_cnt = ctr.fetch_add(1, Ordering::Relaxed) + 1;
-            if new_cnt % 100 == 0 {
+            if new_cnt.is_multiple_of(100) {
                 self.harvester.lock().unwrap().process();
             }
         });
@@ -452,7 +452,7 @@ impl HarvestContext<'_> {
         get_cached_designs(self.ctx.chip.kind, "gen-full").for_each(|(key, design, result)| {
             self.add_sample(&key, design, result);
             let new_cnt = ctr.fetch_add(1, Ordering::Relaxed) + 1;
-            if new_cnt % 100 == 0 {
+            if new_cnt.is_multiple_of(100) {
                 self.harvester.lock().unwrap().process();
             }
         });

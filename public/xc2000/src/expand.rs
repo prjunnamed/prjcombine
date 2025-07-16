@@ -19,7 +19,7 @@ impl Chip {
             "IO.BS.L"
         } else if col == self.col_e() - 1 {
             "IO.B.R"
-        } else if col.to_idx() % 2 == 0 {
+        } else if col.to_idx().is_multiple_of(2) {
             "IO.B"
         } else {
             "IO.BS"
@@ -32,7 +32,7 @@ impl Chip {
             "IO.TS.L"
         } else if col == self.col_e() - 1 {
             "IO.T.R"
-        } else if col.to_idx() % 2 == 0 {
+        } else if col.to_idx().is_multiple_of(2) {
             "IO.T"
         } else {
             "IO.TS"
@@ -46,18 +46,18 @@ impl Chip {
         } else if row == self.row_n() - 1 {
             "IO.L.T"
         } else if self.kind.is_xl() && row == self.row_qb() {
-            if row.to_idx() % 2 == 0 {
+            if row.to_idx().is_multiple_of(2) {
                 "IO.L.FB"
             } else {
                 "IO.LS.FB"
             }
         } else if self.kind.is_xl() && row == self.row_qt() - 1 {
-            if row.to_idx() % 2 == 0 {
+            if row.to_idx().is_multiple_of(2) {
                 "IO.L.FT"
             } else {
                 "IO.LS.FT"
             }
-        } else if row.to_idx() % 2 == 0 {
+        } else if row.to_idx().is_multiple_of(2) {
             "IO.L"
         } else {
             "IO.LS"
@@ -81,18 +81,18 @@ impl Chip {
         } else if row == self.row_n() - 1 {
             "IO.R.T"
         } else if self.kind.is_xl() && row == row_f {
-            if row.to_idx() % 2 == 0 {
+            if row.to_idx().is_multiple_of(2) {
                 "IO.R.FB"
             } else {
                 "IO.RS.FB"
             }
         } else if self.kind.is_xl() && row == row_f1 {
-            if row.to_idx() % 2 == 0 {
+            if row.to_idx().is_multiple_of(2) {
                 "IO.R.FT"
             } else {
                 "IO.RS.FT"
             }
-        } else if row.to_idx() % 2 == 0 {
+        } else if row.to_idx().is_multiple_of(2) {
             "IO.R"
         } else {
             "IO.RS"

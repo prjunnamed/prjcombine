@@ -227,7 +227,7 @@ impl Chip {
     }
 
     pub fn is_reg_half(&self, reg: RegId) -> bool {
-        reg.to_idx() % 2 == 0 && reg.to_idx() == self.regs - 1
+        reg.to_idx().is_multiple_of(2) && reg.to_idx() == self.regs - 1
     }
 
     pub fn regs(&self) -> EntityIds<RegId> {
@@ -254,7 +254,7 @@ impl Chip {
     }
 
     pub fn col_side(&self, col: ColId) -> DirH {
-        if col.to_idx() % 2 == 0 {
+        if col.to_idx().is_multiple_of(2) {
             DirH::W
         } else {
             DirH::E

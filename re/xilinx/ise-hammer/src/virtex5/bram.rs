@@ -904,7 +904,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut diffs_l = vec![];
             let mut diffs_u = vec![];
             for (i, diff) in diffs.into_iter().enumerate() {
-                if i % 2 == 0 {
+                if i.is_multiple_of(2) {
                     diffs_l.push(diff);
                 } else {
                     diffs_u.push(diff);
@@ -942,14 +942,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diffs_b_l = vec![];
         let mut diffs_b_u = vec![];
         for (i, diff) in diffs_a.into_iter().enumerate() {
-            if i % 2 == 0 {
+            if i.is_multiple_of(2) {
                 diffs_a_l.push(diff);
             } else {
                 diffs_a_u.push(diff);
             }
         }
         for (i, diff) in diffs_b.into_iter().enumerate() {
-            if i % 2 == 0 {
+            if i.is_multiple_of(2) {
                 diffs_b_l.push(diff);
             } else {
                 diffs_b_u.push(diff);
@@ -1302,7 +1302,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut data_l = vec![];
         let mut data_u = vec![];
         for (i, diff) in data.into_iter().enumerate() {
-            if i % 2 == 0 {
+            if i.is_multiple_of(2) {
                 data_l.push(diff);
             } else {
                 data_u.push(diff);
@@ -1311,7 +1311,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut datap_l = vec![];
         let mut datap_u = vec![];
         for (i, diff) in datap.into_iter().enumerate() {
-            if i % 2 == 0 {
+            if i.is_multiple_of(2) {
                 datap_l.push(diff);
             } else {
                 datap_u.push(diff);
