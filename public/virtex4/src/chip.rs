@@ -48,6 +48,17 @@ pub enum ChipKind {
     Virtex7,
 }
 
+impl std::fmt::Display for ChipKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ChipKind::Virtex4 => write!(f, "virtex4"),
+            ChipKind::Virtex5 => write!(f, "virtex5"),
+            ChipKind::Virtex6 => write!(f, "virtex6"),
+            ChipKind::Virtex7 => write!(f, "virtex7"),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ColumnKind {
     ClbLL,
@@ -61,11 +72,37 @@ pub enum ColumnKind {
     Clk,
 }
 
+impl std::fmt::Display for ColumnKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ColumnKind::Io => write!(f, "IO"),
+            ColumnKind::ClbLL => write!(f, "CLBLL"),
+            ColumnKind::ClbLM => write!(f, "CLBLM"),
+            ColumnKind::Bram => write!(f, "BRAM"),
+            ColumnKind::Dsp => write!(f, "DSP"),
+            ColumnKind::Gt => write!(f, "GT"),
+            ColumnKind::Cmt => write!(f, "CMT"),
+            ColumnKind::Clk => write!(f, "CLK"),
+            ColumnKind::Cfg => write!(f, "CFG"),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum CfgRowKind {
     Dcm,
     Ccm,
     Sysmon,
+}
+
+impl std::fmt::Display for CfgRowKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CfgRowKind::Dcm => write!(f, "DCM"),
+            CfgRowKind::Ccm => write!(f, "CCM"),
+            CfgRowKind::Sysmon => write!(f, "SYSMON"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -75,10 +112,29 @@ pub enum GtKind {
     Gth,
 }
 
+impl std::fmt::Display for GtKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GtKind::Gtp => write!(f, "GTP"),
+            GtKind::Gtx => write!(f, "GTX"),
+            GtKind::Gth => write!(f, "GTH"),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum IoKind {
     Hpio,
     Hrio,
+}
+
+impl std::fmt::Display for IoKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            IoKind::Hpio => write!(f, "HPIO"),
+            IoKind::Hrio => write!(f, "HRIO"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -105,6 +161,15 @@ pub struct HardColumn {
 pub enum Pcie2Kind {
     Left,
     Right,
+}
+
+impl std::fmt::Display for Pcie2Kind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Pcie2Kind::Left => write!(f, "LEFT"),
+            Pcie2Kind::Right => write!(f, "RIGHT"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -259,8 +324,7 @@ impl From<&IoColumn> for JsonValue {
             col: ioc.col.to_idx(),
             regs: Vec::from_iter(ioc.regs.values().map(|kind| match kind {
                 None => JsonValue::Null,
-                Some(IoKind::Hpio) => "HPIO".into(),
-                Some(IoKind::Hrio) => "HRIO".into(),
+                Some(kind) => kind.to_string().into(),
             }))
         }
     }
@@ -273,9 +337,7 @@ impl From<&GtColumn> for JsonValue {
             is_middle: gtc.is_middle,
             regs: Vec::from_iter(gtc.regs.values().map(|kind| match kind {
                 None => JsonValue::Null,
-                Some(GtKind::Gtp) => "GTP".into(),
-                Some(GtKind::Gtx) => "GTX".into(),
-                Some(GtKind::Gth) => "GTH".into(),
+                Some(kind) => kind.to_string().into(),
             }))
         }
     }
@@ -284,23 +346,8 @@ impl From<&GtColumn> for JsonValue {
 impl From<&Chip> for JsonValue {
     fn from(chip: &Chip) -> Self {
         jzon::object! {
-            kind: match chip.kind {
-                ChipKind::Virtex4 => "virtex4",
-                ChipKind::Virtex5 => "virtex5",
-                ChipKind::Virtex6 => "virtex6",
-                ChipKind::Virtex7 => "virtex7",
-            },
-            columns: Vec::from_iter(chip.columns.values().map(|kind| match kind {
-                ColumnKind::ClbLL => "CLBLL".to_string(),
-                ColumnKind::ClbLM => "CLBLM".to_string(),
-                ColumnKind::Bram => "BRAM".to_string(),
-                ColumnKind::Dsp => "DSP".to_string(),
-                ColumnKind::Io => "IO".to_string(),
-                ColumnKind::Cfg => "CFG".to_string(),
-                ColumnKind::Gt => "GT".to_string(),
-                ColumnKind::Cmt => "CMT".to_string(),
-                ColumnKind::Clk => "CLK".to_string(),
-            })),
+            kind: chip.kind.to_string(),
+            columns: Vec::from_iter(chip.columns.values().map(|kind| kind.to_string())),
             cols_vbrk: Vec::from_iter(chip.cols_vbrk.iter().map(|col| col.to_idx())),
             cols_mgt_buf: Vec::from_iter(chip.cols_mgt_buf.iter().map(|col| col.to_idx())),
             cols_qbuf: chip.cols_qbuf.map(|(col_l, col_r)| jzon::array![col_l.to_idx(), col_r.to_idx()]),
@@ -311,18 +358,11 @@ impl From<&Chip> for JsonValue {
             reg_cfg: chip.reg_cfg.to_idx(),
             reg_clk: chip.reg_clk.to_idx(),
             rows_cfg: jzon::object::Object::from_iter(chip.rows_cfg.iter().map(|(row, kind)|
-                (row.to_string(), match kind {
-                    CfgRowKind::Dcm => "DCM",
-                    CfgRowKind::Ccm => "CCM",
-                    CfgRowKind::Sysmon => "SYSMON",
-                })
+                (row.to_string(), kind.to_string())
             )),
             holes_ppc: Vec::from_iter(chip.holes_ppc.iter().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
             holes_pcie2: Vec::from_iter(chip.holes_pcie2.iter().map(|hole| jzon::object! {
-                kind: match hole.kind {
-                    Pcie2Kind::Left => "LEFT",
-                    Pcie2Kind::Right => "RIGHT",
-                },
+                kind: hole.kind.to_string(),
                 col: hole.col.to_idx(),
                 row: hole.row.to_idx(),
             })),
@@ -346,7 +386,7 @@ impl From<&Interposer> for JsonValue {
 
 impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {v:?}", v = self.kind)?;
+        writeln!(f, "\tKIND: {k}", k = self.kind)?;
         if self.has_ps {
             writeln!(f, "\tHAS PS")?;
         }
@@ -361,18 +401,7 @@ impl std::fmt::Display for Chip {
             if self.cols_vbrk.contains(&col) {
                 writeln!(f, "\t\t--- break")?;
             }
-            write!(f, "\t\t{col}: ")?;
-            match cd {
-                ColumnKind::Io => write!(f, "IO")?,
-                ColumnKind::ClbLL => write!(f, "CLBLL")?,
-                ColumnKind::ClbLM => write!(f, "CLBLM")?,
-                ColumnKind::Bram => write!(f, "BRAM")?,
-                ColumnKind::Dsp => write!(f, "DSP")?,
-                ColumnKind::Gt => write!(f, "GT")?,
-                ColumnKind::Cmt => write!(f, "CMT")?,
-                ColumnKind::Clk => write!(f, "CLK")?,
-                ColumnKind::Cfg => write!(f, "CFG")?,
-            }
+            write!(f, "\t\t{col}: {cd}")?;
             if self.cols_mgt_buf.contains(&col) {
                 write!(f, " MGT_BUF")?;
             }
@@ -396,7 +425,7 @@ impl std::fmt::Display for Chip {
                 if ioc.col == col {
                     for (reg, kind) in &ioc.regs {
                         if let Some(kind) = kind {
-                            writeln!(f, "\t\t\t{row}: {kind:?}", row = self.row_reg_bot(reg))?;
+                            writeln!(f, "\t\t\t{row}: {kind}", row = self.row_reg_bot(reg))?;
                         }
                     }
                 }
@@ -406,14 +435,14 @@ impl std::fmt::Display for Chip {
                     let mid = if gtc.is_middle { "MID " } else { "" };
                     for (reg, kind) in &gtc.regs {
                         if let Some(kind) = kind {
-                            writeln!(f, "\t\t\t{row}: {mid}{kind:?}", row = self.row_reg_bot(reg))?;
+                            writeln!(f, "\t\t\t{row}: {mid}{kind}", row = self.row_reg_bot(reg))?;
                         }
                     }
                 }
             }
             if cd == ColumnKind::Cfg {
                 for &(row, kind) in &self.rows_cfg {
-                    writeln!(f, "\t\t\t{row}: {kind:?}")?;
+                    writeln!(f, "\t\t\t{row}: {kind}")?;
                 }
             }
         }

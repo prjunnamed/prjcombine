@@ -111,12 +111,37 @@ pub enum ColumnKind {
     DspPlus,
 }
 
+impl std::fmt::Display for ColumnKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ColumnKind::Io => write!(f, "IO"),
+            ColumnKind::CleXL => write!(f, "CLEXL"),
+            ColumnKind::CleXM => write!(f, "CLEXM"),
+            ColumnKind::CleClk => write!(f, "CLEXL_CLK"),
+            ColumnKind::Bram => write!(f, "BRAM"),
+            ColumnKind::Dsp => write!(f, "DSP"),
+            ColumnKind::DspPlus => write!(f, "DSP_PLUS"),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ColumnIoKind {
     None,
     Both,
     Inner,
     Outer,
+}
+
+impl std::fmt::Display for ColumnIoKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ColumnIoKind::None => write!(f, "NONE"),
+            ColumnIoKind::Both => write!(f, "BOTH"),
+            ColumnIoKind::Outer => write!(f, "OUTER"),
+            ColumnIoKind::Inner => write!(f, "INNER"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -477,27 +502,9 @@ impl From<&Chip> for JsonValue {
         jzon::object! {
             columns: Vec::from_iter(chip.columns.values().map(|column| {
                 jzon::object! {
-                    kind: match column.kind {
-                        ColumnKind::Io => "IO",
-                        ColumnKind::CleXL => "CLEXL",
-                        ColumnKind::CleXM => "CLEXM",
-                        ColumnKind::CleClk => "CLEXL_CLK",
-                        ColumnKind::Bram => "BRAM",
-                        ColumnKind::Dsp => "DSP",
-                        ColumnKind::DspPlus => "DSP_PLUS",
-                    },
-                    bio: match column.bio {
-                        ColumnIoKind::None => "NONE",
-                        ColumnIoKind::Both => "BOTH",
-                        ColumnIoKind::Outer => "OUTER",
-                        ColumnIoKind::Inner => "INNER",
-                    },
-                    tio: match column.tio {
-                        ColumnIoKind::None => "NONE",
-                        ColumnIoKind::Both => "BOTH",
-                        ColumnIoKind::Outer => "OUTER",
-                        ColumnIoKind::Inner => "INNER",
-                    },
+                    kind: column.kind.to_string(),
+                    bio: column.bio.to_string(),
+                    tio: column.tio.to_string(),
                 }
             })),
             col_clk: chip.col_clk.to_idx(),

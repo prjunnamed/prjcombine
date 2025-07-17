@@ -15,6 +15,16 @@ pub enum ChipKind {
     VirtexEM,
 }
 
+impl std::fmt::Display for ChipKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ChipKind::Virtex => write!(f, "virtex"),
+            ChipKind::VirtexE => write!(f, "virtexe"),
+            ChipKind::VirtexEM => write!(f, "virtexem"),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SharedCfgPad {
     Data(u8), // ×8
@@ -210,11 +220,7 @@ impl Chip {
 impl From<&Chip> for JsonValue {
     fn from(chip: &Chip) -> Self {
         jzon::object! {
-            kind: match chip.kind {
-                ChipKind::Virtex => "virtex",
-                ChipKind::VirtexE => "virtexe",
-                ChipKind::VirtexEM => "virtexem",
-            },
+            kind: chip.kind.to_string(),
             columns: chip.columns,
             cols_bram: Vec::from_iter(chip.cols_bram.iter().map(|x| x.to_idx())),
             cols_clkv: Vec::from_iter(chip.cols_clkv.iter().map(|(col_mid, col_start, col_end)| {
@@ -230,7 +236,7 @@ impl From<&Chip> for JsonValue {
 
 impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {k:?}", k = self.kind)?;
+        writeln!(f, "\tKIND: {k}", k = self.kind)?;
         writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;
         writeln!(f, "\tCOLS:")?;
         let mut clkv_idx = 0;

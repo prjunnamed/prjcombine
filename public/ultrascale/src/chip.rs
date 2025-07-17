@@ -23,6 +23,15 @@ pub enum ChipKind {
     UltrascalePlus,
 }
 
+impl std::fmt::Display for ChipKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ChipKind::Ultrascale => write!(f, "ultrascale"),
+            ChipKind::UltrascalePlus => write!(f, "ultrascaleplus"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Interposer {
     pub primary: DieId,
@@ -196,6 +205,26 @@ pub enum HardRowKind {
     DfeG,
 }
 
+impl std::fmt::Display for HardRowKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            HardRowKind::None => write!(f, "NONE"),
+            HardRowKind::Cfg => write!(f, "CFG"),
+            HardRowKind::Ams => write!(f, "AMS"),
+            HardRowKind::Pcie => write!(f, "PCIE"),
+            HardRowKind::Pcie4C => write!(f, "PCIE4C"),
+            HardRowKind::Pcie4CE => write!(f, "PCIE4CE"),
+            HardRowKind::Cmac => write!(f, "CMAC"),
+            HardRowKind::Ilkn => write!(f, "ILKN"),
+            HardRowKind::DfeA => write!(f, "DFE_A"),
+            HardRowKind::DfeG => write!(f, "DFE_G"),
+            HardRowKind::Hdio => write!(f, "HDIO"),
+            HardRowKind::HdioAms => write!(f, "HDIO:AMS"),
+            HardRowKind::HdioL => write!(f, "HDIOL"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct HardColumn {
     pub col: ColId,
@@ -217,6 +246,26 @@ pub enum IoRowKind {
     HsDac,
     RfAdc,
     RfDac,
+}
+
+impl std::fmt::Display for IoRowKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            IoRowKind::None => write!(f, "NONE"),
+            IoRowKind::Hpio => write!(f, "HPIO"),
+            IoRowKind::Hrio => write!(f, "HRIO"),
+            IoRowKind::HdioL => write!(f, "HDIOL"),
+            IoRowKind::Xp5io => write!(f, "XP5IO"),
+            IoRowKind::Gth => write!(f, "GTH"),
+            IoRowKind::Gty => write!(f, "GTY"),
+            IoRowKind::Gtm => write!(f, "GTM"),
+            IoRowKind::Gtf => write!(f, "GTF"),
+            IoRowKind::HsAdc => write!(f, "HSADC"),
+            IoRowKind::HsDac => write!(f, "HSDAC"),
+            IoRowKind::RfAdc => write!(f, "RFADC"),
+            IoRowKind::RfDac => write!(f, "RFDAC"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -406,20 +455,10 @@ impl From<&HardColumn> for JsonValue {
     fn from(hcol: &HardColumn) -> Self {
         jzon::object! {
             col: hcol.col.to_idx(),
-            regs: Vec::from_iter(hcol.regs.values().map(|kind| match kind {
-                HardRowKind::None => JsonValue::Null,
-                HardRowKind::Cfg => "CFG".into(),
-                HardRowKind::Ams => "AMS".into(),
-                HardRowKind::Pcie => "PCIE".into(),
-                HardRowKind::Pcie4C => "PCIE4C".into(),
-                HardRowKind::Pcie4CE => "PCIE4CE".into(),
-                HardRowKind::Cmac => "CMAC".into(),
-                HardRowKind::Ilkn => "ILKN".into(),
-                HardRowKind::DfeA => "DFE_A".into(),
-                HardRowKind::DfeG => "DFE_G".into(),
-                HardRowKind::Hdio => "HDIO".into(),
-                HardRowKind::HdioAms => "HDIO:AMS".into(),
-                HardRowKind::HdioL => "HDIOL".into(),
+            regs: Vec::from_iter(hcol.regs.values().map(|&kind| if kind == HardRowKind::None {
+                JsonValue::Null
+            } else {
+                kind.to_string().into()
             })),
         }
     }
@@ -429,20 +468,10 @@ impl From<&IoColumn> for JsonValue {
     fn from(iocol: &IoColumn) -> Self {
         jzon::object! {
             col: iocol.col.to_idx(),
-            regs: Vec::from_iter(iocol.regs.values().map(|kind| match kind {
-                IoRowKind::None => JsonValue::Null,
-                IoRowKind::Hpio => "HPIO".into(),
-                IoRowKind::Hrio => "HRIO".into(),
-                IoRowKind::HdioL => "HDIOL".into(),
-                IoRowKind::Xp5io => "XP5IO".into(),
-                IoRowKind::Gth => "GTH".into(),
-                IoRowKind::Gty => "GTY".into(),
-                IoRowKind::Gtm => "GTM".into(),
-                IoRowKind::Gtf => "GTF".into(),
-                IoRowKind::HsAdc => "HSADC".into(),
-                IoRowKind::HsDac => "HSDAC".into(),
-                IoRowKind::RfAdc => "RFADC".into(),
-                IoRowKind::RfDac => "RFDAC".into(),
+            regs: Vec::from_iter(iocol.regs.values().map(|&kind| if kind == IoRowKind::None {
+                JsonValue::Null
+            } else {
+                kind.to_string().into()
             })),
         }
     }
@@ -451,10 +480,7 @@ impl From<&IoColumn> for JsonValue {
 impl From<&Chip> for JsonValue {
     fn from(chip: &Chip) -> Self {
         jzon::object! {
-            kind: match chip.kind {
-                ChipKind::Ultrascale => "ultrascale",
-                ChipKind::UltrascalePlus => "ultrascaleplus",
-            },
+            kind: chip.kind.to_string(),
             columns: Vec::from_iter(chip.columns.values().map(|column| jzon::object! {
                 kind: column.kind.to_string(),
                 clk: column.clk.to_vec(),
@@ -489,7 +515,7 @@ impl From<&Interposer> for JsonValue {
 
 impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {v:?}", v = self.kind)?;
+        writeln!(f, "\tKIND: {k}", k = self.kind)?;
         if let Some(ps) = self.ps {
             write!(f, "\tPS {v:?}", v = ps.intf_kind)?;
             if ps.has_vcu {
@@ -550,13 +576,13 @@ impl std::fmt::Display for Chip {
             if let ColumnKind::Io(idx) | ColumnKind::Gt(idx) = cd.kind {
                 let ioc = &self.cols_io[idx];
                 for (reg, kind) in &ioc.regs {
-                    writeln!(f, "\t\t\t{y}: {kind:?}", y = self.row_reg_bot(reg))?;
+                    writeln!(f, "\t\t\t{y}: {kind}", y = self.row_reg_bot(reg))?;
                 }
             }
             if let ColumnKind::Hard(_, idx) = cd.kind {
                 let hc = &self.cols_hard[idx];
                 for (reg, kind) in &hc.regs {
-                    writeln!(f, "\t\t\t{y}: {kind:?}", y = self.row_reg_bot(reg))?;
+                    writeln!(f, "\t\t\t{y}: {kind}", y = self.row_reg_bot(reg))?;
                 }
             }
         }

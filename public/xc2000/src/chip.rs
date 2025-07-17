@@ -77,6 +77,25 @@ pub enum ChipKind {
     Xc5200,
 }
 
+impl std::fmt::Display for ChipKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ChipKind::Xc2000 => write!(f, "xc2000"),
+            ChipKind::Xc3000 => write!(f, "xc3000"),
+            ChipKind::Xc3000A => write!(f, "xc3000a"),
+            ChipKind::Xc4000 => write!(f, "xc4000"),
+            ChipKind::Xc4000A => write!(f, "xc4000a"),
+            ChipKind::Xc4000H => write!(f, "xc4000h"),
+            ChipKind::Xc4000E => write!(f, "xc4000e"),
+            ChipKind::Xc4000Ex => write!(f, "xc4000ex"),
+            ChipKind::Xc4000Xla => write!(f, "xc4000xla"),
+            ChipKind::Xc4000Xv => write!(f, "xc4000xv"),
+            ChipKind::SpartanXl => write!(f, "spartanxl"),
+            ChipKind::Xc5200 => write!(f, "xc5200"),
+        }
+    }
+}
+
 impl ChipKind {
     pub fn is_xc3000(self) -> bool {
         matches!(self, Self::Xc3000 | Self::Xc3000A)
@@ -542,20 +561,7 @@ impl Chip {
 impl From<&Chip> for JsonValue {
     fn from(chip: &Chip) -> Self {
         jzon::object! {
-            kind: match chip.kind {
-                ChipKind::Xc2000 => "xc2000",
-                ChipKind::Xc3000 => "xc3000",
-                ChipKind::Xc3000A => "xc3000a",
-                ChipKind::Xc4000 => "xc4000",
-                ChipKind::Xc4000A => "xc4000a",
-                ChipKind::Xc4000H => "xc4000h",
-                ChipKind::Xc4000E => "xc4000e",
-                ChipKind::Xc4000Ex => "xc4000ex",
-                ChipKind::Xc4000Xla => "xc4000xla",
-                ChipKind::Xc4000Xv => "xc4000xv",
-                ChipKind::SpartanXl => "spartanxl",
-                ChipKind::Xc5200 => "xc5200",
-            },
+            kind: chip.kind.to_string(),
             columns: chip.columns,
             rows: chip.rows,
             is_small: chip.is_small,
@@ -572,7 +578,7 @@ impl From<&Chip> for JsonValue {
 
 impl Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {:?}", self.kind)?;
+        writeln!(f, "\tKIND: {k}", k = self.kind)?;
         writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;
         writeln!(f, "\tSMALL: {}", self.is_small)?;
         writeln!(f, "\tBUFF LARGE: {v}", v = self.is_buff_large)?;

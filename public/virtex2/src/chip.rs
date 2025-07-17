@@ -25,6 +25,21 @@ pub enum ChipKind {
     Spartan3ADsp,
 }
 
+impl std::fmt::Display for ChipKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ChipKind::Virtex2 => write!(f, "virtex2"),
+            ChipKind::Virtex2P => write!(f, "virtex2p"),
+            ChipKind::Virtex2PX => write!(f, "virtex2px"),
+            ChipKind::Spartan3 => write!(f, "spartan3"),
+            ChipKind::Spartan3E => write!(f, "spartan3e"),
+            ChipKind::Spartan3A => write!(f, "spartan3a"),
+            ChipKind::Spartan3ADsp => write!(f, "spartan3adsp"),
+            ChipKind::FpgaCore => write!(f, "fpgacore"),
+        }
+    }
+}
+
 impl ChipKind {
     pub fn is_virtex2(self) -> bool {
         matches!(self, Self::Virtex2 | Self::Virtex2P | Self::Virtex2PX)
@@ -81,6 +96,18 @@ pub enum ColumnKind {
     Dsp,
 }
 
+impl std::fmt::Display for ColumnKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            ColumnKind::Io => write!(f, "IO"),
+            ColumnKind::Clb => write!(f, "CLB"),
+            ColumnKind::Bram => write!(f, "BRAM"),
+            ColumnKind::BramCont(i) => write!(f, "BRAM_CONT:{i}"),
+            ColumnKind::Dsp => write!(f, "DSP"),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ColumnIoKind {
     None,
@@ -97,6 +124,25 @@ pub enum ColumnIoKind {
     DoubleRightClk(u8),
 }
 
+impl std::fmt::Display for ColumnIoKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            ColumnIoKind::None => write!(f, "NONE"),
+            ColumnIoKind::Single => write!(f, "SINGLE"),
+            ColumnIoKind::Double(i) => write!(f, "DOUBLE:{i}"),
+            ColumnIoKind::Triple(i) => write!(f, "TRIPLE:{i}"),
+            ColumnIoKind::Quad(i) => write!(f, "QUAD:{i}"),
+            ColumnIoKind::SingleLeft => write!(f, "SINGLE_LEFT"),
+            ColumnIoKind::SingleRight => write!(f, "SINGLE_RIGHT"),
+            ColumnIoKind::SingleLeftAlt => write!(f, "SINGLE_LEFT_ALT"),
+            ColumnIoKind::SingleRightAlt => write!(f, "SINGLE_RIGHT_ALT"),
+            ColumnIoKind::DoubleLeft(i) => write!(f, "DOUBLE_LEFT:{i}"),
+            ColumnIoKind::DoubleRight(i) => write!(f, "DOUBLE_RIGHT:{i}"),
+            ColumnIoKind::DoubleRightClk(i) => write!(f, "DOUBLE_RIGHT_CLK:{i}"),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum RowIoKind {
     None,
@@ -106,6 +152,20 @@ pub enum RowIoKind {
     Quad(u8),
     DoubleBot(u8),
     DoubleTop(u8),
+}
+
+impl std::fmt::Display for RowIoKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            RowIoKind::None => write!(f, "NONE"),
+            RowIoKind::Single => write!(f, "SINGLE"),
+            RowIoKind::Double(i) => write!(f, "DOUBLE:{i}"),
+            RowIoKind::Triple(i) => write!(f, "TRIPLE:{i}"),
+            RowIoKind::Quad(i) => write!(f, "QUAD:{i}"),
+            RowIoKind::DoubleBot(i) => write!(f, "DOUBLE_BOT:{i}"),
+            RowIoKind::DoubleTop(i) => write!(f, "DOUBLE_TOP:{i}"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -798,55 +858,27 @@ impl Chip {
 impl From<&Chip> for JsonValue {
     fn from(chip: &Chip) -> Self {
         jzon::object! {
-            kind: match chip.kind {
-                ChipKind::Virtex2 => "virtex2",
-                ChipKind::Virtex2P => "virtex2p",
-                ChipKind::Virtex2PX => "virtex2px",
-                ChipKind::Spartan3 => "spartan3",
-                ChipKind::Spartan3E => "spartan3e",
-                ChipKind::Spartan3A => "spartan3a",
-                ChipKind::Spartan3ADsp => "spartan3adsp",
-                ChipKind::FpgaCore => "fpgacore",
-            },
+            kind: chip.kind.to_string(),
             columns: Vec::from_iter(chip.columns.values().map(|column| {
                 jzon::object! {
-                    kind: match column.kind {
-                        ColumnKind::Io => "IO".to_string(),
-                        ColumnKind::Clb => "CLB".to_string(),
-                        ColumnKind::Bram => "BRAM".to_string(),
-                        ColumnKind::BramCont(i) => format!("BRAM_CONT:{i}"),
-                        ColumnKind::Dsp => "DSP".to_string(),
-                    },
-                    io: match column.io {
-                        ColumnIoKind::None => JsonValue::Null,
-                        ColumnIoKind::Single => "SINGLE".into(),
-                        ColumnIoKind::Double(i) => format!("DOUBLE:{i}").into(),
-                        ColumnIoKind::Triple(i) => format!("TRIPLE:{i}").into(),
-                        ColumnIoKind::Quad(i) => format!("QUAD:{i}").into(),
-                        ColumnIoKind::SingleLeft => "SINGLE_LEFT".into(),
-                        ColumnIoKind::SingleRight => "SINGLE_RIGHT".into(),
-                        ColumnIoKind::SingleLeftAlt => "SINGLE_LEFT_ALT".into(),
-                        ColumnIoKind::SingleRightAlt => "SINGLE_RIGHT_ALT".into(),
-                        ColumnIoKind::DoubleLeft(i) => format!("DOUBLE_LEFT:{i}").into(),
-                        ColumnIoKind::DoubleRight(i) => format!("DOUBLE_RIGHT:{i}").into(),
-                        ColumnIoKind::DoubleRightClk(i) => format!("DOUBLE_RIGHT_CLK:{i}").into(),
+                    kind: column.kind.to_string(),
+                    io: if column.io == ColumnIoKind::None {
+                        JsonValue::Null
+                    } else {
+                        column.io.to_string().into()
                     },
                 }
             })),
             cols_clkv: chip.cols_clkv.map(|(col_l, col_r)| jzon::array![col_l.to_idx(), col_r.to_idx()]),
-            "cols_gt": Vec::from_iter(chip.cols_gt.iter().map(|(col, (bank_b, bank_t))| jzon::object! {
+            cols_gt: Vec::from_iter(chip.cols_gt.iter().map(|(col, (bank_b, bank_t))| jzon::object! {
                 column: col.to_idx(),
                 bank_b: *bank_b,
                 bank_t: *bank_t,
             })),
-            rows: Vec::from_iter(chip.rows.values().map(|io| match io {
-                RowIoKind::None => JsonValue::Null,
-                RowIoKind::Single => "SINGLE".into(),
-                RowIoKind::Double(i) => format!("DOUBLE:{i}").into(),
-                RowIoKind::Triple(i) => format!("TRIPLE:{i}").into(),
-                RowIoKind::Quad(i) => format!("QUAD:{i}").into(),
-                RowIoKind::DoubleBot(i) => format!("DOUBLE_BOT:{i}").into(),
-                RowIoKind::DoubleTop(i) => format!("DOUBLE_TOP:{i}").into(),
+            rows: Vec::from_iter(chip.rows.values().map(|&io| if io == RowIoKind::None {
+                JsonValue::Null
+            } else {
+                io.to_string().into()
             })),
             rows_ram: chip.rows_ram.map(|(row_b, row_t)| jzon::array![row_b.to_idx(), row_t.to_idx()]),
             rows_hclk: Vec::from_iter(chip.rows_hclk.iter().map(|(row_mid, row_start, row_end)| {
@@ -884,7 +916,7 @@ impl From<&Chip> for JsonValue {
 
 impl std::fmt::Display for Chip {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {k:?}", k = self.kind)?;
+        writeln!(f, "\tKIND: {k}", k = self.kind)?;
         writeln!(f, "\tCOLS:")?;
         for (col, cd) in &self.columns {
             if let Some((cl, cr)) = self.cols_clkv {
