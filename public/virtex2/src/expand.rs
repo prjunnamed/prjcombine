@@ -183,7 +183,7 @@ impl Expander<'_, '_> {
                 }
             }
             if !self.chip.kind.is_virtex2() && self.chip.kind != ChipKind::FpgaCore {
-                self.die.add_tile((col, row), "RANDOR", &[(col, row)]);
+                self.die.add_tile((col, row), "RANDOR", &[]);
             }
         }
     }

@@ -226,11 +226,22 @@ pub fn make_intdb() -> IntDb {
         db.conn_classes.insert(format!("MAIN.{dir}"), term);
     }
 
-    for name in [
-        "CLB", "CLB.L", "CLB.R", "CLB.B", "CLB.BL", "CLB.BR", "CLB.T", "CLB.TL", "CLB.TR",
-        "CLB.ML", "CLB.MR", "CLB.BR1", "CLB.TR1",
+    for (name, num_cells) in [
+        ("CLB", 1),
+        ("CLB.L", 2),
+        ("CLB.R", 2),
+        ("CLB.B", 2),
+        ("CLB.BL", 2),
+        ("CLB.BR", 1),
+        ("CLB.T", 2),
+        ("CLB.TL", 3),
+        ("CLB.TR", 2),
+        ("CLB.ML", 2),
+        ("CLB.MR", 2),
+        ("CLB.BR1", 2),
+        ("CLB.TR1", 2),
     ] {
-        let mut tcls = TileClass::new(tslots::MAIN, 1);
+        let mut tcls = TileClass::new(tslots::MAIN, num_cells);
         tcls.bels
             .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
 

@@ -2113,6 +2113,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "RANDOR.T",
         &bels_randor_t,
     );
+    builder
+        .db
+        .tile_classes
+        .get_mut("RANDOR")
+        .unwrap()
+        .1
+        .cells
+        .clear();
     builder.make_marker_node(tslots::RANDOR, "RANDOR_INIT", 0);
     if rd.family == "spartan3" {
         let bels_dcm = [builder.bel_xy(bels::DCM, "DCM", 0, 0)];
@@ -3350,7 +3358,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     "PCI_CE_N",
                     xy,
                     &[],
-                    &[xy],
+                    &[],
                     "PCI_CE_N",
                     &[builder
                         .bel_virtual(bels::PCI_CE_N)
@@ -3366,7 +3374,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     "PCI_CE_S",
                     xy,
                     &[],
-                    &[xy],
+                    &[],
                     "PCI_CE_S",
                     &[builder
                         .bel_virtual(bels::PCI_CE_S)
@@ -3387,6 +3395,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("O", &["PCI_CE_EW"])],
             );
         }
+        builder
+            .db
+            .tile_classes
+            .get_mut("PCI_CE_CNR")
+            .unwrap()
+            .1
+            .cells
+            .clear();
         if rd.family == "spartan3a" {
             for &xy in rd.tiles_by_kind_name("GCLKV_IOISL") {
                 builder.extract_xnode_bels(
@@ -3394,7 +3410,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     "PCI_CE_E",
                     xy,
                     &[],
-                    &[xy],
+                    &[],
                     "PCI_CE_E",
                     &[builder
                         .bel_virtual(bels::PCI_CE_E)
@@ -3408,7 +3424,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     "PCI_CE_W",
                     xy,
                     &[],
-                    &[xy],
+                    &[],
                     "PCI_CE_W",
                     &[builder
                         .bel_virtual(bels::PCI_CE_W)
@@ -3521,7 +3537,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             for i in 0..8 {
                 bel = bel.extra_wire(format!("OUT{i}"), &[format!("CLKC_GCLK{i}")]);
             }
-            builder.extract_xnode_bels(tslots::CLK, "CLKC", xy, &[], &[xy], "CLKC", &[bel]);
+            builder.extract_xnode_bels(tslots::CLK, "CLKC", xy, &[], &[], "CLKC", &[bel]);
         }
     }
 
@@ -3539,7 +3555,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_L{i}"), &[format!("CLKC_50A_GCLK_OUT_LH{i}")])
                 .extra_wire(format!("OUT_R{i}"), &[format!("CLKC_50A_GCLK_OUT_RH{i}")]);
         }
-        builder.extract_xnode_bels(tslots::CLK, "CLKC_50A", xy, &[], &[xy], "CLKC_50A", &[bel]);
+        builder.extract_xnode_bels(tslots::CLK, "CLKC_50A", xy, &[], &[], "CLKC_50A", &[bel]);
     }
 
     for &xy in rd.tiles_by_kind_name("GCLKVM") {
@@ -3550,15 +3566,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_B{i}"), &[format!("GCLKVM_GCLK_DN{i}")])
                 .extra_wire(format!("OUT_T{i}"), &[format!("GCLKVM_GCLK_UP{i}")]);
         }
-        builder.extract_xnode_bels(
-            tslots::CLK,
-            "GCLKVM.S3",
-            xy,
-            &[],
-            &[xy],
-            "GCLKVM.S3",
-            &[bel],
-        );
+        builder.extract_xnode_bels(tslots::CLK, "GCLKVM.S3", xy, &[], &[], "GCLKVM.S3", &[bel]);
     }
 
     for tkn in ["GCLKVML", "GCLKVMR"] {
@@ -3580,7 +3588,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire(format!("OUT_B{i}"), &[format!("GCLKVMLR_GCLK_DN{i}")])
                     .extra_wire(format!("OUT_T{i}"), &[format!("GCLKVMLR_GCLK_UP{i}")]);
             }
-            builder.extract_xnode_bels(tslots::CLK, "GCLKVM.S3E", xy, &[], &[xy], tkn, &[bel]);
+            builder.extract_xnode_bels(tslots::CLK, "GCLKVM.S3E", xy, &[], &[], tkn, &[bel]);
         }
     }
 
@@ -3592,7 +3600,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLK_OUT_L{i}")])
                 .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLK_OUT_R{i}")]);
         }
-        builder.extract_xnode_bels(tslots::HROW, "GCLKVC", xy, &[], &[xy], "GCLKVC", &[bel]);
+        builder.extract_xnode_bels(tslots::HROW, "GCLKVC", xy, &[], &[], "GCLKVC", &[bel]);
     }
 
     for tkn in [
@@ -3726,7 +3734,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             "GCLKH.DSP",
             dummy_xy,
             &[],
-            &[dummy_xy, dummy_xy],
+            &[],
             "GCLKH.DSP",
             &[builder.bel_virtual(bels::GLOBALSIG_DSP)],
         );

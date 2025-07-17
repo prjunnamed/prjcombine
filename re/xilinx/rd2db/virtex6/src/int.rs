@@ -1017,6 +1017,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ];
         let mut xn = builder
             .xnode(tslots::BEL_B, "CFG", "CFG", xy)
+            .num_tiles(80)
             .raw_tile(xy.delta(0, 21))
             .raw_tile(xy.delta(0, 42))
             .raw_tile(xy.delta(0, 63));

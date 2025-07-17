@@ -1910,7 +1910,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_B{i}"), &[format!("CLKC_GCLKB{i}")])
                 .extra_wire(format!("OUT_T{i}"), &[format!("CLKC_GCLKT{i}")]);
         }
-        builder.extract_xnode_bels(tslots::CLK, "CLKC", xy, &[], &[xy], "CLKC", &[bel]);
+        builder.extract_xnode_bels(tslots::CLK, "CLKC", xy, &[], &[], "CLKC", &[bel]);
     }
 
     for &xy in rd.tiles_by_kind_name("GCLKC") {
@@ -1923,7 +1923,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLKL{i}")])
                     .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLKR{i}")]);
             }
-            builder.extract_xnode_bels(tslots::HROW, nn, xy, &[], &[xy], "GCLKC", &[bel]);
+            builder.extract_xnode_bels(tslots::HROW, nn, xy, &[], &[], "GCLKC", &[bel]);
         }
     }
 

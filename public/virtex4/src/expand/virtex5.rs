@@ -381,7 +381,7 @@ impl Expander<'_, '_> {
                             self.die.add_tile(
                                 (col, row),
                                 "HCLK_IOI_CENTER",
-                                &[(col, row - 2), (col, row - 1), (col, row)],
+                                &[(col, row - 2), (col, row - 1)],
                             );
 
                             if row < self.chip.row_bufg() {

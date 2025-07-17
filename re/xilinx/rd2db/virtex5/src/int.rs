@@ -1336,6 +1336,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         );
                 }
             }
+            if has_bufr {
+                xn = xn.num_tiles(4);
+            } else {
+                xn = xn.num_tiles(2);
+            }
             for bel in bels {
                 xn = xn.bel(bel);
             }

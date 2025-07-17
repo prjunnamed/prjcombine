@@ -1104,7 +1104,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             );
         }
     }
-    for (node, mode) in [
+    for (tcname, mode) in [
         ("DLL.BOT", '_'),
         ("DLL.TOP", '_'),
         ("DLLP.BOT", 'P'),
@@ -1112,7 +1112,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("DLLS.BOT", 'S'),
         ("DLLS.TOP", 'S'),
     ] {
-        if let Some((tcid, node)) = builder.db.tile_classes.get_mut(node) {
+        if let Some((tcid, tcls)) = builder.db.tile_classes.get_mut(tcname) {
+            tcls.cells.push(());
+            if mode == 'P' {
+                tcls.cells.push(());
+            }
             let pips = builder.pips.get_mut(&(tcid, bels::DLL_INT)).unwrap();
             let t_dll = CellSlotId::from_idx(0);
             let t_clk = CellSlotId::from_idx(2);
@@ -1204,7 +1208,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     );
                 }
             }
-            node.bels.insert(
+            tcls.bels.insert(
                 bels::DLL,
                 BelInfo::Bel(Bel {
                     pins: dll_pins.clone(),
@@ -1344,7 +1348,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             "CLKC",
             xy,
             &[],
-            &[xy],
+            &[],
             "CLKC",
             &[
                 builder
@@ -1377,7 +1381,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             "GCLKC",
             xy,
             &[],
-            &[xy],
+            &[],
             "GCLKC",
             &[builder
                 .bel_virtual(bels::GCLKC)

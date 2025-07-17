@@ -475,6 +475,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ];
         builder
             .xnode(tslots::BEL, "LR", "LR", xy)
+            .num_tiles(2)
             .raw_tile(xy.delta(0, 1))
             .ref_single(xy, 0, intf_cnr)
             .ref_single(xy.delta(0, 1), 1, intf_cnr)
@@ -491,6 +492,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ];
         builder
             .xnode(tslots::BEL, "UR", "UR", xy)
+            .num_tiles(2)
             .raw_tile(xy.delta(0, 1))
             .ref_single(xy, 0, intf_cnr)
             .ref_single(xy.delta(0, 1), 1, intf_cnr)
@@ -1958,12 +1960,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             match tkn {
                 "REG_L" => {
                     xn = xn
+                        .num_tiles(2)
                         .raw_tile(xy.delta(1, 0))
                         .raw_tile_single(xy.delta(2, 1), 0)
                         .raw_tile_single(xy.delta(2, 2), 1);
                 }
                 "REG_R" => {
                     xn = xn
+                        .num_tiles(2)
                         .raw_tile(xy.delta(-1, 0))
                         .raw_tile_single(xy.delta(-4, 1), 0)
                         .raw_tile_single(xy.delta(-4, 2), 1);
@@ -2912,7 +2916,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bels.push(bel);
             let mut xn = builder
                 .xnode(tslots::BEL, "GTP", tkn, xy)
-                .num_tiles(8)
+                .num_tiles(16)
                 .raw_tile(xy.delta(
                     0,
                     match tkn {

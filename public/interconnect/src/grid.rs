@@ -658,14 +658,16 @@ impl ExpandedDieRefMut<'_, '_> {
         kind: &str,
         cells: &[(ColId, RowId)],
     ) -> &mut Tile {
-        let kind = self.grid.db.get_tile_class(kind);
+        let tcid = self.grid.db.get_tile_class(kind);
+        let tcls = &self.grid.db.tile_classes[tcid];
         let cells: EntityVec<_, _> = cells.iter().copied().collect();
-        let slot = self.grid.db.tile_classes[kind].slot;
+        assert_eq!(cells.len(), tcls.cells.len());
+        let slot = tcls.slot;
         assert!(!self[crd].tiles.contains_id(slot));
         self[crd].tiles.insert(
             slot,
             Tile {
-                class: kind,
+                class: tcid,
                 cells: cells.clone(),
             },
         );
