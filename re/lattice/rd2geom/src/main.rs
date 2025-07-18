@@ -1,0 +1,445 @@
+use std::{
+    collections::{BTreeMap, BTreeSet, btree_map},
+    error::Error,
+    path::PathBuf,
+};
+
+use clap::Parser;
+use prjcombine_ecp::{
+    bond::BondPad,
+    chip::{Chip, ChipKind, SpecialIoKey},
+    db::Device,
+    expanded::ExpandedDevice,
+};
+use prjcombine_interconnect::{
+    db::{Bel, BelInfo, BelSlotId, IntDb, TileClassId},
+    grid::{BelCoord, CellCoord, WireCoord},
+};
+use prjcombine_re_lattice_naming::{BelNaming, ChipNaming, Database, WireName};
+use prjcombine_re_lattice_rawdump::{Grid, GridId, NodeId};
+use prjcombine_types::db::DeviceCombo;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use unnamed_entity::{EntityId, EntityVec};
+
+use crate::{
+    chip::{ChipExt, make_chip},
+    intdb::init_intdb,
+    pkg::process_bond,
+};
+
+mod archive;
+mod chip;
+mod clk;
+mod config;
+mod dsp;
+mod ebr;
+mod int;
+mod intdb;
+mod io;
+mod pkg;
+mod plc;
+mod pll;
+
+struct ChipContext<'a> {
+    name: &'a str,
+    grid: &'a Grid,
+    chip: &'a Chip,
+    intdb: &'a IntDb,
+    edev: &'a ExpandedDevice<'a>,
+    naming: ChipNaming,
+    nodes: EntityVec<NodeId, WireName>,
+    int_wires: BTreeMap<WireName, Vec<WireCoord>>,
+    sorted_wires: BTreeMap<(CellCoord, &'static str), BTreeMap<String, WireName>>,
+    unclaimed_nodes: BTreeSet<WireName>,
+    unclaimed_pips: BTreeSet<(WireName, WireName)>,
+    pips_fwd: BTreeMap<WireName, BTreeSet<WireName>>,
+    pips_bwd: BTreeMap<WireName, BTreeSet<WireName>>,
+    bels: BTreeMap<(TileClassId, BelSlotId), BelInfo>,
+}
+
+impl ChipContext<'_> {
+    fn rc(&self, cell: CellCoord) -> (u8, u8) {
+        let c = (cell.col.to_idx() + 1).try_into().unwrap();
+        let r = (self.chip.rows.len() - cell.row.to_idx())
+            .try_into()
+            .unwrap();
+        (r, c)
+    }
+
+    fn rc_io(&self, cell: CellCoord) -> (u8, u8) {
+        let mut c = (cell.col.to_idx() + 1).try_into().unwrap();
+        let mut r = (self.chip.rows.len() - cell.row.to_idx())
+            .try_into()
+            .unwrap();
+        if cell.col == self.chip.col_w() {
+            c -= 1;
+        } else if cell.col == self.chip.col_e() {
+            c += 1;
+        } else if cell.row == self.chip.row_s() {
+            r += 1;
+        } else if cell.row == self.chip.row_n() {
+            r -= 1;
+        } else {
+            unreachable!()
+        }
+        (r, c)
+    }
+
+    fn rc_wire(&self, cell: CellCoord, suffix: &str) -> WireName {
+        let suffix = self.naming.strings.get(suffix).unwrap();
+        let (r, c) = self.rc(cell);
+        WireName { r, c, suffix }
+    }
+
+    fn rc_io_wire(&self, cell: CellCoord, suffix: &str) -> WireName {
+        let suffix = self.naming.strings.get(suffix).unwrap();
+        let (r, c) = self.rc_io(cell);
+        WireName { r, c, suffix }
+    }
+
+    fn claim_node(&mut self, w: WireName) {
+        if !self.unclaimed_nodes.remove(&w) {
+            println!(
+                "{name}: DOUBLE CLAIMED: {w}",
+                name = self.name,
+                w = w.to_string(&self.naming)
+            );
+        }
+    }
+
+    fn claim_pip(&mut self, wt: WireName, wf: WireName) {
+        if !self.unclaimed_pips.remove(&(wt, wf)) {
+            println!(
+                "{name}: DOUBLE CLAIMED: {wt} <- {wf}",
+                name = self.name,
+                wt = wt.to_string(&self.naming),
+                wf = wf.to_string(&self.naming)
+            );
+        }
+    }
+
+    fn name_bel<T: AsRef<str>>(&mut self, bel: BelCoord, names: impl IntoIterator<Item = T>) {
+        let names = Vec::from_iter(
+            names
+                .into_iter()
+                .map(|x| self.naming.strings.get_or_insert(x.as_ref())),
+        );
+        assert!(
+            self.naming
+                .bels
+                .insert(
+                    bel,
+                    BelNaming {
+                        names,
+                        wires: Default::default(),
+                    },
+                )
+                .is_none()
+        );
+    }
+
+    fn name_bel_null(&mut self, bel: BelCoord) {
+        self.name_bel::<&str>(bel, []);
+    }
+
+    fn add_bel_wire(&mut self, bel: BelCoord, pin: impl AsRef<str>, wire: WireName) {
+        self.add_bel_wire_no_claim(bel, pin, wire);
+        self.claim_node(wire);
+    }
+
+    fn add_bel_wire_no_claim(&mut self, bel: BelCoord, pin: impl AsRef<str>, wire: WireName) {
+        let pin = self.naming.strings.get_or_insert(pin.as_ref());
+        self.naming
+            .bels
+            .get_mut(&bel)
+            .unwrap()
+            .wires
+            .insert(pin, wire);
+    }
+
+    fn sort_bel_wires(&mut self) {
+        for &wn in &self.unclaimed_nodes {
+            let name = self.naming.strings[wn.suffix].as_str();
+            for suffix in [
+                "EBR", "IOLOGIC", "PIO", "DQS", "DQSDLL", "JTAG", "OSC", "GSR", "START", "PLL",
+                "PLL3",
+            ] {
+                if let Some(n) = name.strip_suffix(suffix)
+                    && let Some(n) = n.strip_suffix('_')
+                    && let Some(prefix) = n.strip_prefix('J')
+                {
+                    let cell = self.chip.xlat_rc_wire(wn);
+                    self.sorted_wires
+                        .entry((cell, suffix))
+                        .or_default()
+                        .insert(prefix.to_string(), wn);
+                }
+            }
+        }
+    }
+
+    fn insert_bel(&mut self, bcrd: BelCoord, bel: Bel) {
+        let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
+        let bel = BelInfo::Bel(bel);
+        match self
+            .bels
+            .entry((self.edev.egrid.tile(tcrd).class, bcrd.slot))
+        {
+            btree_map::Entry::Vacant(e) => {
+                e.insert(bel);
+            }
+            btree_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), bel);
+            }
+        }
+    }
+
+    fn extract_simple_bel(&mut self, bcrd: BelCoord, cell: CellCoord, suffix: &'static str) -> Bel {
+        let wires = self.sorted_wires[&(cell, suffix)].clone();
+        let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
+        let mut bel = Bel::default();
+        for (pin, wire) in wires {
+            let Some(bpin) = self.xlat_int_wire(tcrd, wire) else {
+                continue;
+            };
+            self.add_bel_wire(bcrd, &pin, wire);
+            bel.pins.insert(pin, bpin);
+        }
+        bel
+    }
+
+    fn insert_simple_bel(&mut self, bcrd: BelCoord, cell: CellCoord, suffix: &'static str) {
+        let bel = self.extract_simple_bel(bcrd, cell, suffix);
+        self.insert_bel(bcrd, bel);
+    }
+
+    fn print_unclaimed(&self) {
+        for &wn in &self.unclaimed_nodes {
+            println!(
+                "{name}: UNCLAIMED: {w}",
+                name = self.name,
+                w = wn.to_string(&self.naming)
+            );
+        }
+        for &(wt, wf) in &self.unclaimed_pips {
+            println!(
+                "{name}: UNCLAIMED: {wt} <- {wf}",
+                name = self.name,
+                wt = wt.to_string(&self.naming),
+                wf = wf.to_string(&self.naming)
+            );
+        }
+    }
+}
+
+struct ChipResult {
+    chip: Chip,
+    naming: ChipNaming,
+    bels: BTreeMap<(TileClassId, BelSlotId), BelInfo>,
+}
+
+fn init_nodes(grid: &Grid) -> (ChipNaming, EntityVec<NodeId, WireName>) {
+    let mut naming = ChipNaming::default();
+    let mut nodes = EntityVec::new();
+    for (id, name, _) in &grid.nodes {
+        let (rc, suffix) = name.split_once('_').unwrap();
+        let rc = rc.strip_prefix('R').unwrap();
+        let (r, c) = rc.split_once('C').unwrap();
+        let r = r.parse().unwrap();
+        let c = c.parse().unwrap();
+        let suffix = naming.strings.get_or_insert(suffix);
+        let nid = nodes.push(WireName { r, c, suffix });
+        assert_eq!(nid, id);
+    }
+    // let mut all_names = Vec::from_iter(naming.strings.values());
+    // all_names.sort();
+    // for s in all_names {
+    //     println!("\t{s}");
+    // }
+    (naming, nodes)
+}
+
+fn process_chip(name: &str, grid: &Grid, family: &str, intdb: &IntDb) -> ChipResult {
+    let (naming, nodes) = init_nodes(grid);
+    let chip = make_chip(grid, family, &naming, &nodes);
+    let edev = chip.expand_grid(intdb);
+    let mut ctx = ChipContext {
+        name,
+        grid,
+        chip: &chip,
+        intdb,
+        edev: &edev,
+        naming,
+        nodes,
+        int_wires: Default::default(),
+        sorted_wires: Default::default(),
+        unclaimed_nodes: Default::default(),
+        unclaimed_pips: Default::default(),
+        pips_fwd: Default::default(),
+        pips_bwd: Default::default(),
+        bels: Default::default(),
+    };
+    ctx.process_int_nodes();
+    ctx.process_int_pips();
+    ctx.sort_bel_wires();
+    ctx.process_cibtest();
+    ctx.process_plc();
+    ctx.process_ebr();
+    ctx.process_dsp();
+    ctx.process_io();
+    ctx.process_pll();
+    ctx.process_config();
+    ctx.process_clk();
+    ctx.print_unclaimed();
+    println!("{name}: DONE");
+    let naming = ctx.naming;
+    let bels = ctx.bels;
+    ChipResult { chip, naming, bels }
+}
+
+#[derive(Debug, Parser)]
+#[command(
+    name = "lrd2geom",
+    about = "Extract geometry information from Lattice rawdumps."
+)]
+struct Args {
+    dst: PathBuf,
+    rawdump: PathBuf,
+    datadir: PathBuf,
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let args = Args::parse();
+    let rawdb = prjcombine_re_lattice_rawdump::Db::from_file(args.rawdump)?;
+    println!("processing start...");
+    let mut int = init_intdb(&rawdb.family);
+    let mut devices = vec![];
+    let mut chips = EntityVec::new();
+    let mut bonds = EntityVec::new();
+    let pgrids: Vec<_> = Vec::from_iter(rawdb.grids.iter())
+        .into_par_iter()
+        .map(|(gid, grid)| {
+            let part = rawdb.parts.iter().find(|part| part.grid == gid).unwrap();
+            let name = format!("{}-{}", part.name, part.package);
+            process_chip(&name, grid, &rawdb.family, &int)
+        })
+        .collect();
+    let pgrids = EntityVec::<GridId, _>::from_iter(pgrids);
+    let mut missing_bels = BTreeSet::new();
+    for (tcid, _, tcls) in &int.tile_classes {
+        for (bid, bel) in &tcls.bels {
+            if let BelInfo::Bel(bel) = bel
+                && !bel.pins.is_empty()
+            {
+                continue;
+            }
+            missing_bels.insert((tcid, bid));
+        }
+    }
+    for (gid, cres) in pgrids {
+        let mut chip = cres.chip;
+        let naming = cres.naming;
+        let mut cur_devs: BTreeMap<String, Device> = BTreeMap::new();
+        let chip_id = chips.next_id();
+        for ((tcid, bid), bel) in cres.bels {
+            if missing_bels.remove(&(tcid, bid)) {
+                int.tile_classes[tcid].bels.insert(bid, bel);
+            } else {
+                assert_eq!(
+                    int.tile_classes[tcid].bels[bid],
+                    bel,
+                    "MERGE FAILED {chip_id} {tc} {bel}",
+                    tc = int.tile_classes.key(tcid),
+                    bel = int.bel_slots.key(bid),
+                );
+            }
+        }
+        for part in &rawdb.parts {
+            if part.grid != gid {
+                continue;
+            }
+            let pname = format!("{}-{}", part.name, part.package);
+            let bres = process_bond(&args.datadir, part, &chip, &naming);
+            let mut expected_sites = BTreeSet::from_iter(
+                naming
+                    .bels
+                    .values()
+                    .flat_map(|bnaming| bnaming.names.iter())
+                    .map(|&x| naming.strings[x].clone()),
+            );
+            for (pin, pad) in &bres.bond.pins {
+                let &BondPad::Io(io) = pad else { continue };
+                if chip.kind == ChipKind::MachXo && io == chip.special_io[&SpecialIoKey::SleepN] {
+                    continue;
+                }
+                let bcrd = chip.get_io_loc(io);
+                let Some(bnaming) = naming.bels.get(&bcrd) else {
+                    continue;
+                };
+                let name = &naming.strings[bnaming.names[0]];
+                assert!(expected_sites.remove(name));
+                expected_sites.insert(pin.clone());
+            }
+            for site in &part.sites {
+                let name = &site.name;
+                if !expected_sites.remove(name) {
+                    println!("{pname}: missing site {name}");
+                }
+            }
+            for name in expected_sites {
+                println!("{pname}: UHHHH site {name} doesn't exist");
+            }
+            let bond_id = 'bond: {
+                for (bid, bond) in &bonds {
+                    if *bond == bres.bond {
+                        break 'bond bid;
+                    }
+                }
+                bonds.push(bres.bond)
+            };
+            for (key, io) in bres.special_io {
+                match chip.special_io.entry(key) {
+                    btree_map::Entry::Vacant(e) => {
+                        e.insert(io);
+                    }
+                    btree_map::Entry::Occupied(e) => {
+                        assert_eq!(*e.get(), io);
+                    }
+                }
+            }
+            let device = cur_devs.entry(part.name.clone()).or_insert_with(|| Device {
+                name: part.name.clone(),
+                chip: chip_id,
+                bonds: Default::default(),
+                speeds: Default::default(),
+                combos: Default::default(),
+            });
+            let (dbid, prev) = device.bonds.insert(part.package.clone(), bond_id);
+            assert_eq!(prev, None);
+            for speed in &part.speeds {
+                let dsid = device.speeds.insert(speed.clone()).0;
+                device.combos.push(DeviceCombo {
+                    devbond: dbid,
+                    speed: dsid,
+                });
+            }
+        }
+        assert_eq!(chip_id, chips.push((chip, naming)));
+        devices.extend(cur_devs.into_values());
+    }
+    for (tcid, bid) in missing_bels {
+        println!(
+            "MISSING BEL {tc} {bel}",
+            tc = int.tile_classes.key(tcid),
+            bel = int.bel_slots.key(bid),
+        );
+    }
+    let db = Database {
+        chips,
+        bonds,
+        devices,
+        int,
+    };
+    db.to_file(args.dst)?;
+    Ok(())
+}

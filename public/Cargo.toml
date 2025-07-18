@@ -13,6 +13,7 @@ members = [
     "virtex4",
     "ultrascale",
     "versal",
+    "ecp",
     "xc9500",
     "xpla3",
     "coolrunner2",

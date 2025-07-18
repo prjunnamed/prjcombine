@@ -8,6 +8,7 @@ pub enum BScanPad {
     OutputEnable(usize, usize),
     InputOutputTristate(usize, usize, usize),
     InputOutputEnable(usize, usize, usize),
+    BiTristate(usize, usize),
 }
 
 #[derive(Debug, Default)]
@@ -41,6 +42,12 @@ impl BScanBuilder {
     pub fn get_i(&mut self) -> BScanPad {
         let res = BScanPad::Input(self.bits);
         self.bits += 1;
+        res
+    }
+
+    pub fn get_tb(&mut self) -> BScanPad {
+        let res = BScanPad::BiTristate(self.bits + 1, self.bits);
+        self.bits += 2;
         res
     }
 }

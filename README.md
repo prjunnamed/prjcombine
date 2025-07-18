@@ -22,6 +22,8 @@ The target devices currently include:
 
 - all SiliconBlue FPGAs
 - all Xilinx FPGAs
+- some Lattice FPGAs:
+  - ECP, XP, MachXO
 - all Xilinx CPLDs
 
 More targets are expected to be added in the future.
@@ -59,6 +61,7 @@ For each of the supported device families:
 | Virtex 7, Kintex 7, Artix 7, Spartan 7, Zynq 7000   | ✅        | ✅         | ❌      | ❌    | ❌                   |
 | Ultrascale, Ultrascale+                             | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | Versal                                              | 👷🏼‍♀️        | ❌         | ❌      | ❌    | ❌                   |
+| ECP, XP, MachXO                                     | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | XC9500, XC9500XL, XC9500XV                          | ✅        | ✅         | ✅      | ✅    | ✅                   |
 | Coolrunner XPLA3                                    | ✅        | ✅         | ✅      | ✅    | ✅                   |
 | Coolrunner 2                                        | ✅        | ✅         | ✅      | ✅    | 👷🏼‍♀️                   |

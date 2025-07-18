@@ -64,6 +64,9 @@ members = [
 	"re/icecube-harvester",
 	"re/lattice/dump",
 	"re/lattice/rawdump",
+	"re/lattice/naming",
+	"re/lattice/rd2geom",
+	"re/lattice/finish",
 	"docgen",
 ]
 exclude = ["public"]
@@ -88,6 +91,7 @@ prjcombine-spartan6 = { path = "public/spartan6" }
 prjcombine-virtex4 = { path = "public/virtex4" }
 prjcombine-ultrascale = { path = "public/ultrascale" }
 prjcombine-versal = { path = "public/versal" }
+prjcombine-ecp = { path = "public/ecp" }
 prjcombine-jed = { path = "public/jed" }
 prjcombine-xc9500 = { path = "public/xc9500" }
 prjcombine-xpla3 = { path = "public/xpla3" }
@@ -155,6 +159,7 @@ prjcombine-re-xilinx-xact-geom = { path = "re/xilinx/xact/geom" }
 prjcombine-re-xilinx-xact-data = { path = "re/xilinx/xact/data" }
 prjcombine-re-xilinx-cpld = { path = "re/xilinx/cpld" }
 prjcombine-re-lattice-rawdump = { path = "re/lattice/rawdump" }
+prjcombine-re-lattice-naming = { path = "re/lattice/naming" }
 serde = { version = "1.0", features = ["derive"] }
 enum-map = { version = "2.4", features = ["serde"] }
 indexmap = { version = "2", features = ["serde"] }
@@ -171,6 +176,7 @@ which = "8"
 derive-where = "1.2"
 bytes = "1.8.0"
 hex = "0.4.3"
+flate2 = "1.0"
 zip = "4.0"
 walkdir = "2.5"
 
