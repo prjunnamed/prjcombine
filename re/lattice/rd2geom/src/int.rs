@@ -211,12 +211,6 @@ impl ChipContext<'_> {
                 "JTI9" => "OUT_TI9",
                 "JTI10" => "OUT_TI10",
                 "JTI11" => "OUT_TI11",
-                "WESTKEEP" => "KEEP_W",
-                "EASTKEEP" => "KEEP_E",
-                "SOUTHKEEP" => "KEEP_S0",
-                "SOUTHKEEP1" => "KEEP_S1",
-                "NORTHKEEP" => "KEEP_N0",
-                "NORTHKEEP1" => "KEEP_N1",
                 "HF4E0001" => "OUT_F4_E",
                 "HF5E0001" => "OUT_F5_E",
                 "HF6E0001" => "OUT_F6_E",
@@ -232,7 +226,20 @@ impl ChipContext<'_> {
         for &wn in self.nodes.values() {
             let wires = self.classify_int_wire(wn);
             if wires.is_empty() {
-                self.unclaimed_nodes.insert(wn);
+                let suffix = self.naming.strings[wn.suffix].as_str();
+                if matches!(
+                    suffix,
+                    "WESTKEEP"
+                        | "EASTKEEP"
+                        | "SOUTHKEEP"
+                        | "SOUTHKEEP1"
+                        | "NORTHKEEP"
+                        | "NORTHKEEP1"
+                ) {
+                    self.keep_nodes.insert(wn);
+                } else {
+                    self.unclaimed_nodes.insert(wn);
+                }
             } else {
                 let rwire0 = self.edev.egrid.resolve_wire(wires[0]).unwrap();
                 for &wire in &wires {
@@ -337,6 +344,9 @@ impl ChipContext<'_> {
                 continue;
             }
             if term_pips.remove(&(wfn, wtn)) {
+                continue;
+            }
+            if self.int_wires.contains_key(&wtn) && self.keep_nodes.contains(&wfn) {
                 continue;
             }
             if let Some(wires_f) = self.int_wires.get(&wfn)

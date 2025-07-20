@@ -90,12 +90,6 @@ pub fn init_intdb(family: &str) -> IntDb {
         wires: Default::default(),
     });
 
-    for n in [
-        "KEEP_W", "KEEP_E", "KEEP_S0", "KEEP_S1", "KEEP_N0", "KEEP_N1",
-    ] {
-        db.wires.insert(n.into(), WireKind::MuxOut);
-    }
-
     for dir in Dir::DIRS {
         for i in 0..4 {
             let w0 = db
