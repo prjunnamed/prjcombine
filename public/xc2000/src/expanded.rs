@@ -23,7 +23,7 @@ impl ExpandedDevice<'_> {
     pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
         let col = tcrd.col;
         let row = tcrd.row;
-        let tile = self.egrid.tile(tcrd);
+        let tile = &self.egrid[tcrd];
         let kind = self.egrid.db.tile_classes.key(tile.class);
         match self.chip.kind {
             ChipKind::Xc2000 => {

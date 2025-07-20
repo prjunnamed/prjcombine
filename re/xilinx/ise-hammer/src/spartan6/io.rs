@@ -171,7 +171,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllMcbIoi {
             unreachable!()
         };
 
-        for row in backend.egrid.die(tcrd.die).rows() {
+        for row in backend.egrid.rows(tcrd.die) {
             if let Some(split) = edev.chip.row_mcb_split {
                 if tcrd.row < split && row >= split {
                     continue;
@@ -1113,25 +1113,25 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         let cnr_ll = CellCoord::new(
             DieId::from_idx(0),
-            edev.chip.col_lio(),
+            edev.chip.col_w(),
             edev.chip.row_bio_outer(),
         )
         .tile(tslots::BEL);
         let cnr_ul = CellCoord::new(
             DieId::from_idx(0),
-            edev.chip.col_lio(),
+            edev.chip.col_w(),
             edev.chip.row_tio_outer(),
         )
         .tile(tslots::BEL);
         let cnr_lr = CellCoord::new(
             DieId::from_idx(0),
-            edev.chip.col_rio(),
+            edev.chip.col_e(),
             edev.chip.row_bio_outer(),
         )
         .tile(tslots::BEL);
         let cnr_ur = CellCoord::new(
             DieId::from_idx(0),
-            edev.chip.col_rio(),
+            edev.chip.col_e(),
             edev.chip.row_tio_inner(),
         )
         .tile(tslots::BEL);

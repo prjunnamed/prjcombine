@@ -107,6 +107,8 @@ pub struct DirHV {
 }
 
 impl DirHV {
+    pub const DIRS: [DirHV; 4] = [DirHV::SW, DirHV::SE, DirHV::NW, DirHV::NE];
+
     pub const SW: DirHV = DirHV {
         h: DirH::W,
         v: DirV::S,

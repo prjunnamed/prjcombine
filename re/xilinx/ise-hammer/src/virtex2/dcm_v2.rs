@@ -59,10 +59,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DcmCornerEnable {
         if we_match && sn_match {
             let col = edev.chip.col_edge(self.0.h);
             let tcrd = tcrd.with_col(col).tile(tslots::BEL);
-            let node = edev.egrid.tile(tcrd);
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
-                    tile: edev.egrid.db.tile_classes.key(node.class).clone(),
+                    tile: edev
+                        .egrid
+                        .db
+                        .tile_classes
+                        .key(edev.egrid[tcrd].class)
+                        .clone(),
                     bel: "MISC".into(),
                     attr: "DCM_ENABLE".into(),
                     val: "1".into(),

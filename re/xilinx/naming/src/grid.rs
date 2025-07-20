@@ -82,11 +82,11 @@ impl<'a> ExpandedGridNaming<'a> {
 
     pub fn resolve_wire_raw(&self, mut wire: WireCoord) -> Option<WireCoord> {
         loop {
-            let cell = self.egrid.cell(wire.cell);
+            let cell = &self.egrid[wire.cell];
             let wi = self.egrid.db.wires[wire.slot];
             match wi {
                 WireKind::Regional(rslot) => {
-                    (wire.cell.col, wire.cell.row) = cell.region_root[rslot];
+                    wire.cell = cell.region_root[rslot];
                     break;
                 }
                 WireKind::MultiBranch(slot) | WireKind::Branch(slot) => {
@@ -110,7 +110,7 @@ impl<'a> ExpandedGridNaming<'a> {
                                         break;
                                     }
                                 }
-                                (wire.cell.col, wire.cell.row) = t.target.unwrap();
+                                wire.cell = t.target.unwrap();
                                 wire.slot = wf;
                             }
                             None => break,
@@ -138,11 +138,11 @@ impl<'a> ExpandedGridNaming<'a> {
     ) -> Option<(WireCoord, Vec<TracePip<'_>>)> {
         let mut trace = vec![];
         loop {
-            let tile = self.egrid.cell(wire.cell);
+            let tile = &self.egrid[wire.cell];
             let wi = self.egrid.db.wires[wire.slot];
             match wi {
                 WireKind::Regional(rslot) => {
-                    (wire.cell.col, wire.cell.row) = tile.region_root[rslot];
+                    wire.cell = tile.region_root[rslot];
                     break;
                 }
                 WireKind::MultiBranch(slot) | WireKind::Branch(slot) => {
@@ -229,7 +229,7 @@ impl<'a> ExpandedGridNaming<'a> {
                                         }
                                     }
                                 }
-                                (wire.cell.col, wire.cell.row) = t.target.unwrap();
+                                wire.cell = t.target.unwrap();
                                 wire.slot = wf;
                             }
                             None => break,

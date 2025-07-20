@@ -1,4 +1,4 @@
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord, ExpandedDieRef, RowId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId};
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex::{
     bels,
@@ -24,7 +24,7 @@ impl<'a> ExpandedNamedDevice<'a> {
 struct Namer<'a> {
     edev: &'a ExpandedDevice<'a>,
     chip: &'a Chip,
-    die: ExpandedDieRef<'a, 'a>,
+    die: DieId,
     ngrid: ExpandedGridNaming<'a>,
     clut: EntityPartVec<ColId, usize>,
     bramclut: EntityPartVec<ColId, usize>,
@@ -36,7 +36,7 @@ struct Namer<'a> {
 impl Namer<'_> {
     fn fill_rlut(&mut self) {
         let n = self.chip.rows;
-        for row in self.die.rows() {
+        for row in self.edev.egrid.rows(self.die) {
             self.rlut.push(n - row.to_idx() - 1);
         }
     }
@@ -45,7 +45,7 @@ impl Namer<'_> {
         let mut c = 0;
         let mut bramc = 0;
         let mut brambelc = 0;
-        for col in self.die.cols() {
+        for col in self.edev.egrid.cols(self.die) {
             if self.chip.cols_bram.contains(&col) {
                 self.bramclut.insert(col, bramc);
                 bramc += 1;
@@ -77,7 +77,7 @@ impl Namer<'_> {
         let mut ctr_pad = 1;
         let mut ctr_empty = 1;
         let die = DieId::from_idx(0);
-        for col in self.die.cols() {
+        for col in self.edev.egrid.cols(self.die) {
             let row = self.chip.row_n();
             if self.chip.cols_bram.contains(&col) {
                 continue;
@@ -99,7 +99,7 @@ impl Namer<'_> {
             nnode.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
         }
-        for row in self.die.rows().rev() {
+        for row in self.edev.egrid.rows(self.die).rev() {
             let col = self.chip.col_e();
             if row == self.chip.row_s() || row == self.chip.row_n() {
                 continue;
@@ -118,7 +118,7 @@ impl Namer<'_> {
             nnode.add_bel(bels::IO3, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
         }
-        for col in self.die.cols().rev() {
+        for col in self.edev.egrid.cols(self.die).rev() {
             let row = self.chip.row_s();
             if self.chip.cols_bram.contains(&col) {
                 continue;
@@ -140,7 +140,7 @@ impl Namer<'_> {
             nnode.add_bel(bels::IO3, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
         }
-        for row in self.die.rows() {
+        for row in self.edev.egrid.rows(self.die) {
             let col = self.chip.col_w();
             if row == self.chip.row_s() || row == self.chip.row_n() {
                 continue;
@@ -168,7 +168,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     let mut namer = Namer {
         edev,
         chip,
-        die: egrid.die(DieId::from_idx(0)),
+        die: DieId::from_idx(0),
         ngrid: ExpandedGridNaming::new(ndb, egrid),
         clut: EntityPartVec::new(),
         bramclut: EntityPartVec::new(),

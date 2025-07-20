@@ -591,8 +591,8 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ExtraTile {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(self.tcrd);
-        let tile = backend.egrid.db.tile_classes.key(node.class);
+        let tile = &backend.egrid[self.tcrd];
+        let tile = backend.egrid.db.tile_classes.key(tile.class);
         fuzzer.info.features.push(FuzzerFeature {
             id: FeatureId {
                 tile: tile.into(),

@@ -84,9 +84,9 @@ fn drive_wire<'a>(
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let tile = backend.egrid.tile(tcrd);
-                let tcls = &backend.egrid.db_index.tile_classes[tile.class];
-                if let Some(ins) = tcls.pips_bwd.get(&TileWireCoord {
+                let tile = &backend.egrid[tcrd];
+                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
@@ -109,9 +109,9 @@ fn drive_wire<'a>(
             }
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let tile = backend.egrid.tile(tcrd);
-                let tcls = &backend.egrid.db_index.tile_classes[tile.class];
-                if let Some(ins) = tcls.pips_bwd.get(&TileWireCoord {
+                let tile = &backend.egrid[tcrd];
+                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
@@ -143,9 +143,9 @@ fn drive_wire<'a>(
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
-                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
+                let tile = &backend.egrid[tcrd];
+                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {

@@ -30,8 +30,8 @@ pub struct ExpandedDevice<'a> {
     pub gdb: &'a GtzDb,
     pub disabled: BTreeSet<DisabledPart>,
     pub interposer: Option<&'a Interposer>,
-    pub int_holes: EntityVec<DieId, Vec<Rect>>,
-    pub site_holes: EntityVec<DieId, Vec<Rect>>,
+    pub int_holes: Vec<Rect>,
+    pub site_holes: Vec<Rect>,
     pub bs_geom: BitstreamGeom,
     pub frames: EntityVec<DieId, DieFrameGeom>,
     pub col_cfg: ColId,
@@ -46,7 +46,7 @@ pub struct ExpandedDevice<'a> {
     pub row_dcmiob: Option<RowId>,
     pub row_iobdcm: Option<RowId>,
     pub io: Vec<IoCoord>,
-    pub gt: Vec<(DieId, ColId, RowId)>,
+    pub gt: Vec<CellCoord>,
     pub gtz: DirPartMap<ExpandedGtz>,
     pub cfg_io: BiHashMap<SharedCfgPad, IoCoord>,
     pub banklut: EntityVec<DieId, u32>,
@@ -117,17 +117,17 @@ impl ExpandedDevice<'_> {
             let lvb6 = self.egrid.db.wires.get("LVB.6").unwrap().0;
             let mut cursed_wires = HashSet::new();
             for i in 1..self.chips.len() {
-                let dieid_s = DieId::from_idx(i - 1);
-                let dieid_n = DieId::from_idx(i);
-                let die_s = self.egrid.die(dieid_s);
-                let die_n = self.egrid.die(dieid_n);
-                for col in die_s.cols() {
-                    let row_s = die_s.rows().next_back().unwrap() - 49;
-                    let row_n = die_n.rows().next().unwrap() + 1;
-                    if die_s[(col, row_s)].tiles.contains_id(tslots::INT)
-                        && die_n[(col, row_n)].tiles.contains_id(tslots::INT)
+                let die_s = DieId::from_idx(i - 1);
+                let die_n = DieId::from_idx(i);
+                for col in self.egrid.cols(die_s) {
+                    let row_s = self.egrid.rows(die_s).next_back().unwrap() - 49;
+                    let row_n = self.egrid.rows(die_n).next().unwrap() + 1;
+                    let cell_s = CellCoord::new(die_s, col, row_s);
+                    let cell_n = CellCoord::new(die_n, col, row_n);
+                    if self.egrid[cell_s].tiles.contains_id(tslots::INT)
+                        && self.egrid[cell_n].tiles.contains_id(tslots::INT)
                     {
-                        cursed_wires.insert(CellCoord::new(dieid_s, col, row_s).wire(lvb6));
+                        cursed_wires.insert(cell_s.wire(lvb6));
                     }
                 }
             }
@@ -144,18 +144,18 @@ impl ExpandedDevice<'_> {
         }
     }
 
-    pub fn in_int_hole(&self, die: DieId, col: ColId, row: RowId) -> bool {
-        for hole in &self.int_holes[die] {
-            if hole.contains(col, row) {
+    pub fn in_int_hole(&self, cell: CellCoord) -> bool {
+        for hole in &self.int_holes {
+            if hole.contains(cell) {
                 return true;
             }
         }
         false
     }
 
-    pub fn in_site_hole(&self, die: DieId, col: ColId, row: RowId) -> bool {
-        for hole in &self.site_holes[die] {
-            if hole.contains(col, row) {
+    pub fn in_site_hole(&self, cell: CellCoord) -> bool {
+        for hole in &self.site_holes {
+            if hole.contains(cell) {
                 return true;
             }
         }
@@ -945,7 +945,7 @@ impl ExpandedDevice<'_> {
 
     pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
         let CellCoord { die, col, row } = tcrd.cell;
-        let tile = self.egrid.tile(tcrd);
+        let tile = &self.egrid[tcrd];
         let kind = self.egrid.db.tile_classes.key(tile.class).as_str();
         if kind == "BRAM" {
             if self.kind == ChipKind::Virtex4 {
@@ -1076,7 +1076,7 @@ impl ExpandedDevice<'_> {
             Vec::from_iter(
                 tile.cells
                     .values()
-                    .map(|&(col, row)| self.btile_main(die, col, row)),
+                    .map(|&cell| self.btile_main(cell.die, cell.col, cell.row)),
             )
         }
     }

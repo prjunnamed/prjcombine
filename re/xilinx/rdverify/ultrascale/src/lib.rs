@@ -36,23 +36,24 @@ fn is_cut_u(endev: &ExpandedNamedDevice, die: DieId, row: RowId) -> bool {
         .contains(&DisabledPart::Region(die, reg + 1))
 }
 
-fn get_hpiob_bel<'a>(
-    endev: &ExpandedNamedDevice,
-    vrf: &Verifier<'a>,
-    crd: IoCoord,
-) -> BelContext<'a> {
+fn get_hpiob_bel<'a>(vrf: &Verifier<'a>, crd: IoCoord) -> BelContext<'a> {
     let IoCoord::Hpio(crd) = crd else {
         unreachable!();
     };
-    let chip = endev.edev.chips[crd.die];
-    let row = chip.row_reg_bot(crd.reg) + if crd.iob.to_idx() < 26 { 0 } else { 30 };
-    vrf.find_bel(CellCoord::new(crd.die, crd.col, row).bel(bels::HPIOB[crd.iob.to_idx() % 26]))
-        .or_else(|| {
-            vrf.find_bel(
-                CellCoord::new(crd.die, crd.col, row).bel(bels::HRIOB[crd.iob.to_idx() % 26]),
-            )
-        })
-        .unwrap()
+    let row = crd.cell.row - if crd.iob.to_idx() < 26 { 30 } else { 0 };
+    vrf.find_bel(
+        crd.cell
+            .with_row(row)
+            .bel(bels::HPIOB[crd.iob.to_idx() % 26]),
+    )
+    .or_else(|| {
+        vrf.find_bel(
+            crd.cell
+                .with_row(row)
+                .bel(bels::HRIOB[crd.iob.to_idx() % 26]),
+        )
+    })
+    .unwrap()
 }
 
 fn verify_slice(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -373,7 +374,7 @@ fn verify_laguna(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
     if bel.row.to_idx() < Chip::ROWS_PER_REG && !skip {
         let odie = bel.die - 1;
         let orow = RowId::from_idx(
-            endev.edev.egrid.die(odie).rows().len() - Chip::ROWS_PER_REG + bel.row.to_idx(),
+            endev.edev.egrid.rows(odie).len() - Chip::ROWS_PER_REG + bel.row.to_idx(),
         );
         obel = vrf.find_bel(CellCoord::new(odie, bel.col, orow).bel(bel.slot));
         assert!(obel.is_some());
@@ -446,7 +447,7 @@ fn verify_laguna_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
     if bel.row.to_idx() < Chip::ROWS_PER_REG && !skip {
         let odie = bel.die - 1;
         let orow = RowId::from_idx(
-            endev.edev.egrid.die(odie).rows().len() - Chip::ROWS_PER_REG + bel.row.to_idx(),
+            endev.edev.egrid.rows(odie).len() - Chip::ROWS_PER_REG + bel.row.to_idx(),
         );
         obel = vrf.find_bel(CellCoord::new(odie, bel.col, orow).bel(bel.slot));
         assert!(obel.is_some());
@@ -520,7 +521,6 @@ fn verify_pcie(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
             // nothingness
         } else {
             let obel = get_hpiob_bel(
-                endev,
                 vrf,
                 *endev.edev.cfg_io[bel.die]
                     .get_by_left(&SharedCfgPad::PerstN0)
@@ -528,7 +528,6 @@ fn verify_pcie(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
             );
             vrf.verify_node(&[bel.fwire_far("MCAP_PERST0_B"), obel.fwire("DOUT")]);
             let obel = get_hpiob_bel(
-                endev,
                 vrf,
                 *endev.edev.cfg_io[bel.die]
                     .get_by_left(&match endev.edev.kind {
@@ -716,7 +715,6 @@ fn verify_sysmon(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
             ("I2C_SDA_TS", SitePinDir::Out),
         ]);
         let obel = get_hpiob_bel(
-            endev,
             vrf,
             *endev.edev.cfg_io[bel.die]
                 .get_by_left(&SharedCfgPad::I2cSclk)
@@ -725,7 +723,6 @@ fn verify_sysmon(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
         vrf.verify_node(&[bel.fwire("I2C_SCLK_TS"), obel.fwire_far("TSDI")]);
         vrf.verify_node(&[bel.fwire_far("I2C_SCLK_IN"), obel.fwire("DOUT")]);
         let obel = get_hpiob_bel(
-            endev,
             vrf,
             *endev.edev.cfg_io[bel.die]
                 .get_by_left(&SharedCfgPad::I2cSda)
@@ -1279,27 +1276,15 @@ fn verify_hdiob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
     let chip = endev.edev.chips[bel.die];
     let is_hdiolc = chip.config_kind.is_csec();
     let reg = chip.row_to_reg(bel.row);
-    let hid = TileIobId::from_idx(
-        idx + if is_b {
-            0
-        } else if is_hdiolc {
-            42
-        } else {
-            12
-        },
-    );
+    let hid = TileIobId::from_idx(idx + if is_b || is_hdiolc { 0 } else { 12 });
     let iocrd = if is_hdiolc {
         IoCoord::HdioLc(HdioCoord {
-            die: bel.die,
-            col: bel.col,
-            reg,
+            cell: bel.cell,
             iob: hid,
         })
     } else {
         IoCoord::Hdio(HdioCoord {
-            die: bel.die,
-            col: bel.col,
-            reg,
+            cell: bel.cell.with_row(chip.row_reg_rclk(reg)),
             iob: hid,
         })
     };
@@ -3671,9 +3656,7 @@ fn verify_hpiob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
     vrf.verify_node(&[bel.fwire_far("TSP"), obel_bs.fwire("TX_T_OUT")]);
 
     let crd = IoCoord::Hpio(HpioCoord {
-        col: bel.col,
-        die: bel.die,
-        reg,
+        cell: bel.cell.with_row(chip.row_reg_rclk(reg)),
         iob: hid,
     });
     let cfg = endev.edev.cfg_io[bel.die].get_by_right(&crd);
@@ -3963,9 +3946,7 @@ fn verify_hriob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContex
     vrf.verify_node(&[bel.fwire_far("TSP"), obel_bs.fwire("TX_T_OUT")]);
 
     let crd = IoCoord::Hpio(HpioCoord {
-        col: bel.col,
-        die: bel.die,
-        reg,
+        cell: bel.cell.with_row(chip.row_reg_rclk(reg)),
         iob: hid,
     });
     let cfg = endev.edev.cfg_io[bel.die].get_by_right(&crd);

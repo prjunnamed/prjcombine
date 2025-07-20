@@ -419,8 +419,8 @@ fn handle_spec_io(rd: &Part, grid: &mut Chip, int: &IntGrid) {
                         _ => unreachable!(),
                     };
                     let (io_col, io_row, iob) = match coord {
-                        EdgeIoCoord::W(row, iob) => (grid.col_lio(), row, iob),
-                        EdgeIoCoord::E(row, iob) => (grid.col_rio(), row, iob),
+                        EdgeIoCoord::W(row, iob) => (grid.col_w(), row, iob),
+                        EdgeIoCoord::E(row, iob) => (grid.col_e(), row, iob),
                         _ => unreachable!(),
                     };
                     assert_eq!(io_col, col);

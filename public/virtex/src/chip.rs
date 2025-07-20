@@ -1,7 +1,8 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use prjcombine_interconnect::grid::{
-    BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId,
+use prjcombine_interconnect::{
+    dir::{DirH, DirV},
+    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityIds};
@@ -104,6 +105,17 @@ impl Chip {
 
     pub fn row_n(&self) -> RowId {
         RowId::from_idx(self.rows - 1)
+    }
+
+    pub fn row_edge(&self, dir: DirV) -> RowId {
+        match dir {
+            DirV::S => self.row_s(),
+            DirV::N => self.row_n(),
+        }
+    }
+
+    pub fn is_row_io(&self, row: RowId) -> bool {
+        row == self.row_s() || row == self.row_n()
     }
 
     pub fn columns(&self) -> EntityIds<ColId> {
@@ -214,6 +226,18 @@ impl Chip {
             }
         }
         res
+    }
+
+    pub fn bel_pci(&self, dir: DirH) -> BelCoord {
+        CellCoord::new(
+            DieId::from_idx(0),
+            match dir {
+                DirH::W => self.col_w(),
+                DirH::E => self.col_e(),
+            },
+            self.row_clk(),
+        )
+        .bel(bels::PCILOGIC)
     }
 }
 

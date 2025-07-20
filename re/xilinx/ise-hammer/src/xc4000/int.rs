@@ -591,7 +591,7 @@ fn drive_xc4000_wire<'a>(
             unreachable!()
         }
         let tcrd = cell.tile(tslot);
-        let tile = backend.egrid.tile(tcrd);
+        let tile = &backend.egrid[tcrd];
         let mwt = TileWireCoord {
             cell: twt,
             wire: wt,
@@ -638,7 +638,7 @@ fn drive_xc4000_wire<'a>(
         panic!("umm failed at {wire_target:?} {wname}");
     } else if wname.starts_with("IO.DOUBLE") {
         let (tcrd, mwt) = orig_target.unwrap();
-        let tile = backend.egrid.tile(tcrd);
+        let tile = &backend.egrid[tcrd];
         let ins = &backend.egrid.db_index.tile_classes[tile.class].pips_bwd[&mwt];
         for &mwf in ins {
             let wfname = backend.egrid.db.wires.key(mwf.wire);
@@ -808,7 +808,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(tcrd);
+        let node = &backend.egrid[tcrd];
         let ntile = &backend.ngrid.tiles[&tcrd];
         let node_data = &backend.egrid.db.tile_classes[node.class];
         let bel_data = &node_data.bels[self.slot];

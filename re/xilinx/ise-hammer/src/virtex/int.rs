@@ -96,7 +96,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinLh {
             .tile_cell(tcrd, self.0.cell)
             .with_col(ColId::from_idx(0))
             .tile(tslots::MAIN);
-        let tile = backend.egrid.tile(tcrd);
+        let tile = &backend.egrid[tcrd];
         let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
         for i in 0..12 {
             let wire_pin = TileWireCoord {
@@ -152,7 +152,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
             .with_col(ColId::from_idx(0))
             .tile(tslots::MAIN);
         loop {
-            let tile = backend.egrid.tile(tcrd);
+            let tile = &backend.egrid[tcrd];
             if matches!(
                 &backend.egrid.db.tile_classes.key(tile.class)[..],
                 "IO.B" | "IO.T"

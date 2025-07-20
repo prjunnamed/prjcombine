@@ -42,7 +42,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RandorInit {
         }
         if tcrd.col == edev.chip.col_w() + 1 {
             let tcrd = tcrd.delta(-1, 0).tile(tslots::RANDOR);
-            let tile = backend.egrid.tile(tcrd);
+            let tile = &backend.egrid[tcrd];
             let tcls = backend.egrid.db.tile_classes.key(tile.class);
             let first_feature_id = fuzzer.info.features.first().unwrap().id.clone();
             fuzzer.info.features.push(FuzzerFeature {

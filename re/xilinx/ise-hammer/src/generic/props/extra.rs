@@ -43,12 +43,11 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nloc = self.relation.resolve(backend, nloc)?;
-        let node = backend.egrid.tile(nloc);
-        let tile = backend.egrid.db.tile_classes.key(node.class);
+        let tcrd = self.relation.resolve(backend, tcrd)?;
+        let tile = backend.egrid.db.tile_classes.key(backend.egrid[tcrd].class);
         let main_id = &fuzzer.info.features[0].id;
         let id = FeatureId {
             tile: tile.into(),
@@ -58,7 +57,7 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
         };
         fuzzer.info.features.push(FuzzerFeature {
             id,
-            tiles: backend.edev.node_bits(nloc),
+            tiles: backend.edev.node_bits(tcrd),
         });
         Some((fuzzer, false))
     }
@@ -96,14 +95,13 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let Some(nloc) = self.relation.resolve(backend, nloc) else {
+        let Some(tcrd) = self.relation.resolve(backend, tcrd) else {
             return Some((fuzzer, true));
         };
-        let node = backend.egrid.tile(nloc);
-        let tile = backend.egrid.db.tile_classes.key(node.class);
+        let tile = backend.egrid.db.tile_classes.key(backend.egrid[tcrd].class);
         let main_id = &fuzzer.info.features[0].id;
         let id = FeatureId {
             tile: tile.into(),
@@ -113,7 +111,7 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe
         };
         fuzzer.info.features.push(FuzzerFeature {
             id,
-            tiles: backend.edev.node_bits(nloc),
+            tiles: backend.edev.node_bits(tcrd),
         });
         Some((fuzzer, false))
     }
@@ -155,9 +153,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         if let Some(locs) = backend.egrid.tile_index.get(self.kind) {
-            for &nloc in locs {
-                let node = backend.egrid.tile(nloc);
-                let tile = backend.egrid.db.tile_classes.key(node.class);
+            for &tcrd in locs {
+                let tile = backend.egrid.db.tile_classes.key(backend.egrid[tcrd].class);
                 let main_id = &fuzzer.info.features[0].id;
                 let id = FeatureId {
                     tile: tile.into(),
@@ -167,7 +164,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind {
                 };
                 fuzzer.info.features.push(FuzzerFeature {
                     id,
-                    tiles: backend.edev.node_bits(nloc),
+                    tiles: backend.edev.node_bits(tcrd),
                 });
             }
         }
@@ -215,9 +212,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
             if !node_kind.bels.contains_id(self.slot) {
                 continue;
             }
-            for &nloc in locs {
-                let node = backend.egrid.tile(nloc);
-                let tile = backend.egrid.db.tile_classes.key(node.class);
+            for &tcrd in locs {
+                let tile = backend.egrid.db.tile_classes.key(backend.egrid[tcrd].class);
                 let main_id = &fuzzer.info.features[0].id;
                 let id = FeatureId {
                     tile: tile.into(),
@@ -227,7 +223,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
                 };
                 fuzzer.info.features.push(FuzzerFeature {
                     id,
-                    tiles: backend.edev.node_bits(nloc),
+                    tiles: backend.edev.node_bits(tcrd),
                 });
             }
         }

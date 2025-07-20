@@ -342,7 +342,6 @@ impl<'a> Verifier<'a> {
             }
         }
         for (ccrd, conn) in self.grid.connectors() {
-            let target = conn.target.map(|(col, row)| ccrd.cell.with_cr(col, row));
             if let Some(nt) = self.ngrid.conns.get(&ccrd) {
                 let tn = &self.ndb.conn_class_namings[nt.naming];
                 let tk = &self.db.conn_classes[conn.class];
@@ -353,7 +352,7 @@ impl<'a> Verifier<'a> {
                     }
                     let wf = match tk.wires[w] {
                         ConnectorWire::Reflect(wf) => ccrd.cell.wire(wf),
-                        ConnectorWire::Pass(wf) => target.unwrap().wire(wf),
+                        ConnectorWire::Pass(wf) => conn.target.unwrap().wire(wf),
                         _ => unreachable!(),
                     };
                     if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
@@ -679,7 +678,7 @@ impl<'a> Verifier<'a> {
     }
 
     fn handle_tile(&mut self, tcrd: TileCoord) {
-        let tile = self.grid.tile(tcrd);
+        let tile = &self.grid[tcrd];
         let crds;
         if let Some(c) = self.get_node_crds(tcrd) {
             crds = c;
@@ -1100,8 +1099,7 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn handle_connector(&mut self, ccrd: ConnectorCoord) {
-        let conn = self.grid.connector(ccrd);
-        let target = conn.target.map(|(col, row)| ccrd.cell.with_cr(col, row));
+        let conn = &self.grid[ccrd];
         let Some(nconn) = &self.ngrid.conns.get(&ccrd) else {
             return;
         };
@@ -1134,7 +1132,7 @@ impl<'a> Verifier<'a> {
             let tkw = &tk.wires[w];
             let wf = match *tkw {
                 ConnectorWire::Reflect(wf) => ccrd.cell.wire(wf),
-                ConnectorWire::Pass(wf) => target.unwrap().wire(wf),
+                ConnectorWire::Pass(wf) => conn.target.unwrap().wire(wf),
                 _ => unreachable!(),
             };
             let wf = self.ngrid.resolve_wire_raw(wf);
@@ -1300,7 +1298,7 @@ impl<'a> Verifier<'a> {
 
     pub fn find_bel(&self, bel: BelCoord) -> Option<BelContext<'a>> {
         let tcrd = self.grid.find_tile_by_bel(bel)?;
-        let tile = &self.grid.tile(tcrd);
+        let tile = &self.grid[tcrd];
         let crds = self.get_node_crds(tcrd).unwrap();
         let nk = &self.db.tile_classes[tile.class];
         let ntile = &self.ngrid.tiles[&tcrd];
@@ -1342,8 +1340,7 @@ impl<'a> Verifier<'a> {
         }
         let nc = nc as usize;
         let nr = nr as usize;
-        let die = self.grid.die(bel.die);
-        if nc >= die.cols().len() || nr >= die.rows().len() {
+        if nc >= self.grid.cols(bel.die).len() || nr >= self.grid.rows(bel.die).len() {
             return None;
         }
         self.find_bel(
@@ -1371,8 +1368,7 @@ impl<'a> Verifier<'a> {
             }
             c = nc as usize;
             r = nr as usize;
-            let die = self.grid.die(bel.die);
-            if c >= die.cols().len() || r >= die.rows().len() {
+            if c >= self.grid.cols(bel.die).len() || r >= self.grid.rows(bel.die).len() {
                 return None;
             }
             if let Some(x) = self.find_bel(

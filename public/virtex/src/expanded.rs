@@ -96,7 +96,7 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
-        let tile = self.egrid.tile(tcrd);
+        let tile = &self.egrid[tcrd];
         let kind = self.egrid.db.tile_classes.key(tile.class).as_str();
         if matches!(kind, "LBRAM" | "RBRAM" | "MBRAM") {
             vec![
@@ -120,7 +120,7 @@ impl ExpandedDevice<'_> {
             Vec::from_iter(
                 tile.cells
                     .values()
-                    .map(|&(col, row)| self.btile_main(col, row)),
+                    .map(|&cell| self.btile_main(cell.col, cell.row)),
             )
         }
     }

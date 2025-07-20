@@ -102,8 +102,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
                 .egrid
                 .find_tile_by_class(cell, |kind| kind.starts_with("PLL_BUFPLL"))
             {
-                let node = edev.egrid.tile(ntcrd);
-                if edev.egrid.db.tile_classes.key(node.class) != self.1 {
+                if edev.egrid.db.tile_classes.key(edev.egrid[ntcrd].class) != self.1 {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {

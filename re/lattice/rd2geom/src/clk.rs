@@ -112,8 +112,7 @@ impl ChipContext<'_> {
                     is_intf_in: false,
                 };
                 bel.pins.insert(format!("{wname}_{hv}"), bpin);
-                let wire_cell = self.edev.egrid.tile(tcrd).cells[cell_slot];
-                let wire_cell = CellCoord::new(DieId::from_idx(0), wire_cell.0, wire_cell.1);
+                let wire_cell = self.edev.egrid.tile_cell(tcrd, cell_slot);
                 let wire = wire_cell.wire(wire);
                 let wire = self.naming.interconnect[&wire];
                 let idx: u8 = wname[4..].parse().unwrap();
@@ -194,8 +193,7 @@ impl ChipContext<'_> {
                 is_intf_in: false,
             };
             bel.pins.insert("OUT".into(), bpin);
-            let pclk_cell = self.edev.egrid.tile(tcrd).cells[cell_slot];
-            let pclk_cell = CellCoord::new(DieId::from_idx(0), pclk_cell.0, pclk_cell.1);
+            let pclk_cell = self.edev.egrid.tile_cell(tcrd, cell_slot);
             let pclk = pclk_cell.wire(pclk);
             let pclk = self.naming.interconnect[&pclk];
             self.claim_pip(pclk, out);

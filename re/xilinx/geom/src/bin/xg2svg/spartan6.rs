@@ -1,3 +1,4 @@
+use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_spartan6::chip::{ColumnIoKind, ColumnKind, Gts};
 use prjcombine_spartan6::expanded::ExpandedDevice;
 use unnamed_entity::{EntityId, EntityVec};
@@ -16,6 +17,7 @@ const H_HCLK: f64 = 2.;
 const H_BRKH: f64 = 2.;
 
 pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
+    let die = DieId::from_idx(0);
     let mut x = 0.;
     x += W_TERM;
     let mut col_x = EntityVec::new();
@@ -78,7 +80,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     "clexl"
                 };
                 for row in edev.chip.rows.ids() {
-                    if edev.in_site_hole(col, row) {
+                    if edev.in_site_hole(CellCoord::new(die, col, row)) {
                         continue;
                     }
                     drawer.bel_rect(col_x[col].0, col_x[col].1, row_y[row].0, row_y[row].1, kind);
@@ -151,7 +153,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     "dsp"
                 };
                 for row in edev.chip.rows.ids().step_by(4) {
-                    if edev.in_site_hole(col, row) {
+                    if edev.in_site_hole(CellCoord::new(die, col, row)) {
                         continue;
                     }
                     drawer.bel_rect(
@@ -165,8 +167,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             }
             ColumnKind::Io => {
                 for (row, rd) in &edev.chip.rows {
-                    if (col == edev.chip.col_lio() && rd.lio)
-                        || (col == edev.chip.col_rio() && rd.rio)
+                    if (col == edev.chip.col_w() && rd.lio) || (col == edev.chip.col_e() && rd.rio)
                     {
                         drawer.bel_rect(
                             col_x[col].0,
@@ -175,7 +176,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             row_y[row].1,
                             "ioi",
                         );
-                        if col == edev.chip.col_lio() {
+                        if col == edev.chip.col_w() {
                             drawer.bel_rect(
                                 col_x[col].0 - W_TERM,
                                 col_x[col].0,
@@ -257,29 +258,29 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     }
 
     drawer.bel_rect(
-        col_x[edev.chip.col_lio()].0,
-        col_x[edev.chip.col_lio()].1,
+        col_x[edev.chip.col_w()].0,
+        col_x[edev.chip.col_w()].1,
         row_y[edev.chip.row_bio_outer()].0,
         row_y[edev.chip.row_bio_outer()].1,
         "cfg",
     );
     drawer.bel_rect(
-        col_x[edev.chip.col_lio()].0,
-        col_x[edev.chip.col_lio()].1,
+        col_x[edev.chip.col_w()].0,
+        col_x[edev.chip.col_w()].1,
         row_y[edev.chip.row_tio_outer()].0,
         row_y[edev.chip.row_tio_outer()].1,
         "cfg",
     );
     drawer.bel_rect(
-        col_x[edev.chip.col_rio()].0,
-        col_x[edev.chip.col_rio()].1,
+        col_x[edev.chip.col_e()].0,
+        col_x[edev.chip.col_e()].1,
         row_y[edev.chip.row_bio_outer()].0,
         row_y[edev.chip.row_bio_inner()].1,
         "cfg",
     );
     drawer.bel_rect(
-        col_x[edev.chip.col_rio()].0,
-        col_x[edev.chip.col_rio()].1,
+        col_x[edev.chip.col_e()].0,
+        col_x[edev.chip.col_e()].1,
         row_y[edev.chip.row_tio_inner()].0,
         row_y[edev.chip.row_tio_outer()].1,
         "cfg",

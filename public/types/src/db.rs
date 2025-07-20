@@ -1,6 +1,9 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use unnamed_entity::{id::{EntityIdU16, EntityIdU8, EntityTag}, EntityId};
+use unnamed_entity::{
+    EntityId,
+    id::{EntityIdU8, EntityIdU16, EntityTag},
+};
 
 pub struct ChipTag;
 pub struct SpeedTag;

@@ -2137,7 +2137,7 @@ impl IntMaker<'_> {
                     .builder
                     .xnode(tslots::BEL, "HDIOS", tkn, xy)
                     .raw_tile(xy.delta(0, 31))
-                    .num_tiles(60);
+                    .num_tiles(120);
                 for i in 0..60 {
                     xn = xn
                         .ref_int_side(int_w_xy.delta(0, (i + i / 30) as i32), Dir::E, i)

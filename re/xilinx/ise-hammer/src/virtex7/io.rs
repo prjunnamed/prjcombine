@@ -217,10 +217,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
                 .unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             if self.0 {
-                let node = edev.egrid.tile(vref);
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
-                        tile: edev.egrid.db.tile_classes.key(node.class).clone(),
+                        tile: edev
+                            .egrid
+                            .db
+                            .tile_classes
+                            .key(edev.egrid[vref].class)
+                            .clone(),
                         bel: "IOB0".into(),
                         attr: "PRESENT".into(),
                         val: "VREF".into(),
@@ -270,10 +274,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             // Test VR.
             if self.0.is_some() {
-                let node = edev.egrid.tile(vr_tile);
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
-                        tile: edev.egrid.db.tile_classes.key(node.class).clone(),
+                        tile: edev
+                            .egrid
+                            .db
+                            .tile_classes
+                            .key(edev.egrid[vr_tile].class)
+                            .clone(),
                         bel: "IOB0".into(),
                         attr: "PRESENT".into(),
                         val: "VR".into(),

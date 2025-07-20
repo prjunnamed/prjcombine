@@ -1,7 +1,7 @@
 use prjcombine_interconnect::{
     db::RegionSlotId,
     dir::{Dir, DirMap},
-    grid::{ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord},
+    grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord},
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
@@ -22,14 +22,14 @@ pub struct ExpandedDevice<'a> {
     pub col_width: EntityVec<ColId, usize>,
     pub spine_frame: EntityVec<RegId, usize>,
     pub bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
-    pub iob_frame: HashMap<(ColId, RowId), usize>,
+    pub iob_frame: HashMap<CellCoord, usize>,
     pub reg_frame: DirMap<usize>,
 }
 
 impl ExpandedDevice<'_> {
-    pub fn in_site_hole(&self, col: ColId, row: RowId) -> bool {
+    pub fn in_site_hole(&self, cell: CellCoord) -> bool {
         for hole in &self.site_holes {
-            if hole.contains(col, row) {
+            if hole.contains(cell) {
                 return true;
             }
         }
@@ -79,12 +79,12 @@ impl ExpandedDevice<'_> {
         BitTile::Iob(DieId::from_idx(0), self.reg_frame[dir], 384)
     }
 
-    pub fn btile_iob(&self, col: ColId, row: RowId) -> BitTile {
-        BitTile::Iob(DieId::from_idx(0), self.iob_frame[&(col, row)], 128)
+    pub fn btile_iob(&self, cell: CellCoord) -> BitTile {
+        BitTile::Iob(DieId::from_idx(0), self.iob_frame[&cell], 128)
     }
 
     pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
-        let tile = self.egrid.tile(tcrd);
+        let tile = &self.egrid[tcrd];
         let kind = self.egrid.db.tile_classes.key(tile.class).as_str();
         if kind == "BRAM" {
             vec![
@@ -109,7 +109,7 @@ impl ExpandedDevice<'_> {
         } else if kind.starts_with("PLL_BUFPLL") || kind.starts_with("DCM_BUFPLL") {
             vec![self.btile_spine(tcrd.row - 7)]
         } else if kind == "IOB" {
-            vec![self.btile_iob(tcrd.col, tcrd.row)]
+            vec![self.btile_iob(tcrd.cell)]
         } else if matches!(kind, "CMT_DCM" | "CMT_PLL") {
             let mut res = vec![];
             for i in 0..16 {
@@ -123,7 +123,7 @@ impl ExpandedDevice<'_> {
             Vec::from_iter(
                 tile.cells
                     .values()
-                    .map(|&(col, row)| self.btile_main(col, row)),
+                    .map(|&cell| self.btile_main(cell.col, cell.row)),
             )
         }
     }

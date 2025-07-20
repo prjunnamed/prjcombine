@@ -87,7 +87,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntDstFilter {
         let wire_name = intdb.wires.key(self.wire.wire);
         match backend.edev {
             ExpandedDevice::Virtex2(edev) => {
-                let tile = backend.egrid.tile(tcrd);
+                let tile = &backend.egrid[tcrd];
                 let ntile = &backend.ngrid.tiles[&tcrd];
                 if backend
                     .egrid
@@ -240,7 +240,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeIntSrcFilter {
         let intdb = backend.egrid.db;
         let ndb = backend.ngrid.db;
         let wire_name = intdb.wires.key(self.wire.wire);
-        let tile = backend.egrid.tile(tcrd);
+        let tile = &backend.egrid[tcrd];
         let ntile = &backend.ngrid.tiles[&tcrd];
         #[allow(clippy::single_match)]
         match backend.edev {

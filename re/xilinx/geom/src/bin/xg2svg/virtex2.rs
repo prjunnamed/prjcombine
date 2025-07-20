@@ -255,8 +255,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     for pair in edev.chip.get_dcm_pairs() {
         match pair.kind {
             DcmPairKind::Bot => {
-                let col = pair.col - 4;
-                let row = pair.row;
+                let col = pair.cell.col - 4;
+                let row = pair.cell.row;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 4 - 1].1,
@@ -264,8 +264,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     row_y[row + 4 - 1].1,
                     "dcm",
                 );
-                let col = pair.col;
-                let row = pair.row;
+                let col = pair.cell.col;
+                let row = pair.cell.row;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 4 - 1].1,
@@ -275,8 +275,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 );
             }
             DcmPairKind::BotSingle => {
-                let col = pair.col - 1;
-                let row = pair.row;
+                let col = pair.cell.col - 1;
+                let row = pair.cell.row;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 1 - 1].1,
@@ -284,8 +284,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     row_y[row + 4 - 1].1,
                     "dcm",
                 );
-                let col = pair.col;
-                let row = pair.row;
+                let col = pair.cell.col;
+                let row = pair.cell.row;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 4 - 1].1,
@@ -295,8 +295,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 );
             }
             DcmPairKind::Top => {
-                let col = pair.col - 4;
-                let row = pair.row - 3;
+                let col = pair.cell.col - 4;
+                let row = pair.cell.row - 3;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 4 - 1].1,
@@ -304,8 +304,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     row_y[row + 4 - 1].1,
                     "dcm",
                 );
-                let col = pair.col;
-                let row = pair.row - 3;
+                let col = pair.cell.col;
+                let row = pair.cell.row - 3;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 4 - 1].1,
@@ -315,8 +315,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 );
             }
             DcmPairKind::TopSingle => {
-                let col = pair.col - 1;
-                let row = pair.row - 3;
+                let col = pair.cell.col - 1;
+                let row = pair.cell.row - 3;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 1 - 1].1,
@@ -324,8 +324,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     row_y[row + 4 - 1].1,
                     "dcm",
                 );
-                let col = pair.col;
-                let row = pair.row - 3;
+                let col = pair.cell.col;
+                let row = pair.cell.row - 3;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 4 - 1].1,
@@ -335,8 +335,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 );
             }
             DcmPairKind::Left | DcmPairKind::Bram => {
-                let col = pair.col;
-                let row = pair.row - 4;
+                let col = pair.cell.col;
+                let row = pair.cell.row - 4;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 4 - 1].1,
@@ -344,8 +344,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     row_y[row + 4 - 1].1,
                     "dcm",
                 );
-                let col = pair.col;
-                let row = pair.row;
+                let col = pair.cell.col;
+                let row = pair.cell.row;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 4 - 1].1,
@@ -355,8 +355,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 );
             }
             DcmPairKind::Right => {
-                let col = pair.col - 3;
-                let row = pair.row - 4;
+                let col = pair.cell.col - 3;
+                let row = pair.cell.row - 4;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 4 - 1].1,
@@ -364,8 +364,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     row_y[row + 4 - 1].1,
                     "dcm",
                 );
-                let col = pair.col - 3;
-                let row = pair.row;
+                let col = pair.cell.col - 3;
+                let row = pair.cell.row;
                 drawer.bel_rect(
                     col_x[col].0,
                     col_x[col + 4 - 1].1,

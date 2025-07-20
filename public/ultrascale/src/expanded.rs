@@ -1,7 +1,7 @@
 use bimap::BiHashMap;
 use bincode::{Decode, Encode};
 use prjcombine_interconnect::db::RegionSlotId;
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId, TileIobId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, TileIobId};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -24,25 +24,19 @@ pub enum ClkSrc {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct HpioCoord {
-    pub die: DieId,
-    pub col: ColId,
-    pub reg: RegId,
+    pub cell: CellCoord,
     pub iob: TileIobId,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct HdioCoord {
-    pub die: DieId,
-    pub col: ColId,
-    pub reg: RegId,
+    pub cell: CellCoord,
     pub iob: TileIobId,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct Xp5ioCoord {
-    pub die: DieId,
-    pub col: ColId,
-    pub reg: RegId,
+    pub cell: CellCoord,
     pub iob: TileIobId,
 }
 
@@ -52,13 +46,6 @@ pub enum IoCoord {
     Hdio(HdioCoord),
     HdioLc(HdioCoord),
     Xp5io(Xp5ioCoord),
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub struct GtCoord {
-    pub die: DieId,
-    pub col: ColId,
-    pub reg: RegId,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
@@ -107,7 +94,7 @@ pub struct ExpandedDevice<'a> {
     pub is_cut_d: bool,
     pub io: Vec<IoCoord>,
     pub cfg_io: EntityVec<DieId, BiHashMap<SharedCfgPad, IoCoord>>,
-    pub gt: Vec<GtCoord>,
+    pub gt: Vec<CellCoord>,
     pub col_cfg_io: ColId,
     pub bankxlut: EntityPartVec<ColId, u32>,
     pub bankylut: EntityVec<DieId, EntityPartVec<RegId, u32>>,
@@ -121,19 +108,20 @@ impl ExpandedDevice<'_> {
     pub fn get_io_info(&self, io: IoCoord) -> IoInfo {
         match io {
             IoCoord::Hpio(hpio) => {
-                let chip = self.chips[hpio.die];
+                let chip = self.chips[hpio.cell.die];
                 let iocol = chip
                     .cols_io
                     .iter()
-                    .find(|iocol| iocol.col == hpio.col)
+                    .find(|iocol| iocol.col == hpio.cell.col)
                     .unwrap();
-                let kind = match iocol.regs[hpio.reg] {
+                let reg = chip.row_to_reg(hpio.cell.row);
+                let kind = match iocol.regs[reg] {
                     IoRowKind::Hpio => IoKind::Hpio,
                     IoRowKind::Hrio => IoKind::Hrio,
                     _ => unreachable!(),
                 };
-                let x = self.bankxlut[hpio.col];
-                let y = self.bankylut[hpio.die][hpio.reg];
+                let x = self.bankxlut[hpio.cell.col];
+                let y = self.bankylut[hpio.cell.die][reg];
                 let mut bank = x + y;
                 let idx = hpio.iob.to_idx();
                 if bank == 64 && kind == IoKind::Hrio {
@@ -189,15 +177,16 @@ impl ExpandedDevice<'_> {
                 }
             }
             IoCoord::Hdio(hdio) => {
-                let chip = self.chips[hdio.die];
+                let chip = self.chips[hdio.cell.die];
                 let hcol = chip
                     .cols_hard
                     .iter()
-                    .find(|hcol| hcol.col == hdio.col)
+                    .find(|hcol| hcol.col == hdio.cell.col)
                     .unwrap();
-                let kind = hcol.regs[hdio.reg];
-                let x = self.bankxlut[hdio.col];
-                let y = self.bankylut[hdio.die][hdio.reg];
+                let reg = chip.row_to_reg(hdio.cell.row);
+                let kind = hcol.regs[reg];
+                let x = self.bankxlut[hdio.cell.col];
+                let y = self.bankylut[hdio.cell.die][reg];
                 let bank = x + y;
                 IoInfo {
                     kind: IoKind::Hdio,
@@ -243,13 +232,23 @@ impl ExpandedDevice<'_> {
                 }
             }
             IoCoord::HdioLc(hdio) => {
-                let chip = self.chips[hdio.die];
-                let x = self.bankxlut[hdio.col];
-                let y =
-                    self.bankylut[hdio.die][hdio.reg] + if hdio.iob.to_idx() >= 42 { 1 } else { 0 };
+                let chip = self.chips[hdio.cell.die];
+                let x = self.bankxlut[hdio.cell.col];
+                let reg = chip.row_to_reg(hdio.cell.row);
+                let y = self.bankylut[hdio.cell.die][reg]
+                    + if hdio.cell.row != chip.row_reg_bot(reg) {
+                        1
+                    } else {
+                        0
+                    };
                 let bank = x + y;
-                let is_ams = hdio.reg == chip.reg_cfg() + 1;
-                let is_hdios = chip.columns[hdio.col].kind == ColumnKind::HdioS;
+                let is_ams = reg == chip.reg_cfg() + 1;
+                let is_hdios = chip.columns[hdio.cell.col].kind == ColumnKind::HdioS;
+                let idx = if hdio.cell.row != chip.row_reg_bot(reg) {
+                    hdio.iob.to_idx() + 42
+                } else {
+                    hdio.iob.to_idx()
+                };
                 IoInfo {
                     kind: IoKind::Hdio,
                     bank,
@@ -268,14 +267,14 @@ impl ExpandedDevice<'_> {
                     is_qbc: false,
                     is_dbc: false,
                     is_gc: if is_hdios {
-                        matches!(&hdio.iob.to_idx(), 8 | 10 | 22 | 24)
+                        matches!(idx, 8 | 10 | 22 | 24)
                     } else {
-                        matches!(&hdio.iob.to_idx(), 10..14 | 42..46)
+                        matches!(idx, 10..14 | 42..46)
                     },
                     sm_pair: if !is_ams {
                         None
                     } else if !is_hdios {
-                        match hdio.iob.to_idx() {
+                        match idx {
                             14 | 15 => Some(15),
                             16 | 17 => Some(13),
                             18 | 19 => Some(12),
@@ -295,7 +294,7 @@ impl ExpandedDevice<'_> {
                             _ => None,
                         }
                     } else {
-                        match hdio.iob.to_idx() {
+                        match idx {
                             0 | 1 => Some(15),
                             2 | 3 => Some(13),
                             4 | 5 => Some(12),
@@ -318,8 +317,9 @@ impl ExpandedDevice<'_> {
                 }
             }
             IoCoord::Xp5io(xp5io) => {
-                let x = self.bankxlut[xp5io.col];
-                let y = self.bankylut[xp5io.die][xp5io.reg];
+                let chip = self.chips[xp5io.cell.die];
+                let x = self.bankxlut[xp5io.cell.col];
+                let y = self.bankylut[xp5io.cell.die][chip.row_to_reg(xp5io.cell.row)];
                 let bank = x + y;
                 let nibble = xp5io.iob.to_idx() / 6;
                 let npin = xp5io.iob.to_idx() % 6;
@@ -347,31 +347,32 @@ impl ExpandedDevice<'_> {
         }
     }
 
-    pub fn get_gt_info(&self, gt: GtCoord) -> GtInfo {
-        let chip = self.chips[gt.die];
+    pub fn get_gt_info(&self, cell: CellCoord) -> GtInfo {
+        let chip = self.chips[cell.die];
         let iocol = chip
             .cols_io
             .iter()
-            .find(|iocol| iocol.col == gt.col)
+            .find(|iocol| iocol.col == cell.col)
             .unwrap();
-        let kind = iocol.regs[gt.reg];
-        let x = if gt.col.to_idx() == 0 { 100 } else { 200 };
-        let y = self.bankylut[gt.die][gt.reg];
+        let reg = chip.row_to_reg(cell.row);
+        let kind = iocol.regs[reg];
+        let x = if cell.col.to_idx() == 0 { 100 } else { 200 };
+        let y = self.bankylut[cell.die][reg];
         let bank = x + y;
         GtInfo { kind, bank }
     }
 
     pub fn is_hdiolc(&self, crd: HdioCoord) -> bool {
-        let chip = self.chips[crd.die];
-        if chip.cols_io.iter().any(|iocol| iocol.col == crd.col) {
+        let chip = self.chips[crd.cell.die];
+        if chip.cols_io.iter().any(|iocol| iocol.col == crd.cell.col) {
             true
         } else {
             let hcol = chip
                 .cols_hard
                 .iter()
-                .find(|hcol| hcol.col == crd.col)
+                .find(|hcol| hcol.col == crd.cell.col)
                 .unwrap();
-            hcol.regs[crd.reg] == HardRowKind::HdioL
+            hcol.regs[chip.row_to_reg(crd.cell.row)] == HardRowKind::HdioL
         }
     }
 }

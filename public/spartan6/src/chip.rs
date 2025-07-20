@@ -1,7 +1,8 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use prjcombine_interconnect::grid::{
-    BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId,
+use prjcombine_interconnect::{
+    dir::{DirH, DirHV},
+    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 use std::collections::BTreeMap;
 use unnamed_entity::{
@@ -222,12 +223,19 @@ pub enum PllKind {
 }
 
 impl Chip {
-    pub fn col_lio(&self) -> ColId {
+    pub fn col_w(&self) -> ColId {
         ColId::from_idx(0)
     }
 
-    pub fn col_rio(&self) -> ColId {
+    pub fn col_e(&self) -> ColId {
         ColId::from_idx(self.columns.len() - 1)
+    }
+
+    pub fn col_edge(&self, edge: DirH) -> ColId {
+        match edge {
+            DirH::W => self.col_w(),
+            DirH::E => self.col_e(),
+        }
     }
 
     pub fn row_bot(&self) -> RowId {
@@ -345,9 +353,9 @@ impl Chip {
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
         let iob = bels::IOB.iter().position(|&x| x == bel.slot).unwrap();
-        if bel.col == self.col_lio() {
+        if bel.col == self.col_w() {
             EdgeIoCoord::W(bel.row, TileIobId::from_idx(iob))
-        } else if bel.col == self.col_rio() {
+        } else if bel.col == self.col_e() {
             EdgeIoCoord::E(bel.row, TileIobId::from_idx(iob))
         } else if bel.row == self.row_bio_inner() {
             EdgeIoCoord::S(bel.col, TileIobId::from_idx(iob))
@@ -373,7 +381,7 @@ impl Chip {
                 }
             }
             EdgeIoCoord::E(row, iob) => {
-                CellCoord::new(die, self.col_rio(), row).bel(bels::IOB[iob.to_idx()])
+                CellCoord::new(die, self.col_e(), row).bel(bels::IOB[iob.to_idx()])
             }
             EdgeIoCoord::S(col, iob) => {
                 if iob.to_idx() < 2 {
@@ -383,7 +391,7 @@ impl Chip {
                 }
             }
             EdgeIoCoord::W(row, iob) => {
-                CellCoord::new(die, self.col_lio(), row).bel(bels::IOB[iob.to_idx()])
+                CellCoord::new(die, self.col_w(), row).bel(bels::IOB[iob.to_idx()])
             }
         }
     }
@@ -464,6 +472,38 @@ impl Chip {
             }
         }
         res
+    }
+
+    pub fn bel_pcilogicse(&self, edge: DirH) -> BelCoord {
+        CellCoord::new(DieId::from_idx(0), self.col_edge(edge), self.row_clk())
+            .bel(bels::PCILOGICSE)
+    }
+
+    pub fn bel_gtp(&self, side: DirHV) -> Option<BelCoord> {
+        match (self.gts, side) {
+            (Gts::Single(col) | Gts::Double(col, _) | Gts::Quad(col, _), DirHV::NW) => {
+                Some(CellCoord::new(DieId::from_idx(0), col, self.row_tio_outer()).bel(bels::GTP))
+            }
+            (Gts::Double(_, col) | Gts::Quad(_, col), DirHV::NE) => {
+                Some(CellCoord::new(DieId::from_idx(0), col, self.row_tio_outer()).bel(bels::GTP))
+            }
+            (Gts::Quad(col, _), DirHV::SW) => {
+                Some(CellCoord::new(DieId::from_idx(0), col, self.row_bio_outer()).bel(bels::GTP))
+            }
+            (Gts::Quad(_, col), DirHV::SE) => {
+                Some(CellCoord::new(DieId::from_idx(0), col, self.row_bio_outer()).bel(bels::GTP))
+            }
+            _ => None,
+        }
+    }
+
+    pub fn bel_pcie(&self) -> Option<BelCoord> {
+        match self.gts {
+            Gts::Single(col) | Gts::Double(col, _) | Gts::Quad(col, _) => Some(
+                CellCoord::new(DieId::from_idx(0), col - 2, self.row_top() - 32).bel(bels::PCIE),
+            ),
+            Gts::None => None,
+        }
     }
 }
 

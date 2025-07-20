@@ -443,7 +443,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
 
     let mut extractor = Extractor::new(die, &edev.egrid, &endev.ngrid);
 
-    let die = edev.egrid.die(DieId::from_idx(0));
+    let die = DieId::from_idx(0);
     for (tcrd, tile) in edev.egrid.tiles() {
         let node_kind = &intdb.tile_classes[tile.class];
         let nnode = &endev.ngrid.tiles[&tcrd];
@@ -482,7 +482,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     );
 
     // long verticals
-    for col in die.cols() {
+    for col in edev.egrid.cols(die) {
         let row = chip.row_s() + 1;
         let by = endev.row_y[row].start;
         let ty = endev.row_y[row].end;
@@ -509,11 +509,11 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         assert_eq!(nets.len(), wires.len());
         for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
             let wire = intdb.get_wire(wire);
-            extractor.net_int(net, CellCoord::new(die.die, col, row).wire(wire));
+            extractor.net_int(net, CellCoord::new(die, col, row).wire(wire));
         }
     }
     // long horizontals
-    for row in die.rows() {
+    for row in edev.egrid.rows(die) {
         let col = chip.col_w() + 1;
         let lx = endev.col_x[col].start;
         let rx = endev.col_x[col].end;
@@ -540,18 +540,18 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         assert_eq!(nets.len(), wires.len());
         for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
             let wire = intdb.get_wire(wire);
-            extractor.net_int(net, CellCoord::new(die.die, col, row).wire(wire));
+            extractor.net_int(net, CellCoord::new(die, col, row).wire(wire));
         }
     }
 
     // horizontal singles
     let mut queue = vec![];
-    for col in die.cols() {
+    for col in edev.egrid.cols(die) {
         let mut x = endev.col_x[col].end;
         if col == chip.col_e() {
             x = endev.col_x[col].start + 8;
         }
-        for row in die.rows() {
+        for row in edev.egrid.rows(die) {
             let mut nets = vec![];
             for y in endev.row_y[row].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_l else {
@@ -581,17 +581,17 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
                 let wire = intdb.get_wire(wire);
-                queue.push((net, CellCoord::new(die.die, col, row).wire(wire)));
+                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
     }
     // vertical singles
-    for row in die.rows() {
+    for row in edev.egrid.rows(die) {
         let mut y = endev.row_y[row].start;
         if row == chip.row_s() {
             y = endev.row_y[row + 1].start - 8;
         }
-        for col in die.cols() {
+        for col in edev.egrid.cols(die) {
             let mut nets = vec![];
             for x in endev.col_x[col].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_b else {
@@ -628,7 +628,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
                 let wire = intdb.get_wire(wire);
-                queue.push((net, CellCoord::new(die.die, col, row).wire(wire)));
+                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
     }
@@ -641,7 +641,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     for (box_id, boxx) in &extractor.die.boxes {
         let col = xlut.binary_search(&usize::from(boxx.bx)).unwrap_err();
         let row = ylut.binary_search(&usize::from(boxx.by)).unwrap_err();
-        extractor.own_box(box_id, CellCoord::new(die.die, col, row).tile(tslots::MAIN));
+        extractor.own_box(box_id, CellCoord::new(die, col, row).tile(tslots::MAIN));
     }
 
     for (wire, name, &kind) in &intdb.wires {

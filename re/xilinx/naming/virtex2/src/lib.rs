@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet};
 
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord, ExpandedDieRef, RowId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId};
 use prjcombine_re_xilinx_naming::{
     db::NamingDb,
     grid::{BelGrid, ExpandedGridNaming},
@@ -30,7 +30,7 @@ impl<'a> ExpandedNamedDevice<'a> {
 struct Namer<'a> {
     edev: &'a ExpandedDevice<'a>,
     chip: &'a Chip,
-    die: ExpandedDieRef<'a, 'a>,
+    die: DieId,
     ngrid: ExpandedGridNaming<'a>,
     xlut: EntityVec<ColId, usize>,
     sxlut: EntityPartVec<ColId, usize>,
@@ -90,7 +90,7 @@ impl Namer<'_> {
 
     fn fill_rlut(&mut self) {
         let n = self.chip.rows.len();
-        for row in self.die.rows() {
+        for row in self.edev.egrid.rows(self.die) {
             self.rlut.push(n - row.to_idx() - 1);
         }
     }
@@ -149,36 +149,36 @@ impl Namer<'_> {
         }
     }
 
-    fn get_int_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
-        let x = self.xlut[col];
-        let y = row.to_idx();
+    fn get_int_name(&self, cell: CellCoord) -> (&'static str, String) {
+        let x = self.xlut[cell.col];
+        let y = cell.row.to_idx();
 
         for &(bc, br) in &self.chip.holes_ppc {
-            if col >= bc && col < bc + 10 && row >= br && row < br + 16 {
-                let naming = if col == bc + 9 {
+            if cell.col >= bc && cell.col < bc + 10 && cell.row >= br && cell.row < br + 16 {
+                let naming = if cell.col == bc + 9 {
                     "INT.PPC.R"
-                } else if row == br {
+                } else if cell.row == br {
                     "INT.PPC.B"
-                } else if row == br + 15 {
+                } else if cell.row == br + 15 {
                     "INT.PPC.T"
-                } else if col == bc {
+                } else if cell.col == bc {
                     "INT.PPC.L"
                 } else {
                     unreachable!();
                 };
-                let prefix = if col == bc && row == br + 1 {
+                let prefix = if cell.col == bc && cell.row == br + 1 {
                     "PTERMLL"
-                } else if col == bc && row == br + 14 {
+                } else if cell.col == bc && cell.row == br + 14 {
                     "PTERMUL"
                 } else {
                     ""
                 };
-                let r = self.rlut[row];
-                let name = if self.chip.columns[col].kind == ColumnKind::Clb {
-                    let c = self.clut[col];
+                let r = self.rlut[cell.row];
+                let name = if self.chip.columns[cell.col].kind == ColumnKind::Clb {
+                    let c = self.clut[cell.col];
                     format!("{prefix}R{r}C{c}")
                 } else {
-                    let c = self.bramclut[col];
+                    let c = self.bramclut[cell.col];
                     format!("PPCINTR{r}BRAMC{c}")
                 };
                 return (naming, name);
@@ -187,97 +187,115 @@ impl Namer<'_> {
         for pair in self.chip.get_dcm_pairs() {
             match pair.kind {
                 DcmPairKind::Bot => {
-                    if col == pair.col - 1 && row == pair.row {
+                    if cell == pair.cell.delta(-1, 0) {
                         return ("INT.DCM.S3E", format!("DCM_BL_CENTER_X{x}Y{y}"));
                     }
-                    if col == pair.col && row == pair.row {
+                    if cell == pair.cell {
                         return ("INT.DCM.S3E", format!("DCM_BR_CENTER_X{x}Y{y}"));
                     }
                 }
                 DcmPairKind::BotSingle => {
-                    if col == pair.col - 1 && row == pair.row {
+                    if cell == pair.cell.delta(-1, 0) {
                         return ("INT.DCM.S3E.DUMMY", format!("DCMAUX_BL_CENTER_X{x}Y{y}"));
                     }
-                    if col == pair.col && row == pair.row {
+                    if cell == pair.cell {
                         return ("INT.DCM.S3E", format!("DCM_BR_CENTER_X{x}Y{y}"));
                     }
                 }
                 DcmPairKind::Top => {
-                    if col == pair.col - 1 && row == pair.row {
+                    if cell == pair.cell.delta(-1, 0) {
                         return ("INT.DCM.S3E", format!("DCM_TL_CENTER_X{x}Y{y}"));
                     }
-                    if col == pair.col && row == pair.row {
+                    if cell == pair.cell {
                         return ("INT.DCM.S3E", format!("DCM_TR_CENTER_X{x}Y{y}"));
                     }
                 }
                 DcmPairKind::TopSingle => {
-                    if col == pair.col - 1 && row == pair.row {
+                    if cell == pair.cell.delta(-1, 0) {
                         return ("INT.DCM.S3E.DUMMY", format!("DCMAUX_TL_CENTER_X{x}Y{y}"));
                     }
-                    if col == pair.col && row == pair.row {
+                    if cell == pair.cell {
                         return ("INT.DCM.S3E", format!("DCM_TR_CENTER_X{x}Y{y}"));
                     }
                 }
                 DcmPairKind::Left => {
-                    if col == pair.col && row == pair.row - 1 {
+                    if cell == pair.cell.delta(0, -1) {
                         return ("INT.DCM.S3E.H", format!("DCM_H_BL_CENTER_X{x}Y{y}"));
                     }
-                    if col == pair.col && row == pair.row {
+                    if cell == pair.cell {
                         return ("INT.DCM.S3E.H", format!("DCM_H_TL_CENTER_X{x}Y{y}"));
                     }
                 }
                 DcmPairKind::Right => {
-                    if col == pair.col && row == pair.row - 1 {
+                    if cell == pair.cell.delta(0, -1) {
                         return ("INT.DCM.S3E.H", format!("DCM_H_BR_CENTER_X{x}Y{y}"));
                     }
-                    if col == pair.col && row == pair.row {
+                    if cell == pair.cell {
                         return ("INT.DCM.S3E.H", format!("DCM_H_TR_CENTER_X{x}Y{y}"));
                     }
                 }
                 DcmPairKind::Bram => {
-                    if col == pair.col && row == pair.row - 1 {
+                    if cell == pair.cell.delta(0, -1) {
                         return ("INT.DCM.S3E.H", format!("DCM_BGAP_X{x}Y{y}"));
                     }
-                    if col == pair.col && row == pair.row {
+                    if cell == pair.cell {
                         return ("INT.DCM.S3E.H", format!("DCM_SPLY_X{x}Y{y}"));
                     }
                 }
             }
         }
 
-        if (col == self.chip.col_w() || col == self.chip.col_e())
-            && (row == self.chip.row_s() || row == self.chip.row_n())
-        {
+        if self.chip.is_col_io(cell.col) && self.chip.is_row_io(cell.row) {
             if self.chip.kind.is_spartan3ea() {
-                let ul = if row == self.chip.row_s() { 'L' } else { 'U' };
-                let lr = if col == self.chip.col_w() { 'L' } else { 'R' };
+                let ul = if cell.row == self.chip.row_s() {
+                    'L'
+                } else {
+                    'U'
+                };
+                let lr = if cell.col == self.chip.col_w() {
+                    'L'
+                } else {
+                    'R'
+                };
                 ("INT.CNR", format!("{ul}{lr}_X{x}Y{y}"))
             } else {
-                let bt = if row == self.chip.row_s() { 'B' } else { 'T' };
-                let lr = if col == self.chip.col_w() { 'L' } else { 'R' };
+                let bt = if cell.row == self.chip.row_s() {
+                    'B'
+                } else {
+                    'T'
+                };
+                let lr = if cell.col == self.chip.col_w() {
+                    'L'
+                } else {
+                    'R'
+                };
                 if self.chip.kind.is_virtex2p() {
                     ("INT.CNR", format!("{lr}IOI{bt}IOI"))
                 } else {
                     ("INT.CNR", format!("{bt}{lr}"))
                 }
             }
-        } else if (row == self.chip.row_s() || row == self.chip.row_n())
+        } else if self.chip.is_row_io(cell.row)
             && !self.chip.kind.is_spartan3ea()
-            && matches!(self.chip.columns[col].kind, ColumnKind::Bram)
+            && matches!(self.chip.columns[cell.col].kind, ColumnKind::Bram)
         {
-            let bt = if row == self.chip.row_s() { 'B' } else { 'T' };
-            let c = self.bramclut[col];
+            let bt = if cell.row == self.chip.row_s() {
+                'B'
+            } else {
+                'T'
+            };
+            let c = self.bramclut[cell.col];
             let naming = match self.chip.kind {
                 ChipKind::Virtex2 => "INT.BRAM_IOIS",
                 ChipKind::Virtex2P | ChipKind::Virtex2PX => {
-                    if self.chip.cols_gt.contains_key(&col) {
+                    if self.chip.cols_gt.contains_key(&cell.col) {
                         "INT.GT.CLKPAD"
                     } else {
                         "INT.ML_BRAM_IOIS"
                     }
                 }
                 ChipKind::Spartan3 => {
-                    if col == self.chip.col_w() + 3 || col == self.chip.col_e() - 3 {
+                    if cell.col == self.chip.col_w() + 3 || cell.col == self.chip.col_e() - 3 {
                         "INT.DCM.S3"
                     } else {
                         "INT.DCM.S3.DUMMY"
@@ -286,20 +304,20 @@ impl Namer<'_> {
                 _ => unreachable!(),
             };
             (naming, format!("{bt}IOIBRAMC{c}"))
-        } else if self.chip.bram_row(row).is_some()
-            && matches!(self.chip.columns[col].kind, ColumnKind::Bram)
+        } else if self.chip.bram_row(cell.row).is_some()
+            && matches!(self.chip.columns[cell.col].kind, ColumnKind::Bram)
         {
             // BRAM
             if !self.chip.kind.is_spartan3ea() {
-                let c = self.bramclut[col];
-                let r = self.rlut[row];
+                let c = self.bramclut[cell.col];
+                let r = self.rlut[cell.row];
 
-                let is_gt = self.chip.cols_gt.contains_key(&col)
+                let is_gt = self.chip.cols_gt.contains_key(&cell.col)
                     && self.chip.kind == ChipKind::Virtex2P
-                    && (row < self.chip.row_s() + 5 || row >= self.chip.row_n() - 4);
-                let is_gt10 = self.chip.cols_gt.contains_key(&col)
+                    && (cell.row < self.chip.row_s() + 5 || cell.row >= self.chip.row_n() - 4);
+                let is_gt10 = self.chip.cols_gt.contains_key(&cell.col)
                     && self.chip.kind == ChipKind::Virtex2PX
-                    && (row < self.chip.row_s() + 9 || row >= self.chip.row_n() - 8);
+                    && (cell.row < self.chip.row_s() + 9 || cell.row >= self.chip.row_n() - 8);
                 (
                     if is_gt || is_gt10 {
                         "INT.GT"
@@ -309,75 +327,81 @@ impl Namer<'_> {
                     format!("BRAMR{r}C{c}"),
                 )
             } else {
-                let idx = self.chip.bram_row(row).unwrap();
+                let idx = self.chip.bram_row(cell.row).unwrap();
                 let naming = if self.chip.kind == ChipKind::Spartan3ADsp {
-                    if self.rows_brk.contains(&row) {
+                    if self.rows_brk.contains(&cell.row) {
                         "INT.BRAM.S3ADSP.BRK"
                     } else {
                         "INT.BRAM.S3ADSP"
                     }
                 } else {
-                    if self.rows_brk.contains(&row) {
+                    if self.rows_brk.contains(&cell.row) {
                         "INT.BRAM.BRK"
                     } else {
                         "INT.BRAM"
                     }
                 };
                 let mut md = "";
-                if self.rows_brk.contains(&row) {
+                if self.rows_brk.contains(&cell.row) {
                     md = "_BRK";
                 }
                 if self.chip.kind != ChipKind::Spartan3E {
-                    if row == self.chip.row_s() + 1 {
+                    if cell.row == self.chip.row_s() + 1 {
                         md = "_BOT";
                     }
-                    if row == self.chip.row_n() - 1 {
+                    if cell.row == self.chip.row_n() - 1 {
                         md = "_TOP";
                     }
-                    if self.chip.cols_clkv.is_none() && row == self.chip.row_n() - 5 {
+                    if self.chip.cols_clkv.is_none() && cell.row == self.chip.row_n() - 5 {
                         md = "_TOP";
                     }
                 }
                 (naming, format!("BRAM{idx}_SMALL{md}_X{x}Y{y}"))
             }
-        } else if self.chip.bram_row(row).is_some()
-            && matches!(self.chip.columns[col].kind, ColumnKind::Dsp)
+        } else if self.chip.bram_row(cell.row).is_some()
+            && matches!(self.chip.columns[cell.col].kind, ColumnKind::Dsp)
         {
             // DSP
-            let idx = self.chip.bram_row(row).unwrap();
-            let naming = if self.rows_brk.contains(&row) {
+            let idx = self.chip.bram_row(cell.row).unwrap();
+            let naming = if self.rows_brk.contains(&cell.row) {
                 "INT.MACC.BRK"
             } else {
                 "INT.MACC"
             };
             let mut md = "";
-            if self.rows_brk.contains(&row) {
+            if self.rows_brk.contains(&cell.row) {
                 md = "_BRK";
             }
             if self.chip.kind != ChipKind::Spartan3E {
-                if row == self.chip.row_s() + 1 {
+                if cell.row == self.chip.row_s() + 1 {
                     md = "_BOT";
                 }
-                if row == self.chip.row_n() - 1 {
+                if cell.row == self.chip.row_n() - 1 {
                     md = "_TOP";
                 }
-                if self.chip.cols_clkv.is_none() && row == self.chip.row_n() - 5 {
+                if self.chip.cols_clkv.is_none() && cell.row == self.chip.row_n() - 5 {
                     md = "_TOP";
                 }
             }
             (naming, format!("MACC{idx}_SMALL{md}_X{x}Y{y}"))
-        } else if row == self.chip.row_s() || row == self.chip.row_n() {
+        } else if self.chip.is_row_io(cell.row) {
             match self.chip.kind {
                 ChipKind::Virtex2
                 | ChipKind::Virtex2P
                 | ChipKind::Virtex2PX
                 | ChipKind::Spartan3
                 | ChipKind::FpgaCore => {
-                    let bt = if row == self.chip.row_s() { 'B' } else { 'T' };
-                    let c = self.clut[col];
+                    let bt = if cell.row == self.chip.row_s() {
+                        'B'
+                    } else {
+                        'T'
+                    };
+                    let c = self.clut[cell.col];
                     let naming = if self.chip.kind.is_virtex2() {
-                        if self.chip.kind == ChipKind::Virtex2PX && col == self.chip.col_clk - 1 {
-                            if row == self.chip.row_s() {
+                        if self.chip.kind == ChipKind::Virtex2PX
+                            && cell.col == self.chip.col_clk - 1
+                        {
+                            if cell.row == self.chip.row_s() {
                                 "INT.IOI.CLK_B"
                             } else {
                                 "INT.IOI.CLK_T"
@@ -398,10 +422,10 @@ impl Namer<'_> {
                     } else {
                         "INT.IOI"
                     };
-                    let (data, tidx) = if row == self.chip.row_s() {
-                        get_iob_data_s(self.chip.kind, self.chip.columns[col].io)
+                    let (data, tidx) = if cell.row == self.chip.row_s() {
+                        get_iob_data_s(self.chip.kind, self.chip.columns[cell.col].io)
                     } else {
-                        get_iob_data_n(self.chip.kind, self.chip.columns[col].io)
+                        get_iob_data_n(self.chip.kind, self.chip.columns[cell.col].io)
                     };
                     let has_iobs = data
                         .iobs
@@ -412,19 +436,19 @@ impl Namer<'_> {
                         .iter()
                         .any(|iob| iob.tile == tidx && iob.kind == IobKind::Ibuf);
                     let kind = if !has_ibufs {
-                        if row == self.chip.row_s() {
+                        if cell.row == self.chip.row_s() {
                             "BIOIS"
                         } else {
                             "TIOIS"
                         }
                     } else if !has_iobs {
-                        if row == self.chip.row_s() {
+                        if cell.row == self.chip.row_s() {
                             "BIBUFS"
                         } else {
                             "TIBUFS"
                         }
                     } else {
-                        if row == self.chip.row_s() {
+                        if cell.row == self.chip.row_s() {
                             "BIOIB"
                         } else {
                             "TIOIB"
@@ -434,15 +458,19 @@ impl Namer<'_> {
                     (naming, name)
                 }
             }
-        } else if col == self.chip.col_w() || col == self.chip.col_e() {
+        } else if self.chip.is_col_io(cell.col) {
             match self.chip.kind {
                 ChipKind::Virtex2
                 | ChipKind::Virtex2P
                 | ChipKind::Virtex2PX
                 | ChipKind::Spartan3
                 | ChipKind::FpgaCore => {
-                    let lr = if col == self.chip.col_w() { 'L' } else { 'R' };
-                    let r = self.rlut[row];
+                    let lr = if cell.col == self.chip.col_w() {
+                        'L'
+                    } else {
+                        'R'
+                    };
+                    let r = self.rlut[cell.row];
                     let naming = if self.chip.kind.is_virtex2() {
                         "INT.IOI.LR"
                     } else if self.chip.kind == ChipKind::FpgaCore {
@@ -454,51 +482,54 @@ impl Namer<'_> {
                 }
                 ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
                     let naming = if self.chip.kind.is_spartan3a() {
-                        if self.rows_brk.contains(&row) {
+                        if self.rows_brk.contains(&cell.row) {
                             "INT.IOI.S3A.LR.BRK"
                         } else {
                             "INT.IOI.S3A.LR"
                         }
                     } else {
-                        if self.rows_brk.contains(&row) {
+                        if self.rows_brk.contains(&cell.row) {
                             "INT.IOI.BRK"
                         } else {
                             "INT.IOI"
                         }
                     };
-                    let (data, tidx) = if col == self.chip.col_w() {
-                        get_iob_data_w(self.chip.kind, self.chip.rows[row])
+                    let (data, tidx) = if cell.col == self.chip.col_w() {
+                        get_iob_data_w(self.chip.kind, self.chip.rows[cell.row])
                     } else {
-                        get_iob_data_e(self.chip.kind, self.chip.rows[row])
+                        get_iob_data_e(self.chip.kind, self.chip.rows[cell.row])
                     };
                     let has_ibufs = data
                         .iobs
                         .iter()
                         .any(|iob| iob.tile == tidx && iob.kind == IobKind::Ibuf);
                     let kind = if !has_ibufs {
-                        if col == self.chip.col_w() {
+                        if cell.col == self.chip.col_w() {
                             "LIOIS"
                         } else {
                             "RIOIS"
                         }
                     } else {
-                        if col == self.chip.col_w() {
+                        if cell.col == self.chip.col_w() {
                             "LIBUFS"
                         } else {
                             "RIBUFS"
                         }
                     };
-                    let brk = if self.rows_brk.contains(&row) {
+                    let brk = if self.rows_brk.contains(&cell.row) {
                         "_BRK"
                     } else {
                         ""
                     };
-                    let clk = if row == self.chip.row_mid() - 1 || row == self.chip.row_mid() {
-                        "_CLK"
-                    } else {
-                        ""
-                    };
-                    let pci = if row >= self.chip.row_mid() - 4 && row < self.chip.row_mid() + 4 {
+                    let clk =
+                        if cell.row == self.chip.row_mid() - 1 || cell.row == self.chip.row_mid() {
+                            "_CLK"
+                        } else {
+                            ""
+                        };
+                    let pci = if cell.row >= self.chip.row_mid() - 4
+                        && cell.row < self.chip.row_mid() + 4
+                    {
                         "_PCI"
                     } else {
                         ""
@@ -509,14 +540,14 @@ impl Namer<'_> {
             }
         } else {
             for &hole in &self.edev.holes {
-                assert!(!hole.contains(col, row));
+                assert!(!hole.contains(cell));
             }
             if !self.chip.kind.is_spartan3ea() {
-                let r = self.rlut[row];
-                let c = self.clut[col];
+                let r = self.rlut[cell.row];
+                let c = self.clut[cell.col];
                 ("INT.CLB", format!("R{r}C{c}"))
             } else {
-                let naming = if self.rows_brk.contains(&row) {
+                let naming = if self.rows_brk.contains(&cell.row) {
                     "INT.CLB.BRK"
                 } else {
                     "INT.CLB"
@@ -865,13 +896,13 @@ impl Namer<'_> {
         }
     }
 
-    fn get_bram_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
+    fn get_bram_name(&self, cell: CellCoord) -> (&'static str, String) {
         let is_bot = matches!(self.chip.kind, ChipKind::Spartan3A | ChipKind::Spartan3ADsp)
-            && row == self.chip.row_s() + 1;
+            && cell.row == self.chip.row_s() + 1;
         let is_top = matches!(self.chip.kind, ChipKind::Spartan3A | ChipKind::Spartan3ADsp)
-            && (row == self.chip.row_n() - 4
-                || row == self.chip.row_n() - 8 && col == self.chip.col_clk);
-        let is_brk = self.rows_brk.contains(&(row + 3));
+            && (cell.row == self.chip.row_n() - 4
+                || cell.row == self.chip.row_n() - 8 && cell.col == self.chip.col_clk);
+        let is_brk = self.rows_brk.contains(&(cell.row + 3));
         let naming = match self.chip.kind {
             ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => "BRAM",
             ChipKind::Spartan3 => "BRAM.S3",
@@ -889,8 +920,8 @@ impl Namer<'_> {
             ChipKind::Spartan3ADsp => "BRAM.S3ADSP",
         };
         let name = if self.chip.kind.is_spartan3ea() {
-            let x = self.xlut[col] + 1;
-            let y = row.to_idx();
+            let x = self.xlut[cell.col] + 1;
+            let y = cell.row.to_idx();
             let m = if self.chip.kind == ChipKind::Spartan3ADsp {
                 "_3M"
             } else {
@@ -906,20 +937,20 @@ impl Namer<'_> {
                 format!("BRAMSITE2{m}_X{x}Y{y}")
             }
         } else {
-            let c = self.bramclut[col];
-            let r = self.rlut[row];
+            let c = self.bramclut[cell.col];
+            let r = self.rlut[cell.row];
             format!("BMR{r}C{c}")
         };
         (naming, name)
     }
 
-    fn get_dsp_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
-        let is_bot = row == self.chip.row_s() + 1;
-        let is_top = row == self.chip.row_n() - 4;
-        let is_brk = self.rows_brk.contains(&(row + 3));
+    fn get_dsp_name(&self, cell: CellCoord) -> (&'static str, String) {
+        let is_bot = cell.row == self.chip.row_s() + 1;
+        let is_top = cell.row == self.chip.row_n() - 4;
+        let is_brk = self.rows_brk.contains(&(cell.row + 3));
         let naming = if is_top { "DSP.TOP" } else { "DSP" };
-        let x = self.xlut[col] + 1;
-        let y = row.to_idx();
+        let x = self.xlut[cell.col] + 1;
+        let y = cell.row.to_idx();
         let name = if is_bot {
             format!("MACCSITE2_BOT_X{x}Y{y}")
         } else if is_top {
@@ -932,20 +963,22 @@ impl Namer<'_> {
         (naming, name)
     }
 
-    fn get_hclk_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
+    fn get_hclk_name(&self, cell: CellCoord) -> (&'static str, String) {
         if !self.chip.kind.is_spartan3ea() {
-            let mut r = self.chip.rows_hclk.len() - self.hclklut[row];
-            if self.chip.columns[col].kind == ColumnKind::Bram {
-                let c = self.bramclut[col];
+            let mut r = self.chip.rows_hclk.len() - self.hclklut[cell.row];
+            if self.chip.columns[cell.col].kind == ColumnKind::Bram {
+                let c = self.bramclut[cell.col];
                 ("GCLKH", format!("GCLKHR{r}BRAMC{c}"))
             } else {
                 // *sigh*.
                 if self.chip.kind == ChipKind::Virtex2 && self.chip.columns.len() == 12 {
                     r -= 1;
                 }
-                let c = self.clut[col];
-                if self.chip.columns[col].kind == ColumnKind::Io && self.chip.kind.is_virtex2p() {
-                    if col == self.chip.col_w() {
+                let c = self.clut[cell.col];
+                if self.chip.columns[cell.col].kind == ColumnKind::Io
+                    && self.chip.kind.is_virtex2p()
+                {
+                    if cell.col == self.chip.col_w() {
                         ("GCLKH", format!("LIOICLKR{r}"))
                     } else {
                         ("GCLKH", format!("RIOICLKR{r}"))
@@ -955,24 +988,24 @@ impl Namer<'_> {
                 }
             }
         } else {
-            let x = self.xlut[col];
-            let y = row.to_idx() - 1;
+            let x = self.xlut[cell.col];
+            let y = cell.row.to_idx() - 1;
             let mut naming = "GCLKH";
-            let kind = match self.chip.columns[col].kind {
-                ColumnKind::Io => match row.cmp(&self.chip.row_mid()) {
+            let kind = match self.chip.columns[cell.col].kind {
+                ColumnKind::Io => match cell.row.cmp(&self.chip.row_mid()) {
                     Ordering::Less => "GCLKH_PCI_CE_S",
                     Ordering::Equal => "GCLKH_PCI_CE_S_50A",
                     Ordering::Greater => "GCLKH_PCI_CE_N",
                 },
                 ColumnKind::BramCont(x) => {
-                    if row == self.chip.row_mid() {
+                    if cell.row == self.chip.row_mid() {
                         naming = "GCLKH.BRAM";
                         [
                             "BRAMSITE2_DN_GCLKH",
                             "BRAM2_GCLKH_FEEDTHRU",
                             "BRAM2_GCLKH_FEEDTHRUA",
                         ][x as usize - 1]
-                    } else if self.hclklut[row] == 0 {
+                    } else if self.hclklut[cell.row] == 0 {
                         naming = "GCLKH.BRAM.S";
                         if self.chip.kind == ChipKind::Spartan3E {
                             [
@@ -987,7 +1020,7 @@ impl Namer<'_> {
                                 "BRAM2_GCLKH_FEEDTHRUA",
                             ][x as usize - 1]
                         }
-                    } else if self.hclklut[row] == self.chip.rows_hclk.len() - 1 {
+                    } else if self.hclklut[cell.row] == self.chip.rows_hclk.len() - 1 {
                         naming = "GCLKH.BRAM.N";
                         if self.chip.kind == ChipKind::Spartan3E {
                             [
@@ -1014,7 +1047,7 @@ impl Namer<'_> {
                             [
                                 if self.chip.kind != ChipKind::Spartan3ADsp {
                                     "BRAMSITE2_GCLKH"
-                                } else if row < self.chip.row_mid() {
+                                } else if cell.row < self.chip.row_mid() {
                                     "BRAMSITE2_DN_GCLKH"
                                 } else {
                                     "BRAMSITE2_UP_GCLKH"
@@ -1031,22 +1064,22 @@ impl Namer<'_> {
         }
     }
 
-    fn get_ppc_h_name(&self, col: ColId, row: RowId) -> (String, String) {
-        let (_, name_l) = self.get_int_name(col, row);
-        let r = self.rlut[row];
-        let c = self.bramclut[col + 8];
+    fn get_ppc_h_name(&self, cell: CellCoord) -> (String, String) {
+        let (_, name_l) = self.get_int_name(cell);
+        let r = self.rlut[cell.row];
+        let c = self.bramclut[cell.col + 8];
         let name_r = format!("BMR{r}C{c}");
         (name_l, name_r)
     }
 
-    fn get_ppc_v_name(&self, col: ColId, row: RowId) -> (String, String) {
-        let rb = self.rlut[row + 1];
-        let rt = self.rlut[row + 14];
-        if self.chip.columns[col].kind == ColumnKind::Clb {
-            let c = self.clut[col];
+    fn get_ppc_v_name(&self, cell: CellCoord) -> (String, String) {
+        let rb = self.rlut[cell.row + 1];
+        let rt = self.rlut[cell.row + 14];
+        if self.chip.columns[cell.col].kind == ColumnKind::Clb {
+            let c = self.clut[cell.col];
             (format!("PTERMR{rb}C{c}"), format!("PTERMR{rt}C{c}"))
         } else {
-            let c = self.bramclut[col];
+            let c = self.bramclut[cell.col];
             (
                 format!("PTERMBR{rb}BRAMC{c}"),
                 format!("PTERMTR{rt}BRAMC{c}"),
@@ -1165,7 +1198,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(self.die.die, col, row).tile(tslots::BEL))
+                .get_mut(&CellCoord::new(self.die, col, row).tile(tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1227,7 +1260,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(self.die.die, col, row).tile(tslots::BEL))
+                .get_mut(&CellCoord::new(self.die, col, row).tile(tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1293,7 +1326,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(self.die.die, col, row).tile(tslots::BEL))
+                .get_mut(&CellCoord::new(self.die, col, row).tile(tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1372,7 +1405,7 @@ impl Namer<'_> {
             let nnode = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(self.die.die, col, row).tile(tslots::BEL))
+                .get_mut(&CellCoord::new(self.die, col, row).tile(tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1408,7 +1441,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     let mut namer = Namer {
         edev,
         chip,
-        die: egrid.die(DieId::from_idx(0)),
+        die: DieId::from_idx(0),
         ngrid,
         xlut: EntityVec::new(),
         sxlut: EntityPartVec::new(),
@@ -1442,7 +1475,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let kind = egrid.db.tile_classes.key(tile.class);
         match &kind[..] {
             _ if kind.starts_with("INT.") => {
-                let (naming, name) = namer.get_int_name(col, row);
+                let (naming, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, naming, [name]);
                 let x = col.to_idx();
                 let y = row.to_idx();
@@ -1497,20 +1530,20 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 }
             }
             "INTF.PPC" => {
-                let (naming, name) = namer.get_int_name(col, row);
+                let (naming, name) = namer.get_int_name(tcrd.cell);
                 let naming = format!("INTF.{}", &naming[4..]);
                 namer.ngrid.name_tile(tcrd, &naming, [name]);
             }
             "INTF.GT.BCLKPAD" | "INTF.GT.TCLKPAD" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 namer.ngrid.name_tile(tcrd, "INTF.GT.CLKPAD", [name]);
             }
             "INTF.GT.B0" | "INTF.GT.B123" | "INTF.GT.T0" | "INTF.GT.T123" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 namer.ngrid.name_tile(tcrd, "INTF.GT", [name]);
             }
             "CLB" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, "CLB", [name]);
                 let sx = namer.sxlut[col];
                 let sy = 2 * (row.to_idx() - 1);
@@ -1540,7 +1573,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 }
             }
             "RANDOR" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let naming = if row == chip.row_s() {
                     "RANDOR.B"
                 } else if row == chip.row_n() {
@@ -1563,7 +1596,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
             "RANDOR_INIT" => {}
             "BRAM" | "BRAM.S3" | "BRAM.S3E" | "BRAM.S3A" | "BRAM.S3ADSP" => {
-                let (naming, name) = namer.get_bram_name(col, row);
+                let (naming, name) = namer.get_bram_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, naming, [name]);
                 let x = namer.bram_grid.xlut[col];
                 let y = namer.bram_grid.ylut[row];
@@ -1573,14 +1606,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 }
             }
             "DSP" => {
-                let (naming, name) = namer.get_dsp_name(col, row);
+                let (naming, name) = namer.get_dsp_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, naming, [name]);
                 let x = namer.bram_grid.xlut[col - 3];
                 let y = namer.bram_grid.ylut[row];
                 nnode.add_bel(bels::DSP, format!("DSP48A_X{x}Y{y}"));
             }
             "INTF.DSP" => {
-                let (_, name) = namer.get_dsp_name(col, row);
+                let (_, name) = namer.get_dsp_name(tcrd.cell);
                 namer.ngrid.name_tile(tcrd, "INTF.DSP", [name]);
             }
             "GIGABIT.B" => {
@@ -1665,19 +1698,19 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
             "PPC.E" => {
-                let (name_l, name_r) = namer.get_ppc_h_name(col, row);
+                let (name_l, name_r) = namer.get_ppc_h_name(tcrd.cell);
                 namer.ngrid.name_tile(tcrd, "PPC.E", [name_l, name_r]);
             }
             "PPC.W" => {
-                let (name_l, name_r) = namer.get_ppc_h_name(col - 9, row);
+                let (name_l, name_r) = namer.get_ppc_h_name(tcrd.cell.delta(-9, 0));
                 namer.ngrid.name_tile(tcrd, "PPC.W", [name_r, name_l]);
             }
             "PPC.N" => {
-                let (name_b, name_t) = namer.get_ppc_v_name(col, row);
+                let (name_b, name_t) = namer.get_ppc_v_name(tcrd.cell);
                 namer.ngrid.name_tile(tcrd, "PPC.N", [name_b, name_t]);
             }
             "PPC.S" => {
-                let (name_b, name_t) = namer.get_ppc_v_name(col, row - 15);
+                let (name_b, name_t) = namer.get_ppc_v_name(tcrd.cell.delta(0, -15));
                 namer.ngrid.name_tile(tcrd, "PPC.S", [name_t, name_b]);
             }
             "LLV.S3E" | "LLV.S3A" => {
@@ -1936,7 +1969,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
             "GCLKH" | "GCLKH.UNI" | "GCLKH.S" | "GCLKH.UNI.S" | "GCLKH.N" | "GCLKH.UNI.N"
             | "GCLKH.0" => {
-                let (naming, name) = namer.get_hclk_name(col, row);
+                let (naming, name) = namer.get_hclk_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, naming, [name]);
                 if !chip.kind.is_spartan3ea() {
                     let gsx = if col < chip.col_clk {
@@ -1982,11 +2015,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::GLOBALSIG_DSP, format!("GLOBALSIG_X{gsx}Y{gsy}"));
             }
             "PCI_CE_CNR" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 namer.ngrid.name_tile(tcrd, "PCI_CE_CNR", [name]);
             }
             "PCI_CE_N" | "PCI_CE_S" => {
-                let (_, name) = namer.get_hclk_name(col, row);
+                let (_, name) = namer.get_hclk_name(tcrd.cell);
                 namer.ngrid.name_tile(tcrd, kind, [name]);
             }
             "PCI_CE_E" => {
@@ -2060,7 +2093,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
 
             "IOI" | "IOI.CLK_B" | "IOI.CLK_T" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let naming = if matches!(
                     chip.columns[col].io,
                     ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt
@@ -2072,7 +2105,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
             "IOI.S3" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let naming = if col == chip.col_w() {
                     "IOI.S3.L"
                 } else if col == chip.col_e() {
@@ -2087,7 +2120,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
             "IOI.FC" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let naming = if col == chip.col_w() {
                     "IOI.FC.L"
                 } else if col == chip.col_e() {
@@ -2102,7 +2135,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
             "IOI.S3E" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let naming = if col == chip.col_w() {
                     if row >= chip.row_mid() - 4 && row < chip.row_mid() + 4 {
                         if row == chip.row_mid() - 4 || row == chip.row_mid() {
@@ -2133,7 +2166,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
             "IOI.S3A.B" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let naming = if chip.kind == ChipKind::Spartan3ADsp {
                     "IOI.S3ADSP.B"
                 } else {
@@ -2142,7 +2175,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
             "IOI.S3A.T" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let naming = if chip.kind == ChipKind::Spartan3ADsp {
                     "IOI.S3ADSP.T"
                 } else {
@@ -2151,7 +2184,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
             "IOI.S3A.LR" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let naming = if col == chip.col_w() {
                     if row >= chip.row_mid() - 4
                         && row < chip.row_mid() + 4
@@ -2196,7 +2229,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             _ if kind.starts_with("IOBS.") => (),
 
             _ if kind.starts_with("DCM.") => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let naming = if kind.starts_with("DCM.S3E") {
                     if row >= chip.row_mid() - 4 && row < chip.row_mid() + 4 {
                         "DCM.S3E.H"
@@ -2223,13 +2256,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
 
             "LL.V2" | "LL.V2P" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::DCI0, "DCI6".to_string());
                 nnode.add_bel(bels::DCI1, "DCI5".to_string());
             }
             "LL.S3" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::DCI0, "DCI6".to_string());
                 nnode.add_bel(bels::DCI1, "DCI5".to_string());
@@ -2237,11 +2270,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::DCIRESET1, "DCIRESET5".to_string());
             }
             "LL.FC" | "LL.S3E" | "LL.S3A" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 namer.ngrid.name_tile(tcrd, kind, [name]);
             }
             "LR.V2" | "LR.V2P" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::DCI0, "DCI3".to_string());
                 nnode.add_bel(bels::DCI1, "DCI4".to_string());
@@ -2250,7 +2283,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::ICAP, "ICAP".to_string());
             }
             "LR.S3" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::DCI0, "DCI3".to_string());
                 nnode.add_bel(bels::DCI1, "DCI4".to_string());
@@ -2261,14 +2294,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::ICAP, "ICAP".to_string());
             }
             "LR.FC" | "LR.S3E" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
                 nnode.add_bel(bels::CAPTURE, "CAPTURE".to_string());
                 nnode.add_bel(bels::ICAP, "ICAP".to_string());
             }
             "LR.S3A" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
                 nnode.add_bel(bels::CAPTURE, "CAPTURE".to_string());
@@ -2276,14 +2309,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::SPI_ACCESS, "SPI_ACCESS".to_string());
             }
             "UL.V2" | "UL.V2P" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::DCI0, "DCI7".to_string());
                 nnode.add_bel(bels::DCI1, "DCI0".to_string());
                 nnode.add_bel(bels::PMV, "PMV".to_string());
             }
             "UL.S3" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::DCI0, "DCI7".to_string());
                 nnode.add_bel(bels::DCI1, "DCI0".to_string());
@@ -2292,25 +2325,25 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::PMV, "PMV".to_string());
             }
             "UL.FC" | "UL.S3E" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::PMV, "PMV".to_string());
             }
             "UL.S3A" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::PMV, "PMV".to_string());
                 nnode.add_bel(bels::DNA_PORT, "DNA_PORT".to_string());
             }
             "UR.V2" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::DCI0, "DCI2".to_string());
                 nnode.add_bel(bels::DCI1, "DCI1".to_string());
                 nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
             }
             "UR.V2P" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::DCI0, "DCI2".to_string());
                 nnode.add_bel(bels::DCI1, "DCI1".to_string());
@@ -2318,7 +2351,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::JTAGPPC, "JTAGPPC".to_string());
             }
             "UR.S3" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::DCI0, "DCI2".to_string());
                 nnode.add_bel(bels::DCI1, "DCI1".to_string());
@@ -2327,7 +2360,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
             }
             "UR.FC" | "UR.S3E" | "UR.S3A" => {
-                let (_, name) = namer.get_int_name(col, row);
+                let (_, name) = namer.get_int_name(tcrd.cell);
                 let nnode = namer.ngrid.name_tile(tcrd, kind, [name]);
                 nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
             }
@@ -2369,19 +2402,19 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_conn_tile(ccrd, "TERM.BRAM.N", name);
             }
             "PPC.W" => {
-                let (name_l, name_r) = namer.get_ppc_h_name(col - 9, row);
+                let (name_l, name_r) = namer.get_ppc_h_name(ccrd.cell.delta(-9, 0));
                 namer.ngrid.name_conn_pair(ccrd, "PPC.W", name_r, name_l);
             }
             "PPC.E" => {
-                let (name_l, name_r) = namer.get_ppc_h_name(col, row);
+                let (name_l, name_r) = namer.get_ppc_h_name(ccrd.cell);
                 namer.ngrid.name_conn_pair(ccrd, "PPC.E", name_l, name_r);
             }
             "PPC.S" => {
-                let (name_b, name_t) = namer.get_ppc_v_name(col, row - 15);
+                let (name_b, name_t) = namer.get_ppc_v_name(ccrd.cell.delta(0, -15));
                 namer.ngrid.name_conn_pair(ccrd, "PPC.S", name_t, name_b);
             }
             "PPC.N" => {
-                let (name_b, name_t) = namer.get_ppc_v_name(col, row);
+                let (name_b, name_t) = namer.get_ppc_v_name(ccrd.cell);
                 namer.ngrid.name_conn_pair(ccrd, "PPC.N", name_b, name_t);
             }
             "MAIN.S" => {
@@ -2391,7 +2424,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     && row.to_idx() != 1
                     && !edev.is_in_hole(ccrd.cell)
                 {
-                    let (_, name) = namer.get_bram_name(col, row);
+                    let (_, name) = namer.get_bram_name(ccrd.cell);
                     namer.ngrid.name_conn_tile(ccrd, "BRAM.S", name);
                 }
             }

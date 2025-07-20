@@ -88,9 +88,9 @@ pub fn make_sample(
     if edev.chip.kind == ChipKind::Ice40R04 {
         for key in [ExtraNodeLoc::LsOsc, ExtraNodeLoc::HsOsc] {
             let crd = *edev.chip.extra_nodes[&key].cells.first().unwrap();
-            let node = edev.egrid.tile(crd.tile(tslots::OSC));
-            let node_info = &edev.egrid.db.tile_classes[node.class];
-            for (bslot, bel) in &node_info.bels {
+            let tile = &edev.egrid[crd.tile(tslots::OSC)];
+            let tcls = &edev.egrid.db.tile_classes[tile.class];
+            for (bslot, bel) in &tcls.bels {
                 let BelInfo::Bel(bel) = bel else {
                     unreachable!()
                 };
@@ -138,7 +138,7 @@ pub fn make_sample(
                         let (cell, wa, wb) =
                             xlat_mux_in(edev, iwa, iwb, (ax, ay, aw), (bx, by, bw));
                         let tile_name = get_main_tile_kind(edev, cell.col, cell.row);
-                        let node = &edev.egrid.cell(cell).tiles[tslots::MAIN];
+                        let tile = &edev.egrid[cell.tile(tslots::MAIN)];
                         let wan = edev.egrid.db.wires.key(wa);
                         let wbn = edev.egrid.db.wires.key(wb);
                         if let Some(idx) = wbn.strip_prefix("GLOBAL.") {
@@ -154,7 +154,7 @@ pub fn make_sample(
                             }
                             continue;
                         }
-                        pips.insert((node.class, wb, wa));
+                        pips.insert((tile.class, wb, wa));
                         let key = format!("{tile_name}:INT:MUX.{wbn}:{wan}");
                         if (wbn.starts_with("QUAD") || wbn.starts_with("LONG"))
                             && wan.starts_with("OUT")

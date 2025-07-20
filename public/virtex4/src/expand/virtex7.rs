@@ -2,7 +2,7 @@ use bimap::BiHashMap;
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::{Dir, DirPartMap};
 use prjcombine_interconnect::grid::{
-    CellCoord, ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
+    CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileIobId,
 };
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
@@ -20,30 +20,31 @@ use crate::tslots;
 
 struct DieExpander<'a, 'b, 'c> {
     chip: &'b Chip,
-    die: ExpandedDieRefMut<'a, 'b>,
-    site_holes: Vec<Rect>,
-    int_holes: Vec<Rect>,
+    egrid: &'a mut ExpandedGrid<'b>,
+    die: DieId,
+    site_holes: &'a mut Vec<Rect>,
+    int_holes: &'a mut Vec<Rect>,
     frame_info: Vec<FrameInfo>,
     frames: DieFrameGeom,
     col_cfg: ColId,
     col_clk: ColId,
     io: &'c mut Vec<IoCoord>,
-    gt: &'c mut Vec<(DieId, ColId, RowId)>,
+    gt: &'c mut Vec<CellCoord>,
 }
 
 impl DieExpander<'_, '_, '_> {
-    fn is_site_hole(&self, col: ColId, row: RowId) -> bool {
-        for hole in &self.site_holes {
-            if hole.contains(col, row) {
+    fn is_site_hole(&self, cell: CellCoord) -> bool {
+        for hole in &*self.site_holes {
+            if hole.contains(cell) {
                 return true;
             }
         }
         false
     }
 
-    fn is_int_hole(&self, col: ColId, row: RowId) -> bool {
-        for hole in &self.int_holes {
-            if hole.contains(col, row) {
+    fn is_int_hole(&self, cell: CellCoord) -> bool {
+        for hole in &*self.int_holes {
+            if hole.contains(cell) {
                 return true;
             }
         }
@@ -51,132 +52,52 @@ impl DieExpander<'_, '_, '_> {
     }
 
     fn fill_holes(&mut self) {
-        let row_cm = self.chip.row_reg_bot(self.chip.reg_cfg);
-        let row_cb = row_cm - 50;
-        let row_ct = row_cm + 50;
+        let cell = CellCoord::new(
+            self.die,
+            self.col_cfg - 6,
+            self.chip.row_reg_bot(self.chip.reg_cfg - 1),
+        );
         if self.chip.regs == 1 {
-            self.int_holes.push(Rect {
-                col_l: self.col_cfg - 6,
-                col_r: self.col_cfg,
-                row_b: row_cb,
-                row_t: row_cm,
-            });
-            self.site_holes.push(Rect {
-                col_l: self.col_cfg - 6,
-                col_r: self.col_cfg,
-                row_b: row_cb,
-                row_t: row_cm,
-            });
+            self.int_holes.push(cell.rect(6, 50));
+            self.site_holes.push(cell.rect(6, 50));
         } else {
-            self.int_holes.push(Rect {
-                col_l: self.col_cfg - 6,
-                col_r: self.col_cfg,
-                row_b: row_cb,
-                row_t: row_ct,
-            });
-            self.site_holes.push(Rect {
-                col_l: self.col_cfg - 6,
-                col_r: self.col_cfg,
-                row_b: row_cb,
-                row_t: row_ct,
-            });
+            self.int_holes.push(cell.rect(6, 100));
+            self.site_holes.push(cell.rect(6, 100));
         }
         if self.chip.has_ps {
-            let col_l = self.die.cols().next().unwrap();
-            let row_t = self.die.rows().next_back().unwrap();
-            let row_pb = row_t - 99;
-            self.int_holes.push(Rect {
-                col_l,
-                col_r: col_l + 18,
-                row_b: row_pb,
-                row_t: row_pb + 100,
-            });
-            self.site_holes.push(Rect {
-                col_l,
-                col_r: col_l + 19,
-                row_b: row_pb,
-                row_t: row_pb + 100,
-            });
+            let col_l = self.egrid.cols(self.die).next().unwrap();
+            let row_t = self.egrid.rows(self.die).next_back().unwrap();
+            let cell = CellCoord::new(self.die, col_l, row_t - 99);
+            self.int_holes.push(cell.rect(18, 100));
+            self.site_holes.push(cell.rect(19, 100));
         }
         for pcie2 in &self.chip.holes_pcie2 {
-            self.site_holes.push(Rect {
-                col_l: pcie2.col,
-                col_r: pcie2.col + 4,
-                row_b: pcie2.row,
-                row_t: pcie2.row + 25,
-            });
-            self.int_holes.push(Rect {
-                col_l: pcie2.col + 1,
-                col_r: pcie2.col + 3,
-                row_b: pcie2.row,
-                row_t: pcie2.row + 25,
-            });
+            let cell = CellCoord::new(self.die, pcie2.col, pcie2.row);
+            self.site_holes.push(cell.rect(4, 25));
+            self.int_holes.push(cell.delta(1, 0).rect(2, 25));
         }
-        for &(bc, br) in &self.chip.holes_pcie3 {
-            self.int_holes.push(Rect {
-                col_l: bc + 1,
-                col_r: bc + 5,
-                row_b: br,
-                row_t: br + 50,
-            });
-            self.site_holes.push(Rect {
-                col_l: bc,
-                col_r: bc + 6,
-                row_b: br,
-                row_t: br + 50,
-            });
+        for &(col, row) in &self.chip.holes_pcie3 {
+            let cell = CellCoord::new(self.die, col, row);
+            self.int_holes.push(cell.delta(1, 0).rect(4, 50));
+            self.site_holes.push(cell.rect(6, 50));
         }
         for gtcol in &self.chip.cols_gt {
             let is_l = gtcol.col < self.col_clk;
-            let is_m = if is_l {
-                gtcol.col.to_idx() != 0
-            } else {
-                self.chip.columns.len() - gtcol.col.to_idx() > 7
-            };
             for (reg, &kind) in &gtcol.regs {
                 let br = self.chip.row_reg_bot(reg);
+                let cell = CellCoord::new(self.die, gtcol.col, br);
                 if kind.is_some() {
-                    if is_m {
+                    if gtcol.is_middle {
                         if is_l {
-                            self.int_holes.push(Rect {
-                                col_l: gtcol.col + 1,
-                                col_r: gtcol.col + 19,
-                                row_b: br,
-                                row_t: br + 50,
-                            });
-                            self.site_holes.push(Rect {
-                                col_l: gtcol.col,
-                                col_r: gtcol.col + 19,
-                                row_b: br,
-                                row_t: br + 50,
-                            });
+                            self.int_holes.push(cell.delta(1, 0).rect(18, 50));
+                            self.site_holes.push(cell.rect(19, 50));
                         } else {
-                            self.int_holes.push(Rect {
-                                col_l: gtcol.col - 18,
-                                col_r: gtcol.col,
-                                row_b: br,
-                                row_t: br + 50,
-                            });
-                            self.site_holes.push(Rect {
-                                col_l: gtcol.col - 18,
-                                col_r: gtcol.col + 1,
-                                row_b: br,
-                                row_t: br + 50,
-                            });
+                            self.int_holes.push(cell.delta(-18, 0).rect(18, 50));
+                            self.site_holes.push(cell.delta(-18, 0).rect(19, 50));
                         }
                     } else if !is_l && gtcol.col != self.chip.columns.last_id().unwrap() {
-                        self.site_holes.push(Rect {
-                            col_l: gtcol.col,
-                            col_r: gtcol.col + 7,
-                            row_b: br,
-                            row_t: br + 50,
-                        });
-                        self.int_holes.push(Rect {
-                            col_l: gtcol.col + 1,
-                            col_r: gtcol.col + 7,
-                            row_b: br,
-                            row_t: br + 50,
-                        });
+                        self.site_holes.push(cell.rect(7, 50));
+                        self.int_holes.push(cell.delta(1, 0).rect(6, 50));
                     }
                 }
             }
@@ -184,148 +105,119 @@ impl DieExpander<'_, '_, '_> {
     }
 
     fn fill_int(&mut self) {
-        for (col, &kind) in &self.chip.columns {
-            for row in self.die.rows() {
-                if self.is_int_hole(col, row) {
-                    continue;
+        for cell in self.egrid.die_cells(self.die) {
+            if self.is_int_hole(cell) {
+                continue;
+            }
+            self.egrid.add_tile_single(cell, "INT");
+            if self.is_site_hole(cell) {
+                continue;
+            }
+            match self.chip.columns[cell.col] {
+                ColumnKind::ClbLL => (),
+                ColumnKind::ClbLM => (),
+                ColumnKind::Bram => {
+                    self.egrid.add_tile_single(cell, "INTF.BRAM");
                 }
-                self.die.add_tile((col, row), "INT", &[(col, row)]);
-                if self.is_site_hole(col, row) {
-                    continue;
+                ColumnKind::Dsp
+                | ColumnKind::Cmt
+                | ColumnKind::Cfg
+                | ColumnKind::Clk
+                | ColumnKind::Io => {
+                    self.egrid.add_tile_single(cell, "INTF");
                 }
-                match kind {
-                    ColumnKind::ClbLL => (),
-                    ColumnKind::ClbLM => (),
-                    ColumnKind::Bram => {
-                        self.die.add_tile((col, row), "INTF.BRAM", &[(col, row)]);
-                    }
-                    ColumnKind::Dsp
-                    | ColumnKind::Cmt
-                    | ColumnKind::Cfg
-                    | ColumnKind::Clk
-                    | ColumnKind::Io => {
-                        self.die.add_tile((col, row), "INTF", &[(col, row)]);
-                    }
-                    ColumnKind::Gt => (),
-                }
+                ColumnKind::Gt => (),
             }
         }
     }
 
     fn fill_cfg(&mut self) {
-        let row_cm = self.chip.row_reg_bot(self.chip.reg_cfg);
-        let row_cb: RowId = row_cm - 50;
-        let row_ct: RowId = row_cm + 50;
+        let cell = CellCoord::new(
+            self.die,
+            self.col_cfg,
+            self.chip.row_reg_bot(self.chip.reg_cfg - 1),
+        );
         if self.chip.regs != 1 {
             for dx in 0..6 {
-                let col = self.col_cfg - 6 + dx;
-                if row_cb.to_idx() != 0 {
-                    self.die.fill_conn_term((col, row_cb - 1), "TERM.N");
+                if cell.row.to_idx() != 0 {
+                    self.egrid.fill_conn_term(cell.delta(-6 + dx, -1), "TERM.N");
                 }
-                if row_ct.to_idx() != self.chip.regs * 50 {
-                    self.die.fill_conn_term((col, row_ct), "TERM.S");
+                if cell.row.to_idx() != self.chip.regs * 50 - 100 {
+                    self.egrid
+                        .fill_conn_term(cell.delta(-6 + dx, 100), "TERM.S");
                 }
             }
         }
 
-        let crds: [_; 50] = core::array::from_fn(|dy| (self.col_cfg, row_cb + dy));
-        self.die.add_tile((self.col_cfg, row_cb), "CFG", &crds);
+        self.egrid.add_tile_n(cell, "CFG", 50);
 
         if self.chip.regs != 1 {
-            let row_m = row_cm + 25;
-            let crds: [_; 25] = core::array::from_fn(|dy| (self.col_cfg, row_m + dy));
-            self.die.add_tile((self.col_cfg, row_m), "SYSMON", &crds);
+            self.egrid.add_tile_n(cell.delta(0, 75), "SYSMON", 25);
         }
     }
 
     fn fill_ps(&mut self) {
         if self.chip.has_ps {
-            let col_l = self.die.cols().next().unwrap();
-            let row_t = self.die.rows().next_back().unwrap();
-            let row_pb = row_t - 99;
+            let col_l = self.egrid.cols(self.die).next().unwrap();
+            let row_t = self.egrid.rows(self.die).next_back().unwrap();
+            let cell = CellCoord::new(self.die, col_l + 18, row_t - 99);
             if self.chip.regs != 2 {
                 for dx in 0..18 {
-                    let col = col_l + dx;
-                    self.die.fill_conn_term((col, row_pb - 1), "TERM.N");
+                    self.egrid
+                        .fill_conn_term(cell.delta(-18 + dx, -1), "TERM.N");
                 }
             }
-            let col = col_l + 18;
-            for dy in 0..100 {
-                let row = row_pb + dy;
-                self.die.fill_conn_term((col, row), "TERM.W");
-                self.die.add_tile((col, row), "INTF", &[(col, row)]);
+            let tcells = cell.cells_n_const::<100>();
+            for cell in tcells {
+                self.egrid.fill_conn_term(cell, "TERM.W");
+                self.egrid.add_tile_single(cell, "INTF");
             }
 
-            let crds: [_; 100] = core::array::from_fn(|dy| (col, row_pb + dy));
-            self.die.add_tile((col, row_pb + 50), "PS", &crds);
+            self.egrid.add_tile(cell.delta(0, 50), "PS", &tcells);
         }
     }
 
     fn fill_pcie2(&mut self) {
         for pcie2 in &self.chip.holes_pcie2 {
+            let cell = CellCoord::new(self.die, pcie2.col, pcie2.row);
             for dx in 1..3 {
-                let col = pcie2.col + dx;
-                if pcie2.row.to_idx() != 0 {
-                    self.die.fill_conn_term((col, pcie2.row - 1), "TERM.N");
+                if cell.row.to_idx() != 0 {
+                    self.egrid.fill_conn_term(cell.delta(dx, -1), "TERM.N");
                 }
-                self.die.fill_conn_term((col, pcie2.row + 25), "TERM.S");
+                self.egrid.fill_conn_term(cell.delta(dx, 25), "TERM.S");
             }
-            let col_l = pcie2.col;
-            let col_r = pcie2.col + 3;
-            for dy in 0..25 {
-                let row = pcie2.row + dy;
-                self.die
-                    .add_tile((col_l, row), "INTF.DELAY", &[(col_l, row)]);
-                self.die
-                    .add_tile((col_r, row), "INTF.DELAY", &[(col_r, row)]);
-            }
-            let mut crds = vec![];
+            let mut tcells = vec![];
             match pcie2.kind {
                 Pcie2Kind::Left => {
-                    for dy in 0..25 {
-                        crds.push((pcie2.col + 3, pcie2.row + dy));
-                    }
-                    for dy in 0..25 {
-                        crds.push((pcie2.col, pcie2.row + dy));
-                    }
+                    tcells.extend(cell.delta(3, 0).cells_n_const::<25>());
+                    tcells.extend(cell.cells_n_const::<25>());
                 }
                 Pcie2Kind::Right => {
-                    for dy in 0..25 {
-                        crds.push((pcie2.col, pcie2.row + dy));
-                    }
-                    for dy in 0..25 {
-                        crds.push((pcie2.col + 3, pcie2.row + dy));
-                    }
+                    tcells.extend(cell.cells_n_const::<25>());
+                    tcells.extend(cell.delta(3, 0).cells_n_const::<25>());
                 }
             }
-            self.die.add_tile(crds[0], "PCIE", &crds);
+            for &cell in &tcells {
+                self.egrid.add_tile_single(cell, "INTF.DELAY");
+            }
+            self.egrid.add_tile(tcells[0], "PCIE", &tcells);
         }
     }
 
     fn fill_pcie3(&mut self) {
         for &(bc, br) in &self.chip.holes_pcie3 {
+            let cell = CellCoord::new(self.die, bc, br);
             for dx in 1..5 {
-                let col = bc + dx;
-                self.die.fill_conn_term((col, br - 1), "TERM.N");
-                self.die.fill_conn_term((col, br + 50), "TERM.S");
+                self.egrid.fill_conn_term(cell.delta(dx, -1), "TERM.N");
+                self.egrid.fill_conn_term(cell.delta(dx, 50), "TERM.S");
             }
-            let col_l = bc;
-            let col_r = bc + 5;
-            for dy in 0..50 {
-                let row = br + dy;
-                self.die
-                    .add_tile((col_l, row), "INTF.DELAY", &[(col_l, row)]);
-                self.die
-                    .add_tile((col_r, row), "INTF.DELAY", &[(col_r, row)]);
+            let mut tcells = vec![];
+            tcells.extend(cell.cells_n_const::<50>());
+            tcells.extend(cell.delta(5, 0).cells_n_const::<50>());
+            for &cell in &tcells {
+                self.egrid.add_tile_single(cell, "INTF.DELAY");
             }
-            let mut crds = vec![];
-            for dy in 0..50 {
-                crds.push((bc, br + dy));
-            }
-            for dy in 0..50 {
-                crds.push((bc + 5, br + dy));
-            }
-            self.die.add_tile(crds[0], "PCIE3", &crds);
+            self.egrid.add_tile(tcells[0], "PCIE3", &tcells);
         }
     }
 
@@ -334,6 +226,7 @@ impl DieExpander<'_, '_, '_> {
             let is_l = gtcol.col < self.col_clk;
             for (reg, &kind) in &gtcol.regs {
                 let br = self.chip.row_reg_bot(reg);
+                let cell = CellCoord::new(self.die, gtcol.col, self.chip.row_reg_bot(reg));
                 if let Some(kind) = kind {
                     let sk = match kind {
                         GtKind::Gtp => "GTP",
@@ -344,131 +237,121 @@ impl DieExpander<'_, '_, '_> {
                         assert_eq!(kind, GtKind::Gtp);
                         if is_l {
                             for dx in 1..19 {
-                                let col = gtcol.col + dx;
-                                if br.to_idx() != 0 {
-                                    self.die.fill_conn_term((col, br - 1), "TERM.N");
+                                if cell.row.to_idx() != 0 {
+                                    self.egrid.fill_conn_term(cell.delta(dx, -1), "TERM.N");
                                 }
-                                if br.to_idx() + 50 != self.chip.regs * 50 {
-                                    self.die.fill_conn_term((col, br + 50), "TERM.S");
+                                if cell.row.to_idx() + 50 != self.chip.regs * 50 {
+                                    self.egrid.fill_conn_term(cell.delta(dx, 50), "TERM.S");
                                 }
                             }
-                            let col_l = gtcol.col;
-                            let col_r = gtcol.col + 19;
                             for dy in 0..50 {
-                                let row = br + dy;
-                                self.die
-                                    .add_tile((col_l, row), "INTF.DELAY", &[(col_l, row)]);
-                                self.die.fill_conn_term((col_l, row), "TERM.E");
-                                self.die.fill_conn_term((col_r, row), "TERM.W");
+                                self.egrid.fill_conn_term(cell.delta(0, dy), "TERM.E");
+                                self.egrid.fill_conn_term(cell.delta(19, dy), "TERM.W");
                             }
                         } else {
                             for dx in 1..19 {
-                                let col = gtcol.col - 19 + dx;
-                                if br.to_idx() != 0 {
-                                    self.die.fill_conn_term((col, br - 1), "TERM.N");
+                                if cell.row.to_idx() != 0 {
+                                    self.egrid
+                                        .fill_conn_term(cell.delta(-19 + dx, -1), "TERM.N");
                                 }
-                                if br.to_idx() + 50 != self.chip.regs * 50 {
-                                    self.die.fill_conn_term((col, br + 50), "TERM.S");
-                                }
-                            }
-                            let col_l = gtcol.col - 19;
-                            let col_r = gtcol.col;
-                            for dy in 0..50 {
-                                let row = br + dy;
-                                self.die
-                                    .add_tile((col_r, row), "INTF.DELAY", &[(col_r, row)]);
-                                self.die.fill_conn_term((col_l, row), "TERM.E");
-                                self.die.fill_conn_term((col_r, row), "TERM.W");
-                            }
-                        }
-                    } else if is_l {
-                        for dy in 0..50 {
-                            let row = br + dy;
-                            self.die
-                                .add_tile((gtcol.col, row), "INTF.DELAY", &[(gtcol.col, row)]);
-                        }
-                    } else {
-                        if gtcol.col != self.chip.columns.last_id().unwrap() {
-                            if reg.to_idx() != 0 && gtcol.regs[reg - 1].is_none() {
-                                for dx in 1..7 {
-                                    self.die.fill_conn_term((gtcol.col + dx, br - 1), "TERM.N");
-                                }
-                            }
-                            if reg.to_idx() != self.chip.regs - 1 && gtcol.regs[reg + 1].is_none() {
-                                for dx in 1..7 {
-                                    self.die.fill_conn_term((gtcol.col + dx, br + 50), "TERM.S");
+                                if cell.row.to_idx() + 50 != self.chip.regs * 50 {
+                                    self.egrid
+                                        .fill_conn_term(cell.delta(-19 + dx, 50), "TERM.S");
                                 }
                             }
                             for dy in 0..50 {
-                                self.die.fill_conn_term((gtcol.col, br + dy), "TERM.E");
+                                self.egrid.fill_conn_term(cell.delta(-19, dy), "TERM.E");
+                                self.egrid.fill_conn_term(cell.delta(0, dy), "TERM.W");
+                            }
+                        }
+                    } else if !is_l && gtcol.col != self.chip.columns.last_id().unwrap() {
+                        if reg.to_idx() != 0 && gtcol.regs[reg - 1].is_none() {
+                            for dx in 1..7 {
+                                self.egrid.fill_conn_term(cell.delta(dx, -1), "TERM.N");
+                            }
+                        }
+                        if reg.to_idx() != self.chip.regs - 1 && gtcol.regs[reg + 1].is_none() {
+                            for dx in 1..7 {
+                                self.egrid.fill_conn_term(cell.delta(dx, 50), "TERM.S");
                             }
                         }
                         for dy in 0..50 {
-                            let row = br + dy;
-                            self.die
-                                .add_tile((gtcol.col, row), "INTF.DELAY", &[(gtcol.col, row)]);
+                            self.egrid.fill_conn_term(cell.delta(0, dy), "TERM.E");
                         }
+                    }
+                    for dy in 0..50 {
+                        self.egrid.add_tile_single(cell.delta(0, dy), "INTF.DELAY");
                     }
                     let ksuf = if gtcol.is_middle { "_MID" } else { "" };
                     for dy in [0, 11, 28, 39] {
-                        let row = br + dy;
-                        let crds: [_; 11] = core::array::from_fn(|dy| (gtcol.col, row + dy));
-                        self.die
-                            .add_tile((gtcol.col, row), &format!("{sk}_CHANNEL{ksuf}"), &crds);
+                        self.egrid.add_tile_n(
+                            cell.delta(0, dy),
+                            &format!("{sk}_CHANNEL{ksuf}"),
+                            11,
+                        );
                     }
-                    let row = br + 22;
-                    let crds: [_; 6] = core::array::from_fn(|dy| (gtcol.col, row + dy));
-                    self.die
-                        .add_tile((gtcol.col, row + 3), &format!("{sk}_COMMON{ksuf}"), &crds);
+                    self.egrid
+                        .add_tile_sn(cell.delta(0, 25), &format!("{sk}_COMMON{ksuf}"), 3, 6);
 
-                    self.gt.push((self.die.die, gtcol.col, row + 3));
+                    self.gt.push(cell.delta(0, 25));
                 }
                 if br.to_idx() != 0
                     && (kind.is_some() || gtcol.regs[reg - 1].is_some())
                     && !gtcol.is_middle
                 {
-                    self.die.add_tile((gtcol.col, br), "BRKH_GTX", &[]);
+                    self.egrid.add_tile(cell, "BRKH_GTX", &[]);
                 }
             }
         }
     }
 
     fn fill_terms(&mut self) {
-        let col_l = self.die.cols().next().unwrap();
-        let col_r = self.die.cols().next_back().unwrap();
-        let row_b = self.die.rows().next().unwrap();
-        let row_t = self.die.rows().next_back().unwrap();
-        for col in self.die.cols() {
-            if !self.is_int_hole(col, row_b) {
+        for cell in self
+            .egrid
+            .row(self.die, self.egrid.rows(self.die).next().unwrap())
+        {
+            if !self.is_int_hole(cell) {
                 if self.chip.has_no_tbuturn {
-                    self.die.fill_conn_term((col, row_b), "TERM.S.HOLE");
+                    self.egrid.fill_conn_term(cell, "TERM.S.HOLE");
                 } else {
-                    self.die.fill_conn_term((col, row_b), "TERM.S");
-                }
-            }
-            if !self.is_int_hole(col, row_t) {
-                if self.chip.has_no_tbuturn {
-                    self.die.fill_conn_term((col, row_t), "TERM.N.HOLE");
-                } else {
-                    self.die.fill_conn_term((col, row_t), "TERM.N");
+                    self.egrid.fill_conn_term(cell, "TERM.S");
                 }
             }
         }
-        for row in self.die.rows() {
-            if !self.is_int_hole(col_l, row) {
-                self.die.fill_conn_term((col_l, row), "TERM.W");
+        for cell in self
+            .egrid
+            .row(self.die, self.egrid.rows(self.die).next_back().unwrap())
+        {
+            if !self.is_int_hole(cell) {
+                if self.chip.has_no_tbuturn {
+                    self.egrid.fill_conn_term(cell, "TERM.N.HOLE");
+                } else {
+                    self.egrid.fill_conn_term(cell, "TERM.N");
+                }
             }
-            if !self.is_int_hole(col_r, row) {
-                self.die.fill_conn_term((col_r, row), "TERM.E");
+        }
+        for cell in self
+            .egrid
+            .column(self.die, self.egrid.cols(self.die).next().unwrap())
+        {
+            if !self.is_int_hole(cell) {
+                self.egrid.fill_conn_term(cell, "TERM.W");
+            }
+        }
+        for cell in self
+            .egrid
+            .column(self.die, self.egrid.cols(self.die).next_back().unwrap())
+        {
+            if !self.is_int_hole(cell) {
+                self.egrid.fill_conn_term(cell, "TERM.E");
             }
         }
         for reg in 1..self.chip.regs {
-            let row_s = RowId::from_idx(reg * 50 - 1);
-            let row_n = RowId::from_idx(reg * 50);
-            for col in self.die.cols() {
-                if !self.is_int_hole(col, row_s) && !self.is_int_hole(col, row_n) {
-                    self.die
-                        .fill_conn_pair((col, row_s), (col, row_n), "BRKH.N", "BRKH.S");
+            for cell_n in self.egrid.row(self.die, RowId::from_idx(reg * 50)) {
+                let cell_s = cell_n.delta(0, -1);
+                if !self.is_int_hole(cell_s) && !self.is_int_hole(cell_n) {
+                    self.egrid
+                        .fill_conn_pair(cell_s, cell_n, "BRKH.N", "BRKH.S");
                 }
             }
         }
@@ -481,11 +364,11 @@ impl DieExpander<'_, '_, '_> {
                 ColumnKind::ClbLM => "CLBLM",
                 _ => continue,
             };
-            for row in self.die.rows() {
-                if self.is_site_hole(col, row) {
+            for cell in self.egrid.column(self.die, col) {
+                if self.is_site_hole(cell) {
                     continue;
                 }
-                self.die.add_tile((col, row), kind, &[(col, row)]);
+                self.egrid.add_tile_single(cell, kind);
             }
         }
     }
@@ -493,20 +376,10 @@ impl DieExpander<'_, '_, '_> {
     fn fill_bram_dsp(&mut self) {
         let col = self.chip.columns.first_id().unwrap();
         if self.chip.columns[col] == ColumnKind::Bram {
-            self.site_holes.extend([
-                Rect {
-                    col_l: col,
-                    col_r: col + 1,
-                    row_b: RowId::from_idx(0),
-                    row_t: RowId::from_idx(5),
-                },
-                Rect {
-                    col_l: col,
-                    col_r: col + 1,
-                    row_b: RowId::from_idx(self.die.rows().len() - 5),
-                    row_t: RowId::from_idx(self.die.rows().len()),
-                },
-            ]);
+            let cell_s = CellCoord::new(self.die, col, self.chip.rows().next().unwrap());
+            let cell_n = CellCoord::new(self.die, col, self.chip.rows().next_back().unwrap() - 4);
+            self.site_holes
+                .extend([cell_s.rect(1, 5), cell_n.rect(1, 5)]);
         }
         for (col, &cd) in &self.chip.columns {
             let kind = match cd {
@@ -514,41 +387,30 @@ impl DieExpander<'_, '_, '_> {
                 ColumnKind::Dsp => "DSP",
                 _ => continue,
             };
-            for row in self.die.rows() {
-                if !row.to_idx().is_multiple_of(5) {
+            for cell in self.egrid.column(self.die, col) {
+                if !cell.row.to_idx().is_multiple_of(5) {
                     continue;
                 }
-                if self.is_site_hole(col, row) {
+                if self.is_site_hole(cell) {
                     continue;
                 }
-                self.die.add_tile(
-                    (col, row),
-                    kind,
-                    &[
-                        (col, row),
-                        (col, row + 1),
-                        (col, row + 2),
-                        (col, row + 3),
-                        (col, row + 4),
-                    ],
-                );
-                if cd == ColumnKind::Bram && row.to_idx() % 50 == 25 {
-                    let coords: Vec<_> = (0..15).map(|dy| (col, row + dy)).collect();
-                    self.die.add_tile((col, row), "PMVBRAM", &coords);
+                self.egrid.add_tile_n(cell, kind, 5);
+                if cd == ColumnKind::Bram && cell.row.to_idx() % 50 == 25 {
+                    self.egrid.add_tile_n(cell, "PMVBRAM", 15);
                 }
             }
             if cd == ColumnKind::Bram {
-                for row in self.die.rows() {
-                    if row.to_idx() % 50 != 25 {
+                for cell in self.egrid.column(self.die, col) {
+                    if cell.row.to_idx() % 50 != 25 {
                         continue;
                     }
-                    if self.is_site_hole(col, row - 1) {
+                    if self.is_site_hole(cell.delta(0, -1)) {
                         continue;
                     }
-                    if !self.is_site_hole(col, row) {
+                    if !self.is_site_hole(cell) {
                         continue;
                     }
-                    self.die.add_tile((col, row), "PMVBRAM_NC", &[]);
+                    self.egrid.add_tile(cell, "PMVBRAM_NC", &[]);
                 }
             }
         }
@@ -556,15 +418,13 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_io(&mut self) {
         for iocol in self.chip.cols_io.iter() {
-            let col = iocol.col;
-            for row in self.die.rows() {
-                let cell = CellCoord::new(self.die.die, col, row);
-                let reg = self.chip.row_to_reg(row);
+            for cell in self.egrid.column(self.die, iocol.col) {
+                let reg = self.chip.row_to_reg(cell.row);
                 if let Some(kind) = iocol.regs[reg] {
-                    if matches!(row.to_idx() % 50, 0 | 49) {
-                        self.die.add_tile(
-                            (col, row),
-                            if row.to_idx().is_multiple_of(50) {
+                    if matches!(cell.row.to_idx() % 50, 0 | 49) {
+                        self.egrid.add_tile_single(
+                            cell,
+                            if cell.row.to_idx().is_multiple_of(50) {
                                 if kind == IoKind::Hpio {
                                     "IO_HP_BOT"
                                 } else {
@@ -577,21 +437,20 @@ impl DieExpander<'_, '_, '_> {
                                     "IO_HR_TOP"
                                 }
                             },
-                            &[(col, row)],
                         );
                         self.io.push(IoCoord {
                             cell,
                             iob: TileIobId::from_idx(0),
                         });
-                    } else if row.to_idx() % 2 == 1 {
-                        self.die.add_tile(
-                            (col, row),
+                    } else if cell.row.to_idx() % 2 == 1 {
+                        self.egrid.add_tile_n(
+                            cell,
                             if kind == IoKind::Hpio {
                                 "IO_HP_PAIR"
                             } else {
                                 "IO_HR_PAIR"
                             },
-                            &[(col, row), (col, row + 1)],
+                            2,
                         );
                         self.io.extend([
                             IoCoord {
@@ -605,15 +464,15 @@ impl DieExpander<'_, '_, '_> {
                         ]);
                     }
 
-                    if row.to_idx() % 50 == 25 {
-                        let crds: [_; 8] = core::array::from_fn(|dy| (col, row - 4 + dy));
-                        self.die.add_tile(
-                            (col, row),
+                    if cell.row.to_idx() % 50 == 25 {
+                        self.egrid.add_tile_sn(
+                            cell,
                             match kind {
                                 IoKind::Hpio => "HCLK_IOI_HP",
                                 IoKind::Hrio => "HCLK_IOI_HR",
                             },
-                            &crds,
+                            4,
+                            8,
                         );
                     }
                 }
@@ -628,51 +487,45 @@ impl DieExpander<'_, '_, '_> {
             }
             for reg in self.chip.regs() {
                 let row = self.chip.row_reg_hclk(reg);
-                if self.is_site_hole(col, row) {
+                let cell = CellCoord::new(self.die, col, row);
+                if self.is_site_hole(cell) {
                     continue;
                 }
-                let crds: [_; 50] = core::array::from_fn(|dy| (col, row - 25 + dy));
-                self.die.add_tile((col, row), "CMT", &crds);
+                self.egrid.add_tile_sn(cell, "CMT", 25, 50);
 
-                for row in [row - 24, row - 12, row, row + 12] {
-                    let crds: [_; 12] = core::array::from_fn(|dy| (col, row + dy));
-                    self.die.add_tile((col, row), "CMT_FIFO", &crds);
+                for dy in [-24, -12, 0, 12] {
+                    self.egrid.add_tile_n(cell.delta(0, dy), "CMT_FIFO", 12);
                 }
             }
         }
     }
 
     fn fill_clk(&mut self) {
-        let col = self.col_clk;
         for reg in self.chip.regs() {
-            let row_h = self.chip.row_reg_hclk(reg);
+            let cell = CellCoord::new(self.die, self.col_clk, self.chip.row_reg_hclk(reg));
             if self.chip.has_slr && reg.to_idx() == 0 {
-                let crds: [_; 16] = core::array::from_fn(|dy| (col, row_h - 21 + dy));
-                self.die.add_tile(crds[0], "CLK_BALI_REBUF", &crds);
+                self.egrid
+                    .add_tile_n(cell.delta(0, -21), "CLK_BALI_REBUF", 16);
             } else {
-                let crds: [_; 2] = core::array::from_fn(|dy| (col, row_h - 13 + dy));
-                self.die.add_tile(crds[0], "CLK_BUFG_REBUF", &crds);
+                self.egrid
+                    .add_tile_n(cell.delta(0, -13), "CLK_BUFG_REBUF", 2);
             }
 
-            self.die
-                .add_tile((col, row_h), "CLK_HROW", &[(col, row_h - 1), (col, row_h)]);
+            self.egrid.add_tile_sn(cell, "CLK_HROW", 1, 2);
 
             if self.chip.has_slr && reg.to_idx() == self.chip.regs - 1 {
-                let crds: [_; 16] = core::array::from_fn(|dy| (col, row_h + 5 + dy));
-                self.die.add_tile(crds[0], "CLK_BALI_REBUF", &crds);
+                self.egrid
+                    .add_tile_n(cell.delta(0, 5), "CLK_BALI_REBUF", 16);
             } else {
-                let crds: [_; 2] = core::array::from_fn(|dy| (col, row_h + 11 + dy));
-                self.die.add_tile(crds[0], "CLK_BUFG_REBUF", &crds);
+                self.egrid
+                    .add_tile_n(cell.delta(0, 11), "CLK_BUFG_REBUF", 2);
             }
         }
 
-        let row = self.chip.row_bufg() - 4;
-        let crds: [_; 4] = core::array::from_fn(|dy| (col, row + dy));
-        self.die.add_tile((col, row), "CLK_BUFG", &crds);
+        let cell_bufg = CellCoord::new(self.die, self.col_clk, self.chip.row_bufg());
+        self.egrid.add_tile_n(cell_bufg.delta(0, -4), "CLK_BUFG", 4);
         if self.chip.reg_clk.to_idx() != self.chip.regs {
-            let row = self.chip.row_bufg();
-            let crds: [_; 4] = core::array::from_fn(|dy| (col, row + dy));
-            self.die.add_tile((col, row), "CLK_BUFG", &crds);
+            self.egrid.add_tile_n(cell_bufg, "CLK_BUFG", 4);
         }
 
         let pmv_base = if self.chip.regs == 1 { 0 } else { 1 };
@@ -683,48 +536,49 @@ impl DieExpander<'_, '_, '_> {
             ("CLK_PMV2", 41),
             ("CLK_MTBF2", 45),
         ] {
-            let row = self.chip.row_bufg() - 50 + dy;
-            self.die.add_tile((col, row), kind, &[(col, row)]);
+            self.egrid
+                .add_tile_single(cell_bufg.delta(0, -50 + dy), kind);
         }
     }
 
     fn fill_hclk(&mut self) {
-        for col in self.die.cols() {
-            let col_hrow = if col <= self.col_clk {
+        for cell in self.egrid.die_cells(self.die) {
+            let col_hrow = if cell.col <= self.col_clk {
                 self.col_clk
             } else {
                 self.col_clk + 1
             };
-            if !col.to_idx().is_multiple_of(2) {
+            if !cell.col.to_idx().is_multiple_of(2) {
                 continue;
             }
-            for row in self.die.rows() {
-                let row_hclk = self.chip.row_hclk(row);
-                let crow = if row < row_hclk {
-                    row_hclk - 1
-                } else {
-                    row_hclk
-                };
-                self.die[(col, row)].region_root[REGION_HCLK] = (col_hrow, row_hclk);
-                self.die[(col + 1, row)].region_root[REGION_HCLK] = (col_hrow, row_hclk);
-                self.die[(col, row)].region_root[REGION_LEAF] = (col, crow);
-                self.die[(col + 1, row)].region_root[REGION_LEAF] = (col, crow);
+            let row_hclk = self.chip.row_hclk(cell.row);
+            let crow = if cell.row < row_hclk {
+                row_hclk - 1
+            } else {
+                row_hclk
+            };
+            let cell_w = cell;
+            let cell_e = cell.delta(1, 0);
+            let cell_hclk = cell.with_cr(col_hrow, row_hclk);
+            let cell_leaf = cell.with_row(crow);
+            self.egrid[cell_w].region_root[REGION_HCLK] = cell_hclk;
+            self.egrid[cell_e].region_root[REGION_HCLK] = cell_hclk;
+            self.egrid[cell_w].region_root[REGION_LEAF] = cell_leaf;
+            self.egrid[cell_e].region_root[REGION_LEAF] = cell_leaf;
 
-                if row.to_idx() % 50 == 25 {
-                    let hole_bot = self.is_int_hole(col, row - 1);
-                    let hole_top = self.is_int_hole(col, row);
-                    if hole_bot && hole_top {
-                        continue;
-                    }
-                    self.die.add_tile((col, row), "HCLK", &[]);
-                }
-
-                if self.is_int_hole(col, row) {
+            if cell.row.to_idx() % 50 == 25 {
+                let hole_bot = self.is_int_hole(cell.delta(0, -1));
+                let hole_top = self.is_int_hole(cell);
+                if hole_bot && hole_top {
                     continue;
                 }
-                self.die
-                    .add_tile((col, row), "INT_LCLK", &[(col, row), (col + 1, row)]);
+                self.egrid.add_tile(cell_w, "HCLK", &[]);
             }
+
+            if self.is_int_hole(cell_w) {
+                continue;
+            }
+            self.egrid.add_tile(cell_w, "INT_LCLK", &[cell_w, cell_e]);
         }
     }
 
@@ -1008,17 +862,18 @@ pub fn expand_grid<'a>(
     let mut io = vec![];
     let mut gt = vec![];
 
-    let mut int_holes = EntityVec::new();
-    let mut site_holes = EntityVec::new();
+    let mut int_holes = vec![];
+    let mut site_holes = vec![];
     let mut banklut = EntityVec::new();
     for &chip in chips.values() {
-        let (_, die) = egrid.add_die(chip.columns.len(), chip.regs * 50);
+        let die = egrid.add_die(chip.columns.len(), chip.regs * 50);
 
         let mut de = DieExpander {
             chip,
             die,
-            site_holes: Vec::new(),
-            int_holes: Vec::new(),
+            egrid: &mut egrid,
+            site_holes: &mut site_holes,
+            int_holes: &mut int_holes,
             frame_info: vec![],
             frames: DieFrameGeom {
                 col_frame: EntityVec::new(),
@@ -1040,7 +895,7 @@ pub fn expand_grid<'a>(
         de.fill_pcie3();
         de.fill_gt();
         de.fill_terms();
-        de.die.fill_main_passes();
+        de.egrid.fill_main_passes(die);
         de.fill_clb();
         de.fill_bram_dsp();
         de.fill_io();
@@ -1057,8 +912,6 @@ pub fn expand_grid<'a>(
             bram_frame_info: vec![],
             iob_frame_len: 0,
         });
-        int_holes.push(de.int_holes);
-        site_holes.push(de.site_holes);
         banklut.push(bank);
         bank += chip.regs as u32;
     }
@@ -1085,21 +938,18 @@ pub fn expand_grid<'a>(
 
     let mut xdie_wires = BiHashMap::new();
     for i in 1..chips.len() {
-        let dieid_s = DieId::from_idx(i - 1);
-        let dieid_n = DieId::from_idx(i);
-        let die_s = egrid.die(dieid_s);
-        let die_n = egrid.die(dieid_n);
-        for col in die_s.cols() {
+        let die_s = DieId::from_idx(i - 1);
+        let die_n = DieId::from_idx(i);
+        for col in egrid.cols(die_s) {
             for dy in 0..49 {
-                let row_s = die_s.rows().next_back().unwrap() - 49 + dy;
-                let row_n = die_n.rows().next().unwrap() + 1 + dy;
-                if die_s[(col, row_s)].tiles.contains_id(tslots::INT)
-                    && die_n[(col, row_n)].tiles.contains_id(tslots::INT)
+                let row_s = egrid.rows(die_s).next_back().unwrap() - 49 + dy;
+                let row_n = egrid.rows(die_n).next().unwrap() + 1 + dy;
+                let cell_s = CellCoord::new(die_s, col, row_s);
+                let cell_n = CellCoord::new(die_n, col, row_n);
+                if egrid[cell_s].tiles.contains_id(tslots::INT)
+                    && egrid[cell_n].tiles.contains_id(tslots::INT)
                 {
-                    xdie_wires.insert(
-                        CellCoord::new(dieid_n, col, row_n).wire(lvb6),
-                        CellCoord::new(dieid_s, col, row_s).wire(lvb6),
-                    );
+                    xdie_wires.insert(cell_n.wire(lvb6), cell_s.wire(lvb6));
                 }
             }
         }

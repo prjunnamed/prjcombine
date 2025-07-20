@@ -239,8 +239,7 @@ pub enum DcmPairKind {
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Encode, Decode)]
 pub struct DcmPair {
     pub kind: DcmPairKind,
-    pub col: ColId,
-    pub row: RowId,
+    pub cell: CellCoord,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
@@ -289,6 +288,14 @@ impl Chip {
         self.rows.last_id().unwrap()
     }
 
+    pub fn is_row_io(&self, row: RowId) -> bool {
+        row == self.row_s() || row == self.row_n()
+    }
+
+    pub fn is_col_io(&self, col: ColId) -> bool {
+        col == self.col_w() || col == self.col_e()
+    }
+
     pub fn corner(&self, dir: DirHV) -> TileCoord {
         CellCoord::new(
             DieId::from_idx(0),
@@ -319,6 +326,7 @@ impl Chip {
     }
 
     pub fn get_dcm_pairs(&self) -> Vec<DcmPair> {
+        let die = DieId::from_idx(0);
         let mut res = vec![];
         if let Some(dcms) = self.dcms {
             if dcms == Dcms::Two {
@@ -326,33 +334,28 @@ impl Chip {
                     res.extend([
                         DcmPair {
                             kind: DcmPairKind::BotSingle,
-                            col: self.col_clk,
-                            row: self.row_s() + 1,
+                            cell: CellCoord::new(die, self.col_clk, self.row_s() + 1),
                         },
                         DcmPair {
                             kind: DcmPairKind::TopSingle,
-                            col: self.col_clk,
-                            row: self.row_n() - 1,
+                            cell: CellCoord::new(die, self.col_clk, self.row_n() - 1),
                         },
                     ]);
                 } else {
                     res.extend([DcmPair {
                         kind: DcmPairKind::Top,
-                        col: self.col_clk,
-                        row: self.row_n() - 1,
+                        cell: CellCoord::new(die, self.col_clk, self.row_n() - 1),
                     }]);
                 }
             } else {
                 res.extend([
                     DcmPair {
                         kind: DcmPairKind::Bot,
-                        col: self.col_clk,
-                        row: self.row_s() + 1,
+                        cell: CellCoord::new(die, self.col_clk, self.row_s() + 1),
                     },
                     DcmPair {
                         kind: DcmPairKind::Top,
-                        col: self.col_clk,
-                        row: self.row_n() - 1,
+                        cell: CellCoord::new(die, self.col_clk, self.row_n() - 1),
                     },
                 ]);
             }
@@ -361,26 +364,22 @@ impl Chip {
                     res.extend([
                         DcmPair {
                             kind: DcmPairKind::Left,
-                            col: self.col_w() + 9,
-                            row: self.row_mid(),
+                            cell: CellCoord::new(die, self.col_w() + 9, self.row_mid()),
                         },
                         DcmPair {
                             kind: DcmPairKind::Right,
-                            col: self.col_e() - 9,
-                            row: self.row_mid(),
+                            cell: CellCoord::new(die, self.col_e() - 9, self.row_mid()),
                         },
                     ]);
                 } else {
                     res.extend([
                         DcmPair {
                             kind: DcmPairKind::Bram,
-                            col: self.col_w() + 3,
-                            row: self.row_mid(),
+                            cell: CellCoord::new(die, self.col_w() + 3, self.row_mid()),
                         },
                         DcmPair {
                             kind: DcmPairKind::Bram,
-                            col: self.col_e() - 6,
-                            row: self.row_mid(),
+                            cell: CellCoord::new(die, self.col_e() - 6, self.row_mid()),
                         },
                     ]);
                 }

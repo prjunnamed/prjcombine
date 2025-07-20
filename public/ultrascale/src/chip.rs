@@ -350,13 +350,11 @@ impl Chip {
     }
 
     pub fn row_reg_rclk(&self, reg: RegId) -> RowId {
-        RowId::from_idx(reg.to_idx() * Chip::ROWS_PER_REG + 30)
+        RowId::from_idx(reg.to_idx() * Chip::ROWS_PER_REG + Chip::ROWS_PER_REG / 2)
     }
 
     pub fn row_rclk(&self, row: RowId) -> RowId {
-        RowId::from_idx(
-            row.to_idx() / Chip::ROWS_PER_REG * Chip::ROWS_PER_REG + Chip::ROWS_PER_REG / 2,
-        )
+        self.row_reg_rclk(self.row_to_reg(row))
     }
 
     pub fn regs(&self) -> EntityIds<RegId> {

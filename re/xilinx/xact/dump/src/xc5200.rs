@@ -644,7 +644,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
 
     let mut extractor = Extractor::new(die, &edev.egrid, &endev.ngrid);
 
-    let die = edev.egrid.die(DieId::from_idx(0));
+    let die = DieId::from_idx(0);
     for (tcrd, tile) in edev.egrid.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
@@ -868,7 +868,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     }
 
     // long verticals + GCLK
-    for col in die.cols() {
+    for col in edev.egrid.cols(die) {
         let mut queue = vec![];
         for row in [chip.row_mid() - 1, chip.row_mid()] {
             let by = endev.row_y[row].start;
@@ -890,7 +890,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             for (i, net) in nets.into_iter().enumerate() {
                 let i = 7 - i;
                 let wire = intdb.get_wire(&format!("LONG.V{i}"));
-                queue.push((net, CellCoord::new(die.die, col, row).wire(wire)));
+                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
         for (net, wire) in queue {
@@ -898,7 +898,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         }
     }
     // long horizontals
-    for row in die.rows() {
+    for row in edev.egrid.rows(die) {
         let mut queue = vec![];
         for col in [chip.col_mid() - 1, chip.col_mid()] {
             let lx = endev.col_x[col].start;
@@ -919,7 +919,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), 8);
             for (i, net) in nets.into_iter().enumerate() {
                 let wire = intdb.get_wire(&format!("LONG.H{i}"));
-                queue.push((net, CellCoord::new(die.die, col, row).wire(wire)));
+                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
         for (net, wire) in queue {
@@ -929,12 +929,12 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
 
     // horizontal single and double
     let mut queue = vec![];
-    for col in die.cols() {
+    for col in edev.egrid.cols(die) {
         if col == chip.col_w() {
             continue;
         }
         let x = endev.col_x[col].start;
-        for row in die.rows() {
+        for row in edev.egrid.rows(die) {
             let mut nets = vec![];
             for y in endev.row_y[row].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_l else {
@@ -988,17 +988,17 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
                 let wire = intdb.get_wire(wire);
-                queue.push((net, CellCoord::new(die.die, col, row).wire(wire)));
+                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
     }
     // vertical single and double
-    for row in die.rows() {
+    for row in edev.egrid.rows(die) {
         if row == chip.row_s() {
             continue;
         }
         let y = endev.row_y[row].start;
-        for col in die.cols() {
+        for col in edev.egrid.cols(die) {
             let mut nets = vec![];
             for x in endev.col_x[col].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_b else {
@@ -1052,7 +1052,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
                 let wire = intdb.get_wire(wire);
-                queue.push((net, CellCoord::new(die.die, col, row).wire(wire)));
+                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
     }
@@ -1146,12 +1146,12 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         let wire = intdb.get_wire(&format!("IO.SINGLE.L.N{i}"));
         let rw = edev
             .egrid
-            .resolve_wire(CellCoord::new(die.die, chip.col_w(), chip.row_s()).wire(wire))
+            .resolve_wire(CellCoord::new(die, chip.col_w(), chip.row_s()).wire(wire))
             .unwrap();
         let net = extractor.int_nets[&rw];
         let nbto = extractor
             .net_by_cell_override
-            .entry(CellCoord::new(die.die, chip.col_w(), chip.row_s()))
+            .entry(CellCoord::new(die, chip.col_w(), chip.row_s()))
             .or_default();
         nbto.insert(net, wire);
     }

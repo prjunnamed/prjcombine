@@ -371,7 +371,11 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 assert_eq!(bscan.io.get(&io), Some(&bspad), "bscan mismatch for {io}");
             }
             BondPad::Cfg(cfg) => {
-                assert_eq!(bscan.cfg.get(&cfg), Some(&bspad), "bscan mismatch for {cfg}");
+                assert_eq!(
+                    bscan.cfg.get(&cfg),
+                    Some(&bspad),
+                    "bscan mismatch for {cfg}"
+                );
             }
             BondPad::Nc if chip.kind == ChipKind::MachXo => {
                 // sigh. sigh. sigh.

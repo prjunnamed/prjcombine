@@ -144,9 +144,9 @@ fn drive_wire<'a>(
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
-                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
+                let tile = &backend.egrid[tcrd];
+                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
@@ -176,9 +176,9 @@ fn drive_wire<'a>(
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
-                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
+                let tile = &backend.egrid[tcrd];
+                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
@@ -205,9 +205,9 @@ fn drive_wire<'a>(
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
-                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
+                let tile = &backend.egrid[tcrd];
+                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
@@ -236,9 +236,9 @@ fn drive_wire<'a>(
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
-                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
+                let tile = &backend.egrid[tcrd];
+                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
@@ -264,9 +264,9 @@ fn drive_wire<'a>(
             }
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
-                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
+                let tile = &backend.egrid[tcrd];
+                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
@@ -333,11 +333,11 @@ fn apply_imux_finish<'a>(
         };
         let cell = cell.with_cr(col, row);
         let tcrd = cell.tile(tslots::MAIN);
-        let node = backend.egrid.tile(tcrd);
-        let node_kind = &backend.egrid.db.tile_classes[node.class];
+        let tile = &backend.egrid[tcrd];
+        let tcls = &backend.egrid.db.tile_classes[tile.class];
         let nnode = &backend.ngrid.tiles[&tcrd];
         let block = &nnode.bels[slot][0];
-        let bel_data = &node_kind.bels[slot];
+        let bel_data = &tcls.bels[slot];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
@@ -350,10 +350,10 @@ fn apply_imux_finish<'a>(
                 wire: wire.slot,
             },
         );
-        if &fuzzer.info.features[0].id.tile != backend.egrid.db.tile_classes.key(node.class) {
+        if &fuzzer.info.features[0].id.tile != backend.egrid.db.tile_classes.key(tile.class) {
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
-                    tile: backend.egrid.db.tile_classes.key(node.class).clone(),
+                    tile: backend.egrid.db.tile_classes.key(tile.class).clone(),
                     bel: "INT".into(),
                     attr: format!("INV.{wn}"),
                     val: if inv { "1" } else { "0" }.into(),

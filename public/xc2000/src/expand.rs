@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{
     db::IntDb,
-    grid::{ColId, DieId, ExpandedGrid, RowId},
+    grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId},
 };
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
@@ -13,7 +13,7 @@ use crate::{
 };
 
 impl Chip {
-    fn get_bio_node(&self, col: ColId) -> &'static str {
+    fn get_bio_tcls(&self, col: ColId) -> &'static str {
         assert!(self.kind.is_xc4000());
         if col == self.col_w() + 1 {
             "IO.BS.L"
@@ -26,7 +26,7 @@ impl Chip {
         }
     }
 
-    fn get_tio_node(&self, col: ColId) -> &'static str {
+    fn get_tio_tcls(&self, col: ColId) -> &'static str {
         assert!(self.kind.is_xc4000());
         if col == self.col_w() + 1 {
             "IO.TS.L"
@@ -39,7 +39,7 @@ impl Chip {
         }
     }
 
-    fn get_lio_node(&self, row: RowId) -> &'static str {
+    fn get_lio_tcls(&self, row: RowId) -> &'static str {
         assert!(self.kind.is_xc4000());
         if row == self.row_s() + 1 {
             "IO.LS.B"
@@ -64,7 +64,7 @@ impl Chip {
         }
     }
 
-    fn get_rio_node(&self, row: RowId) -> &'static str {
+    fn get_rio_tcls(&self, row: RowId) -> &'static str {
         assert!(self.kind.is_xc4000());
         let row_f = if self.is_buff_large {
             self.row_qb() + 1
@@ -101,87 +101,79 @@ impl Chip {
 
     pub fn expand_grid<'a>(&'a self, db: &'a IntDb) -> ExpandedDevice<'a> {
         let mut egrid = ExpandedGrid::new(db);
-        let (_, mut die) = egrid.add_die(self.columns, self.rows);
+        let die = egrid.add_die(self.columns, self.rows);
 
         let mut row_framebit = EntityVec::new();
         let mut llv_framebit = EntityPartVec::new();
         let mut frame_len = 0;
         let mut frame_info = vec![];
-        let mut col_frame: EntityVec<_, _> = die.cols().map(|_| 0).collect();
+        let mut col_frame: EntityVec<_, _> = egrid.cols(die).map(|_| 0).collect();
         let mut llh_frame = EntityPartVec::new();
 
         match self.kind {
             ChipKind::Xc2000 => {
-                for col in die.cols() {
-                    if col == self.col_w() {
-                        for row in die.rows() {
-                            if row == self.row_s() {
-                                die.add_tile((col, row), "CLB.BL", &[(col, row), (col + 1, row)]);
-                            } else if row == self.row_n() {
-                                die.add_tile(
-                                    (col, row),
-                                    "CLB.TL",
-                                    &[(col, row), (col, row - 1), (col + 1, row)],
-                                );
-                            } else if row == self.row_mid() - 1 {
-                                die.add_tile((col, row), "CLB.ML", &[(col, row), (col, row - 1)]);
-                            } else {
-                                die.add_tile((col, row), "CLB.L", &[(col, row), (col, row - 1)]);
-                            }
+                for cell in egrid.die_cells(die) {
+                    if cell.col == self.col_w() {
+                        if cell.row == self.row_s() {
+                            egrid.add_tile(cell, "CLB.BL", &[cell, cell.delta(1, 0)]);
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile(
+                                cell,
+                                "CLB.TL",
+                                &[cell, cell.delta(0, -1), cell.delta(1, 0)],
+                            );
+                        } else if cell.row == self.row_mid() - 1 {
+                            egrid.add_tile(cell, "CLB.ML", &[cell, cell.delta(0, -1)]);
+                        } else {
+                            egrid.add_tile(cell, "CLB.L", &[cell, cell.delta(0, -1)]);
                         }
-                    } else if col == self.col_e() {
-                        for row in die.rows() {
-                            if row == self.row_s() {
-                                die.add_tile((col, row), "CLB.BR", &[(col, row)]);
-                            } else if row == self.row_n() {
-                                die.add_tile((col, row), "CLB.TR", &[(col, row), (col, row - 1)]);
-                            } else if row == self.row_mid() - 1 {
-                                die.add_tile((col, row), "CLB.MR", &[(col, row), (col, row - 1)]);
-                            } else {
-                                die.add_tile((col, row), "CLB.R", &[(col, row), (col, row - 1)]);
-                            }
+                    } else if cell.col == self.col_e() {
+                        if cell.row == self.row_s() {
+                            egrid.add_tile(cell, "CLB.BR", &[cell]);
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile(cell, "CLB.TR", &[cell, cell.delta(0, -1)]);
+                        } else if cell.row == self.row_mid() - 1 {
+                            egrid.add_tile(cell, "CLB.MR", &[cell, cell.delta(0, -1)]);
+                        } else {
+                            egrid.add_tile(cell, "CLB.R", &[cell, cell.delta(0, -1)]);
                         }
                     } else {
-                        for row in die.rows() {
-                            if row == self.row_s() {
-                                let kind = if col == self.col_e() - 1 {
-                                    "CLB.BR1"
-                                } else {
-                                    "CLB.B"
-                                };
-                                die.add_tile((col, row), kind, &[(col, row), (col + 1, row)]);
-                            } else if row == self.row_n() {
-                                let kind = if col == self.col_e() - 1 {
-                                    "CLB.TR1"
-                                } else {
-                                    "CLB.T"
-                                };
-                                die.add_tile((col, row), kind, &[(col, row), (col + 1, row)]);
+                        if cell.row == self.row_s() {
+                            let kind = if cell.col == self.col_e() - 1 {
+                                "CLB.BR1"
                             } else {
-                                die.add_tile((col, row), "CLB", &[(col, row)]);
-                            }
+                                "CLB.B"
+                            };
+                            egrid.add_tile(cell, kind, &[cell, cell.delta(1, 0)]);
+                        } else if cell.row == self.row_n() {
+                            let kind = if cell.col == self.col_e() - 1 {
+                                "CLB.TR1"
+                            } else {
+                                "CLB.T"
+                            };
+                            egrid.add_tile(cell, kind, &[cell, cell.delta(1, 0)]);
+                        } else {
+                            egrid.add_tile(cell, "CLB", &[cell]);
                         }
                     }
                 }
-                for row in die.rows() {
-                    for &col in &self.cols_bidi {
-                        die.add_tile((col, row), "BIDIH", &[]);
+                for &col in &self.cols_bidi {
+                    for cell in egrid.column(die, col) {
+                        egrid.add_tile(cell, "BIDIH", &[]);
                     }
                 }
-                for col in die.cols() {
-                    for &row in &self.rows_bidi {
-                        die.add_tile((col, row), "BIDIV", &[]);
+                for &row in &self.rows_bidi {
+                    for cell in egrid.row(die, row) {
+                        egrid.add_tile(cell, "BIDIV", &[]);
                     }
                 }
-                for col in die.cols() {
-                    for row in die.rows() {
-                        die[(col, row)].region_root[REGION_GLOBAL] =
-                            (ColId::from_idx(0), RowId::from_idx(0));
-                    }
+                for cell in egrid.die_cells(die) {
+                    egrid[cell].region_root[REGION_GLOBAL] =
+                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0));
                 }
-                die.fill_main_passes();
+                egrid.fill_main_passes(die);
 
-                for row in die.rows() {
+                for row in egrid.rows(die) {
                     if self.rows_bidi.contains(&row) {
                         llv_framebit.insert(row, frame_len);
                         frame_len += 1;
@@ -190,7 +182,7 @@ impl Chip {
                     frame_len += self.btile_height_main(row);
                 }
 
-                for col in die.cols().rev() {
+                for col in egrid.cols(die).rev() {
                     let width = self.btile_width_main(col);
                     col_frame[col] = frame_info.len();
                     for _ in 0..width {
@@ -226,117 +218,110 @@ impl Chip {
             ChipKind::Xc3000 | ChipKind::Xc3000A => {
                 let s = if self.is_small { "S" } else { "" };
 
-                for col in die.cols() {
-                    for row in die.rows() {
-                        let mut subkind =
-                            (row.to_idx() + 2 * (self.columns - 1 - col.to_idx())) % 3;
-                        if subkind == 1 && col == self.col_e() && row == self.row_n() - 1 {
-                            // fuck me with the rustiest fork you can find
-                            subkind = 3;
-                        }
-                        if col == self.col_w() {
-                            if row == self.row_s() {
-                                die.add_tile(
-                                    (col, row),
-                                    &format!("CLB.BL{s}.{subkind}"),
-                                    &[(col, row), (col + 1, row), (col, row + 1)],
-                                );
-                            } else if row == self.row_n() {
-                                die.add_tile(
-                                    (col, row),
-                                    &format!("CLB.TL{s}.{subkind}"),
-                                    &[(col, row), (col + 1, row), (col, row - 1)],
-                                );
-                            } else {
-                                die.add_tile(
-                                    (col, row),
-                                    &format!("CLB.L.{subkind}"),
-                                    &[(col, row), (col + 1, row), (col, row - 1), (col, row + 1)],
-                                );
-                            }
-                        } else if col == self.col_e() {
-                            if row == self.row_s() {
-                                die.add_tile(
-                                    (col, row),
-                                    &format!("CLB.BR{s}.{subkind}"),
-                                    &[(col, row), (col, row + 1)],
-                                );
-                            } else if row == self.row_n() {
-                                die.add_tile(
-                                    (col, row),
-                                    &format!("CLB.TR{s}.{subkind}"),
-                                    &[(col, row), (col, row - 1)],
-                                );
-                            } else {
-                                die.add_tile(
-                                    (col, row),
-                                    &format!("CLB.R.{subkind}"),
-                                    &[(col, row), (col, row - 1), (col, row + 1)],
-                                );
-                            }
+                for cell in egrid.die_cells(die) {
+                    let mut subkind =
+                        (cell.row.to_idx() + 2 * (self.columns - 1 - cell.col.to_idx())) % 3;
+                    if subkind == 1 && cell.col == self.col_e() && cell.row == self.row_n() - 1 {
+                        // fuck me with the rustiest fork you can find
+                        subkind = 3;
+                    }
+                    if cell.col == self.col_w() {
+                        if cell.row == self.row_s() {
+                            egrid.add_tile(
+                                cell,
+                                &format!("CLB.BL{s}.{subkind}"),
+                                &[cell, cell.delta(1, 0), cell.delta(0, 1)],
+                            );
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile(
+                                cell,
+                                &format!("CLB.TL{s}.{subkind}"),
+                                &[cell, cell.delta(1, 0), cell.delta(0, -1)],
+                            );
                         } else {
-                            if row == self.row_s() {
-                                die.add_tile(
-                                    (col, row),
-                                    &format!("CLB.B.{subkind}"),
-                                    &[(col, row), (col + 1, row), (col, row + 1)],
-                                );
-                            } else if row == self.row_n() {
-                                die.add_tile(
-                                    (col, row),
-                                    &format!("CLB.T{s}.{subkind}"),
-                                    &[(col, row), (col + 1, row), (col, row - 1)],
-                                );
-                            } else {
-                                die.add_tile(
-                                    (col, row),
-                                    &format!("CLB.{subkind}"),
-                                    &[(col, row), (col + 1, row), (col, row - 1), (col, row + 1)],
-                                );
-                            }
+                            egrid.add_tile(
+                                cell,
+                                &format!("CLB.L.{subkind}"),
+                                &[cell, cell.delta(1, 0), cell.delta(0, -1), cell.delta(0, 1)],
+                            );
+                        }
+                    } else if cell.col == self.col_e() {
+                        if cell.row == self.row_s() {
+                            egrid.add_tile(
+                                cell,
+                                &format!("CLB.BR{s}.{subkind}"),
+                                &[cell, cell.delta(0, 1)],
+                            );
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile(
+                                cell,
+                                &format!("CLB.TR{s}.{subkind}"),
+                                &[cell, cell.delta(0, -1)],
+                            );
+                        } else {
+                            egrid.add_tile(
+                                cell,
+                                &format!("CLB.R.{subkind}"),
+                                &[cell, cell.delta(0, -1), cell.delta(0, 1)],
+                            );
+                        }
+                    } else {
+                        if cell.row == self.row_s() {
+                            egrid.add_tile(
+                                cell,
+                                &format!("CLB.B.{subkind}"),
+                                &[cell, cell.delta(1, 0), cell.delta(0, 1)],
+                            );
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile(
+                                cell,
+                                &format!("CLB.T{s}.{subkind}"),
+                                &[cell, cell.delta(1, 0), cell.delta(0, -1)],
+                            );
+                        } else {
+                            egrid.add_tile(
+                                cell,
+                                &format!("CLB.{subkind}"),
+                                &[cell, cell.delta(1, 0), cell.delta(0, -1), cell.delta(0, 1)],
+                            );
                         }
                     }
                 }
                 {
-                    let col = self.col_mid();
-                    let row = self.row_s();
-                    die.fill_conn_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
-                    die.add_tile((col, row), "LLH.B", &[(col - 1, row), (col, row)]);
-                    let row = self.row_n();
-                    die.fill_conn_pair((col - 1, row), (col, row), "LLH.E", "LLH.W");
-                    die.add_tile((col, row), "LLH.T", &[(col - 1, row), (col, row)]);
+                    let cell = CellCoord::new(die, self.col_mid(), self.row_s());
+                    egrid.fill_conn_pair(cell.delta(-1, 0), cell, "LLH.E", "LLH.W");
+                    egrid.add_tile(cell, "LLH.B", &[cell.delta(-1, 0), cell]);
+                    let cell = CellCoord::new(die, self.col_mid(), self.row_n());
+                    egrid.fill_conn_pair(cell.delta(-1, 0), cell, "LLH.E", "LLH.W");
+                    egrid.add_tile(cell, "LLH.T", &[cell.delta(-1, 0), cell]);
                 }
                 if self.is_small {
-                    let row = self.row_mid();
-                    let col = self.col_w();
-                    die.fill_conn_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
-                    die.add_tile((col, row), "LLV.LS", &[(col, row - 1), (col, row)]);
-                    let col = self.col_e();
-                    die.fill_conn_pair((col, row - 1), (col, row), "LLV.S.N", "LLV.S.S");
-                    die.add_tile((col, row), "LLV.RS", &[(col, row - 1), (col, row)]);
+                    let cell = CellCoord::new(die, self.col_w(), self.row_mid());
+                    egrid.fill_conn_pair(cell.delta(0, -1), cell, "LLV.S.N", "LLV.S.S");
+                    egrid.add_tile(cell, "LLV.LS", &[cell.delta(0, -1), cell]);
+                    let cell = CellCoord::new(die, self.col_e(), self.row_mid());
+                    egrid.fill_conn_pair(cell.delta(0, -1), cell, "LLV.S.N", "LLV.S.S");
+                    egrid.add_tile(cell, "LLV.RS", &[cell.delta(0, -1), cell]);
                 } else {
-                    let row = self.row_mid();
-                    for col in die.cols() {
-                        let kind = if col == self.col_w() {
+                    for cell in egrid.row(die, self.row_mid()) {
+                        let kind = if cell.col == self.col_w() {
                             "LLV.L"
-                        } else if col == self.col_e() {
+                        } else if cell.col == self.col_e() {
                             "LLV.R"
                         } else {
                             "LLV"
                         };
-                        die.fill_conn_pair((col, row - 1), (col, row), "LLV.N", "LLV.S");
-                        die.add_tile((col, row), kind, &[(col, row - 1), (col, row)]);
+                        egrid.fill_conn_pair(cell.delta(0, -1), cell, "LLV.N", "LLV.S");
+                        egrid.add_tile(cell, kind, &[cell.delta(0, -1), cell]);
                     }
                 }
-                for col in die.cols() {
-                    for row in die.rows() {
-                        die[(col, row)].region_root[REGION_GLOBAL] =
-                            (ColId::from_idx(0), RowId::from_idx(0));
-                    }
+                for cell in egrid.die_cells(die) {
+                    egrid[cell].region_root[REGION_GLOBAL] =
+                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0));
                 }
-                die.fill_main_passes();
+                egrid.fill_main_passes(die);
 
-                for row in die.rows() {
+                for row in egrid.rows(die) {
                     if row == self.row_mid() && !self.is_small {
                         llv_framebit.insert(row, frame_len);
                         frame_len += 1;
@@ -345,7 +330,7 @@ impl Chip {
                     frame_len += self.btile_height_main(row);
                 }
 
-                for col in die.cols().rev() {
+                for col in egrid.cols(die).rev() {
                     let width = self.btile_width_main(col);
                     col_frame[col] = frame_info.len();
                     for _ in 0..width {
@@ -370,151 +355,132 @@ impl Chip {
             | ChipKind::Xc4000Xla
             | ChipKind::Xc4000Xv
             | ChipKind::SpartanXl => {
-                let col_l = die.cols().next().unwrap();
-                let col_r = die.cols().next_back().unwrap();
-                let row_b = die.rows().next().unwrap();
-                let row_t = die.rows().next_back().unwrap();
-
-                for col in die.cols() {
-                    if col == self.col_w() {
-                        for row in die.rows() {
-                            if row == self.row_s() {
-                                die.add_tile((col, row), "CNR.BL", &[(col, row), (col + 1, row)]);
-                            } else if row == self.row_n() {
-                                die.add_tile(
-                                    (col, row),
-                                    "CNR.TL",
-                                    &[
-                                        (col, row),
-                                        (col + 1, row),
-                                        (col, row - 1),
-                                        (col + 1, row - 1),
-                                    ],
-                                );
-                            } else {
-                                die.add_tile(
-                                    (col, row),
-                                    self.get_lio_node(row),
-                                    &[(col, row), (col, row - 1), (col + 1, row), (col, row + 1)],
-                                );
-                            }
+                for cell in egrid.die_cells(die) {
+                    if cell.col == self.col_w() {
+                        if cell.row == self.row_s() {
+                            egrid.add_tile(cell, "CNR.BL", &[cell, cell.delta(1, 0)]);
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile(
+                                cell,
+                                "CNR.TL",
+                                &[cell, cell.delta(1, 0), cell.delta(0, -1), cell.delta(1, -1)],
+                            );
+                        } else {
+                            egrid.add_tile(
+                                cell,
+                                self.get_lio_tcls(cell.row),
+                                &[cell, cell.delta(0, -1), cell.delta(1, 0), cell.delta(0, 1)],
+                            );
                         }
-                    } else if col == self.col_e() {
-                        for row in die.rows() {
-                            if row == self.row_s() {
-                                die.fill_tile((col, row), "CNR.BR");
-                            } else if row == self.row_n() {
-                                die.add_tile((col, row), "CNR.TR", &[(col, row), (col, row - 1)]);
-                            } else {
-                                die.add_tile(
-                                    (col, row),
-                                    self.get_rio_node(row),
-                                    &[(col, row), (col, row - 1), (col, row + 1)],
-                                );
-                            }
+                    } else if cell.col == self.col_e() {
+                        if cell.row == self.row_s() {
+                            egrid.add_tile_single(cell, "CNR.BR");
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile(cell, "CNR.TR", &[cell, cell.delta(0, -1)]);
+                        } else {
+                            egrid.add_tile(
+                                cell,
+                                self.get_rio_tcls(cell.row),
+                                &[cell, cell.delta(0, -1), cell.delta(0, 1)],
+                            );
                         }
                     } else {
-                        for row in die.rows() {
-                            if row == self.row_s() {
-                                die.add_tile(
-                                    (col, row),
-                                    self.get_bio_node(col),
-                                    &[(col, row), (col, row + 1), (col + 1, row), (col - 1, row)],
-                                );
-                            } else if row == self.row_n() {
-                                die.add_tile(
-                                    (col, row),
-                                    self.get_tio_node(col),
-                                    &[(col, row), (col + 1, row), (col - 1, row)],
-                                );
-                            } else {
-                                let kind = if row == self.row_s() + 1 {
-                                    if col == self.col_w() + 1 {
-                                        "CLB.LB"
-                                    } else if col == self.col_e() - 1 {
-                                        "CLB.RB"
-                                    } else {
-                                        "CLB.B"
-                                    }
-                                } else if row == self.row_n() - 1 {
-                                    if col == self.col_w() + 1 {
-                                        "CLB.LT"
-                                    } else if col == self.col_e() - 1 {
-                                        "CLB.RT"
-                                    } else {
-                                        "CLB.T"
-                                    }
+                        if cell.row == self.row_s() {
+                            egrid.add_tile(
+                                cell,
+                                self.get_bio_tcls(cell.col),
+                                &[cell, cell.delta(0, 1), cell.delta(1, 0), cell.delta(-1, 0)],
+                            );
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile(
+                                cell,
+                                self.get_tio_tcls(cell.col),
+                                &[cell, cell.delta(1, 0), cell.delta(-1, 0)],
+                            );
+                        } else {
+                            let kind = if cell.row == self.row_s() + 1 {
+                                if cell.col == self.col_w() + 1 {
+                                    "CLB.LB"
+                                } else if cell.col == self.col_e() - 1 {
+                                    "CLB.RB"
                                 } else {
-                                    if col == self.col_w() + 1 {
-                                        "CLB.L"
-                                    } else if col == self.col_e() - 1 {
-                                        "CLB.R"
-                                    } else {
-                                        "CLB"
-                                    }
-                                };
-                                die.add_tile(
-                                    (col, row),
-                                    kind,
-                                    &[(col, row), (col, row + 1), (col + 1, row)],
-                                );
-                            }
+                                    "CLB.B"
+                                }
+                            } else if cell.row == self.row_n() - 1 {
+                                if cell.col == self.col_w() + 1 {
+                                    "CLB.LT"
+                                } else if cell.col == self.col_e() - 1 {
+                                    "CLB.RT"
+                                } else {
+                                    "CLB.T"
+                                }
+                            } else {
+                                if cell.col == self.col_w() + 1 {
+                                    "CLB.L"
+                                } else if cell.col == self.col_e() - 1 {
+                                    "CLB.R"
+                                } else {
+                                    "CLB"
+                                }
+                            };
+                            egrid.add_tile(cell, kind, &[cell, cell.delta(0, 1), cell.delta(1, 0)]);
                         }
                     }
                 }
 
                 if self.kind.is_xl() {
-                    for row in die.rows() {
-                        for col in [self.col_ql(), self.col_qr()] {
-                            if row == self.row_s() || row == self.row_n() {
-                                die.fill_conn_pair(
-                                    (col - 1, row),
-                                    (col, row),
+                    for col in [self.col_ql(), self.col_qr()] {
+                        for cell in egrid.column(die, col) {
+                            if cell.row == self.row_s() || cell.row == self.row_n() {
+                                egrid.fill_conn_pair(
+                                    cell.delta(-1, 0),
+                                    cell,
                                     "LLHQ.IO.E",
                                     "LLHQ.IO.W",
                                 );
                             } else {
-                                die.fill_conn_pair((col - 1, row), (col, row), "LLHQ.E", "LLHQ.W");
+                                egrid.fill_conn_pair(cell.delta(-1, 0), cell, "LLHQ.E", "LLHQ.W");
                             }
-                            let kind = if row == self.row_s() {
+                            let kind = if cell.row == self.row_s() {
                                 "LLHQ.IO.B"
-                            } else if row == self.row_n() {
+                            } else if cell.row == self.row_n() {
                                 "LLHQ.IO.T"
                             } else {
-                                if row == self.row_s() + 1 {
+                                if cell.row == self.row_s() + 1 {
                                     "LLHQ.CLB.B"
-                                } else if row == self.row_n() - 1 {
+                                } else if cell.row == self.row_n() - 1 {
                                     "LLHQ.CLB.T"
                                 } else {
                                     "LLHQ.CLB"
                                 }
                             };
-                            die.add_tile((col, row), kind, &[(col - 1, row), (col, row)]);
+                            egrid.add_tile(cell, kind, &[cell.delta(-1, 0), cell]);
                         }
-                        let col = self.col_mid();
-                        die.fill_conn_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
-                        let kind = if row == self.row_s() {
+                    }
+                    for cell in egrid.column(die, self.col_mid()) {
+                        egrid.fill_conn_pair(cell.delta(-1, 0), cell, "LLHC.E", "LLHC.W");
+                        let kind = if cell.row == self.row_s() {
                             "LLHC.IO.B"
-                        } else if row == self.row_n() {
+                        } else if cell.row == self.row_n() {
                             "LLHC.IO.T"
-                        } else if row == self.row_s() + 1 {
+                        } else if cell.row == self.row_s() + 1 {
                             "LLHC.CLB.B"
                         } else {
                             "LLHC.CLB"
                         };
-                        die.add_tile((col, row), kind, &[(col - 1, row), (col, row)]);
+                        egrid.add_tile(cell, kind, &[cell.delta(-1, 0), cell]);
                     }
 
-                    for col in die.cols() {
-                        for (bt, row) in [('B', self.row_qb()), ('T', self.row_qt())] {
-                            die.fill_conn_pair((col, row - 1), (col, row), "LLVQ.N", "LLVQ.S");
-                            let kind = if col == self.col_w() {
+                    for (bt, row) in [('B', self.row_qb()), ('T', self.row_qt())] {
+                        for cell in egrid.row(die, row) {
+                            egrid.fill_conn_pair(cell.delta(0, -1), cell, "LLVQ.N", "LLVQ.S");
+                            let kind = if cell.col == self.col_w() {
                                 if bt == 'B' {
                                     "LLVQ.IO.L.B"
                                 } else {
                                     "LLVQ.IO.L.T"
                                 }
-                            } else if col == self.col_e() {
+                            } else if cell.col == self.col_e() {
                                 if bt == 'B' {
                                     "LLVQ.IO.R.B"
                                 } else {
@@ -523,98 +489,90 @@ impl Chip {
                             } else {
                                 "LLVQ.CLB"
                             };
-                            die.add_tile((col, row), kind, &[(col, row - 1), (col, row)]);
+                            egrid.add_tile(cell, kind, &[cell.delta(0, -1), cell]);
                         }
-                        let row = self.row_mid();
-                        die.fill_conn_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
-                        let kind = if col == self.col_w() {
+                    }
+                    for cell in egrid.row(die, self.row_mid()) {
+                        egrid.fill_conn_pair(cell.delta(0, -1), cell, "LLVC.N", "LLVC.S");
+                        let kind = if cell.col == self.col_w() {
                             "LLVC.IO.L"
-                        } else if col == self.col_e() {
+                        } else if cell.col == self.col_e() {
                             "LLVC.IO.R"
                         } else {
                             "LLVC.CLB"
                         };
-                        die.add_tile((col, row), kind, &[(col, row - 1), (col, row)]);
+                        egrid.add_tile(cell, kind, &[cell.delta(0, -1), cell]);
                     }
 
                     if self.kind == ChipKind::Xc4000Xv {
                         for row in [self.row_qb(), self.row_qt()] {
                             for col in [self.col_ql(), self.col_qr()] {
-                                die.add_tile((col, row), "CLKQ", &[(col - 1, row), (col, row)]);
+                                let cell = CellCoord::new(die, col, row);
+                                egrid.add_tile(cell, "CLKQ", &[cell.delta(-1, 0), cell]);
                             }
                         }
                     } else {
-                        die.add_tile((self.col_mid(), self.row_mid()), "CLKC", &[]);
-                        die.add_tile(
-                            (self.col_mid(), self.row_qb()),
-                            "CLKQC",
-                            &[(self.col_mid(), self.row_qb())],
+                        egrid.add_tile(
+                            CellCoord::new(die, self.col_mid(), self.row_mid()),
+                            "CLKC",
+                            &[],
                         );
-                        die.add_tile(
-                            (self.col_mid(), self.row_qt()),
+                        egrid.add_tile_single(
+                            CellCoord::new(die, self.col_mid(), self.row_qb()),
                             "CLKQC",
-                            &[(self.col_mid(), self.row_qt())],
+                        );
+                        egrid.add_tile_single(
+                            CellCoord::new(die, self.col_mid(), self.row_qt()),
+                            "CLKQC",
                         );
                     }
                 } else {
-                    for row in die.rows() {
-                        let col = self.col_mid();
-                        die.fill_conn_pair((col - 1, row), (col, row), "LLHC.E", "LLHC.W");
-                        let kind = if row == self.row_s() {
+                    for cell in egrid.column(die, self.col_mid()) {
+                        egrid.fill_conn_pair(cell.delta(-1, 0), cell, "LLHC.E", "LLHC.W");
+                        let kind = if cell.row == self.row_s() {
                             "LLH.IO.B"
-                        } else if row == self.row_n() {
+                        } else if cell.row == self.row_n() {
                             "LLH.IO.T"
-                        } else if row == self.row_s() + 1 {
+                        } else if cell.row == self.row_s() + 1 {
                             "LLH.CLB.B"
                         } else {
                             "LLH.CLB"
                         };
-                        die.add_tile((col, row), kind, &[(col - 1, row), (col, row)]);
+                        egrid.add_tile(cell, kind, &[cell.delta(-1, 0), cell]);
                     }
 
-                    for col in die.cols() {
-                        let row = self.row_mid();
-                        die.fill_conn_pair((col, row - 1), (col, row), "LLVC.N", "LLVC.S");
-                        let kind = if col == self.col_w() {
+                    for cell in egrid.row(die, self.row_mid()) {
+                        egrid.fill_conn_pair(cell.delta(0, -1), cell, "LLVC.N", "LLVC.S");
+                        let kind = if cell.col == self.col_w() {
                             "LLV.IO.L"
-                        } else if col == self.col_e() {
+                        } else if cell.col == self.col_e() {
                             "LLV.IO.R"
                         } else {
                             "LLV.CLB"
                         };
-                        die.add_tile((col, row), kind, &[(col, row - 1), (col, row)]);
+                        egrid.add_tile(cell, kind, &[cell.delta(0, -1), cell]);
                     }
                 }
 
-                for col in die.cols() {
-                    if col != self.col_w() && col != self.col_e() {
-                        die.fill_conn_pair(
-                            (col, self.row_n() - 1),
-                            (col, self.row_n()),
-                            "TCLB.N",
-                            "MAIN.S",
-                        );
+                for cell in egrid.row(die, self.row_n()) {
+                    if cell.col != self.col_w() && cell.col != self.col_e() {
+                        egrid.fill_conn_pair(cell.delta(0, -1), cell, "TCLB.N", "MAIN.S");
                     }
                 }
 
-                for row in die.rows() {
-                    if row != self.row_s() && row != self.row_n() {
-                        die.fill_conn_pair(
-                            (self.col_w(), row),
-                            (self.col_w() + 1, row),
-                            "MAIN.E",
-                            "LCLB.W",
-                        );
+                for cell in egrid.column(die, self.col_w()) {
+                    if cell.row != self.row_s() && cell.row != self.row_n() {
+                        egrid.fill_conn_pair(cell, cell.delta(1, 0), "MAIN.E", "LCLB.W");
                     }
                 }
 
-                die.fill_main_passes();
-                die.fill_conn_term((col_l, row_b), "CNR.LL.W");
-                die.fill_conn_term((col_r, row_b), "CNR.LR.S");
-                die.fill_conn_term((col_l, row_t), "CNR.UL.N");
-                die.fill_conn_term((col_r, row_t), "CNR.UR.E");
+                egrid.fill_main_passes(die);
+                egrid.fill_conn_term(CellCoord::new(die, self.col_w(), self.row_s()), "CNR.LL.W");
+                egrid.fill_conn_term(CellCoord::new(die, self.col_e(), self.row_s()), "CNR.LR.S");
+                egrid.fill_conn_term(CellCoord::new(die, self.col_w(), self.row_n()), "CNR.UL.N");
+                egrid.fill_conn_term(CellCoord::new(die, self.col_e(), self.row_n()), "CNR.UR.E");
 
-                for row in die.rows() {
+                for row in egrid.rows(die) {
                     if self.kind.is_xl() && (row == self.row_qb() || row == self.row_qt()) {
                         llv_framebit.insert(row, frame_len);
                         frame_len += self.btile_height_brk();
@@ -632,7 +590,7 @@ impl Chip {
                     frame_len += height;
                 }
 
-                for col in die.cols().rev() {
+                for col in egrid.cols(die).rev() {
                     let width = self.btile_width_main(col);
                     col_frame[col] = frame_info.len();
                     for _ in 0..width {
@@ -679,79 +637,65 @@ impl Chip {
                 }
             }
             ChipKind::Xc5200 => {
-                let col_l = die.cols().next().unwrap();
-                let col_r = die.cols().next_back().unwrap();
-                let row_b = die.rows().next().unwrap();
-                let row_t = die.rows().next_back().unwrap();
-                for col in die.cols() {
-                    if col == col_l {
-                        for row in die.rows() {
-                            if row == row_b {
-                                die.fill_tile((col, row), "CNR.BL");
-                            } else if row == row_t {
-                                die.fill_tile((col, row), "CNR.TL");
-                            } else {
-                                die.fill_tile((col, row), "IO.L");
-                            }
+                for cell in egrid.die_cells(die) {
+                    if cell.col == self.col_w() {
+                        if cell.row == self.row_s() {
+                            egrid.add_tile_single(cell, "CNR.BL");
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile_single(cell, "CNR.TL");
+                        } else {
+                            egrid.add_tile_single(cell, "IO.L");
                         }
-                    } else if col == col_r {
-                        for row in die.rows() {
-                            if row == row_b {
-                                die.fill_tile((col, row), "CNR.BR");
-                            } else if row == row_t {
-                                die.fill_tile((col, row), "CNR.TR");
-                            } else {
-                                die.fill_tile((col, row), "IO.R");
-                            }
+                    } else if cell.col == self.col_e() {
+                        if cell.row == self.row_s() {
+                            egrid.add_tile_single(cell, "CNR.BR");
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile_single(cell, "CNR.TR");
+                        } else {
+                            egrid.add_tile_single(cell, "IO.R");
                         }
                     } else {
-                        for row in die.rows() {
-                            if row == row_b {
-                                die.fill_tile((col, row), "IO.B");
-                            } else if row == row_t {
-                                die.fill_tile((col, row), "IO.T");
-                            } else {
-                                die.fill_tile((col, row), "CLB");
-                            }
+                        if cell.row == self.row_s() {
+                            egrid.add_tile_single(cell, "IO.B");
+                        } else if cell.row == self.row_n() {
+                            egrid.add_tile_single(cell, "IO.T");
+                        } else {
+                            egrid.add_tile_single(cell, "CLB");
                         }
                     }
                 }
 
-                for col in die.cols() {
-                    let kind = if col == col_l {
+                for cell in egrid.row(die, self.row_mid()) {
+                    let kind = if cell.col == self.col_w() {
                         "CLKL"
-                    } else if col == col_r {
+                    } else if cell.col == self.col_e() {
                         "CLKR"
                     } else {
                         "CLKH"
                     };
-                    let row_s = self.row_mid() - 1;
-                    let row_n = self.row_mid();
-                    die.fill_conn_pair((col, row_s), (col, row_n), "LLV.N", "LLV.S");
-                    die.add_tile((col, row_n), kind, &[(col, row_s), (col, row_n)]);
+                    egrid.fill_conn_pair(cell.delta(0, -1), cell, "LLV.N", "LLV.S");
+                    egrid.add_tile(cell, kind, &[cell.delta(0, -1), cell]);
                 }
 
-                for row in die.rows() {
-                    let kind = if row == row_b {
+                for cell in egrid.column(die, self.col_mid()) {
+                    let kind = if cell.row == self.row_s() {
                         "CLKB"
-                    } else if row == row_t {
+                    } else if cell.row == self.row_n() {
                         "CLKT"
                     } else {
                         "CLKV"
                     };
-                    let col_l = self.col_mid() - 1;
-                    let col_r = self.col_mid();
-                    die.fill_conn_pair((col_l, row), (col_r, row), "LLH.E", "LLH.W");
-                    die.add_tile((col_r, row), kind, &[(col_l, row), (col_r, row)]);
+                    egrid.fill_conn_pair(cell.delta(-1, 0), cell, "LLH.E", "LLH.W");
+                    egrid.add_tile(cell, kind, &[cell.delta(-1, 0), cell]);
                 }
 
-                die.fill_main_passes();
-                die.fill_conn_term((col_l, row_b), "CNR.LL");
-                die.fill_conn_term((col_r, row_b), "CNR.LR");
-                die.fill_conn_term((col_l, row_t), "CNR.UL");
-                die.fill_conn_term((col_r, row_t), "CNR.UR");
+                egrid.fill_main_passes(die);
+                egrid.fill_conn_term(CellCoord::new(die, self.col_w(), self.row_s()), "CNR.LL");
+                egrid.fill_conn_term(CellCoord::new(die, self.col_e(), self.row_s()), "CNR.LR");
+                egrid.fill_conn_term(CellCoord::new(die, self.col_w(), self.row_n()), "CNR.UL");
+                egrid.fill_conn_term(CellCoord::new(die, self.col_e(), self.row_n()), "CNR.UR");
 
-                for row in die.rows() {
+                for row in egrid.rows(die) {
                     if row == self.row_mid() {
                         llv_framebit.insert(row, frame_len);
                         frame_len += 4;
@@ -761,7 +705,7 @@ impl Chip {
                     frame_len += height;
                 }
 
-                for col in die.cols().rev() {
+                for col in egrid.cols(die).rev() {
                     let width = self.btile_width_main(col);
                     col_frame[col] = frame_info.len();
                     for _ in 0..width {

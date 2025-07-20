@@ -1,7 +1,6 @@
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::grid::{
-    CellCoord, ColId, ExpandedDieRefMut, ExpandedGrid, RowId, WireCoord,
-};
+use prjcombine_interconnect::dir::{DirH, DirV};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, WireCoord};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -13,9 +12,10 @@ use crate::expanded::{ExpandedDevice, REGION_GLOBAL, REGION_LEAF};
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
-    db: &'a IntDb,
-    disabled: &'b BTreeSet<DisabledPart>,
-    die: ExpandedDieRefMut<'a, 'b>,
+    db: &'b IntDb,
+    disabled: &'a BTreeSet<DisabledPart>,
+    die: DieId,
+    egrid: &'a mut ExpandedGrid<'b>,
     cols_bram: Vec<ColId>,
     spine_frame: usize,
     frame_info: Vec<FrameInfo>,
@@ -27,38 +27,32 @@ struct Expander<'a, 'b> {
 
 impl Expander<'_, '_> {
     fn fill_int(&mut self) {
-        for col in self.die.cols() {
-            if col == self.chip.col_w() {
-                for row in self.die.rows() {
-                    if row == self.chip.row_s() {
-                        self.die.fill_tile((col, row), "CNR.BL");
-                    } else if row == self.chip.row_n() {
-                        self.die.fill_tile((col, row), "CNR.TL");
-                    } else {
-                        self.die.fill_tile((col, row), "IO.L");
-                    }
+        for cell in self.egrid.die_cells(self.die) {
+            if cell.col == self.chip.col_w() {
+                if cell.row == self.chip.row_s() {
+                    self.egrid.add_tile_single(cell, "CNR.BL");
+                } else if cell.row == self.chip.row_n() {
+                    self.egrid.add_tile_single(cell, "CNR.TL");
+                } else {
+                    self.egrid.add_tile_single(cell, "IO.L");
                 }
-            } else if col == self.chip.col_e() {
-                for row in self.die.rows() {
-                    if row == self.chip.row_s() {
-                        self.die.fill_tile((col, row), "CNR.BR");
-                    } else if row == self.chip.row_n() {
-                        self.die.fill_tile((col, row), "CNR.TR");
-                    } else {
-                        self.die.fill_tile((col, row), "IO.R");
-                    }
+            } else if cell.col == self.chip.col_e() {
+                if cell.row == self.chip.row_s() {
+                    self.egrid.add_tile_single(cell, "CNR.BR");
+                } else if cell.row == self.chip.row_n() {
+                    self.egrid.add_tile_single(cell, "CNR.TR");
+                } else {
+                    self.egrid.add_tile_single(cell, "IO.R");
                 }
-            } else if self.chip.cols_bram.contains(&col) {
+            } else if self.chip.cols_bram.contains(&cell.col) {
                 // skip for now
             } else {
-                for row in self.die.rows() {
-                    if row == self.chip.row_s() {
-                        self.die.fill_tile((col, row), "IO.B");
-                    } else if row == self.chip.row_n() {
-                        self.die.fill_tile((col, row), "IO.T");
-                    } else {
-                        self.die.fill_tile((col, row), "CLB");
-                    }
+                if cell.row == self.chip.row_s() {
+                    self.egrid.add_tile_single(cell, "IO.B");
+                } else if cell.row == self.chip.row_n() {
+                    self.egrid.add_tile_single(cell, "IO.T");
+                } else {
+                    self.egrid.add_tile_single(cell, "CLB");
                 }
             }
         }
@@ -70,285 +64,216 @@ impl Expander<'_, '_> {
                 continue;
             }
 
-            let row = self.chip.row_s();
-            self.die
-                .add_tile((col, row), "BRAM_BOT", &[(col, row), (col - 1, row)]);
+            let cell = CellCoord::new(self.die, col, self.chip.row_s());
+            self.egrid
+                .add_tile(cell, "BRAM_BOT", &[cell, cell.delta(-1, 0)]);
 
-            let mut prev_crd = (col, row);
-            for row in self.die.rows() {
-                if row == self.chip.row_n() || row.to_idx() % 4 != 1 {
+            let mut prev_cell = cell;
+            for cell in self.egrid.column(self.die, col) {
+                if cell.row == self.chip.row_n() || cell.row.to_idx() % 4 != 1 {
                     continue;
                 }
                 let kind;
-                if col == self.chip.col_w() + 1 {
+                if cell.col == self.chip.col_w() + 1 {
                     kind = "LBRAM";
-                } else if col == self.chip.col_e() - 1 {
+                } else if cell.col == self.chip.col_e() - 1 {
                     kind = "RBRAM";
                 } else {
                     kind = "MBRAM";
                 }
-                self.die.add_tile(
-                    (col, row),
+                self.egrid.add_tile(
+                    cell,
                     kind,
                     &[
-                        (col, row),
-                        (col, row + 1),
-                        (col, row + 2),
-                        (col, row + 3),
-                        (col - 1, row),
-                        (col - 1, row + 1),
-                        (col - 1, row + 2),
-                        (col - 1, row + 3),
-                        (col + 1, row),
-                        (col + 1, row + 1),
-                        (col + 1, row + 2),
-                        (col + 1, row + 3),
+                        cell.delta(0, 0),
+                        cell.delta(0, 1),
+                        cell.delta(0, 2),
+                        cell.delta(0, 3),
+                        cell.delta(-1, 0),
+                        cell.delta(-1, 1),
+                        cell.delta(-1, 2),
+                        cell.delta(-1, 3),
+                        cell.delta(1, 0),
+                        cell.delta(1, 1),
+                        cell.delta(1, 2),
+                        cell.delta(1, 3),
                     ],
                 );
-                self.die
-                    .fill_conn_pair(prev_crd, (col, row), "MAIN.N", "MAIN.S");
-                prev_crd = (col, row);
+                self.egrid
+                    .fill_conn_pair(prev_cell, cell, "MAIN.N", "MAIN.S");
+                prev_cell = cell;
             }
 
-            let row = self.chip.row_n();
-            self.die
-                .add_tile((col, row), "BRAM_TOP", &[(col, row), (col - 1, row)]);
-            self.die
-                .fill_conn_pair(prev_crd, (col, row), "MAIN.N", "MAIN.S");
+            let cell = CellCoord::new(self.die, col, self.chip.row_n());
+            self.egrid
+                .add_tile(cell, "BRAM_TOP", &[cell, cell.delta(-1, 0)]);
+            self.egrid
+                .fill_conn_pair(prev_cell, cell, "MAIN.N", "MAIN.S");
 
             // special hack!
             for (wire, wname, _) in &self.db.wires {
                 if wname.starts_with("BRAM.QUAD") {
-                    self.blackhole_wires
-                        .insert(CellCoord::new(self.die.die, col, self.chip.row_n()).wire(wire));
+                    self.blackhole_wires.insert(cell.wire(wire));
                 }
             }
         }
     }
 
     fn fill_clkbt(&mut self) {
-        let row_b = self.chip.row_s();
-        let row_t = self.chip.row_n();
-        // CLKB/CLKT and DLLs
-        if self.chip.kind == ChipKind::Virtex {
-            let col_c = self.chip.col_clk();
-            let col_pl = self.chip.col_w() + 1;
-            let col_pr = self.chip.col_e() - 1;
-            self.die.add_tile(
-                (col_c, row_b),
-                "CLKB",
-                &[(col_c, row_b), (col_pl, row_b), (col_pr, row_b)],
-            );
-            self.die.add_tile(
-                (col_c, row_t),
-                "CLKT",
-                &[(col_c, row_t), (col_pl, row_t), (col_pr, row_t)],
-            );
-            self.die.add_tile(
-                (col_pl, row_b),
-                "DLL.BOT",
-                &[(col_pl, row_b), (col_pl - 1, row_b), (col_c, row_b)],
-            );
-            self.die.add_tile(
-                (col_pl, row_t),
-                "DLL.TOP",
-                &[(col_pl, row_t), (col_pl - 1, row_t), (col_c, row_t)],
-            );
-            self.die.add_tile(
-                (col_pr, row_b),
-                "DLL.BOT",
-                &[(col_pr, row_b), (col_pr - 1, row_b), (col_c, row_b)],
-            );
-            self.die.add_tile(
-                (col_pr, row_t),
-                "DLL.TOP",
-                &[(col_pr, row_t), (col_pr - 1, row_t), (col_c, row_t)],
-            );
-        } else {
-            let col_c = self.chip.col_clk();
-            let bram_mid = self.cols_bram.len() / 2;
-            let c_pl = bram_mid - 1;
-            let c_pr = bram_mid;
-            let c_sl = bram_mid - 2;
-            let c_sr = bram_mid + 1;
-            let col_pl = self.cols_bram[c_pl];
-            let col_pr = self.cols_bram[c_pr];
-            let col_sl = self.cols_bram[c_sl];
-            let col_sr = self.cols_bram[c_sr];
-            let kind_b;
-            let kind_t;
-            if self.disabled.contains(&DisabledPart::PrimaryDlls) {
-                kind_b = "CLKB_2DLL";
-                kind_t = "CLKT_2DLL";
+        for edge in [DirV::S, DirV::N] {
+            let row = self.chip.row_edge(edge);
+            let cell = CellCoord::new(self.die, self.chip.col_clk(), row);
+            // CLKB/CLKT and DLLs
+            if self.chip.kind == ChipKind::Virtex {
+                let cell_dll_w = cell.with_col(self.chip.col_w() + 1);
+                let cell_dll_e = cell.with_col(self.chip.col_e() - 1);
+                self.egrid.add_tile(
+                    cell,
+                    match edge {
+                        DirV::S => "CLKB",
+                        DirV::N => "CLKT",
+                    },
+                    &[cell, cell_dll_w, cell_dll_e],
+                );
+                self.egrid.add_tile(
+                    cell_dll_w,
+                    match edge {
+                        DirV::S => "DLL.BOT",
+                        DirV::N => "DLL.TOP",
+                    },
+                    &[cell_dll_w, cell_dll_w.delta(-1, 0), cell],
+                );
+                self.egrid.add_tile(
+                    cell_dll_e,
+                    match edge {
+                        DirV::S => "DLL.BOT",
+                        DirV::N => "DLL.TOP",
+                    },
+                    &[cell_dll_e, cell_dll_e.delta(-1, 0), cell],
+                );
             } else {
-                kind_b = "CLKB_4DLL";
-                kind_t = "CLKT_4DLL";
-            }
-            self.die.add_tile(
-                (col_c, row_b),
-                kind_b,
-                &[
-                    (col_c, row_b),
-                    (col_pl, row_b),
-                    (col_pr, row_b),
-                    (col_sl, row_b),
-                    (col_sr, row_b),
-                ],
-            );
-            self.die.add_tile(
-                (col_c, row_t),
-                kind_t,
-                &[
-                    (col_c, row_t),
-                    (col_pl, row_t),
-                    (col_pr, row_t),
-                    (col_sl, row_t),
-                    (col_sr, row_t),
-                ],
-            );
-            // DLLS
-            self.die.add_tile(
-                (col_sl, row_b),
-                "DLLS.BOT",
-                &[(col_sl, row_b), (col_sl - 1, row_b), (col_c, row_b)],
-            );
-            self.die.add_tile(
-                (col_sl, row_t),
-                "DLLS.TOP",
-                &[(col_sl, row_t), (col_sl - 1, row_t), (col_c, row_t)],
-            );
-            self.die.add_tile(
-                (col_sr, row_b),
-                "DLLS.BOT",
-                &[(col_sr, row_b), (col_sr - 1, row_b), (col_c, row_b)],
-            );
-            self.die.add_tile(
-                (col_sr, row_t),
-                "DLLS.TOP",
-                &[(col_sr, row_t), (col_sr - 1, row_t), (col_c, row_t)],
-            );
-            if !self.disabled.contains(&DisabledPart::PrimaryDlls) {
-                self.die.add_tile(
-                    (col_pl, row_b),
-                    "DLLP.BOT",
-                    &[
-                        (col_pl, row_b),
-                        (col_pl - 1, row_b),
-                        (col_c, row_b),
-                        (col_sl, row_b),
-                    ],
+                let bram_mid = self.cols_bram.len() / 2;
+                let cell_dllp_w = cell.with_col(self.cols_bram[bram_mid - 1]);
+                let cell_dllp_e = cell.with_col(self.cols_bram[bram_mid]);
+                let cell_dlls_w = cell.with_col(self.cols_bram[bram_mid - 2]);
+                let cell_dlls_e = cell.with_col(self.cols_bram[bram_mid + 1]);
+                let kind = if self.disabled.contains(&DisabledPart::PrimaryDlls) {
+                    match edge {
+                        DirV::S => "CLKB_2DLL",
+                        DirV::N => "CLKT_2DLL",
+                    }
+                } else {
+                    match edge {
+                        DirV::S => "CLKB_4DLL",
+                        DirV::N => "CLKT_4DLL",
+                    }
+                };
+                self.egrid.add_tile(
+                    cell,
+                    kind,
+                    &[cell, cell_dllp_w, cell_dllp_e, cell_dlls_w, cell_dlls_e],
                 );
-                self.die.add_tile(
-                    (col_pl, row_t),
-                    "DLLP.TOP",
-                    &[
-                        (col_pl, row_t),
-                        (col_pl - 1, row_t),
-                        (col_c, row_t),
-                        (col_sl, row_t),
-                    ],
+                // DLLS
+                let (kind_p, kind_s) = match edge {
+                    DirV::S => ("DLLP.BOT", "DLLS.BOT"),
+                    DirV::N => ("DLLP.TOP", "DLLS.TOP"),
+                };
+                self.egrid.add_tile(
+                    cell_dlls_w,
+                    kind_s,
+                    &[cell_dlls_w, cell_dlls_w.delta(-1, 0), cell],
                 );
-                self.die.add_tile(
-                    (col_pr, row_b),
-                    "DLLP.BOT",
-                    &[
-                        (col_pr, row_b),
-                        (col_pr - 1, row_b),
-                        (col_c, row_b),
-                        (col_sr, row_b),
-                    ],
+                self.egrid.add_tile(
+                    cell_dlls_e,
+                    kind_s,
+                    &[cell_dlls_e, cell_dlls_e.delta(-1, 0), cell],
                 );
-                self.die.add_tile(
-                    (col_pr, row_t),
-                    "DLLP.TOP",
-                    &[
-                        (col_pr, row_t),
-                        (col_pr - 1, row_t),
-                        (col_c, row_t),
-                        (col_sr, row_t),
-                    ],
-                );
+                if !self.disabled.contains(&DisabledPart::PrimaryDlls) {
+                    self.egrid.add_tile(
+                        cell_dllp_w,
+                        kind_p,
+                        &[cell_dllp_w, cell_dllp_w.delta(-1, 0), cell, cell_dlls_w],
+                    );
+                    self.egrid.add_tile(
+                        cell_dllp_e,
+                        kind_p,
+                        &[cell_dllp_e, cell_dllp_e.delta(-1, 0), cell, cell_dlls_e],
+                    );
+                }
             }
         }
     }
 
     fn fill_pcilogic(&mut self) {
         // CLKL/CLKR
-        let pci_l = (self.chip.col_w(), self.chip.row_clk());
-        let pci_r = (self.chip.col_e(), self.chip.row_clk());
-        self.die.add_tile(pci_l, "CLKL", &[pci_l]);
-        self.die.add_tile(pci_r, "CLKR", &[pci_r]);
+        self.egrid
+            .add_tile_single(self.chip.bel_pci(DirH::W).cell, "CLKL");
+        self.egrid
+            .add_tile_single(self.chip.bel_pci(DirH::E).cell, "CLKR");
     }
 
     fn fill_clk(&mut self) {
-        for col in self.die.cols() {
-            for row in self.die.rows() {
-                self.die[(col, row)].region_root[REGION_GLOBAL] =
-                    (ColId::from_idx(0), RowId::from_idx(0));
-            }
+        for cell in self.egrid.die_cells(self.die) {
+            self.egrid[cell].region_root[REGION_GLOBAL] =
+                CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0));
         }
         for &(col_m, col_l, col_r) in &self.chip.cols_clkv {
-            for row in self.die.rows() {
-                for c in col_l.to_idx()..col_m.to_idx() {
-                    let col = ColId::from_idx(c);
-                    self.die[(col, row)].region_root[REGION_LEAF] = (col_m - 1, row);
-                }
-                if col_m == self.chip.col_w() + 1 || col_m == self.chip.col_e() - 1 {
-                    if row == self.chip.row_s() {
-                        for c in col_m.to_idx()..col_r.to_idx() {
-                            let col = ColId::from_idx(c);
-                            self.die[(col, row)].region_root[REGION_LEAF] = (col_m, row);
-                        }
-                        self.die.add_tile(
-                            (col_m, row),
-                            "CLKV_BRAM_S",
-                            &[(col_m, row), (col_m - 1, row), (col_m, row + 1)],
-                        );
-                    } else if row == self.chip.row_n() {
-                        for c in col_m.to_idx()..col_r.to_idx() {
-                            let col = ColId::from_idx(c);
-                            self.die[(col, row)].region_root[REGION_LEAF] = (col_m, row);
-                        }
-                        self.die.add_tile(
-                            (col_m, row),
-                            "CLKV_BRAM_N",
-                            &[(col_m, row), (col_m - 1, row), (col_m, row - 4)],
-                        );
+            let is_bram = col_m == self.chip.col_w() + 1 || col_m == self.chip.col_e() - 1;
+            for col in col_l.range(col_r) {
+                for cell in self.egrid.column(self.die, col) {
+                    let cell_clk = if col < col_m {
+                        cell.with_col(col_m - 1)
+                    } else if !is_bram || self.chip.is_row_io(cell.row) {
+                        cell.with_col(col_m)
+                    } else if col > col_m {
+                        cell.with_col(col_m + 1)
                     } else {
-                        self.die[(col_m, row)].region_root[REGION_LEAF] =
-                            (col_m, self.chip.row_clk());
-                        for c in (col_m.to_idx() + 1)..col_r.to_idx() {
-                            let col = ColId::from_idx(c);
-                            self.die[(col, row)].region_root[REGION_LEAF] = (col_m + 1, row);
-                        }
-                    }
-                } else {
-                    for c in col_m.to_idx()..col_r.to_idx() {
-                        let col = ColId::from_idx(c);
-                        self.die[(col, row)].region_root[REGION_LEAF] = (col_m, row);
-                    }
-                    let kind = if row == self.chip.row_s() || row == self.chip.row_n() {
+                        CellCoord::new(self.die, col_m, self.chip.row_clk())
+                    };
+                    self.egrid[cell].region_root[REGION_LEAF] = cell_clk;
+                }
+            }
+            if is_bram {
+                let cell = CellCoord::new(self.die, col_m, self.chip.row_s());
+                self.egrid.add_tile(
+                    cell,
+                    "CLKV_BRAM_S",
+                    &[cell, cell.delta(-1, 0), cell.delta(0, 1)],
+                );
+                let cell = CellCoord::new(self.die, col_m, self.chip.row_n());
+                self.egrid.add_tile(
+                    cell,
+                    "CLKV_BRAM_N",
+                    &[cell, cell.delta(-1, 0), cell.delta(0, -4)],
+                );
+                self.egrid.add_tile_single(
+                    CellCoord::new(self.die, col_m, self.chip.row_clk()),
+                    "BRAM_CLKH",
+                );
+            } else {
+                for cell in self.egrid.column(self.die, col_m) {
+                    let kind = if self.chip.is_row_io(cell.row) {
                         "CLKV.NULL"
                     } else if col_m == self.chip.col_clk() {
                         "CLKV.CLKV"
                     } else {
                         "CLKV.GCLKV"
                     };
-                    self.die
-                        .add_tile((col_m, row), kind, &[(col_m - 1, row), (col_m, row)]);
+                    self.egrid.add_tile(cell, kind, &[cell.delta(-1, 0), cell]);
                 }
-            }
-            if col_m == self.chip.col_w() + 1 || col_m == self.chip.col_e() - 1 {
-                self.die.add_tile(
-                    (col_m, self.chip.row_clk()),
-                    "BRAM_CLKH",
-                    &[(col_m, self.chip.row_clk())],
-                );
-            } else if col_m == self.chip.col_clk() {
-                self.die.add_tile((col_m, self.chip.row_clk()), "CLKC", &[]);
-            } else {
-                self.die
-                    .add_tile((col_m, self.chip.row_clk()), "GCLKC", &[]);
+                if col_m == self.chip.col_clk() {
+                    self.egrid.add_tile(
+                        CellCoord::new(self.die, col_m, self.chip.row_clk()),
+                        "CLKC",
+                        &[],
+                    );
+                } else {
+                    self.egrid.add_tile(
+                        CellCoord::new(self.die, col_m, self.chip.row_clk()),
+                        "GCLKC",
+                        &[],
+                    );
+                }
             }
         }
     }
@@ -493,12 +418,13 @@ impl Chip {
         db: &'a IntDb,
     ) -> ExpandedDevice<'a> {
         let mut egrid = ExpandedGrid::new(db);
-        let (_, die) = egrid.add_die(self.columns, self.rows);
+        let die = egrid.add_die(self.columns, self.rows);
 
         let mut expander = Expander {
             chip: self,
             db,
             die,
+            egrid: &mut egrid,
             disabled,
             cols_bram: self.cols_bram.iter().copied().collect(),
             frame_info: vec![],
@@ -509,7 +435,7 @@ impl Chip {
             blackhole_wires: HashSet::new(),
         };
         expander.fill_int();
-        expander.die.fill_main_passes();
+        expander.egrid.fill_main_passes(die);
         expander.fill_bram();
         expander.fill_clkbt();
         expander.fill_pcilogic();
@@ -531,7 +457,7 @@ impl Chip {
         let bs_geom = BitstreamGeom {
             kind: DeviceKind::Virtex,
             die: [die_bs_geom].into_iter().collect(),
-            die_order: vec![expander.die.die],
+            die_order: vec![expander.die],
             has_gtz_bot: false,
             has_gtz_top: false,
         };

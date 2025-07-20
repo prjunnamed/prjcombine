@@ -202,10 +202,10 @@ fn drive_wire<'a>(
         )
     } else if wtn.starts_with("CLB.M") || wtn.starts_with("IO.M") {
         let tcrd = cell.tile(tslots::MAIN);
-        let node = backend.egrid.tile(tcrd);
-        let node_kind = &backend.egrid.db_index.tile_classes[node.class];
+        let tile = &backend.egrid[tcrd];
+        let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
         'a: {
-            for &inp in &node_kind.pips_bwd[&TileWireCoord {
+            for &inp in &tcls_index.pips_bwd[&TileWireCoord {
                 cell: CellSlotId::from_idx(0),
                 wire: wire_target.slot,
             }] {
@@ -228,9 +228,9 @@ fn drive_wire<'a>(
         'a: {
             for w in backend.egrid.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let node = backend.egrid.tile(tcrd);
-                let node_kind = &backend.egrid.db_index.tile_classes[node.class];
-                if let Some(ins) = node_kind.pips_bwd.get(&TileWireCoord {
+                let tile = &backend.egrid[tcrd];
+                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: w.slot,
                 }) {
@@ -411,7 +411,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for AllColumnIo {
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let id = fuzzer.info.features.pop().unwrap().id;
-        for row in backend.egrid.die(tcrd.die).rows() {
+        for row in backend.egrid.rows(tcrd.die) {
             if row == backend.edev.chip.row_s() || row == backend.edev.chip.row_n() {
                 continue;
             }

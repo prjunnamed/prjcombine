@@ -26,7 +26,7 @@ pub struct ExpandedDevice<'a> {
 impl ExpandedDevice<'_> {
     pub fn is_in_hole(&self, cell: CellCoord) -> bool {
         for hole in &self.holes {
-            if hole.contains(cell.col, cell.row) {
+            if hole.contains(cell) {
                 return true;
             }
         }
@@ -229,7 +229,7 @@ impl ExpandedDevice<'_> {
     pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
         let col = tcrd.col;
         let row = tcrd.row;
-        let tile = self.egrid.tile(tcrd);
+        let tile = &self.egrid[tcrd];
         let kind = self.egrid.db.tile_classes.key(tile.class).as_str();
         if kind.starts_with("BRAM") {
             vec![

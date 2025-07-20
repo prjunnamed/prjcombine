@@ -346,7 +346,7 @@ fn verify_ioiclk(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if bel.col == endev.chip.col_lio() || bel.col == endev.chip.col_rio() {
+    if bel.col == endev.chip.col_w() || bel.col == endev.chip.col_e() {
         verify_pci_ce_v_src(endev, vrf, bel, true, "PCI_CE");
         let srow = endev.chip.row_hclk(bel.row);
         let ud = if bel.row < srow { 'D' } else { 'U' };
@@ -524,7 +524,7 @@ fn verify_pcilogicse(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
     vrf.claim_node(&[bel.pip_owire("PCI_CE", 0)]);
     let (pcrd, po, pi) = bel.pip("PCI_CE", 0);
     vrf.claim_pip(pcrd, po, pi);
-    let rdy = if bel.col == endev.chip.col_lio() {
+    let rdy = if bel.col == endev.chip.col_w() {
         [("IRDY", 2, bels::IOB0), ("TRDY", -1, bels::IOB1)]
     } else {
         [("IRDY", 2, bels::IOB1), ("TRDY", -1, bels::IOB0)]
@@ -984,7 +984,7 @@ fn verify_lrioi_clk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
         let mut found = false;
         for i in 0..8 {
             let row = by + i;
-            if bel.col == endev.chip.col_lio() {
+            if bel.col == endev.chip.col_w() {
                 found |= endev.chip.rows[row].lio;
             } else {
                 found |= endev.chip.rows[row].rio;
@@ -1044,7 +1044,7 @@ fn verify_lrioi_clk_term(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
     let mut found = false;
     for i in 0..16 {
         let row = bel.row - 8 + i;
-        if bel.col == endev.chip.col_lio() {
+        if bel.col == endev.chip.col_w() {
             found |= endev.chip.rows[row].lio;
         } else {
             found |= endev.chip.rows[row].rio;
@@ -1054,17 +1054,9 @@ fn verify_lrioi_clk_term(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         return;
     }
     let bi = if bel.row <= endev.chip.row_clk() {
-        if bel.col == endev.chip.col_lio() {
-            0
-        } else {
-            4
-        }
+        if bel.col == endev.chip.col_w() { 0 } else { 4 }
     } else {
-        if bel.col == endev.chip.col_lio() {
-            4
-        } else {
-            0
-        }
+        if bel.col == endev.chip.col_w() { 4 } else { 0 }
     };
     for i in 0..4 {
         vrf.claim_node(&[bel.fwire(&format!("IOCLK{i}_O"))]);
@@ -1389,9 +1381,9 @@ fn verify_ckpin_v_midbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
 
 fn verify_ckpin_h_midbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let scol = if bel.col < endev.chip.col_clk {
-        endev.chip.col_lio()
+        endev.chip.col_w()
     } else {
-        endev.chip.col_rio()
+        endev.chip.col_e()
     };
     for i in 0..8 {
         vrf.claim_node(&[bel.fwire(&format!("CKPIN{i}_O"))]);
@@ -1406,14 +1398,14 @@ fn verify_ckpin_h_midbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
 }
 
 fn verify_bufio2_ins(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let source_iois = if bel.col == endev.chip.col_lio() {
+    let source_iois = if bel.col == endev.chip.col_w() {
         [
             (bel.col, bel.row - 2),
             (bel.col, bel.row - 1),
             (bel.col, bel.row + 2),
             (bel.col, bel.row + 3),
         ]
-    } else if bel.col == endev.chip.col_rio() {
+    } else if bel.col == endev.chip.col_e() {
         [
             (bel.col, bel.row + 3),
             (bel.col, bel.row + 2),
@@ -2177,9 +2169,9 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
             );
             vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_BT{i}")), obel.fwire("CMT")]);
             let scol = if i < 4 {
-                endev.chip.col_rio()
+                endev.chip.col_e()
             } else {
-                endev.chip.col_lio()
+                endev.chip.col_w()
             };
             let obel = vrf.get_bel(
                 bel.cell
@@ -2195,9 +2187,9 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
             vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_LR{i}")), obel.fwire("CMT")]);
         } else {
             let scol = if i < 4 {
-                endev.chip.col_rio()
+                endev.chip.col_e()
             } else {
-                endev.chip.col_lio()
+                endev.chip.col_w()
             };
             let obel = vrf.get_bel(
                 bel.cell

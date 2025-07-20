@@ -358,7 +358,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
             "EXCLUSIVE",
         );
 
-        let hclk_ioi_node = edev.egrid.tile(hclk_ioi);
+        let hclk_ioi_node = &edev.egrid[hclk_ioi];
         fuzzer.info.features.push(FuzzerFeature {
             id: FeatureId {
                 tile: if edev.kind == ChipKind::Virtex5 {

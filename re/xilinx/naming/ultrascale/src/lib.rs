@@ -14,7 +14,7 @@ use prjcombine_ultrascale::{
         BramKind, ChipKind, CleMKind, ColumnKind, ConfigKind, DisabledPart, DspKind, HardKind,
         HardRowKind, IoRowKind, PsIntfKind, RegId,
     },
-    expanded::{ExpandedDevice, GtCoord, IoCoord},
+    expanded::{ExpandedDevice, IoCoord},
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -598,7 +598,7 @@ fn make_io_grid(edev: &ExpandedDevice) -> IoGrid {
 
 #[derive(Debug)]
 pub struct Gt<'a> {
-    pub crd: GtCoord,
+    pub cell: CellCoord,
     pub bank: u32,
     pub kind: IoRowKind,
     pub name_common: &'a str,
@@ -614,70 +614,54 @@ impl ExpandedNamedDevice<'_> {
     pub fn get_io_name(&self, io: IoCoord) -> &str {
         match io {
             IoCoord::Hpio(hpio) => {
-                let chip = self.edev.chips[hpio.die];
+                let chip = self.edev.chips[hpio.cell.die];
                 let iocol = chip
                     .cols_io
                     .iter()
-                    .find(|iocol| iocol.col == hpio.col)
+                    .find(|iocol| iocol.col == hpio.cell.col)
                     .unwrap();
-                let kind = iocol.regs[hpio.reg];
+                let reg = chip.row_to_reg(hpio.cell.row);
+                let kind = iocol.regs[reg];
                 let (row, idx) = if hpio.iob.to_idx() < 26 {
-                    (chip.row_reg_bot(hpio.reg), hpio.iob.to_idx())
+                    (chip.row_reg_bot(reg), hpio.iob.to_idx())
                 } else {
-                    (chip.row_reg_bot(hpio.reg) + 30, hpio.iob.to_idx() - 26)
+                    (chip.row_reg_bot(reg) + 30, hpio.iob.to_idx() - 26)
                 };
                 self.ngrid
-                    .get_bel_name(CellCoord::new(hpio.die, hpio.col, row).bel(
-                        if kind == IoRowKind::Hpio {
-                            bels::HPIOB[idx]
-                        } else {
-                            bels::HRIOB[idx]
-                        },
-                    ))
+                    .get_bel_name(hpio.cell.with_row(row).bel(if kind == IoRowKind::Hpio {
+                        bels::HPIOB[idx]
+                    } else {
+                        bels::HRIOB[idx]
+                    }))
                     .unwrap()
             }
             IoCoord::Hdio(hdio) => {
-                let chip = self.edev.chips[hdio.die];
+                let chip = self.edev.chips[hdio.cell.die];
+                let reg = chip.row_to_reg(hdio.cell.row);
                 let (row, idx) = if hdio.iob.to_idx() < 12 {
-                    (chip.row_reg_bot(hdio.reg), hdio.iob.to_idx())
+                    (chip.row_reg_bot(reg), hdio.iob.to_idx())
                 } else {
-                    (chip.row_reg_bot(hdio.reg) + 30, hdio.iob.to_idx() - 12)
+                    (chip.row_reg_bot(reg) + 30, hdio.iob.to_idx() - 12)
                 };
                 self.ngrid
-                    .get_bel_name(CellCoord::new(hdio.die, hdio.col, row).bel(bels::HDIOB[idx]))
+                    .get_bel_name(hdio.cell.with_row(row).bel(bels::HDIOB[idx]))
                     .unwrap()
             }
-            IoCoord::HdioLc(hdio) => {
-                let chip = self.edev.chips[hdio.die];
-                let (row, idx) = if hdio.iob.to_idx() < 42 {
-                    (chip.row_reg_bot(hdio.reg), hdio.iob.to_idx())
-                } else {
-                    (chip.row_reg_bot(hdio.reg) + 30, hdio.iob.to_idx() - 42)
-                };
-                self.ngrid
-                    .get_bel_name(CellCoord::new(hdio.die, hdio.col, row).bel(bels::HDIOB[idx]))
-                    .unwrap()
-            }
-            IoCoord::Xp5io(xp5io) => {
-                let chip = self.edev.chips[xp5io.die];
-                let row = chip.row_reg_rclk(xp5io.reg);
-                self.ngrid
-                    .get_bel_name(
-                        CellCoord::new(xp5io.die, xp5io.col, row)
-                            .bel(bels::XP5IOB[xp5io.iob.to_idx() / 2]),
-                    )
-                    .unwrap()
-            }
+            IoCoord::HdioLc(hdio) => self
+                .ngrid
+                .get_bel_name(hdio.cell.bel(bels::HDIOB[hdio.iob.to_idx()]))
+                .unwrap(),
+            IoCoord::Xp5io(xp5io) => self
+                .ngrid
+                .get_bel_name(xp5io.cell.bel(bels::XP5IOB[xp5io.iob.to_idx() / 2]))
+                .unwrap(),
         }
     }
 
     pub fn get_gts(&self) -> Vec<Gt<'_>> {
         let mut res = vec![];
-        for &crd in &self.edev.gt {
-            let chip = self.edev.chips[crd.die];
-            let gt_info = self.edev.get_gt_info(crd);
-            let row = chip.row_reg_rclk(crd.reg);
-            let cell = CellCoord::new(crd.die, crd.col, row);
+        for &cell in &self.edev.gt {
+            let gt_info = self.edev.get_gt_info(cell);
             let (name_common, name_channel) = match gt_info.kind {
                 IoRowKind::Gth => (
                     self.ngrid.get_bel_name(cell.bel(bels::GTH_COMMON)).unwrap(),
@@ -753,7 +737,7 @@ impl ExpandedNamedDevice<'_> {
                 _ => unreachable!(),
             };
             res.push(Gt {
-                crd,
+                cell,
                 bank: gt_info.bank,
                 kind: gt_info.kind,
                 name_common,

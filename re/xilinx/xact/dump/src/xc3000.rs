@@ -568,7 +568,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
 
     let mut extractor = Extractor::new(die, &edev.egrid, &endev.ngrid);
 
-    let die = edev.egrid.die(DieId::from_idx(0));
+    let die = DieId::from_idx(0);
     for (tcrd, tile) in edev.egrid.tiles() {
         let node_kind = &intdb.tile_classes[tile.class];
         let nnode = &endev.ngrid.tiles[&tcrd];
@@ -628,7 +628,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     );
 
     // long verticals + GCLK
-    for col in die.cols() {
+    for col in edev.egrid.cols(die) {
         let mut queue = vec![];
         for row in [chip.row_s() + 1, chip.row_n() - 1] {
             let by = endev.row_y[row].start;
@@ -674,7 +674,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
                 let wire = intdb.get_wire(wire);
-                queue.push((net, CellCoord::new(die.die, col, row).wire(wire)));
+                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
         for (net, wire) in queue {
@@ -682,7 +682,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
         }
     }
     // long horizontals
-    for row in die.rows() {
+    for row in edev.egrid.rows(die) {
         let mut queue = vec![];
         for col in [chip.col_w() + 1, chip.col_e() - 1] {
             let lx = endev.col_x[col].start;
@@ -710,7 +710,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
                 let wire = intdb.get_wire(wire);
-                queue.push((net, CellCoord::new(die.die, col, row).wire(wire)));
+                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
         for (net, wire) in queue {
@@ -739,7 +739,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 queue.push((
                     net_t,
                     net_f,
-                    CellCoord::new(die.die, col, row).tile(tslots::EXTRA_ROW),
+                    CellCoord::new(die, col, row).tile(tslots::EXTRA_ROW),
                 ))
             } else {
                 assert_eq!(rwt.cell.row, rwf.cell.row);
@@ -749,7 +749,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 queue.push((
                     net_t,
                     net_f,
-                    CellCoord::new(die.die, col, row).tile(tslots::EXTRA_COL),
+                    CellCoord::new(die, col, row).tile(tslots::EXTRA_COL),
                 ))
             }
         }
@@ -760,12 +760,12 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
 
     // horizontal singles
     let mut queue = vec![];
-    for col in die.cols() {
+    for col in edev.egrid.cols(die) {
         let mut x = endev.col_x[col].end;
         if col == chip.col_e() {
             x = endev.col_x[col].start + 8;
         }
-        for row in die.rows() {
+        for row in edev.egrid.rows(die) {
             let mut nets = vec![];
             for y in endev.row_y[row].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_l else {
@@ -809,17 +809,17 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
                 let wire = intdb.get_wire(wire);
-                queue.push((net, CellCoord::new(die.die, col, row).wire(wire)));
+                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
     }
     // vertical singles
-    for row in die.rows() {
+    for row in edev.egrid.rows(die) {
         let mut y = endev.row_y[row].start;
         if row == chip.row_s() {
             y = endev.row_y[row + 1].start - 8;
         }
-        for col in die.cols() {
+        for col in edev.egrid.cols(die) {
             let mut nets = vec![];
             for x in endev.col_x[col].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_b else {
@@ -863,7 +863,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
                 let wire = intdb.get_wire(wire);
-                queue.push((net, CellCoord::new(die.die, col, row).wire(wire)));
+                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
     }
@@ -913,7 +913,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     for (box_id, boxx) in &extractor.die.boxes {
         let col = xlut.binary_search(&usize::from(boxx.bx)).unwrap_err();
         let row = ylut.binary_search(&usize::from(boxx.by)).unwrap_err();
-        extractor.own_box(box_id, CellCoord::new(die.die, col, row).tile(tslots::MAIN));
+        extractor.own_box(box_id, CellCoord::new(die, col, row).tile(tslots::MAIN));
     }
 
     // find IMUX.IOCLK
@@ -938,10 +938,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
         let row = ylut.binary_search(&pip.1).unwrap_err();
         assert!(col == chip.col_w() || col == chip.col_e());
         assert!(row == chip.row_s() || row == chip.row_n());
-        queue.push((
-            net,
-            CellCoord::new(die.die, col, row).wire(intdb.get_wire(nwn)),
-        ));
+        queue.push((net, CellCoord::new(die, col, row).wire(intdb.get_wire(nwn))));
     }
     for (net, wire) in queue {
         extractor.net_int(net, wire);

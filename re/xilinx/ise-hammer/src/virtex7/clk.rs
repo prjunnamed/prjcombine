@@ -71,13 +71,13 @@ impl TileRelation for ClkRebuf {
                             return None;
                         }
                         cell.die -= 1;
-                        cell.row = backend.egrid.die(cell.die).rows().next_back().unwrap();
+                        cell.row = backend.egrid.rows(cell.die).next_back().unwrap();
                     } else {
                         cell.row -= 1;
                     }
                 }
                 DirV::N => {
-                    if cell.row == backend.egrid.die(cell.die).rows().next_back().unwrap() {
+                    if cell.row == backend.egrid.rows(cell.die).next_back().unwrap() {
                         cell.row = RowId::from_idx(0);
                         cell.die += 1;
                         if cell.die == backend.egrid.die.next_id() {

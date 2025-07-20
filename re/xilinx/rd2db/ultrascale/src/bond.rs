@@ -199,9 +199,9 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
     let mut gt_common_lookup: HashMap<_, _> = HashMap::new();
     let mut gt_channel_lookup: HashMap<_, _> = HashMap::new();
     for gt in endev.get_gts() {
-        gt_common_lookup.insert(gt.name_common, gt.crd);
+        gt_common_lookup.insert(gt.name_common, gt.cell);
         for (i, &name) in gt.name_channel.iter().enumerate() {
-            gt_channel_lookup.insert(name, (gt.crd, i));
+            gt_channel_lookup.insert(name, (gt.cell, i));
         }
     }
     let is_zynq = endev.edev.chips[endev.edev.interposer.primary].ps.is_some()
@@ -239,13 +239,13 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                         .unwrap();
                     }
                     IoCoord::HdioLc(crd) => {
-                        write!(
-                            exp_func,
-                            "_L{}{}",
-                            1 + crd.iob.to_idx() / 2,
-                            ['P', 'N'][crd.iob.to_idx() % 2]
-                        )
-                        .unwrap();
+                        let chip = endev.edev.chips[crd.cell.die];
+                        let idx = if crd.cell.row == chip.row_rclk(crd.cell.row) {
+                            42 + crd.iob.to_idx()
+                        } else {
+                            crd.iob.to_idx()
+                        };
+                        write!(exp_func, "_L{}{}", 1 + idx / 2, ['P', 'N'][idx % 2]).unwrap();
                     }
                     IoCoord::Hpio(crd) => {
                         let group = crd.iob.to_idx() / 13;

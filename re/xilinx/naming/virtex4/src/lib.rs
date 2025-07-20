@@ -137,8 +137,7 @@ impl ExpandedNamedDevice<'_> {
 
     pub fn get_gts(&self) -> Vec<Gt<'_>> {
         let mut res = vec![];
-        for &(die, col, row) in &self.edev.gt {
-            let cell = CellCoord::new(die, col, row);
+        for &cell in &self.edev.gt {
             let gt_info = self.edev.get_gt_info(cell);
             let gt = match self.edev.kind {
                 ChipKind::Virtex4 | ChipKind::Virtex5 => Gt {

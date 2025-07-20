@@ -209,9 +209,9 @@ impl Namer<'_> {
     fn get_ioi_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
         let is_brk = row.to_idx().is_multiple_of(16) && row != self.grid.row_clk();
         let cd = self.grid.columns[col];
-        let naming = if col == self.grid.col_lio() {
+        let naming = if col == self.grid.col_w() {
             if is_brk { "LIOI_BRK" } else { "LIOI" }
-        } else if col == self.grid.col_rio() {
+        } else if col == self.grid.col_e() {
             if is_brk { "RIOI_BRK" } else { "RIOI" }
         } else if row == self.grid.row_bio_outer() {
             if cd.bio == ColumnIoKind::Inner {
@@ -246,7 +246,7 @@ impl Namer<'_> {
     }
 
     fn get_lterm_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
-        if col == self.grid.col_lio() {
+        if col == self.grid.col_w() {
             let rx = self.rxlut[col];
             let ry = self.rylut[row];
             let ltt = if row == self.grid.row_bio_outer() || row == self.grid.row_tio_outer() {
@@ -286,7 +286,7 @@ impl Namer<'_> {
     }
 
     fn get_rterm_name(&self, col: ColId, row: RowId) -> (&'static str, String) {
-        if col == self.grid.col_rio() {
+        if col == self.grid.col_e() {
             let rx = self.rxlut[col];
             let ry = self.rylut[row];
             let rtt = if row == self.grid.row_bio_outer()
@@ -365,7 +365,7 @@ impl Namer<'_> {
                 Ordering::Greater => "TOP_UP",
             }
         };
-        let lr = if col == self.grid.col_lio() { 'L' } else { 'R' };
+        let lr = if col == self.grid.col_w() { 'L' } else { 'R' };
         let x = col.to_idx();
         let y = row.to_idx();
         format!("HCLK_IOI{lr}_{kind}_X{x}Y{y}", y = y - 1)
@@ -433,9 +433,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let name = format!("INT{bram}_X{x}Y{y}");
                 let mut naming = if is_brk { "INT.BRK" } else { "INT" };
                 for &hole in &edev.site_holes {
-                    if hole.contains(col, row)
-                        && col == hole.col_r - 1
-                        && hole.col_l != hole.col_r - 1
+                    if hole.contains(cell) && col == hole.col_e - 1 && hole.col_w != hole.col_e - 1
                     {
                         let is_brk = y.is_multiple_of(16) && y != 0;
                         naming = if is_brk { "INT.TERM.BRK" } else { "INT.TERM" };
@@ -452,7 +450,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let is_brk = y.is_multiple_of(16) && row != grid.row_clk() && y != 0;
                 let name = if is_brk {
                     format!("INT_X{x}Y{y}")
-                } else if col == grid.col_lio() {
+                } else if col == grid.col_w() {
                     format!("LIOI_INT_X{x}Y{y}")
                 } else {
                     format!("IOI_INT_X{x}Y{y}")
@@ -468,7 +466,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let y = row.to_idx();
                 let mut name = format!("INT_INTERFACE_X{x}Y{y}");
                 let mut naming = "INTF";
-                if col == grid.col_lio() {
+                if col == grid.col_w() {
                     if row == grid.row_bio_outer() {
                         name = format!("LL_X{x}Y{y}");
                         naming = "INTF.CNR";
@@ -480,7 +478,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         let carry = if is_brk { "_CARRY" } else { "" };
                         name = format!("INT_INTERFACE{carry}_X{x}Y{y}");
                     }
-                } else if col == grid.col_rio() {
+                } else if col == grid.col_e() {
                     if row == grid.row_bio_outer() {
                         name = format!("LR_LOWER_X{x}Y{y}");
                         naming = "INTF.CNR";
@@ -503,13 +501,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     naming = "INTF.REGC";
                 }
                 for &hole in &edev.site_holes {
-                    if hole.contains(col, row) && hole.col_l != hole.col_r - 1 {
+                    if hole.contains(cell) && hole.col_w != hole.col_e - 1 {
                         let ry = namer.rylut[row];
-                        if col == hole.col_l {
+                        if col == hole.col_w {
                             let rx = namer.rxlut[col] + 1;
                             name = format!("INT_INTERFACE_RTERM_X{rx}Y{ry}");
                             naming = "INTF.RTERM";
-                        } else if col == hole.col_r - 1 {
+                        } else if col == hole.col_e - 1 {
                             let rx = namer.rxlut[col] - 1;
                             name = format!("INT_INTERFACE_LTERM_X{rx}Y{ry}");
                             naming = "INTF.LTERM";
@@ -598,7 +596,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
             "IOB" => {
                 let cd = grid.columns[col];
-                let (naming, kind) = if col == grid.col_lio() {
+                let (naming, kind) = if col == grid.col_w() {
                     if row == grid.row_clk() - 1 {
                         ("LIOB_RDY", "LIOB_RDY")
                     } else if row == grid.row_clk() + 2 {
@@ -606,7 +604,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     } else {
                         ("LIOB", "LIOB")
                     }
-                } else if col == grid.col_rio() {
+                } else if col == grid.col_e() {
                     if row == grid.row_clk() - 1 {
                         ("RIOB_PCI", "RIOB_PCI")
                     } else if row == grid.row_clk() + 2 {
@@ -897,7 +895,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
             "MCB" => {
                 let x = col.to_idx();
-                let mx = if col == grid.col_rio() { 1 } else { 0 };
+                let mx = if col == grid.col_e() { 1 } else { 0 };
                 let (my, mcb) = grid
                     .mcbs
                     .iter()
@@ -954,7 +952,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let ry = namer.rylut[row] - 1;
-                if col == grid.col_lio() {
+                if col == grid.col_w() {
                     let rx = namer.rxlut[col] - 2;
                     let nnode = namer.ngrid.name_tile(
                         tcrd,
@@ -1319,7 +1317,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         format!("DSP_INT_HCLK_FEEDTHRU{fold}_X{x}Y{y}", y = y - 1)
                     }
                     ColumnKind::Io => {
-                        if col == grid.col_lio() {
+                        if col == grid.col_w() {
                             format!("HCLK_IOIL_INT{fold}_X{x}Y{y}", y = y - 1)
                         } else {
                             format!("HCLK_IOIR_INT{fold}_X{x}Y{y}", y = y - 1)
@@ -1385,7 +1383,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
             "CLKPIN_BUF" => {
-                if col == grid.col_lio() {
+                if col == grid.col_w() {
                     let (_, name) = namer.get_lterm_name(col, row);
                     let naming = if row == grid.row_clk() - 2 {
                         "CLKPIN_BUF.L.BOT"
@@ -1399,7 +1397,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         unreachable!()
                     };
                     namer.ngrid.name_tile(tcrd, naming, [name]);
-                } else if col == grid.col_rio() {
+                } else if col == grid.col_e() {
                     let (_, name) = namer.get_rterm_name(col, row);
                     let naming = if row == grid.row_clk() - 2 {
                         "CLKPIN_BUF.R.BOT"
@@ -1440,7 +1438,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
             "LRIOI_CLK" => {
                 let name = namer.get_hclk_ioi_name(col, row);
-                if col == grid.col_lio() {
+                if col == grid.col_w() {
                     let name_term = if row == grid.row_clk() {
                         format!(
                             "HCLK_IOI_LTERM_BOT25_X{rx}Y{ry}",
@@ -1457,7 +1455,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     namer
                         .ngrid
                         .name_tile(tcrd, "LRIOI_CLK.L", [name, name_term]);
-                } else if col == grid.col_rio() {
+                } else if col == grid.col_e() {
                     let name_term = if row == grid.row_clk() {
                         format!(
                             "HCLK_IOI_RTERM_BOT25_X{rx}Y{ry}",
@@ -1518,9 +1516,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     } else {
                         unreachable!()
                     };
-                    let name = if col == grid.col_lio() {
+                    let name = if col == grid.col_w() {
                         format!("IOI_PCI_CE_LEFT_X{rx}Y{ry}")
-                    } else if col == grid.col_rio() {
+                    } else if col == grid.col_e() {
                         format!("IOI_PCI_CE_RIGHT_X{rx}Y{ry}")
                     } else {
                         unreachable!()

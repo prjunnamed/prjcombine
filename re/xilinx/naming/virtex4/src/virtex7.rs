@@ -82,7 +82,7 @@ fn make_raw_grid(edev: &ExpandedDevice) -> BelMultiGrid {
         ry += 2;
     }
     for (die, dylut) in &mut ylut {
-        for row in edev.egrid.die(die).rows() {
+        for row in edev.egrid.rows(die) {
             if row.to_idx().is_multiple_of(25) {
                 ry += 1;
             }
@@ -139,7 +139,7 @@ fn make_ipad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
     }
     for (die, dylut) in &mut ylut {
         let chip = edev.chips[die];
-        for row in edev.egrid.die[die].rows() {
+        for row in edev.egrid.rows(die) {
             if matches!(row.to_idx() % 50, 0 | 11 | 22 | 28 | 39) {
                 let reg = chip.row_to_reg(row);
                 let mut has_gt = false;
@@ -193,7 +193,7 @@ fn make_opad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
     }
     for (die, dylut) in &mut ylut {
         let chip = edev.chips[die];
-        for row in edev.egrid.die[die].rows() {
+        for row in edev.egrid.rows(die) {
             let reg = chip.row_to_reg(row);
             if matches!(row.to_idx() % 50, 0 | 11 | 28 | 39) {
                 let mut has_gt = false;
@@ -521,8 +521,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 }
                 let rx = raw_grid.xlut[col + 1] - 1;
                 let ry = raw_grid.ylut[die][row] - 1;
-                let hole_bot = edev.in_int_hole(die, col, row - 1);
-                let hole_top = edev.in_int_hole(die, col, row);
+                let hole_bot = edev.in_int_hole(cell.delta(0, -1));
+                let hole_top = edev.in_int_hole(cell);
                 if hole_bot {
                     suf = "_BOT_UTURN";
                 }

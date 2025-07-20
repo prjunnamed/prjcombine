@@ -44,7 +44,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllColumnIo {
             unreachable!()
         };
         let id = fuzzer.info.features.pop().unwrap().id;
-        for row in backend.egrid.die(tcrd.die).rows() {
+        for row in backend.egrid.rows(tcrd.die) {
             if row == edev.chip.row_s() || row == edev.chip.row_n() {
                 continue;
             }

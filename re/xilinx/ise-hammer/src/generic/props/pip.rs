@@ -115,7 +115,7 @@ impl PipWire {
         backend: &IseBackend<'a>,
         tcrd: TileCoord,
     ) -> Option<(&'a str, &'a str)> {
-        let node = backend.egrid.tile(tcrd);
+        let node = &backend.egrid[tcrd];
         let ndb = backend.ngrid.db;
         let nnode = &backend.ngrid.tiles[&tcrd];
         let node_naming = &ndb.tile_class_namings[nnode.naming];

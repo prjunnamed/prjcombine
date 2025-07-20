@@ -73,7 +73,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for PinNodeMutexShared {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.tile(tcrd);
+        let node = &backend.egrid[tcrd];
         let node_data = &backend.egrid.db.tile_classes[node.class];
         let bel_data = &node_data.bels[self.0];
         let BelInfo::Bel(bel_data) = bel_data else {

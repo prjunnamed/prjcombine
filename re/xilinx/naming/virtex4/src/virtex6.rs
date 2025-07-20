@@ -159,7 +159,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     naming = "HCLK.QBUF";
                     name = format!("HCLK_QBUF_X{x}Y{y}", y = y - 1);
                 }
-                if edev.in_int_hole(cell.die, col, row - 1) {
+                if edev.in_int_hole(cell.delta(0, -1)) {
                     name = format!("HCLK_X{x}Y{y}");
                 }
                 let nnode = namer.ngrid.name_tile(tcrd, naming, [name]);
@@ -208,7 +208,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 nnode.add_bel(bels::BRAM_H1, format!("RAMB18_X{bx}Y{y}", y = by * 2 + 1));
             }
             "PMVBRAM" => {
-                let hy = if edev.in_int_hole(cell.die, col, row - 1) {
+                let hy = if edev.in_int_hole(cell.delta(0, -1)) {
                     y
                 } else {
                     y - 1
