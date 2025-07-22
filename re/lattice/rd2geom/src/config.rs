@@ -8,7 +8,7 @@ use crate::ChipContext;
 
 impl ChipContext<'_> {
     fn process_config_ecp(&mut self) {
-        let cell = self.edev.config;
+        let cell = self.chip.special_loc[&SpecialLocKey::Config];
 
         let bcrd = cell.bel(bels::JTAG);
         self.name_bel(bcrd, ["JTAG", "TCK", "TMS", "TDI", "TDO"]);
@@ -101,6 +101,49 @@ impl ChipContext<'_> {
         self.insert_simple_bel(bcrd, cell, "OSC");
     }
 
+    fn process_config_ecp2(&mut self) {
+        let cell = self.chip.special_loc[&SpecialLocKey::Config];
+
+        let bcrd = cell.bel(bels::JTAG);
+        self.name_bel(bcrd, ["JTAG", "TCK", "TMS", "TDI", "TDO"]);
+        self.insert_simple_bel(bcrd, cell, "JTAG");
+        for pin in ["TCK", "TMS", "TDI", "TDO"] {
+            let wire = self.rc_wire(cell, &format!("J{pin}_JTAG"));
+            let wire_pin = WireName {
+                r: self.chip.rows.len() as u8 + 1,
+                c: 0,
+                suffix: self.naming.strings.get(&format!("J{pin}_{pin}")).unwrap(),
+            };
+            self.add_bel_wire(bcrd, pin, wire);
+            self.add_bel_wire(bcrd, format!("{pin}_{pin}"), wire_pin);
+            if pin == "TDO" {
+                self.claim_pip(wire_pin, wire);
+            } else {
+                self.claim_pip(wire, wire_pin);
+            }
+        }
+
+        let bcrd = cell.bel(bels::START);
+        self.name_bel(bcrd, ["START"]);
+        self.insert_simple_bel(bcrd, cell, "START");
+
+        let bcrd = cell.bel(bels::OSC);
+        self.name_bel(bcrd, ["OSC"]);
+        self.insert_simple_bel(bcrd, cell, "OSC");
+
+        let bcrd = cell.bel(bels::GSR);
+        self.name_bel(bcrd, ["GSR"]);
+        self.insert_simple_bel(bcrd, cell, "GSR");
+
+        let bcrd = cell.bel(bels::SED);
+        self.name_bel(bcrd, ["SED"]);
+        self.insert_simple_bel(bcrd, cell, "SED");
+
+        let bcrd = cell.bel(bels::SPIM);
+        self.name_bel(bcrd, ["SPIM"]);
+        self.insert_simple_bel(bcrd, cell, "SPIM");
+    }
+
     pub fn process_config(&mut self) {
         match self.chip.kind {
             ChipKind::Ecp | ChipKind::Xp => {
@@ -109,6 +152,9 @@ impl ChipContext<'_> {
             ChipKind::MachXo => {
                 self.process_config_machxo();
                 self.process_osc_machxo();
+            }
+            ChipKind::Ecp2 | ChipKind::Ecp2M => {
+                self.process_config_ecp2();
             }
         }
     }

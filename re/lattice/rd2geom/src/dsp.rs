@@ -4,11 +4,9 @@ use prjcombine_interconnect::db::Bel;
 use crate::ChipContext;
 
 impl ChipContext<'_> {
-    pub fn process_dsp(&mut self) {
-        if self.chip.kind != ChipKind::Ecp {
-            return;
-        }
+    pub fn process_dsp_ecp(&mut self) {
         let tcid = self.intdb.get_tile_class("DSP");
+        let is_ecp2 = self.chip.kind != ChipKind::Ecp;
         for &tcrd in &self.edev.egrid.tile_index[tcid] {
             let bcrd = tcrd.bel(bels::DSP0);
             let (r, c) = self.rc(tcrd.cell);
@@ -138,8 +136,12 @@ impl ChipContext<'_> {
                         self.add_bel_wire(bcrd, format!("JSRO{ab}{j}_{name}"), sro);
                         self.claim_pip(sro, sri);
                         if cell.col != self.chip.col_w() + 2 {
-                            let psro =
-                                self.rc_wire(cell.delta(-2, 0), &format!("JSRO{ab}{j}_{pkind}"));
+                            let cell_src = if is_ecp2 && cell == cell_mult18[0] {
+                                cell.delta(-3, 0)
+                            } else {
+                                cell.delta(-2, 0)
+                            };
+                            let psro = self.rc_wire(cell_src, &format!("JSRO{ab}{j}_{pkind}"));
                             self.claim_pip(sri, psro);
                         }
                         if kind == "MULT36" {
@@ -160,8 +162,12 @@ impl ChipContext<'_> {
                         self.add_bel_wire(bcrd, format!("JSRO{ab}{j}_MULT9_{i}"), sro);
                         self.claim_pip(sro, sri);
                         if cell.col != self.chip.col_w() + 1 {
-                            let psro =
-                                self.rc_wire(cell.delta(-2, 0), &format!("JSRO{ab}{j}_MULT9"));
+                            let cell_src = if is_ecp2 && i == 0 {
+                                cell.delta(-3, 0)
+                            } else {
+                                cell.delta(-2, 0)
+                            };
+                            let psro = self.rc_wire(cell_src, &format!("JSRO{ab}{j}_MULT9"));
                             self.claim_pip(sri, psro);
                         }
                         if i == 3 {
@@ -172,27 +178,34 @@ impl ChipContext<'_> {
                 }
             }
 
-            for i in 0..4 {
-                let wire = self.rc_wire(cell_mult36, &format!("JSIGNEDAB{i}_MULT36"));
-                self.add_bel_wire(bcrd, format!("SIGNEDAB{i}_MULT36"), wire);
-                let bpin = self.xlat_int_wire(tcrd, wire).unwrap();
+            let pins = if is_ecp2 {
+                ["SIGNEDA", "SIGNEDB", "SOURCEA", "SOURCEB"].as_slice()
+            } else {
+                ["SIGNEDAB"].as_slice()
+            };
+            for pin in pins {
+                for i in 0..4 {
+                    let wire = self.rc_wire(cell_mult36, &format!("J{pin}{i}_MULT36"));
+                    self.add_bel_wire(bcrd, format!("{pin}{i}_MULT36"), wire);
+                    let bpin = self.xlat_int_wire(tcrd, wire).unwrap();
 
-                let wire = self.rc_wire(cell_mac52, &format!("JSIGNEDAB{i}_MAC52"));
-                self.add_bel_wire(bcrd, format!("SIGNEDAB{i}_MAC52"), wire);
-                assert_eq!(bpin, self.xlat_int_wire(tcrd, wire).unwrap());
+                    let wire = self.rc_wire(cell_mac52, &format!("J{pin}{i}_MAC52"));
+                    self.add_bel_wire(bcrd, format!("{pin}{i}_MAC52"), wire);
+                    assert_eq!(bpin, self.xlat_int_wire(tcrd, wire).unwrap());
 
-                let wire = self.rc_wire(cell_mult9[i], "JSIGNEDAB0_MULT9");
-                self.add_bel_wire(bcrd, format!("SIGNEDAB{i}_MULT9"), wire);
-                assert_eq!(bpin, self.xlat_int_wire(tcrd, wire).unwrap());
+                    let wire = self.rc_wire(cell_mult9[i], &format!("J{pin}0_MULT9"));
+                    self.add_bel_wire(bcrd, format!("{pin}{i}_MULT9"), wire);
+                    assert_eq!(bpin, self.xlat_int_wire(tcrd, wire).unwrap());
 
-                let wire = self.rc_wire(
-                    cell_mult18[i / 2],
-                    &format!("JSIGNEDAB{ii}_MULT18", ii = i % 2),
-                );
-                self.add_bel_wire(bcrd, format!("SIGNEDAB{i}_MULT18"), wire);
-                assert_eq!(bpin, self.xlat_int_wire(tcrd, wire).unwrap());
+                    let wire = self.rc_wire(
+                        cell_mult18[i / 2],
+                        &format!("J{pin}{ii}_MULT18", ii = i % 2),
+                    );
+                    self.add_bel_wire(bcrd, format!("{pin}{i}_MULT18"), wire);
+                    assert_eq!(bpin, self.xlat_int_wire(tcrd, wire).unwrap());
 
-                bel.pins.insert(format!("SIGNEDAB{i}"), bpin);
+                    bel.pins.insert(format!("{pin}{i}"), bpin);
+                }
             }
 
             let wire = self.rc_wire(cell_mac52, "JACCUMSLOAD1_MAC52");
@@ -221,7 +234,28 @@ impl ChipContext<'_> {
                 bel.pins.insert(format!("ADDNSUB{i}"), bpin);
             }
 
+            if is_ecp2 {
+                for i in 0..16 {
+                    let wire = self.rc_wire(cell_mult36, &format!("JLD{i}_MULT36"));
+                    self.add_bel_wire(bcrd, format!("LD{i}_MULT36"), wire);
+                    let bpin = self.xlat_int_wire(tcrd, wire).unwrap();
+                    bel.pins.insert(format!("LD{i}_MULT36"), bpin);
+
+                    let wire = self.rc_wire(cell_mac52, &format!("JLD{i}_MAC52"));
+                    self.add_bel_wire(bcrd, format!("LD{i}_MAC52"), wire);
+                    let bpin = self.xlat_int_wire(tcrd, wire).unwrap();
+                    bel.pins.insert(format!("LD{i}_MAC52"), bpin);
+                }
+            }
+
             self.insert_bel(bcrd, bel);
+        }
+    }
+
+    pub fn process_dsp(&mut self) {
+        match self.chip.kind {
+            ChipKind::Ecp | ChipKind::Ecp2 | ChipKind::Ecp2M => self.process_dsp_ecp(),
+            ChipKind::Xp | ChipKind::MachXo => (),
         }
     }
 }

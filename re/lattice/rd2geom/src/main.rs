@@ -6,14 +6,14 @@ use std::{
 
 use clap::Parser;
 use prjcombine_ecp::{
-    bond::BondPad,
+    bond::{BondPad, SerdesPad},
     chip::{Chip, ChipKind, SpecialIoKey},
     db::Device,
     expanded::ExpandedDevice,
 };
 use prjcombine_interconnect::{
     db::{Bel, BelInfo, BelSlotId, IntDb, TileClassId},
-    grid::{BelCoord, CellCoord, WireCoord},
+    grid::{BelCoord, CellCoord, ColId, WireCoord},
 };
 use prjcombine_re_lattice_naming::{BelNaming, ChipNaming, Database, WireName};
 use prjcombine_re_lattice_rawdump::{Grid, GridId, NodeId};
@@ -39,6 +39,7 @@ mod io;
 mod pkg;
 mod plc;
 mod pll;
+mod serdes;
 
 struct ChipContext<'a> {
     name: &'a str,
@@ -50,7 +51,10 @@ struct ChipContext<'a> {
     nodes: EntityVec<NodeId, WireName>,
     int_wires: BTreeMap<WireName, Vec<WireCoord>>,
     sorted_wires: BTreeMap<(CellCoord, &'static str), BTreeMap<String, WireName>>,
+    pclk_cols: EntityVec<ColId, (ColId, ColId)>,
+    hsdclk_locs: BTreeMap<WireName, CellCoord>,
     keep_nodes: BTreeSet<WireName>,
+    discard_nodes: BTreeSet<WireName>,
     unclaimed_nodes: BTreeSet<WireName>,
     unclaimed_pips: BTreeSet<(WireName, WireName)>,
     pips_fwd: BTreeMap<WireName, BTreeSet<WireName>>,
@@ -119,6 +123,16 @@ impl ChipContext<'_> {
         }
     }
 
+    fn claim_pip_int_out(&mut self, wt: WireCoord, wf: WireName) {
+        let wt = self.naming.interconnect[&wt];
+        self.claim_pip(wt, wf);
+    }
+
+    fn claim_pip_int_in(&mut self, wt: WireName, wf: WireCoord) {
+        let wf = self.naming.interconnect[&wf];
+        self.claim_pip(wt, wf);
+    }
+
     fn name_bel<T: AsRef<str>>(&mut self, bel: BelCoord, names: impl IntoIterator<Item = T>) {
         let names = Vec::from_iter(
             names
@@ -162,8 +176,8 @@ impl ChipContext<'_> {
         for &wn in &self.unclaimed_nodes {
             let name = self.naming.strings[wn.suffix].as_str();
             for suffix in [
-                "EBR", "IOLOGIC", "PIO", "DQS", "DQSDLL", "JTAG", "OSC", "GSR", "START", "PLL",
-                "PLL3",
+                "EBR", "IOLOGIC", "PIO", "DQS", "DQSDLL", "JTAG", "OSC", "GSR", "START", "SPIM",
+                "SED", "PLL", "PLL3", "DLL", "DLLDEL", "CLKDIV", "SPLL", "PCS",
             ] {
                 if let Some(n) = name.strip_suffix(suffix)
                     && let Some(n) = n.strip_suffix('_')
@@ -257,9 +271,9 @@ fn init_nodes(grid: &Grid) -> (ChipNaming, EntityVec<NodeId, WireName>) {
     (naming, nodes)
 }
 
-fn process_chip(name: &str, grid: &Grid, family: &str, intdb: &IntDb) -> ChipResult {
+fn process_chip(name: &str, grid: &Grid, kind: ChipKind, intdb: &IntDb) -> ChipResult {
     let (naming, nodes) = init_nodes(grid);
-    let chip = make_chip(grid, family, &naming, &nodes);
+    let chip = make_chip(name, grid, kind, &naming, &nodes);
     let edev = chip.expand_grid(intdb);
     let mut ctx = ChipContext {
         name,
@@ -271,6 +285,9 @@ fn process_chip(name: &str, grid: &Grid, family: &str, intdb: &IntDb) -> ChipRes
         nodes,
         int_wires: Default::default(),
         sorted_wires: Default::default(),
+        pclk_cols: Default::default(),
+        hsdclk_locs: Default::default(),
+        discard_nodes: Default::default(),
         keep_nodes: Default::default(),
         unclaimed_nodes: Default::default(),
         unclaimed_pips: Default::default(),
@@ -278,6 +295,7 @@ fn process_chip(name: &str, grid: &Grid, family: &str, intdb: &IntDb) -> ChipRes
         pips_bwd: Default::default(),
         bels: Default::default(),
     };
+    ctx.process_clk_zones();
     ctx.process_int_nodes();
     ctx.process_int_pips();
     ctx.sort_bel_wires();
@@ -287,6 +305,7 @@ fn process_chip(name: &str, grid: &Grid, family: &str, intdb: &IntDb) -> ChipRes
     ctx.process_dsp();
     ctx.process_io();
     ctx.process_pll();
+    ctx.process_serdes();
     ctx.process_config();
     ctx.process_clk();
     ctx.print_unclaimed();
@@ -311,7 +330,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let rawdb = prjcombine_re_lattice_rawdump::Db::from_file(args.rawdump)?;
     println!("processing start...");
-    let mut int = init_intdb(&rawdb.family);
+    let kind = match rawdb.family.as_str() {
+        "ecp" => ChipKind::Ecp,
+        "xp" => ChipKind::Xp,
+        "machxo" => ChipKind::MachXo,
+        "ecp2" => ChipKind::Ecp2,
+        "ecp2m" => ChipKind::Ecp2M,
+        _ => panic!("unknown family {}", rawdb.family),
+    };
+    let mut int = init_intdb(kind);
     let mut devices = vec![];
     let mut chips = EntityVec::new();
     let mut bonds = EntityVec::new();
@@ -320,7 +347,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|(gid, grid)| {
             let part = rawdb.parts.iter().find(|part| part.grid == gid).unwrap();
             let name = format!("{}-{}", part.name, part.package);
-            process_chip(&name, grid, &rawdb.family, &int)
+            process_chip(&name, grid, kind, &int)
         })
         .collect();
     let pgrids = EntityVec::<GridId, _>::from_iter(pgrids);
@@ -329,6 +356,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         for (bid, bel) in &tcls.bels {
             if let BelInfo::Bel(bel) = bel
                 && !bel.pins.is_empty()
+            {
+                continue;
+            }
+            if let BelInfo::SwitchBox(sb) = bel
+                && !sb.items.is_empty()
             {
                 continue;
             }
@@ -366,18 +398,54 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .flat_map(|bnaming| bnaming.names.iter())
                     .map(|&x| naming.strings[x].clone()),
             );
-            for (pin, pad) in &bres.bond.pins {
-                let &BondPad::Io(io) = pad else { continue };
-                if chip.kind == ChipKind::MachXo && io == chip.special_io[&SpecialIoKey::SleepN] {
-                    continue;
+            for (pin, &pad) in &bres.bond.pins {
+                match pad {
+                    BondPad::Io(io) => {
+                        if chip.kind == ChipKind::MachXo
+                            && io == chip.special_io[&SpecialIoKey::SleepN]
+                        {
+                            continue;
+                        }
+                        let bcrd = chip.get_io_loc(io);
+                        let Some(bnaming) = naming.bels.get(&bcrd) else {
+                            continue;
+                        };
+                        let name = &naming.strings[bnaming.names[0]];
+                        assert!(expected_sites.remove(name));
+                        expected_sites.insert(pin.clone());
+                    }
+                    BondPad::Serdes(edge, col, spad) => {
+                        let bcrd = chip.bel_serdes(edge, col);
+                        let Some(bnaming) = naming.bels.get(&bcrd) else {
+                            continue;
+                        };
+                        let idx = match spad {
+                            SerdesPad::ClkP => 1,
+                            SerdesPad::ClkN => 2,
+                            SerdesPad::InP(0) => 3,
+                            SerdesPad::InN(0) => 4,
+                            SerdesPad::InP(1) => 5,
+                            SerdesPad::InN(1) => 6,
+                            SerdesPad::InP(2) => 7,
+                            SerdesPad::InN(2) => 8,
+                            SerdesPad::InP(3) => 9,
+                            SerdesPad::InN(3) => 10,
+                            SerdesPad::OutP(0) => 11,
+                            SerdesPad::OutN(0) => 12,
+                            SerdesPad::OutP(1) => 13,
+                            SerdesPad::OutN(1) => 14,
+                            SerdesPad::OutP(2) => 15,
+                            SerdesPad::OutN(2) => 16,
+                            SerdesPad::OutP(3) => 17,
+                            SerdesPad::OutN(3) => 18,
+                            _ => continue,
+                        };
+                        let name = &naming.strings[bnaming.names[idx]];
+                        assert!(expected_sites.remove(name));
+                        expected_sites.insert(pin.clone());
+                    }
+                    _ => (),
                 }
-                let bcrd = chip.get_io_loc(io);
-                let Some(bnaming) = naming.bels.get(&bcrd) else {
-                    continue;
-                };
-                let name = &naming.strings[bnaming.names[0]];
-                assert!(expected_sites.remove(name));
-                expected_sites.insert(pin.clone());
             }
             for site in &part.sites {
                 let name = &site.name;
@@ -402,7 +470,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         e.insert(io);
                     }
                     btree_map::Entry::Occupied(e) => {
-                        assert_eq!(*e.get(), io);
+                        assert_eq!(*e.get(), io, "mismatch on {key}");
                     }
                 }
             }

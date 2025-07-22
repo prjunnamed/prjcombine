@@ -107,6 +107,10 @@ pub struct DirHV {
 }
 
 impl DirHV {
+    pub fn new(h: DirH, v: DirV) -> Self {
+        Self { h, v }
+    }
+
     pub const DIRS: [DirHV; 4] = [DirHV::SW, DirHV::SE, DirHV::NW, DirHV::NE];
 
     pub const SW: DirHV = DirHV {

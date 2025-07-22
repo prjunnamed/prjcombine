@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use bincode::{Decode, Encode};
 use itertools::Itertools;
 use jzon::JsonValue;
-use prjcombine_interconnect::{dir::DirH, grid::EdgeIoCoord};
+use prjcombine_interconnect::{dir::{DirH, DirHV, DirV}, grid::{ColId, EdgeIoCoord}};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum CfgPad {
@@ -19,6 +19,15 @@ pub enum CfgPad {
     M1,
     M2,
     SleepB,
+    Hfp,
+    // the following are normally shared, except sometimes on ECP2M.
+    WriteN,
+    CsN,
+    Cs1N,
+    D(u8),
+    Dout,
+    Di,
+    Busy,
 }
 
 impl std::fmt::Display for CfgPad {
@@ -36,6 +45,14 @@ impl std::fmt::Display for CfgPad {
             CfgPad::Tdi => write!(f, "TDI"),
             CfgPad::Tdo => write!(f, "TDO"),
             CfgPad::SleepB => write!(f, "SLEEP_B"),
+            CfgPad::Hfp => write!(f, "HFP"),
+            CfgPad::WriteN => write!(f, "WRITE_N"),
+            CfgPad::CsN => write!(f, "CS_N"),
+            CfgPad::Cs1N => write!(f, "CS1_N"),
+            CfgPad::D(i) => write!(f, "D{i}"),
+            CfgPad::Dout => write!(f, "DOUT"),
+            CfgPad::Di => write!(f, "DI"),
+            CfgPad::Busy => write!(f, "BUSY"),
         }
     }
 }
@@ -44,6 +61,7 @@ impl std::fmt::Display for CfgPad {
 pub enum PllSet {
     All,
     Side(DirH),
+    Quad(DirHV),
 }
 
 impl std::fmt::Display for PllSet {
@@ -51,6 +69,42 @@ impl std::fmt::Display for PllSet {
         match self {
             PllSet::All => write!(f, "ALL"),
             PllSet::Side(dir) => write!(f, "{dir}"),
+            PllSet::Quad(quad) => write!(f, "{quad}"),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
+pub enum SerdesPad {
+    InP(u8),
+    InN(u8),
+    OutP(u8),
+    OutN(u8),
+    ClkP,
+    ClkN,
+    VccP,
+    VccAux33,
+    VccTx(u8),
+    VccRx(u8),
+    VccIB(u8),
+    VccOB(u8),
+}
+
+impl std::fmt::Display for SerdesPad {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SerdesPad::InP(ch) => write!(f, "CH{ch}_IN_P"),
+            SerdesPad::InN(ch) => write!(f, "CH{ch}_IN_N"),
+            SerdesPad::OutP(ch) => write!(f, "CH{ch}_OUT_P"),
+            SerdesPad::OutN(ch) => write!(f, "CH{ch}_OUT_N"),
+            SerdesPad::ClkP => write!(f, "CLK_P"),
+            SerdesPad::ClkN => write!(f, "CLK_N"),
+            SerdesPad::VccP => write!(f, "VCCP"),
+            SerdesPad::VccAux33 => write!(f, "VCCAUX33"),
+            SerdesPad::VccTx(ch) => write!(f, "CH{ch}_VCCTX"),
+            SerdesPad::VccRx(ch) => write!(f, "CH{ch}_VCCTX"),
+            SerdesPad::VccIB(ch) => write!(f, "CH{ch}_VCCIB"),
+            SerdesPad::VccOB(ch) => write!(f, "CH{ch}_VCCOB"),
         }
     }
 }
@@ -58,6 +112,7 @@ impl std::fmt::Display for PllSet {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum BondPad {
     Io(EdgeIoCoord),
+    Serdes(DirV, ColId, SerdesPad),
     Nc,
     Gnd,
     VccInt,
@@ -66,6 +121,7 @@ pub enum BondPad {
     VccIo(u32),
     VccPll(PllSet),
     GndPll(PllSet),
+    PllCap(PllSet),
     Cfg(CfgPad),
     XRes,
     Other,
@@ -75,6 +131,7 @@ impl std::fmt::Display for BondPad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             BondPad::Io(io) => write!(f, "{io}"),
+            BondPad::Serdes(edge, col, pad) => write!(f, "SERDES_{edge}{col:#}_{pad}"),
             BondPad::Nc => write!(f, "NC"),
             BondPad::Gnd => write!(f, "GND"),
             BondPad::VccInt => write!(f, "VCCINT"),
@@ -83,6 +140,7 @@ impl std::fmt::Display for BondPad {
             BondPad::VccIo(bank) => write!(f, "VCCIO{bank}"),
             BondPad::VccPll(set) => write!(f, "VCCPLL_{set}"),
             BondPad::GndPll(set) => write!(f, "GNDPLL_{set}"),
+            BondPad::PllCap(set) => write!(f, "PLLCAP_{set}"),
             BondPad::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
             BondPad::XRes => write!(f, "XRES"),
             BondPad::Other => write!(f, "OTHER"),
