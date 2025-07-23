@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_ecp::{
     bels,
-    chip::ChipKind,
+    chip::{ChipKind, RowKind},
     expanded::{REGION_HSDCLK, REGION_VSDCLK},
     tslots,
 };
@@ -134,7 +134,7 @@ impl ChipContext<'_> {
                     let wire = self.edev.egrid.resolve_wire(wire).unwrap();
                     self.edev.egrid.wire_tree(wire)
                 }
-                ChipKind::Ecp2 | ChipKind::Ecp2M => {
+                ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
                     if is_sclk {
                         let WireKind::Regional(region) = self.intdb.wires[wire] else {
                             unreachable!()
@@ -153,6 +153,18 @@ impl ChipContext<'_> {
                             && self.edev.egrid[cell_new].region_root[region] == root
                         {
                             cell_end = cell_new;
+                        }
+                        if self.chip.kind == ChipKind::Xp2
+                            && self.chip.rows[cell.row].kind == RowKind::Ebr
+                            && matches!(suffix.as_str(), "HSBX0101" | "HSBX0501")
+                            && cell.col.to_idx() < 6
+                        {
+                            // toolchain bug or actual hardware issue? you tell me.
+                            if cell.col.to_idx() < 2 {
+                                cell_end.col -= 4;
+                            } else {
+                                cell_start.col += 2;
+                            }
                         }
                         cell_start
                             .col
@@ -777,17 +789,33 @@ impl ChipContext<'_> {
                     ] {
                         for i in 0..n {
                             let wt = self.rc_wire(cell, &format!("J{l}{i}_CIBTEST"));
-                            let wf = cell.wire(self.intdb.get_wire(&format!("IMUX_{l}{i}")));
+                            let wf = if self.chip.kind == ChipKind::Xp2
+                                && l == "CLK"
+                                && i == 2
+                                && tcname.starts_with("INT_IO")
+                                && !((cell.col == self.chip.col_w()
+                                    || cell.col == self.chip.col_e())
+                                    && (cell.row == self.chip.row_s()
+                                        || cell.row == self.chip.row_n()))
+                            {
+                                cell.wire(self.intdb.get_wire("IMUX_CLK0"))
+                            } else {
+                                cell.wire(self.intdb.get_wire(&format!("IMUX_{l}{i}")))
+                            };
                             self.add_bel_wire(cell.bel(bels::INT), format!("{l}{i}"), wt);
                             self.claim_pip_int_in(wt, wf);
                         }
                     }
                     for (l, n) in [("F", 8), ("Q", 8), ("OFX", 8)] {
                         for i in 0..n {
-                            let wt = self.rc_wire(cell, &format!("J{l}{i}_CIBTEST"));
-                            let wf = cell.wire(self.intdb.get_wire(&format!("OUT_{l}{i}")));
-                            self.add_bel_wire(cell.bel(bels::INT), format!("{l}{i}"), wt);
-                            self.claim_pip_int_in(wt, wf);
+                            let wf = self.rc_wire(cell, &format!("J{l}{i}_CIBTEST"));
+                            let wt = cell.wire(self.intdb.get_wire(&format!("OUT_{l}{i}")));
+                            self.add_bel_wire(cell.bel(bels::INT), format!("{l}{i}"), wf);
+                            if self.chip.kind == ChipKind::Xp2 {
+                                self.claim_pip_int_out(wt, wf);
+                            } else {
+                                self.claim_pip_int_in(wf, wt);
+                            }
                         }
                     }
                 }

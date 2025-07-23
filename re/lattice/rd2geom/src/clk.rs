@@ -70,7 +70,7 @@ impl ChipContext<'_> {
             let wire = self.rc_wire(cell, name);
             let pin = format!("IO_IN_{dir}");
             self.add_bel_wire(bcrd, &pin, wire);
-            let wire_io = self.get_special_io_wire(SpecialIoKey::Clock(dir, 0));
+            let wire_io = self.get_special_io_wire_in(SpecialIoKey::Clock(dir, 0));
             self.claim_pip(wire, wire_io);
             io_in.insert(dir, wire);
         }
@@ -294,7 +294,7 @@ impl ChipContext<'_> {
         ] {
             let wire = self.rc_wire(cell, wire);
             self.add_bel_wire(bcrd, key.to_string(), wire);
-            let wire_io = self.get_special_io_wire(key);
+            let wire_io = self.get_special_io_wire_in(key);
             self.claim_pip(wire, wire_io);
             inputs_pclk.push(wire);
             inputs_sclk.push(wire);
@@ -516,7 +516,7 @@ impl ChipContext<'_> {
                 let pin = format!("IO_IN_{dir}");
                 self.add_bel_wire(bcrd, &pin, wire);
                 let loc = SpecialIoKey::Clock(dir, idx);
-                let wire_io = self.get_special_io_wire(loc);
+                let wire_io = self.get_special_io_wire_in(loc);
                 self.claim_pip(wire, wire_io);
                 io_in.insert(loc, wire);
             }
@@ -526,7 +526,39 @@ impl ChipContext<'_> {
             let SpecialLocKey::Pll(loc) = loc else {
                 continue;
             };
-            if loc.quad.v == DirV::S && loc.idx == 0 {
+            if self.chip.kind == ChipKind::Xp2 {
+                let wire_clkop_pll_in = self.rc_wire(cell_loc, "JCLKOP_PLL");
+                let wire_clkos_pll_in = self.rc_wire(cell_loc, "JCLKOS_PLL");
+                let wire_clkok_pll_in = self.rc_wire(cell_loc, "JCLKOK_PLL");
+                let wire_clkok2_pll_in = self.rc_wire(cell_loc, "JCLKOK2_PLL");
+                let (wn_clkop_pll, wn_clkos_pll, wn_clkok_pll, wn_clkok2_pll) = match loc.quad {
+                    DirHV::SW => ("JLLCMCLKA", "JLLCNCLKA", "JLFPSC3", "JLFPSC4"),
+                    DirHV::SE => ("JLRCMCLKA", "JLRCNCLKA", "JRFPSC3", "JRFPSC4"),
+                    DirHV::NW => ("JULCMCLKA", "JULCNCLKA", "JLFPSC1", "JLFPSC2"),
+                    DirHV::NE => ("JURCMCLKA", "JURCNCLKA", "JRFPSC1", "JRFPSC2"),
+                };
+                let wire_clkop_pll = self.rc_wire(cell, wn_clkop_pll);
+                let wire_clkos_pll = self.rc_wire(cell, wn_clkos_pll);
+                let wire_clkok_pll = self.rc_wire(cell, wn_clkok_pll);
+                let wire_clkok2_pll = self.rc_wire(cell, wn_clkok2_pll);
+                self.add_bel_wire(bcrd, format!("PLL_{loc}_CLKOP"), wire_clkop_pll);
+                self.add_bel_wire(bcrd, format!("PLL_{loc}_CLKOS"), wire_clkos_pll);
+                self.add_bel_wire(bcrd, format!("PLL_{loc}_CLKOK"), wire_clkok_pll);
+                self.add_bel_wire(bcrd, format!("PLL_{loc}_CLKOK2"), wire_clkok2_pll);
+                self.claim_pip(wire_clkop_pll, wire_clkop_pll_in);
+                self.claim_pip(wire_clkos_pll, wire_clkos_pll_in);
+                self.claim_pip(wire_clkok_pll, wire_clkok_pll_in);
+                self.claim_pip(wire_clkok2_pll, wire_clkok2_pll_in);
+                pll_in.insert(
+                    loc,
+                    vec![
+                        wire_clkop_pll,
+                        wire_clkos_pll,
+                        wire_clkok_pll,
+                        wire_clkok2_pll,
+                    ],
+                );
+            } else if loc.quad.v == DirV::S && loc.idx == 0 {
                 let cell_pll = match loc.quad.h {
                     DirH::W => cell_loc.delta(2, 0),
                     DirH::E => cell_loc.delta(-2, 0),
@@ -663,6 +695,33 @@ impl ChipContext<'_> {
                 pll_in.insert(loc, vec![wire_clkop_pll, wire_clkos_pll, wire_clkok_pll]);
             }
         }
+        let mut clkdiv_in = BTreeMap::new();
+        if self.chip.kind == ChipKind::Xp2 {
+            for edge in [DirH::W, DirH::E] {
+                let cell_loc = self.chip.bel_dqsdll_ecp2(edge).cell;
+                let wire_cdiv1_in = self.rc_wire(cell_loc, "JCDIV1_CLKDIV");
+                let wire_cdiv2_in = self.rc_wire(cell_loc, "JCDIV2_CLKDIV");
+                let wire_cdiv4_in = self.rc_wire(cell_loc, "JCDIV4_CLKDIV");
+                let wire_cdiv8_in = self.rc_wire(cell_loc, "JCDIV8_CLKDIV");
+                let (wn_cdiv1, wn_cdiv2, wn_cdiv4, wn_cdiv8) = match edge {
+                    DirH::W => ("JLCDIV1", "JLCDIV2", "JLCDIV4", "JLCDIV8"),
+                    DirH::E => ("JRCDIV1", "JRCDIV2", "JRCDIV4", "JRCDIV8"),
+                };
+                let wire_cdiv1 = self.rc_wire(cell, wn_cdiv1);
+                let wire_cdiv2 = self.rc_wire(cell, wn_cdiv2);
+                let wire_cdiv4 = self.rc_wire(cell, wn_cdiv4);
+                let wire_cdiv8 = self.rc_wire(cell, wn_cdiv8);
+                self.add_bel_wire(bcrd, format!("CLKDIV_{edge}_CDIV1"), wire_cdiv1);
+                self.add_bel_wire(bcrd, format!("CLKDIV_{edge}_CDIV2"), wire_cdiv2);
+                self.add_bel_wire(bcrd, format!("CLKDIV_{edge}_CDIV4"), wire_cdiv4);
+                self.add_bel_wire(bcrd, format!("CLKDIV_{edge}_CDIV8"), wire_cdiv8);
+                self.claim_pip(wire_cdiv1, wire_cdiv1_in);
+                self.claim_pip(wire_cdiv2, wire_cdiv2_in);
+                self.claim_pip(wire_cdiv4, wire_cdiv4_in);
+                self.claim_pip(wire_cdiv8, wire_cdiv8_in);
+                clkdiv_in.insert(edge, vec![wire_cdiv1, wire_cdiv2, wire_cdiv4, wire_cdiv8]);
+            }
+        }
         let mut serdes_in = BTreeMap::new();
         if self.chip.kind == ChipKind::Ecp2M {
             for tcname in ["SERDES_S", "SERDES_N"] {
@@ -741,6 +800,9 @@ impl ChipContext<'_> {
                 for &wire in pll_in.values().flatten() {
                     self.claim_pip(pclk_out, wire);
                 }
+                for &wire in clkdiv_in.values().flatten() {
+                    self.claim_pip(pclk_out, wire);
+                }
                 for (&(_, fh), &wire) in &serdes_in {
                     if fh == ['H', 'F'][i % 2] {
                         self.claim_pip(pclk_out, wire);
@@ -807,34 +869,10 @@ impl ChipContext<'_> {
             self.claim_pip(clka, clka_in);
             self.claim_pip(clkb, clkb_in);
 
-            if self.chip.kind == ChipKind::Ecp2M {
-                for (&loc, ins) in &pll_in {
-                    for (i, &wire) in ins.iter().enumerate() {
-                        match (i, loc.quad.h) {
-                            (0, DirH::W) | (3, DirH::E) => {
-                                self.claim_pip(clka_in, wire);
-                            }
-                            (0, DirH::E) | (3, DirH::W) => {
-                                self.claim_pip(clkb_in, wire);
-                            }
-                            _ => {
-                                self.claim_pip(clka_in, wire);
-                                self.claim_pip(clkb_in, wire);
-                            }
-                        }
-                    }
-                }
-                for (&(_, fh), &wire) in &serdes_in {
-                    if fh == 'H' {
-                        self.claim_pip(clka_in, wire);
-                    } else {
-                        self.claim_pip(clkb_in, wire);
-                    }
-                }
-            } else {
-                for (&loc, ins) in &pll_in {
-                    for (i, &wire) in ins.iter().enumerate() {
-                        match (i, loc.quad.h) {
+            for (&loc, ins) in &pll_in {
+                for (i, &wire) in ins.iter().enumerate() {
+                    match self.chip.kind {
+                        ChipKind::Ecp2 => match (i, loc.quad.h) {
                             (2, DirH::W) | (3, DirH::E) => {
                                 self.claim_pip(clka_in, wire);
                             }
@@ -845,9 +883,45 @@ impl ChipContext<'_> {
                                 self.claim_pip(clka_in, wire);
                                 self.claim_pip(clkb_in, wire);
                             }
-                        }
+                        },
+                        ChipKind::Ecp2M => match (i, loc.quad.h) {
+                            (0, DirH::W) | (3, DirH::E) => {
+                                self.claim_pip(clka_in, wire);
+                            }
+                            (0, DirH::E) | (3, DirH::W) => {
+                                self.claim_pip(clkb_in, wire);
+                            }
+                            _ => {
+                                self.claim_pip(clka_in, wire);
+                                self.claim_pip(clkb_in, wire);
+                            }
+                        },
+                        ChipKind::Xp2 => match (i, loc.quad.h) {
+                            (0, DirH::W) => {
+                                self.claim_pip(clkb_in, wire);
+                            }
+                            (0, DirH::E) => {
+                                self.claim_pip(clka_in, wire);
+                            }
+                            _ => {
+                                self.claim_pip(clka_in, wire);
+                                self.claim_pip(clkb_in, wire);
+                            }
+                        },
+                        _ => unreachable!(),
                     }
                 }
+            }
+            for (&(_, fh), &wire) in &serdes_in {
+                if fh == 'H' {
+                    self.claim_pip(clka_in, wire);
+                } else {
+                    self.claim_pip(clkb_in, wire);
+                }
+            }
+            for &wire in clkdiv_in.values().flatten() {
+                self.claim_pip(clka_in, wire);
+                self.claim_pip(clkb_in, wire);
             }
 
             self.claim_pip(clka_in, io_in[&SpecialIoKey::Clock(Dir::W, 0)]);
@@ -947,6 +1021,10 @@ impl ChipContext<'_> {
                 self.process_hsdclk_splitter();
                 self.process_clk_ecp2();
             }
+            ChipKind::Xp2 => {
+                self.process_hsdclk_splitter();
+                self.process_clk_ecp2();
+            }
         }
     }
 
@@ -970,7 +1048,7 @@ impl ChipContext<'_> {
     pub fn process_clk_zones(&mut self) {
         match self.chip.kind {
             ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo => (),
-            ChipKind::Ecp2 | ChipKind::Ecp2M => self.process_clk_zones_ecp2(),
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => self.process_clk_zones_ecp2(),
         }
     }
 }

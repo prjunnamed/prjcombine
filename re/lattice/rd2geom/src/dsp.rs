@@ -254,7 +254,9 @@ impl ChipContext<'_> {
 
     pub fn process_dsp(&mut self) {
         match self.chip.kind {
-            ChipKind::Ecp | ChipKind::Ecp2 | ChipKind::Ecp2M => self.process_dsp_ecp(),
+            ChipKind::Ecp | ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
+                self.process_dsp_ecp()
+            }
             ChipKind::Xp | ChipKind::MachXo => (),
         }
     }

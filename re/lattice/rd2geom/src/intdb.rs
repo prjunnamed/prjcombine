@@ -211,7 +211,7 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
     let num_clk = match kind {
         ChipKind::Ecp | ChipKind::Xp => 4,
         ChipKind::MachXo => 4,
-        ChipKind::Ecp2 | ChipKind::Ecp2M => 8,
+        ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => 8,
     };
 
     for i in 0..num_clk {
@@ -307,7 +307,7 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
         ChipKind::Ecp | ChipKind::Xp => {
             ["INT_PLC", "INT_IO_WE", "INT_IO_SN", "INT_EBR", "INT_PLL"].as_slice()
         }
-        ChipKind::Ecp2 => [
+        ChipKind::Ecp2 | ChipKind::Xp2 => [
             "INT_PLC",
             "INT_IO_WE",
             "INT_IO_S",
@@ -374,7 +374,7 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
         let num_cells = match kind {
             ChipKind::Ecp | ChipKind::Xp => 2,
             ChipKind::MachXo => 4,
-            ChipKind::Ecp2 | ChipKind::Ecp2M => 3,
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => 3,
         };
         let mut tcls = TileClass::new(tslots::BEL, num_cells);
         tcls.bels
@@ -385,7 +385,7 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
     if let Some(num_cells) = match kind {
         ChipKind::Ecp => Some(8),
         ChipKind::Xp | ChipKind::MachXo => None,
-        ChipKind::Ecp2 | ChipKind::Ecp2M => Some(9),
+        ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => Some(9),
     } {
         let mut tcls = TileClass::new(tslots::BEL, num_cells);
         tcls.bels
@@ -451,6 +451,19 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
                 .insert(bels::SPIM, BelInfo::Bel(Default::default()));
             db.tile_classes.insert("CONFIG".to_string(), tcls);
         }
+        ChipKind::Xp2 => {
+            let mut tcls = TileClass::new(tslots::BEL, 1);
+            tcls.bels
+                .insert(bels::JTAG, BelInfo::Bel(Default::default()));
+            tcls.bels
+                .insert(bels::SED, BelInfo::Bel(Default::default()));
+            db.tile_classes.insert("CONFIG".to_string(), tcls);
+
+            let mut tcls = TileClass::new(tslots::BEL, 1);
+            tcls.bels
+                .insert(bels::OSC, BelInfo::Bel(Default::default()));
+            db.tile_classes.insert("OSC".to_string(), tcls);
+        }
     }
 
     if kind == ChipKind::MachXo {
@@ -496,6 +509,28 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
                 let mut tcls = TileClass::new(tslots::BEL, 1);
                 tcls.bels
                     .insert(bels::DQSDLL, BelInfo::Bel(Default::default()));
+                db.tile_classes.insert(name.to_string(), tcls);
+            }
+        }
+        if kind == ChipKind::Xp2 {
+            for name in ["DQSDLL_W", "DQSDLL_E"] {
+                let mut tcls = TileClass::new(tslots::BEL, if name == "DQSDLL_E" { 2 } else { 1 });
+                tcls.bels
+                    .insert(bels::DQSDLL, BelInfo::Bel(Default::default()));
+                tcls.bels
+                    .insert(bels::CLKDIV, BelInfo::Bel(Default::default()));
+                if name == "DQSDLL_E" {
+                    tcls.bels
+                        .insert(bels::SSPI, BelInfo::Bel(Default::default()));
+                    tcls.bels
+                        .insert(bels::STF, BelInfo::Bel(Default::default()));
+                    tcls.bels
+                        .insert(bels::WAKEUP, BelInfo::Bel(Default::default()));
+                    tcls.bels
+                        .insert(bels::START, BelInfo::Bel(Default::default()));
+                    tcls.bels
+                        .insert(bels::GSR, BelInfo::Bel(Default::default()));
+                }
                 db.tile_classes.insert(name.to_string(), tcls);
             }
         }
@@ -550,24 +585,13 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
                     .insert(bels::DQSDLL, BelInfo::Bel(Default::default()));
                 db.tile_classes.insert(name.to_string(), tcls);
             }
-            for (name, num_cells) in [
-                ("ECLK_ROOT_W", 1),
-                ("ECLK_ROOT_E", 1),
-                ("ECLK_ROOT_S", 2),
-                ("ECLK_ROOT_N", 2),
-            ] {
-                let mut tcls = TileClass::new(tslots::CLK, num_cells);
+        }
+        ChipKind::Xp2 => {
+            for name in ["PLL_S", "PLL_N"] {
+                let mut tcls = TileClass::new(tslots::BEL, 2);
                 tcls.bels
-                    .insert(bels::ECLK_ROOT, BelInfo::Bel(Default::default()));
+                    .insert(bels::PLL, BelInfo::Bel(Default::default()));
                 db.tile_classes.insert(name.to_string(), tcls);
-            }
-            {
-                let mut tcls = TileClass::new(tslots::ECLK_TAP, 1);
-                let mut bel = Bel::default();
-                add_output(&db, &mut bel, "ECLK0", 0, "OUT_F6");
-                add_output(&db, &mut bel, "ECLK1", 0, "OUT_F7");
-                tcls.bels.insert(bels::ECLK_TAP, BelInfo::Bel(bel));
-                db.tile_classes.insert("ECLK_TAP".to_string(), tcls);
             }
         }
     }
@@ -637,7 +661,7 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
                 db.tile_classes.insert(name.to_string(), tcls);
             }
         }
-        ChipKind::Ecp | ChipKind::Xp | ChipKind::Ecp2 | ChipKind::Ecp2M => {
+        ChipKind::Ecp | ChipKind::Xp | ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
             let tile_classes = match kind {
                 ChipKind::Ecp => [("CLK_ROOT_2PLL", 22), ("CLK_ROOT_4PLL", 32)].as_slice(),
                 ChipKind::Xp => [
@@ -653,6 +677,7 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
                 ]
                 .as_slice(),
                 ChipKind::Ecp2M => [("CLK_ROOT_8PLL", 30)].as_slice(),
+                ChipKind::Xp2 => [("CLK_ROOT_2PLL", 30), ("CLK_ROOT_4PLL", 30)].as_slice(),
                 _ => unreachable!(),
             };
             for &(name, num_cells) in tile_classes {
@@ -664,6 +689,27 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
                         .insert(bels::DCS[i], BelInfo::Bel(Default::default()));
                 }
                 db.tile_classes.insert(name.to_string(), tcls);
+            }
+            if kind.has_distributed_sclk() {
+                for (name, num_cells) in [
+                    ("ECLK_ROOT_W", 1),
+                    ("ECLK_ROOT_E", 1),
+                    ("ECLK_ROOT_S", 2),
+                    ("ECLK_ROOT_N", 2),
+                ] {
+                    let mut tcls = TileClass::new(tslots::CLK, num_cells);
+                    tcls.bels
+                        .insert(bels::ECLK_ROOT, BelInfo::Bel(Default::default()));
+                    db.tile_classes.insert(name.to_string(), tcls);
+                }
+                {
+                    let mut tcls = TileClass::new(tslots::ECLK_TAP, 1);
+                    let mut bel = Bel::default();
+                    add_output(&db, &mut bel, "ECLK0", 0, "OUT_F6");
+                    add_output(&db, &mut bel, "ECLK1", 0, "OUT_F7");
+                    tcls.bels.insert(bels::ECLK_TAP, BelInfo::Bel(bel));
+                    db.tile_classes.insert("ECLK_TAP".to_string(), tcls);
+                }
             }
         }
     }

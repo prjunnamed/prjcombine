@@ -89,6 +89,13 @@ impl Expander<'_, '_> {
         );
     }
 
+    fn fill_config_xp2(&mut self) {
+        let cell = self.chip.special_loc[&SpecialLocKey::Osc];
+        self.egrid.add_tile_single(cell, "OSC");
+        let cell = self.chip.special_loc[&SpecialLocKey::Config];
+        self.egrid.add_tile_single(cell, "CONFIG");
+    }
+
     fn fill_pll_ecp(&mut self) {
         for (&loc, &cell) in &self.chip.special_loc {
             let SpecialLocKey::Pll(loc) = loc else {
@@ -195,6 +202,26 @@ impl Expander<'_, '_> {
         }
     }
 
+    fn fill_pll_xp2(&mut self) {
+        for (&loc, &cell) in &self.chip.special_loc {
+            let SpecialLocKey::Pll(loc) = loc else {
+                continue;
+            };
+            let kind = match loc.quad.v {
+                DirV::S => "PLL_S",
+                DirV::N => "PLL_N",
+            };
+            match loc.quad.h {
+                DirH::W => {
+                    self.egrid.add_tile(cell, kind, &[cell, cell.delta(1, 0)]);
+                }
+                DirH::E => {
+                    self.egrid.add_tile(cell, kind, &[cell, cell.delta(-1, 0)]);
+                }
+            }
+        }
+    }
+
     fn fill_serdes_ecp2(&mut self) {
         for cell in self.egrid.row(self.die, self.chip.row_s()) {
             if self.chip.columns[cell.col].io_s == IoKind::Serdes {
@@ -235,7 +262,7 @@ impl Expander<'_, '_> {
         let ebr_width = match self.chip.kind {
             ChipKind::Ecp | ChipKind::Xp => 2,
             ChipKind::MachXo => unreachable!(),
-            ChipKind::Ecp2 | ChipKind::Ecp2M => 3,
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => 3,
         };
         for (row, rd) in &self.chip.rows {
             if rd.kind != RowKind::Ebr {
@@ -266,7 +293,7 @@ impl Expander<'_, '_> {
         let dsp_width = match self.chip.kind {
             ChipKind::Ecp => 8,
             ChipKind::MachXo | ChipKind::Xp => unreachable!(),
-            ChipKind::Ecp2 | ChipKind::Ecp2M => 9,
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => 9,
         };
         for (row, rd) in &self.chip.rows {
             if rd.kind != RowKind::Dsp {
@@ -303,7 +330,7 @@ impl Expander<'_, '_> {
                 }
             }
             ChipKind::MachXo => unreachable!(),
-            ChipKind::Ecp2 | ChipKind::Ecp2M => {
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
                 if cell.row == self.chip.row_n() {
                     self.egrid.add_tile_single(cell, "INT_IO_N");
                 } else if cell.row == self.chip.row_s() {
@@ -331,7 +358,9 @@ impl Expander<'_, '_> {
             if rd.io_w == IoKind::DoubleDqs {
                 self.egrid.add_tile_single(cell, "DQS_W");
                 let row_base: RowId = match self.chip.kind {
-                    ChipKind::Ecp | ChipKind::Ecp2 | ChipKind::Ecp2M => cell.row - 3,
+                    ChipKind::Ecp | ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
+                        cell.row - 3
+                    }
                     ChipKind::Xp => cell.row - 2,
                     _ => unreachable!(),
                 };
@@ -356,7 +385,9 @@ impl Expander<'_, '_> {
             if rd.io_e == IoKind::DoubleDqs {
                 self.egrid.add_tile_single(cell, "DQS_E");
                 let row_base: RowId = match self.chip.kind {
-                    ChipKind::Ecp | ChipKind::Ecp2 | ChipKind::Ecp2M => cell.row - 3,
+                    ChipKind::Ecp | ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
+                        cell.row - 3
+                    }
                     ChipKind::Xp => cell.row - 2,
                     _ => unreachable!(),
                 };
@@ -381,7 +412,7 @@ impl Expander<'_, '_> {
                 self.egrid.add_tile_single(cell, "DQS_S");
                 let (col_base, num): (ColId, usize) = match self.chip.kind {
                     ChipKind::Ecp => (cell.col - 4, 8),
-                    ChipKind::Ecp2 | ChipKind::Ecp2M => (cell.col - 4, 9),
+                    ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => (cell.col - 4, 9),
                     ChipKind::Xp => (cell.col - 5, 8),
                     _ => unreachable!(),
                 };
@@ -404,12 +435,13 @@ impl Expander<'_, '_> {
 
             if cd.io_n == IoKind::DoubleDqs {
                 self.egrid.add_tile_single(cell, "DQS_N");
-                let col_base: ColId = match self.chip.kind {
-                    ChipKind::Ecp => cell.col - 4,
-                    ChipKind::Xp => cell.col - 5,
+                let (col_base, num): (ColId, usize) = match self.chip.kind {
+                    ChipKind::Ecp => (cell.col - 4, 8),
+                    ChipKind::Xp2 => (cell.col - 4, 9),
+                    ChipKind::Xp => (cell.col - 5, 8),
                     _ => unreachable!(),
                 };
-                for col_io in col_base.range(col_base + 8) {
+                for col_io in col_base.range(col_base + num) {
                     self.dqs.insert(cell.with_col(col_io), cell);
                 }
             }
@@ -419,6 +451,16 @@ impl Expander<'_, '_> {
             self.egrid.add_tile_single(cell, "DQSDLL_S");
             let cell = self.chip.bel_dqsdll_ecp(DirV::N).cell;
             self.egrid.add_tile_single(cell, "DQSDLL_N");
+        }
+        if self.chip.kind == ChipKind::Xp2 {
+            let cell = self.chip.bel_dqsdll_ecp2(DirH::W).cell;
+            self.egrid.add_tile_single(cell, "DQSDLL_W");
+            let cell = self.chip.bel_dqsdll_ecp2(DirH::E).cell;
+            self.egrid.add_tile(
+                cell,
+                "DQSDLL_E",
+                &[cell, cell.with_col(self.chip.col_clk + 2)],
+            );
         }
     }
 
@@ -955,6 +997,15 @@ impl Chip {
                 expander.fill_config_ecp2();
                 expander.fill_pll_ecp2();
                 expander.fill_serdes_ecp2();
+                expander.fill_plc();
+                expander.fill_ebr_ecp();
+                expander.fill_dsp_ecp();
+                expander.fill_io_ecp();
+                expander.fill_clk_ecp2();
+            }
+            ChipKind::Xp2 => {
+                expander.fill_config_xp2();
+                expander.fill_pll_xp2();
                 expander.fill_plc();
                 expander.fill_ebr_ecp();
                 expander.fill_dsp_ecp();

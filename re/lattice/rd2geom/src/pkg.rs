@@ -57,6 +57,10 @@ fn get_filename(datadir: &Path, part: &Part, chip: &Chip) -> PathBuf {
             "ep5m00",
             format!("ep5m{r}x{c}", r = chip.rows.len(), c = chip.columns.len()),
         ),
+        ChipKind::Xp2 => (
+            "mg5a00",
+            format!("mg5a{r}x{c}", r = chip.rows.len(), c = chip.columns.len()),
+        ),
     };
     datadir.join(dir).join("data").join(format!("{fname}.pkg"))
 }
@@ -242,7 +246,7 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                     unreachable!();
                 }
                 let mut idx = idx.parse().unwrap();
-                if matches!(chip.kind, ChipKind::Ecp2 | ChipKind::Ecp2M) {
+                if matches!(chip.kind, ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2) {
                     assert_eq!(idx, 0);
                     idx = match bank {
                         0 | 2 | 5 | 7 => 0,
@@ -263,17 +267,31 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 match cfg.as_str() {
                     _ if cfg.contains("PLL") || cfg.contains("DLL") => {
                         let (loc, sig) = cfg.split_once('_').unwrap();
-                        let idx: u8 = loc[3..].parse().unwrap();
-                        let loc = &loc[..3];
-                        let hv = match loc {
-                            "LLM" => DirHV::SW,
-                            "LUM" => DirHV::NW,
-                            "RLM" => DirHV::SE,
-                            "RUM" => DirHV::NE,
-                            _ => panic!("weird PLL loc {loc}"),
+                        let (hv, idx) = if loc.len() == 3 {
+                            let hv = match loc {
+                                "LLC" => DirHV::SW,
+                                "ULC" => DirHV::NW,
+                                "LRC" => DirHV::SE,
+                                "URC" => DirHV::NE,
+                                _ => panic!("weird PLL loc {loc}"),
+                            };
+                            (hv, 0)
+                        } else {
+                            let idx: u8 = loc[3..].parse().unwrap();
+                            let loc = &loc[..3];
+                            let hv = match loc {
+                                "LLM" => DirHV::SW,
+                                "LUM" => DirHV::NW,
+                                "RLM" => DirHV::SE,
+                                "RUM" => DirHV::NE,
+                                _ => panic!("weird PLL loc {loc}"),
+                            };
+                            (hv, idx)
                         };
                         let loc = match chip.kind {
-                            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo => PllLoc::new(hv, idx),
+                            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo | ChipKind::Xp2 => {
+                                PllLoc::new(hv, idx)
+                            }
                             ChipKind::Ecp2 | ChipKind::Ecp2M => {
                                 let cell = CellCoord::new(
                                     DieId::from_idx(0),
@@ -333,6 +351,17 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                     "DOUT,CSON" => Some(SpecialIoKey::Dout),
                     "DOUT_CSON" => Some(SpecialIoKey::Dout),
                     "BUSY" => Some(SpecialIoKey::Busy),
+                    // XP2 stuff
+                    "INITN" => Some(SpecialIoKey::InitB),
+                    "SI" => Some(SpecialIoKey::SpiSdi),
+                    "SO" => Some(SpecialIoKey::SpiSdo),
+                    "CCLK" => Some(SpecialIoKey::Cclk),
+                    "CSSPIN" => Some(SpecialIoKey::SpiCCsB),
+                    "CSSPISN" => Some(SpecialIoKey::SpiPCsB),
+                    "CFG1" => Some(SpecialIoKey::M1),
+                    "DONE" => Some(SpecialIoKey::Done),
+                    "PROGRAMN" => Some(SpecialIoKey::ProgB),
+                    "MFG_EXT_CLK" | "FL_EXT_PULSE_D" | "FL_EXT_PULSE_G" => None,
                     _ => {
                         println!("\tPIN {pin:5} {func:8} {cfg:20} {bank} {io}");
                         None
@@ -409,6 +438,7 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 "CFG1" => BondPad::Cfg(CfgPad::M1),
                 "CFG2" => BondPad::Cfg(CfgPad::M2),
                 "SLEEPN/TOE" => BondPad::Cfg(CfgPad::SleepB),
+                "TOE" => BondPad::Cfg(CfgPad::Toe),
                 // ECP2M special.
                 "WRITEN" => BondPad::Cfg(CfgPad::WriteN),
                 "CS1N" => BondPad::Cfg(CfgPad::Cs1N),
@@ -449,6 +479,30 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 "RUM0_VCCPLL" if chip.kind == ChipKind::Ecp2 => {
                     BondPad::VccPll(PllSet::Quad(DirHV::NE))
                 }
+                "LLC_VCCPLL" if chip.kind == ChipKind::Xp2 => {
+                    BondPad::VccPll(PllSet::Quad(DirHV::SW))
+                }
+                "LRC_VCCPLL" if chip.kind == ChipKind::Xp2 => {
+                    BondPad::VccPll(PllSet::Quad(DirHV::SE))
+                }
+                "ULC_VCCPLL" if chip.kind == ChipKind::Xp2 => {
+                    BondPad::VccPll(PllSet::Quad(DirHV::NW))
+                }
+                "URC_VCCPLL" if chip.kind == ChipKind::Xp2 => {
+                    BondPad::VccPll(PllSet::Quad(DirHV::NE))
+                }
+                "LLC_GNDPLL" if chip.kind == ChipKind::Xp2 => {
+                    BondPad::GndPll(PllSet::Quad(DirHV::SW))
+                }
+                "LRC_GNDPLL" if chip.kind == ChipKind::Xp2 => {
+                    BondPad::GndPll(PllSet::Quad(DirHV::SE))
+                }
+                "ULC_GNDPLL" if chip.kind == ChipKind::Xp2 => {
+                    BondPad::GndPll(PllSet::Quad(DirHV::NW))
+                }
+                "URC_GNDPLL" if chip.kind == ChipKind::Xp2 => {
+                    BondPad::GndPll(PllSet::Quad(DirHV::NE))
+                }
                 "VCCP0" if chip.kind == ChipKind::Xp => BondPad::VccPll(PllSet::Side(DirH::W)),
                 "VCCP1" if chip.kind == ChipKind::Xp => BondPad::VccPll(PllSet::Side(DirH::E)),
                 "GNDP0" if chip.kind == ChipKind::Xp => BondPad::VccPll(PllSet::Side(DirH::W)),
@@ -467,6 +521,10 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 _ if func.starts_with("GNDO") => BondPad::Gnd,
                 // sigh. what the fuck do you expect from a vendor.
                 _ if func.starts_with("GND0") => BondPad::Gnd,
+                _ if func.starts_with("J_UNUSED") && chip.kind == ChipKind::Xp2 => {
+                    assert!(pin.starts_with("Unused"));
+                    BondPad::Other
+                }
                 _ => {
                     println!("\tUNK SPEC {pin:5} {func:8} {cfg:20} {bank}");
                     continue;
@@ -504,6 +562,9 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
             }
             _ => panic!("unk BS_TYPE {bs_type}"),
         };
+        if pad == BondPad::Other {
+            continue;
+        }
         if pad == BondPad::Nc && chip.kind == ChipKind::MachXo {
             // sigh. sigh. sigh.
             let io = chip.special_io[&SpecialIoKey::SleepN];

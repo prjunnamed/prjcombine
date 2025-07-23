@@ -247,6 +247,23 @@ impl ChipBuilder<'_> {
         }
     }
 
+    fn fill_config_loc_xp2(&mut self) {
+        self.chip.special_loc.insert(
+            SpecialLocKey::Osc,
+            CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_n() - 1),
+        );
+        let row = self
+            .chip
+            .rows
+            .ids()
+            .find(|&row| self.chip.rows[row].kind == RowKind::Dsp)
+            .unwrap();
+        self.chip.special_loc.insert(
+            SpecialLocKey::Config,
+            CellCoord::new(DieId::from_idx(0), self.chip.col_e(), row),
+        );
+    }
+
     fn fill_config_bits_loc_xp(&mut self) {
         for tile in &self.grid.tiles {
             match tile.kind.as_str() {
@@ -305,13 +322,23 @@ impl ChipBuilder<'_> {
                 self.chip.rows[row].io_w = kind;
             } else if let Some(r) = tile.name.strip_prefix("PR") {
                 let row = self.chip.xlat_row(r.parse().unwrap());
-                self.chip.rows[row].io_e = kind;
+                if tile.kind == "PIC_L_NOPIO" {
+                    // ...... fucking vendors
+                    self.chip.rows[row].io_w = kind;
+                } else {
+                    self.chip.rows[row].io_e = kind;
+                }
             } else if let Some(c) = tile.name.strip_prefix("PB") {
                 let col = self.chip.xlat_col(c.parse().unwrap());
                 self.chip.columns[col].io_s = kind;
             } else if let Some(c) = tile.name.strip_prefix("PT") {
                 let col = self.chip.xlat_col(c.parse().unwrap());
-                self.chip.columns[col].io_n = kind;
+                if tile.kind == "PIC_B5KVIQ" {
+                    // likewise.
+                    self.chip.columns[col].io_s = kind;
+                } else {
+                    self.chip.columns[col].io_n = kind;
+                }
             } else if let Some(rc) = tile.name.strip_prefix("EBR_R") {
                 // ??? machxo is weird
                 let r = rc.strip_suffix("C0").unwrap();
@@ -476,6 +503,37 @@ impl ChipBuilder<'_> {
             ("PIC_TSPR", IoKind::Double),
             ("PIC_TLPCLK", IoKind::Double),
             ("PIC_TRPCLK", IoKind::Double),
+        ]);
+    }
+
+    fn fill_io_xp2(&mut self) {
+        self.fill_io(&[
+            ("PIC_L", IoKind::Double),
+            ("PIC_L_NOPIO", IoKind::DoubleDummy),
+            ("PIC_LDQS", IoKind::DoubleDqs),
+            ("PIC_LDQSM2", IoKind::Double),
+            ("PIC_LDQSM3", IoKind::Double),
+            ("PIC_R", IoKind::Double),
+            ("PIC_R_NOPIO", IoKind::DoubleDummy),
+            ("PIC_RDQS", IoKind::DoubleDqs),
+            ("PIC_RDQSM2", IoKind::Double),
+            ("PIC_RDQSM3", IoKind::Double),
+            ("PIC_B", IoKind::Double),
+            ("PIC_BSPL", IoKind::Double),
+            ("PIC_BSPR", IoKind::Double),
+            ("PIC_B5KVIQ", IoKind::Double),
+            ("PIC_BDQS", IoKind::DoubleDqs),
+            ("PIC_BLPCLK", IoKind::Double),
+            ("PIC_BRPCLK", IoKind::Double),
+            ("PIC_B_NOPIO", IoKind::DoubleDummy),
+            ("PIC_T", IoKind::Double),
+            ("PIC_TSPL", IoKind::Double),
+            ("PIC_TSPR", IoKind::Double),
+            ("PIC_T5KVIQ", IoKind::Double),
+            ("PIC_TDQS", IoKind::DoubleDqs),
+            ("PIC_TLPCLK", IoKind::Double),
+            ("PIC_TRPCLK", IoKind::Double),
+            ("PIC_T_NOPIO", IoKind::DoubleDummy),
         ]);
     }
 
@@ -758,6 +816,26 @@ impl ChipBuilder<'_> {
         }
     }
 
+    fn fill_pll_xp2(&mut self) {
+        for &wn in self.nodes.values() {
+            if self.naming.strings[wn.suffix].ends_with("_PLL") {
+                let cell = self.chip.xlat_rc_wire(wn);
+                let v = if cell.row < self.chip.row_clk {
+                    DirV::S
+                } else {
+                    DirV::N
+                };
+                let h = if cell.col < self.chip.col_clk {
+                    DirH::W
+                } else {
+                    DirH::E
+                };
+                let loc = SpecialLocKey::Pll(PllLoc::new_hv(h, v, 0));
+                self.chip.special_loc.insert(loc, cell);
+            }
+        }
+    }
+
     fn fill_serdes_ecp2m(&mut self) {
         let name = self.naming.strings.get("JFF_TX_D_0_0_PCS").unwrap();
         for &wn in self.nodes.values() {
@@ -810,7 +888,16 @@ impl ChipBuilder<'_> {
                 _ => None,
             } {
                 self.chip.special_io.insert(SpecialIoKey::Clock(dir, i), io);
-            } else if matches!(suffix, "JPIO0" | "JPIO1") {
+            } else if matches!(
+                suffix,
+                "JPIO0"
+                    | "JPIO1"
+                    | "JPLLPIO0"
+                    | "JPLLPIO1"
+                    | "JCLK_SSPIPIN"
+                    | "JCS_SSPIPIN"
+                    | "JSI_SSPIPIN"
+            ) {
                 // discard — redundant
             } else if let Some(pad) = match suffix {
                 "JPLLCLKI0" => Some(PllPad::PllIn1),
@@ -1088,6 +1175,23 @@ impl ChipBuilder<'_> {
             self.chip.special_io.insert(key, io);
         }
     }
+
+    fn fill_config_io_xp2(&mut self) {
+        for (key, dy, iob) in [
+            (SpecialIoKey::InitB, 2, 1),
+            (SpecialIoKey::SpiSdi, 2, 0),
+            (SpecialIoKey::SpiSdo, 3, 1),
+            (SpecialIoKey::Cclk, 3, 0),
+            (SpecialIoKey::SpiCCsB, 5, 1),
+            (SpecialIoKey::SpiPCsB, 5, 0),
+            (SpecialIoKey::M1, 6, 0),
+            (SpecialIoKey::Done, 7, 1),
+            (SpecialIoKey::ProgB, 7, 0),
+        ] {
+            let io = EdgeIoCoord::W(self.chip.row_clk + dy, TileIobId::from_idx(iob));
+            self.chip.special_io.insert(key, io);
+        }
+    }
 }
 
 fn init_chip(kind: ChipKind, naming: &ChipNaming, nodes: &EntityVec<NodeId, WireName>) -> Chip {
@@ -1194,6 +1298,19 @@ pub fn make_chip(
             builder.fill_special_io_ecp2();
             builder.fill_fabric_clock_ecp2();
             builder.fill_config_io_ecp2();
+        }
+        ChipKind::Xp2 => {
+            builder.fill_clk_ecp();
+            builder.fill_pclk_ecp2();
+            builder.fill_sclk_ecp2();
+            builder.fill_eclk_tap_ecp2();
+            builder.fill_config_loc_xp2();
+            builder.fill_io_xp2();
+            builder.fill_io_banks_8();
+            builder.fill_pll_xp2();
+            builder.fill_special_io_ecp2();
+            builder.fill_fabric_clock_ecp2();
+            builder.fill_config_io_xp2();
         }
     };
     builder.chip

@@ -377,6 +377,58 @@ impl Chip {
                     }
                 }
             }
+            ChipKind::Xp2 => {
+                for (row, rd) in &self.rows {
+                    if row < self.row_clk {
+                        continue;
+                    }
+                    if rd.io_e != IoKind::None {
+                        for iob in [1, 0] {
+                            let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                for (col, cd) in self.columns.iter().rev() {
+                    if cd.io_n != IoKind::None {
+                        for iob in [1, 0] {
+                            let crd = EdgeIoCoord::N(col, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                for (row, rd) in self.rows.iter().rev() {
+                    if row == self.row_clk {
+                        pads.insert(BondPad::Cfg(CfgPad::Toe), builder.get_i());
+                        pads.insert(BondPad::Cfg(CfgPad::M0), builder.get_i());
+                    }
+                    if rd.io_w != IoKind::None {
+                        for iob in [0, 1] {
+                            let crd = EdgeIoCoord::W(row, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                for (col, cd) in &self.columns {
+                    if cd.io_s != IoKind::None {
+                        for iob in [0, 1] {
+                            let crd = EdgeIoCoord::S(col, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                for (row, rd) in &self.rows {
+                    if row >= self.row_clk {
+                        continue;
+                    }
+                    if rd.io_e != IoKind::None {
+                        for iob in [1, 0] {
+                            let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+            }
         }
         BScan {
             bits: builder.bits,

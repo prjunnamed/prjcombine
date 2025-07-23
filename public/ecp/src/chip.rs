@@ -17,6 +17,7 @@ pub enum ChipKind {
     MachXo,
     Ecp2,
     Ecp2M,
+    Xp2,
 }
 
 impl ChipKind {
@@ -29,15 +30,15 @@ impl ChipKind {
     }
 
     pub fn has_ecp2_plc(self) -> bool {
-        matches!(self, ChipKind::Ecp2 | ChipKind::Ecp2M)
+        matches!(self, ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2)
     }
 
     pub fn has_x1_bi(self) -> bool {
-        matches!(self, ChipKind::Ecp2 | ChipKind::Ecp2M)
+        matches!(self, ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2)
     }
 
     pub fn has_distributed_sclk(self) -> bool {
-        matches!(self, ChipKind::Ecp2 | ChipKind::Ecp2M)
+        matches!(self, ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2)
     }
 }
 
@@ -49,6 +50,7 @@ impl Display for ChipKind {
             ChipKind::MachXo => write!(f, "machxo"),
             ChipKind::Ecp2 => write!(f, "ecp2"),
             ChipKind::Ecp2M => write!(f, "ecp2m"),
+            ChipKind::Xp2 => write!(f, "xp2"),
         }
     }
 }
@@ -93,6 +95,7 @@ pub enum IoKind {
     DoubleA,
     DoubleB,
     DoubleDqs,
+    DoubleDummy,
     Quad,
     QuadReverse,
     Hex,
@@ -107,6 +110,7 @@ impl Display for IoKind {
             IoKind::Double => write!(f, "DOUBLE"),
             IoKind::DoubleA => write!(f, "DOUBLE_A"),
             IoKind::DoubleB => write!(f, "DOUBLE_B"),
+            IoKind::DoubleDummy => write!(f, "DOUBLE_DUMMY"),
             IoKind::DoubleDqs => write!(f, "DOUBLE_DQS"),
             IoKind::Quad => write!(f, "QUAD"),
             IoKind::QuadReverse => write!(f, "QUAD_REVERSE"),
@@ -203,6 +207,16 @@ pub enum SpecialIoKey {
     Di,
     Busy,
     SleepN,
+    // XP2 stuff
+    InitB,
+    SpiSdi,
+    SpiSdo,
+    Cclk,
+    SpiCCsB,
+    SpiPCsB,
+    M1,
+    Done,
+    ProgB,
 }
 
 impl Display for SpecialIoKey {
@@ -222,6 +236,15 @@ impl Display for SpecialIoKey {
             SpecialIoKey::Di => write!(f, "DI"),
             SpecialIoKey::Busy => write!(f, "BUSY"),
             SpecialIoKey::SleepN => write!(f, "SLEEP_N"),
+            SpecialIoKey::InitB => write!(f, "INIT_B"),
+            SpecialIoKey::SpiSdi => write!(f, "SPI_SDI"),
+            SpecialIoKey::SpiSdo => write!(f, "SPI_SDO"),
+            SpecialIoKey::Cclk => write!(f, "CCLK"),
+            SpecialIoKey::SpiCCsB => write!(f, "SPI_C_CS_B"),
+            SpecialIoKey::SpiPCsB => write!(f, "SPI_P_CS_B"),
+            SpecialIoKey::M1 => write!(f, "M1"),
+            SpecialIoKey::Done => write!(f, "DONE"),
+            SpecialIoKey::ProgB => write!(f, "PROG_B"),
         }
     }
 }
@@ -339,14 +362,12 @@ impl Chip {
             } else {
                 DirV::N
             }),
-            ChipKind::Ecp2 | ChipKind::Ecp2M => {
-                if io.col < self.col_clk {
-                    self.special_loc[&SpecialLocKey::Pll(PllLoc::new(DirHV::SW, 0))]
-                        .bel(bels::DQSDLL)
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
+                self.bel_dqsdll_ecp2(if io.col < self.col_clk {
+                    DirH::W
                 } else {
-                    self.special_loc[&SpecialLocKey::Pll(PllLoc::new(DirHV::SE, 0))]
-                        .bel(bels::DQSDLL)
-                }
+                    DirH::E
+                })
             }
             ChipKind::MachXo => unreachable!(),
         }
@@ -364,8 +385,20 @@ impl Chip {
         }
     }
 
+    pub fn bel_dqsdll_ecp2(&self, edge: DirH) -> BelCoord {
+        if self.kind == ChipKind::Xp2 {
+            CellCoord::new(DieId::from_idx(0), self.col_edge(edge), self.row_clk).bel(bels::DQSDLL)
+        } else {
+            self.special_loc[&SpecialLocKey::Pll(PllLoc::new_hv(edge, DirV::S, 0))]
+                .bel(bels::DQSDLL)
+        }
+    }
+
     pub fn bel_eclk_root(&self, edge: Dir) -> BelCoord {
-        assert!(matches!(self.kind, ChipKind::Ecp2 | ChipKind::Ecp2M));
+        assert!(matches!(
+            self.kind,
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2
+        ));
         match edge {
             Dir::W => {
                 CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk).bel(bels::ECLK_ROOT)
@@ -382,7 +415,7 @@ impl Chip {
         }
     }
 
-    pub fn bel_serdes(&self, edge: DirV, col :ColId) -> BelCoord {
+    pub fn bel_serdes(&self, edge: DirV, col: ColId) -> BelCoord {
         match self.kind {
             ChipKind::Ecp2M => {
                 let row = match edge {

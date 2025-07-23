@@ -3,7 +3,10 @@ use std::collections::BTreeMap;
 use bincode::{Decode, Encode};
 use itertools::Itertools;
 use jzon::JsonValue;
-use prjcombine_interconnect::{dir::{DirH, DirHV, DirV}, grid::{ColId, EdgeIoCoord}};
+use prjcombine_interconnect::{
+    dir::{DirH, DirHV, DirV},
+    grid::{ColId, EdgeIoCoord},
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum CfgPad {
@@ -19,6 +22,7 @@ pub enum CfgPad {
     M1,
     M2,
     SleepB,
+    Toe,
     Hfp,
     // the following are normally shared, except sometimes on ECP2M.
     WriteN,
@@ -45,6 +49,7 @@ impl std::fmt::Display for CfgPad {
             CfgPad::Tdi => write!(f, "TDI"),
             CfgPad::Tdo => write!(f, "TDO"),
             CfgPad::SleepB => write!(f, "SLEEP_B"),
+            CfgPad::Toe => write!(f, "TOE"),
             CfgPad::Hfp => write!(f, "HFP"),
             CfgPad::WriteN => write!(f, "WRITE_N"),
             CfgPad::CsN => write!(f, "CS_N"),

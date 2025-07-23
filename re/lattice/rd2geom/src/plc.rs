@@ -446,7 +446,7 @@ impl ChipContext<'_> {
     pub fn process_plc(&mut self) {
         match self.chip.kind {
             ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo => self.process_plc_ecp(),
-            ChipKind::Ecp2 | ChipKind::Ecp2M => self.process_plc_ecp2(),
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => self.process_plc_ecp2(),
         }
     }
 }

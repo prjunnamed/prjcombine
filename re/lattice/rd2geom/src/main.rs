@@ -123,13 +123,28 @@ impl ChipContext<'_> {
         }
     }
 
+    #[track_caller]
     fn claim_pip_int_out(&mut self, wt: WireCoord, wf: WireName) {
-        let wt = self.naming.interconnect[&wt];
+        let Some(&wt) = self.naming.interconnect.get(&wt) else {
+            println!(
+                "no name for int wire {wt} <- {wf}",
+                wt = wt.to_string(self.intdb),
+                wf = wf.to_string(&self.naming),
+            );
+            return;
+        };
         self.claim_pip(wt, wf);
     }
 
     fn claim_pip_int_in(&mut self, wt: WireName, wf: WireCoord) {
-        let wf = self.naming.interconnect[&wf];
+        let Some(&wf) = self.naming.interconnect.get(&wf) else {
+            println!(
+                "no name for int wire {wt} <- {wf}",
+                wt = wt.to_string(&self.naming),
+                wf = wf.to_string(self.intdb)
+            );
+            return;
+        };
         self.claim_pip(wt, wf);
     }
 
@@ -177,7 +192,8 @@ impl ChipContext<'_> {
             let name = self.naming.strings[wn.suffix].as_str();
             for suffix in [
                 "EBR", "IOLOGIC", "PIO", "DQS", "DQSDLL", "JTAG", "OSC", "GSR", "START", "SPIM",
-                "SED", "PLL", "PLL3", "DLL", "DLLDEL", "CLKDIV", "SPLL", "PCS",
+                "SED", "WAKEUP", "SSPICIB", "STF", "PLL", "PLL3", "DLL", "DLLDEL", "CLKDIV",
+                "SPLL", "PCS",
             ] {
                 if let Some(n) = name.strip_suffix(suffix)
                     && let Some(n) = n.strip_suffix('_')
@@ -336,6 +352,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "machxo" => ChipKind::MachXo,
         "ecp2" => ChipKind::Ecp2,
         "ecp2m" => ChipKind::Ecp2M,
+        "xp2" => ChipKind::Xp2,
         _ => panic!("unknown family {}", rawdb.family),
     };
     let mut int = init_intdb(kind);
