@@ -3,7 +3,8 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use prjcombine_ecp::{
     bels,
     chip::{
-        Chip, ChipKind, Column, IoKind, PllLoc, PllPad, Row, RowKind, SpecialIoKey, SpecialLocKey,
+        Chip, ChipKind, Column, IoGroupKind, PllLoc, PllPad, Row, RowKind, SpecialIoKey,
+        SpecialLocKey,
     },
 };
 use prjcombine_interconnect::{
@@ -99,6 +100,14 @@ impl ChipBuilder<'_> {
         }
     }
 
+    fn fill_kind_ecp3(&mut self) {
+        for &wn in self.nodes.values() {
+            if self.naming.strings[wn.suffix] == "JECLKCNT_DQSTEST" {
+                self.chip.kind = ChipKind::Ecp3A;
+            }
+        }
+    }
+
     fn fill_clk_ecp(&mut self) {
         for &wn in self.nodes.values() {
             if self.naming.strings[wn.suffix] == "LLDCSOUT0_DCS" {
@@ -142,6 +151,42 @@ impl ChipBuilder<'_> {
         assert!(self.chip.columns[self.chip.col_clk].pclk_leaf_break);
     }
 
+    fn fill_pclk_ecp3(&mut self) {
+        let idx = (self.chip.col_sclk_idx(self.chip.col_w()) + 2) % 4;
+        let hpbx = self.naming.strings.get(&format!("HPBX0{idx}00")).unwrap();
+        let mut clks: BTreeMap<WireName, Vec<RowId>> = BTreeMap::new();
+        for &(nf, nt) in self.grid.pips.keys() {
+            let wfn = self.nodes[nf];
+            let wtn = self.nodes[nt];
+            if wtn.suffix == hpbx && wtn.c == 1 {
+                let cell = self.chip.xlat_rc_wire(wtn);
+                clks.entry(wfn).or_default().push(cell.row);
+            }
+        }
+        let mut clks = Vec::from_iter(clks);
+        clks.sort_by_key(|(_, rows)| rows[0]);
+        let mut next = RowId::from_idx(0);
+        for (_, mut rows) in clks {
+            rows.sort();
+            let row_start = rows[0];
+            assert_eq!(row_start, next);
+            for (i, &col) in rows.iter().enumerate() {
+                assert_eq!(col, row_start + i);
+            }
+            if row_start.to_idx() != 0 {
+                self.chip.rows[row_start].pclk_break = true;
+            }
+            next = row_start + rows.len();
+        }
+        let clko0b = self.naming.strings.get("CLKO0B_DCC").unwrap();
+        for &wn in self.nodes.values() {
+            if wn.suffix == clko0b {
+                let cell = self.chip.xlat_rc_wire(wn);
+                self.chip.rows[cell.row].pclk_drive = true;
+            }
+        }
+    }
+
     fn fill_sclk_ecp2(&mut self) {
         let hsbx0000 = self.naming.strings.get("HSBX0000").unwrap();
         let mut clks: BTreeMap<RowId, Vec<RowId>> = BTreeMap::new();
@@ -179,12 +224,65 @@ impl ChipBuilder<'_> {
         }
     }
 
+    fn fill_sclk_ecp3(&mut self) {
+        let hsbx0000 = self.naming.strings.get("HSBX0000").unwrap();
+        let mut clks: BTreeMap<RowId, Vec<RowId>> = BTreeMap::new();
+        for &(nf, nt) in self.grid.pips.keys() {
+            let wfn = self.nodes[nf];
+            let wtn = self.nodes[nt];
+            if wtn.suffix == hsbx0000 {
+                let cell_t = self.chip.xlat_rc_wire(wtn);
+                let cell_f = self.chip.xlat_rc_wire(wfn);
+                if cell_t.col == self.chip.col_w() {
+                    clks.entry(cell_f.row).or_default().push(cell_t.row);
+                }
+            }
+        }
+        let mut next = RowId::from_idx(0);
+        for (_, mut rows) in clks {
+            rows.sort();
+            let row_start = rows[0];
+            assert_eq!(row_start, next);
+            for (i, &row) in rows.iter().enumerate() {
+                assert_eq!(row, row_start + i);
+            }
+            if row_start.to_idx() != 0 {
+                self.chip.rows[row_start].sclk_break = true;
+            }
+            next = row_start + rows.len();
+        }
+
+        let hssx_l2r = self.naming.strings.get("HSSX0000_L2R").unwrap();
+        for &wn in self.nodes.values() {
+            if wn.suffix == hssx_l2r {
+                let cell = self.chip.xlat_rc_wire(wn);
+                self.chip.columns[cell.col + 1].sdclk_break = true;
+            }
+        }
+    }
+
     fn fill_eclk_tap_ecp2(&mut self) {
         let jf6 = self.naming.strings.get("JF6").unwrap();
         for &(nf, nt) in self.grid.pips.keys() {
             let wfn = self.nodes[nf];
             let wtn = self.nodes[nt];
             if wtn.suffix == jf6 && self.naming.strings[wfn.suffix].contains("FRC") {
+                let cell = self.chip.xlat_rc_wire(wtn);
+                if cell.row == self.chip.row_s() {
+                    self.chip.columns[cell.col].eclk_tap_s = true;
+                } else if cell.row == self.chip.row_n() {
+                    self.chip.columns[cell.col].eclk_tap_n = true;
+                }
+            }
+        }
+    }
+
+    fn fill_eclk_tap_ecp3(&mut self) {
+        let jf6 = self.naming.strings.get("JF6").unwrap();
+        for &(nf, nt) in self.grid.pips.keys() {
+            let wfn = self.nodes[nf];
+            let wtn = self.nodes[nt];
+            if wtn.suffix == jf6 && self.naming.strings[wfn.suffix].contains("TECLK") {
                 let cell = self.chip.xlat_rc_wire(wtn);
                 if cell.row == self.chip.row_s() {
                     self.chip.columns[cell.col].eclk_tap_s = true;
@@ -264,6 +362,15 @@ impl ChipBuilder<'_> {
         );
     }
 
+    fn fill_config_loc_ecp3(&mut self) {
+        for &wn in self.nodes.values() {
+            if self.naming.strings[wn.suffix].ends_with("_START") {
+                let cell = self.chip.xlat_rc_wire(wn).delta(-3, 0);
+                self.chip.special_loc.insert(SpecialLocKey::Config, cell);
+            }
+        }
+    }
+
     fn fill_config_bits_loc_xp(&mut self) {
         for tile in &self.grid.tiles {
             match tile.kind.as_str() {
@@ -311,7 +418,7 @@ impl ChipBuilder<'_> {
         }
     }
 
-    fn fill_io(&mut self, tiles: &[(&str, IoKind)]) {
+    fn fill_io(&mut self, tiles: &[(&str, IoGroupKind)]) {
         let tiles = BTreeMap::from_iter(tiles.iter().copied());
         for tile in &self.grid.tiles {
             let Some(&kind) = tiles.get(&tile.kind.as_str()) else {
@@ -344,6 +451,15 @@ impl ChipBuilder<'_> {
                 let r = rc.strip_suffix("C0").unwrap();
                 let row = self.chip.xlat_row(r.parse().unwrap());
                 self.chip.rows[row].io_w = kind;
+            } else if let Some(rc) = tile.name.strip_prefix("CIB_R") {
+                let (r, c) = rc.split_once('C').unwrap();
+                let row = self.chip.xlat_row(r.parse().unwrap());
+                let col = self.chip.xlat_col(c.parse().unwrap());
+                if col.to_idx() == 0 {
+                    self.chip.rows[row].io_w = kind;
+                } else {
+                    self.chip.rows[row].io_e = kind;
+                }
             } else {
                 panic!("umm weird IO tile {}", tile.name);
             }
@@ -352,222 +468,284 @@ impl ChipBuilder<'_> {
 
     fn fill_io_ecp(&mut self) {
         self.fill_io(&[
-            ("PIC_L", IoKind::Double),
-            ("PIC_LDQS", IoKind::DoubleDqs),
-            ("PIC_R", IoKind::Double),
-            ("PIC_RDQS", IoKind::DoubleDqs),
-            ("PIC_RA", IoKind::Double),
-            ("PIC_RB", IoKind::Double),
-            ("PIC_T", IoKind::Double),
-            ("PIC_TDQS", IoKind::DoubleDqs),
-            ("PIC_B", IoKind::Double),
-            ("PIC_BDQS", IoKind::DoubleDqs),
-            ("PIC_BAB1", IoKind::Double),
-            ("PIC_BAB2", IoKind::Double),
-            ("PIC_BB1", IoKind::Double),
-            ("PIC_BB2", IoKind::Double),
-            ("PIC_BB3", IoKind::Double),
-            ("PIC_BDQSB", IoKind::DoubleDqs),
+            ("PIC_L", IoGroupKind::Double),
+            ("PIC_LDQS", IoGroupKind::DoubleDqs),
+            ("PIC_R", IoGroupKind::Double),
+            ("PIC_RDQS", IoGroupKind::DoubleDqs),
+            ("PIC_RA", IoGroupKind::Double),
+            ("PIC_RB", IoGroupKind::Double),
+            ("PIC_T", IoGroupKind::Double),
+            ("PIC_TDQS", IoGroupKind::DoubleDqs),
+            ("PIC_B", IoGroupKind::Double),
+            ("PIC_BDQS", IoGroupKind::DoubleDqs),
+            ("PIC_BAB1", IoGroupKind::Double),
+            ("PIC_BAB2", IoGroupKind::Double),
+            ("PIC_BB1", IoGroupKind::Double),
+            ("PIC_BB2", IoGroupKind::Double),
+            ("PIC_BB3", IoGroupKind::Double),
+            ("PIC_BDQSB", IoGroupKind::DoubleDqs),
         ]);
     }
 
     fn fill_io_xp(&mut self) {
         self.fill_io(&[
-            ("PIC_L", IoKind::Double),
-            ("PIC_L_6K_CONFIG", IoKind::DoubleA),
-            ("PIC_L_A", IoKind::DoubleA),
-            ("PIC_L_A_20K", IoKind::DoubleA),
-            ("PIC_L_B", IoKind::DoubleB),
-            ("PIC_L_B_20K", IoKind::DoubleB),
-            ("PIC_LDQS", IoKind::DoubleDqs),
-            ("PIC_R", IoKind::Double),
-            ("PIC_R_3K_CONFIG", IoKind::Double),
-            ("PIC_R_A", IoKind::DoubleA),
-            ("PIC_R_A_20K", IoKind::DoubleA),
-            ("PIC_R_B", IoKind::DoubleB),
-            ("PIC_R_B_20K", IoKind::DoubleB),
-            ("PIC_RDQS", IoKind::DoubleDqs),
-            ("PIC_B_NO_IO", IoKind::None),
-            ("PIC_BL", IoKind::Double),
-            ("PIC_BL_A", IoKind::DoubleA),
-            ("PIC_BL_B", IoKind::DoubleB),
-            ("PIC_BLDQS", IoKind::DoubleDqs),
-            ("PIC_BR", IoKind::Double),
-            ("PIC_BR_A", IoKind::DoubleA),
-            ("PIC_BR_B", IoKind::DoubleB),
-            ("PIC_BRDQS", IoKind::DoubleDqs),
-            ("PIC_T_NO_IO", IoKind::None),
-            ("PIC_TL", IoKind::Double),
-            ("PIC_TL_A", IoKind::DoubleA),
-            ("PIC_TL_A_CFG", IoKind::Double),
-            ("PIC_TL_AB_CFG", IoKind::Double),
-            ("PIC_TL_A_ONLY_CFG", IoKind::DoubleA),
-            ("PIC_TL_B", IoKind::DoubleB),
-            ("PIC_TLDQS", IoKind::DoubleDqs),
-            ("PIC_TR", IoKind::Double),
-            ("PIC_TR_A", IoKind::DoubleA),
-            ("PIC_TR_A_CFG", IoKind::Double),
-            ("PIC_TR_AB_CFG", IoKind::Double),
-            ("PIC_TR_A_ONLY_CFG", IoKind::DoubleA),
-            ("PIC_TR_B", IoKind::DoubleB),
-            ("PIC_TR_B_CFG", IoKind::Double),
-            ("PIC_TRDQS", IoKind::DoubleDqs),
+            ("PIC_L", IoGroupKind::Double),
+            ("PIC_L_6K_CONFIG", IoGroupKind::DoubleA),
+            ("PIC_L_A", IoGroupKind::DoubleA),
+            ("PIC_L_A_20K", IoGroupKind::DoubleA),
+            ("PIC_L_B", IoGroupKind::DoubleB),
+            ("PIC_L_B_20K", IoGroupKind::DoubleB),
+            ("PIC_LDQS", IoGroupKind::DoubleDqs),
+            ("PIC_R", IoGroupKind::Double),
+            ("PIC_R_3K_CONFIG", IoGroupKind::Double),
+            ("PIC_R_A", IoGroupKind::DoubleA),
+            ("PIC_R_A_20K", IoGroupKind::DoubleA),
+            ("PIC_R_B", IoGroupKind::DoubleB),
+            ("PIC_R_B_20K", IoGroupKind::DoubleB),
+            ("PIC_RDQS", IoGroupKind::DoubleDqs),
+            ("PIC_B_NO_IO", IoGroupKind::None),
+            ("PIC_BL", IoGroupKind::Double),
+            ("PIC_BL_A", IoGroupKind::DoubleA),
+            ("PIC_BL_B", IoGroupKind::DoubleB),
+            ("PIC_BLDQS", IoGroupKind::DoubleDqs),
+            ("PIC_BR", IoGroupKind::Double),
+            ("PIC_BR_A", IoGroupKind::DoubleA),
+            ("PIC_BR_B", IoGroupKind::DoubleB),
+            ("PIC_BRDQS", IoGroupKind::DoubleDqs),
+            ("PIC_T_NO_IO", IoGroupKind::None),
+            ("PIC_TL", IoGroupKind::Double),
+            ("PIC_TL_A", IoGroupKind::DoubleA),
+            ("PIC_TL_A_CFG", IoGroupKind::Double),
+            ("PIC_TL_AB_CFG", IoGroupKind::Double),
+            ("PIC_TL_A_ONLY_CFG", IoGroupKind::DoubleA),
+            ("PIC_TL_B", IoGroupKind::DoubleB),
+            ("PIC_TLDQS", IoGroupKind::DoubleDqs),
+            ("PIC_TR", IoGroupKind::Double),
+            ("PIC_TR_A", IoGroupKind::DoubleA),
+            ("PIC_TR_A_CFG", IoGroupKind::Double),
+            ("PIC_TR_AB_CFG", IoGroupKind::Double),
+            ("PIC_TR_A_ONLY_CFG", IoGroupKind::DoubleA),
+            ("PIC_TR_B", IoGroupKind::DoubleB),
+            ("PIC_TR_B_CFG", IoGroupKind::Double),
+            ("PIC_TRDQS", IoGroupKind::DoubleDqs),
         ]);
         if self.chip.rows.len() == 48 {
             let col_w1 = self.chip.col_w() + 1;
             let col_e1 = self.chip.col_e() - 1;
-            self.chip.columns[col_w1].io_s = IoKind::None;
-            self.chip.columns[col_w1].io_n = IoKind::None;
-            self.chip.columns[col_e1].io_s = IoKind::None;
-            self.chip.columns[col_e1].io_n = IoKind::None;
+            self.chip.columns[col_w1].io_s = IoGroupKind::None;
+            self.chip.columns[col_w1].io_n = IoGroupKind::None;
+            self.chip.columns[col_e1].io_s = IoGroupKind::None;
+            self.chip.columns[col_e1].io_n = IoGroupKind::None;
         }
     }
 
     fn fill_io_machxo(&mut self) {
         self.fill_io(&[
-            ("PIC_L", IoKind::Quad),
-            ("PIC2_L", IoKind::Double),
-            ("PIC4_L", IoKind::Quad),
-            ("PIC_L_GSR", IoKind::Quad),
-            ("PIC_L_OSC", IoKind::Quad),
-            ("PIC_L_ISP", IoKind::Quad),
-            ("PIC2_L_GSR", IoKind::Double),
-            ("PIC2_L_OSC", IoKind::Double),
-            ("PIC2_L_ISP", IoKind::Double),
-            ("PIC2_L_EBR1K_0", IoKind::Double),
-            ("PIC4_L_EBR1K_1", IoKind::Quad),
-            ("PIC4_L_EBR1K_2", IoKind::Quad),
-            ("PIC4_L_EBR1K_3", IoKind::Quad),
-            ("PIC4_L_EBR1K_4", IoKind::Quad),
-            ("PIC4_L_EBR1K_5", IoKind::Quad),
-            ("PIC4_L_EBR1K_6", IoKind::Quad),
-            ("PIC2_L_EBR2K_1", IoKind::Double),
-            ("PIC2_L_EBR2K_2", IoKind::Double),
-            ("PIC2_L_EBR2K_3", IoKind::Double),
-            ("PIC4_L_EBR2K_4", IoKind::Quad),
-            ("PIC4_L_EBR2K_5", IoKind::Quad),
-            ("PIC4_L_EBR2K_6", IoKind::Quad),
-            ("PIC4_L_EBR2K_7", IoKind::QuadReverse),
-            ("PIC4_L_EBR2K_8", IoKind::Quad),
-            ("PIC4_L_EBR2K_9", IoKind::Quad),
-            ("PIC4_L_EBR2K_10", IoKind::Quad),
-            ("PIC4_L_EBR2K_11", IoKind::Quad),
-            ("PIC4_L_EBR2K_12", IoKind::Quad),
-            ("PIC4_L_EBR2K_13", IoKind::Quad),
-            ("PIC4_L_EBR2K_14", IoKind::Quad),
-            ("PIC4_L_EBR2K_15", IoKind::Quad),
-            ("PIC4_L_EBR2K_16", IoKind::Quad),
-            ("PIC4_L_EBR2K_17", IoKind::Quad),
-            ("PIC4_L_EBR2K_18", IoKind::Quad),
-            ("PIC2_L_EBR2K_19", IoKind::Double),
-            ("PIC2_L_PLL1K", IoKind::Double),
-            ("PIC_R", IoKind::Quad),
-            ("PIC2_R", IoKind::Double),
-            ("PIC2_R_LVDS", IoKind::Double),
-            ("PIC4_R", IoKind::Quad),
-            ("PIC4_B", IoKind::Quad),
-            ("PIC6_B", IoKind::Hex),
-            ("PIC4_T", IoKind::Quad),
-            ("PIC6_T", IoKind::Hex),
+            ("PIC_L", IoGroupKind::Quad),
+            ("PIC2_L", IoGroupKind::Double),
+            ("PIC4_L", IoGroupKind::Quad),
+            ("PIC_L_GSR", IoGroupKind::Quad),
+            ("PIC_L_OSC", IoGroupKind::Quad),
+            ("PIC_L_ISP", IoGroupKind::Quad),
+            ("PIC2_L_GSR", IoGroupKind::Double),
+            ("PIC2_L_OSC", IoGroupKind::Double),
+            ("PIC2_L_ISP", IoGroupKind::Double),
+            ("PIC2_L_EBR1K_0", IoGroupKind::Double),
+            ("PIC4_L_EBR1K_1", IoGroupKind::Quad),
+            ("PIC4_L_EBR1K_2", IoGroupKind::Quad),
+            ("PIC4_L_EBR1K_3", IoGroupKind::Quad),
+            ("PIC4_L_EBR1K_4", IoGroupKind::Quad),
+            ("PIC4_L_EBR1K_5", IoGroupKind::Quad),
+            ("PIC4_L_EBR1K_6", IoGroupKind::Quad),
+            ("PIC2_L_EBR2K_1", IoGroupKind::Double),
+            ("PIC2_L_EBR2K_2", IoGroupKind::Double),
+            ("PIC2_L_EBR2K_3", IoGroupKind::Double),
+            ("PIC4_L_EBR2K_4", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_5", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_6", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_7", IoGroupKind::QuadReverse),
+            ("PIC4_L_EBR2K_8", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_9", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_10", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_11", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_12", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_13", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_14", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_15", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_16", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_17", IoGroupKind::Quad),
+            ("PIC4_L_EBR2K_18", IoGroupKind::Quad),
+            ("PIC2_L_EBR2K_19", IoGroupKind::Double),
+            ("PIC2_L_PLL1K", IoGroupKind::Double),
+            ("PIC_R", IoGroupKind::Quad),
+            ("PIC2_R", IoGroupKind::Double),
+            ("PIC2_R_LVDS", IoGroupKind::Double),
+            ("PIC4_R", IoGroupKind::Quad),
+            ("PIC4_B", IoGroupKind::Quad),
+            ("PIC6_B", IoGroupKind::Hex),
+            ("PIC4_T", IoGroupKind::Quad),
+            ("PIC6_T", IoGroupKind::Hex),
         ]);
         if self.chip.rows.len() == 21 {
-            self.chip.columns[ColId::from_idx(3)].io_n = IoKind::HexReverse;
-            self.chip.columns[ColId::from_idx(5)].io_n = IoKind::HexReverse;
-            self.chip.columns[ColId::from_idx(9)].io_s = IoKind::HexReverse;
+            self.chip.columns[ColId::from_idx(3)].io_n = IoGroupKind::HexReverse;
+            self.chip.columns[ColId::from_idx(5)].io_n = IoGroupKind::HexReverse;
+            self.chip.columns[ColId::from_idx(9)].io_s = IoGroupKind::HexReverse;
         }
     }
 
     fn fill_io_ecp2(&mut self) {
         self.fill_io(&[
-            ("PIC_L", IoKind::Double),
-            ("PIC_LLPCLK", IoKind::Double),
-            ("PIC_LUPCLK", IoKind::Double),
-            ("PIC_LDQS", IoKind::DoubleDqs),
-            ("PIC_LDQSM2", IoKind::Double),
-            ("PIC_LDQSM3", IoKind::Double),
-            ("PIC_R", IoKind::Double),
-            ("PIC_RLPCLK", IoKind::Double),
-            ("PIC_RUPCLK", IoKind::Double),
-            ("PIC_RDQS", IoKind::DoubleDqs),
-            ("PIC_RDQSM2", IoKind::Double),
-            ("PIC_RDQSM3", IoKind::Double),
-            ("PIC_RCPU", IoKind::Double),
-            ("PIC_B", IoKind::Double),
-            ("PIC_BSPL", IoKind::Double),
-            ("PIC_BSPR", IoKind::Double),
-            ("PIC_BDQS", IoKind::DoubleDqs),
-            ("PIC_BLPCLK", IoKind::Double),
-            ("PIC_BRPCLK", IoKind::Double),
-            ("PIC_T", IoKind::Double),
-            ("PIC_TSPL", IoKind::Double),
-            ("PIC_TSPR", IoKind::Double),
-            ("PIC_TLPCLK", IoKind::Double),
-            ("PIC_TRPCLK", IoKind::Double),
+            ("PIC_L", IoGroupKind::Double),
+            ("PIC_LLPCLK", IoGroupKind::Double),
+            ("PIC_LUPCLK", IoGroupKind::Double),
+            ("PIC_LDQS", IoGroupKind::DoubleDqs),
+            ("PIC_LDQSM2", IoGroupKind::Double),
+            ("PIC_LDQSM3", IoGroupKind::Double),
+            ("PIC_R", IoGroupKind::Double),
+            ("PIC_RLPCLK", IoGroupKind::Double),
+            ("PIC_RUPCLK", IoGroupKind::Double),
+            ("PIC_RDQS", IoGroupKind::DoubleDqs),
+            ("PIC_RDQSM2", IoGroupKind::Double),
+            ("PIC_RDQSM3", IoGroupKind::Double),
+            ("PIC_RCPU", IoGroupKind::Double),
+            ("PIC_B", IoGroupKind::Double),
+            ("PIC_BSPL", IoGroupKind::Double),
+            ("PIC_BSPR", IoGroupKind::Double),
+            ("PIC_BDQS", IoGroupKind::DoubleDqs),
+            ("PIC_BLPCLK", IoGroupKind::Double),
+            ("PIC_BRPCLK", IoGroupKind::Double),
+            ("PIC_T", IoGroupKind::Double),
+            ("PIC_TSPL", IoGroupKind::Double),
+            ("PIC_TSPR", IoGroupKind::Double),
+            ("PIC_TLPCLK", IoGroupKind::Double),
+            ("PIC_TRPCLK", IoGroupKind::Double),
         ]);
     }
 
     fn fill_io_xp2(&mut self) {
         self.fill_io(&[
-            ("PIC_L", IoKind::Double),
-            ("PIC_L_NOPIO", IoKind::DoubleDummy),
-            ("PIC_LDQS", IoKind::DoubleDqs),
-            ("PIC_LDQSM2", IoKind::Double),
-            ("PIC_LDQSM3", IoKind::Double),
-            ("PIC_R", IoKind::Double),
-            ("PIC_R_NOPIO", IoKind::DoubleDummy),
-            ("PIC_RDQS", IoKind::DoubleDqs),
-            ("PIC_RDQSM2", IoKind::Double),
-            ("PIC_RDQSM3", IoKind::Double),
-            ("PIC_B", IoKind::Double),
-            ("PIC_BSPL", IoKind::Double),
-            ("PIC_BSPR", IoKind::Double),
-            ("PIC_B5KVIQ", IoKind::Double),
-            ("PIC_BDQS", IoKind::DoubleDqs),
-            ("PIC_BLPCLK", IoKind::Double),
-            ("PIC_BRPCLK", IoKind::Double),
-            ("PIC_B_NOPIO", IoKind::DoubleDummy),
-            ("PIC_T", IoKind::Double),
-            ("PIC_TSPL", IoKind::Double),
-            ("PIC_TSPR", IoKind::Double),
-            ("PIC_T5KVIQ", IoKind::Double),
-            ("PIC_TDQS", IoKind::DoubleDqs),
-            ("PIC_TLPCLK", IoKind::Double),
-            ("PIC_TRPCLK", IoKind::Double),
-            ("PIC_T_NOPIO", IoKind::DoubleDummy),
+            ("PIC_L", IoGroupKind::Double),
+            ("PIC_L_NOPIO", IoGroupKind::DoubleDummy),
+            ("PIC_LDQS", IoGroupKind::DoubleDqs),
+            ("PIC_LDQSM2", IoGroupKind::Double),
+            ("PIC_LDQSM3", IoGroupKind::Double),
+            ("PIC_R", IoGroupKind::Double),
+            ("PIC_R_NOPIO", IoGroupKind::DoubleDummy),
+            ("PIC_RDQS", IoGroupKind::DoubleDqs),
+            ("PIC_RDQSM2", IoGroupKind::Double),
+            ("PIC_RDQSM3", IoGroupKind::Double),
+            ("PIC_B", IoGroupKind::Double),
+            ("PIC_BSPL", IoGroupKind::Double),
+            ("PIC_BSPR", IoGroupKind::Double),
+            ("PIC_B5KVIQ", IoGroupKind::Double),
+            ("PIC_BDQS", IoGroupKind::DoubleDqs),
+            ("PIC_BLPCLK", IoGroupKind::Double),
+            ("PIC_BRPCLK", IoGroupKind::Double),
+            ("PIC_B_NOPIO", IoGroupKind::DoubleDummy),
+            ("PIC_T", IoGroupKind::Double),
+            ("PIC_TSPL", IoGroupKind::Double),
+            ("PIC_TSPR", IoGroupKind::Double),
+            ("PIC_T5KVIQ", IoGroupKind::Double),
+            ("PIC_TDQS", IoGroupKind::DoubleDqs),
+            ("PIC_TLPCLK", IoGroupKind::Double),
+            ("PIC_TRPCLK", IoGroupKind::Double),
+            ("PIC_T_NOPIO", IoGroupKind::DoubleDummy),
+        ]);
+    }
+
+    fn fill_io_ecp3(&mut self) {
+        self.fill_io(&[
+            // west
+            ("PIC_L2", IoGroupKind::Quad),
+            ("PIC_L2A", IoGroupKind::Quad),
+            ("PIC_L2B", IoGroupKind::Quad),
+            ("PIC_L2E", IoGroupKind::Quad),
+            ("PIC_LDQS2A", IoGroupKind::QuadDqs),
+            ("PIC_LDQS2AS", IoGroupKind::QuadDqsDummy),
+            ("PIC_LDQS2B", IoGroupKind::QuadDqs),
+            ("PIC_LDQS2C", IoGroupKind::QuadDqs),
+            ("PIC_LDQS2D", IoGroupKind::QuadDqsDummy),
+            ("PIC_LDQS2E", IoGroupKind::QuadDqsDummy),
+            ("PIC_LDQS2F", IoGroupKind::QuadDqs),
+            ("PICATEMB_L2EVREF", IoGroupKind::Quad),
+            ("PICATEMB_L2EPT", IoGroupKind::Quad),
+            ("PICATVREFL_L2EPT", IoGroupKind::Quad),
+            ("LLC2", IoGroupKind::Quad),
+            ("PICATPLL_L2E", IoGroupKind::Quad),
+            ("PICATEMB_L2APT", IoGroupKind::Quad),
+            ("PICATEMB_L2A", IoGroupKind::Quad),
+            ("PICATVREFU_L2APT", IoGroupKind::Quad),
+            ("PICATVREFL_L2APT", IoGroupKind::Quad),
+            ("LLC0", IoGroupKind::Quad),
+            ("PICATPLL_L2A", IoGroupKind::Quad),
+            ("PICATPLL_L2APT", IoGroupKind::Quad),
+            ("PICATEMB_L2BPT", IoGroupKind::Quad),
+            ("PICATEMB_L2B", IoGroupKind::Quad),
+            ("PICATVREFU_L2BPT", IoGroupKind::Quad),
+            ("PICATVREFL_L2BPT", IoGroupKind::Quad),
+            ("PICATDSP_L2B", IoGroupKind::Quad),
+            ("LLC1", IoGroupKind::Quad),
+            ("PICATPLL_L2B", IoGroupKind::Quad),
+            ("PICATPLL_L2BPT", IoGroupKind::Quad),
+            // east
+            ("PIC_R2", IoGroupKind::Quad),
+            ("PIC_RCPU2", IoGroupKind::Quad),
+            ("PIC_RCPU2C", IoGroupKind::Quad),
+            ("PICATEMB_RCPU2VREF", IoGroupKind::Quad),
+            ("PICATEMB_RCPU2PT", IoGroupKind::Quad),
+            ("PICATEMB_RCPU2", IoGroupKind::Quad),
+            ("PIC_RDQS2", IoGroupKind::QuadDqs),
+            ("PIC_R3DQS2", IoGroupKind::QuadDqs),
+            ("PIC_RDQS2C", IoGroupKind::QuadDqs),
+            ("PICATVREFL_R2PT", IoGroupKind::Quad),
+            ("PICATVREFU_R2PT", IoGroupKind::Quad),
+            ("PICATDSP_R2", IoGroupKind::Quad),
+            ("PICATEMB_R2", IoGroupKind::Quad),
+            ("LRC", IoGroupKind::Quad),
+            ("PICATPLL_R2", IoGroupKind::Quad),
+            ("PICATPLL_R2PT", IoGroupKind::Quad),
+            // south
+            ("PIC_B0", IoGroupKind::Quad),
+            // north
+            ("PIC_T0", IoGroupKind::Quad),
+            ("PIC_TSPR0", IoGroupKind::Quad),
+            ("PIC_TVIQSPR0", IoGroupKind::Quad),
+            ("PIC_TCPU0", IoGroupKind::Quad),
+            ("PIC_TDQS0", IoGroupKind::QuadDqs),
         ]);
     }
 
     fn fill_io_banks_8(&mut self) {
         for (row, rd) in &mut self.chip.rows {
             if row < self.chip.row_clk {
-                if rd.io_w != IoKind::None {
+                if rd.io_w != IoGroupKind::None {
                     rd.bank_w = Some(6);
                 }
-                if rd.io_e != IoKind::None {
+                if rd.io_e != IoGroupKind::None {
                     rd.bank_e = Some(3);
                 }
             } else {
-                if rd.io_w != IoKind::None {
+                if rd.io_w != IoGroupKind::None {
                     rd.bank_w = Some(7);
                 }
-                if rd.io_e != IoKind::None {
+                if rd.io_e != IoGroupKind::None {
                     rd.bank_e = Some(2);
                 }
             }
         }
         for (col, cd) in &mut self.chip.columns {
             if col < self.chip.col_clk {
-                if cd.io_s != IoKind::None {
+                if cd.io_s != IoGroupKind::None {
                     cd.bank_s = Some(5);
                 }
-                if cd.io_n != IoKind::None {
+                if cd.io_n != IoGroupKind::None {
                     cd.bank_n = Some(0);
                 }
             } else {
-                if cd.io_s != IoKind::None {
+                if cd.io_s != IoGroupKind::None {
                     cd.bank_s = Some(4);
                 }
-                if cd.io_n != IoKind::None {
+                if cd.io_n != IoGroupKind::None {
                     cd.bank_n = Some(1);
                 }
             }
@@ -577,7 +755,7 @@ impl ChipBuilder<'_> {
     fn fill_io_banks_machxo(&mut self) {
         let num_rows = self.chip.rows.len();
         for (row, rd) in &mut self.chip.rows {
-            if rd.io_w == IoKind::None {
+            if rd.io_w == IoGroupKind::None {
                 continue;
             }
             let (bank_w, bank_e) = match num_rows {
@@ -603,7 +781,7 @@ impl ChipBuilder<'_> {
             rd.bank_e = Some(bank_e);
         }
         for (col, cd) in &mut self.chip.columns {
-            if cd.io_s == IoKind::None {
+            if cd.io_s == IoGroupKind::None {
                 continue;
             }
             let (bank_s, bank_n) = match num_rows {
@@ -632,6 +810,53 @@ impl ChipBuilder<'_> {
         }
     }
 
+    fn fill_io_banks_ecp3(&mut self) {
+        let row_cfg = self.chip.special_loc[&SpecialLocKey::Config].row;
+        for (row, rd) in &mut self.chip.rows {
+            if row < self.chip.row_clk {
+                if rd.io_w != IoGroupKind::None {
+                    rd.bank_w = Some(6);
+                }
+                if rd.io_e != IoGroupKind::None {
+                    rd.bank_e = Some(3);
+                }
+            } else {
+                if rd.io_w != IoGroupKind::None {
+                    rd.bank_w = Some(7);
+                }
+                if rd.io_e != IoGroupKind::None {
+                    if row < row_cfg {
+                        rd.bank_e = Some(2);
+                    } else {
+                        rd.bank_e = Some(8);
+                    }
+                }
+            }
+        }
+        let col_e = self.chip.col_e();
+        for (col, cd) in &mut self.chip.columns {
+            if col < self.chip.col_clk {
+                if cd.io_s != IoGroupKind::None {
+                    cd.bank_s = Some(6);
+                }
+                if cd.io_n != IoGroupKind::None {
+                    cd.bank_n = Some(0);
+                }
+            } else {
+                if cd.io_s != IoGroupKind::None {
+                    cd.bank_s = Some(3);
+                }
+                if cd.io_n != IoGroupKind::None {
+                    if col < col_e - 6 {
+                        cd.bank_n = Some(1);
+                    } else {
+                        cd.bank_n = Some(8);
+                    }
+                }
+            }
+        }
+    }
+
     fn gather_special_io(&mut self) -> BTreeMap<WireName, EdgeIoCoord> {
         let jpaddia_pio = self.naming.strings.get("JPADDIA_PIO");
         let jpaddib_pio = self.naming.strings.get("JPADDIB_PIO");
@@ -639,26 +864,83 @@ impl ChipBuilder<'_> {
         let jpaddid_pio = self.naming.strings.get("JPADDID_PIO");
         let jpaddie_pio = self.naming.strings.get("JPADDIE_PIO");
         let jpaddif_pio = self.naming.strings.get("JPADDIF_PIO");
+        let jpaddiea_pio = self.naming.strings.get("JPADDIEA_PIO");
+        let jpaddieb_pio = self.naming.strings.get("JPADDIEB_PIO");
+        let jpaddiec_pio = self.naming.strings.get("JPADDIEC_PIO");
+        let jpaddied_pio = self.naming.strings.get("JPADDIED_PIO");
         let mut pad_nodes = HashMap::new();
         for (node, &wn) in self.nodes {
-            let bel = if Some(wn.suffix) == jpaddia_pio {
-                bels::IO0
+            let mut cell = self.chip.xlat_rc_wire(wn);
+            let (bel, e) = if Some(wn.suffix) == jpaddia_pio {
+                (bels::IO0, false)
             } else if Some(wn.suffix) == jpaddib_pio {
-                bels::IO1
+                (bels::IO1, false)
             } else if Some(wn.suffix) == jpaddic_pio {
-                bels::IO2
+                (bels::IO2, false)
             } else if Some(wn.suffix) == jpaddid_pio {
-                bels::IO3
+                (bels::IO3, false)
             } else if Some(wn.suffix) == jpaddie_pio {
-                bels::IO4
+                (bels::IO4, false)
             } else if Some(wn.suffix) == jpaddif_pio {
-                bels::IO5
+                (bels::IO5, false)
+            } else if Some(wn.suffix) == jpaddiea_pio {
+                (bels::IO0, true)
+            } else if Some(wn.suffix) == jpaddieb_pio {
+                (bels::IO1, true)
+            } else if Some(wn.suffix) == jpaddiec_pio {
+                (bels::IO2, true)
+            } else if Some(wn.suffix) == jpaddied_pio {
+                (bels::IO3, true)
             } else {
                 continue;
             };
-            let cell = self.chip.xlat_rc_wire(wn);
-            let io = self.chip.get_io_crd(cell.bel(bel));
-            pad_nodes.insert(node, io);
+            if matches!(self.chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
+                if e {
+                    if cell.col == self.chip.col_w() {
+                        cell.col += 1;
+                    } else if cell.col == self.chip.col_e() {
+                        cell.col -= 1;
+                    } else {
+                        unreachable!();
+                    }
+                }
+                let mut io = self.chip.get_io_crd(cell.bel(bel));
+                if !e {
+                    match io {
+                        EdgeIoCoord::W(ref mut row, ref mut iob) => {
+                            if self.chip.rows[*row].io_w == IoGroupKind::None {
+                                *row -= 2;
+                            } else {
+                                *iob = TileIobId::from_idx(iob.to_idx() + 2);
+                            }
+                        }
+                        EdgeIoCoord::E(ref mut row, ref mut iob) => {
+                            if self.chip.rows[*row].io_e == IoGroupKind::None {
+                                *row -= 2;
+                            } else {
+                                *iob = TileIobId::from_idx(iob.to_idx() + 2);
+                            }
+                        }
+                        EdgeIoCoord::S(ref mut col, ref mut iob) => {
+                            if self.chip.columns[*col].io_s == IoGroupKind::None {
+                                *iob = TileIobId::from_idx(iob.to_idx() + 2);
+                                *col -= 2;
+                            }
+                        }
+                        EdgeIoCoord::N(ref mut col, ref mut iob) => {
+                            if self.chip.columns[*col].io_n == IoGroupKind::None {
+                                *iob = TileIobId::from_idx(iob.to_idx() + 2);
+                                *col -= 2;
+                            }
+                        }
+                    }
+                }
+                pad_nodes.insert(node, io);
+            } else {
+                assert!(!e);
+                let io = self.chip.get_io_crd(cell.bel(bel));
+                pad_nodes.insert(node, io);
+            }
         }
         let mut result = BTreeMap::new();
         for &(wf, wt) in self.grid.pips.keys() {
@@ -673,7 +955,18 @@ impl ChipBuilder<'_> {
                     | "JPADDIB"
                     | "DIA_IOLOGIC"
                     | "DIB_IOLOGIC"
+                    | "DIA_SIOLOGIC"
+                    | "DIB_SIOLOGIC"
+                    | "DIA_XSIOLOGIC"
+                    | "DIB_XSIOLOGIC"
+                    | "DIEA_XSIOLOGIC"
+                    | "DIEB_XSIOLOGIC"
+                    | "DIEC_XSIOLOGIC"
+                    | "DIED_XSIOLOGIC"
+                    | "DIA_DQSIOL"
+                    | "DIA_SDQSIOL"
                     | "JDQSI_DQS"
+                    | "JDQSI_SDQS"
                     | "JF0"
                     | "JF1"
                     | "JF2"
@@ -836,6 +1129,48 @@ impl ChipBuilder<'_> {
         }
     }
 
+    fn fill_pll_ecp3(&mut self) {
+        let mut plls: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
+        for &wn in self.nodes.values() {
+            if self.naming.strings[wn.suffix].ends_with("_PLL") {
+                let cell = self.chip.xlat_rc_wire(wn);
+                let v = if cell.row < self.chip.row_clk {
+                    DirV::S
+                } else {
+                    DirV::N
+                };
+                let h = if cell.col < self.chip.col_clk {
+                    DirH::W
+                } else {
+                    DirH::E
+                };
+                let cell = cell.delta(
+                    match h {
+                        DirH::W => -3,
+                        DirH::E => 3,
+                    },
+                    0,
+                );
+                plls.entry(DirHV { h, v }).or_default().insert(cell);
+            }
+        }
+        for (quad, cells) in plls {
+            let mut cells = Vec::from_iter(cells);
+            match quad.v {
+                DirV::S => {
+                    cells.sort_by_key(|cell| std::cmp::Reverse(cell.row));
+                }
+                DirV::N => {
+                    cells.sort();
+                }
+            }
+            for (i, cell) in cells.into_iter().enumerate() {
+                let loc = SpecialLocKey::Pll(PllLoc::new(quad, i as u8));
+                self.chip.special_loc.insert(loc, cell);
+            }
+        }
+    }
+
     fn fill_serdes_ecp2m(&mut self) {
         let name = self.naming.strings.get("JFF_TX_D_0_0_PCS").unwrap();
         for &wn in self.nodes.values() {
@@ -847,20 +1182,55 @@ impl ChipBuilder<'_> {
                     cell.col -= 13;
                 }
                 if cell.row < self.chip.row_clk {
-                    self.chip.columns[cell.col].io_s = IoKind::Serdes;
+                    self.chip.columns[cell.col].io_s = IoGroupKind::Serdes;
                     self.chip.columns[cell.col].bank_s = if cell.col < self.chip.col_clk {
                         Some(14)
                     } else {
                         Some(13)
                     };
                 } else {
-                    self.chip.columns[cell.col].io_n = IoKind::Serdes;
+                    self.chip.columns[cell.col].io_n = IoGroupKind::Serdes;
                     self.chip.columns[cell.col].bank_n = if cell.col < self.chip.col_clk {
                         Some(11)
                     } else {
                         Some(12)
                     };
                 }
+            }
+        }
+    }
+
+    fn fill_serdes_ecp3(&mut self) {
+        let name = self.naming.strings.get("JFF_TX_D_0_0_PCS").unwrap();
+        for &wn in self.nodes.values() {
+            if wn.suffix == name {
+                let cell = self.chip.xlat_rc_wire(wn);
+                self.chip.columns[cell.col].io_s = IoGroupKind::Serdes;
+                self.chip.columns[cell.col].bank_s = if cell.col < self.chip.col_clk {
+                    Some(14)
+                } else {
+                    Some(13)
+                };
+            }
+        }
+        let mut bank = 50;
+        for (col, cd) in &mut self.chip.columns {
+            if col < self.chip.col_clk - 18 {
+                continue;
+            }
+            if cd.io_s == IoGroupKind::Serdes {
+                cd.bank_s = Some(bank);
+                bank += 2;
+            }
+        }
+        let mut bank = 51;
+        for (col, cd) in self.chip.columns.iter_mut().rev() {
+            if col >= self.chip.col_clk - 18 {
+                continue;
+            }
+            if cd.io_s == IoGroupKind::Serdes {
+                cd.bank_s = Some(bank);
+                bank += 2;
             }
         }
     }
@@ -916,6 +1286,66 @@ impl ChipBuilder<'_> {
                     cell.col = self.chip.col_w();
                 } else if cell.col == self.chip.col_e() - 2 {
                     cell.col = self.chip.col_e();
+                }
+                let pll = pll_xlat[&cell];
+                let key = SpecialIoKey::Pll(pad, pll);
+                self.chip.special_io.insert(key, io);
+            } else {
+                println!(
+                    "{name}: WEIRD SPECIO: R{r}C{c}_{suffix} {io}",
+                    name = self.name,
+                    r = wn.r,
+                    c = wn.c,
+                );
+            }
+        }
+    }
+
+    fn fill_special_io_ecp3(&mut self) {
+        let pll_xlat =
+            BTreeMap::from_iter(self.chip.special_loc.iter().filter_map(|(&key, &cell)| {
+                if let SpecialLocKey::Pll(loc) = key {
+                    Some((cell, loc))
+                } else {
+                    None
+                }
+            }));
+        for (wn, io) in self.gather_special_io() {
+            let suffix = self.naming.strings[wn.suffix].as_str();
+            if let Some((dir, i)) = match suffix {
+                "JLPIO0" => Some((Dir::W, 0)),
+                "JRPIO0" => Some((Dir::E, 0)),
+                "JTPIO0" => Some((Dir::N, 0)),
+                "JLPIO1" => Some((Dir::W, 1)),
+                "JRPIO1" => Some((Dir::E, 1)),
+                "JTPIO1" => Some((Dir::N, 1)),
+                _ => None,
+            } {
+                self.chip.special_io.insert(SpecialIoKey::Clock(dir, i), io);
+            } else if matches!(
+                suffix,
+                "JPIO1"
+                    | "JPIO2"
+                    | "JPLLPIO1"
+                    | "JPLLPIO2"
+                    | "JPLLCLKI4"
+                    | "JPLLCLKI0"
+                    | "JDLLCLKI3"
+                    | "JDLLCLKI4"
+            ) {
+                // discard — redundant
+            } else if let Some(pad) = match suffix {
+                "JPLLCLKI3" => Some(PllPad::PllIn0),
+                "JPLLCLKFB1" => Some(PllPad::PllFb),
+                "JDLLCLKI0" => Some(PllPad::DllIn0),
+                "JDLLCLKFB1" => Some(PllPad::DllFb),
+                _ => None,
+            } {
+                let mut cell = self.chip.xlat_rc_wire(wn);
+                if cell.col < self.chip.col_clk {
+                    cell.col = self.chip.col_w() + 1;
+                } else {
+                    cell.col = self.chip.col_e() - 1;
                 }
                 let pll = pll_xlat[&cell];
                 let key = SpecialIoKey::Pll(pad, pll);
@@ -999,6 +1429,59 @@ impl ChipBuilder<'_> {
             ("JCIBT1", SpecialLocKey::SclkIn(Dir::N, 1)),
             ("JCIBT2", SpecialLocKey::SclkIn(Dir::N, 2)),
             ("JCIBT3", SpecialLocKey::SclkIn(Dir::N, 3)),
+        ] {
+            if let Some(s) = self.naming.strings.get(name) {
+                xlat.insert(s, key);
+            }
+        }
+        for &(wf, wt) in self.grid.pips.keys() {
+            let wnt = self.nodes[wt];
+            let Some(&key) = xlat.get(&wnt.suffix) else {
+                continue;
+            };
+            let wnf = self.nodes[wf];
+            let cell = self.chip.xlat_rc_wire(wnf);
+            self.chip.special_loc.insert(key, cell);
+        }
+    }
+
+    fn fill_fabric_clock_ecp3(&mut self) {
+        let mut xlat = HashMap::new();
+        for (name, key) in [
+            ("JPCLKCIBLLQ0", SpecialLocKey::PclkIn(Dir::W, 0)),
+            ("JPCLKCIBLLQ1", SpecialLocKey::PclkIn(Dir::S, 0)),
+            ("JPCLKCIBURQ0", SpecialLocKey::PclkIn(Dir::E, 2)),
+            ("JPCLKCIBURQ1", SpecialLocKey::PclkIn(Dir::N, 1)),
+            ("JPCLKCIBURQ2", SpecialLocKey::PclkIn(Dir::E, 3)),
+            ("JPCLKCIBLRQ0", SpecialLocKey::PclkIn(Dir::E, 1)),
+            ("JPCLKCIBLRQ1", SpecialLocKey::PclkIn(Dir::S, 1)),
+            ("JPCLKCIBLRQ2", SpecialLocKey::PclkIn(Dir::E, 0)),
+            ("JPCLKCIBULQ0", SpecialLocKey::PclkIn(Dir::W, 1)),
+            ("JPCLKCIBULQ1", SpecialLocKey::PclkIn(Dir::N, 0)),
+            ("JPCLKCIBMID0", SpecialLocKey::PclkInMid(0)),
+            ("JPCLKCIBMID1", SpecialLocKey::PclkInMid(1)),
+            ("JPCLKCIBMID2", SpecialLocKey::PclkInMid(2)),
+            ("JPCLKCIBMID3", SpecialLocKey::PclkInMid(3)),
+            ("JPCLKCIBMID4", SpecialLocKey::PclkInMid(4)),
+            ("JPCLKCIBMID5", SpecialLocKey::PclkInMid(5)),
+            ("JPCLKCIBMID6", SpecialLocKey::PclkInMid(6)),
+            ("JPCLKCIBMID7", SpecialLocKey::PclkInMid(7)),
+            ("JSCLKCIBL0", SpecialLocKey::SclkIn(Dir::W, 0)),
+            ("JSCLKCIBL1", SpecialLocKey::SclkIn(Dir::W, 1)),
+            ("JSCLKCIBL2", SpecialLocKey::SclkIn(Dir::W, 2)),
+            ("JSCLKCIBL3", SpecialLocKey::SclkIn(Dir::W, 3)),
+            ("JSCLKCIBR0", SpecialLocKey::SclkIn(Dir::E, 0)),
+            ("JSCLKCIBR1", SpecialLocKey::SclkIn(Dir::E, 1)),
+            ("JSCLKCIBR2", SpecialLocKey::SclkIn(Dir::E, 2)),
+            ("JSCLKCIBR3", SpecialLocKey::SclkIn(Dir::E, 3)),
+            ("JSCLKCIBB0", SpecialLocKey::SclkIn(Dir::S, 0)),
+            ("JSCLKCIBB1", SpecialLocKey::SclkIn(Dir::S, 1)),
+            ("JSCLKCIBB2", SpecialLocKey::SclkIn(Dir::S, 2)),
+            ("JSCLKCIBB3", SpecialLocKey::SclkIn(Dir::S, 3)),
+            ("JSCLKCIBT0", SpecialLocKey::SclkIn(Dir::N, 0)),
+            ("JSCLKCIBT1", SpecialLocKey::SclkIn(Dir::N, 1)),
+            ("JSCLKCIBT2", SpecialLocKey::SclkIn(Dir::N, 2)),
+            ("JSCLKCIBT3", SpecialLocKey::SclkIn(Dir::N, 3)),
         ] {
             if let Some(s) = self.naming.strings.get(name) {
                 xlat.insert(s, key);
@@ -1152,7 +1635,7 @@ impl ChipBuilder<'_> {
     }
 
     fn fill_config_io_ecp2(&mut self) {
-        if self.chip.rows[self.chip.row_s() + 2].io_e == IoKind::None {
+        if self.chip.rows[self.chip.row_s() + 2].io_e == IoGroupKind::None {
             return;
         }
         for (key, dy, iob) in [
@@ -1192,6 +1675,30 @@ impl ChipBuilder<'_> {
             self.chip.special_io.insert(key, io);
         }
     }
+
+    fn fill_config_io_ecp3(&mut self) {
+        let row_cfg = self.chip.special_loc[&SpecialLocKey::Config].row;
+        for (key, dy, iob) in [
+            (SpecialIoKey::Busy, 0, 3),
+            (SpecialIoKey::D(7), 0, 2),
+            (SpecialIoKey::D(6), 0, 1),
+            (SpecialIoKey::D(5), 0, 0),
+            (SpecialIoKey::D(4), 3, 3),
+            (SpecialIoKey::D(3), 3, 2),
+            (SpecialIoKey::D(2), 3, 1),
+            (SpecialIoKey::D(1), 3, 0),
+            (SpecialIoKey::D(0), 6, 3),
+            (SpecialIoKey::WriteN, 6, 2),
+            (SpecialIoKey::MClk, 6, 1),
+            (SpecialIoKey::Dout, 6, 0),
+            (SpecialIoKey::CsN, 9, 3),
+            (SpecialIoKey::Cs1N, 9, 2),
+            (SpecialIoKey::Di, 9, 1),
+        ] {
+            let io = EdgeIoCoord::E(row_cfg + dy, TileIobId::from_idx(iob));
+            self.chip.special_io.insert(key, io);
+        }
+    }
 }
 
 fn init_chip(kind: ChipKind, naming: &ChipNaming, nodes: &EntityVec<NodeId, WireName>) -> Chip {
@@ -1205,8 +1712,8 @@ fn init_chip(kind: ChipKind, naming: &ChipNaming, nodes: &EntityVec<NodeId, Wire
         }
     }
     let columns = EntityVec::from_iter((0..max_c).map(|_| Column {
-        io_s: IoKind::None,
-        io_n: IoKind::None,
+        io_s: IoGroupKind::None,
+        io_n: IoGroupKind::None,
         bank_s: None,
         bank_n: None,
         eclk_tap_s: false,
@@ -1216,11 +1723,13 @@ fn init_chip(kind: ChipKind, naming: &ChipNaming, nodes: &EntityVec<NodeId, Wire
     }));
     let rows = EntityVec::from_iter((0..max_r).map(|_| Row {
         kind: RowKind::Io,
-        io_w: IoKind::None,
-        io_e: IoKind::None,
+        io_w: IoGroupKind::None,
+        io_e: IoGroupKind::None,
         bank_w: None,
         bank_e: None,
         sclk_break: false,
+        pclk_break: false,
+        pclk_drive: false,
     }));
     Chip {
         kind,
@@ -1311,6 +1820,21 @@ pub fn make_chip(
             builder.fill_special_io_ecp2();
             builder.fill_fabric_clock_ecp2();
             builder.fill_config_io_xp2();
+        }
+        ChipKind::Ecp3 | ChipKind::Ecp3A => {
+            builder.fill_kind_ecp3();
+            builder.fill_clk_ecp();
+            builder.fill_pclk_ecp3();
+            builder.fill_sclk_ecp3();
+            builder.fill_eclk_tap_ecp3();
+            builder.fill_config_loc_ecp3();
+            builder.fill_io_ecp3();
+            builder.fill_io_banks_ecp3();
+            builder.fill_serdes_ecp3();
+            builder.fill_pll_ecp3();
+            builder.fill_special_io_ecp3();
+            builder.fill_fabric_clock_ecp3();
+            builder.fill_config_io_ecp3();
         }
     };
     builder.chip

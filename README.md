@@ -25,6 +25,7 @@ The target devices currently include:
 - some Lattice FPGAs:
   - ECP, XP, MachXO
   - ECP2, ECP2M, XP2
+  - ECP3
 - all Xilinx CPLDs
 
 More targets are expected to be added in the future.
@@ -64,6 +65,7 @@ For each of the supported device families:
 | Versal                                              | 👷🏼‍♀️        | ❌         | ❌      | ❌    | ❌                   |
 | ECP, XP, MachXO                                     | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | ECP2, ECP2M, XP2                                    | ✅        | ❌         | ❌      | ❌    | ❌                   |
+| ECP3                                                | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | XC9500, XC9500XL, XC9500XV                          | ✅        | ✅         | ✅      | ✅    | ✅                   |
 | Coolrunner XPLA3                                    | ✅        | ✅         | ✅      | ✅    | ✅                   |
 | Coolrunner 2                                        | ✅        | ✅         | ✅      | ✅    | 👷🏼‍♀️                   |

@@ -5,8 +5,9 @@ use std::{
 };
 
 use clap::Parser;
+use itertools::Itertools;
 use prjcombine_ecp::{
-    bond::{BondPad, SerdesPad},
+    bond::{BondPad, CfgPad, SerdesPad},
     chip::{Chip, ChipKind, SpecialIoKey},
     db::Device,
     expanded::ExpandedDevice,
@@ -91,15 +92,69 @@ impl ChipContext<'_> {
     }
 
     fn rc_wire(&self, cell: CellCoord, suffix: &str) -> WireName {
-        let suffix = self.naming.strings.get(suffix).unwrap();
+        let Some(suffix) = self.naming.strings.get(suffix) else {
+            panic!("{name}: no suffix {suffix}", name = self.name)
+        };
         let (r, c) = self.rc(cell);
         WireName { r, c, suffix }
     }
 
     fn rc_io_wire(&self, cell: CellCoord, suffix: &str) -> WireName {
-        let suffix = self.naming.strings.get(suffix).unwrap();
+        let Some(suffix) = self.naming.strings.get(suffix) else {
+            panic!("{name}: no suffix {suffix}", name = self.name)
+        };
         let (r, c) = self.rc_io(cell);
         WireName { r, c, suffix }
+    }
+
+    fn find_single_in(&self, w: WireName) -> WireName {
+        let Some(ins) = self.pips_bwd.get(&w) else {
+            panic!(
+                "{name}: wire {w} has no ins",
+                name = self.name,
+                w = w.to_string(&self.naming)
+            );
+        };
+        if ins.len() != 1 {
+            let ins = ins.iter().map(|&wi| wi.to_string(&self.naming)).join(", ");
+            panic!(
+                "{name}: wire {w} has many ins: {ins}",
+                name = self.name,
+                w = w.to_string(&self.naming)
+            );
+        }
+        ins.iter().copied().next().unwrap()
+    }
+
+    fn claim_single_in(&mut self, w: WireName) -> WireName {
+        let inp = self.find_single_in(w);
+        self.claim_pip(w, inp);
+        inp
+    }
+
+    fn find_single_out(&self, w: WireName) -> WireName {
+        let Some(outs) = self.pips_fwd.get(&w) else {
+            panic!(
+                "{name}: wire {w} has no outs",
+                name = self.name,
+                w = w.to_string(&self.naming)
+            );
+        };
+        if outs.len() != 1 {
+            let outs = outs.iter().map(|&wi| wi.to_string(&self.naming)).join(", ");
+            panic!(
+                "{name}: wire {w} has many outs: {outs}",
+                name = self.name,
+                w = w.to_string(&self.naming)
+            );
+        }
+        outs.iter().copied().next().unwrap()
+    }
+
+    fn claim_single_out(&mut self, w: WireName) -> WireName {
+        let out = self.find_single_out(w);
+        self.claim_pip(out, w);
+        out
     }
 
     fn claim_node(&mut self, w: WireName) {
@@ -191,9 +246,35 @@ impl ChipContext<'_> {
         for &wn in &self.unclaimed_nodes {
             let name = self.naming.strings[wn.suffix].as_str();
             for suffix in [
-                "EBR", "IOLOGIC", "PIO", "DQS", "DQSDLL", "JTAG", "OSC", "GSR", "START", "SPIM",
-                "SED", "WAKEUP", "SSPICIB", "STF", "PLL", "PLL3", "DLL", "DLLDEL", "CLKDIV",
-                "SPLL", "PCS",
+                "EBR",
+                "IOLOGIC",
+                "PIO",
+                "DQS",
+                "SDQS",
+                "DQSTEST",
+                "DQSDLL",
+                "DQSDLLTEST",
+                "JTAG",
+                "OSC",
+                "GSR",
+                "START",
+                "SPIM",
+                "SED",
+                "WAKEUP",
+                "SSPICIB",
+                "STF",
+                "AMBOOT",
+                "PERREG",
+                "TESTIN",
+                "TESTOUT",
+                "DTS",
+                "PLL",
+                "PLL3",
+                "DLL",
+                "DLLDEL",
+                "CLKDIV",
+                "SPLL",
+                "PCS",
             ] {
                 if let Some(n) = name.strip_suffix(suffix)
                     && let Some(n) = n.strip_suffix('_')
@@ -224,10 +305,9 @@ impl ChipContext<'_> {
 
     fn extract_simple_bel(&mut self, bcrd: BelCoord, cell: CellCoord, suffix: &'static str) -> Bel {
         let wires = self.sorted_wires[&(cell, suffix)].clone();
-        let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
         let mut bel = Bel::default();
         for (pin, wire) in wires {
-            let Some(bpin) = self.xlat_int_wire(tcrd, wire) else {
+            let Some(bpin) = self.try_xlat_int_wire(bcrd, wire) else {
                 continue;
             };
             self.add_bel_wire(bcrd, &pin, wire);
@@ -353,6 +433,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "ecp2" => ChipKind::Ecp2,
         "ecp2m" => ChipKind::Ecp2M,
         "xp2" => ChipKind::Xp2,
+        "ecp3" => ChipKind::Ecp3,
         _ => panic!("unknown family {}", rawdb.family),
     };
     let mut int = init_intdb(kind);
@@ -415,6 +496,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .flat_map(|bnaming| bnaming.names.iter())
                     .map(|&x| naming.strings[x].clone()),
             );
+            let has_jtag_pin_bels = matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A);
             for (pin, &pad) in &bres.bond.pins {
                 match pad {
                     BondPad::Io(io) => {
@@ -459,6 +541,22 @@ fn main() -> Result<(), Box<dyn Error>> {
                         };
                         let name = &naming.strings[bnaming.names[idx]];
                         assert!(expected_sites.remove(name));
+                        expected_sites.insert(pin.clone());
+                    }
+                    BondPad::Cfg(CfgPad::Tck) if has_jtag_pin_bels => {
+                        assert!(expected_sites.remove("TCK"));
+                        expected_sites.insert(pin.clone());
+                    }
+                    BondPad::Cfg(CfgPad::Tms) if has_jtag_pin_bels => {
+                        assert!(expected_sites.remove("TMS"));
+                        expected_sites.insert(pin.clone());
+                    }
+                    BondPad::Cfg(CfgPad::Tdi) if has_jtag_pin_bels => {
+                        assert!(expected_sites.remove("TDI"));
+                        expected_sites.insert(pin.clone());
+                    }
+                    BondPad::Cfg(CfgPad::Tdo) if has_jtag_pin_bels => {
+                        assert!(expected_sites.remove("TDO"));
                         expected_sites.insert(pin.clone());
                     }
                     _ => (),

@@ -9,7 +9,7 @@
 {{tile xp2 ECLK_TAP}}
 {{tile xp2 HSDCLK_ROOT}}
 {{tile xp2 HSDCLK_SPLITTER}}
-{{tile xp2 SCLK0_ROOT}}
-{{tile xp2 SCLK1_ROOT}}
-{{tile xp2 SCLK2_ROOT}}
-{{tile xp2 SCLK3_ROOT}}
+{{tile xp2 SCLK0_SOURCE}}
+{{tile xp2 SCLK1_SOURCE}}
+{{tile xp2 SCLK2_SOURCE}}
+{{tile xp2 SCLK3_SOURCE}}

@@ -9,14 +9,14 @@ use prjcombine_interconnect::{
 use prjcombine_types::db::{BondId, ChipId};
 use unnamed_entity::{
     EntitySet, EntityVec,
-    id::{EntityIdU16, EntityTag},
+    id::{EntityIdU32, EntityTag},
 };
 
 pub struct StringTag;
 
 impl EntityTag for StringTag {}
 
-pub type StringId = EntityIdU16<StringTag>;
+pub type StringId = EntityIdU32<StringTag>;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Encode, Decode)]
 pub struct WireName {

@@ -7,14 +7,17 @@ use prjcombine_interconnect::{
 
 use crate::{bels, chip::Chip};
 
-pub const REGION_PCLK: RegionSlotId = RegionSlotId::from_idx_const(0);
-pub const REGION_SCLK0: RegionSlotId = RegionSlotId::from_idx_const(1);
-pub const REGION_SCLK1: RegionSlotId = RegionSlotId::from_idx_const(2);
-pub const REGION_SCLK2: RegionSlotId = RegionSlotId::from_idx_const(3);
-pub const REGION_SCLK3: RegionSlotId = RegionSlotId::from_idx_const(4);
+pub const REGION_PCLK0: RegionSlotId = RegionSlotId::from_idx_const(0);
+pub const REGION_PCLK1: RegionSlotId = RegionSlotId::from_idx_const(1);
+pub const REGION_PCLK2: RegionSlotId = RegionSlotId::from_idx_const(2);
+pub const REGION_PCLK3: RegionSlotId = RegionSlotId::from_idx_const(3);
+pub const REGION_PCLK: [RegionSlotId; 4] = [REGION_PCLK0, REGION_PCLK1, REGION_PCLK2, REGION_PCLK3];
+pub const REGION_SCLK0: RegionSlotId = RegionSlotId::from_idx_const(4);
+pub const REGION_SCLK1: RegionSlotId = RegionSlotId::from_idx_const(5);
+pub const REGION_SCLK2: RegionSlotId = RegionSlotId::from_idx_const(6);
+pub const REGION_SCLK3: RegionSlotId = RegionSlotId::from_idx_const(7);
 pub const REGION_SCLK: [RegionSlotId; 4] = [REGION_SCLK0, REGION_SCLK1, REGION_SCLK2, REGION_SCLK3];
-pub const REGION_HSDCLK: RegionSlotId = RegionSlotId::from_idx_const(5);
-pub const REGION_VSDCLK: RegionSlotId = RegionSlotId::from_idx_const(6);
+pub const REGION_VSDCLK: RegionSlotId = RegionSlotId::from_idx_const(8);
 
 pub struct ExpandedDevice<'a> {
     pub chip: &'a Chip,

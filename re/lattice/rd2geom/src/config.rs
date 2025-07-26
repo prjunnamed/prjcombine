@@ -2,8 +2,12 @@ use prjcombine_ecp::{
     bels,
     chip::{ChipKind, SpecialIoKey, SpecialLocKey},
 };
-use prjcombine_interconnect::dir::DirH;
+use prjcombine_interconnect::{
+    dir::{DirH, DirV},
+    grid::{CellCoord, DieId},
+};
 use prjcombine_re_lattice_naming::WireName;
+use unnamed_entity::EntityId;
 
 use crate::ChipContext;
 
@@ -212,6 +216,80 @@ impl ChipContext<'_> {
         }
     }
 
+    fn process_config_ecp3(&mut self) {
+        let cell = self.chip.special_loc[&SpecialLocKey::Config];
+
+        let bcrd = cell.bel(bels::JTAG);
+        self.name_bel(bcrd, ["JTAG", "TCK", "TMS", "TDI", "TDO"]);
+        self.insert_simple_bel(bcrd, cell.delta(3, 0), "JTAG");
+        for pin in ["TCK", "TMS", "TDI", "TDO"] {
+            let wire = self.rc_wire(cell.delta(3, 0), &format!("J{pin}_JTAG"));
+            let wire_pin = WireName {
+                r: 0,
+                c: 0,
+                suffix: self.naming.strings.get(&format!("J{pin}_{pin}")).unwrap(),
+            };
+            self.add_bel_wire(bcrd, pin, wire);
+            self.add_bel_wire(bcrd, format!("{pin}_{pin}"), wire_pin);
+            // lmao yes they reversed this
+            if pin == "TDO" {
+                self.claim_pip(wire, wire_pin);
+            } else {
+                self.claim_pip(wire_pin, wire);
+            }
+        }
+
+        let bcrd = cell.bel(bels::START);
+        self.name_bel(bcrd, ["START"]);
+        self.insert_simple_bel(bcrd, cell.delta(3, 0), "START");
+
+        let bcrd = cell.bel(bels::OSC);
+        self.name_bel(bcrd, ["OSC"]);
+        self.insert_simple_bel(bcrd, cell.delta(3, 0), "OSC");
+
+        let bcrd = cell.bel(bels::GSR);
+        self.name_bel(bcrd, ["GSR"]);
+        self.insert_simple_bel(bcrd, cell.delta(3, 0), "GSR");
+
+        let bcrd = cell.bel(bels::SED);
+        self.name_bel(bcrd, ["SED"]);
+        self.insert_simple_bel(bcrd, cell.delta(4, 0), "SED");
+
+        let bcrd = cell.bel(bels::AMBOOT);
+        self.name_bel(bcrd, ["AMBOOT"]);
+        self.insert_simple_bel(bcrd, cell.delta(4, 0), "AMBOOT");
+
+        let bcrd = cell.bel(bels::PERREG);
+        self.name_bel(bcrd, ["PERREG"]);
+        self.insert_simple_bel(bcrd, cell.delta(5, 0), "PERREG");
+
+        for h in [DirH::W, DirH::E] {
+            let col = self.chip.col_edge(h);
+            for v in [DirV::S, DirV::N] {
+                let lr = match h {
+                    DirH::W => 'L',
+                    DirH::E => 'R',
+                };
+                let lu = match v {
+                    DirV::S => 'L',
+                    DirV::N => 'U',
+                };
+                let row = self.chip.row_edge(v);
+                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                for (bel, name) in [(bels::TESTIN, "TESTIN"), (bels::TESTOUT, "TESTOUT")] {
+                    let bcrd = cell.bel(bel);
+                    self.name_bel(bcrd, [format!("{lu}{lr}{name}")]);
+                    self.insert_simple_bel(bcrd, bcrd.cell, name);
+                }
+                if h == DirH::E && v == DirV::S {
+                    let bcrd = cell.bel(bels::DTS);
+                    self.name_bel(bcrd, ["DTS"]);
+                    self.insert_simple_bel(bcrd, bcrd.cell, "DTS");
+                }
+            }
+        }
+    }
+
     pub fn process_config(&mut self) {
         match self.chip.kind {
             ChipKind::Ecp | ChipKind::Xp => {
@@ -226,6 +304,9 @@ impl ChipContext<'_> {
             }
             ChipKind::Xp2 => {
                 self.process_config_xp2();
+            }
+            ChipKind::Ecp3 | ChipKind::Ecp3A => {
+                self.process_config_ecp3();
             }
         }
     }

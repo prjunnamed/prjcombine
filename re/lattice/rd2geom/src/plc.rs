@@ -220,6 +220,7 @@ impl ChipContext<'_> {
     }
 
     fn process_plc_ecp2(&mut self) {
+        let is_ecp3 = matches!(self.chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A);
         for tcname in ["PLC", "FPLC"] {
             let tcid = self.intdb.get_tile_class(tcname);
             for &tcrd in &self.edev.egrid.tile_index[tcid] {
@@ -284,7 +285,8 @@ impl ChipContext<'_> {
                     self.add_bel_wire(slices[i], "OFX1", ofx1_slice);
                     self.claim_pip_int_out(ofx0_int, ofx0_slice);
                     self.claim_pip_int_out(ofx1_int, ofx1_slice);
-                    if i == 2 && self.edev.egrid.has_bel(cell.delta(-1, 0).bel(bels::INT)) {
+                    let out_idx = if is_ecp3 { 1 } else { 2 };
+                    if i == out_idx && self.edev.egrid.has_bel(cell.delta(-1, 0).bel(bels::INT)) {
                         let fx_out = self.rc_wire(cell, "HL7W0001");
                         self.claim_pip_int_in(fx_out, ofx1_int);
                     }
@@ -301,19 +303,35 @@ impl ChipContext<'_> {
                     self.claim_pip(fxa_slice, fxa);
                     self.claim_pip(fxb_slice, fxb);
 
-                    let (ia, ib) = [(5, 5), (2, 0), (7, 3), (6, 4)][i];
-                    if i == 0 {
-                        let cell_src = cell.delta(1, 0);
-                        if self.edev.egrid.has_bel(cell_src.bel(bels::INT)) {
-                            let fx_out = self.rc_wire(cell_src, "HL7W0001");
-                            self.claim_pip(fxa, fx_out);
+                    if is_ecp3 {
+                        let (ia, ib) = [(2, 0), (5, 1), (6, 4), (3, 3)][i];
+                        if i == 3 {
+                            let cell_src = cell.delta(1, 0);
+                            if self.edev.egrid.has_bel(cell_src.bel(bels::INT)) {
+                                let fx_out = self.rc_wire(cell_src, "HL7W0001");
+                                self.claim_pip(fxa, fx_out);
+                            }
+                        } else {
+                            let fxa_int = cell.wire(self.intdb.get_wire(&format!("OUT_OFX{ia}")));
+                            self.claim_pip_int_in(fxa, fxa_int);
                         }
+                        let fxb_int = cell.wire(self.intdb.get_wire(&format!("OUT_OFX{ib}")));
+                        self.claim_pip_int_in(fxb, fxb_int);
                     } else {
-                        let fxa_int = cell.wire(self.intdb.get_wire(&format!("OUT_OFX{ia}")));
-                        self.claim_pip_int_in(fxa, fxa_int);
+                        let (ia, ib) = [(5, 5), (2, 0), (7, 3), (6, 4)][i];
+                        if i == 0 {
+                            let cell_src = cell.delta(1, 0);
+                            if self.edev.egrid.has_bel(cell_src.bel(bels::INT)) {
+                                let fx_out = self.rc_wire(cell_src, "HL7W0001");
+                                self.claim_pip(fxa, fx_out);
+                            }
+                        } else {
+                            let fxa_int = cell.wire(self.intdb.get_wire(&format!("OUT_OFX{ia}")));
+                            self.claim_pip_int_in(fxa, fxa_int);
+                        }
+                        let fxb_int = cell.wire(self.intdb.get_wire(&format!("OUT_OFX{ib}")));
+                        self.claim_pip_int_in(fxb, fxb_int);
                     }
-                    let fxb_int = cell.wire(self.intdb.get_wire(&format!("OUT_OFX{ib}")));
-                    self.claim_pip_int_in(fxb, fxb_int);
 
                     // DI
                     let di0 = self.rc_wire(cell, &format!("DI{ii}", ii = 2 * i));
@@ -406,37 +424,72 @@ impl ChipContext<'_> {
                     ] {
                         self.add_bel_wire(slices[i], pin, self.rc_wire(cell, wire));
                     }
-                    for (wt, wf) in [
-                        ("WCK", "WCKOB_SLICE"),
-                        ("WCKA_SLICE", "WCK"),
-                        ("WCKC_SLICE", "WCK"),
-                        ("WRE", "WREOB_SLICE"),
-                        ("WREA_SLICE", "WRE"),
-                        ("WREC_SLICE", "WRE"),
-                        ("WD0", "WDO0B_SLICE"),
-                        ("WD1", "WDO1B_SLICE"),
-                        ("WD2", "WDO2B_SLICE"),
-                        ("WD3", "WDO3B_SLICE"),
-                        ("WD0A_SLICE", "WD0"),
-                        ("WD1A_SLICE", "WD1"),
-                        ("WD0C_SLICE", "WD2"),
-                        ("WD1C_SLICE", "WD3"),
-                        ("WAD0", "WADO0B_SLICE"),
-                        ("WAD1", "WADO1B_SLICE"),
-                        ("WAD2", "WADO2B_SLICE"),
-                        ("WAD3", "WADO3B_SLICE"),
-                        ("WAD0A_SLICE", "WAD0"),
-                        ("WAD1A_SLICE", "WAD1"),
-                        ("WAD2A_SLICE", "WAD2"),
-                        ("WAD3A_SLICE", "WAD3"),
-                        ("WAD0C_SLICE", "WAD0"),
-                        ("WAD1C_SLICE", "WAD1"),
-                        ("WAD2C_SLICE", "WAD2"),
-                        ("WAD3C_SLICE", "WAD3"),
-                    ] {
-                        let wt = self.rc_wire(cell, wt);
-                        let wf = self.rc_wire(cell, wf);
-                        self.claim_pip(wt, wf);
+                    if is_ecp3 {
+                        for (wt, wf) in [
+                            ("WCK", "WCKOC_SLICE"),
+                            ("WCKA_SLICE", "WCK"),
+                            ("WCKB_SLICE", "WCK"),
+                            ("WRE", "WREOC_SLICE"),
+                            ("WREA_SLICE", "WRE"),
+                            ("WREB_SLICE", "WRE"),
+                            ("WD0", "WDO0C_SLICE"),
+                            ("WD1", "WDO1C_SLICE"),
+                            ("WD2", "WDO2C_SLICE"),
+                            ("WD3", "WDO3C_SLICE"),
+                            ("WD0A_SLICE", "WD0"),
+                            ("WD1A_SLICE", "WD1"),
+                            ("WD0B_SLICE", "WD2"),
+                            ("WD1B_SLICE", "WD3"),
+                            ("WAD0", "WADO0C_SLICE"),
+                            ("WAD1", "WADO1C_SLICE"),
+                            ("WAD2", "WADO2C_SLICE"),
+                            ("WAD3", "WADO3C_SLICE"),
+                            ("WAD0A_SLICE", "WAD0"),
+                            ("WAD1A_SLICE", "WAD1"),
+                            ("WAD2A_SLICE", "WAD2"),
+                            ("WAD3A_SLICE", "WAD3"),
+                            ("WAD0B_SLICE", "WAD0"),
+                            ("WAD1B_SLICE", "WAD1"),
+                            ("WAD2B_SLICE", "WAD2"),
+                            ("WAD3B_SLICE", "WAD3"),
+                        ] {
+                            let wt = self.rc_wire(cell, wt);
+                            let wf = self.rc_wire(cell, wf);
+                            self.claim_pip(wt, wf);
+                        }
+                    } else {
+                        for (wt, wf) in [
+                            ("WCK", "WCKOB_SLICE"),
+                            ("WCKA_SLICE", "WCK"),
+                            ("WCKC_SLICE", "WCK"),
+                            ("WRE", "WREOB_SLICE"),
+                            ("WREA_SLICE", "WRE"),
+                            ("WREC_SLICE", "WRE"),
+                            ("WD0", "WDO0B_SLICE"),
+                            ("WD1", "WDO1B_SLICE"),
+                            ("WD2", "WDO2B_SLICE"),
+                            ("WD3", "WDO3B_SLICE"),
+                            ("WD0A_SLICE", "WD0"),
+                            ("WD1A_SLICE", "WD1"),
+                            ("WD0C_SLICE", "WD2"),
+                            ("WD1C_SLICE", "WD3"),
+                            ("WAD0", "WADO0B_SLICE"),
+                            ("WAD1", "WADO1B_SLICE"),
+                            ("WAD2", "WADO2B_SLICE"),
+                            ("WAD3", "WADO3B_SLICE"),
+                            ("WAD0A_SLICE", "WAD0"),
+                            ("WAD1A_SLICE", "WAD1"),
+                            ("WAD2A_SLICE", "WAD2"),
+                            ("WAD3A_SLICE", "WAD3"),
+                            ("WAD0C_SLICE", "WAD0"),
+                            ("WAD1C_SLICE", "WAD1"),
+                            ("WAD2C_SLICE", "WAD2"),
+                            ("WAD3C_SLICE", "WAD3"),
+                        ] {
+                            let wt = self.rc_wire(cell, wt);
+                            let wf = self.rc_wire(cell, wf);
+                            self.claim_pip(wt, wf);
+                        }
                     }
                 }
             }
@@ -446,7 +499,9 @@ impl ChipContext<'_> {
     pub fn process_plc(&mut self) {
         match self.chip.kind {
             ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo => self.process_plc_ecp(),
-            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => self.process_plc_ecp2(),
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 | ChipKind::Ecp3 | ChipKind::Ecp3A => {
+                self.process_plc_ecp2()
+            }
         }
     }
 }

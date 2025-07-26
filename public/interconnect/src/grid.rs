@@ -854,6 +854,16 @@ impl ExpandedGrid<'_> {
         self.add_tile(cell, kind, &cell.cells_n(num))
     }
 
+    pub fn add_tile_we(
+        &mut self,
+        cell: CellCoord,
+        kind: &str,
+        num_w: usize,
+        num: usize,
+    ) -> &mut Tile {
+        self.add_tile(cell, kind, &cell.delta(-(num_w as i32), 0).cells_e(num))
+    }
+
     pub fn add_tile_sn(
         &mut self,
         cell: CellCoord,
