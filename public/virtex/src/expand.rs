@@ -8,7 +8,8 @@ use std::collections::{BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind, DisabledPart};
-use crate::expanded::{ExpandedDevice, REGION_GLOBAL, REGION_LEAF};
+use crate::expanded::ExpandedDevice;
+use crate::regions;
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
@@ -214,7 +215,7 @@ impl Expander<'_, '_> {
 
     fn fill_clk(&mut self) {
         for cell in self.egrid.die_cells(self.die) {
-            self.egrid[cell].region_root[REGION_GLOBAL] =
+            self.egrid[cell].region_root[regions::GLOBAL] =
                 CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0));
         }
         for &(col_m, col_l, col_r) in &self.chip.cols_clkv {
@@ -230,7 +231,7 @@ impl Expander<'_, '_> {
                     } else {
                         CellCoord::new(self.die, col_m, self.chip.row_clk())
                     };
-                    self.egrid[cell].region_root[REGION_LEAF] = cell_clk;
+                    self.egrid[cell].region_root[regions::LEAF] = cell_clk;
                 }
             }
             if is_bram {

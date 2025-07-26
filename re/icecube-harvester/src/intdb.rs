@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorSlot,
-        ConnectorSlotId, ConnectorWire, IntDb, TileClass, TileSlotId, TileWireCoord, WireKind,
+        Bel, BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorWire, IntDb,
+        TileClass, TileSlotId, TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{CellCoord, EdgeIoCoord},
@@ -11,8 +11,7 @@ use prjcombine_interconnect::{
 use prjcombine_siliconblue::{
     bels,
     chip::{Chip, ChipKind, ExtraNode, ExtraNodeIo},
-    expanded::{REGION_COLBUF, REGION_GLOBAL},
-    tslots,
+    cslots, regions, tslots,
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -39,47 +38,13 @@ fn add_output(db: &IntDb, bel: &mut Bel, name: &str, cell: usize, wires: &[&str]
 }
 
 pub fn make_intdb(kind: ChipKind) -> IntDb {
-    let mut db = IntDb::default();
-
-    assert_eq!(db.region_slots.insert("GLOBAL".into()).0, REGION_GLOBAL);
-    assert_eq!(db.region_slots.insert("COLBUF".into()).0, REGION_COLBUF);
-
-    db.init_slots(tslots::SLOTS, bels::SLOTS);
-
-    let slot_w = db
-        .conn_slots
-        .insert(
-            "W".into(),
-            ConnectorSlot {
-                opposite: ConnectorSlotId::from_idx(0),
-            },
-        )
-        .0;
-    let slot_e = db
-        .conn_slots
-        .insert("E".into(), ConnectorSlot { opposite: slot_w })
-        .0;
-    let slot_s = db
-        .conn_slots
-        .insert(
-            "S".into(),
-            ConnectorSlot {
-                opposite: ConnectorSlotId::from_idx(0),
-            },
-        )
-        .0;
-    let slot_n = db
-        .conn_slots
-        .insert("N".into(), ConnectorSlot { opposite: slot_s })
-        .0;
-    db.conn_slots[slot_w].opposite = slot_e;
-    db.conn_slots[slot_s].opposite = slot_n;
+    let mut db = IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS);
 
     let term_slots = DirMap::from_fn(|dir| match dir {
-        Dir::W => slot_w,
-        Dir::E => slot_e,
-        Dir::S => slot_s,
-        Dir::N => slot_n,
+        Dir::W => cslots::W,
+        Dir::E => cslots::E,
+        Dir::S => cslots::S,
+        Dir::N => cslots::N,
     });
 
     let mut passes = DirMap::from_fn(|dir| ConnectorClass {
@@ -89,7 +54,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
 
     for i in 0..8 {
         db.wires
-            .insert(format!("GLOBAL.{i}"), WireKind::Regional(REGION_GLOBAL));
+            .insert(format!("GLOBAL.{i}"), WireKind::Regional(regions::GLOBAL));
     }
 
     for i in 0..4 {
@@ -104,7 +69,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         for j in 1..5 {
             let ww = db
                 .wires
-                .insert(format!("QUAD.H{i}.{j}"), WireKind::MultiBranch(slot_w))
+                .insert(format!("QUAD.H{i}.{j}"), WireKind::MultiBranch(cslots::W))
                 .0;
             passes[Dir::W].wires.insert(ww, ConnectorWire::Pass(w));
             w = ww;
@@ -119,13 +84,13 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         for j in 1..5 {
             let ww = db
                 .wires
-                .insert(format!("QUAD.V{i}.{j}"), WireKind::MultiBranch(slot_s))
+                .insert(format!("QUAD.V{i}.{j}"), WireKind::MultiBranch(cslots::S))
                 .0;
             passes[Dir::S].wires.insert(ww, ConnectorWire::Pass(w));
             w = ww;
             let ww = db
                 .wires
-                .insert(format!("QUAD.V{i}.{j}.W"), WireKind::MultiBranch(slot_e))
+                .insert(format!("QUAD.V{i}.{j}.W"), WireKind::MultiBranch(cslots::E))
                 .0;
             passes[Dir::E].wires.insert(ww, ConnectorWire::Pass(w));
         }
@@ -139,7 +104,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         for j in 1..13 {
             let ww = db
                 .wires
-                .insert(format!("LONG.H{i}.{j}"), WireKind::MultiBranch(slot_w))
+                .insert(format!("LONG.H{i}.{j}"), WireKind::MultiBranch(cslots::W))
                 .0;
             passes[Dir::W].wires.insert(ww, ConnectorWire::Pass(w));
             w = ww;
@@ -153,7 +118,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         for j in 1..13 {
             let ww = db
                 .wires
-                .insert(format!("LONG.V{i}.{j}"), WireKind::MultiBranch(slot_s))
+                .insert(format!("LONG.V{i}.{j}"), WireKind::MultiBranch(cslots::S))
                 .0;
             passes[Dir::S].wires.insert(ww, ConnectorWire::Pass(w));
             w = ww;

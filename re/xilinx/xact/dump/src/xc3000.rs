@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId,
-        ConnectorWire, IntDb, PinDir, TileClass, TileWireCoord, WireKind,
+        Bel, BelInfo, BelPin, CellSlotId, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
+        TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{CellCoord, DieId, EdgeIoCoord},
@@ -15,11 +15,11 @@ use prjcombine_xc2000::{
     bels::xc2000 as bels,
     bond::{Bond, BondPad, CfgPad},
     chip::SharedCfgPad,
-    tslots,
+    regions, tslots,
 };
 use prjcombine_xc2000::{
     chip::{Chip, ChipKind},
-    expanded::REGION_GLOBAL,
+    cslots,
 };
 use unnamed_entity::EntityId;
 
@@ -49,46 +49,13 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
 }
 
 pub fn make_intdb() -> IntDb {
-    let mut db = IntDb::default();
-
-    assert_eq!(db.region_slots.insert("GLOBAL".into()).0, REGION_GLOBAL);
-
-    db.init_slots(tslots::SLOTS, bels::SLOTS);
-
-    let slot_w = db
-        .conn_slots
-        .insert(
-            "W".into(),
-            ConnectorSlot {
-                opposite: ConnectorSlotId::from_idx(0),
-            },
-        )
-        .0;
-    let slot_e = db
-        .conn_slots
-        .insert("E".into(), ConnectorSlot { opposite: slot_w })
-        .0;
-    let slot_s = db
-        .conn_slots
-        .insert(
-            "S".into(),
-            ConnectorSlot {
-                opposite: ConnectorSlotId::from_idx(0),
-            },
-        )
-        .0;
-    let slot_n = db
-        .conn_slots
-        .insert("N".into(), ConnectorSlot { opposite: slot_s })
-        .0;
-    db.conn_slots[slot_w].opposite = slot_e;
-    db.conn_slots[slot_s].opposite = slot_n;
+    let mut db = IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS);
 
     let term_slots = DirMap::from_fn(|dir| match dir {
-        Dir::W => slot_w,
-        Dir::E => slot_e,
-        Dir::S => slot_s,
-        Dir::N => slot_n,
+        Dir::W => cslots::W,
+        Dir::E => cslots::E,
+        Dir::S => cslots::S,
+        Dir::N => cslots::N,
     });
 
     let mut main_terms = DirMap::from_fn(|dir| ConnectorClass {
@@ -116,7 +83,7 @@ pub fn make_intdb() -> IntDb {
         let w0 = db.wires.insert(name.into(), WireKind::MultiOut).0;
         let w1 = db
             .wires
-            .insert(format!("{name}.E"), WireKind::MultiBranch(slot_w))
+            .insert(format!("{name}.E"), WireKind::MultiBranch(cslots::W))
             .0;
         main_terms[Dir::W].wires.insert(w1, ConnectorWire::Pass(w0));
         if stub {
@@ -144,7 +111,7 @@ pub fn make_intdb() -> IntDb {
         let w0 = db.wires.insert(name.into(), WireKind::MultiOut).0;
         let w1 = db
             .wires
-            .insert(format!("{name}.S"), WireKind::MultiBranch(slot_n))
+            .insert(format!("{name}.S"), WireKind::MultiBranch(cslots::N))
             .0;
         main_terms[Dir::N].wires.insert(w1, ConnectorWire::Pass(w0));
         if stub {
@@ -164,7 +131,7 @@ pub fn make_intdb() -> IntDb {
     ] {
         let w = db
             .wires
-            .insert(name.into(), WireKind::MultiBranch(slot_w))
+            .insert(name.into(), WireKind::MultiBranch(cslots::W))
             .0;
         main_terms[Dir::W].wires.insert(w, ConnectorWire::Pass(w));
     }
@@ -180,7 +147,7 @@ pub fn make_intdb() -> IntDb {
     ] {
         let w = db
             .wires
-            .insert(name.into(), WireKind::MultiBranch(slot_s))
+            .insert(name.into(), WireKind::MultiBranch(cslots::S))
             .0;
         main_terms[Dir::S].wires.insert(w, ConnectorWire::Pass(w));
     }
@@ -190,7 +157,7 @@ pub fn make_intdb() -> IntDb {
         "IOCLK.R0", "IOCLK.R1",
     ] {
         db.wires
-            .insert(name.into(), WireKind::Regional(REGION_GLOBAL));
+            .insert(name.into(), WireKind::Regional(regions::GLOBAL));
     }
 
     for name in [
@@ -283,7 +250,7 @@ pub fn make_intdb() -> IntDb {
             if name == "OUT.CLB.X" && dir == Dir::E {
                 let wos = db
                     .wires
-                    .insert(format!("{name}.{dir}S"), WireKind::Branch(slot_n))
+                    .insert(format!("{name}.{dir}S"), WireKind::Branch(cslots::N))
                     .0;
                 main_terms[Dir::N]
                     .wires

@@ -9,7 +9,8 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::{
     chip::{Chip, ChipKind},
-    expanded::{ExpandedDevice, REGION_GLOBAL},
+    expanded::ExpandedDevice,
+    regions,
 };
 
 impl Chip {
@@ -168,7 +169,7 @@ impl Chip {
                     }
                 }
                 for cell in egrid.die_cells(die) {
-                    egrid[cell].region_root[REGION_GLOBAL] =
+                    egrid[cell].region_root[regions::GLOBAL] =
                         CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0));
                 }
                 egrid.fill_main_passes(die);
@@ -316,7 +317,7 @@ impl Chip {
                     }
                 }
                 for cell in egrid.die_cells(die) {
-                    egrid[cell].region_root[REGION_GLOBAL] =
+                    egrid[cell].region_root[regions::GLOBAL] =
                         CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0));
                 }
                 egrid.fill_main_passes(die);

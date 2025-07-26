@@ -4,9 +4,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map};
 
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, BelSlotId, BiPass, Buf, CellSlotId, ConnectorClass, ConnectorSlot,
-        ConnectorSlotId, ConnectorWire, IntDb, IntfInfo, Mux, Pass, PinDir, ProgDelay, SwitchBox,
-        SwitchBoxItem, TileClass, TileClassId, TileSlotId, TileWireCoord, WireId, WireKind,
+        Bel, BelInfo, BelPin, BelSlotId, BiPass, Buf, CellSlotId, ConnectorClass, ConnectorSlotId,
+        ConnectorWire, IntDb, IntfInfo, Mux, Pass, PinDir, ProgDelay, SwitchBox, SwitchBoxItem,
+        TileClass, TileClassId, TileSlotId, TileWireCoord, WireId, WireKind,
     },
     dir::{Dir, DirMap},
 };
@@ -1310,43 +1310,12 @@ pub struct IntBuilder<'a> {
 }
 
 impl<'a> IntBuilder<'a> {
-    pub fn new(rd: &'a Part) -> Self {
-        let mut db = IntDb::default();
-
-        let slot_w = db
-            .conn_slots
-            .insert(
-                "W".into(),
-                ConnectorSlot {
-                    opposite: ConnectorSlotId::from_idx(0),
-                },
-            )
-            .0;
-        let slot_e = db
-            .conn_slots
-            .insert("E".into(), ConnectorSlot { opposite: slot_w })
-            .0;
-        let slot_s = db
-            .conn_slots
-            .insert(
-                "S".into(),
-                ConnectorSlot {
-                    opposite: ConnectorSlotId::from_idx(0),
-                },
-            )
-            .0;
-        let slot_n = db
-            .conn_slots
-            .insert("N".into(), ConnectorSlot { opposite: slot_s })
-            .0;
-        db.conn_slots[slot_w].opposite = slot_e;
-        db.conn_slots[slot_s].opposite = slot_n;
-
+    pub fn new(rd: &'a Part, db: IntDb) -> Self {
         let term_slots = DirMap::from_fn(|dir| match dir {
-            Dir::W => slot_w,
-            Dir::E => slot_e,
-            Dir::S => slot_s,
-            Dir::N => slot_n,
+            Dir::W => db.get_conn_slot("W"),
+            Dir::E => db.get_conn_slot("E"),
+            Dir::S => db.get_conn_slot("S"),
+            Dir::N => db.get_conn_slot("N"),
         });
 
         let ndb = NamingDb::default();

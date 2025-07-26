@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_naming::db::{NamingDb, TileClassNamingId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
-use prjcombine_xc2000::{bels::xc4000 as bels, tslots};
+use prjcombine_xc2000::{bels::xc4000 as bels, cslots, regions, tslots};
 use unnamed_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, PipMode};
@@ -2614,9 +2614,10 @@ fn extract_clkq(builder: &mut IntBuilder) {
 }
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
-    let mut builder = IntBuilder::new(rd);
-
-    builder.db.init_slots(tslots::SLOTS, bels::SLOTS);
+    let mut builder = IntBuilder::new(
+        rd,
+        IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS),
+    );
 
     let mut cnr_terms = CnrTerms {
         term_ll_w: vec![],

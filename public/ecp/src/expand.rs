@@ -10,8 +10,8 @@ use unnamed_entity::{EntityId, EntityVec};
 use crate::{
     bels,
     chip::{Chip, ChipKind, IoGroupKind, PllLoc, RowKind, SpecialLocKey},
-    expanded::{ExpandedDevice, REGION_PCLK, REGION_PCLK0, REGION_SCLK, REGION_VSDCLK},
-    tslots,
+    expanded::ExpandedDevice,
+    regions, tslots,
 };
 
 struct Expander<'a, 'b> {
@@ -715,7 +715,7 @@ impl Expander<'_, '_> {
             } else {
                 self.chip.row_n()
             };
-            self.egrid[cell].region_root[REGION_PCLK0] =
+            self.egrid[cell].region_root[regions::PCLK0] =
                 CellCoord::new(self.die, col_pclk, row_pclk);
         }
 
@@ -814,7 +814,7 @@ impl Expander<'_, '_> {
             } else {
                 self.chip.row_n()
             };
-            self.egrid[cell].region_root[REGION_PCLK0] = cell.with_cr(col_pclk, row_pclk);
+            self.egrid[cell].region_root[regions::PCLK0] = cell.with_cr(col_pclk, row_pclk);
         }
 
         let mut rows_sclk = EntityVec::new();
@@ -845,7 +845,7 @@ impl Expander<'_, '_> {
                     cell.delta(dx_alt, 0)
                 };
                 let cell_src = cell_src.with_row(rows_sclk[cell.row]);
-                self.egrid[cell].region_root[REGION_SCLK[i]] = cell_src;
+                self.egrid[cell].region_root[regions::SCLK[i]] = cell_src;
                 if cell == cell_src {
                     let mut cell = cell;
                     if !self.egrid.has_bel(cell.bel(bels::INT)) {
@@ -930,7 +930,7 @@ impl Expander<'_, '_> {
                 if self.chip.rows[cell.row].sclk_break {
                     root = cell;
                 }
-                self.egrid[cell].region_root[REGION_VSDCLK] = root;
+                self.egrid[cell].region_root[regions::VSDCLK] = root;
             }
         }
 
@@ -1057,7 +1057,7 @@ impl Expander<'_, '_> {
                     cell
                 };
                 let cell_src_sclk = cell_src.with_row(rows_sclk[cell.row]);
-                self.egrid[cell].region_root[REGION_SCLK[i]] = cell_src_sclk;
+                self.egrid[cell].region_root[regions::SCLK[i]] = cell_src_sclk;
             }
         }
         for (row, rd) in &self.chip.rows {
@@ -1083,7 +1083,7 @@ impl Expander<'_, '_> {
                 if self.chip.rows[cell.row].sclk_break {
                     root = cell;
                 }
-                self.egrid[cell].region_root[REGION_VSDCLK] = root;
+                self.egrid[cell].region_root[regions::VSDCLK] = root;
             }
         }
 
@@ -1108,7 +1108,7 @@ impl Expander<'_, '_> {
                     cell
                 };
                 let cell_src_pclk = cell_src.with_row(rows_pclk[cell.row]);
-                self.egrid[cell].region_root[REGION_PCLK[i]] = cell_src_pclk;
+                self.egrid[cell].region_root[regions::PCLK[i]] = cell_src_pclk;
             }
         }
 
@@ -1323,7 +1323,7 @@ impl Expander<'_, '_> {
 
     fn fill_clk_machxo(&mut self) {
         for cell in self.egrid.die_cells(self.die) {
-            self.egrid[cell].region_root[REGION_PCLK0] =
+            self.egrid[cell].region_root[regions::PCLK0] =
                 CellCoord::new(self.die, self.chip.col_clk, self.chip.row_clk);
         }
         let kind = if self

@@ -7,9 +7,9 @@ use prjcombine_xilinx_bitstream::{
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind, ColumnIoKind, ColumnKind, DcmPairKind};
-use crate::expanded::{ExpandedDevice, REGION_HCLK, REGION_LEAF};
+use crate::expanded::ExpandedDevice;
 use crate::iob::{get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w};
-use crate::tslots;
+use crate::{regions, tslots};
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
@@ -867,16 +867,16 @@ impl Expander<'_, '_> {
                 };
                 for row in row_b.range(row_m) {
                     let cell = CellCoord::new(self.die, col, row);
-                    self.egrid[cell].region_root[REGION_LEAF] =
+                    self.egrid[cell].region_root[regions::LEAF] =
                         CellCoord::new(DieId::from_idx(0), col, row_m - 1);
-                    self.egrid[cell].region_root[REGION_HCLK] =
+                    self.egrid[cell].region_root[regions::HCLK] =
                         CellCoord::new(DieId::from_idx(0), col_q, row_q);
                 }
                 for row in row_m.range(row_t) {
                     let cell = CellCoord::new(self.die, col, row);
-                    self.egrid[cell].region_root[REGION_LEAF] =
+                    self.egrid[cell].region_root[regions::LEAF] =
                         CellCoord::new(DieId::from_idx(0), col, row_m);
-                    self.egrid[cell].region_root[REGION_HCLK] =
+                    self.egrid[cell].region_root[regions::HCLK] =
                         CellCoord::new(DieId::from_idx(0), col_q, row_q);
                 }
                 let kind = if matches!(self.chip.columns[col].kind, ColumnKind::BramCont(_)) {

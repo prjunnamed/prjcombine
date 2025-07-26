@@ -12,8 +12,9 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPad;
 use crate::chip::{Chip, ColumnKind, DisabledPart, GtKind};
-use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord, REGION_HCLK, REGION_LEAF};
+use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord};
 use crate::gtz::GtzDb;
+use crate::regions;
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
@@ -311,8 +312,8 @@ impl Expander<'_, '_> {
             } else {
                 row_hclk
             };
-            self.egrid[cell].region_root[REGION_HCLK] = cell.with_cr(col_hrow, row_hclk);
-            self.egrid[cell].region_root[REGION_LEAF] = cell.with_row(crow);
+            self.egrid[cell].region_root[regions::HCLK] = cell.with_cr(col_hrow, row_hclk);
+            self.egrid[cell].region_root[regions::LEAF] = cell.with_row(crow);
 
             if cell.row.to_idx() % 40 == 20 {
                 let skip_b = self.is_int_hole(cell.delta(0, -1));

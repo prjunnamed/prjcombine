@@ -12,11 +12,9 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPad;
 use crate::chip::{Chip, ColumnKind, DisabledPart, GtKind, Interposer, IoKind, Pcie2Kind};
-use crate::expanded::{
-    DieFrameGeom, ExpandedDevice, ExpandedGtz, IoCoord, REGION_HCLK, REGION_LEAF,
-};
+use crate::expanded::{DieFrameGeom, ExpandedDevice, ExpandedGtz, IoCoord};
 use crate::gtz::{GtzDb, GtzIntColId};
-use crate::tslots;
+use crate::{regions, tslots};
 
 struct DieExpander<'a, 'b, 'c> {
     chip: &'b Chip,
@@ -561,10 +559,10 @@ impl DieExpander<'_, '_, '_> {
             let cell_e = cell.delta(1, 0);
             let cell_hclk = cell.with_cr(col_hrow, row_hclk);
             let cell_leaf = cell.with_row(crow);
-            self.egrid[cell_w].region_root[REGION_HCLK] = cell_hclk;
-            self.egrid[cell_e].region_root[REGION_HCLK] = cell_hclk;
-            self.egrid[cell_w].region_root[REGION_LEAF] = cell_leaf;
-            self.egrid[cell_e].region_root[REGION_LEAF] = cell_leaf;
+            self.egrid[cell_w].region_root[regions::HCLK] = cell_hclk;
+            self.egrid[cell_e].region_root[regions::HCLK] = cell_hclk;
+            self.egrid[cell_w].region_root[regions::LEAF] = cell_leaf;
+            self.egrid[cell_e].region_root[regions::LEAF] = cell_leaf;
 
             if cell.row.to_idx() % 50 == 25 {
                 let hole_bot = self.is_int_hole(cell.delta(0, -1));

@@ -9,8 +9,9 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPad;
 use crate::chip::{CfgRowKind, Chip, ColumnKind, DisabledPart};
-use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord, REGION_HCLK, REGION_LEAF};
+use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord};
 use crate::gtz::GtzDb;
+use crate::regions;
 use bimap::BiHashMap;
 use std::collections::BTreeSet;
 
@@ -350,8 +351,8 @@ impl Expander<'_, '_> {
                 self.col_cfg + 1
             };
             let crow = self.chip.row_hclk(cell.row);
-            self.egrid[cell].region_root[REGION_HCLK] = cell.with_cr(col_hrow, crow);
-            self.egrid[cell].region_root[REGION_LEAF] = cell.with_row(crow);
+            self.egrid[cell].region_root[regions::HCLK] = cell.with_cr(col_hrow, crow);
+            self.egrid[cell].region_root[regions::LEAF] = cell.with_row(crow);
             if cell.row.to_idx() % 16 == 8 {
                 if self.is_int_hole(cell) {
                     continue;

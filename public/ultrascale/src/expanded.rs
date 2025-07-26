@@ -1,6 +1,5 @@
 use bimap::BiHashMap;
 use bincode::{Decode, Encode};
-use prjcombine_interconnect::db::RegionSlotId;
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, TileIobId};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -10,8 +9,6 @@ use crate::chip::{
 };
 
 use crate::bond::SharedCfgPad;
-
-pub const REGION_LEAF: RegionSlotId = RegionSlotId::from_idx_const(0);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ClkSrc {

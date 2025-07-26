@@ -7,7 +7,8 @@ use unnamed_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
 use crate::chip::{
     Chip, CleKind, ColumnKind, DisabledPart, GtRowKind, HardRowKind, Interposer, RightKind,
 };
-use crate::expanded::{ExpandedDevice, REGION_LEAF, SllConns, UbumpId};
+use crate::expanded::{ExpandedDevice, SllConns, UbumpId};
+use crate::regions;
 
 struct DieInfo {
     col_cfrm: ColId,
@@ -595,7 +596,7 @@ impl Expander<'_> {
                 } else {
                     chip.row_reg_hclk(reg) - 1
                 };
-                self.egrid[cell].region_root[REGION_LEAF] = cell.with_row(crow);
+                self.egrid[cell].region_root[regions::LEAF] = cell.with_row(crow);
             }
         }
     }

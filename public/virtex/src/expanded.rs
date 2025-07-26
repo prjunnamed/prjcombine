@@ -1,16 +1,10 @@
 use std::collections::BTreeSet;
 
-use prjcombine_interconnect::{
-    db::RegionSlotId,
-    grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, RowId, TileCoord},
-};
+use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, RowId, TileCoord};
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, DisabledPart};
-
-pub const REGION_GLOBAL: RegionSlotId = RegionSlotId::from_idx_const(0);
-pub const REGION_LEAF: RegionSlotId = RegionSlotId::from_idx_const(1);
 
 #[derive(Copy, Clone, Debug)]
 pub struct Io {

@@ -1,14 +1,10 @@
-use prjcombine_interconnect::{
-    db::RegionSlotId,
-    grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord},
+use prjcombine_interconnect::grid::{
+    CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord,
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind};
-
-pub const REGION_HCLK: RegionSlotId = RegionSlotId::from_idx_const(0);
-pub const REGION_LEAF: RegionSlotId = RegionSlotId::from_idx_const(1);
 
 pub struct ExpandedDevice<'a> {
     pub chip: &'a Chip,

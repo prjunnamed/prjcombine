@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 
 use prjcombine_interconnect::{
     db::{
-        CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire, IntDb,
-        TileWireCoord, WireId, WireKind,
+        CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord, WireId,
+        WireKind,
     },
     dir::{Dir, DirPartMap},
 };
@@ -12,7 +12,7 @@ use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XNodeInfo, XNodeRef};
-use prjcombine_ultrascale::{bels, expanded::REGION_LEAF, tslots};
+use prjcombine_ultrascale::{bels, cslots, regions, tslots};
 use unnamed_entity::{EntityId, EntityPartVec};
 
 trait IntBuilderExt {
@@ -95,27 +95,8 @@ struct IntMaker<'a> {
 
 impl IntMaker<'_> {
     fn fill_term_slots(&mut self) {
-        let slot_lw = self
-            .builder
-            .db
-            .conn_slots
-            .insert(
-                "LW".into(),
-                ConnectorSlot {
-                    opposite: ConnectorSlotId::from_idx(0),
-                },
-            )
-            .0;
-        let slot_le = self
-            .builder
-            .db
-            .conn_slots
-            .insert("LE".into(), ConnectorSlot { opposite: slot_lw })
-            .0;
-        self.builder.db.conn_slots[slot_lw].opposite = slot_le;
-
-        self.long_term_slots.insert(Dir::W, slot_lw);
-        self.long_term_slots.insert(Dir::E, slot_le);
+        self.long_term_slots.insert(Dir::W, cslots::LW);
+        self.long_term_slots.insert(Dir::E, cslots::LE);
     }
 
     fn fill_wires_ql(&mut self) {
@@ -746,7 +727,7 @@ impl IntMaker<'_> {
         for i in 0..16 {
             let w = self.builder.wire(
                 format!("GCLK{i}"),
-                WireKind::Regional(REGION_LEAF),
+                WireKind::Regional(regions::LEAF),
                 &[format!("GCLK_B_0_{i}")],
             );
             for tkn in ["RCLK_INT_L", "RCLK_INT_R"] {
@@ -2573,7 +2554,10 @@ impl IntMaker<'_> {
 
 pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     let mut maker = IntMaker {
-        builder: IntBuilder::new(rd),
+        builder: IntBuilder::new(
+            rd,
+            IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS),
+        ),
         long_term_slots: DirPartMap::new(),
         long_main_passes: DirPartMap::new(),
         sng_fixup_map: BTreeMap::new(),
@@ -2583,13 +2567,6 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         term_wires_le: EntityPartVec::new(),
         dev_naming,
     };
-
-    assert_eq!(
-        maker.builder.db.region_slots.insert("LEAF".into()).0,
-        REGION_LEAF
-    );
-
-    maker.builder.db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     for bslot in maker.builder.db.bel_slots.values_mut() {
         if bslot.tile_slot == tslots::CMT {

@@ -6,12 +6,13 @@ use prjcombine_re_xilinx_rawdump::Part;
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, PipMode};
-use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
+use prjcombine_xc2000::{bels::xc5200 as bels, cslots, regions, tslots};
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
-    let mut builder = IntBuilder::new(rd);
-
-    builder.db.init_slots(tslots::SLOTS, bels::SLOTS);
+    let mut builder = IntBuilder::new(
+        rd,
+        IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS),
+    );
 
     builder.wire(
         "GND",

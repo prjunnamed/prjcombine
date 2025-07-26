@@ -1,14 +1,9 @@
-use prjcombine_ecp::{
-    bels,
-    chip::ChipKind,
-    expanded::{REGION_PCLK, REGION_SCLK, REGION_VSDCLK},
-    tslots,
-};
+use prjcombine_ecp::{bels, chip::ChipKind, cslots, regions, tslots};
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, BelSlotId, Buf, CellSlotId, ConnectorClass, ConnectorSlot,
-        ConnectorSlotId, ConnectorWire, IntDb, SwitchBox, SwitchBoxItem, TileClass, TileSlotId,
-        TileWireCoord, WireKind,
+        Bel, BelInfo, BelPin, BelSlotId, Buf, CellSlotId, ConnectorClass, ConnectorSlotId,
+        ConnectorWire, IntDb, SwitchBox, SwitchBoxItem, TileClass, TileSlotId, TileWireCoord,
+        WireKind,
     },
     dir::{Dir, DirMap},
 };
@@ -80,8 +75,6 @@ struct IntDbBuilder {
     conn_slots: DirMap<ConnectorSlotId>,
     passes: DirMap<ConnectorClass>,
     terms: DirMap<ConnectorClass>,
-    conn_slot_sw: ConnectorSlotId,
-    conn_slot_se: ConnectorSlotId,
     pass_sw: ConnectorClass,
     pass_se: ConnectorClass,
     kind: ChipKind,
@@ -100,121 +93,6 @@ impl IntDbBuilder {
             name: name.into(),
             class: TileClass::new(slot, num_cells),
         }
-    }
-
-    fn fill_slots(&mut self) {
-        assert_eq!(
-            self.db.region_slots.insert("PCLK0".into()).0,
-            REGION_PCLK[0]
-        );
-        assert_eq!(
-            self.db.region_slots.insert("PCLK1".into()).0,
-            REGION_PCLK[1]
-        );
-        assert_eq!(
-            self.db.region_slots.insert("PCLK2".into()).0,
-            REGION_PCLK[2]
-        );
-        assert_eq!(
-            self.db.region_slots.insert("PCLK3".into()).0,
-            REGION_PCLK[3]
-        );
-        assert_eq!(
-            self.db.region_slots.insert("SCLK0".into()).0,
-            REGION_SCLK[0]
-        );
-        assert_eq!(
-            self.db.region_slots.insert("SCLK1".into()).0,
-            REGION_SCLK[1]
-        );
-        assert_eq!(
-            self.db.region_slots.insert("SCLK2".into()).0,
-            REGION_SCLK[2]
-        );
-        assert_eq!(
-            self.db.region_slots.insert("SCLK3".into()).0,
-            REGION_SCLK[3]
-        );
-        assert_eq!(
-            self.db.region_slots.insert("VSDCLK".into()).0,
-            REGION_VSDCLK
-        );
-        self.db.init_slots(tslots::SLOTS, bels::SLOTS);
-
-        let slot_w = self
-            .db
-            .conn_slots
-            .insert(
-                "W".into(),
-                ConnectorSlot {
-                    opposite: ConnectorSlotId::from_idx(0),
-                },
-            )
-            .0;
-        let slot_e = self
-            .db
-            .conn_slots
-            .insert("E".into(), ConnectorSlot { opposite: slot_w })
-            .0;
-        let slot_s = self
-            .db
-            .conn_slots
-            .insert(
-                "S".into(),
-                ConnectorSlot {
-                    opposite: ConnectorSlotId::from_idx(0),
-                },
-            )
-            .0;
-        let slot_n = self
-            .db
-            .conn_slots
-            .insert("N".into(), ConnectorSlot { opposite: slot_s })
-            .0;
-        self.db.conn_slots[slot_w].opposite = slot_e;
-        self.db.conn_slots[slot_s].opposite = slot_n;
-
-        self.conn_slot_sw = self
-            .db
-            .conn_slots
-            .insert(
-                "SW".into(),
-                ConnectorSlot {
-                    opposite: ConnectorSlotId::from_idx(0),
-                },
-            )
-            .0;
-        self.conn_slot_se = self
-            .db
-            .conn_slots
-            .insert(
-                "SE".into(),
-                ConnectorSlot {
-                    opposite: self.conn_slot_sw,
-                },
-            )
-            .0;
-        self.db.conn_slots[self.conn_slot_sw].opposite = self.conn_slot_se;
-
-        self.pass_sw.slot = self.conn_slot_sw;
-        self.pass_se.slot = self.conn_slot_se;
-
-        self.conn_slots = DirMap::from_fn(|dir| match dir {
-            Dir::W => slot_w,
-            Dir::E => slot_e,
-            Dir::S => slot_s,
-            Dir::N => slot_n,
-        });
-
-        self.passes = DirMap::from_fn(|dir| ConnectorClass {
-            slot: self.conn_slots[dir],
-            wires: Default::default(),
-        });
-
-        self.terms = DirMap::from_fn(|dir| ConnectorClass {
-            slot: self.conn_slots[dir],
-            wires: Default::default(),
-        });
     }
 
     fn fill_x0_wires(&mut self) {
@@ -372,9 +250,9 @@ impl IntDbBuilder {
         };
         for i in 0..num_clk {
             let region = if self.kind.has_distributed_sclk_ecp3() {
-                REGION_PCLK[i % 4]
+                regions::PCLK[i % 4]
             } else {
-                REGION_PCLK[0]
+                regions::PCLK0
             };
             self.db
                 .wires
@@ -392,9 +270,9 @@ impl IntDbBuilder {
 
         for i in 0..num_clk {
             let region = if self.kind.has_distributed_sclk() {
-                REGION_SCLK[i % 4]
+                regions::SCLK[i % 4]
             } else {
-                REGION_PCLK[0]
+                regions::PCLK0
             };
             self.db
                 .wires
@@ -407,7 +285,7 @@ impl IntDbBuilder {
                 let w = self
                     .db
                     .wires
-                    .insert(format!("HSDCLK{i}"), WireKind::Branch(self.conn_slot_sw))
+                    .insert(format!("HSDCLK{i}"), WireKind::Branch(cslots::SW))
                     .0;
                 hsdclk.push(w);
             }
@@ -430,7 +308,7 @@ impl IntDbBuilder {
                 let w = self
                     .db
                     .wires
-                    .insert(format!("VSDCLK{i}"), WireKind::Regional(REGION_VSDCLK))
+                    .insert(format!("VSDCLK{i}"), WireKind::Regional(regions::VSDCLK))
                     .0;
                 let w_n = self
                     .db
@@ -1138,7 +1016,6 @@ impl IntDbBuilder {
     }
 
     fn build(mut self) -> IntDb {
-        self.fill_slots();
         self.fill_wires();
         self.fill_int_tiles();
         self.fill_pclk_tiles();
@@ -1156,29 +1033,32 @@ impl IntDbBuilder {
 }
 
 pub fn init_intdb(kind: ChipKind) -> IntDb {
+    let conn_slots = DirMap::from_fn(|dir| match dir {
+        Dir::W => cslots::W,
+        Dir::E => cslots::E,
+        Dir::S => cslots::S,
+        Dir::N => cslots::N,
+    });
     let builder = IntDbBuilder {
         kind,
-        db: IntDb::default(),
-        // placeholders.
-        conn_slot_sw: ConnectorSlotId::from_idx(0),
-        conn_slot_se: ConnectorSlotId::from_idx(0),
-        conn_slots: DirMap::from_fn(|_| ConnectorSlotId::from_idx(0)),
-        passes: DirMap::from_fn(|_| ConnectorClass {
-            slot: ConnectorSlotId::from_idx(0),
+        db: IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS),
+        conn_slots,
+        passes: DirMap::from_fn(|dir| ConnectorClass {
+            slot: conn_slots[dir],
+            wires: Default::default(),
+        }),
+        terms: DirMap::from_fn(|dir| ConnectorClass {
+            slot: conn_slots[dir],
             wires: Default::default(),
         }),
         pass_sw: ConnectorClass {
-            slot: ConnectorSlotId::from_idx(0),
+            slot: cslots::SW,
             wires: Default::default(),
         },
         pass_se: ConnectorClass {
-            slot: ConnectorSlotId::from_idx(0),
+            slot: cslots::SE,
             wires: Default::default(),
         },
-        terms: DirMap::from_fn(|_| ConnectorClass {
-            slot: ConnectorSlotId::from_idx(0),
-            wires: Default::default(),
-        }),
     };
     builder.build()
 }

@@ -3,17 +3,13 @@ use crate::chip::{Chip, ChipKind, DisabledPart, GtKind, Interposer, IoKind, RegI
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use crate::tslots;
 use bimap::BiHashMap;
-use prjcombine_interconnect::db::RegionSlotId;
-use prjcombine_interconnect::dir::{DirH, DirPartMap};
-use prjcombine_interconnect::grid::{
-    CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord, TileIobId,
+use prjcombine_interconnect::{
+    dir::{DirH, DirPartMap},
+    grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord, TileIobId},
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
-
-pub const REGION_HCLK: RegionSlotId = RegionSlotId::from_idx_const(0);
-pub const REGION_LEAF: RegionSlotId = RegionSlotId::from_idx_const(1);
 
 #[derive(Clone, Debug)]
 pub struct DieFrameGeom {

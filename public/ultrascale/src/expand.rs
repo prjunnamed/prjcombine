@@ -11,11 +11,10 @@ use crate::chip::{
     Chip, ChipKind, CleMKind, Column, ColumnKind, ConfigKind, DisabledPart, DspKind, HardKind,
     HardRowKind, Interposer, IoRowKind, RegId,
 };
-use crate::expanded::{
-    ClkSrc, ExpandedDevice, HdioCoord, HpioCoord, IoCoord, REGION_LEAF, Xp5ioCoord,
-};
+use crate::expanded::{ClkSrc, ExpandedDevice, HdioCoord, HpioCoord, IoCoord, Xp5ioCoord};
 
 use crate::bond::SharedCfgPad;
+use crate::regions;
 
 struct DieExpander<'a, 'b, 'c> {
     chip: &'b Chip,
@@ -666,7 +665,7 @@ impl DieExpander<'_, '_, '_> {
             } else {
                 cell.with_row(row_rclk)
             };
-            self.egrid[cell].region_root[REGION_LEAF] = cell_leaf;
+            self.egrid[cell].region_root[regions::LEAF] = cell_leaf;
         }
     }
 }

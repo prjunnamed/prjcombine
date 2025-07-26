@@ -1,6 +1,6 @@
 use prjcombine_interconnect::db::{
-    CellSlotId, ConnectorClass, ConnectorSlot, ConnectorSlotId, ConnectorWire, IntDb,
-    TileWireCoord, WireId, WireKind,
+    CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord, WireId,
+    WireKind,
 };
 use prjcombine_interconnect::dir::{Dir, DirMap, DirPartMap};
 use prjcombine_re_xilinx_naming::db::NamingDb;
@@ -9,8 +9,7 @@ use prjcombine_re_xilinx_naming_versal::{
     BUFDIV_LEAF_SWZ_A, BUFDIV_LEAF_SWZ_AH, BUFDIV_LEAF_SWZ_B, BUFDIV_LEAF_SWZ_BH,
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot, TkWire};
-use prjcombine_versal::expanded::REGION_LEAF;
-use prjcombine_versal::{bels, tslots};
+use prjcombine_versal::{bels, cslots, regions, tslots};
 use std::collections::{BTreeMap, HashMap};
 use unnamed_entity::{EntityId, EntityPartVec};
 
@@ -126,7 +125,6 @@ const BLI_CLE_INTF_KINDS: &[(Dir, &str, &str, bool)] = &[
 struct IntMaker<'a> {
     builder: IntBuilder<'a>,
     long_term_slots: DirPartMap<ConnectorSlotId>,
-    term_slot_intf: ConnectorSlotId,
     long_main_passes: DirPartMap<ConnectorClass>,
     // how many mental illnesses do you think I could be diagnosed with just from this repo?
     sng_fixup_map: BTreeMap<TileWireCoord, TileWireCoord>,
@@ -142,40 +140,8 @@ struct IntMaker<'a> {
 
 impl IntMaker<'_> {
     fn fill_term_slots(&mut self) {
-        let slot_lw = self
-            .builder
-            .db
-            .conn_slots
-            .insert(
-                "LW".into(),
-                ConnectorSlot {
-                    opposite: ConnectorSlotId::from_idx(0),
-                },
-            )
-            .0;
-        let slot_le = self
-            .builder
-            .db
-            .conn_slots
-            .insert("LE".into(), ConnectorSlot { opposite: slot_lw })
-            .0;
-        self.builder.db.conn_slots[slot_lw].opposite = slot_le;
-
-        self.long_term_slots.insert(Dir::W, slot_lw);
-        self.long_term_slots.insert(Dir::E, slot_le);
-
-        self.term_slot_intf = self
-            .builder
-            .db
-            .conn_slots
-            .insert(
-                "INTF".into(),
-                ConnectorSlot {
-                    opposite: self.term_slot_intf,
-                },
-            )
-            .0;
-        self.builder.db.conn_slots[self.term_slot_intf].opposite = self.term_slot_intf;
+        self.long_term_slots.insert(Dir::W, cslots::LW);
+        self.long_term_slots.insert(Dir::E, cslots::LE);
     }
 
     fn fill_wires_long(&mut self) {
@@ -744,7 +710,7 @@ impl IntMaker<'_> {
             }
             let cw = self.builder.wire(
                 format!("CLE.OUT.{i}"),
-                WireKind::Branch(self.term_slot_intf),
+                WireKind::Branch(cslots::INTF),
                 &[""],
             );
             self.builder.test_mux_pass(cw);
@@ -796,11 +762,9 @@ impl IntMaker<'_> {
         }
 
         for i in 0..64 {
-            let w = self.builder.wire(
-                format!("BNODE.{i}"),
-                WireKind::Branch(self.term_slot_intf),
-                &[""],
-            );
+            let w = self
+                .builder
+                .wire(format!("BNODE.{i}"), WireKind::Branch(cslots::INTF), &[""]);
             self.builder
                 .extra_name_tile_sub("INT", format!("BNODE_W{i}"), 0, w);
             self.builder
@@ -873,7 +837,7 @@ impl IntMaker<'_> {
         for i in 0..16 {
             let w = self.builder.wire(
                 format!("CLE.GCLK.{i}"),
-                WireKind::Regional(REGION_LEAF),
+                WireKind::Regional(regions::LEAF),
                 &[""],
             );
             self.builder.extra_name_sub(format!("GCLK_B{i}"), 1, w);
@@ -921,7 +885,7 @@ impl IntMaker<'_> {
         for i in 0..16 {
             self.builder.wire(
                 format!("INTF.GCLK.{i}"),
-                WireKind::Regional(REGION_LEAF),
+                WireKind::Regional(regions::LEAF),
                 &[format!("IF_GCLK_GCLK_B{i}")],
             );
         }
@@ -1173,7 +1137,7 @@ impl IntMaker<'_> {
                     }
                     let mut wires = EntityPartVec::new();
                     for &w in &self.bnodes {
-                        if self.builder.db.wires[w] != WireKind::Branch(self.term_slot_intf) {
+                        if self.builder.db.wires[w] != WireKind::Branch(cslots::INTF) {
                             continue;
                         }
                         if let Some(n) = int_naming.wires.get(&TileWireCoord {
@@ -1191,7 +1155,7 @@ impl IntMaker<'_> {
                     self.builder.insert_term_merge(
                         &format!("CLE.{side}"),
                         ConnectorClass {
-                            slot: self.term_slot_intf,
+                            slot: cslots::INTF,
                             wires,
                         },
                     );
@@ -1216,7 +1180,7 @@ impl IntMaker<'_> {
             self.builder.insert_term_merge(
                 &format!("CLE.{side}"),
                 ConnectorClass {
-                    slot: self.term_slot_intf,
+                    slot: cslots::INTF,
                     wires: self.term_logic_outs.clone(),
                 },
             );
@@ -2984,9 +2948,11 @@ impl IntMaker<'_> {
 
 pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     let mut maker = IntMaker {
-        builder: IntBuilder::new(rd),
+        builder: IntBuilder::new(
+            rd,
+            IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS),
+        ),
         long_term_slots: DirPartMap::new(),
-        term_slot_intf: ConnectorSlotId::from_idx(0),
         long_main_passes: DirPartMap::new(),
         sng_fixup_map: BTreeMap::new(),
         term_wires: DirMap::from_fn(|_| EntityPartVec::new()),
@@ -2998,13 +2964,6 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         term_logic_outs: EntityPartVec::new(),
         dev_naming,
     };
-
-    assert_eq!(
-        maker.builder.db.region_slots.insert("LEAF".into()).0,
-        REGION_LEAF
-    );
-
-    maker.builder.db.init_slots(tslots::SLOTS, bels::SLOTS);
 
     for dir in [Dir::W, Dir::E] {
         maker.term_wires_l.insert(dir, EntityPartVec::new());

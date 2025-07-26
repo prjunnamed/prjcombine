@@ -7,7 +7,8 @@ use unnamed_entity::{EntityId, EntityVec};
 
 use crate::{
     chip::{Chip, ExtraNodeLoc},
-    expanded::{ExpandedDevice, REGION_COLBUF, REGION_GLOBAL},
+    expanded::ExpandedDevice,
+    regions,
 };
 
 impl Chip {
@@ -81,9 +82,9 @@ impl Chip {
         }
 
         for cell in egrid.die_cells(die) {
-            egrid[cell].region_root[REGION_GLOBAL] =
+            egrid[cell].region_root[regions::GLOBAL] =
                 CellCoord::new(die, self.col_w(), self.row_s());
-            egrid[cell].region_root[REGION_COLBUF] =
+            egrid[cell].region_root[regions::COLBUF] =
                 CellCoord::new(die, self.col_w(), self.row_s());
         }
 
@@ -99,7 +100,7 @@ impl Chip {
                     } else {
                         row_m
                     };
-                    egrid[cell].region_root[REGION_COLBUF] = cell.with_row(row_cb);
+                    egrid[cell].region_root[regions::COLBUF] = cell.with_row(row_cb);
                     if row == row_cb {
                         let tcls = if self.kind.has_ioi_we() && cell.col == self.col_w() {
                             "COLBUF_IO_W"

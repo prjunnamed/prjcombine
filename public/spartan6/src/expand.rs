@@ -8,8 +8,8 @@ use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ColumnIoKind, ColumnKind, DcmKind, DisabledPart, PllKind, RegId};
-use crate::expanded::{ExpandedDevice, REGION_HCLK, REGION_LEAF};
-use crate::tslots;
+use crate::expanded::ExpandedDevice;
+use crate::{regions, tslots};
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
@@ -558,8 +558,8 @@ impl Expander<'_, '_> {
             } else {
                 self.chip.col_clk + 1
             };
-            self.egrid[cell].region_root[REGION_HCLK] = cell.with_cr(hcol, crow);
-            self.egrid[cell].region_root[REGION_LEAF] = cell.with_row(crow);
+            self.egrid[cell].region_root[regions::HCLK] = cell.with_cr(hcol, crow);
+            self.egrid[cell].region_root[regions::LEAF] = cell.with_row(crow);
 
             if cell.row.to_idx() % 16 == 8 {
                 if self.is_int_hole(cell) && self.is_int_hole(cell.delta(0, -1)) {

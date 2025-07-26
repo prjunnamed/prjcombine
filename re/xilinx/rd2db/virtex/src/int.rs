@@ -6,11 +6,7 @@ use prjcombine_re_xilinx_naming::db::{
     BelNaming, BelPinNaming, NamingDb, PipNaming, ProperBelNaming, RawTileId,
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
-use prjcombine_virtex::{
-    bels,
-    expanded::{REGION_GLOBAL, REGION_LEAF},
-    tslots,
-};
+use prjcombine_virtex::{bels, cslots, regions, tslots};
 use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
 
@@ -18,16 +14,11 @@ use prjcombine_re_xilinx_rd2db_grid::find_columns;
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, PipMode};
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
-    let mut builder = IntBuilder::new(rd);
-    builder.allow_mux_to_branch();
-
-    assert_eq!(
-        builder.db.region_slots.insert("GLOBAL".into()).0,
-        REGION_GLOBAL
+    let mut builder = IntBuilder::new(
+        rd,
+        IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS),
     );
-    assert_eq!(builder.db.region_slots.insert("LEAF".into()).0, REGION_LEAF);
-
-    builder.db.init_slots(tslots::SLOTS, bels::SLOTS);
+    builder.allow_mux_to_branch();
 
     let mut bram_forbidden = Vec::new();
     let mut bram_bt_forbidden = Vec::new();
@@ -37,7 +28,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..4 {
         let w = builder.wire(
             format!("GCLK{i}"),
-            WireKind::Regional(REGION_LEAF),
+            WireKind::Regional(regions::LEAF),
             &[
                 format!("GCLK{i}"),
                 format!("LEFT_GCLK{i}"),

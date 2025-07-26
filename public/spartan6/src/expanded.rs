@@ -1,5 +1,4 @@
 use prjcombine_interconnect::{
-    db::RegionSlotId,
     dir::{Dir, DirMap},
     grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord},
 };
@@ -8,9 +7,6 @@ use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, DisabledPart, RegId};
-
-pub const REGION_HCLK: RegionSlotId = RegionSlotId::from_idx_const(0);
-pub const REGION_LEAF: RegionSlotId = RegionSlotId::from_idx_const(1);
 
 pub struct ExpandedDevice<'a> {
     pub chip: &'a Chip,
