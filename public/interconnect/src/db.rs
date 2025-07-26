@@ -396,6 +396,32 @@ pub struct BelPin {
     pub is_intf_in: bool,
 }
 
+impl BelPin {
+    pub fn new_in(wire: TileWireCoord) -> BelPin {
+        BelPin {
+            wires: BTreeSet::from_iter([wire]),
+            dir: PinDir::Input,
+            is_intf_in: false,
+        }
+    }
+
+    pub fn new_out(wire: TileWireCoord) -> BelPin {
+        BelPin {
+            wires: BTreeSet::from_iter([wire]),
+            dir: PinDir::Output,
+            is_intf_in: false,
+        }
+    }
+
+    pub fn new_out_multi(wires: impl IntoIterator<Item = TileWireCoord>) -> BelPin {
+        BelPin {
+            wires: BTreeSet::from_iter(wires),
+            dir: PinDir::Output,
+            is_intf_in: false,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum PinDir {
     Input,

@@ -1,8 +1,6 @@
-use std::collections::BTreeSet;
-
 use prjcombine_ecp::chip::{PllLoc, SpecialIoKey, SpecialLocKey};
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, CellSlotId, PinDir, TileWireCoord},
+    db::{Bel, BelPin, CellSlotId, TileWireCoord},
     dir::{Dir, DirHV},
     grid::{CellCoord, DieId},
 };
@@ -112,15 +110,13 @@ impl ChipContext<'_> {
             "PCLK0", "PCLK1", "PCLK2", "PCLK3", "SCLK0", "SCLK1", "SCLK2", "SCLK3",
         ] {
             let wire = self.intdb.get_wire(pin);
-            let bpin = BelPin {
-                wires: BTreeSet::from_iter([TileWireCoord {
+            bel.pins.insert(
+                pin.into(),
+                BelPin::new_in(TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire,
-                }]),
-                dir: PinDir::Input,
-                is_intf_in: false,
-            };
-            bel.pins.insert(pin.into(), bpin);
+                }),
+            );
             let wire = bcrd.cell.wire(wire);
             if pin.starts_with("PCLK") {
                 for &wf in &inputs_pclk {

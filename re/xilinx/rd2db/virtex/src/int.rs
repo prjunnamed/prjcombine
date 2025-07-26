@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{Bel, BelInfo, BelPin, CellSlotId, IntDb, PinDir, TileWireCoord, WireKind},
+    db::{Bel, BelInfo, BelPin, CellSlotId, IntDb, TileWireCoord, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{
@@ -517,16 +517,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         dll_ins.push(w);
         dll_pins.insert(
             name.to_string(),
-            BelPin {
-                wires: [TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: w,
-                }]
-                .into_iter()
-                .collect(),
-                dir: PinDir::Input,
-                is_intf_in: false,
-            },
+            BelPin::new_in(TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire: w,
+            }),
         );
         bram_bt_forbidden.push(w);
         if name == "CLKIN" {
@@ -560,16 +554,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         dll_pins.insert(
             name.to_string(),
-            BelPin {
-                wires: [TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: w,
-                }]
-                .into_iter()
-                .collect(),
-                dir: PinDir::Output,
-                is_intf_in: false,
-            },
+            BelPin::new_out(TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire: w,
+            }),
         );
     }
     let clk2x = clk2x.unwrap();

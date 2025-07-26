@@ -16,8 +16,8 @@ use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, Buf, CellSlotId, IntDb, Mux, PinDir, ProgInv, SwitchBox,
-        SwitchBoxItem, TileClass, TileClassId, TileWireCoord,
+        Bel, BelInfo, BelPin, Buf, CellSlotId, IntDb, Mux, ProgInv, SwitchBox, SwitchBoxItem,
+        TileClass, TileClassId, TileWireCoord,
     },
     dir::{Dir, DirH, DirPartMap, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
@@ -1812,14 +1812,10 @@ impl PartContext<'_> {
         let mut bel = Bel::default();
         bel.pins.insert(
             "CLK".into(),
-            BelPin {
-                wires: BTreeSet::from_iter([TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire,
-                }]),
-                dir: PinDir::Output,
-                is_intf_in: false,
-            },
+            BelPin::new_out(TileWireCoord {
+                cell: CellSlotId::from_idx(0),
+                wire,
+            }),
         );
         tcls.bels.insert(bels::SMCCLK, BelInfo::Bel(bel));
         self.intdb

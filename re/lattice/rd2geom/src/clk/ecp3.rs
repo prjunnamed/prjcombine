@@ -1,11 +1,11 @@
-use std::collections::{BTreeMap, BTreeSet, btree_map};
+use std::collections::{BTreeMap, btree_map};
 
 use prjcombine_ecp::{
     bels,
     chip::{ChipKind, IoGroupKind, RowKind, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, CellSlotId, PinDir, TileWireCoord},
+    db::{Bel, BelPin, CellSlotId, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, ColId, DieId},
 };
@@ -754,25 +754,17 @@ impl ChipContext<'_> {
                     let pclk = self.intdb.get_wire(&format!("PCLK{pclk_i}"));
                     bel.pins.insert(
                         "OUT_S".into(),
-                        BelPin {
-                            wires: BTreeSet::from_iter([TileWireCoord {
-                                cell: CellSlotId::from_idx(1),
-                                wire: pclk,
-                            }]),
-                            dir: PinDir::Output,
-                            is_intf_in: false,
-                        },
+                        BelPin::new_out(TileWireCoord {
+                            cell: CellSlotId::from_idx(1),
+                            wire: pclk,
+                        }),
                     );
                     bel.pins.insert(
                         "OUT_N".into(),
-                        BelPin {
-                            wires: BTreeSet::from_iter([TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: pclk,
-                            }]),
-                            dir: PinDir::Output,
-                            is_intf_in: false,
-                        },
+                        BelPin::new_out(TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: pclk,
+                        }),
                     );
                     let out_s = self.rc_wire(cell, &format!("CLKO{pclk_i}B_DCC"));
                     self.add_bel_wire(bcrd, "OUT_S", out_s);
@@ -877,25 +869,17 @@ impl ChipContext<'_> {
                     let pclk = self.intdb.get_wire(&format!("PCLK{i}"));
                     bel.pins.insert(
                         format!("OUT_S{i}"),
-                        BelPin {
-                            wires: BTreeSet::from_iter([TileWireCoord {
-                                cell: CellSlotId::from_idx(1),
-                                wire: pclk,
-                            }]),
-                            dir: PinDir::Output,
-                            is_intf_in: false,
-                        },
+                        BelPin::new_out(TileWireCoord {
+                            cell: CellSlotId::from_idx(1),
+                            wire: pclk,
+                        }),
                     );
                     bel.pins.insert(
                         format!("OUT_N{i}"),
-                        BelPin {
-                            wires: BTreeSet::from_iter([TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: pclk,
-                            }]),
-                            dir: PinDir::Output,
-                            is_intf_in: false,
-                        },
+                        BelPin::new_out(TileWireCoord {
+                            cell: CellSlotId::from_idx(0),
+                            wire: pclk,
+                        }),
                     );
                     let hpsx = hpsx_wires[&(col_hpsx, i)];
                     self.claim_pip(vptx_wires_s[&(cell.col, i)], hpsx);

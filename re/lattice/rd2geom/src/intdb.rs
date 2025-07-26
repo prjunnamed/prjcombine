@@ -1,5 +1,3 @@
-use std::collections::BTreeSet;
-
 use prjcombine_ecp::{
     bels,
     chip::ChipKind,
@@ -9,8 +7,8 @@ use prjcombine_ecp::{
 use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, BelSlotId, Buf, CellSlotId, ConnectorClass, ConnectorSlot,
-        ConnectorSlotId, ConnectorWire, IntDb, PinDir, SwitchBox, SwitchBoxItem, TileClass,
-        TileSlotId, TileWireCoord, WireKind,
+        ConnectorSlotId, ConnectorWire, IntDb, SwitchBox, SwitchBoxItem, TileClass, TileSlotId,
+        TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
 };
@@ -51,28 +49,20 @@ impl BelBuilder<'_, '_> {
     fn add_input(&mut self, name: &str, cell: usize, wire: &str) {
         self.bel.pins.insert(
             name.into(),
-            BelPin {
-                wires: BTreeSet::from_iter([TileWireCoord {
-                    cell: CellSlotId::from_idx(cell),
-                    wire: self.tcls.db.db.get_wire(wire),
-                }]),
-                dir: PinDir::Input,
-                is_intf_in: false,
-            },
+            BelPin::new_in(TileWireCoord {
+                cell: CellSlotId::from_idx(cell),
+                wire: self.tcls.db.db.get_wire(wire),
+            }),
         );
     }
 
     fn add_output(&mut self, name: &str, cell: usize, wire: &str) {
         self.bel.pins.insert(
             name.into(),
-            BelPin {
-                wires: BTreeSet::from_iter([TileWireCoord {
-                    cell: CellSlotId::from_idx(cell),
-                    wire: self.tcls.db.db.get_wire(wire),
-                }]),
-                dir: PinDir::Output,
-                is_intf_in: false,
-            },
+            BelPin::new_out(TileWireCoord {
+                cell: CellSlotId::from_idx(cell),
+                wire: self.tcls.db.db.get_wire(wire),
+            }),
         );
     }
 }

@@ -3,8 +3,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorSlot,
-        ConnectorSlotId, ConnectorWire, IntDb, PinDir, TileClass, TileSlotId, TileWireCoord,
-        WireKind,
+        ConnectorSlotId, ConnectorWire, IntDb, TileClass, TileSlotId, TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{CellCoord, EdgeIoCoord},
@@ -22,28 +21,20 @@ use crate::sites::BelPins;
 fn add_input(db: &IntDb, bel: &mut Bel, name: &str, cell: usize, wire: &str) {
     bel.pins.insert(
         name.into(),
-        BelPin {
-            wires: BTreeSet::from_iter([TileWireCoord {
-                cell: CellSlotId::from_idx(cell),
-                wire: db.get_wire(wire),
-            }]),
-            dir: PinDir::Input,
-            is_intf_in: false,
-        },
+        BelPin::new_in(TileWireCoord {
+            cell: CellSlotId::from_idx(cell),
+            wire: db.get_wire(wire),
+        }),
     );
 }
 
 fn add_output(db: &IntDb, bel: &mut Bel, name: &str, cell: usize, wires: &[&str]) {
     bel.pins.insert(
         name.into(),
-        BelPin {
-            wires: BTreeSet::from_iter(wires.iter().map(|wire| TileWireCoord {
-                cell: CellSlotId::from_idx(cell),
-                wire: db.get_wire(wire),
-            })),
-            dir: PinDir::Output,
-            is_intf_in: false,
-        },
+        BelPin::new_out_multi(wires.iter().map(|wire| TileWireCoord {
+            cell: CellSlotId::from_idx(cell),
+            wire: db.get_wire(wire),
+        })),
     );
 }
 
@@ -458,14 +449,10 @@ impl<'a> MiscNodeBuilder<'a> {
             let cell = self.get_cell(wire.cell);
             bel.pins.insert(
                 pin.clone(),
-                BelPin {
-                    wires: BTreeSet::from_iter([TileWireCoord {
-                        cell,
-                        wire: wire.slot,
-                    }]),
-                    dir: PinDir::Input,
-                    is_intf_in: false,
-                },
+                BelPin::new_in(TileWireCoord {
+                    cell,
+                    wire: wire.slot,
+                }),
             );
         }
         for (pin, iwires) in &pins.outs {
@@ -477,14 +464,7 @@ impl<'a> MiscNodeBuilder<'a> {
                     wire: wire.slot,
                 });
             }
-            bel.pins.insert(
-                pin.clone(),
-                BelPin {
-                    wires,
-                    dir: PinDir::Output,
-                    is_intf_in: false,
-                },
-            );
+            bel.pins.insert(pin.clone(), BelPin::new_out_multi(wires));
         }
         self.tcls.bels.insert(slot, BelInfo::Bel(bel));
     }

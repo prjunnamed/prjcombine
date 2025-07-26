@@ -1,7 +1,7 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use prjcombine_interconnect::{
-    db::{Bel, BelInfo, BelPin, CellSlotId, IntDb, PinDir, TileWireCoord, WireKind},
+    db::{Bel, BelInfo, BelPin, CellSlotId, IntDb, TileWireCoord, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{
@@ -2332,14 +2332,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let mut bel = Bel::default();
             bel.pins.insert(
                 "CLK".into(),
-                BelPin {
-                    wires: BTreeSet::from_iter([TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: builder.db.get_wire("IMUX.CLK3"),
-                    }]),
-                    dir: PinDir::Input,
-                    is_intf_in: false,
-                },
+                BelPin::new_in(TileWireCoord {
+                    cell: CellSlotId::from_idx(0),
+                    wire: builder.db.get_wire("IMUX.CLK3"),
+                }),
             );
             let node = builder.db.tile_classes.get_mut(tile).unwrap().1;
             node.bels.insert(bels::MISR, BelInfo::Bel(bel));

@@ -1,11 +1,11 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use prjcombine_ecp::{
     bels,
     chip::{ChipKind, RowKind, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, CellSlotId, PinDir, TileWireCoord},
+    db::{Bel, BelPin, CellSlotId, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, DieId},
 };
@@ -405,12 +405,8 @@ impl ChipContext<'_> {
                     cell: cell_slot,
                     wire,
                 };
-                let bpin = BelPin {
-                    wires: BTreeSet::from_iter([wire]),
-                    dir: PinDir::Input,
-                    is_intf_in: false,
-                };
-                bel.pins.insert(format!("PCLK{i}_{hv}"), bpin);
+                bel.pins
+                    .insert(format!("PCLK{i}_{hv}"), BelPin::new_in(wire));
                 let wire = self.edev.egrid.tile_wire(tcrd, wire);
                 let wire = self.naming.interconnect[&wire];
                 let wire_out = self.find_single_in(wire);

@@ -5,7 +5,7 @@ use prjcombine_ecp::{
     chip::{ChipKind, IoGroupKind, PllLoc, PllPad, RowKind, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, CellSlotId, PinDir, TileWireCoord},
+    db::{Bel, BelPin, CellSlotId, TileWireCoord},
     dir::{Dir, DirH, DirV},
     grid::{BelCoord, CellCoord, DieId},
 };
@@ -533,12 +533,8 @@ impl ChipContext<'_> {
                         cell: CellSlotId::from_idx(0),
                         wire,
                     };
-                    let bpin = BelPin {
-                        wires: [wire].into_iter().collect(),
-                        dir: PinDir::Output,
-                        is_intf_in: false,
-                    };
-                    bel.pins.insert(format!("PAD{i}_OUT"), bpin);
+                    bel.pins
+                        .insert(format!("PAD{i}_OUT"), BelPin::new_out(wire));
                     let wire = self.edev.egrid.tile_wire(tcrd, wire);
                     self.claim_pip_int_out(wire, wire_io);
                 } else {
@@ -548,12 +544,8 @@ impl ChipContext<'_> {
                             cell: CellSlotId::from_idx(ci),
                             wire,
                         };
-                        let bpin = BelPin {
-                            wires: [wire].into_iter().collect(),
-                            dir: PinDir::Output,
-                            is_intf_in: false,
-                        };
-                        bel.pins.insert(format!("PAD{i}_OUT{ci}"), bpin);
+                        bel.pins
+                            .insert(format!("PAD{i}_OUT{ci}"), BelPin::new_out(wire));
                         let wire = self.edev.egrid.tile_wire(tcrd, wire);
                         self.claim_pip_int_out(wire, wire_io);
                     }
@@ -660,12 +652,8 @@ impl ChipContext<'_> {
                         cell: CellSlotId::from_idx(0),
                         wire,
                     };
-                    let bpin = BelPin {
-                        wires: [wire].into_iter().collect(),
-                        dir: PinDir::Output,
-                        is_intf_in: false,
-                    };
-                    bel.pins.insert(format!("PAD{i}_OUT"), bpin);
+                    bel.pins
+                        .insert(format!("PAD{i}_OUT"), BelPin::new_out(wire));
                     let wire = self.edev.egrid.tile_wire(tcrd, wire);
                     self.claim_pip_int_out(wire, wire_io);
                 } else {
@@ -675,12 +663,8 @@ impl ChipContext<'_> {
                             cell: CellSlotId::from_idx(ci),
                             wire,
                         };
-                        let bpin = BelPin {
-                            wires: [wire].into_iter().collect(),
-                            dir: PinDir::Output,
-                            is_intf_in: false,
-                        };
-                        bel.pins.insert(format!("PAD{i}_OUT{ci}"), bpin);
+                        bel.pins
+                            .insert(format!("PAD{i}_OUT{ci}"), BelPin::new_out(wire));
                         let wire = self.edev.egrid.tile_wire(tcrd, wire);
                         self.claim_pip_int_out(wire, wire_io);
                     }

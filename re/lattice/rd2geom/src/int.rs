@@ -8,8 +8,8 @@ use prjcombine_ecp::{
 };
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, Buf, CellSlotId, ConnectorWire, Mux, PinDir, SwitchBox,
-        SwitchBoxItem, TileClassId, TileWireCoord, WireId, WireKind,
+        Bel, BelInfo, BelPin, Buf, CellSlotId, ConnectorWire, Mux, SwitchBox, SwitchBoxItem,
+        TileClassId, TileWireCoord, WireId, WireKind,
     },
     dir::Dir,
     grid::{BelCoord, CellCoord, WireCoord},
@@ -829,11 +829,7 @@ impl ChipContext<'_> {
                     cell,
                     wire: wf.slot,
                 };
-                return Some(BelPin {
-                    wires: BTreeSet::from_iter([wf]),
-                    dir: PinDir::Input,
-                    is_intf_in: false,
-                });
+                return Some(BelPin::new_in(wf));
             }
         }
         for &wtn in self.pips_fwd.get(&wire).into_iter().flatten() {
@@ -857,11 +853,7 @@ impl ChipContext<'_> {
                     cell,
                     wire: wt.slot,
                 };
-                return Some(BelPin {
-                    wires: BTreeSet::from_iter([wt]),
-                    dir: PinDir::Output,
-                    is_intf_in: false,
-                });
+                return Some(BelPin::new_out(wt));
             }
         }
         None
