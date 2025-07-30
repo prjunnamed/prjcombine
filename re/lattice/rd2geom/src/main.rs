@@ -8,7 +8,7 @@ use clap::Parser;
 use itertools::Itertools;
 use prjcombine_ecp::{
     bond::{BondPad, CfgPad, SerdesPad},
-    chip::{Chip, ChipKind, SpecialIoKey},
+    chip::{Chip, ChipKind, MachXo2Kind, SpecialIoKey},
     db::Device,
     expanded::ExpandedDevice,
 };
@@ -260,13 +260,18 @@ impl ChipContext<'_> {
                 "START",
                 "SPIM",
                 "SED",
+                "TSALL",
                 "WAKEUP",
                 "SSPICIB",
                 "STF",
                 "AMBOOT",
                 "PERREG",
+                "PCNTR",
+                "EFB",
+                "ESB",
                 "TESTIN",
                 "TESTOUT",
+                "CENTEST",
                 "DTS",
                 "PLL",
                 "PLL3",
@@ -275,6 +280,10 @@ impl ChipContext<'_> {
                 "CLKDIV",
                 "SPLL",
                 "PCS",
+                "BCPG",
+                "BCINRD",
+                "BCLVDSO",
+                "BCSLEWRATE",
             ] {
                 if let Some(n) = name.strip_suffix(suffix)
                     && let Some(n) = n.strip_suffix('_')
@@ -434,6 +443,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "ecp2m" => ChipKind::Ecp2M,
         "xp2" => ChipKind::Xp2,
         "ecp3" => ChipKind::Ecp3,
+        "machxo2" => ChipKind::MachXo2(MachXo2Kind::MachXo2),
         _ => panic!("unknown family {}", rawdb.family),
     };
     let mut int = init_intdb(kind);
@@ -499,7 +509,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let has_jtag_pin_bels = matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A);
             for (pin, &pad) in &bres.bond.pins {
                 match pad {
-                    BondPad::Io(io) => {
+                    BondPad::Io(io) | BondPad::IoAsc(io, _) | BondPad::IoPfr(io, _) => {
                         if chip.kind == ChipKind::MachXo
                             && io == chip.special_io[&SpecialIoKey::SleepN]
                         {
@@ -561,6 +571,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     _ => (),
                 }
+            }
+            if part.name == "LFMNX-50" && part.package == "FBG484" {
+                expected_sites.remove("NXBOOT_MCSN");
+                expected_sites.insert("NXBOOTMCSN".into());
+                expected_sites.remove("NX_JTAGEN");
+                expected_sites.insert("NXJTAGEN".into());
+                expected_sites.remove("NX_PROGRAMN");
+                expected_sites.insert("NXPROGRAMN".into());
             }
             for site in &part.sites {
                 let name = &site.name;

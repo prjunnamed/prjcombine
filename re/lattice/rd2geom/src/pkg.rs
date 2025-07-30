@@ -4,12 +4,15 @@ use std::{
 };
 
 use prjcombine_ecp::{
-    bond::{Bond, BondPad, CfgPad, PllSet, SerdesPad},
-    chip::{Chip, ChipKind, IoGroupKind, PllLoc, PllPad, RowKind, SpecialIoKey, SpecialLocKey},
+    bond::{AscPad, Bond, BondKind, BondPad, CfgPad, PfrPad, PllSet, SerdesPad},
+    chip::{
+        Chip, ChipKind, IoGroupKind, MachXo2Kind, PllLoc, PllPad, RowKind, SpecialIoKey,
+        SpecialLocKey,
+    },
 };
 use prjcombine_interconnect::{
-    dir::{DirH, DirHV, DirV},
-    grid::{CellCoord, DieId, EdgeIoCoord, TileIobId},
+    dir::{Dir, DirH, DirHV, DirV},
+    grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_re_lattice_naming::ChipNaming;
 use prjcombine_re_lattice_rawdump::Part;
@@ -32,8 +35,7 @@ fn get_filename(datadir: &Path, part: &Part, chip: &Chip) -> PathBuf {
             format!("mg5g{r}x{c}", r = chip.rows.len(), c = chip.columns.len()),
         ),
         ChipKind::MachXo => {
-            let is_p = part.name.starts_with("LPTM");
-            if is_p {
+            if part.name.starts_with("LPTM") {
                 (
                     "mj5g00p",
                     format!("mj5g{r}x{c}p", r = chip.rows.len(), c = chip.columns.len()),
@@ -73,6 +75,47 @@ fn get_filename(datadir: &Path, part: &Part, chip: &Chip) -> PathBuf {
                     "ep5c00",
                     format!("ep5c{r}x{c}", r = chip.rows.len(), c = chip.columns.len()),
                 )
+            }
+        }
+        ChipKind::MachXo2(kind) => {
+            let size = if kind == MachXo2Kind::MachXo2 {
+                match chip.rows.len() {
+                    6 => 256,
+                    7 => 640,
+                    11 => 1200,
+                    14 => 2000,
+                    21 => 4000,
+                    26 => 7000,
+                    30 => 10000,
+                    _ => unreachable!(),
+                }
+            } else {
+                match chip.rows.len() {
+                    11 => 1300,
+                    14 => 2100,
+                    21 => 4300,
+                    26 => 6900,
+                    30 => 9400,
+                    _ => unreachable!(),
+                }
+            };
+            match part.name.as_str() {
+                "LPTM21" => ("xo2c00ap", "xo2c1200p".to_string()),
+                "LPTM21L" => ("xo2c00ap", "xo2c1200apl".to_string()),
+                _ => match kind {
+                    MachXo2Kind::MachXo2 => (
+                        if chip.rows.values().any(|rd| rd.kind == RowKind::Ebr) {
+                            "xo2c00a"
+                        } else {
+                            "xo2c00"
+                        },
+                        format!("xo2c{size}"),
+                    ),
+                    MachXo2Kind::MachXo3L => ("xo3c00a", format!("xo3c{size}")),
+                    MachXo2Kind::MachXo3Lfp => ("xo3c00d", format!("xo3d{size}")),
+                    MachXo2Kind::MachXo3D => ("se5c00", format!("se5c{size}")),
+                    MachXo2Kind::MachNx => ("se5r00", format!("se5r{size}")),
+                },
             }
         }
     };
@@ -236,23 +279,67 @@ fn parse_io(chip: &Chip, func: &str) -> Option<EdgeIoCoord> {
     }
 }
 
+fn parse_pfr_io(func: &str) -> Option<EdgeIoCoord> {
+    let (func, iob_idx) = if let Some(f) = func.strip_suffix('A') {
+        (f, 0)
+    } else if let Some(f) = func.strip_suffix('B') {
+        (f, 1)
+    } else {
+        (func, 0)
+    };
+    let iob = TileIobId::from_idx(iob_idx);
+    if let Some(r) = func.strip_prefix("PL")
+        && let Ok(r) = r.parse::<usize>()
+    {
+        let row = RowId::from_idx(55 - r);
+        Some(EdgeIoCoord::W(row, iob))
+    } else if let Some(r) = func.strip_prefix("PR")
+        && let Ok(r) = r.parse::<usize>()
+    {
+        let row = RowId::from_idx(55 - r);
+        Some(EdgeIoCoord::E(row, iob))
+    } else if let Some(c) = func.strip_prefix("PB")
+        && let Ok(c) = c.parse::<usize>()
+    {
+        let col = ColId::from_idx(c - 1);
+        Some(EdgeIoCoord::S(col, iob))
+    } else if let Some(c) = func.strip_prefix("PT")
+        && let Ok(c) = c.parse::<usize>()
+    {
+        let col = ColId::from_idx(c - 1);
+        Some(EdgeIoCoord::N(col, iob))
+    } else {
+        None
+    }
+}
+
 pub struct BondResult {
     pub bond: Bond,
     pub special_io: BTreeMap<SpecialIoKey, EdgeIoCoord>,
 }
 
 pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNaming) -> BondResult {
+    // println!("{} {}", part.name, part.package);
     let fname = get_filename(datadir, part, chip);
     let archive = read_archive(&fname);
     let pkg_data = parse_pkg(&archive);
     assert!(pkg_data.pkgs.contains(&part.package));
+    let kind = if part.name.starts_with("LPTM21") {
+        BondKind::Asc
+    } else if part.name == "LFMNX-50" {
+        BondKind::MachNx
+    } else {
+        BondKind::Single
+    };
     let mut bond = Bond {
+        kind,
         pins: Default::default(),
+        pfr_io: Default::default(),
     };
     let mut special_io = BTreeMap::new();
-    // println!("{} {}", part.name, part.package);
     let mut bscan = vec![];
     let mut pll_xlat = BTreeMap::new();
+    let mut virt_io: BTreeMap<String, Vec<BondPad>> = BTreeMap::new();
     for (&loc, &cell) in &chip.special_loc {
         if let SpecialLocKey::Pll(loc) = loc {
             pll_xlat.insert(cell, loc);
@@ -301,21 +388,54 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
         let Value::Int(bs_order) = pin_info["BS_ORDER"] else {
             unreachable!()
         };
-        if (bs_order == 0 && pin.starts_with("Unused"))
+        if ((bs_order == 0 || bs_type == "L") && (pin.starts_with("Unused") || pin == "UNUSED"))
             || pin == "VCC"
             || pin == "GND"
             || pin == "VCCAUX"
             || pin == "VCCA"
+            || pin == "VDDD"
+            || pin == "VSSD_GND"
+            || pin == "VSSA"
+            || pin == "VSS"
+            || pin.starts_with("VCCNX")
+            || pin.starts_with("VCCXD")
             || pin.starts_with("VCCIO")
             || pin.starts_with("VCCPLL")
             || pin.starts_with("VTT")
         {
             continue;
         }
-        let pin = pin.clone();
-        let pad = if let Some(io) = parse_io(chip, func) {
+        // I hate you. I hate you so fucking much.
+        let pin = match pin.as_str() {
+            "NXBOOT_MCLK" => "NXBOOTMCLK",
+            "NXBOOT_MOSI" => "NXBOOTMOSI",
+            "NXBOOT_MISO" => "NXBOOTMISO",
+            "NXBOOT_MCSN" => "NXBOOTMCSN",
+            "NXPROGRAMN" => "NX_PROGRAMN",
+            "NXJTAGEN" => "NX_JTAGEN",
+            _ => pin,
+        };
+        let pin = pin.to_string();
+        let pad = if let Some(pads) = virt_io.get_mut(func) {
+            pads.sort();
+            match *pads.as_slice() {
+                [BondPad::Io(io), BondPad::Asc(asc)] => BondPad::IoAsc(io, asc),
+                [BondPad::Io(io), BondPad::Pfr(pfr)] => BondPad::IoPfr(io, pfr),
+                [BondPad::Pfr(pad)] => BondPad::Pfr(pad),
+                [BondPad::Io(pad)] if func == "FLASHCSN" => BondPad::Io(pad),
+                _ => {
+                    print!("WEIRD VIRT {func}:");
+                    for pad in pads {
+                        print!(" {pad}");
+                    }
+                    println!();
+                    continue;
+                }
+            }
+        } else if let Some(io) = parse_io(chip, func) {
             let mut spec_io = io;
             let mut spec = if let Some(pclk) = cfg.strip_prefix("PCLK") {
+                let pclk = pclk.strip_suffix("/INTEST_OVER").unwrap_or(pclk);
                 let (which, idx) = pclk.split_once('_').unwrap();
                 if let Some(pclk_bank) = which.strip_prefix('T') {
                     let pclk_bank: i32 = pclk_bank.parse().unwrap();
@@ -346,6 +466,9 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                         _ => unreachable!(),
                     };
                 }
+                if matches!(chip.kind, ChipKind::MachXo2(_)) && bank >= 3 && chip.rows.len() >= 14 {
+                    idx = (bank - 3) as u8;
+                }
                 Some(SpecialIoKey::Clock(io.edge(), idx))
             } else if let Some(vref_bank) = cfg.strip_prefix("VREF1_") {
                 let vref_bank = vref_bank.parse().unwrap();
@@ -357,14 +480,16 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 Some(SpecialIoKey::Vref2(vref_bank))
             } else {
                 match cfg.as_str() {
-                    _ if cfg.contains("PLL") || cfg.contains("DLL") => {
+                    _ if cfg.contains("PLL") || cfg.contains("DLL") => 'pll: {
                         let (loc, sig) = cfg.split_once('_').unwrap();
-                        let (hv, idx) = if loc.len() == 3 {
+                        let (hv, idx) = if loc.len() < 4 {
                             let hv = match loc {
                                 "LLC" => DirHV::SW,
                                 "ULC" => DirHV::NW,
                                 "LRC" => DirHV::SE,
                                 "URC" => DirHV::NE,
+                                "L" if matches!(chip.kind, ChipKind::MachXo2(_)) => DirHV::NW,
+                                "R" if matches!(chip.kind, ChipKind::MachXo2(_)) => DirHV::NE,
                                 _ => panic!("weird PLL loc {loc}"),
                             };
                             (hv, 0)
@@ -381,9 +506,11 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                             (hv, idx)
                         };
                         let loc = match chip.kind {
-                            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo | ChipKind::Xp2 => {
-                                PllLoc::new(hv, idx)
-                            }
+                            ChipKind::Ecp
+                            | ChipKind::Xp
+                            | ChipKind::MachXo
+                            | ChipKind::Xp2
+                            | ChipKind::MachXo2(_) => PllLoc::new(hv, idx),
                             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Ecp3 | ChipKind::Ecp3A => {
                                 let cell = CellCoord::new(
                                     DieId::from_idx(0),
@@ -422,6 +549,12 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                             "GDLLC_FB_A" | "GDLLT_FB_B" => (PllPad::DllFb, true),
                             // bug? bug.
                             "GDLLC_FB_D" => (PllPad::DllFb, true),
+                            "GPLLT_IN" => (PllPad::PllIn0, false),
+                            "GPLLC_IN" => (PllPad::PllIn0, true),
+                            "GPLLT_FB" => (PllPad::PllFb, false),
+                            "GPLLC_FB" => (PllPad::PllFb, true),
+                            "GPLLT_MFGOUT1" | "GPLLC_MFGOUT1" | "GPLLT_MFGOUT2"
+                            | "GPLLC_MFGOUT2" => break 'pll None,
                             _ => panic!("weird PLL pin {sig}"),
                         };
                         if is_c {
@@ -462,6 +595,26 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                     "DONE" => Some(SpecialIoKey::Done),
                     "PROGRAMN" => Some(SpecialIoKey::ProgB),
                     "MFG_EXT_CLK" | "FL_EXT_PULSE_D" | "FL_EXT_PULSE_G" => None,
+                    // MachXO2
+                    "MCLK/CCLK" => Some(SpecialIoKey::Cclk),
+                    "CSSPIN/MD4/TDOB" => Some(SpecialIoKey::SpiCCsB),
+                    "SN/MD5/SCAN_SHFT_ENB/TDIB" | "SN/MD5/SCAN_SHFT_ENB/TDIB/ATB_SENSE_1" => {
+                        Some(SpecialIoKey::SpiPCsB)
+                    }
+                    "SO/SPISO/IO1/MD1/TDIL" => Some(SpecialIoKey::SpiCipo),
+                    "SI/SISPI/IO0/MD0/TDOR" | "SI/SISPI/IO0/MD0/TDOR/ATB_FORCE_1" => {
+                        Some(SpecialIoKey::SpiCopi)
+                    }
+                    "SCL/IO2/MD2/ATB_SENSE/PCLKT0_0" => Some(SpecialIoKey::I2cScl),
+                    "SDA/IO3/MD3/ATB_FORCE/PCLKC0_0/TDOT" => Some(SpecialIoKey::I2cSda),
+                    "TCK/TEST_CLK" => Some(SpecialIoKey::Tck),
+                    "TMS" => Some(SpecialIoKey::Tms),
+                    "TDI/MD7" => Some(SpecialIoKey::Tdi),
+                    "TDO" => Some(SpecialIoKey::Tdo),
+                    "JTAGENB/MD6/TDIR" | "JTAGENB/MD6/TDIR/ATB_SENSE_2" => {
+                        Some(SpecialIoKey::JtagEn)
+                    }
+                    "PROGRAMN/ATB_FORCE_2" => Some(SpecialIoKey::ProgB),
                     _ => {
                         println!("\tPIN {pin:5} {func:8} {cfg:20} {bank} {io}");
                         None
@@ -476,10 +629,21 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 if let Some(prev_io) = special_io.insert(spec, spec_io) {
                     assert_eq!(prev_io, spec_io, "fail on {spec}");
                 }
+                if matches!(chip.kind, ChipKind::MachXo2(_)) && spec == SpecialIoKey::I2cScl {
+                    let spec = SpecialIoKey::Clock(Dir::N, 0);
+                    if let Some(prev_io) = special_io.insert(spec, spec_io) {
+                        assert_eq!(prev_io, spec_io, "fail on {spec}");
+                    }
+                }
             }
             let io_bank = chip.get_io_bank(io);
             assert_eq!(io_bank as i32, bank);
             BondPad::Io(io)
+        } else if bond.kind == BondKind::MachNx
+            && let Some(pfr_func) = func.strip_prefix("PFR_")
+            && let Some(io) = parse_pfr_io(pfr_func)
+        {
+            BondPad::Pfr(PfrPad::Io(io))
         } else if let Some((corner, pad)) = func.split_once("_SQ_")
             && chip.kind == ChipKind::Ecp2M
         {
@@ -559,8 +723,29 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
             .or_else(|| func.strip_prefix("VCCO"))
         {
             BondPad::VccIo(vccio_bank.parse().unwrap())
+        } else if bond.kind == BondKind::MachNx
+            && let Some(vccio_bank) = func.strip_prefix("VCCXDIO")
+            && let Ok(vccio_bank) = vccio_bank.parse()
+        {
+            BondPad::VccIo(vccio_bank)
+        } else if bond.kind == BondKind::MachNx
+            && let Some(vccio_bank) = func.strip_prefix("VCCNXIO")
+        {
+            BondPad::Pfr(PfrPad::VccIo(vccio_bank.parse().unwrap()))
         } else if let Some(vtt_bank) = func.strip_prefix("VTT") {
             BondPad::Vtt(vtt_bank.parse().unwrap())
+        } else if let Some(idx) = func.strip_prefix("GPIO")
+            && bond.kind == BondKind::Asc
+        {
+            BondPad::Asc(AscPad::Gpio(idx.parse().unwrap()))
+        } else if let Some(idx) = func.strip_prefix("TRIM")
+            && bond.kind == BondKind::Asc
+        {
+            BondPad::Asc(AscPad::Trim(idx.parse().unwrap()))
+        } else if let Some(idx) = func.strip_prefix("HVOUT")
+            && bond.kind == BondKind::Asc
+        {
+            BondPad::Asc(AscPad::HvOut(idx.parse().unwrap()))
         } else {
             match func.as_str() {
                 "TCK" => BondPad::Cfg(CfgPad::Tck),
@@ -658,11 +843,66 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 }
                 "VCCA" => BondPad::VccA,
                 "GND" | "GNDAUX" => BondPad::Gnd,
+                "VSS" if bond.kind == BondKind::MachNx => BondPad::Gnd,
                 "Unused" | "NC" => BondPad::Nc,
                 "XRES" => BondPad::XRes,
                 "TEMPVSS" => BondPad::TempVss,
                 "TEMPSENSE" => BondPad::TempSense,
                 "RESERVE" => BondPad::Other,
+                "WDAT" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::WDat),
+                "RDAT" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::RDat),
+                "WRCLK" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::WrClk),
+                "ASCCLK" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::AscClk),
+                "SCL" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::Scl),
+                "SDA" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::Sda),
+                "I2C_ADDR" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::I2cAddr),
+                "RESETb" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::ResetB),
+                "HVIMONP" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::HviMonP),
+                "HIMONN" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::HiMonN),
+                "IMON1P" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::IMonP(1)),
+                "IMON1N" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::IMonN(1)),
+                "TMON1P" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::TMonP(1)),
+                "TMON1N" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::TMonN(1)),
+                "TMON2P" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::TMonP(2)),
+                "TMON2N" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::TMonN(2)),
+                "VMON1" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMon(1)),
+                "VMON2" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMon(2)),
+                "VMON3" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMon(3)),
+                "VMON4" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMon(4)),
+                "VMON5" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMon(5)),
+                "VMON6" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMon(6)),
+                "VMON7" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMon(7)),
+                "VMON8" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMon(8)),
+                "VMON9" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMon(9)),
+                "VMON1GS" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMonGs(1)),
+                "VMON2GS" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMonGs(2)),
+                "VMON3GS" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMonGs(3)),
+                "VMON4GS" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VMonGs(4)),
+                "LDRV" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::Ldrv),
+                "HDRV" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::Hdrv),
+                "VDC" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::Vdc),
+                "VSSA" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VssA),
+                "VDDA" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VddA),
+                "VDDD" if bond.kind == BondKind::Asc => BondPad::Asc(AscPad::VddD),
+                "VSSD_GND" if bond.kind == BondKind::Asc => BondPad::Gnd,
+                "JTAG_EN" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::JtagEn),
+                "ADC_REFP0" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::AdcRefP0),
+                "ADC_REFP1" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::AdcRefP1),
+                "ADC_DP0" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::AdcDp0),
+                "ADC_DP1" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::AdcDp1),
+                "VSSADC" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VssAdc),
+                "VCCXDNXIO0XDIO4" | "VCCXDXDIO4" if bond.kind == BondKind::MachNx => {
+                    BondPad::VccInt
+                }
+                "VCCXDIO0NXIO0NXIO1NXIO2" if bond.kind == BondKind::MachNx => BondPad::VccIo(0),
+                "VCCNX" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccInt),
+                "VCCNXECLK" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccEclk),
+                "VCCNXAUX" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccAux),
+                "VCCNXAUXA" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccAuxA),
+                "VCCNXAUXH3" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccAuxH(3)),
+                "VCCNXAUXH4" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccAuxH(4)),
+                "VCCNXAUXH5" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccAuxH(5)),
+                "VCCNXADC18" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccAdc18),
                 _ if func.starts_with("GNDIO") => BondPad::Gnd,
                 _ if func.starts_with("GNDO") => BondPad::Gnd,
                 // sigh. what the fuck do you expect from a vendor.
@@ -678,9 +918,23 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
             }
         };
         if !pin.starts_with("Unused") {
-            bond.pins.insert(pin, pad);
+            if pin.starts_with("ICC")
+                || pin.starts_with("NX")
+                || pin == "FLASHCSN"
+                || pin.starts_with("WDAT")
+                || pin.starts_with("RDAT")
+                || pin.starts_with("WRCLK")
+                || pin.starts_with("ASCCLK")
+                || pin.starts_with("SCL")
+                || pin.starts_with("SDA")
+                || pin.starts_with("RESET")
+            {
+                virt_io.entry(pin).or_default().push(pad);
+            } else {
+                bond.pins.insert(pin, pad);
+            }
         }
-        if bs_order != 0 {
+        if bs_order != 0 && !matches!(pad, BondPad::Pfr(_)) {
             let idx: usize = (bs_order - 1).try_into().unwrap();
             while idx >= bscan.len() {
                 bscan.push(None);
@@ -734,6 +988,13 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
         );
     }
     assert_eq!(bit, bscan.bits);
+
+    for (_key, mut pads) in virt_io {
+        pads.sort();
+        if let [BondPad::Io(io), BondPad::Pfr(pfr)] = *pads.as_slice() {
+            bond.pfr_io.insert(pfr, io);
+        }
+    }
 
     BondResult { bond, special_io }
 }

@@ -4,6 +4,7 @@ tile_slots![
     INT,
     IO,
     BEL,
+    BC,
     CLK,
     SCLK_SOURCE,
     PCLK_SOURCE,

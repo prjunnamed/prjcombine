@@ -8,6 +8,7 @@ use crate::ChipContext;
 mod ecp;
 mod ecp3;
 mod machxo;
+mod machxo2;
 
 impl ChipContext<'_> {
     pub fn process_io(&mut self) {
@@ -34,6 +35,14 @@ impl ChipContext<'_> {
                 self.process_eclk_tap_ecp3();
                 self.process_dqsdll_ecp3();
                 self.process_io_ecp3();
+            }
+            ChipKind::MachXo2(_) => {
+                self.process_bc_machxo2();
+                self.process_eclk_machxo2();
+                self.process_dqsdll_machxo2();
+                self.process_dqs_machxo2();
+                self.process_io_machxo2();
+                self.process_icc_machxo2();
             }
         }
     }

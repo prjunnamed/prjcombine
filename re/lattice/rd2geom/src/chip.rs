@@ -1,13 +1,14 @@
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap, btree_map};
 
 use prjcombine_ecp::{
     bels,
     chip::{
-        Chip, ChipKind, Column, IoGroupKind, PllLoc, PllPad, Row, RowKind, SpecialIoKey,
-        SpecialLocKey,
+        Chip, ChipKind, Column, IoGroupKind, MachXo2Kind, PllLoc, PllPad, Row, RowKind,
+        SpecialIoKey, SpecialLocKey,
     },
 };
 use prjcombine_interconnect::{
+    db::PinDir,
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
@@ -108,9 +109,51 @@ impl ChipBuilder<'_> {
         }
     }
 
+    fn fill_kind_machxo2(&mut self) {
+        let mut has_riologic = false;
+        let mut has_slewrate = false;
+        let mut has_icc = false;
+        let mut has_esb = false;
+        for &wn in self.nodes.values() {
+            if self.naming.strings[wn.suffix] == "JCLKA_RIOLOGIC" {
+                has_riologic = true;
+            }
+            if self.naming.strings[wn.suffix] == "JSLEWRATEA_PIO" {
+                has_slewrate = true;
+            }
+            if self.naming.strings[wn.suffix] == "JASFCLKI_ESB" {
+                has_esb = true;
+            }
+            if self.naming.strings[wn.suffix] == "JRXCLK_ICC" {
+                has_icc = true;
+            }
+        }
+        if has_icc {
+            self.chip.kind = ChipKind::MachXo2(MachXo2Kind::MachNx);
+        } else if has_esb {
+            self.chip.kind = ChipKind::MachXo2(MachXo2Kind::MachXo3D);
+        } else if has_slewrate {
+            self.chip.kind = ChipKind::MachXo2(MachXo2Kind::MachXo3Lfp);
+        } else if !has_riologic && self.chip.rows.values().any(|rd| rd.kind == RowKind::Ebr) {
+            self.chip.kind = ChipKind::MachXo2(MachXo2Kind::MachXo3L);
+        }
+    }
+
     fn fill_clk_ecp(&mut self) {
         for &wn in self.nodes.values() {
             if self.naming.strings[wn.suffix] == "LLDCSOUT0_DCS" {
+                let cell = self.chip.xlat_rc_wire(wn).delta(1, 0);
+                self.chip.col_clk = cell.col;
+                self.chip.row_clk = cell.row;
+                return;
+            }
+        }
+        panic!("ummm where clocks");
+    }
+
+    fn fill_clk_machxo2(&mut self) {
+        for &wn in self.nodes.values() {
+            if self.naming.strings[wn.suffix] == "DCMOUT6_DCM" {
                 let cell = self.chip.xlat_rc_wire(wn).delta(1, 0);
                 self.chip.col_clk = cell.col;
                 self.chip.row_clk = cell.row;
@@ -178,10 +221,15 @@ impl ChipBuilder<'_> {
             }
             next = row_start + rows.len();
         }
-        let clko0b = self.naming.strings.get("CLKO0B_DCC").unwrap();
+        let clko0b = self.naming.strings.get("CLKO0T_DCC").unwrap();
         for &wn in self.nodes.values() {
             if wn.suffix == clko0b {
-                let cell = self.chip.xlat_rc_wire(wn);
+                let mut cell = self.chip.xlat_rc_wire(wn);
+                if matches!(self.chip.kind, ChipKind::MachXo2(_))
+                    && self.chip.rows[cell.row].kind == RowKind::Plc
+                {
+                    cell.row = self.chip.row_s();
+                }
                 self.chip.rows[cell.row].pclk_drive = true;
             }
         }
@@ -414,6 +462,17 @@ impl ChipBuilder<'_> {
                     SpecialLocKey::Pll(PllLoc::new_hv(edge, sn, 0)),
                     CellCoord::new(DieId::from_idx(0), self.chip.col_edge(edge), row),
                 );
+            }
+        }
+    }
+
+    fn fill_ebr_machxo2(&mut self) {
+        for &wn in self.nodes.values() {
+            if self.naming.strings[wn.suffix].ends_with("_EBR") {
+                let cell = self.chip.xlat_rc_wire(wn);
+                if cell.row == self.chip.row_n() {
+                    self.chip.columns[cell.col].io_n = IoGroupKind::Ebr;
+                }
             }
         }
     }
@@ -715,6 +774,106 @@ impl ChipBuilder<'_> {
         ]);
     }
 
+    fn fill_io_machxo2(&mut self) {
+        self.fill_io(&[
+            ("PIC_L0", IoGroupKind::Quad),
+            ("PIC_L0_I3C", IoGroupKind::QuadI3c),
+            ("PIC_LS0", IoGroupKind::Double),
+            ("PIC_L0_VREF3", IoGroupKind::Quad),
+            ("PIC_L0_VREF4", IoGroupKind::Quad),
+            ("PIC_L0_VREF5", IoGroupKind::Quad),
+            ("PIC_L1", IoGroupKind::Quad),
+            ("PIC_L1_I3C", IoGroupKind::QuadI3c),
+            ("PIC_L1_VREF3", IoGroupKind::Quad),
+            ("PIC_L1_VREF4", IoGroupKind::Quad),
+            ("PIC_L1_VREF5", IoGroupKind::Quad),
+            ("PIC_L2", IoGroupKind::Quad),
+            ("PIC_L2_VREF4", IoGroupKind::Quad),
+            ("PIC_L2_VREF5", IoGroupKind::Quad),
+            ("PIC_L3", IoGroupKind::Quad),
+            ("PIC_L3_VREF4", IoGroupKind::Quad),
+            ("PIC_L3_VREF5", IoGroupKind::Quad),
+            ("LLC0PIC", IoGroupKind::Double),
+            ("LLC0PIC_VREF3", IoGroupKind::Quad),
+            ("LLC0PIC_I3C_VREF3", IoGroupKind::QuadI3c),
+            ("LLC1PIC", IoGroupKind::Quad),
+            ("LLC3PIC_VREF3", IoGroupKind::Quad),
+            ("ULC3PIC", IoGroupKind::Quad),
+            ("PIC_R0", IoGroupKind::Quad),
+            ("PIC_R0_256", IoGroupKind::Quad),
+            ("PIC_RS0", IoGroupKind::Double),
+            ("PIC_RS0_256", IoGroupKind::Double),
+            ("PIC_R1", IoGroupKind::Quad),
+            ("PIC_R1_640", IoGroupKind::Quad),
+            ("LRC0PIC", IoGroupKind::Quad),
+            ("LRC1PIC1", IoGroupKind::Quad),
+            ("LRC1PIC2", IoGroupKind::Quad),
+            ("URC1PIC", IoGroupKind::Quad),
+            ("PIC_B0", IoGroupKind::Quad),
+            ("PIC_B0_256", IoGroupKind::Quad),
+            ("PIC_BS0_256", IoGroupKind::Double),
+            ("PIC_T0", IoGroupKind::Quad),
+            ("PIC_T0_256", IoGroupKind::Quad),
+            ("PIC_TS0", IoGroupKind::Double),
+        ]);
+        if self.chip.rows.len() == 11 {
+            self.chip.columns[ColId::from_idx(8)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(10)].io_s = IoGroupKind::QuadReverse;
+        }
+        if self.chip.rows.len() == 14 {
+            self.chip.columns[ColId::from_idx(17)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(19)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(23)].io_n = IoGroupKind::QuadReverse;
+        }
+        if self.chip.rows.len() == 21 {
+            self.chip.columns[ColId::from_idx(5)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(11)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(17)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(25)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(11)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(18)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(19)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(21)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(22)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(25)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(27)].io_n = IoGroupKind::QuadReverse;
+        }
+        if self.chip.rows.len() == 26 {
+            self.chip.columns[ColId::from_idx(6)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(9)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(14)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(20)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(27)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(33)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(11)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(15)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(20)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(21)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(25)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(26)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(31)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(33)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(35)].io_n = IoGroupKind::QuadReverse;
+        }
+        if self.chip.rows.len() == 30 {
+            self.chip.columns[ColId::from_idx(7)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(12)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(20)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(26)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(31)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(40)].io_s = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(11)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(20)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(23)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(26)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(28)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(30)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(38)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(41)].io_n = IoGroupKind::QuadReverse;
+            self.chip.columns[ColId::from_idx(43)].io_n = IoGroupKind::QuadReverse;
+        }
+    }
+
     fn fill_io_banks_8(&mut self) {
         for (row, rd) in &mut self.chip.rows {
             if row < self.chip.row_clk {
@@ -857,6 +1016,99 @@ impl ChipBuilder<'_> {
         }
     }
 
+    fn fill_io_banks_machxo2(&mut self) {
+        let (r4, r5) = match self.chip.rows.len() {
+            6 => (6, 6),
+            7 => (7, 7),
+            11 => (11, 11),
+            14 => (4, 9),
+            21 => (7, 13),
+            26 => (9, 17),
+            30 => (11, 18),
+            _ => unreachable!(),
+        };
+        let row4 = RowId::from_idx(r4);
+        let row5 = RowId::from_idx(r5);
+        for (row, rd) in &mut self.chip.rows {
+            if rd.io_w != IoGroupKind::None {
+                if row < row4 {
+                    rd.bank_w = Some(3);
+                } else if row < row5 {
+                    rd.bank_w = Some(4);
+                } else {
+                    rd.bank_w = Some(5);
+                }
+            }
+            if rd.io_e != IoGroupKind::None {
+                rd.bank_e = Some(1);
+            }
+        }
+        for (_, cd) in &mut self.chip.columns {
+            if cd.io_s != IoGroupKind::None {
+                cd.bank_s = Some(2);
+            }
+            if cd.io_n != IoGroupKind::None {
+                cd.bank_n = Some(0);
+            }
+        }
+    }
+
+    fn fill_bc_machxo2(&mut self) {
+        let mut xlat = BTreeMap::new();
+        let suffix = self.naming.strings.get("JPGENI_BCPG").unwrap();
+        for &(wf, wt) in self.grid.pips.keys() {
+            let wfn = self.nodes[wf];
+            let wtn = self.nodes[wt];
+            if wtn.suffix == suffix {
+                let cell_to = self.chip.xlat_rc_wire(wtn);
+                let cell_from = self.chip.xlat_rc_wire(wfn);
+                xlat.insert(cell_to, cell_from);
+            }
+        }
+        let has_bank4 = self.chip.rows.values().any(|rd| rd.bank_w == Some(4));
+        let bcs = if has_bank4 {
+            vec![
+                (0, self.chip.col_clk - 1, self.chip.row_n()),
+                (1, self.chip.col_e(), self.chip.row_clk),
+                (2, self.chip.col_clk - 1, self.chip.row_s()),
+                (3, self.chip.col_w(), self.chip.row_s()),
+                (4, self.chip.col_w(), self.chip.row_clk),
+                (5, self.chip.col_w(), self.chip.row_n()),
+            ]
+        } else {
+            vec![
+                (0, self.chip.col_clk - 1, self.chip.row_n()),
+                (1, self.chip.col_e(), self.chip.row_clk),
+                (2, self.chip.col_clk - 1, self.chip.row_s()),
+                (3, self.chip.col_w(), self.chip.row_clk),
+            ]
+        };
+        for (bank, col, row) in bcs {
+            self.chip.special_loc.insert(
+                SpecialLocKey::Bc(bank),
+                xlat[&CellCoord::new(DieId::from_idx(0), col, row)],
+            );
+        }
+    }
+
+    fn fill_dqsdll_machxo2(&mut self) {
+        let Some(suffix) = self.naming.strings.get("JLOCK_DQSDLL") else {
+            return;
+        };
+
+        for &wn in self.nodes.values() {
+            if wn.suffix == suffix {
+                let cell = self.chip.xlat_rc_wire(wn);
+                let key = if cell.row == self.chip.row_s() {
+                    SpecialLocKey::DqsDll(Dir::S)
+                } else {
+                    SpecialLocKey::DqsDll(Dir::N)
+                };
+                self.chip.special_loc.insert(key, cell);
+            }
+        }
+    }
+
     fn gather_special_io(&mut self) -> BTreeMap<WireName, EdgeIoCoord> {
         let jpaddia_pio = self.naming.strings.get("JPADDIA_PIO");
         let jpaddib_pio = self.naming.strings.get("JPADDIB_PIO");
@@ -987,17 +1239,183 @@ impl ChipBuilder<'_> {
         result
     }
 
+    fn gather_special_io_machxo2(&mut self) -> BTreeMap<WireName, (EdgeIoCoord, PinDir)> {
+        let jpaddia_pio = self.naming.strings.get("JPADDIA_PIO").unwrap();
+        let jpaddib_pio = self.naming.strings.get("JPADDIB_PIO").unwrap();
+        let jpaddic_pio = self.naming.strings.get("JPADDIC_PIO").unwrap();
+        let jpaddid_pio = self.naming.strings.get("JPADDID_PIO").unwrap();
+        let jdia = self.naming.strings.get("JDIA").unwrap();
+        let jdib = self.naming.strings.get("JDIB").unwrap();
+        let jdic = self.naming.strings.get("JDIC").unwrap();
+        let jdid = self.naming.strings.get("JDID").unwrap();
+        let jpaddoa = self.naming.strings.get("JPADDOA").unwrap();
+        let jpaddob = self.naming.strings.get("JPADDOB").unwrap();
+        let jpaddoc = self.naming.strings.get("JPADDOC").unwrap();
+        let jpaddod = self.naming.strings.get("JPADDOD").unwrap();
+        let mut pad_nodes = HashMap::new();
+        for (node, &wn) in self.nodes {
+            let mut cell = self.chip.xlat_rc_wire(wn);
+            let (bel, e, dir) = if wn.suffix == jpaddia_pio || wn.suffix == jdia {
+                (bels::IO0, false, PinDir::Input)
+            } else if wn.suffix == jpaddib_pio || wn.suffix == jdib {
+                (bels::IO1, false, PinDir::Input)
+            } else if wn.suffix == jpaddic_pio || wn.suffix == jdic {
+                (bels::IO2, false, PinDir::Input)
+            } else if wn.suffix == jpaddid_pio || wn.suffix == jdid {
+                (bels::IO3, false, PinDir::Input)
+            } else if wn.suffix == jpaddoa {
+                (bels::IO0, false, PinDir::Output)
+            } else if wn.suffix == jpaddob {
+                (bels::IO1, false, PinDir::Output)
+            } else if wn.suffix == jpaddoc {
+                (bels::IO2, false, PinDir::Output)
+            } else if wn.suffix == jpaddod {
+                (bels::IO3, false, PinDir::Output)
+            } else {
+                continue;
+            };
+            if matches!(self.chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
+                if e {
+                    if cell.col == self.chip.col_w() {
+                        cell.col += 1;
+                    } else if cell.col == self.chip.col_e() {
+                        cell.col -= 1;
+                    } else {
+                        unreachable!();
+                    }
+                }
+                let mut io = self.chip.get_io_crd(cell.bel(bel));
+                if !e {
+                    match io {
+                        EdgeIoCoord::W(ref mut row, ref mut iob) => {
+                            if self.chip.rows[*row].io_w == IoGroupKind::None {
+                                *row -= 2;
+                            } else {
+                                *iob = TileIobId::from_idx(iob.to_idx() + 2);
+                            }
+                        }
+                        EdgeIoCoord::E(ref mut row, ref mut iob) => {
+                            if self.chip.rows[*row].io_e == IoGroupKind::None {
+                                *row -= 2;
+                            } else {
+                                *iob = TileIobId::from_idx(iob.to_idx() + 2);
+                            }
+                        }
+                        EdgeIoCoord::S(ref mut col, ref mut iob) => {
+                            if self.chip.columns[*col].io_s == IoGroupKind::None {
+                                *iob = TileIobId::from_idx(iob.to_idx() + 2);
+                                *col -= 2;
+                            }
+                        }
+                        EdgeIoCoord::N(ref mut col, ref mut iob) => {
+                            if self.chip.columns[*col].io_n == IoGroupKind::None {
+                                *iob = TileIobId::from_idx(iob.to_idx() + 2);
+                                *col -= 2;
+                            }
+                        }
+                    }
+                }
+                pad_nodes.insert(node, (io, dir));
+            } else {
+                assert!(!e);
+                let io = self.chip.get_io_crd(cell.bel(bel));
+                pad_nodes.insert(node, (io, dir));
+            }
+        }
+        let mut result = BTreeMap::new();
+        for &(wf, wt) in self.grid.pips.keys() {
+            if let Some(&io) = pad_nodes.get(&wf) {
+                let wn = self.nodes[wt];
+                let suffix = self.naming.strings[wn.suffix].as_str();
+                if matches!(
+                    suffix,
+                    "PADDIA_IOLOGIC"
+                        | "PADDIB_IOLOGIC"
+                        | "PADDIC_IOLOGIC"
+                        | "PADDID_IOLOGIC"
+                        | "PADDIA_RIOLOGIC"
+                        | "PADDIB_RIOLOGIC"
+                        | "PADDIC_RIOLOGIC"
+                        | "PADDID_RIOLOGIC"
+                        | "PADDIA_BIOLOGIC"
+                        | "PADDIC_BSIOLOGIC"
+                        | "PADDIA_TIOLOGIC"
+                        | "PADDIC_TSIOLOGIC"
+                        | "DIA_IOLOGIC"
+                        | "DIB_IOLOGIC"
+                        | "DIC_IOLOGIC"
+                        | "DID_IOLOGIC"
+                        | "DIA_RIOLOGIC"
+                        | "DIB_RIOLOGIC"
+                        | "DIC_RIOLOGIC"
+                        | "DID_RIOLOGIC"
+                        | "DIA_BIOLOGIC"
+                        | "DIC_BSIOLOGIC"
+                        | "DIA_TIOLOGIC"
+                        | "DIC_TSIOLOGIC"
+                        | "JDIA"
+                        | "JDIB"
+                        | "JDIC"
+                        | "JDID"
+                        | "JQ0"
+                        | "JQ1"
+                        | "JQ2"
+                        | "JQ3"
+                        | "PADDOA_PIO"
+                        | "PADDOB_PIO"
+                        | "PADDOC_PIO"
+                        | "PADDOD_PIO"
+                        | "JPADDOA_PIO"
+                        | "JPADDOB_PIO"
+                        | "JPADDOC_PIO"
+                        | "JPADDOD_PIO"
+                ) {
+                    continue;
+                }
+                result.insert(wn, io);
+            } else if let Some(&io) = pad_nodes.get(&wt) {
+                let wn = self.nodes[wf];
+                let suffix = self.naming.strings[wn.suffix].as_str();
+                if matches!(
+                    suffix,
+                    "JA0"
+                        | "JA1"
+                        | "JA2"
+                        | "JA3"
+                        | "INDDA_IOLOGIC"
+                        | "INDDB_IOLOGIC"
+                        | "INDDC_IOLOGIC"
+                        | "INDDD_IOLOGIC"
+                        | "INDDA_RIOLOGIC"
+                        | "INDDB_RIOLOGIC"
+                        | "INDDC_RIOLOGIC"
+                        | "INDDD_RIOLOGIC"
+                        | "INDDA_BIOLOGIC"
+                        | "INDDC_BSIOLOGIC"
+                        | "INDDA_TIOLOGIC"
+                        | "INDDC_TSIOLOGIC"
+                ) {
+                    continue;
+                }
+                result.insert(wn, io);
+            }
+        }
+        result
+    }
+
     fn fill_special_io_ecp(&mut self) {
         for (wn, io) in self.gather_special_io() {
             let suffix = self.naming.strings[wn.suffix].as_str();
-            if let Some(dir) = match suffix {
+            if let Some(edge) = match suffix {
                 "JLPIO" => Some(Dir::W),
                 "JRPIO" => Some(Dir::E),
                 "JBPIO" => Some(Dir::S),
                 "JTPIO" => Some(Dir::N),
                 _ => None,
             } {
-                self.chip.special_io.insert(SpecialIoKey::Clock(dir, 0), io);
+                self.chip
+                    .special_io
+                    .insert(SpecialIoKey::Clock(edge, 0), io);
             } else if let Some(pad) = match suffix {
                 "JCLKI3" => Some(PllPad::PllIn0),
                 "JCLKFB3" => Some(PllPad::PllFb),
@@ -1020,7 +1438,7 @@ impl ChipBuilder<'_> {
                 let key = SpecialIoKey::Pll(pad, PllLoc::new(hv, 0));
                 self.chip.special_io.insert(key, io);
             } else {
-                panic!("WEIRD SPECIO: R{r}C{c}_{suffix} {io}", r = wn.r, c = wn.c,);
+                panic!("WEIRD SPECIO: R{r}C{c}_{suffix} {io}", r = wn.r, c = wn.c);
             }
         }
     }
@@ -1246,7 +1664,7 @@ impl ChipBuilder<'_> {
             }));
         for (wn, io) in self.gather_special_io() {
             let suffix = self.naming.strings[wn.suffix].as_str();
-            if let Some((dir, i)) = match suffix {
+            if let Some((edge, i)) = match suffix {
                 "JLPIO0" => Some((Dir::W, 0)),
                 "JRPIO0" => Some((Dir::E, 0)),
                 "JBPIO0" => Some((Dir::S, 0)),
@@ -1257,7 +1675,9 @@ impl ChipBuilder<'_> {
                 "JTPIO1" => Some((Dir::N, 1)),
                 _ => None,
             } {
-                self.chip.special_io.insert(SpecialIoKey::Clock(dir, i), io);
+                self.chip
+                    .special_io
+                    .insert(SpecialIoKey::Clock(edge, i), io);
             } else if matches!(
                 suffix,
                 "JPIO0"
@@ -1312,7 +1732,7 @@ impl ChipBuilder<'_> {
             }));
         for (wn, io) in self.gather_special_io() {
             let suffix = self.naming.strings[wn.suffix].as_str();
-            if let Some((dir, i)) = match suffix {
+            if let Some((edge, i)) = match suffix {
                 "JLPIO0" => Some((Dir::W, 0)),
                 "JRPIO0" => Some((Dir::E, 0)),
                 "JTPIO0" => Some((Dir::N, 0)),
@@ -1321,7 +1741,9 @@ impl ChipBuilder<'_> {
                 "JTPIO1" => Some((Dir::N, 1)),
                 _ => None,
             } {
-                self.chip.special_io.insert(SpecialIoKey::Clock(dir, i), io);
+                self.chip
+                    .special_io
+                    .insert(SpecialIoKey::Clock(edge, i), io);
             } else if matches!(
                 suffix,
                 "JPIO1"
@@ -1357,6 +1779,86 @@ impl ChipBuilder<'_> {
                     r = wn.r,
                     c = wn.c,
                 );
+            }
+        }
+    }
+
+    fn fill_special_io_machxo2(&mut self) {
+        fn get_edge(chip: &Chip, wn: WireName) -> Dir {
+            let cell = chip.xlat_rc_wire(wn);
+            if cell.col == chip.col_w() {
+                Dir::W
+            } else if cell.col == chip.col_e() {
+                Dir::E
+            } else if cell.row == chip.row_s() {
+                Dir::S
+            } else if cell.row == chip.row_n() {
+                Dir::N
+            } else {
+                unreachable!()
+            }
+        }
+        fn get_pll(chip: &Chip, wn: WireName) -> PllLoc {
+            let cell = chip.xlat_rc_wire(wn);
+            if cell.col < chip.col_clk {
+                PllLoc::new(DirHV::NW, 0)
+            } else {
+                PllLoc::new(DirHV::NE, 0)
+            }
+        }
+        for (wn, (io, dir)) in self.gather_special_io_machxo2() {
+            let suffix = self.naming.strings[wn.suffix].as_str();
+            let key = match suffix {
+                "JTCK_JTAG" => SpecialIoKey::Tck,
+                "JTMS_JTAG" => SpecialIoKey::Tms,
+                "JTDI_JTAG" => SpecialIoKey::Tdi,
+                "JTDO_JTAG" => SpecialIoKey::Tdo,
+                "JUFMSN_EFB" => SpecialIoKey::SpiPCsB,
+                "JSPIMCSN0_EFB" => SpecialIoKey::SpiCCsB,
+                "JSPIMOSII_EFB" => SpecialIoKey::SpiCopi,
+                "JSPIMOSIO_EFB" => SpecialIoKey::SpiCopi,
+                "JSPIMISOI_EFB" => SpecialIoKey::SpiCipo,
+                "JSPIMISOO_EFB" => SpecialIoKey::SpiCipo,
+                "JSPISCKI_EFB" => SpecialIoKey::Cclk,
+                "JSPISCKO_EFB" => SpecialIoKey::Cclk,
+                "JI2C1SCLI_EFB" => SpecialIoKey::I2cScl,
+                "JI2C1SCLO_EFB" => SpecialIoKey::I2cScl,
+                "JI2C1SDAI_EFB" => SpecialIoKey::I2cSda,
+                "JI2C1SDAO_EFB" => SpecialIoKey::I2cSda,
+                "JPCLKT00" => SpecialIoKey::Clock(Dir::N, 0),
+                "JPCLKT01" => SpecialIoKey::Clock(Dir::N, 1),
+                "JPCLKT10" => SpecialIoKey::Clock(Dir::E, 0),
+                "JPCLKT20" => SpecialIoKey::Clock(Dir::S, 0),
+                "JPCLKT21" => SpecialIoKey::Clock(Dir::S, 1),
+                "JPCLKT30" => SpecialIoKey::Clock(Dir::W, 0),
+                "JPCLKT31" => SpecialIoKey::Clock(Dir::W, 1),
+                "JPCLKT32" => SpecialIoKey::Clock(Dir::W, 2),
+                "JPADDI0" | "JCLKI0_DLLDEL" => SpecialIoKey::Clock(get_edge(&self.chip, wn), 0),
+                "JPADDI1" | "JCLKI1_DLLDEL" => SpecialIoKey::Clock(get_edge(&self.chip, wn), 1),
+                "JPADDI2" | "JCLKI2_DLLDEL" => SpecialIoKey::Clock(get_edge(&self.chip, wn), 2),
+                "JREFCLK3" => SpecialIoKey::Pll(PllPad::PllIn0, get_pll(&self.chip, wn)),
+                "JCLKFB0" => SpecialIoKey::Pll(PllPad::PllFb, get_pll(&self.chip, wn)),
+                "JDQSI0_DQS" => SpecialIoKey::DqsE(0),
+                "JDQSI1_DQS" => SpecialIoKey::DqsE(1),
+                // redundant
+                "JREFCLK4" | "JREFCLK5" | "JREFCLK6" | "JREFCLK7" => continue,
+                _ => {
+                    println!(
+                        "{name}: WEIRD SPECIO: R{r}C{c}_{suffix} {io} {dir:?}",
+                        name = self.name,
+                        r = wn.r,
+                        c = wn.c,
+                    );
+                    continue;
+                }
+            };
+            match self.chip.special_io.entry(key) {
+                btree_map::Entry::Vacant(e) => {
+                    e.insert(io);
+                }
+                btree_map::Entry::Occupied(e) => {
+                    assert_eq!(*e.get(), io);
+                }
             }
         }
     }
@@ -1835,6 +2337,20 @@ pub fn make_chip(
             builder.fill_special_io_ecp3();
             builder.fill_fabric_clock_ecp3();
             builder.fill_config_io_ecp3();
+        }
+        ChipKind::MachXo2(_) => {
+            builder.fill_kind_machxo2();
+            builder.fill_clk_machxo2();
+            builder.fill_pclk_ecp3();
+            builder.fill_sclk_ecp3();
+            builder.fill_ebr_machxo2();
+            builder.fill_config_loc_ecp();
+            builder.fill_io_machxo2();
+            builder.fill_io_banks_machxo2();
+            builder.fill_bc_machxo2();
+            builder.fill_dqsdll_machxo2();
+            builder.fill_pll_xp2();
+            builder.fill_special_io_machxo2();
         }
     };
     builder.chip

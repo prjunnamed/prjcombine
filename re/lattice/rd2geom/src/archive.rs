@@ -83,9 +83,9 @@ pub struct ArchiveEntry {
 }
 
 fn decode(raw_data: &[u8]) -> Vec<u8> {
-    let raw_data = raw_data
-        .strip_prefix(b"\x5b\x5b\xa6\xa6\xc4\xc4\x72")
-        .unwrap();
+    let Some(raw_data) = raw_data.strip_prefix(b"\x5b\x5b\xa6\xa6\xc4\xc4\x72") else {
+        return raw_data.to_vec();
+    };
     let mut pos = 0;
     let mut result = vec![];
     while pos != raw_data.len() {

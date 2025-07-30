@@ -15,6 +15,7 @@ mod ecp;
 mod ecp2;
 mod ecp3;
 mod machxo;
+mod machxo2;
 
 impl ChipContext<'_> {
     fn process_hsdclk_splitter(&mut self) {
@@ -86,6 +87,13 @@ impl ChipContext<'_> {
                 self.process_clk_ecp3(roots);
                 self.process_pclk_ecp3();
             }
+            ChipKind::MachXo2(_) => {
+                self.process_hsdclk_splitter();
+                let sclk_roots = self.process_hsdclk_root_machxo2();
+                let pclk_roots = self.process_pclk_machxo2();
+                self.process_dlldel_machxo2();
+                self.process_clk_machxo2(pclk_roots, sclk_roots);
+            }
         }
     }
 
@@ -93,7 +101,7 @@ impl ChipContext<'_> {
         match self.chip.kind {
             ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo => (),
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => self.process_clk_zones_ecp2(),
-            ChipKind::Ecp3 | ChipKind::Ecp3A => (),
+            ChipKind::Ecp3 | ChipKind::Ecp3A | ChipKind::MachXo2(_) => (),
         }
     }
 }

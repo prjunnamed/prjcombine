@@ -209,7 +209,7 @@ impl ChipContext<'_> {
                     self.add_bel_wire(bcrd, "DQS", dqs);
                     self.add_bel_wire(bcrd, "DDRCLKPOL", ddrclkpol);
                     if let Some(&cell_dqs) = self.edev.dqs.get(&cell) {
-                        let bel_dqs = cell_dqs.bel(bels::DQS);
+                        let bel_dqs = cell_dqs.bel(bels::DQS0);
                         let dqs_tree = self.naming.bel_wire(bel_dqs, "DQSO_TREE");
                         let ddrclkpol_tree = self.naming.bel_wire(bel_dqs, "DDRCLKPOL_TREE");
                         self.claim_pip(dqs, dqs_tree);
@@ -236,7 +236,7 @@ impl ChipContext<'_> {
                     if idx == 0 {
                         self.add_bel_wire(bcrd, "DQSXFER", dqsxfer);
                         if let Some(&cell_dqs) = self.edev.dqs.get(&cell) {
-                            let bel_dqs = cell_dqs.bel(bels::DQS);
+                            let bel_dqs = cell_dqs.bel(bels::DQS0);
                             let dqsxfer_tree = self.naming.bel_wire(bel_dqs, "DQSXFER_TREE");
                             self.claim_pip(dqsxfer, dqsxfer_tree);
                         }
@@ -396,22 +396,22 @@ impl ChipContext<'_> {
         let die = DieId::from_idx(0);
         for cell in self.edev.egrid.column(die, self.chip.col_w()) {
             if self.chip.rows[cell.row].io_w == IoGroupKind::DoubleDqs {
-                self.process_dqs_ecp(cell.bel(bels::DQS));
+                self.process_dqs_ecp(cell.bel(bels::DQS0));
             }
         }
         for cell in self.edev.egrid.column(die, self.chip.col_e()) {
             if self.chip.rows[cell.row].io_e == IoGroupKind::DoubleDqs {
-                self.process_dqs_ecp(cell.bel(bels::DQS));
+                self.process_dqs_ecp(cell.bel(bels::DQS0));
             }
         }
         for cell in self.edev.egrid.row(die, self.chip.row_s()) {
             if self.chip.columns[cell.col].io_s == IoGroupKind::DoubleDqs {
-                self.process_dqs_ecp(cell.bel(bels::DQS));
+                self.process_dqs_ecp(cell.bel(bels::DQS0));
             }
         }
         for cell in self.edev.egrid.row(die, self.chip.row_n()) {
             if self.chip.columns[cell.col].io_n == IoGroupKind::DoubleDqs {
-                self.process_dqs_ecp(cell.bel(bels::DQS));
+                self.process_dqs_ecp(cell.bel(bels::DQS0));
             }
         }
         for cell in self.edev.egrid.column(die, self.chip.col_w()) {

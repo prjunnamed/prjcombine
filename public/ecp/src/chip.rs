@@ -20,11 +20,24 @@ pub enum ChipKind {
     Xp2,
     Ecp3,
     Ecp3A,
+    MachXo2(MachXo2Kind),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
+pub enum MachXo2Kind {
+    MachXo2,
+    MachXo3L,
+    MachXo3Lfp,
+    MachXo3D,
+    MachNx,
 }
 
 impl ChipKind {
     pub fn has_x0_branch(self) -> bool {
-        matches!(self, ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo)
+        matches!(
+            self,
+            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo | ChipKind::MachXo2(_)
+        )
     }
 
     pub fn has_ecp_plc(self) -> bool {
@@ -52,12 +65,20 @@ impl ChipKind {
     pub fn has_distributed_sclk(self) -> bool {
         matches!(
             self,
-            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 | ChipKind::Ecp3 | ChipKind::Ecp3A
+            ChipKind::Ecp2
+                | ChipKind::Ecp2M
+                | ChipKind::Xp2
+                | ChipKind::Ecp3
+                | ChipKind::Ecp3A
+                | ChipKind::MachXo2(_)
         )
     }
 
     pub fn has_distributed_sclk_ecp3(self) -> bool {
-        matches!(self, ChipKind::Ecp3 | ChipKind::Ecp3A)
+        matches!(
+            self,
+            ChipKind::Ecp3 | ChipKind::Ecp3A | ChipKind::MachXo2(_)
+        )
     }
 }
 
@@ -72,6 +93,11 @@ impl Display for ChipKind {
             ChipKind::Xp2 => write!(f, "xp2"),
             ChipKind::Ecp3 => write!(f, "ecp3"),
             ChipKind::Ecp3A => write!(f, "ecp3a"),
+            ChipKind::MachXo2(MachXo2Kind::MachXo2) => write!(f, "machxo2"),
+            ChipKind::MachXo2(MachXo2Kind::MachXo3L) => write!(f, "machxo3l"),
+            ChipKind::MachXo2(MachXo2Kind::MachXo3Lfp) => write!(f, "machxo3lfp"),
+            ChipKind::MachXo2(MachXo2Kind::MachXo3D) => write!(f, "machxo3d"),
+            ChipKind::MachXo2(MachXo2Kind::MachNx) => write!(f, "machnx"),
         }
     }
 }
@@ -121,9 +147,11 @@ pub enum IoGroupKind {
     QuadReverse,
     QuadDqs,
     QuadDqsDummy,
+    QuadI3c,
     Hex,
     HexReverse,
     Serdes,
+    Ebr,
 }
 
 impl Display for IoGroupKind {
@@ -139,9 +167,11 @@ impl Display for IoGroupKind {
             IoGroupKind::QuadReverse => write!(f, "QUAD_REVERSE"),
             IoGroupKind::QuadDqs => write!(f, "QUAD_DQS"),
             IoGroupKind::QuadDqsDummy => write!(f, "QUAD_DQS_DUMMY"),
+            IoGroupKind::QuadI3c => write!(f, "QUAD_I3C"),
             IoGroupKind::Hex => write!(f, "HEX"),
             IoGroupKind::HexReverse => write!(f, "HEX_REVERSE"),
             IoGroupKind::Serdes => write!(f, "SERDES"),
+            IoGroupKind::Ebr => write!(f, "EBR"),
         }
     }
 }
@@ -233,6 +263,8 @@ impl Display for PllPad {
 pub enum SpecialIoKey {
     Clock(Dir, u8),
     Pll(PllPad, PllLoc),
+    // MachXO2
+    DqsE(u8),
     Vref1(u32),
     Vref2(u32),
     Gsr,
@@ -256,6 +288,16 @@ pub enum SpecialIoKey {
     M1,
     Done,
     ProgB,
+    // MachXO2
+    Tck,
+    Tms,
+    Tdi,
+    Tdo,
+    JtagEn,
+    SpiCopi,
+    SpiCipo,
+    I2cScl,
+    I2cSda,
 }
 
 impl Display for SpecialIoKey {
@@ -263,6 +305,7 @@ impl Display for SpecialIoKey {
         match self {
             SpecialIoKey::Clock(dir, i) => write!(f, "CLOCK_{dir}{i}"),
             SpecialIoKey::Pll(pad, loc) => write!(f, "{pad}_{loc}"),
+            SpecialIoKey::DqsE(i) => write!(f, "DQS_E{i}"),
             SpecialIoKey::Vref1(bank) => write!(f, "VREF1_{bank}"),
             SpecialIoKey::Vref2(bank) => write!(f, "VREF2_{bank}"),
             SpecialIoKey::Gsr => write!(f, "GSR"),
@@ -285,6 +328,15 @@ impl Display for SpecialIoKey {
             SpecialIoKey::M1 => write!(f, "M1"),
             SpecialIoKey::Done => write!(f, "DONE"),
             SpecialIoKey::ProgB => write!(f, "PROG_B"),
+            SpecialIoKey::SpiCopi => write!(f, "SPI_COPI"),
+            SpecialIoKey::SpiCipo => write!(f, "SPI_CIPO"),
+            SpecialIoKey::Tck => write!(f, "TCK"),
+            SpecialIoKey::Tms => write!(f, "TMS"),
+            SpecialIoKey::Tdi => write!(f, "TDI"),
+            SpecialIoKey::Tdo => write!(f, "TDO"),
+            SpecialIoKey::JtagEn => write!(f, "JTAG_EN"),
+            SpecialIoKey::I2cScl => write!(f, "I2C_SCL"),
+            SpecialIoKey::I2cSda => write!(f, "I2C_SDA"),
         }
     }
 }
@@ -298,7 +350,9 @@ pub enum SpecialLocKey {
     SclkIn(Dir, u8),
     Config,
     ConfigBits,
+    Bc(u32),
     Osc,
+    DqsDll(Dir),
 }
 
 impl Display for SpecialLocKey {
@@ -308,10 +362,12 @@ impl Display for SpecialLocKey {
             SpecialLocKey::Ebr(idx) => write!(f, "EBR{idx}"),
             SpecialLocKey::Config => write!(f, "CONFIG"),
             SpecialLocKey::ConfigBits => write!(f, "CONFIG_BITS"),
+            SpecialLocKey::Bc(bank) => write!(f, "BC{bank}"),
             SpecialLocKey::Osc => write!(f, "OSC"),
             SpecialLocKey::PclkIn(dir, idx) => write!(f, "PCLK_IN_{dir}{idx}"),
             SpecialLocKey::PclkInMid(idx) => write!(f, "PCLK_IN_M{idx}"),
             SpecialLocKey::SclkIn(dir, idx) => write!(f, "SCLK_IN_{dir}{idx}"),
+            SpecialLocKey::DqsDll(dir) => write!(f, "DQSDLL_{dir}"),
         }
     }
 }
@@ -466,6 +522,7 @@ impl Chip {
                     _ => IoKind::Sio,
                 },
             },
+            ChipKind::MachXo2(_) => IoKind::Io,
         }
     }
 
@@ -509,6 +566,7 @@ impl Chip {
                 })
             }
             ChipKind::MachXo => unreachable!(),
+            ChipKind::MachXo2(_) => unreachable!(),
         }
     }
 
@@ -566,15 +624,25 @@ impl Chip {
     }
 
     pub fn bel_eclksync(&self, edge: Dir, idx: usize) -> BelCoord {
-        assert!(matches!(self.kind, ChipKind::Ecp3 | ChipKind::Ecp3A));
-        match edge {
-            Dir::W => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
-                .bel(bels::ECLKSYNC[idx]),
-            Dir::E => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
-                .bel(bels::ECLKSYNC[idx]),
-            Dir::S => unreachable!(),
-            Dir::N => CellCoord::new(DieId::from_idx(0), self.col_clk - 1, self.row_n())
-                .bel(bels::ECLKSYNC[idx]),
+        match self.kind {
+            ChipKind::Ecp3 | ChipKind::Ecp3A => match edge {
+                Dir::W => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
+                    .bel(bels::ECLKSYNC[idx]),
+                Dir::E => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
+                    .bel(bels::ECLKSYNC[idx]),
+                Dir::S => unreachable!(),
+                Dir::N => CellCoord::new(DieId::from_idx(0), self.col_clk - 1, self.row_n())
+                    .bel(bels::ECLKSYNC[idx]),
+            },
+            ChipKind::MachXo2(_) => match edge {
+                Dir::W => unreachable!(),
+                Dir::E => unreachable!(),
+                Dir::S => CellCoord::new(DieId::from_idx(0), self.col_clk - 1, self.row_s())
+                    .bel(bels::ECLKSYNC[idx]),
+                Dir::N => CellCoord::new(DieId::from_idx(0), self.col_clk - 1, self.row_n())
+                    .bel(bels::ECLKSYNC[idx]),
+            },
+            _ => unreachable!(),
         }
     }
 

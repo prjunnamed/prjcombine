@@ -167,7 +167,7 @@ impl ChipContext<'_> {
         if matches!(kind, IoKind::Dqs | IoKind::SDqs) {
             let dqsw = self.rc_io_wire(cell, &format!("JDQSW{abcd}_{iol}"));
             self.add_bel_wire(bcrd, "DQSW", dqsw);
-            let bcrd_dqs = bcrd.bel(bels::DQS);
+            let bcrd_dqs = bcrd.bel(bels::DQS0);
             let dqsw_dqs = self.naming.bel_wire(bcrd_dqs, "DQSW");
             self.claim_pip(dqsw, dqsw_dqs);
 
@@ -179,7 +179,7 @@ impl ChipContext<'_> {
         }
 
         if kind != IoKind::Xsio {
-            let bcrd_dqs = self.edev.dqs[&bcrd.cell].bel(bels::DQS);
+            let bcrd_dqs = self.edev.dqs[&bcrd.cell].bel(bels::DQS0);
             let mut pins = vec!["DQCLK1", "DDRCLKPOL", "DDRLAT"];
             if self.chip.kind == ChipKind::Ecp3A {
                 pins.push("ECLKDQSR");
@@ -235,7 +235,7 @@ impl ChipContext<'_> {
 
     fn process_dqs_ecp3(&mut self, bcrd_io: BelCoord) {
         let io = self.chip.get_io_crd(bcrd_io);
-        let bcrd_dqs = bcrd_io.bel(bels::DQS);
+        let bcrd_dqs = bcrd_io.bel(bels::DQS0);
         let kind = self.chip.get_io_kind(io);
         let cell = match io.edge() {
             Dir::H(_) => bcrd_dqs.cell.delta(0, 1),

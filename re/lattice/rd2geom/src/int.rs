@@ -178,7 +178,7 @@ impl ChipContext<'_> {
                             .collect()
                     }
                 }
-                ChipKind::Ecp3 | ChipKind::Ecp3A => {
+                ChipKind::Ecp3 | ChipKind::Ecp3A | ChipKind::MachXo2(_) => {
                     let WireKind::Regional(region) = self.intdb.wires[wire] else {
                         unreachable!()
                     };
@@ -249,7 +249,8 @@ impl ChipContext<'_> {
             self.edev.egrid.wire_tree(wire)
         } else if self.chip.kind.has_x0_branch()
             && let Some(w) = match suffix.as_str() {
-                "HL7W0000" => Some("OUT_OFX3_W"),
+                "HL7W0000" if self.chip.kind.has_ecp_plc() => Some("OUT_OFX3_W"),
+                "HL7W0001" if !self.chip.kind.has_ecp_plc() => Some("OUT_OFX3_W"),
                 "HF0W0000" => Some("OUT_F0_W"),
                 "HF1W0000" => Some("OUT_F1_W"),
                 "HF2W0000" => Some("OUT_F2_W"),
@@ -540,8 +541,22 @@ impl ChipContext<'_> {
                         for &(wt, wf) in &out_w {
                             let wt = target.wire(wt);
                             let wf = cell.wire(wf);
-                            let wtn = self.naming.interconnect[&wt];
-                            let wfn = self.naming.interconnect[&wf];
+                            let Some(&wtn) = self.naming.interconnect.get(&wt) else {
+                                println!(
+                                    "{name}: {wt} missing",
+                                    name = self.name,
+                                    wt = wt.to_string(self.intdb)
+                                );
+                                continue;
+                            };
+                            let Some(&wfn) = self.naming.interconnect.get(&wf) else {
+                                println!(
+                                    "{name}: {wf} missing",
+                                    name = self.name,
+                                    wf = wf.to_string(self.intdb)
+                                );
+                                continue;
+                            };
                             term_pips.insert((wtn, wfn));
                         }
                     }
@@ -549,8 +564,22 @@ impl ChipContext<'_> {
                         for &(wt, wf) in &out_e {
                             let wt = target.wire(wt);
                             let wf = cell.wire(wf);
-                            let wtn = self.naming.interconnect[&wt];
-                            let wfn = self.naming.interconnect[&wf];
+                            let Some(&wtn) = self.naming.interconnect.get(&wt) else {
+                                println!(
+                                    "{name}: {wt} missing",
+                                    name = self.name,
+                                    wt = wt.to_string(self.intdb)
+                                );
+                                continue;
+                            };
+                            let Some(&wfn) = self.naming.interconnect.get(&wf) else {
+                                println!(
+                                    "{name}: {wf} missing",
+                                    name = self.name,
+                                    wf = wf.to_string(self.intdb)
+                                );
+                                continue;
+                            };
                             term_pips.insert((wtn, wfn));
                         }
                     }
@@ -800,6 +829,28 @@ impl ChipContext<'_> {
                     sb.items.push(SwitchBoxItem::Mux(mux));
                 }
             }
+            if matches!(self.chip.kind, ChipKind::MachXo2(_))
+                && self.intdb.tile_classes.key(tcid) == "INT_EBR"
+            {
+                for i in 0..8 {
+                    let vsdclk = TileWireCoord {
+                        cell: CellSlotId::from_idx(0),
+                        wire: self.intdb.get_wire(&format!("VSDCLK{i}")),
+                    };
+                    let vsdclk_n = TileWireCoord {
+                        cell: CellSlotId::from_idx(0),
+                        wire: self.intdb.get_wire(&format!("VSDCLK{i}_N")),
+                    };
+                    sb.items.push(SwitchBoxItem::ProgBuf(Buf {
+                        dst: vsdclk,
+                        src: vsdclk_n.pos(),
+                    }));
+                    sb.items.push(SwitchBoxItem::ProgBuf(Buf {
+                        dst: vsdclk_n,
+                        src: vsdclk.pos(),
+                    }));
+                }
+            }
             self.bels.insert((tcid, bels::INT), BelInfo::SwitchBox(sb));
         }
     }
@@ -942,7 +993,10 @@ impl ChipContext<'_> {
                             self.add_bel_wire(cell.bel(bels::INT), format!("{l}{i}"), wf);
                             if matches!(
                                 self.chip.kind,
-                                ChipKind::Xp2 | ChipKind::Ecp3 | ChipKind::Ecp3A
+                                ChipKind::Xp2
+                                    | ChipKind::Ecp3
+                                    | ChipKind::Ecp3A
+                                    | ChipKind::MachXo2(_)
                             ) {
                                 self.claim_pip_int_out(wt, wf);
                             } else {
@@ -954,9 +1008,8 @@ impl ChipContext<'_> {
             } else {
                 self.name_bel_null(cell.bel(bels::INT));
             }
-            let has_cin = if self.chip.kind == ChipKind::MachXo {
-                cell.row != self.chip.row_s()
-                    && cell.row != self.chip.row_n()
+            let has_cin = if matches!(self.chip.kind, ChipKind::MachXo | ChipKind::MachXo2(_)) {
+                matches!(self.chip.rows[cell.row].kind, RowKind::Plc | RowKind::Fplc)
                     && cell.col != self.chip.col_e()
                     && cell.col > self.chip.col_w() + 1
             } else {
@@ -968,6 +1021,40 @@ impl ChipContext<'_> {
                 if !self.chip.kind.has_x0_branch() {
                     let wire = self.rc_wire(cell, "HL7W0001");
                     self.add_bel_wire(cell.bel(bels::INT), "SLICE2_FX_OUT", wire);
+                }
+            }
+            if matches!(self.chip.kind, ChipKind::MachXo2(_))
+                && matches!(self.chip.rows[cell.row].kind, RowKind::Io | RowKind::Ebr)
+            {
+                let keep = self.rc_wire(cell, "SOUTHKEEP");
+                for i in 0..8 {
+                    if matches!(i, 2..4) && cell.col != self.chip.col_e() {
+                        continue;
+                    }
+                    if matches!(i, 4..8) && cell.col != self.chip.col_w() {
+                        continue;
+                    }
+                    let vsdclk = cell.wire(self.intdb.get_wire(&format!("VSDCLK{i}")));
+                    let vsdclk_n = cell.wire(self.intdb.get_wire(&format!("VSDCLK{i}_N")));
+                    let idx = [2, 3, 6, 7, 10, 11, 6, 7][i];
+                    let b2t = self.rc_wire(cell, &format!("VSTX{idx:02}00_B2T"));
+                    let t2b = self.rc_wire(cell, &format!("VSTX{idx:02}00_T2B"));
+                    self.add_bel_wire(cell.bel(bels::INT), format!("VSDCLK{i}_B2T"), b2t);
+                    self.add_bel_wire(cell.bel(bels::INT), format!("VSDCLK{i}_T2B"), t2b);
+                    self.claim_pip(t2b, keep);
+                    self.claim_pip(b2t, keep);
+                    if cell.row == self.chip.row_s() {
+                        self.claim_pip_int_in(t2b, vsdclk);
+                        self.claim_pip_int_out(vsdclk, b2t);
+                    } else if cell.row == self.chip.row_n() {
+                        self.claim_pip_int_in(b2t, vsdclk);
+                        self.claim_pip_int_out(vsdclk, t2b);
+                    } else {
+                        self.claim_pip_int_in(t2b, vsdclk);
+                        self.claim_pip_int_out(vsdclk, b2t);
+                        self.claim_pip_int_in(b2t, vsdclk_n);
+                        self.claim_pip_int_out(vsdclk_n, t2b);
+                    }
                 }
             }
         }
