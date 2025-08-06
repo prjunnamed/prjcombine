@@ -52,7 +52,6 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: 
     let endev = db.name(part, &edev);
 
     let backend = XactBackend {
-        debug: opts.debug,
         xact_path,
         device: part,
         bs_geom: &edev.bs_geom,

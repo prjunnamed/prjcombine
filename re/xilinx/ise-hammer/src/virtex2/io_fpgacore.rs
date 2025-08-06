@@ -56,7 +56,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IobExtra {
                     tile: backend.egrid.db.tile_classes.key(tile.class).clone(),
                     ..fuzzer_id
                 },
-                tiles: backend.edev.node_bits(tcrd),
+                tiles: backend.edev.tile_bits(tcrd),
             });
             Some((fuzzer, false))
         } else {

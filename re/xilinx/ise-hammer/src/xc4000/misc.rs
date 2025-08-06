@@ -42,7 +42,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesIoW {
                         tile: tile.into(),
                         ..fuzzer_id
                     },
-                    tiles: vec![backend.edev.node_bits(tcrd)[0]],
+                    tiles: vec![backend.edev.tile_bits(tcrd)[0]],
                 });
             }
         }
@@ -78,7 +78,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesAllIo {
                         tile: tile.into(),
                         ..fuzzer_id
                     },
-                    tiles: vec![backend.edev.node_bits(tcrd)[0]],
+                    tiles: vec![backend.edev.tile_bits(tcrd)[0]],
                 });
             }
         }
@@ -119,7 +119,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileSingle {
                 tile: tile.into(),
                 ..fuzzer_id
             },
-            tiles: vec![backend.edev.node_bits(self.tcrd)[0]],
+            tiles: vec![backend.edev.tile_bits(self.tcrd)[0]],
         });
         Some((fuzzer, false))
     }

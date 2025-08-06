@@ -157,7 +157,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
                     attr: "PRESENT".into(),
                     val: "VREF".into(),
                 },
-                tiles: backend.edev.node_bits(vref),
+                tiles: backend.edev.tile_bits(vref),
             });
         }
         Some((fuzzer, false))

@@ -12,15 +12,15 @@ use prjcombine_interconnect::{
     grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, TileCoord},
 };
 use prjcombine_re_hammer::{Backend, BatchValue, Fuzzer, FuzzerGen, FuzzerId};
-use prjcombine_types::bitvec::BitVec;
 use prjcombine_types::bsdata::{BsData, TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bittile::BitTile, bitvec::BitVec};
 use rand::seq::IndexedRandom;
 use unnamed_entity::EntityId;
 
 pub trait FpgaBackend: Backend<State = State, FuzzerInfo = FuzzerInfo<Self::BitTile>> {
-    type BitTile: Copy + Clone + Debug + Hash + PartialEq + Eq + Sync + Send;
+    type BitTile: BitTile<BitPos = Self::BitPos>;
 
-    fn node_bits(&self, nloc: TileCoord) -> Vec<Self::BitTile>;
+    fn tile_bits(&self, nloc: TileCoord) -> Vec<Self::BitTile>;
 
     fn egrid(&self) -> &ExpandedGrid<'_>;
 }
@@ -79,7 +79,7 @@ impl<B: FpgaBackend> FpgaFuzzerGen<'_, B> {
         nloc: TileCoord,
     ) -> Option<(Fuzzer<B>, BTreeSet<usize>)> {
         let tiles = if self.node_kind.is_some() {
-            backend.node_bits(nloc)
+            backend.tile_bits(nloc)
         } else {
             vec![]
         };
@@ -876,6 +876,79 @@ impl State {
         let res = self.peek_diffs(tile, bel, attr, val);
         assert_eq!(res.len(), 1);
         &res[0]
+    }
+
+    pub fn return_fuzzer<P: Copy + Debug, T: BitTile<BitPos = P>>(
+        &mut self,
+        f: &FuzzerInfo<T>,
+        fid: FuzzerId,
+        bits: Vec<HashMap<P, bool>>,
+    ) -> Option<Vec<FuzzerId>> {
+        let mut fdiffs: Vec<_> = f
+            .features
+            .iter()
+            .map(|_| vec![Diff::default(); bits.len()])
+            .collect();
+        for (bitidx, bbits) in bits.iter().enumerate() {
+            'bits: for (&k, &v) in bbits {
+                for (fidx, feat) in f.features.iter().enumerate() {
+                    for (i, t) in feat.tiles.iter().enumerate() {
+                        if let Some(xk) = t.xlat_pos_rev(k) {
+                            fdiffs[fidx][bitidx].bits.insert(
+                                TileBit {
+                                    tile: i,
+                                    frame: xk.0,
+                                    bit: xk.1,
+                                },
+                                v,
+                            );
+                            continue 'bits;
+                        }
+                    }
+                }
+                eprintln!("failed to xlat bit {k:?} [bits {bbits:?}] for {f:?}, candidates:");
+                for feat in &f.features {
+                    println!("{:?}: {:?}", feat.id, feat.tiles);
+                }
+                return Some(vec![]);
+            }
+        }
+        for (feat, xdiffs) in f.features.iter().zip(fdiffs) {
+            // if self.debug >= 3 {
+            //     eprintln!("RETURN {feat:?} {xdiffs:?}");
+            // }
+            if feat.tiles.is_empty() {
+                for diff in &xdiffs {
+                    if !diff.bits.is_empty() {
+                        eprintln!("null fuzzer {f:?} with bits: {xdiffs:?}");
+                        return Some(vec![]);
+                    }
+                }
+            } else {
+                match self.features.entry(feat.id.clone()) {
+                    btree_map::Entry::Occupied(mut e) => {
+                        let v = e.get_mut();
+                        if v.diffs != xdiffs {
+                            eprintln!(
+                                "bits mismatch for {f:?}/{fid:?}: {vbits:?} vs {xdiffs:?}",
+                                fid = feat.id,
+                                vbits = v.diffs
+                            );
+                            return Some(v.fuzzers.clone());
+                        } else {
+                            v.fuzzers.push(fid);
+                        }
+                    }
+                    btree_map::Entry::Vacant(e) => {
+                        e.insert(FeatureData {
+                            diffs: xdiffs,
+                            fuzzers: vec![fid],
+                        });
+                    }
+                }
+            }
+        }
+        None
     }
 }
 

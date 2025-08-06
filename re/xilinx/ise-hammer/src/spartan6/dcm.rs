@@ -48,7 +48,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllOtherDcms {
                     attr: self.1.into(),
                     val: self.2.into(),
                 },
-                tiles: backend.edev.node_bits(nnloc),
+                tiles: backend.edev.tile_bits(nnloc),
             });
         }
 

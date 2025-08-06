@@ -22,8 +22,10 @@ pub enum BitTile {
     Bram(usize, usize),
 }
 
-impl BitTile {
-    pub fn xlat_pos_rev(&self, bit: BitPos) -> Option<(usize, usize)> {
+impl prjcombine_types::bittile::BitTile for BitTile {
+    type BitPos = BitPos;
+
+    fn xlat_pos_rev(&self, bit: BitPos) -> Option<(usize, usize)> {
         match (*self, bit) {
             (BitTile::Speed, BitPos::Speed(pos)) => Some((0, pos)),
             (BitTile::CReg, BitPos::CReg(pos)) => Some((0, pos)),
@@ -56,7 +58,7 @@ impl BitTile {
         }
     }
 
-    pub fn xlat_pos_fwd(&self, bit: (usize, usize)) -> BitPos {
+    fn xlat_pos_fwd(&self, bit: (usize, usize)) -> BitPos {
         let (tframe, tbit) = bit;
         match *self {
             BitTile::Speed => {

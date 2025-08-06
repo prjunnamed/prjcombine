@@ -9,6 +9,7 @@ use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
 use prjcombine_types::{
     bits,
+    bittile::BitTile as _,
     bitvec::BitVec,
     bsdata::{BsData, TileItemKind},
 };

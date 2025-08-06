@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, HashMap, btree_map},
+    collections::{BTreeMap, HashMap},
     fs::{File, read_to_string},
     io::Write,
     path::Path,
@@ -7,18 +7,17 @@ use std::{
 };
 
 use prjcombine_interconnect::grid::{BelCoord, ExpandedGrid, TileCoord, WireCoord};
-use prjcombine_re_fpga_hammer::{Diff, FeatureData, FpgaBackend, FuzzerInfo, State};
+use prjcombine_re_fpga_hammer::{FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_xilinx_xact_geom::Device;
 use prjcombine_re_xilinx_xact_naming::grid::{ExpandedGridNaming, PipCoords};
-use prjcombine_types::{bitvec::BitVec, bsdata::TileBit};
+use prjcombine_types::bitvec::BitVec;
 use prjcombine_xc2000::expanded::ExpandedDevice;
 use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom, KeyData, parse};
 
 use crate::lca::{Block, Design, Net};
 
 pub struct XactBackend<'a> {
-    pub debug: u8,
     pub xact_path: &'a Path,
     pub device: &'a Device,
     pub bs_geom: &'a BitstreamGeom,
@@ -359,71 +358,7 @@ impl<'a> Backend for XactBackend<'a> {
         fid: FuzzerId,
         bits: Vec<HashMap<BitPos, bool>>,
     ) -> Option<Vec<FuzzerId>> {
-        let mut fdiffs: Vec<_> = f
-            .features
-            .iter()
-            .map(|_| vec![Diff::default(); bits.len()])
-            .collect();
-        for (bitidx, bbits) in bits.iter().enumerate() {
-            'bits: for (&k, &v) in bbits {
-                for (fidx, feat) in f.features.iter().enumerate() {
-                    for (i, t) in feat.tiles.iter().enumerate() {
-                        if let Some(xk) = t.xlat_pos_rev(k) {
-                            fdiffs[fidx][bitidx].bits.insert(
-                                TileBit {
-                                    tile: i,
-                                    frame: xk.0,
-                                    bit: xk.1,
-                                },
-                                v,
-                            );
-                            continue 'bits;
-                        }
-                    }
-                }
-                eprintln!("failed to xlat bit {k:?} [bits {bbits:?}] for {f:?}, candidates:");
-                for feat in &f.features {
-                    println!("{:?}: {:?}", feat.id, feat.tiles);
-                }
-                return Some(vec![]);
-            }
-        }
-        for (feat, xdiffs) in f.features.iter().zip(fdiffs) {
-            if self.debug >= 3 {
-                eprintln!("RETURN {feat:?} {xdiffs:?}");
-            }
-            if feat.tiles.is_empty() {
-                for diff in &xdiffs {
-                    if !diff.bits.is_empty() {
-                        eprintln!("null fuzzer {f:?} with bits: {xdiffs:?}");
-                        return Some(vec![]);
-                    }
-                }
-            } else {
-                match state.features.entry(feat.id.clone()) {
-                    btree_map::Entry::Occupied(mut e) => {
-                        let v = e.get_mut();
-                        if v.diffs != xdiffs {
-                            eprintln!(
-                                "bits mismatch for {f:?}/{fid:?}: {vbits:?} vs {xdiffs:?}",
-                                fid = feat.id,
-                                vbits = v.diffs
-                            );
-                            return Some(v.fuzzers.clone());
-                        } else {
-                            v.fuzzers.push(fid);
-                        }
-                    }
-                    btree_map::Entry::Vacant(e) => {
-                        e.insert(FeatureData {
-                            diffs: xdiffs,
-                            fuzzers: vec![fid],
-                        });
-                    }
-                }
-            }
-        }
-        None
+        state.return_fuzzer(f, fid, bits)
     }
 
     fn postproc(
@@ -440,7 +375,7 @@ impl<'a> Backend for XactBackend<'a> {
 impl FpgaBackend for XactBackend<'_> {
     type BitTile = BitTile;
 
-    fn node_bits(&self, nloc: TileCoord) -> Vec<BitTile> {
+    fn tile_bits(&self, nloc: TileCoord) -> Vec<BitTile> {
         self.edev.tile_bits(nloc)
     }
 

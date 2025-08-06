@@ -7,6 +7,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_types::bittile::BitTile as _;
 use prjcombine_virtex::{bels, tslots};
 use unnamed_entity::EntityId;
 

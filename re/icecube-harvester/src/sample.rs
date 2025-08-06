@@ -13,7 +13,7 @@ use prjcombine_siliconblue::{
     expanded::{BitOwner, ExpandedDevice},
     tslots,
 };
-use prjcombine_types::bitvec::BitVec;
+use prjcombine_types::{bittile::BitTile as _, bitvec::BitVec};
 use unnamed_entity::EntityId;
 
 use crate::{

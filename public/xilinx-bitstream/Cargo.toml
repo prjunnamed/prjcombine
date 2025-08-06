@@ -12,6 +12,7 @@ cbc.workspace = true
 aes.workspace = true
 sha2.workspace = true
 unnamed_entity.workspace = true
+prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
 
 [lints]

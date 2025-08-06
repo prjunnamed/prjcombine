@@ -57,7 +57,7 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
         };
         fuzzer.info.features.push(FuzzerFeature {
             id,
-            tiles: backend.edev.node_bits(tcrd),
+            tiles: backend.edev.tile_bits(tcrd),
         });
         Some((fuzzer, false))
     }
@@ -111,7 +111,7 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe
         };
         fuzzer.info.features.push(FuzzerFeature {
             id,
-            tiles: backend.edev.node_bits(tcrd),
+            tiles: backend.edev.tile_bits(tcrd),
         });
         Some((fuzzer, false))
     }
@@ -164,7 +164,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind {
                 };
                 fuzzer.info.features.push(FuzzerFeature {
                     id,
-                    tiles: backend.edev.node_bits(tcrd),
+                    tiles: backend.edev.tile_bits(tcrd),
                 });
             }
         }
@@ -223,7 +223,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
                 };
                 fuzzer.info.features.push(FuzzerFeature {
                     id,
-                    tiles: backend.edev.node_bits(tcrd),
+                    tiles: backend.edev.tile_bits(tcrd),
                 });
             }
         }

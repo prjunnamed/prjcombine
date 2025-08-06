@@ -12,6 +12,7 @@ use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use prjcombine_types::{
     bits,
+    bittile::BitTile as _,
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };

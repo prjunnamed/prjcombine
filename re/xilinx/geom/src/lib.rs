@@ -212,7 +212,7 @@ impl<'a> ExpandedDevice<'a> {
         }
     }
 
-    pub fn node_bits(&self, nloc: TileCoord) -> Vec<BitTile> {
+    pub fn tile_bits(&self, nloc: TileCoord) -> Vec<BitTile> {
         match self {
             ExpandedDevice::Xc2000(edev) => edev.tile_bits(nloc),
             ExpandedDevice::Virtex(edev) => edev.tile_bits(nloc),

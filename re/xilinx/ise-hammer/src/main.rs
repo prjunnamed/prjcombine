@@ -114,7 +114,6 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &R
         ebonds.insert(devbond.name.clone(), bond.expand());
     }
     let backend = IseBackend {
-        debug: opts.debug,
         tc,
         db,
         device: part,

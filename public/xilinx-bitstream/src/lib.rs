@@ -376,8 +376,10 @@ pub enum BitTile {
     Gtz(DirV),
 }
 
-impl BitTile {
-    pub fn xlat_pos_rev(&self, bit: BitPos) -> Option<(usize, usize)> {
+impl prjcombine_types::bittile::BitTile for BitTile {
+    type BitPos = BitPos;
+
+    fn xlat_pos_rev(&self, bit: BitPos) -> Option<(usize, usize)> {
         match (*self, bit) {
             (BitTile::Reg(die, reg), BitPos::Reg(bdie, breg, pos))
                 if bdie == die && breg == reg =>
@@ -440,7 +442,7 @@ impl BitTile {
         }
     }
 
-    pub fn xlat_pos_fwd(&self, bit: (usize, usize)) -> BitPos {
+    fn xlat_pos_fwd(&self, bit: (usize, usize)) -> BitPos {
         let (tframe, tbit) = bit;
         match *self {
             BitTile::Null => unreachable!(),
@@ -490,7 +492,9 @@ impl BitTile {
             BitTile::Gtz(dir) => BitPos::Gtz(dir, tframe, tbit),
         }
     }
+}
 
+impl BitTile {
     pub fn to_fixup(self) -> BitTile {
         match self {
             BitTile::Main(die, frame, width, bit, height, flip) => {
