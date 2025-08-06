@@ -92,6 +92,17 @@ pub struct FuzzBuilder<'sm, 'b> {
 }
 
 impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
+    // Note: this is not an implementation of the Clone trait because Clone::clone has a slightly
+    // different signature.
+    pub fn clone(&mut self) -> FuzzBuilder<'_, 'b> {
+        FuzzBuilder {
+            session: &mut *self.session,
+            backend: self.backend,
+            tile_class: self.tile_class,
+            props: self.props.clone(),
+        }
+    }
+
     pub fn prop(mut self, prop: impl FuzzerProp<'b, XactBackend<'b>> + 'static) -> Self {
         self.props.push(Box::new(prop));
         self
@@ -109,98 +120,40 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
         self.prop(BaseRaw::new(Key::BlockPin(bel, pin.into()), true.into()))
     }
 
-    pub fn test_global(self, bel: &'static str, opt: &str, vals: &[&str]) {
+    pub fn test_global(mut self, bel: &'static str, opt: &str, vals: &[&str]) {
         for &val in vals {
-            let feature = FeatureId {
-                tile: self
-                    .backend
-                    .egrid
-                    .db
-                    .tile_classes
-                    .key(self.tile_class)
-                    .clone(),
-                bel: bel.into(),
-                attr: opt.into(),
-                val: val.into(),
-            };
-            let mut props = Vec::from_iter(self.props.iter().map(|x| x.dyn_clone()));
-            props.push(Box::new(FuzzRaw::new(
-                Key::GlobalOpt(opt.into()),
-                None.into(),
-                val.into(),
-            )));
-            let fgen = FpgaFuzzerGen {
-                tile_class: Some(self.tile_class),
-                feature,
-                props,
-            };
-            self.session.add_fuzzer(Box::new(fgen));
+            self.clone()
+                .test_manual(bel, opt, val)
+                .global(opt, val)
+                .commit();
         }
     }
 
-    pub fn test_cfg4000(self, bel: &'static str, opt: &str, vals: &[&str]) {
+    pub fn test_cfg4000(mut self, bel: &'static str, opt: &str, vals: &[&str]) {
         for &val in vals {
-            let feature = FeatureId {
-                tile: self
-                    .backend
-                    .egrid
-                    .db
-                    .tile_classes
-                    .key(self.tile_class)
-                    .clone(),
-                bel: bel.into(),
-                attr: opt.into(),
-                val: val.into(),
-            };
-            let mut props = Vec::from_iter(self.props.iter().map(|x| x.dyn_clone()));
-            props.push(Box::new(BaseRaw::new(
-                Key::GlobalMutex(opt.into()),
-                val.into(),
-            )));
-            props.push(Box::new(FuzzRaw::new(
-                Key::BlockConfig("_cfg4000_", opt.into(), val.into()),
-                false.into(),
-                true.into(),
-            )));
-            let fgen = FpgaFuzzerGen {
-                tile_class: Some(self.tile_class),
-                feature,
-                props,
-            };
-            self.session.add_fuzzer(Box::new(fgen));
+            self.clone()
+                .raw(Key::GlobalMutex(opt.into()), val)
+                .test_manual(bel, opt, val)
+                .raw_diff(
+                    Key::BlockConfig("_cfg4000_", opt.into(), val.into()),
+                    false,
+                    true,
+                )
+                .commit();
         }
     }
 
-    pub fn test_cfg5200(self, bel: &'static str, opt: &str, vals: &[&str]) {
+    pub fn test_cfg5200(mut self, bel: &'static str, opt: &str, vals: &[&str]) {
         for &val in vals {
-            let feature = FeatureId {
-                tile: self
-                    .backend
-                    .egrid
-                    .db
-                    .tile_classes
-                    .key(self.tile_class)
-                    .clone(),
-                bel: bel.into(),
-                attr: opt.into(),
-                val: val.into(),
-            };
-            let mut props = Vec::from_iter(self.props.iter().map(|x| x.dyn_clone()));
-            props.push(Box::new(BaseRaw::new(
-                Key::GlobalMutex(opt.into()),
-                val.into(),
-            )));
-            props.push(Box::new(FuzzRaw::new(
-                Key::BlockConfig("_cfg5200_", opt.into(), val.into()),
-                false.into(),
-                true.into(),
-            )));
-            let fgen = FpgaFuzzerGen {
-                tile_class: Some(self.tile_class),
-                feature,
-                props,
-            };
-            self.session.add_fuzzer(Box::new(fgen));
+            self.clone()
+                .raw(Key::GlobalMutex(opt.into()), val)
+                .test_manual(bel, opt, val)
+                .raw_diff(
+                    Key::BlockConfig("_cfg5200_", opt.into(), val.into()),
+                    false,
+                    true,
+                )
+                .commit();
         }
     }
 
@@ -253,6 +206,10 @@ impl<'b> FuzzBuilderTestManual<'_, 'b> {
         val1: impl Into<Value<'static>>,
     ) -> Self {
         self.prop(FuzzRaw::new(key, val0.into(), val1.into()))
+    }
+
+    pub fn global(self, opt: &str, val: &str) -> Self {
+        self.raw_diff(Key::GlobalOpt(opt.into()), None, val)
     }
 
     pub fn global_diff(self, opt: &str, val0: &str, val1: &str) -> Self {
@@ -313,6 +270,18 @@ pub struct FuzzBuilderBel<'sm, 'b> {
 }
 
 impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
+    // Note: this is not an implementation of the Clone trait because Clone::clone has a slightly
+    // different signature.
+    pub fn clone(&mut self) -> FuzzBuilderBel<'_, 'b> {
+        FuzzBuilderBel {
+            session: &mut *self.session,
+            backend: self.backend,
+            tile_class: self.tile_class,
+            bel: self.bel,
+            props: self.props.clone(),
+        }
+    }
+
     pub fn prop(mut self, prop: impl FuzzerProp<'b, XactBackend<'b>> + 'static) -> Self {
         self.props.push(Box::new(prop));
         self
@@ -363,39 +332,11 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.prop(prop)
     }
 
-    pub fn test_enum(self, attr: impl AsRef<str>, vals: &[impl AsRef<str>]) {
+    pub fn test_enum(mut self, attr: impl AsRef<str>, vals: &[impl AsRef<str>]) {
         let attr = attr.as_ref();
         for val in vals {
             let val = val.as_ref();
-            let feature = FeatureId {
-                tile: self
-                    .backend
-                    .egrid
-                    .db
-                    .tile_classes
-                    .key(self.tile_class)
-                    .clone(),
-                bel: self.backend.egrid.db.bel_slots.key(self.bel).clone(),
-                attr: attr.into(),
-                val: val.into(),
-            };
-            let mut props = Vec::from_iter(self.props.iter().map(|x| x.dyn_clone()));
-            props.push(Box::new(FuzzBelConfig::new(
-                self.bel,
-                attr.into(),
-                val.into(),
-            )));
-            props.push(Box::new(BaseBelMutex::new(
-                self.bel,
-                attr.into(),
-                val.into(),
-            )));
-            let fgen = FpgaFuzzerGen {
-                tile_class: Some(self.tile_class),
-                feature,
-                props,
-            };
-            self.session.add_fuzzer(Box::new(fgen));
+            self.clone().mutex(attr, val).test_cfg(attr, val);
         }
     }
 

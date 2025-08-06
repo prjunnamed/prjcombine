@@ -20,7 +20,7 @@ use super::{
     fbuild::FuzzCtx,
     props::{
         BaseRaw, DynProp,
-        mutex::{IntMutex, WireMutexExclusive, WireMutexShared, RowMutex},
+        mutex::{IntMutex, RowMutex, WireMutexExclusive, WireMutexShared},
     },
 };
 

@@ -10,7 +10,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_siliconblue::{
     bels,
-    chip::{Chip, ChipKind, SpecialTile, SpecialIoKey},
+    chip::{Chip, ChipKind, SpecialIoKey, SpecialTile},
     cslots, regions, tslots,
 };
 use unnamed_entity::{EntityId, EntityVec};

@@ -697,8 +697,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 inps.push(("GND".to_string(), diff));
 
                                 let mut diff_i = ctx.state.get_diff(tcname, bel, "IN", "I");
-                                let mut diff_pullup = ctx.state.get_diff(tcname, bel, "IN", "PULLUP");
-                                if tcname.starts_with("CLB.BR") && (bel == "IO_S1" || bel == "IO_E0")
+                                let mut diff_pullup =
+                                    ctx.state.get_diff(tcname, bel, "IN", "PULLUP");
+                                if tcname.starts_with("CLB.BR")
+                                    && (bel == "IO_S1" || bel == "IO_E0")
                                 {
                                     let mut diff_i_spec = Diff::default();
                                     for (&k, &v) in &diff_i.bits {
@@ -709,8 +711,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     diff_i = diff_i.combine(&!&diff_i_spec);
                                     diff_pullup = diff_pullup.combine(&diff_i_spec);
                                     // umm what is this actually
-                                    ctx.tiledb
-                                        .insert(tcname, bel, "PULLUP", xlat_bit(!diff_i_spec));
+                                    ctx.tiledb.insert(
+                                        tcname,
+                                        bel,
+                                        "PULLUP",
+                                        xlat_bit(!diff_i_spec),
+                                    );
                                 }
                                 assert_eq!(diff_i, !&diff_pullup);
                                 inps.push(("PULLUP".to_string(), diff_pullup));

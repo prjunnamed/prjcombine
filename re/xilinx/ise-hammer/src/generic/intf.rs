@@ -16,7 +16,7 @@ use super::{
     fbuild::{FuzzBuilderBase, FuzzCtx},
     props::{
         DynProp,
-        mutex::{IntMutex, WireMutexExclusive, TileMutexExclusive},
+        mutex::{IntMutex, TileMutexExclusive, WireMutexExclusive},
     },
 };
 

@@ -955,10 +955,7 @@ impl<'a> Verifier<'a> {
                                     wcrd = crds[pip.tile];
                                     ww = &pip.wire_from;
                                 } else {
-                                    self.verify_net(&[
-                                        (crd, wn),
-                                        (crds[pip.tile], &pip.wire_from),
-                                    ]);
+                                    self.verify_net(&[(crd, wn), (crds[pip.tile], &pip.wire_from)]);
                                     wcrd = crds[pip.tile];
                                     ww = &pip.wire_to;
                                 }

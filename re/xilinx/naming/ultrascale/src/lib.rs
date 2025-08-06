@@ -859,7 +859,8 @@ pub fn name_device<'a>(
             || (edev.kind == ChipKind::Ultrascale && tcname == "XIPHY")
     });
     let pll_grid = ngrid.bel_multi_grid(|_, tcname, _| {
-        matches!(tcname, "CMT" | "CMT_HBM") || (edev.kind == ChipKind::Ultrascale && tcname == "XIPHY")
+        matches!(tcname, "CMT" | "CMT_HBM")
+            || (edev.kind == ChipKind::Ultrascale && tcname == "XIPHY")
     });
     let pllxp_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "CMTXP");
     let gt_grid = ngrid.bel_multi_grid(|_, tcname, _| {

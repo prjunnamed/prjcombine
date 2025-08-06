@@ -5,7 +5,7 @@ use prjcombine_types::bitvec::BitVec;
 
 use crate::backend::{Key, MultiValue, Value, XactBackend};
 
-pub type DynProp<'b> = dyn FuzzerProp<'b, XactBackend<'b>>;
+pub type DynProp<'b> = dyn FuzzerProp<'b, XactBackend<'b>> + 'b;
 
 #[derive(Clone, Debug)]
 pub struct BaseRaw {

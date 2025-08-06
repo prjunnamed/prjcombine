@@ -231,7 +231,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             let bel = "DONE";
             let item = xlat_enum(vec![
-                ("PULLUP", ctx.state.get_diff(tcname, bel, "DONEPAD", "PULLUP")),
+                (
+                    "PULLUP",
+                    ctx.state.get_diff(tcname, bel, "DONEPAD", "PULLUP"),
+                ),
                 (
                     "PULLNONE",
                     ctx.state.get_diff(tcname, bel, "DONEPAD", "NOPULLUP"),

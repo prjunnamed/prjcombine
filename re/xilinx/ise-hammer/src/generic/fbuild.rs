@@ -505,6 +505,18 @@ impl<'b> FuzzBuilderBase<'b> for FuzzBuilderBel<'_, 'b> {
 }
 
 impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
+    // Note: this is not an implementation of the Clone trait because Clone::clone has a slightly
+    // different signature.
+    pub fn clone(&mut self) -> FuzzBuilderBel<'_, 'b> {
+        FuzzBuilderBel {
+            session: &mut *self.session,
+            backend: self.backend,
+            tile_class: self.tile_class,
+            bel: self.bel,
+            props: self.props.clone(),
+        }
+    }
+
     pub fn props(mut self, props: impl IntoIterator<Item = Box<DynProp<'b>>>) -> Self {
         self.props.extend(props);
         self
@@ -609,40 +621,16 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.prop(prop)
     }
 
-    pub fn test_enum(self, attr: impl AsRef<str>, vals: &[impl AsRef<str>]) {
+    pub fn test_enum(mut self, attr: impl AsRef<str>, vals: &[impl AsRef<str>]) {
         let attr = attr.as_ref();
         for val in vals {
             let val = val.as_ref();
-            let feature = FeatureId {
-                tile: self
-                    .backend
-                    .egrid
-                    .db
-                    .tile_classes
-                    .key(self.tile_class)
-                    .clone(),
-                bel: self.backend.egrid.db.bel_slots.key(self.bel).clone(),
-                attr: attr.into(),
-                val: val.into(),
-            };
-            let mut props = Vec::from_iter(self.props.iter().map(|x| x.dyn_clone()));
-            props.push(Box::new(FuzzBelAttr::new(
-                self.bel,
-                attr.into(),
-                "".into(),
-                val.into(),
-            )));
-            let fgen = FpgaFuzzerGen {
-                tile_class: Some(self.tile_class),
-                feature,
-                props,
-            };
-            self.session.add_fuzzer(Box::new(fgen));
+            self.clone().test_manual(attr, val).attr(attr, val).commit();
         }
     }
 
     pub fn test_enum_suffix(
-        self,
+        mut self,
         attr: impl AsRef<str>,
         suffix: impl AsRef<str>,
         vals: &[impl AsRef<str>],
@@ -651,31 +639,10 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let suffix = suffix.as_ref();
         for val in vals {
             let val = val.as_ref();
-            let feature = FeatureId {
-                tile: self
-                    .backend
-                    .egrid
-                    .db
-                    .tile_classes
-                    .key(self.tile_class)
-                    .clone(),
-                bel: self.backend.egrid.db.bel_slots.key(self.bel).clone(),
-                attr: format!("{attr}.{suffix}"),
-                val: val.into(),
-            };
-            let mut props = Vec::from_iter(self.props.iter().map(|x| x.dyn_clone()));
-            props.push(Box::new(FuzzBelAttr::new(
-                self.bel,
-                attr.into(),
-                "".into(),
-                val.into(),
-            )));
-            let fgen = FpgaFuzzerGen {
-                tile_class: Some(self.tile_class),
-                feature,
-                props,
-            };
-            self.session.add_fuzzer(Box::new(fgen));
+            self.clone()
+                .test_manual(format!("{attr}.{suffix}"), val)
+                .attr(attr, val)
+                .commit();
         }
     }
 

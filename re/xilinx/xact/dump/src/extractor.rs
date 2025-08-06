@@ -14,7 +14,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_xact_data::die::{BoxId, Die, PrimId};
 use prjcombine_re_xilinx_xact_naming::{
-    db::{IntPipNaming, NamingDb, TileNamingId, TileRawCellId, PipNaming},
+    db::{IntPipNaming, NamingDb, PipNaming, TileNamingId, TileRawCellId},
     grid::ExpandedGridNaming,
 };
 use unnamed_entity::{EntityBitVec, EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
