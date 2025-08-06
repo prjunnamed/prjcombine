@@ -23,18 +23,36 @@ bels![
     SERDES: tslots::BEL,
     CIBTEST_SEL: tslots::BEL,
     EBR0: tslots::BEL,
+    EBR1: tslots::BEL,
+    EBR2: tslots::BEL,
+    EBR3: tslots::BEL,
     DSP0: tslots::BEL,
     DSP1: tslots::BEL,
-    PLL: tslots::BEL,
-    PLLREFCS: tslots::BEL,
+    PLL0: tslots::BEL,
+    PLL1: tslots::BEL,
+    PLLREFCS0: tslots::BEL,
+    PLLREFCS1: tslots::BEL,
     DLL: tslots::BEL,
-    // patched to CLK for XO2
+    DDRDLL: tslots::BEL,
+    DTR: tslots::BEL,
+    // patched to CLK for XO2, ECP4
     DLLDEL0: tslots::BEL,
     DLLDEL1: tslots::BEL,
     DLLDEL2: tslots::BEL,
-    // patched to CLK for XO2
+    DLLDEL3: tslots::BEL,
+    DLLDEL4: tslots::BEL,
+    DLLDEL5: tslots::BEL,
+    DLLDEL6: tslots::BEL,
+    DLLDEL7: tslots::BEL,
+    // patched to CLK for XO2, ECP4
     CLKDIV0: tslots::BEL,
     CLKDIV1: tslots::BEL,
+    CLKDIV2: tslots::BEL,
+    CLKDIV3: tslots::BEL,
+    PCSCLKDIV0: tslots::CLK,
+    PCSCLKDIV1: tslots::CLK,
+    PCSCLKDIV2: tslots::CLK,
+    PCSCLKDIV3: tslots::CLK,
     ECLK_ALT_ROOT: tslots::BEL,
     SPLL: tslots::BEL,
     START: tslots::BEL,
@@ -57,6 +75,10 @@ bels![
     BCINRD: tslots::BC,
     BCLVDSO: tslots::BC,
     BCSLEWRATE: tslots::BC,
+    BCPUSL: tslots::BC,
+    BREFTEST: tslots::BC,
+    PVTTEST: tslots::BEL,
+    PVTCAL: tslots::BEL,
     DCC_SW0: tslots::CLK,
     DCC_SW1: tslots::CLK,
     DCC_SW2: tslots::CLK,
@@ -97,14 +119,27 @@ bels![
     DCC5: tslots::CLK,
     DCC6: tslots::CLK,
     DCC7: tslots::CLK,
+    DCC8: tslots::CLK,
+    DCC9: tslots::CLK,
+    DCC10: tslots::CLK,
+    DCC11: tslots::CLK,
+    DCC12: tslots::CLK,
+    DCC13: tslots::CLK,
+    DCC14: tslots::CLK,
+    DCC15: tslots::CLK,
     DCM0: tslots::CLK,
     DCM1: tslots::CLK,
+    DCS0: tslots::CLK,
+    DCS1: tslots::CLK,
     ECLKBRIDGECS0: tslots::CLK,
     ECLKBRIDGECS1: tslots::CLK,
+    BRGECLKSYNC0: tslots::CLK,
+    BRGECLKSYNC1: tslots::CLK,
     CLKFBBUF0: tslots::CLK,
     CLKFBBUF1: tslots::CLK,
-    CENTEST: tslots::CLK,
     CLK_ROOT: tslots::CLK,
+    CLK_EDGE: tslots::CLK,
+    CLKTEST: tslots::CLK,
     SCLK_SOURCE: tslots::SCLK_SOURCE,
     PCLK_SOURCE_W: tslots::PCLK_SOURCE,
     PCLK_SOURCE_E: tslots::PCLK_SOURCE,
@@ -113,6 +148,21 @@ bels![
     ECLK_ROOT: tslots::CLK,
     ECLKSYNC0: tslots::CLK,
     ECLKSYNC1: tslots::CLK,
+    ECLKSYNC2: tslots::CLK,
+    ECLKSYNC3: tslots::CLK,
+    ECLKSYNC4: tslots::CLK,
+    ECLKSYNC5: tslots::CLK,
+    ECLKSYNC6: tslots::CLK,
+    ECLKSYNC7: tslots::CLK,
+    ECLKSYNC8: tslots::CLK,
+    ECLKSYNC9: tslots::CLK,
+    ECLKSYNC10: tslots::CLK,
+    ECLKSYNC11: tslots::CLK,
+    ECLKSYNC12: tslots::CLK,
+    ECLKSYNC13: tslots::CLK,
+    ECLKSYNC14: tslots::CLK,
+    ECLKSYNC15: tslots::CLK,
+    CLKTEST_ECLK: tslots::CLK,
     ECLK_TAP: tslots::ECLK_TAP,
     HSDCLK_ROOT: tslots::HSDCLK_SPLITTER,
     HSDCLK_SPLITTER: tslots::HSDCLK_SPLITTER,
@@ -127,6 +177,9 @@ pub const IO: [BelSlotId; 6] = [IO0, IO1, IO2, IO3, IO4, IO5];
 pub const DQS: [BelSlotId; 2] = [DQS0, DQS1];
 
 pub const DSP: [BelSlotId; 2] = [DSP0, DSP1];
+pub const EBR: [BelSlotId; 4] = [EBR0, EBR1, EBR2, EBR3];
+pub const PLL: [BelSlotId; 2] = [PLL0, PLL1];
+pub const PLLREFCS: [BelSlotId; 2] = [PLLREFCS0, PLLREFCS1];
 
 pub const DCS_SW: [BelSlotId; 2] = [DCS_SW0, DCS_SW1];
 pub const DCS_SE: [BelSlotId; 2] = [DCS_SE0, DCS_SE1];
@@ -138,14 +191,25 @@ pub const DCC_SE: [BelSlotId; 6] = [DCC_SE0, DCC_SE1, DCC_SE2, DCC_SE3, DCC_SE4,
 pub const DCC_NW: [BelSlotId; 6] = [DCC_NW0, DCC_NW1, DCC_NW2, DCC_NW3, DCC_NW4, DCC_NW5];
 pub const DCC_NE: [BelSlotId; 6] = [DCC_NE0, DCC_NE1, DCC_NE2, DCC_NE3, DCC_NE4, DCC_NE5];
 
-pub const DCC: [BelSlotId; 8] = [DCC0, DCC1, DCC2, DCC3, DCC4, DCC5, DCC6, DCC7];
+pub const DCC: [BelSlotId; 16] = [
+    DCC0, DCC1, DCC2, DCC3, DCC4, DCC5, DCC6, DCC7, DCC8, DCC9, DCC10, DCC11, DCC12, DCC13, DCC14,
+    DCC15,
+];
 pub const DCM: [BelSlotId; 2] = [DCM0, DCM1];
+pub const DCS: [BelSlotId; 2] = [DCS0, DCS1];
 pub const ECLKBRIDGECS: [BelSlotId; 2] = [ECLKBRIDGECS0, ECLKBRIDGECS1];
+pub const BRGECLKSYNC: [BelSlotId; 2] = [BRGECLKSYNC0, BRGECLKSYNC1];
 
 pub const PCLK_DCC: [BelSlotId; 2] = [PCLK_DCC0, PCLK_DCC1];
 
-pub const ECLKSYNC: [BelSlotId; 2] = [ECLKSYNC0, ECLKSYNC1];
+pub const ECLKSYNC: [BelSlotId; 16] = [
+    ECLKSYNC0, ECLKSYNC1, ECLKSYNC2, ECLKSYNC3, ECLKSYNC4, ECLKSYNC5, ECLKSYNC6, ECLKSYNC7,
+    ECLKSYNC8, ECLKSYNC9, ECLKSYNC10, ECLKSYNC11, ECLKSYNC12, ECLKSYNC13, ECLKSYNC14, ECLKSYNC15,
+];
 
-pub const CLKDIV: [BelSlotId; 2] = [CLKDIV0, CLKDIV1];
-pub const DLLDEL: [BelSlotId; 3] = [DLLDEL0, DLLDEL1, DLLDEL2];
+pub const CLKDIV: [BelSlotId; 4] = [CLKDIV0, CLKDIV1, CLKDIV2, CLKDIV3];
+pub const PCSCLKDIV: [BelSlotId; 4] = [PCSCLKDIV0, PCSCLKDIV1, PCSCLKDIV2, PCSCLKDIV3];
+pub const DLLDEL: [BelSlotId; 8] = [
+    DLLDEL0, DLLDEL1, DLLDEL2, DLLDEL3, DLLDEL4, DLLDEL5, DLLDEL6, DLLDEL7,
+];
 pub const CLKFBBUF: [BelSlotId; 2] = [CLKFBBUF0, CLKFBBUF1];

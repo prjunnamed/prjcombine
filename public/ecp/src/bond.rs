@@ -93,6 +93,10 @@ pub enum SerdesPad {
     VccRx(u8),
     VccIB(u8),
     VccOB(u8),
+    RxantOutP,
+    RxantOutN,
+    AuxTstPadOutP,
+    AuxTstPadOutN,
 }
 
 impl std::fmt::Display for SerdesPad {
@@ -110,6 +114,10 @@ impl std::fmt::Display for SerdesPad {
             SerdesPad::VccRx(ch) => write!(f, "CH{ch}_VCCTX"),
             SerdesPad::VccIB(ch) => write!(f, "CH{ch}_VCCIB"),
             SerdesPad::VccOB(ch) => write!(f, "CH{ch}_VCCOB"),
+            SerdesPad::RxantOutP => write!(f, "RXANTOUTP"),
+            SerdesPad::RxantOutN => write!(f, "RXANTOUTN"),
+            SerdesPad::AuxTstPadOutP => write!(f, "AUXTSTPADOUTP"),
+            SerdesPad::AuxTstPadOutN => write!(f, "AUXTSTPADOUTN"),
         }
     }
 }
@@ -218,11 +226,14 @@ impl std::fmt::Display for PfrPad {
 pub enum BondPad {
     Io(EdgeIoCoord),
     Serdes(DirV, ColId, SerdesPad),
+    SerdesCorner(SerdesPad),
     Cfg(CfgPad),
     Nc,
     Gnd,
+    GndA,
     VccInt,
     VccAux,
+    VccAuxA,
     VccJtag,
     VccIo(u32),
     Vtt(u32),
@@ -245,11 +256,14 @@ impl std::fmt::Display for BondPad {
         match self {
             BondPad::Io(io) => write!(f, "{io}"),
             BondPad::Serdes(edge, col, pad) => write!(f, "SERDES_{edge}{col:#}_{pad}"),
+            BondPad::SerdesCorner(pad) => write!(f, "SERDES_CORNER_{pad}"),
             BondPad::Cfg(cfg_pin) => write!(f, "{cfg_pin}"),
             BondPad::Nc => write!(f, "NC"),
             BondPad::Gnd => write!(f, "GND"),
+            BondPad::GndA => write!(f, "GNDA"),
             BondPad::VccInt => write!(f, "VCCINT"),
             BondPad::VccAux => write!(f, "VCCAUX"),
+            BondPad::VccAuxA => write!(f, "VCCAUXA"),
             BondPad::VccJtag => write!(f, "VCC_JTAG"),
             BondPad::VccIo(bank) => write!(f, "VCCIO{bank}"),
             BondPad::Vtt(bank) => write!(f, "VTT{bank}"),

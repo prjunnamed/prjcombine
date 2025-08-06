@@ -1,0 +1,36 @@
+# Input / Output
+
+{{tile ecp4 IO_W}}
+{{tile ecp4 IO_W_DSP_S}}
+{{tile ecp4 IO_W_DSP_N}}
+{{tile ecp4 IO_W_EBR_S}}
+{{tile ecp4 IO_W_EBR_N}}
+{{tile ecp4 IO_E}}
+{{tile ecp4 IO_E_DSP_S}}
+{{tile ecp4 IO_E_DSP_N}}
+{{tile ecp4 IO_E_EBR_S}}
+{{tile ecp4 IO_E_EBR_N}}
+{{tile ecp4 IO_N}}
+{{tile ecp4 DQS_W}}
+{{tile ecp4 DQS_W_BELOW_DSP_N}}
+{{tile ecp4 DQS_W_BELOW_EBR_N}}
+{{tile ecp4 DQS_W_BELOW_EBR_S}}
+{{tile ecp4 DQS_W_EBR_S}}
+{{tile ecp4 DQS_W_EBR_N}}
+{{tile ecp4 DQS_W_DSP_N}}
+{{tile ecp4 DQS_E}}
+{{tile ecp4 DQS_E_BELOW_DSP_N}}
+{{tile ecp4 DQS_E_BELOW_EBR_N}}
+{{tile ecp4 DQS_E_BELOW_EBR_S}}
+{{tile ecp4 DQS_E_EBR_S}}
+{{tile ecp4 DQS_E_EBR_N}}
+{{tile ecp4 DQS_E_DSP_N}}
+{{tile ecp4 DQS_N}}
+{{tile ecp4 BC_W}}
+{{tile ecp4 BC_E}}
+{{tile ecp4 BC_N}}
+{{tile ecp4 DTR_S}}
+{{tile ecp4 DTR_N}}
+{{tile ecp4 DDRDLL_S}}
+{{tile ecp4 DDRDLL_N}}
+{{tile ecp4 PVTTEST}}

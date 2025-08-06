@@ -1,3 +1,5 @@
+#![recursion_limit = "1024"]
+
 pub mod bels;
 pub mod bond;
 pub mod bscan;

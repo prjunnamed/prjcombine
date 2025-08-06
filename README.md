@@ -27,6 +27,7 @@ The target devices currently include:
   - ECP2, ECP2M, XP2
   - ECP3
   - MachXO2, MachXO3
+  - ECP4
 - all Xilinx CPLDs
 
 More targets are expected to be added in the future.
@@ -68,6 +69,7 @@ For each of the supported device families:
 | ECP2, ECP2M, XP2                                    | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | ECP3                                                | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | MachXO2, MachXO3                                    | ✅        | ❌         | ❌      | ❌    | ❌                   |
+| ECP4                                                | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | XC9500, XC9500XL, XC9500XV                          | ✅        | ✅         | ✅      | ✅    | ✅                   |
 | Coolrunner XPLA3                                    | ✅        | ✅         | ✅      | ✅    | ✅                   |
 | Coolrunner 2                                        | ✅        | ✅         | ✅      | ✅    | 👷🏼‍♀️                   |

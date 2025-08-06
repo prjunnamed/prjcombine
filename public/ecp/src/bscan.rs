@@ -601,6 +601,112 @@ impl Chip {
                     }
                 }
             }
+            ChipKind::Ecp4 => {
+                let (num_serdes, col_serdes) =
+                    if let Some(cell) = self.special_loc.get(&SpecialLocKey::SerdesSingle) {
+                        (1, cell.col)
+                    } else if let Some(cell) = self.special_loc.get(&SpecialLocKey::SerdesDouble) {
+                        (2, cell.col)
+                    } else if let Some(cell) = self.special_loc.get(&SpecialLocKey::SerdesTriple) {
+                        (3, cell.col)
+                    } else {
+                        unreachable!()
+                    };
+                for (idx, pad) in [
+                    (0, SerdesPad::InP(3)),
+                    (0, SerdesPad::InP(2)),
+                    (0, SerdesPad::InP(1)),
+                    (0, SerdesPad::InP(0)),
+                    (0, SerdesPad::OutP(3)),
+                    (0, SerdesPad::OutP(2)),
+                    (0, SerdesPad::ClkP),
+                    (0, SerdesPad::OutP(1)),
+                    (0, SerdesPad::OutP(0)),
+                    (1, SerdesPad::OutP(0)),
+                    (1, SerdesPad::OutP(1)),
+                    (1, SerdesPad::ClkP),
+                    (1, SerdesPad::OutP(2)),
+                    (1, SerdesPad::OutP(3)),
+                    (1, SerdesPad::InP(0)),
+                    (1, SerdesPad::InP(1)),
+                    (1, SerdesPad::InP(2)),
+                    (1, SerdesPad::InP(3)),
+                    (2, SerdesPad::InP(3)),
+                    (2, SerdesPad::InP(2)),
+                    (2, SerdesPad::InP(1)),
+                    (2, SerdesPad::InP(0)),
+                    (2, SerdesPad::OutP(3)),
+                    (2, SerdesPad::OutP(2)),
+                    (2, SerdesPad::ClkP),
+                    (2, SerdesPad::OutP(1)),
+                    (2, SerdesPad::OutP(0)),
+                ] {
+                    if idx >= num_serdes {
+                        continue;
+                    }
+                    pads.insert(
+                        BondPad::Serdes(DirV::S, col_serdes + idx, pad),
+                        if matches!(pad, SerdesPad::OutP(_)) {
+                            builder.get_o()
+                        } else {
+                            builder.get_i()
+                        },
+                    );
+                }
+                pads.insert(BondPad::SerdesCorner(SerdesPad::ClkP), builder.get_i());
+                for (row, rd) in &self.rows {
+                    if rd.kind == RowKind::Ebr {
+                        for iob in (4..8).rev() {
+                            let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                    if matches!(
+                        rd.io_e,
+                        IoGroupKind::Quad | IoGroupKind::QuadDqs | IoGroupKind::QuadEbrDqs
+                    ) {
+                        for iob in (0..4).rev() {
+                            let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                for (col, cd) in self.columns.iter().rev() {
+                    if matches!(
+                        cd.io_n,
+                        IoGroupKind::Quad | IoGroupKind::QuadDqs | IoGroupKind::QuadEbrDqs
+                    ) {
+                        for iob in (0..4).rev() {
+                            let crd = EdgeIoCoord::N(col, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                for (row, rd) in self.rows.iter().rev() {
+                    if matches!(
+                        rd.io_w,
+                        IoGroupKind::Quad | IoGroupKind::QuadDqs | IoGroupKind::QuadEbrDqs
+                    ) {
+                        for iob in 0..4 {
+                            let crd = EdgeIoCoord::W(row, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                    if rd.kind == RowKind::Ebr {
+                        for iob in 4..8 {
+                            let crd = EdgeIoCoord::W(row, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                pads.insert(BondPad::Cfg(CfgPad::M2), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::M1), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::M0), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::ProgB), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::Done), builder.get_tb());
+                pads.insert(BondPad::Cfg(CfgPad::Cclk), builder.get_tb());
+                pads.insert(BondPad::Cfg(CfgPad::InitB), builder.get_tb());
+            }
         }
         BScan {
             bits: builder.bits,

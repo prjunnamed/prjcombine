@@ -21,6 +21,7 @@ pub enum ChipKind {
     Ecp3,
     Ecp3A,
     MachXo2(MachXo2Kind),
+    Ecp4,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
@@ -40,6 +41,20 @@ impl ChipKind {
         )
     }
 
+    pub fn has_out_f_branch(self) -> bool {
+        matches!(
+            self,
+            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo | ChipKind::MachXo2(_)
+        )
+    }
+
+    pub fn has_out_ofx_branch(self) -> bool {
+        matches!(
+            self,
+            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo | ChipKind::MachXo2(_) | ChipKind::Ecp4
+        )
+    }
+
     pub fn has_ecp_plc(self) -> bool {
         matches!(self, ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo)
     }
@@ -49,10 +64,6 @@ impl ChipKind {
             self,
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 | ChipKind::Ecp3 | ChipKind::Ecp3A
         )
-    }
-
-    pub fn has_ecp3_dsp(self) -> bool {
-        matches!(self, ChipKind::Ecp3 | ChipKind::Ecp3A)
     }
 
     pub fn has_x1_bi(self) -> bool {
@@ -98,6 +109,7 @@ impl Display for ChipKind {
             ChipKind::MachXo2(MachXo2Kind::MachXo3Lfp) => write!(f, "machxo3lfp"),
             ChipKind::MachXo2(MachXo2Kind::MachXo3D) => write!(f, "machxo3d"),
             ChipKind::MachXo2(MachXo2Kind::MachNx) => write!(f, "machnx"),
+            ChipKind::Ecp4 => write!(f, "ecp4"),
         }
     }
 }
@@ -147,6 +159,8 @@ pub enum IoGroupKind {
     QuadReverse,
     QuadDqs,
     QuadDqsDummy,
+    QuadEbrDqs,
+    EbrDqs,
     QuadI3c,
     Hex,
     HexReverse,
@@ -167,6 +181,8 @@ impl Display for IoGroupKind {
             IoGroupKind::QuadReverse => write!(f, "QUAD_REVERSE"),
             IoGroupKind::QuadDqs => write!(f, "QUAD_DQS"),
             IoGroupKind::QuadDqsDummy => write!(f, "QUAD_DQS_DUMMY"),
+            IoGroupKind::QuadEbrDqs => write!(f, "QUAD_EBR_DQS"),
+            IoGroupKind::EbrDqs => write!(f, "EBR_DQS"),
             IoGroupKind::QuadI3c => write!(f, "QUAD_I3C"),
             IoGroupKind::Hex => write!(f, "HEX"),
             IoGroupKind::HexReverse => write!(f, "HEX_REVERSE"),
@@ -353,6 +369,9 @@ pub enum SpecialLocKey {
     Bc(u32),
     Osc,
     DqsDll(Dir),
+    SerdesSingle,
+    SerdesDouble,
+    SerdesTriple,
 }
 
 impl Display for SpecialLocKey {
@@ -368,6 +387,9 @@ impl Display for SpecialLocKey {
             SpecialLocKey::PclkInMid(idx) => write!(f, "PCLK_IN_M{idx}"),
             SpecialLocKey::SclkIn(dir, idx) => write!(f, "SCLK_IN_{dir}{idx}"),
             SpecialLocKey::DqsDll(dir) => write!(f, "DQSDLL_{dir}"),
+            SpecialLocKey::SerdesSingle => write!(f, "SERDES_SINGLE"),
+            SpecialLocKey::SerdesDouble => write!(f, "SERDES_DOUBLE"),
+            SpecialLocKey::SerdesTriple => write!(f, "SERDES_TRIPLE"),
         }
     }
 }
@@ -404,7 +426,9 @@ impl Chip {
     }
 
     pub fn get_io_loc(&self, io: EdgeIoCoord) -> BelCoord {
-        if matches!(self.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) && io.iob().to_idx() >= 4 {
+        if matches!(self.kind, ChipKind::Ecp3 | ChipKind::Ecp3A | ChipKind::Ecp4)
+            && io.iob().to_idx() >= 4
+        {
             let (col, row, iob) = match io {
                 EdgeIoCoord::W(row, iob) => (self.col_w() + 1, row, iob),
                 EdgeIoCoord::E(row, iob) => (self.col_e() - 1, row, iob),
@@ -434,14 +458,18 @@ impl Chip {
             EdgeIoCoord::S(bel.col, iob)
         } else if bel.row == self.row_n() {
             EdgeIoCoord::N(bel.col, iob)
-        } else if bel.col == self.col_w() + 1 {
-            let iob =
-                TileIobId::from_idx(bels::IO.iter().position(|&x| x == bel.slot).unwrap() + 4);
-            EdgeIoCoord::W(bel.row, iob)
-        } else if bel.col == self.col_e() - 1 {
-            let iob =
-                TileIobId::from_idx(bels::IO.iter().position(|&x| x == bel.slot).unwrap() + 4);
-            EdgeIoCoord::E(bel.row, iob)
+        } else if matches!(self.kind, ChipKind::Ecp3 | ChipKind::Ecp3A | ChipKind::Ecp4) {
+            if bel.col == self.col_w() + 1 {
+                let iob =
+                    TileIobId::from_idx(bels::IO.iter().position(|&x| x == bel.slot).unwrap() + 4);
+                EdgeIoCoord::W(bel.row, iob)
+            } else if bel.col == self.col_e() - 1 {
+                let iob =
+                    TileIobId::from_idx(bels::IO.iter().position(|&x| x == bel.slot).unwrap() + 4);
+                EdgeIoCoord::E(bel.row, iob)
+            } else {
+                unreachable!()
+            }
         } else {
             unreachable!()
         }
@@ -523,6 +551,7 @@ impl Chip {
                 },
             },
             ChipKind::MachXo2(_) => IoKind::Io,
+            ChipKind::Ecp4 => IoKind::Io,
         }
     }
 
@@ -567,6 +596,7 @@ impl Chip {
             }
             ChipKind::MachXo => unreachable!(),
             ChipKind::MachXo2(_) => unreachable!(),
+            ChipKind::Ecp4 => unreachable!(),
         }
     }
 
@@ -642,6 +672,32 @@ impl Chip {
                 Dir::N => CellCoord::new(DieId::from_idx(0), self.col_clk - 1, self.row_n())
                     .bel(bels::ECLKSYNC[idx]),
             },
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn bel_eclksync_bank(&self, bank: u32, idx: usize) -> BelCoord {
+        assert_eq!(self.kind, ChipKind::Ecp4);
+        match bank {
+            0..4 => CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_n())
+                .bel(bels::ECLKSYNC[(bank as usize) * 4 + idx]),
+            4..6 => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
+                .bel(bels::ECLKSYNC[(5 - bank as usize) * 4 + idx]),
+            6..8 => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
+                .bel(bels::ECLKSYNC[(bank as usize - 6) * 4 + idx]),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn bel_clock_dlldel(&self, edge: Dir, idx: usize) -> BelCoord {
+        assert_eq!(self.kind, ChipKind::Ecp4);
+        match edge {
+            Dir::N => CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_n())
+                .bel(bels::DLLDEL[idx]),
+            Dir::W => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
+                .bel(bels::DLLDEL[idx]),
+            Dir::E => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
+                .bel(bels::DLLDEL[idx]),
             _ => unreachable!(),
         }
     }

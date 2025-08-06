@@ -736,7 +736,7 @@ impl ChipContext<'_> {
 
         self.insert_bel(bcrd, bel);
 
-        let bcrd_centest = bcrd.bel(bels::CENTEST);
+        let bcrd_centest = bcrd.bel(bels::CLKTEST);
         self.name_bel(bcrd_centest, ["CENTEST"]);
         self.insert_simple_bel(bcrd_centest, cell, "CENTEST");
 

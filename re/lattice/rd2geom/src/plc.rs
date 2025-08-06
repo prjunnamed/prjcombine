@@ -516,7 +516,7 @@ impl ChipContext<'_> {
 
                 // plain inputs
                 for pin in [
-                    "A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "M0", "M1", "CLK", "LSR", "CE",
+                    "A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1", "M0", "M1", "CE",
                 ] {
                     let wire_int = self.edev.egrid.get_bel_pin(slices[i], pin)[0];
                     let wn = self
@@ -526,6 +526,12 @@ impl ChipContext<'_> {
                         .strip_prefix("IMUX_")
                         .unwrap();
                     let wire_slice = self.rc_wire(cell, &format!("{wn}_SLICE"));
+                    self.add_bel_wire(slices[i], pin, wire_slice);
+                    self.claim_pip_int_in(wire_slice, wire_int);
+                }
+                for pin in ["CLK", "LSR"] {
+                    let wire_int = self.edev.egrid.get_bel_pin(slices[i], pin)[0];
+                    let wire_slice = self.rc_wire(cell, &format!("{pin}{i}_SLICE"));
                     self.add_bel_wire(slices[i], pin, wire_slice);
                     self.claim_pip_int_in(wire_slice, wire_int);
                 }
@@ -710,7 +716,7 @@ impl ChipContext<'_> {
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 | ChipKind::Ecp3 | ChipKind::Ecp3A => {
                 self.process_plc_ecp2()
             }
-            ChipKind::MachXo2(_) => self.process_plc_machxo2(),
+            ChipKind::MachXo2(_) | ChipKind::Ecp4 => self.process_plc_machxo2(),
         }
     }
 }

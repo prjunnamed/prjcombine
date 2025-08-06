@@ -91,6 +91,43 @@ impl ChipContext<'_> {
         (r, c)
     }
 
+    fn rc_io_sn(&self, cell: CellCoord) -> (u8, u8) {
+        let c = (cell.col.to_idx() + 1).try_into().unwrap();
+        let mut r = (self.chip.rows.len() - cell.row.to_idx())
+            .try_into()
+            .unwrap();
+        if cell.row == self.chip.row_s() {
+            r += 1;
+        } else if cell.row == self.chip.row_n() {
+            r -= 1;
+        } else {
+            unreachable!()
+        }
+        (r, c)
+    }
+
+    fn rc_corner(&self, cell: CellCoord) -> (u8, u8) {
+        let mut c = (cell.col.to_idx() + 1).try_into().unwrap();
+        let mut r = (self.chip.rows.len() - cell.row.to_idx())
+            .try_into()
+            .unwrap();
+        if cell.col == self.chip.col_w() {
+            c -= 1;
+        } else if cell.col == self.chip.col_e() {
+            c += 1;
+        } else {
+            unreachable!()
+        }
+        if cell.row == self.chip.row_s() {
+            r += 1;
+        } else if cell.row == self.chip.row_n() {
+            r -= 1;
+        } else {
+            unreachable!()
+        }
+        (r, c)
+    }
+
     fn rc_wire(&self, cell: CellCoord, suffix: &str) -> WireName {
         let Some(suffix) = self.naming.strings.get(suffix) else {
             panic!("{name}: no suffix {suffix}", name = self.name)
@@ -104,6 +141,22 @@ impl ChipContext<'_> {
             panic!("{name}: no suffix {suffix}", name = self.name)
         };
         let (r, c) = self.rc_io(cell);
+        WireName { r, c, suffix }
+    }
+
+    fn rc_io_sn_wire(&self, cell: CellCoord, suffix: &str) -> WireName {
+        let Some(suffix) = self.naming.strings.get(suffix) else {
+            panic!("{name}: no suffix {suffix}", name = self.name)
+        };
+        let (r, c) = self.rc_io_sn(cell);
+        WireName { r, c, suffix }
+    }
+
+    fn rc_corner_wire(&self, cell: CellCoord, suffix: &str) -> WireName {
+        let Some(suffix) = self.naming.strings.get(suffix) else {
+            panic!("{name}: no suffix {suffix}", name = self.name)
+        };
+        let (r, c) = self.rc_corner(cell);
         WireName { r, c, suffix }
     }
 
@@ -254,6 +307,7 @@ impl ChipContext<'_> {
                 "DQSTEST",
                 "DQSDLL",
                 "DQSDLLTEST",
+                "DLLDEL",
                 "JTAG",
                 "OSC",
                 "GSR",
@@ -280,10 +334,14 @@ impl ChipContext<'_> {
                 "CLKDIV",
                 "SPLL",
                 "PCS",
+                "ASB",
                 "BCPG",
                 "BCINRD",
                 "BCLVDSO",
                 "BCSLEWRATE",
+                "PVTTEST",
+                "PVTCAL",
+                "DTR",
             ] {
                 if let Some(n) = name.strip_suffix(suffix)
                     && let Some(n) = n.strip_suffix('_')
@@ -401,10 +459,8 @@ fn process_chip(name: &str, grid: &Grid, kind: ChipKind, intdb: &IntDb) -> ChipR
         bels: Default::default(),
     };
     ctx.process_clk_zones();
-    ctx.process_int_nodes();
-    ctx.process_int_pips();
+    ctx.process_int();
     ctx.sort_bel_wires();
-    ctx.process_cibtest();
     ctx.process_plc();
     ctx.process_ebr();
     ctx.process_dsp();
@@ -444,6 +500,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "xp2" => ChipKind::Xp2,
         "ecp3" => ChipKind::Ecp3,
         "machxo2" => ChipKind::MachXo2(MachXo2Kind::MachXo2),
+        "ecp4" => ChipKind::Ecp4,
         _ => panic!("unknown family {}", rawdb.family),
     };
     let mut int = init_intdb(kind);
@@ -524,34 +581,38 @@ fn main() -> Result<(), Box<dyn Error>> {
                         expected_sites.insert(pin.clone());
                     }
                     BondPad::Serdes(edge, col, spad) => {
-                        let bcrd = chip.bel_serdes(edge, col);
-                        let Some(bnaming) = naming.bels.get(&bcrd) else {
-                            continue;
-                        };
-                        let idx = match spad {
-                            SerdesPad::ClkP => 1,
-                            SerdesPad::ClkN => 2,
-                            SerdesPad::InP(0) => 3,
-                            SerdesPad::InN(0) => 4,
-                            SerdesPad::InP(1) => 5,
-                            SerdesPad::InN(1) => 6,
-                            SerdesPad::InP(2) => 7,
-                            SerdesPad::InN(2) => 8,
-                            SerdesPad::InP(3) => 9,
-                            SerdesPad::InN(3) => 10,
-                            SerdesPad::OutP(0) => 11,
-                            SerdesPad::OutN(0) => 12,
-                            SerdesPad::OutP(1) => 13,
-                            SerdesPad::OutN(1) => 14,
-                            SerdesPad::OutP(2) => 15,
-                            SerdesPad::OutN(2) => 16,
-                            SerdesPad::OutP(3) => 17,
-                            SerdesPad::OutN(3) => 18,
-                            _ => continue,
-                        };
-                        let name = &naming.strings[bnaming.names[idx]];
-                        assert!(expected_sites.remove(name));
-                        expected_sites.insert(pin.clone());
+                        if chip.kind == ChipKind::Ecp4 {
+                            // apparently nothing?
+                        } else {
+                            let bcrd = chip.bel_serdes(edge, col);
+                            let Some(bnaming) = naming.bels.get(&bcrd) else {
+                                continue;
+                            };
+                            let idx = match spad {
+                                SerdesPad::ClkP => 1,
+                                SerdesPad::ClkN => 2,
+                                SerdesPad::InP(0) => 3,
+                                SerdesPad::InN(0) => 4,
+                                SerdesPad::InP(1) => 5,
+                                SerdesPad::InN(1) => 6,
+                                SerdesPad::InP(2) => 7,
+                                SerdesPad::InN(2) => 8,
+                                SerdesPad::InP(3) => 9,
+                                SerdesPad::InN(3) => 10,
+                                SerdesPad::OutP(0) => 11,
+                                SerdesPad::OutN(0) => 12,
+                                SerdesPad::OutP(1) => 13,
+                                SerdesPad::OutN(1) => 14,
+                                SerdesPad::OutP(2) => 15,
+                                SerdesPad::OutN(2) => 16,
+                                SerdesPad::OutP(3) => 17,
+                                SerdesPad::OutN(3) => 18,
+                                _ => continue,
+                            };
+                            let name = &naming.strings[bnaming.names[idx]];
+                            assert!(expected_sites.remove(name));
+                            expected_sites.insert(pin.clone());
+                        }
                     }
                     BondPad::Cfg(CfgPad::Tck) if has_jtag_pin_bels => {
                         assert!(expected_sites.remove("TCK"));

@@ -12,7 +12,7 @@ use unnamed_entity::EntityId;
 use crate::ChipContext;
 
 impl ChipContext<'_> {
-    fn get_nominal_bc_cell(&self, bank: u32) -> CellCoord {
+    fn get_nominal_bc_cell_machxo2(&self, bank: u32) -> CellCoord {
         let has_bank4 = self.chip.special_loc.contains_key(&SpecialLocKey::Bc(4));
         let (col, row) = match bank {
             0 => (self.chip.col_clk - 1, self.chip.row_n()),
@@ -32,7 +32,7 @@ impl ChipContext<'_> {
             let SpecialLocKey::Bc(bank) = key else {
                 continue;
             };
-            let cell = self.get_nominal_bc_cell(bank);
+            let cell = self.get_nominal_bc_cell_machxo2(bank);
             for (bel, suffix, pin_out, pin_in) in [
                 (bels::BCPG, "BCPG", "PGENO", "PGENI"),
                 (bels::BCINRD, "BCINRD", "INRDENO", "INRDENI"),
@@ -388,7 +388,9 @@ impl ChipContext<'_> {
         {
             names[0] = name.to_string();
         }
-        if self.chip.kind == ChipKind::MachXo2(MachXo2Kind::MachNx) && io == EdgeIoCoord::N(ColId::from_idx(14), TileIobId::from_idx(2)) {
+        if self.chip.kind == ChipKind::MachXo2(MachXo2Kind::MachNx)
+            && io == EdgeIoCoord::N(ColId::from_idx(14), TileIobId::from_idx(2))
+        {
             // what. this is actually the XO3 TDO -> XO5 TDI pad btw.
             names[0] = "Unused".to_string();
         }

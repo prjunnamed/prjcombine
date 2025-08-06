@@ -118,6 +118,15 @@ fn get_filename(datadir: &Path, part: &Part, chip: &Chip) -> PathBuf {
                 },
             }
         }
+        ChipKind::Ecp4 => {
+            let size = match chip.rows.len() {
+                78 => 50,
+                128 => 130,
+                130 => 190,
+                _ => unreachable!(),
+            };
+            ("ep5d00", format!("ep5d{size}"))
+        }
     };
     datadir.join(dir).join("data").join(format!("{fname}.pkg"))
 }
@@ -137,7 +146,7 @@ struct PkgData {
 
 fn parse_pkg(archive: &Archive) -> PkgData {
     let mut reader = Reader::new(&archive.entries["pininfo_table"].data);
-    let _unk0 = reader.get_u32();
+    let version = reader.get_u32();
     let _ver = reader.get_nlstring();
     let num_lines = reader.get_u32();
     for _ in 0..num_lines {
@@ -159,11 +168,13 @@ fn parse_pkg(archive: &Archive) -> PkgData {
         let _ = reader.get_u32();
         let _ = reader.get_u32();
     }
-    let num_die = reader.get_u32();
-    for _ in 0..num_die {
-        let _ = reader.get_u32();
-        let _ = reader.get_zstring();
-        let _ = reader.get_zstring();
+    if version != 0x3e8 {
+        let num_die = reader.get_u32();
+        for _ in 0..num_die {
+            let _ = reader.get_u32();
+            let _ = reader.get_zstring();
+            let _ = reader.get_zstring();
+        }
     }
     let num_kv = reader.get_u32() as usize;
     let num_pins = reader.get_u32() as usize;
@@ -187,16 +198,8 @@ fn parse_pkg(archive: &Archive) -> PkgData {
     PkgData { pkgs, pins }
 }
 
-fn parse_io(chip: &Chip, func: &str) -> Option<EdgeIoCoord> {
-    let (func, iob_idx) = if let Some(f) = func.strip_suffix("E_A") {
-        (f, 4)
-    } else if let Some(f) = func.strip_suffix("E_B") {
-        (f, 5)
-    } else if let Some(f) = func.strip_suffix("E_C") {
-        (f, 6)
-    } else if let Some(f) = func.strip_suffix("E_D") {
-        (f, 7)
-    } else if let Some(f) = func.strip_suffix('A') {
+fn parse_io_ecp(chip: &Chip, func: &str) -> Option<EdgeIoCoord> {
+    let (func, iob_idx) = if let Some(f) = func.strip_suffix('A') {
         (f, 0)
     } else if let Some(f) = func.strip_suffix('B') {
         (f, 1)
@@ -211,71 +214,193 @@ fn parse_io(chip: &Chip, func: &str) -> Option<EdgeIoCoord> {
     } else {
         (func, 0)
     };
-    let mut iob = TileIobId::from_idx(iob_idx);
+    let iob = TileIobId::from_idx(iob_idx);
+    if let Some(r) = func.strip_prefix("PL")
+        && let Ok(r) = r.parse()
+    {
+        Some(EdgeIoCoord::W(chip.xlat_row(r), iob))
+    } else if let Some(r) = func.strip_prefix("PR")
+        && let Ok(r) = r.parse()
+    {
+        Some(EdgeIoCoord::E(chip.xlat_row(r), iob))
+    } else if let Some(c) = func.strip_prefix("PB")
+        && let Ok(c) = c.parse()
+    {
+        Some(EdgeIoCoord::S(chip.xlat_col(c), iob))
+    } else if let Some(c) = func.strip_prefix("PT")
+        && let Ok(c) = c.parse()
+    {
+        Some(EdgeIoCoord::N(chip.xlat_col(c), iob))
+    } else {
+        None
+    }
+}
+
+fn parse_io_ecp3(chip: &Chip, func: &str) -> Option<EdgeIoCoord> {
+    let (func, mut iob_idx) = if let Some(f) = func.strip_suffix("E_A") {
+        (f, 4)
+    } else if let Some(f) = func.strip_suffix("E_B") {
+        (f, 5)
+    } else if let Some(f) = func.strip_suffix("E_C") {
+        (f, 6)
+    } else if let Some(f) = func.strip_suffix("E_D") {
+        (f, 7)
+    } else if let Some(f) = func.strip_suffix('A') {
+        (f, 0)
+    } else if let Some(f) = func.strip_suffix('B') {
+        (f, 1)
+    } else {
+        (func, 0)
+    };
     if let Some(r) = func.strip_prefix("PL")
         && let Ok(r) = r.parse()
     {
         let mut row = chip.xlat_row(r);
-        #[allow(clippy::single_match)]
-        match chip.kind {
-            ChipKind::Ecp3 | ChipKind::Ecp3A if iob_idx < 4 => {
-                if chip.rows[row].io_w == IoGroupKind::None {
-                    row -= 2;
-                } else {
-                    iob = TileIobId::from_idx(iob_idx + 2);
-                }
+        if iob_idx < 4 {
+            if chip.rows[row].io_w == IoGroupKind::None {
+                row -= 2;
+            } else {
+                iob_idx += 2;
             }
-            _ => (),
         }
+        let iob = TileIobId::from_idx(iob_idx);
         Some(EdgeIoCoord::W(row, iob))
     } else if let Some(r) = func.strip_prefix("PR")
         && let Ok(r) = r.parse()
     {
         let mut row = chip.xlat_row(r);
-        #[allow(clippy::single_match)]
-        match chip.kind {
-            ChipKind::Ecp3 | ChipKind::Ecp3A if iob_idx < 4 => {
-                if chip.rows[row].io_e == IoGroupKind::None {
-                    row -= 2;
-                } else {
-                    iob = TileIobId::from_idx(iob_idx + 2);
-                }
+        if iob_idx < 4 {
+            if chip.rows[row].io_e == IoGroupKind::None {
+                row -= 2;
+            } else {
+                iob_idx += 2;
             }
-            _ => (),
         }
+        let iob = TileIobId::from_idx(iob_idx);
         Some(EdgeIoCoord::E(row, iob))
     } else if let Some(c) = func.strip_prefix("PB")
         && let Ok(c) = c.parse()
     {
         let mut col = chip.xlat_col(c);
-        #[allow(clippy::single_match)]
-        match chip.kind {
-            ChipKind::Ecp3 | ChipKind::Ecp3A if iob_idx < 4 => {
-                if chip.columns[col].io_s == IoGroupKind::None {
-                    col -= 2;
-                    iob = TileIobId::from_idx(iob_idx + 2);
-                }
-            }
-            _ => (),
+        if iob_idx < 4 && chip.columns[col].io_s == IoGroupKind::None {
+            col -= 2;
+            iob_idx += 2;
         }
+        let iob = TileIobId::from_idx(iob_idx);
         Some(EdgeIoCoord::S(col, iob))
     } else if let Some(c) = func.strip_prefix("PT")
         && let Ok(c) = c.parse()
     {
         let mut col = chip.xlat_col(c);
-        #[allow(clippy::single_match)]
-        match chip.kind {
-            ChipKind::Ecp3 | ChipKind::Ecp3A if iob_idx < 4 => {
-                if chip.columns[col].io_n == IoGroupKind::None {
-                    col -= 2;
-                    iob = TileIobId::from_idx(iob_idx + 2);
-                }
-            }
-            _ => (),
+        if iob_idx < 4 && chip.columns[col].io_n == IoGroupKind::None {
+            col -= 2;
+            iob_idx += 2;
         }
+        let iob = TileIobId::from_idx(iob_idx);
         Some(EdgeIoCoord::N(col, iob))
     } else {
         None
+    }
+}
+
+fn parse_io_ecp4(chip: &Chip, func: &str) -> Option<EdgeIoCoord> {
+    let (func, mut iob_idx) = if let Some(f) = func.strip_suffix("EA") {
+        (f, 4)
+    } else if let Some(f) = func.strip_suffix("EB") {
+        (f, 5)
+    } else if let Some(f) = func.strip_suffix("EC") {
+        (f, 6)
+    } else if let Some(f) = func.strip_suffix("ED") {
+        (f, 7)
+    } else {
+        (func, 0)
+    };
+    if let Some(r) = func.strip_prefix("PL")
+        && let Ok(r) = r.parse()
+    {
+        let mut row = chip.xlat_row(r);
+        if iob_idx >= 4 {
+            match (chip.rows[row].kind, row >= chip.row_clk) {
+                (RowKind::Ebr, _) => (),
+                (RowKind::Dsp, false) => {
+                    row -= 1;
+                    iob_idx -= 4;
+                }
+                (RowKind::Dsp, true) => {
+                    iob_idx -= 4;
+                    iob_idx += 2;
+                }
+                _ => unreachable!(),
+            }
+        } else {
+            iob_idx += 3;
+            while !matches!(
+                chip.rows[row].io_w,
+                IoGroupKind::Quad | IoGroupKind::QuadDqs | IoGroupKind::QuadEbrDqs
+            ) {
+                iob_idx -= 1;
+                row -= 1;
+            }
+            if chip.rows[row].kind == RowKind::Dsp {
+                iob_idx -= 2;
+            }
+        }
+        let iob = TileIobId::from_idx(iob_idx);
+        Some(EdgeIoCoord::W(row, iob))
+    } else if let Some(r) = func.strip_prefix("PR")
+        && let Ok(r) = r.parse()
+    {
+        let mut row = chip.xlat_row(r);
+        if iob_idx >= 4 {
+            match (chip.rows[row].kind, row >= chip.row_clk) {
+                (RowKind::Ebr, _) => (),
+                (RowKind::Dsp, false) => {
+                    row -= 1;
+                    iob_idx -= 4;
+                }
+                (RowKind::Dsp, true) => {
+                    iob_idx -= 4;
+                    iob_idx += 2;
+                }
+                _ => unreachable!(),
+            }
+        } else {
+            iob_idx += 3;
+            while !matches!(
+                chip.rows[row].io_e,
+                IoGroupKind::Quad | IoGroupKind::QuadDqs | IoGroupKind::QuadEbrDqs
+            ) {
+                iob_idx -= 1;
+                row -= 1;
+            }
+            if chip.rows[row].kind == RowKind::Dsp {
+                iob_idx -= 2;
+            }
+        }
+        let iob = TileIobId::from_idx(iob_idx);
+        Some(EdgeIoCoord::E(row, iob))
+    } else if let Some(c) = func.strip_prefix("PT")
+        && let Ok(c) = c.parse()
+    {
+        assert_eq!(iob_idx, 0);
+        let mut col = chip.xlat_col(c);
+        while chip.columns[col].io_n == IoGroupKind::None {
+            iob_idx += 1;
+            col -= 1;
+        }
+        assert!(iob_idx < 4);
+        let iob = TileIobId::from_idx(iob_idx);
+        Some(EdgeIoCoord::N(col, iob))
+    } else {
+        None
+    }
+}
+
+fn parse_io(chip: &Chip, func: &str) -> Option<EdgeIoCoord> {
+    match chip.kind {
+        ChipKind::Ecp3 | ChipKind::Ecp3A => parse_io_ecp3(chip, func),
+        ChipKind::Ecp4 => parse_io_ecp4(chip, func),
+        _ => parse_io_ecp(chip, func),
     }
 }
 
@@ -311,6 +436,11 @@ fn parse_pfr_io(func: &str) -> Option<EdgeIoCoord> {
     } else {
         None
     }
+}
+
+fn uncompl_io(_chip: &Chip, io: EdgeIoCoord) -> EdgeIoCoord {
+    assert_eq!(io.iob().to_idx() % 2, 1);
+    io.with_iob(TileIobId::from_idx(io.iob().to_idx() - 1))
 }
 
 pub struct BondResult {
@@ -388,20 +518,24 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
         let Value::Int(bs_order) = pin_info["BS_ORDER"] else {
             unreachable!()
         };
-        if ((bs_order == 0 || bs_type == "L") && (pin.starts_with("Unused") || pin == "UNUSED"))
-            || pin == "VCC"
-            || pin == "GND"
-            || pin == "VCCAUX"
-            || pin == "VCCA"
-            || pin == "VDDD"
-            || pin == "VSSD_GND"
-            || pin == "VSSA"
-            || pin == "VSS"
-            || pin.starts_with("VCCNX")
-            || pin.starts_with("VCCXD")
-            || pin.starts_with("VCCIO")
-            || pin.starts_with("VCCPLL")
-            || pin.starts_with("VTT")
+        if (bs_order == 0 || bs_type == "L")
+            && (pin.starts_with("Unused")
+                || pin == "UNUSED"
+                || pin == "VCC"
+                || pin == "GND"
+                || pin == "GNDA"
+                || pin == "VCCAUX"
+                || pin == "VCCAUXA"
+                || pin == "VCCA"
+                || pin == "VDDD"
+                || pin == "VSSD_GND"
+                || pin == "VSSA"
+                || pin == "VSS"
+                || pin.starts_with("VCCNX")
+                || pin.starts_with("VCCXD")
+                || pin.starts_with("VCCIO")
+                || pin.starts_with("VCCPLL")
+                || pin.starts_with("VTT"))
         {
             continue;
         }
@@ -436,21 +570,42 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
             let mut spec_io = io;
             let mut spec = if let Some(pclk) = cfg.strip_prefix("PCLK") {
                 let pclk = pclk.strip_suffix("/INTEST_OVER").unwrap_or(pclk);
+                let pclk = pclk.split_once("/GR_").map(|x| x.0).unwrap_or(pclk);
                 let (which, idx) = pclk.split_once('_').unwrap();
-                if let Some(pclk_bank) = which.strip_prefix('T') {
-                    let pclk_bank: i32 = pclk_bank.parse().unwrap();
-                    if chip.kind != ChipKind::MachXo {
-                        assert_eq!(bank, pclk_bank);
-                    }
+                let mut pclk_bank: i32 = if let Some(pclk_bank) = which.strip_prefix('T') {
+                    pclk_bank.parse().unwrap()
                 } else if let Some(pclk_bank) = which.strip_prefix('C') {
-                    assert_eq!(spec_io.iob().to_idx() % 2, 1);
-                    spec_io = spec_io.with_iob(TileIobId::from_idx(spec_io.iob().to_idx() - 1));
-                    let pclk_bank: i32 = pclk_bank.parse().unwrap();
-                    assert_eq!(bank, pclk_bank);
+                    spec_io = uncompl_io(chip, spec_io);
+                    pclk_bank.parse().unwrap()
                 } else {
                     unreachable!();
-                }
+                };
                 let mut idx = idx.parse().unwrap();
+                if chip.kind == ChipKind::Ecp4 {
+                    match pclk_bank {
+                        0 => {
+                            pclk_bank = 1;
+                        }
+                        1 => {
+                            idx += 2;
+                        }
+                        2 => {
+                            idx += 4;
+                        }
+                        3 => {
+                            pclk_bank = 2;
+                            idx += 6;
+                        }
+                        4 | 7 => {
+                            idx += 2;
+                        }
+                        5 | 6 => (),
+                        _ => unreachable!(),
+                    }
+                }
+                if chip.kind != ChipKind::MachXo {
+                    assert_eq!(bank, pclk_bank);
+                }
                 if matches!(
                     chip.kind,
                     ChipKind::Ecp2
@@ -481,8 +636,11 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
             } else {
                 match cfg.as_str() {
                     _ if cfg.contains("PLL") || cfg.contains("DLL") => 'pll: {
-                        let (loc, sig) = cfg.split_once('_').unwrap();
-                        let (hv, idx) = if loc.len() < 4 {
+                        if chip.kind == ChipKind::Ecp4 {
+                            if cfg.contains("MFGOUT") {
+                                break 'pll None;
+                            }
+                            let (loc, sig) = cfg.split_once('_').unwrap();
                             let hv = match loc {
                                 "LLC" => DirHV::SW,
                                 "ULC" => DirHV::NW,
@@ -492,77 +650,110 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                                 "R" if matches!(chip.kind, ChipKind::MachXo2(_)) => DirHV::NE,
                                 _ => panic!("weird PLL loc {loc}"),
                             };
-                            (hv, 0)
-                        } else {
-                            let idx: u8 = loc[3..].parse().unwrap();
-                            let loc = &loc[..3];
-                            let hv = match loc {
-                                "LLM" => DirHV::SW,
-                                "LUM" => DirHV::NW,
-                                "RLM" => DirHV::SE,
-                                "RUM" => DirHV::NE,
-                                _ => panic!("weird PLL loc {loc}"),
+                            let (idx, pad, is_c) = match sig {
+                                "GPLL0T_IN" => (0, PllPad::PllIn0, false),
+                                "GPLL0C_IN" => (0, PllPad::PllIn0, true),
+                                "GPLL0T_FB" => (0, PllPad::PllFb, false),
+                                "GPLL0C_FB" => (0, PllPad::PllFb, true),
+                                "GPLL1T_IN" => (1, PllPad::PllIn0, false),
+                                "GPLL1C_IN" => (1, PllPad::PllIn0, true),
+                                "GPLL1T_FB" => (1, PllPad::PllFb, false),
+                                "GPLL1C_FB" => (1, PllPad::PllFb, true),
+                                _ => {
+                                    println!("weird PLL pin {sig}");
+                                    break 'pll None;
+                                }
                             };
-                            (hv, idx)
-                        };
-                        let loc = match chip.kind {
-                            ChipKind::Ecp
-                            | ChipKind::Xp
-                            | ChipKind::MachXo
-                            | ChipKind::Xp2
-                            | ChipKind::MachXo2(_) => PllLoc::new(hv, idx),
-                            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Ecp3 | ChipKind::Ecp3A => {
-                                let cell = CellCoord::new(
-                                    DieId::from_idx(0),
-                                    if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
-                                        match hv.h {
-                                            DirH::W => chip.col_w() + 1,
-                                            DirH::E => chip.col_e() - 1,
-                                        }
-                                    } else {
-                                        chip.col_edge(hv.h)
-                                    },
-                                    match hv.v {
-                                        DirV::S => pll_rows_s[idx as usize],
-                                        DirV::N => pll_rows_n[idx as usize],
-                                    },
-                                );
-                                pll_xlat[&cell]
+                            if is_c {
+                                spec_io = uncompl_io(chip, spec_io);
                             }
-                        };
-                        let (pad, is_c) = match sig {
-                            "PLLT_IN_A" => (PllPad::PllIn0, false),
-                            "PLLC_IN_A" => (PllPad::PllIn0, true),
-                            "PLLT_FB_A" => (PllPad::PllFb, false),
-                            "PLLC_FB_A" => (PllPad::PllFb, true),
-                            "GPLLT_IN_A" => (PllPad::PllIn0, false),
-                            "GPLLC_IN_A" | "GPLLT_IN_B" => (PllPad::PllIn0, true),
-                            "GPLLT_FB_A" => (PllPad::PllFb, false),
-                            "GPLLC_FB_A" | "GPLLT_FB_B" => (PllPad::PllFb, true),
-                            "SPLLT_IN_A" => (PllPad::PllIn0, false),
-                            "SPLLC_IN_A" => (PllPad::PllIn0, true),
-                            "SPLLT_FB_A" => (PllPad::PllFb, false),
-                            "SPLLC_FB_A" => (PllPad::PllFb, true),
-                            "GDLLT_IN_A" => (PllPad::DllIn0, false),
-                            "GDLLC_IN_A" | "GDLLT_IN_B" => (PllPad::DllIn0, true),
-                            "GDLLT_FB_A" => (PllPad::DllFb, false),
-                            "GDLLC_FB_A" | "GDLLT_FB_B" => (PllPad::DllFb, true),
-                            // bug? bug.
-                            "GDLLC_FB_D" => (PllPad::DllFb, true),
-                            "GPLLT_IN" => (PllPad::PllIn0, false),
-                            "GPLLC_IN" => (PllPad::PllIn0, true),
-                            "GPLLT_FB" => (PllPad::PllFb, false),
-                            "GPLLC_FB" => (PllPad::PllFb, true),
-                            "GPLLT_MFGOUT1" | "GPLLC_MFGOUT1" | "GPLLT_MFGOUT2"
-                            | "GPLLC_MFGOUT2" => break 'pll None,
-                            _ => panic!("weird PLL pin {sig}"),
-                        };
-                        if is_c {
-                            assert_eq!(spec_io.iob().to_idx() % 2, 1);
-                            spec_io =
-                                spec_io.with_iob(TileIobId::from_idx(spec_io.iob().to_idx() - 1))
+                            Some(SpecialIoKey::Pll(pad, PllLoc::new(hv, idx)))
+                        } else {
+                            let (loc, sig) = cfg.split_once('_').unwrap();
+                            let (hv, idx) = if loc.len() < 4 {
+                                let hv = match loc {
+                                    "LLC" => DirHV::SW,
+                                    "ULC" => DirHV::NW,
+                                    "LRC" => DirHV::SE,
+                                    "URC" => DirHV::NE,
+                                    "L" if matches!(chip.kind, ChipKind::MachXo2(_)) => DirHV::NW,
+                                    "R" if matches!(chip.kind, ChipKind::MachXo2(_)) => DirHV::NE,
+                                    _ => panic!("weird PLL loc {loc}"),
+                                };
+                                (hv, 0)
+                            } else {
+                                let idx: u8 = loc[3..].parse().unwrap();
+                                let loc = &loc[..3];
+                                let hv = match loc {
+                                    "LLM" => DirHV::SW,
+                                    "LUM" => DirHV::NW,
+                                    "RLM" => DirHV::SE,
+                                    "RUM" => DirHV::NE,
+                                    _ => panic!("weird PLL loc {loc}"),
+                                };
+                                (hv, idx)
+                            };
+                            let loc = match chip.kind {
+                                ChipKind::Ecp
+                                | ChipKind::Xp
+                                | ChipKind::MachXo
+                                | ChipKind::Xp2
+                                | ChipKind::MachXo2(_)
+                                | ChipKind::Ecp4 => PllLoc::new(hv, idx),
+                                ChipKind::Ecp2
+                                | ChipKind::Ecp2M
+                                | ChipKind::Ecp3
+                                | ChipKind::Ecp3A => {
+                                    let cell = CellCoord::new(
+                                        DieId::from_idx(0),
+                                        if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
+                                            match hv.h {
+                                                DirH::W => chip.col_w() + 1,
+                                                DirH::E => chip.col_e() - 1,
+                                            }
+                                        } else {
+                                            chip.col_edge(hv.h)
+                                        },
+                                        match hv.v {
+                                            DirV::S => pll_rows_s[idx as usize],
+                                            DirV::N => pll_rows_n[idx as usize],
+                                        },
+                                    );
+                                    pll_xlat[&cell]
+                                }
+                            };
+                            let (pad, is_c) = match sig {
+                                "PLLT_IN_A" => (PllPad::PllIn0, false),
+                                "PLLC_IN_A" => (PllPad::PllIn0, true),
+                                "PLLT_FB_A" => (PllPad::PllFb, false),
+                                "PLLC_FB_A" => (PllPad::PllFb, true),
+                                "GPLLT_IN_A" => (PllPad::PllIn0, false),
+                                "GPLLC_IN_A" | "GPLLT_IN_B" => (PllPad::PllIn0, true),
+                                "GPLLT_FB_A" => (PllPad::PllFb, false),
+                                "GPLLC_FB_A" | "GPLLT_FB_B" => (PllPad::PllFb, true),
+                                "SPLLT_IN_A" => (PllPad::PllIn0, false),
+                                "SPLLC_IN_A" => (PllPad::PllIn0, true),
+                                "SPLLT_FB_A" => (PllPad::PllFb, false),
+                                "SPLLC_FB_A" => (PllPad::PllFb, true),
+                                "GDLLT_IN_A" => (PllPad::DllIn0, false),
+                                "GDLLC_IN_A" | "GDLLT_IN_B" => (PllPad::DllIn0, true),
+                                "GDLLT_FB_A" => (PllPad::DllFb, false),
+                                "GDLLC_FB_A" | "GDLLT_FB_B" => (PllPad::DllFb, true),
+                                // bug? bug.
+                                "GDLLC_FB_D" => (PllPad::DllFb, true),
+                                "GPLLT_IN" => (PllPad::PllIn0, false),
+                                "GPLLC_IN" => (PllPad::PllIn0, true),
+                                "GPLLT_FB" => (PllPad::PllFb, false),
+                                "GPLLC_FB" => (PllPad::PllFb, true),
+                                "GPLLT_MFGOUT1" | "GPLLC_MFGOUT1" | "GPLLT_MFGOUT2"
+                                | "GPLLC_MFGOUT2" => break 'pll None,
+                                _ => panic!("weird PLL pin {sig}"),
+                            };
+                            if is_c {
+                                spec_io = uncompl_io(chip, spec_io);
+                            }
+                            Some(SpecialIoKey::Pll(pad, loc))
                         }
-                        Some(SpecialIoKey::Pll(pad, loc))
                     }
                     "DQS" | "Unused" => None,
                     "TSALLPAD" => Some(SpecialIoKey::TsAll),
@@ -615,6 +806,35 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                         Some(SpecialIoKey::JtagEn)
                     }
                     "PROGRAMN/ATB_FORCE_2" => Some(SpecialIoKey::ProgB),
+                    // ECP4
+                    "D0/SI/SISPI1/IO0" => Some(SpecialIoKey::D(0)),
+                    "D1/SO/SPISO1/IO1" => Some(SpecialIoKey::D(1)),
+                    "D2/IO2" => Some(SpecialIoKey::D(2)),
+                    "D3/IO3" => Some(SpecialIoKey::D(3)),
+                    "D4/SISPI2/IO4" => Some(SpecialIoKey::D(4)),
+                    "D5/SPISO2/IO5" => Some(SpecialIoKey::D(5)),
+                    "D6/IO6" => Some(SpecialIoKey::D(6)),
+                    "D7/IO7" => Some(SpecialIoKey::D(7)),
+                    "D8/IO8" => Some(SpecialIoKey::D(8)),
+                    "D9/IO9" => Some(SpecialIoKey::D(9)),
+                    "D10/IO10" => Some(SpecialIoKey::D(10)),
+                    "D11/IO11" => Some(SpecialIoKey::D(11)),
+                    "D12/IO12" => Some(SpecialIoKey::D(12)),
+                    "D13/IO13" => Some(SpecialIoKey::D(13)),
+                    "D14/IO14" => Some(SpecialIoKey::D(14)),
+                    "D15/IO15" => Some(SpecialIoKey::D(15)),
+                    "SN/CSN" => Some(SpecialIoKey::CsN),
+                    "SDA/CS1N" => Some(SpecialIoKey::Cs1N),
+                    "HOLDN/DI/BUSY/CSSPIN/CEN" => Some(SpecialIoKey::Di),
+                    "DOUT/CSON" => Some(SpecialIoKey::Dout),
+                    "SCL/WRITEN" => Some(SpecialIoKey::WriteN),
+                    "TDI0" | "TDI1" | "TDI2" | "TDI3" | "TDI4" | "TDI5" | "TDI6" | "TDI7"
+                    | "TDO0" | "TDO1" | "TDO2" | "TDO3" | "TDO4" | "TDO5" | "TDO6" | "TDO7"
+                    | "TDIB" | "ATB_FORCE" | "ATB_SENSE"
+                        if chip.kind == ChipKind::Ecp4 =>
+                    {
+                        None
+                    }
                     _ => {
                         println!("\tPIN {pin:5} {func:8} {cfg:20} {bank} {io}");
                         None
@@ -718,6 +938,42 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 }
             };
             BondPad::Serdes(DirV::S, col, pad)
+        } else if func.starts_with("HD") && chip.kind == ChipKind::Ecp4 {
+            let (sig, idx) = func.split_once("_Q").unwrap();
+            let (quad, ch) = idx.split_once("CH").unwrap();
+            let quad: usize = quad.parse().unwrap();
+            let ch = ch.parse().unwrap();
+            let pad = match sig {
+                "HDTXP" => SerdesPad::OutP(ch),
+                "HDTXN" => SerdesPad::OutN(ch),
+                "HDRXP" => SerdesPad::InP(ch),
+                "HDRXN" => SerdesPad::InN(ch),
+                _ => panic!("umm {sig}"),
+            };
+            let cell = chip
+                .special_loc
+                .get(&SpecialLocKey::SerdesSingle)
+                .or_else(|| chip.special_loc.get(&SpecialLocKey::SerdesDouble))
+                .or_else(|| chip.special_loc.get(&SpecialLocKey::SerdesTriple))
+                .copied()
+                .unwrap();
+            BondPad::Serdes(DirV::S, cell.col + quad, pad)
+        } else if func.starts_with("REFCLK") && func.contains('Q') && chip.kind == ChipKind::Ecp4 {
+            let (sig, quad) = func.split_once("_Q").unwrap();
+            let quad: usize = quad.parse().unwrap();
+            let pad = match sig {
+                "REFCLKP" => SerdesPad::ClkP,
+                "REFCLKN" => SerdesPad::ClkN,
+                _ => panic!("umm {sig}"),
+            };
+            let cell = chip
+                .special_loc
+                .get(&SpecialLocKey::SerdesSingle)
+                .or_else(|| chip.special_loc.get(&SpecialLocKey::SerdesDouble))
+                .or_else(|| chip.special_loc.get(&SpecialLocKey::SerdesTriple))
+                .copied()
+                .unwrap();
+            BondPad::Serdes(DirV::S, cell.col + quad, pad)
         } else if let Some(vccio_bank) = func
             .strip_prefix("VCCIO")
             .or_else(|| func.strip_prefix("VCCO"))
@@ -756,9 +1012,9 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 "CCLK" => BondPad::Cfg(CfgPad::Cclk),
                 "INITN" => BondPad::Cfg(CfgPad::InitB),
                 "DONE" => BondPad::Cfg(CfgPad::Done),
-                "CFG0" => BondPad::Cfg(CfgPad::M0),
-                "CFG1" => BondPad::Cfg(CfgPad::M1),
-                "CFG2" => BondPad::Cfg(CfgPad::M2),
+                "CFG0" | "CFGMDN0" => BondPad::Cfg(CfgPad::M0),
+                "CFG1" | "CFGMDN1" => BondPad::Cfg(CfgPad::M1),
+                "CFG2" | "CFGMDN2" => BondPad::Cfg(CfgPad::M2),
                 "SLEEPN/TOE" => BondPad::Cfg(CfgPad::SleepB),
                 "TOE" => BondPad::Cfg(CfgPad::Toe),
                 // ECP2M special.
@@ -785,6 +1041,7 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 }
                 "VCC" => BondPad::VccInt,
                 "VCCAUX" => BondPad::VccAux,
+                "VCCAUXA" => BondPad::VccAuxA,
                 "VCCJ" => BondPad::VccJtag,
                 "VCCPLL" => BondPad::VccPll(PllSet::All),
                 "L_VCCPLL" | "VCCPLL_L" => BondPad::VccPll(PllSet::Side(DirH::W)),
@@ -843,6 +1100,7 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 }
                 "VCCA" => BondPad::VccA,
                 "GND" | "GNDAUX" => BondPad::Gnd,
+                "GNDA" => BondPad::GndA,
                 "VSS" if bond.kind == BondKind::MachNx => BondPad::Gnd,
                 "Unused" | "NC" => BondPad::Nc,
                 "XRES" => BondPad::XRes,
@@ -903,6 +1161,12 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 "VCCNXAUXH4" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccAuxH(4)),
                 "VCCNXAUXH5" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccAuxH(5)),
                 "VCCNXADC18" if bond.kind == BondKind::MachNx => BondPad::Pfr(PfrPad::VccAdc18),
+                "REFCLKP_CORNER" => BondPad::SerdesCorner(SerdesPad::ClkP),
+                "REFCLKN_CORNER" => BondPad::SerdesCorner(SerdesPad::ClkN),
+                "RXANTOUTP" => BondPad::SerdesCorner(SerdesPad::RxantOutP),
+                "RXANTOUTN" => BondPad::SerdesCorner(SerdesPad::RxantOutN),
+                "AUXTSTPADOUTP" => BondPad::SerdesCorner(SerdesPad::AuxTstPadOutP),
+                "AUXTSTPADOUTN" => BondPad::SerdesCorner(SerdesPad::AuxTstPadOutN),
                 _ if func.starts_with("GNDIO") => BondPad::Gnd,
                 _ if func.starts_with("GNDO") => BondPad::Gnd,
                 // sigh. what the fuck do you expect from a vendor.
@@ -917,7 +1181,7 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 }
             }
         };
-        if !pin.starts_with("Unused") {
+        if !pin.starts_with("Unused") && pin != "GNDA" && pin != "VCCA" {
             if pin.starts_with("ICC")
                 || pin.starts_with("NX")
                 || pin == "FLASHCSN"
@@ -943,6 +1207,13 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
             bscan[idx] = Some((pad, bs_type));
         }
     }
+    // for (i, x) in bscan.iter().enumerate() {
+    //     if let &Some((x, kind)) = x {
+    //         println!("{i}: {x} {kind}");
+    //     } else {
+    //         println!("{i}: ----");
+    //     }
+    // }
     let pkg_bscan = Vec::from_iter(bscan.into_iter().rev().map(Option::unwrap));
     let bscan = chip.get_bscan();
     let mut bit = 0;

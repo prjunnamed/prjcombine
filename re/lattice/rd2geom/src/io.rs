@@ -7,6 +7,7 @@ use crate::ChipContext;
 
 mod ecp;
 mod ecp3;
+mod ecp4;
 mod machxo;
 mod machxo2;
 
@@ -43,6 +44,14 @@ impl ChipContext<'_> {
                 self.process_dqs_machxo2();
                 self.process_io_machxo2();
                 self.process_icc_machxo2();
+            }
+            ChipKind::Ecp4 => {
+                self.process_bc_ecp4();
+                self.process_eclk_ecp4();
+                self.process_ddrdll_ecp4();
+                self.process_dlldel_ecp4();
+                self.process_dtr_ecp4();
+                self.process_io_ecp4();
             }
         }
     }

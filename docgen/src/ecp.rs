@@ -12,7 +12,9 @@ pub fn gen_ecp(ctx: &mut DocgenContext) {
         flip_frame: false,
         flip_bit: false,
     };
-    for kind in ["ecp", "xp", "machxo", "ecp2", "ecp2m", "xp2", "ecp3", "machxo2"] {
+    for kind in [
+        "ecp", "xp", "machxo", "ecp2", "ecp2m", "xp2", "ecp3", "machxo2", "ecp4",
+    ] {
         let db = prjcombine_ecp::db::Database::from_file(
             ctx.ctx.root.join(format!("../databases/{kind}.zstd")),
         )
