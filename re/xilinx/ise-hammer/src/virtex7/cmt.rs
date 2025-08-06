@@ -1091,8 +1091,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for i in 0..4 {
             let mut props: Vec<Box<DynProp>> = vec![];
             for tile in ["HCLK_IOI_HP", "HCLK_IOI_HR"] {
-                let node = backend.egrid.db.get_tile_class(tile);
-                if !backend.egrid.tile_index[node].is_empty() {
+                let tcid = backend.egrid.db.get_tile_class(tile);
+                if !backend.egrid.tile_index[tcid].is_empty() {
                     props.push(Box::new(ExtraTileMaybe::new(
                         ColPair(tile),
                         Some("HCLK_IOI".into()),

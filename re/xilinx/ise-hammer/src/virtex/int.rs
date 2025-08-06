@@ -20,7 +20,7 @@ use crate::{
         props::{
             BaseRaw, DynProp,
             bel::{BaseBelMode, BaseBelPin, FuzzBelMode},
-            mutex::NodeMutexExclusive,
+            mutex::WireMutexExclusive,
             relation::{Delta, Related},
         },
     },
@@ -67,7 +67,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinBramLv {
             if resolved_pin == wire {
                 let (tile, wt, wf) = resolve_int_pip(backend, tcrd, wire_clk, wire_pin).unwrap();
                 fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
-                fuzzer = fuzzer.fuzz(Key::NodeMutex(resolved_clk), None, "EXCLUSIVE");
+                fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_clk), None, "EXCLUSIVE");
                 return Some((fuzzer, false));
             }
         }
@@ -121,7 +121,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinLh {
                     let (tile, wt, wf) =
                         resolve_int_pip(backend, tcrd, wire_out, wire_pin).unwrap();
                     fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
-                    fuzzer = fuzzer.fuzz(Key::NodeMutex(resolved_out), None, "EXCLUSIVE");
+                    fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_out), None, "EXCLUSIVE");
                     return Some((fuzzer, false));
                 }
             }
@@ -182,7 +182,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
                     let (tile, wt, wf) =
                         resolve_int_pip(backend, tcrd, wire_buf, wire_pin).unwrap();
                     fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
-                    fuzzer = fuzzer.fuzz(Key::NodeMutex(resolved_buf), None, "EXCLUSIVE");
+                    fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_buf), None, "EXCLUSIVE");
                     return Some((fuzzer, false));
                 }
             }
@@ -259,7 +259,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
                                     resolve_int_pip(backend, tcrd, wire_out, wire_pin).unwrap();
                                 fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
                                 fuzzer =
-                                    fuzzer.fuzz(Key::NodeMutex(resolved_out), None, "EXCLUSIVE");
+                                    fuzzer.fuzz(Key::WireMutex(resolved_out), None, "EXCLUSIVE");
                                 return Some((fuzzer, false));
                             }
                         }
@@ -338,7 +338,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
                                     resolve_int_pip(backend, tcrd, wire_out, wire_pin).unwrap();
                                 fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
                                 fuzzer =
-                                    fuzzer.fuzz(Key::NodeMutex(resolved_out), None, "EXCLUSIVE");
+                                    fuzzer.fuzz(Key::WireMutex(resolved_out), None, "EXCLUSIVE");
                                 return Some((fuzzer, false));
                             }
                         }
@@ -418,9 +418,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
                                     resolve_int_pip(backend, tcrd, wire_pin, inp.tw).unwrap();
                                 fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
                                 fuzzer =
-                                    fuzzer.fuzz(Key::NodeMutex(resolved_inp), None, "EXCLUSIVE");
+                                    fuzzer.fuzz(Key::WireMutex(resolved_inp), None, "EXCLUSIVE");
                                 fuzzer =
-                                    fuzzer.fuzz(Key::NodeMutex(resolved_pin), None, "EXCLUSIVE");
+                                    fuzzer.fuzz(Key::WireMutex(resolved_pin), None, "EXCLUSIVE");
                                 return Some((fuzzer, false));
                             }
                         }
@@ -501,9 +501,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
                                     resolve_int_pip(backend, tcrd, wire_pin, inp.tw).unwrap();
                                 fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
                                 fuzzer =
-                                    fuzzer.fuzz(Key::NodeMutex(resolved_inp), None, "EXCLUSIVE");
+                                    fuzzer.fuzz(Key::WireMutex(resolved_inp), None, "EXCLUSIVE");
                                 fuzzer =
-                                    fuzzer.fuzz(Key::NodeMutex(resolved_pin), None, "EXCLUSIVE");
+                                    fuzzer.fuzz(Key::WireMutex(resolved_pin), None, "EXCLUSIVE");
                                 return Some((fuzzer, false));
                             }
                         }
@@ -532,7 +532,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             if out_name.ends_with(".BUF") || out_name.ends_with(".FAKE") {
                 continue;
             } else if out_name.contains("OMUX") {
-                let mut props: Vec<Box<DynProp>> = vec![Box::new(NodeMutexExclusive::new(wire_to))];
+                let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
                 if tcname.starts_with("IO") {
                     for i in 0..4 {
                         props.push(Box::new(BaseBelMode::new(
@@ -565,12 +565,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     )));
                     props.push(Box::new(Related::new(
                         relation,
-                        NodeMutexExclusive::new(wire_pin),
+                        WireMutexExclusive::new(wire_pin),
                     )));
                 } else {
                     let wire_pin = tcls_index.pips_fwd[&wire_to].iter().next().unwrap().tw;
                     props.push(Box::new(BaseIntPip::new(wire_pin, wire_to)));
-                    props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                    props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                 }
                 for &wire_from in ins {
                     let wire_from = wire_from.tw;
@@ -589,7 +589,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     builder.commit();
                 }
             } else if out_name.starts_with("BRAM.QUAD") {
-                let mut props: Vec<Box<DynProp>> = vec![Box::new(NodeMutexExclusive::new(wire_to))];
+                let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
 
                 let (is_s, wire_to_root) = if let Some(root_name) = out_name.strip_suffix(".S") {
                     (
@@ -614,7 +614,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 };
                 if !is_s {
                     props.push(Box::new(BaseIntPip::new(wire_pin, wire_to)));
-                    props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                    props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                 } else {
                     let related = Delta::new(0, 4, tcname);
                     props.push(Box::new(Related::new(
@@ -623,7 +623,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     )));
                     props.push(Box::new(Related::new(
                         related,
-                        NodeMutexExclusive::new(wire_pin),
+                        WireMutexExclusive::new(wire_pin),
                     )));
                 }
                 if !out_name.starts_with("BRAM.QUAD.DOUT") {
@@ -656,17 +656,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 )));
                                 props.push(Box::new(Related::new(
                                     related,
-                                    NodeMutexExclusive::new(wire_buf),
+                                    WireMutexExclusive::new(wire_buf),
                                 )));
-                                props.push(Box::new(NodeMutexExclusive::new(wire_from)));
+                                props.push(Box::new(WireMutexExclusive::new(wire_from)));
                                 break 'quad_src_all_pin;
                             } else if in_wire_name.starts_with("HEX") {
                                 for &wire_pin in &tcls_index.pips_fwd[&wire_from] {
                                     let wire_pin = wire_pin.tw;
                                     if wire_pin != wire_to && !pins.contains(&wire_pin) {
                                         props.push(Box::new(BaseIntPip::new(wire_pin, wire_from)));
-                                        props.push(Box::new(NodeMutexExclusive::new(wire_from)));
-                                        props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                        props.push(Box::new(WireMutexExclusive::new(wire_from)));
+                                        props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                         pins.insert(wire_pin);
                                         break 'quad_src_all_pin;
                                     }
@@ -710,8 +710,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 {
                                     if !is_s {
                                         props.push(Box::new(BaseIntPip::new(wire_from, wire_pin)));
-                                        props.push(Box::new(NodeMutexExclusive::new(wire_from)));
-                                        props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                        props.push(Box::new(WireMutexExclusive::new(wire_from)));
+                                        props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                     } else {
                                         let related = Delta::new(0, 4, tcname);
                                         props.push(Box::new(Related::new(
@@ -720,11 +720,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         )));
                                         props.push(Box::new(Related::new(
                                             related.clone(),
-                                            NodeMutexExclusive::new(wire_pin),
+                                            WireMutexExclusive::new(wire_pin),
                                         )));
                                         props.push(Box::new(Related::new(
                                             related,
-                                            NodeMutexExclusive::new(wire_from_root),
+                                            WireMutexExclusive::new(wire_from_root),
                                         )));
                                     }
                                     break 'quad_src_pin;
@@ -741,7 +741,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     builder.commit();
                 }
             } else if out_name.starts_with("SINGLE") {
-                let mut props: Vec<Box<DynProp>> = vec![Box::new(NodeMutexExclusive::new(wire_to))];
+                let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
 
                 let wire_buf = format!("{out_name}.BUF");
                 let wire_buf = TileWireCoord {
@@ -750,7 +750,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 };
                 if !tcname.contains("BRAM") {
                     props.push(Box::new(BaseIntPip::new(wire_buf, wire_to)));
-                    props.push(Box::new(NodeMutexExclusive::new(wire_buf)));
+                    props.push(Box::new(WireMutexExclusive::new(wire_buf)));
                 } else {
                     let related = Delta::new(
                         -1,
@@ -769,7 +769,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     )));
                     props.push(Box::new(Related::new(
                         related,
-                        NodeMutexExclusive::new(wire_buf),
+                        WireMutexExclusive::new(wire_buf),
                     )));
                 }
                 for &wire_from in ins {
@@ -792,8 +792,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     || wire_pin_name.starts_with("BRAM.QUAD.DOUT")
                                 {
                                     props.push(Box::new(BaseIntPip::new(wire_from, wire_pin)));
-                                    props.push(Box::new(NodeMutexExclusive::new(wire_from)));
-                                    props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                    props.push(Box::new(WireMutexExclusive::new(wire_from)));
+                                    props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                     break 'single_pin;
                                 }
                             }
@@ -803,7 +803,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 let wire_pin_name = intdb.wires.key(wire_pin.wire);
                                 if wire_pin != wire_to && wire_pin_name.starts_with("SINGLE") {
                                     props.push(Box::new(BaseIntPip::new(wire_pin, wire_from)));
-                                    props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                    props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                     break 'single_pin;
                                 }
                             }
@@ -822,7 +822,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 || out_name.starts_with("LV")
                 || out_name.starts_with("HEX")
             {
-                let mut props: Vec<Box<DynProp>> = vec![Box::new(NodeMutexExclusive::new(wire_to))];
+                let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
 
                 if out_name.starts_with("LH") && matches!(&tcname[..], "IO.B" | "IO.T") {
                     let wire_buf = format!("{out_name}.FAKE");
@@ -831,7 +831,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         wire: intdb.get_wire(&wire_buf),
                     };
                     props.push(Box::new(BaseIntPip::new(wire_buf, wire_to)));
-                    props.push(Box::new(NodeMutexExclusive::new(wire_buf)));
+                    props.push(Box::new(WireMutexExclusive::new(wire_buf)));
                 } else if out_name.starts_with("LV")
                     && matches!(&tcname[..], "BRAM_BOT" | "BRAM_TOP")
                 {
@@ -859,7 +859,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 || wire_pin_name.starts_with("IMUX.BRAM")
                             {
                                 props.push(Box::new(BaseIntPip::new(wire_pin, wire_to)));
-                                props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                 break 'll_pin;
                             }
                         }
@@ -877,7 +877,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 wire: intdb.get_wire(wire_unbuf),
                             };
                             props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
-                            props.push(Box::new(NodeMutexExclusive::new(wire_unbuf)));
+                            props.push(Box::new(WireMutexExclusive::new(wire_unbuf)));
                             break 'll_src_pin;
                         } else if in_wire_name.starts_with("OMUX")
                             || in_wire_name.starts_with("BRAM.QUAD.DOUT")
@@ -886,8 +886,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 let wire_pin = wire_pin.tw;
                                 if intdb.wires.key(wire_pin.wire).starts_with("OUT") {
                                     props.push(Box::new(BaseIntPip::new(wire_from, wire_pin)));
-                                    props.push(Box::new(NodeMutexExclusive::new(wire_from)));
-                                    props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                    props.push(Box::new(WireMutexExclusive::new(wire_from)));
+                                    props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                     break 'll_src_pin;
                                 }
                             }
@@ -907,7 +907,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 wire: intdb.get_wire(wire_unbuf),
                             };
                             props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
-                            props.push(Box::new(NodeMutexExclusive::new(wire_unbuf)));
+                            props.push(Box::new(WireMutexExclusive::new(wire_unbuf)));
                             break 'll_src_pin;
                         } else if in_wire_name.starts_with("LH") && tcname.starts_with("CNR") {
                             // it's fine.
@@ -922,8 +922,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         && tcname.starts_with("CNR"))
                                 {
                                     props.push(Box::new(BaseIntPip::new(wire_from, wire_pin)));
-                                    props.push(Box::new(NodeMutexExclusive::new(wire_from)));
-                                    props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                    props.push(Box::new(WireMutexExclusive::new(wire_from)));
+                                    props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                     break 'll_src_pin;
                                 }
                             }
@@ -951,13 +951,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 )));
                                 props.push(Box::new(Related::new(
                                     related,
-                                    NodeMutexExclusive::new(wire_buf),
+                                    WireMutexExclusive::new(wire_buf),
                                 )));
-                                props.push(Box::new(NodeMutexExclusive::new(wire_from)));
+                                props.push(Box::new(WireMutexExclusive::new(wire_from)));
                             } else {
                                 props.push(Box::new(BaseIntPip::new(wire_buf, wire_from)));
-                                props.push(Box::new(NodeMutexExclusive::new(wire_buf)));
-                                props.push(Box::new(NodeMutexExclusive::new(wire_from)));
+                                props.push(Box::new(WireMutexExclusive::new(wire_buf)));
+                                props.push(Box::new(WireMutexExclusive::new(wire_from)));
                             }
                             break 'll_src_pin;
                         } else if in_wire_name.starts_with("OUT.IO") {
@@ -1014,7 +1014,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     builder.commit();
                 }
             } else if out_name.contains("IMUX") {
-                let mut props: Vec<Box<DynProp>> = vec![Box::new(NodeMutexExclusive::new(wire_to))];
+                let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
                 if let Some(pin) = out_name.strip_prefix("IMUX.STARTUP.") {
                     props.push(Box::new(BaseBelMode::new(bels::STARTUP, "STARTUP".into())));
                     props.push(Box::new(BaseBelPin::new(bels::STARTUP, pin.into())));
@@ -1043,7 +1043,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     }
                 }
                 if let Some(alt_out) = alt_out_wire {
-                    props.push(Box::new(NodeMutexExclusive::new(alt_out)));
+                    props.push(Box::new(WireMutexExclusive::new(alt_out)));
                 }
                 if out_name.starts_with("CLK.IMUX.BUFGCE.CLK") {
                     props.push(Box::new(if out_name.ends_with("1") {
@@ -1065,15 +1065,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     wire: intdb.get_wire(wire_unbuf),
                                 };
                                 props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
-                                props.push(Box::new(NodeMutexExclusive::new(wire_unbuf)));
+                                props.push(Box::new(WireMutexExclusive::new(wire_unbuf)));
                                 break 'imux_pin;
                             } else if out_name.starts_with("IMUX.BRAM.DI") {
                                 for &wire_pin in &tcls_index.pips_bwd[&wire_from] {
                                     let wire_pin = wire_pin.tw;
                                     if intdb.wires.key(wire_pin.wire).starts_with("HEX") {
                                         props.push(Box::new(BaseIntPip::new(wire_from, wire_pin)));
-                                        props.push(Box::new(NodeMutexExclusive::new(wire_from)));
-                                        props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                        props.push(Box::new(WireMutexExclusive::new(wire_from)));
+                                        props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                         break 'imux_pin;
                                     }
                                 }
@@ -1087,7 +1087,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                             continue;
                                         }
                                         props.push(Box::new(BaseIntPip::new(wire_pin, wire_from)));
-                                        props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                        props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                         break 'imux_pin;
                                     }
                                 }
@@ -1127,7 +1127,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             )));
                             props.push(Box::new(Related::new(
                                 related,
-                                NodeMutexExclusive::new(wire_buf),
+                                WireMutexExclusive::new(wire_buf),
                             )));
                             break 'imux_pin;
                         } else if out_name.starts_with("DLL.IMUX") {
@@ -1147,7 +1147,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         continue;
                                     }
                                     props.push(Box::new(BaseIntPip::new(wire_pin, wire_from)));
-                                    props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                    props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                     break 'imux_pin;
                                 }
                             }
@@ -1158,8 +1158,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     continue;
                                 }
                                 props.push(Box::new(BaseIntPip::new(wire_from, wire_pin)));
-                                props.push(Box::new(NodeMutexExclusive::new(wire_from)));
-                                props.push(Box::new(NodeMutexExclusive::new(wire_pin)));
+                                props.push(Box::new(WireMutexExclusive::new(wire_from)));
+                                props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                 break 'imux_pin;
                             }
                         }

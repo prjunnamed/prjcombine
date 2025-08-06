@@ -142,7 +142,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
         };
         let mut sad = true;
         for row in rows {
-            if let Some(nnloc) = backend
+            if let Some(ntcrd) = backend
                 .egrid
                 .find_tile_by_class(tcrd.with_row(row), |kind| kind == self.1)
             {
@@ -153,7 +153,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
                         attr: self.2.clone(),
                         val: self.3.into(),
                     },
-                    tiles: edev.tile_bits(nnloc),
+                    tiles: edev.tile_bits(ntcrd),
                 });
                 sad = false;
             }
@@ -356,9 +356,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         "HCLK_CENTER_ABOVE_CFG",
     ] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        let node_kind = backend.egrid.db.get_tile_class(tile);
-        let node_data = &backend.egrid.db.tile_classes[node_kind];
-        if node_data.bels.contains_id(bels::RCLK) {
+        let tcid = backend.egrid.db.get_tile_class(tile);
+        let tcls = &backend.egrid.db.tile_classes[tcid];
+        if tcls.bels.contains_id(bels::RCLK) {
             let mut bctx = ctx.bel(bels::RCLK);
             for opin in ["RCLK0", "RCLK1"] {
                 for ipin in [
@@ -743,9 +743,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "HCLK_CENTER",
         "HCLK_CENTER_ABOVE_CFG",
     ] {
-        let node_kind = ctx.edev.egrid().db.get_tile_class(tile);
-        let node_data = &ctx.edev.egrid().db.tile_classes[node_kind];
-        if node_data.bels.contains_id(bels::RCLK) {
+        let tcid = ctx.edev.egrid().db.get_tile_class(tile);
+        let tcls = &ctx.edev.egrid().db.tile_classes[tcid];
+        if tcls.bels.contains_id(bels::RCLK) {
             let bel = "RCLK";
             for mux in ["MUX.RCLK0", "MUX.RCLK1"] {
                 ctx.collect_enum_default_ocd(

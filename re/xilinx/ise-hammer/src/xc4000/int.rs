@@ -19,13 +19,13 @@ use crate::{
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         int::{
-            BaseIntPip, FuzzIntPip, NodeIntDistinct, NodeIntDstFilter, NodeIntSrcFilter,
+            BaseIntPip, FuzzIntPip, WireIntDistinct, WireIntDstFilter, WireIntSrcFilter,
             resolve_int_pip,
         },
         props::{
             DynProp,
             bel::{BaseBelAttr, BaseBelMode, BaseBelPin, BelMutex, FuzzBelAttr, FuzzBelMode},
-            mutex::{IntMutex, NodeMutexExclusive},
+            mutex::{IntMutex, WireMutexExclusive},
             pip::{BasePip, PinFar, PipWire},
             relation::{Delta, NoopRelation, Related},
         },
@@ -46,7 +46,7 @@ fn drive_xc4000_wire<'a>(
     let aname = backend.egrid.db.wires.key(wire_avoid.slot);
     let mut cell = wire_target.cell;
     let mut wt = wire_target.slot;
-    let fuzzer = fuzzer.fuzz(Key::NodeMutex(wire_target), None, "EXCLUSIVE");
+    let fuzzer = fuzzer.fuzz(Key::WireMutex(wire_target), None, "EXCLUSIVE");
     // println!("DRIVING {wire_target:?} {wname}");
     if cell.row != edev.chip.row_s()
         && cell.row != edev.chip.row_n()
@@ -59,8 +59,8 @@ fn drive_xc4000_wire<'a>(
         };
         let tcrd = cell.tile(tslots::MAIN);
         let ntile = &backend.ngrid.tiles[&tcrd];
-        let node_naming = &backend.ngrid.db.tile_class_namings[ntile.naming];
-        let BelNaming::Bel(bel_naming) = &node_naming.bels[bel] else {
+        let tile_naming = &backend.ngrid.db.tile_class_namings[ntile.naming];
+        let BelNaming::Bel(bel_naming) = &tile_naming.bels[bel] else {
             unreachable!()
         };
         let pin_naming = &bel_naming.pins["O"];
@@ -705,8 +705,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DoublePip {
             .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire_to))
             .unwrap();
         let fuzzer = fuzzer
-            .fuzz(Key::NodeMutex(res_to), None, "EXCLUSIVE-TGT")
-            .fuzz(Key::NodeMutex(res_mid), None, "EXCLUSIVE-MID");
+            .fuzz(Key::WireMutex(res_to), None, "EXCLUSIVE-TGT")
+            .fuzz(Key::WireMutex(res_mid), None, "EXCLUSIVE-MID");
         let (fuzzer, src_site, src_pin) = drive_xc4000_wire(
             backend,
             fuzzer,
@@ -764,7 +764,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000BiPip {
             .egrid
             .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire_to))
             .unwrap();
-        let fuzzer = fuzzer.fuzz(Key::NodeMutex(res_to), None, "EXCLUSIVE-TGT");
+        let fuzzer = fuzzer.fuzz(Key::WireMutex(res_to), None, "EXCLUSIVE-TGT");
         let (fuzzer, src_site, src_pin) = drive_xc4000_wire(
             backend,
             fuzzer,
@@ -808,15 +808,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = &backend.egrid[tcrd];
+        let tile = &backend.egrid[tcrd];
         let ntile = &backend.ngrid.tiles[&tcrd];
-        let node_data = &backend.egrid.db.tile_classes[node.class];
-        let bel_data = &node_data.bels[self.slot];
+        let tcls = &backend.egrid.db.tile_classes[tile.class];
+        let bel_data = &tcls.bels[self.slot];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
-        let node_naming = &backend.ngrid.db.tile_class_namings[ntile.naming];
-        let BelNaming::Bel(bel_naming) = &node_naming.bels[self.slot] else {
+        let tile_naming = &backend.ngrid.db.tile_class_namings[ntile.naming];
+        let BelNaming::Bel(bel_naming) = &tile_naming.bels[self.slot] else {
             unreachable!()
         };
 
@@ -846,7 +846,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
             .egrid
             .resolve_wire(backend.egrid.tile_wire(tcrd, wire_to))
             .unwrap();
-        let fuzzer = fuzzer.fuzz(Key::NodeMutex(res_to), None, "EXCLUSIVE-TGT");
+        let fuzzer = fuzzer.fuzz(Key::WireMutex(res_to), None, "EXCLUSIVE-TGT");
         let (fuzzer, src_site, src_pin) =
             drive_xc4000_wire(backend, fuzzer, res_from, Some((tcrd, wire_from)), res_to);
         let tile = &ntile.names[bel_naming.tile];
@@ -997,13 +997,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 } else {
                     let mut builder = ctx
                         .build()
-                        .prop(NodeIntDistinct::new(wire_to, wire_from))
-                        .prop(NodeIntDstFilter::new(wire_to))
-                        .prop(NodeIntSrcFilter::new(wire_from))
+                        .prop(WireIntDistinct::new(wire_to, wire_from))
+                        .prop(WireIntDstFilter::new(wire_to))
+                        .prop(WireIntSrcFilter::new(wire_from))
                         .prop(IntMutex::new("MAIN".to_string()))
                         .test_manual("INT", &mux_name, &in_name)
-                        .prop(NodeMutexExclusive::new(wire_to))
-                        .prop(NodeMutexExclusive::new(wire_from))
+                        .prop(WireMutexExclusive::new(wire_to))
+                        .prop(WireMutexExclusive::new(wire_from))
                         .prop(FuzzIntPip::new(wire_to, wire_from));
                     if tcname == "CNR.TR"
                         && (in_name.contains("OUT.LR.IOB1.I") || in_name.contains("OUT.OSC"))
@@ -1088,7 +1088,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     "".into(),
                     "CIN".into(),
                 ))
-                .prop(NodeMutexExclusive::new(TileWireCoord {
+                .prop(WireMutexExclusive::new(TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: backend.egrid.db.get_wire("IMUX.CLB.F4"),
                 }))
@@ -1100,7 +1100,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 "CLB" | "CLB.B" | "CLB.T" | "CLB.R" | "CLB.RB" | "CLB.RT"
             )
         {
-            let tgt_node = if tcname == "CLB.R" {
+            let tgt_tcname = if tcname == "CLB.R" {
                 "CLB"
             } else if tcname == "CLB.RB" {
                 "CLB.B"
@@ -1117,15 +1117,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             };
             ctx.build()
                 .prop(Related::new(
-                    Delta::new(-1, 0, tgt_node),
+                    Delta::new(-1, 0, tgt_tcname),
                     BaseBelMode::new(bels::CLB, "CLB".into()),
                 ))
                 .test_manual("INT", "MUX.IMUX.CLB.G3", "CIN")
                 .prop(Related::new(
-                    Delta::new(-1, 0, tgt_node),
+                    Delta::new(-1, 0, tgt_tcname),
                     FuzzBelAttr::new(bels::CLB, "G3MUX".into(), "".into(), "CIN".into()),
                 ))
-                .prop(NodeMutexExclusive::new(TileWireCoord {
+                .prop(WireMutexExclusive::new(TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: backend.egrid.db.get_wire("IMUX.CLB.G3"),
                 }))
@@ -1137,7 +1137,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 "CLB" | "CLB.B" | "CLB.L" | "CLB.LB" | "CLB.R" | "CLB.RB"
             )
         {
-            let tgt_node = if tcname == "CLB" || tcname == "CLB.B" {
+            let tgt_tcname = if tcname == "CLB" || tcname == "CLB.B" {
                 "CLB"
             } else if tcname == "CLB.R" || tcname == "CLB.RB" {
                 "CLB.R"
@@ -1152,15 +1152,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             };
             ctx.build()
                 .prop(Related::new(
-                    Delta::new(0, 1, tgt_node),
+                    Delta::new(0, 1, tgt_tcname),
                     BaseBelMode::new(bels::CLB, "CLB".into()),
                 ))
                 .test_manual("INT", "MUX.IMUX.CLB.G2", "COUT0")
                 .prop(Related::new(
-                    Delta::new(0, 1, tgt_node),
+                    Delta::new(0, 1, tgt_tcname),
                     FuzzBelAttr::new(bels::CLB, "G2MUX".into(), "".into(), "COUT0".into()),
                 ))
-                .prop(NodeMutexExclusive::new(TileWireCoord {
+                .prop(WireMutexExclusive::new(TileWireCoord {
                     cell: CellSlotId::from_idx(0),
                     wire: backend.egrid.db.get_wire("IMUX.CLB.G2"),
                 }))
@@ -1178,7 +1178,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         "".into(),
                         "WAND".into(),
                     ))
-                    .prop(NodeMutexExclusive::new(TileWireCoord {
+                    .prop(WireMutexExclusive::new(TileWireCoord {
                         cell: CellSlotId::from_idx(0),
                         wire: backend.egrid.db.get_wire(&format!("IMUX.TBUF{idx}.TS")),
                     }))
@@ -1200,8 +1200,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .prop(BaseIntPip::new(wt, wf))
                         .test_manual("DRIVE1", "1")
                         .attr_diff("TBUFATTR", "WORAND", "TBUF")
-                        .prop(NodeMutexExclusive::new(wt))
-                        .prop(NodeMutexExclusive::new(wf))
+                        .prop(WireMutexExclusive::new(wt))
+                        .prop(WireMutexExclusive::new(wf))
                         .commit();
                 } else {
                     bctx.mode("TBUF")
@@ -1335,15 +1335,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .prop(BaseIntPip::new(wt, wf))
                         .test_manual("ALT_PAD", "1")
                         .global(opt, "ALTPAD")
-                        .prop(NodeMutexExclusive::new(wt))
-                        .prop(NodeMutexExclusive::new(wf))
+                        .prop(WireMutexExclusive::new(wt))
+                        .prop(WireMutexExclusive::new(wf))
                         .commit();
                     bctx.build()
                         .prop(BaseIntPip::new(wt, wf))
                         .test_manual("CLK_EN", "1")
                         .global(opt, "CLKEN")
-                        .prop(NodeMutexExclusive::new(wt))
-                        .prop(NodeMutexExclusive::new(wf))
+                        .prop(WireMutexExclusive::new(wt))
+                        .prop(WireMutexExclusive::new(wf))
                         .commit();
                 }
             }

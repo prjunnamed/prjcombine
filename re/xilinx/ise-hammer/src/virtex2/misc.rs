@@ -56,7 +56,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ForceBits {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         fuzzer.info.features[0].tiles = self.0.clone();

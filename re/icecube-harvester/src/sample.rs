@@ -9,7 +9,7 @@ use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
     bels,
     bitstream::Bitstream,
-    chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
+    chip::{ChipKind, SpecialIoKey, SpecialTileKey},
     expanded::{BitOwner, ExpandedDevice},
     tslots,
 };
@@ -66,7 +66,7 @@ pub fn make_sample(
     pkg_info: &PkgInfo,
     rows_colbuf: &[(RowId, RowId, RowId)],
     extra_wire_names: &BTreeMap<(u32, u32, String), WireCoord>,
-    extra_node_locs: &BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
+    special_tiles: &BTreeMap<SpecialTileKey, Vec<RawLoc>>,
 ) -> (Sample<BitOwner>, HashSet<(TileClassId, WireId, WireId)>) {
     let mut sample = Sample::default();
     let mut pips = HashSet::new();
@@ -86,8 +86,8 @@ pub fn make_sample(
     }
     let mut io_hardip_outs = HashSet::new();
     if edev.chip.kind == ChipKind::Ice40R04 {
-        for key in [ExtraNodeLoc::LsOsc, ExtraNodeLoc::HsOsc] {
-            let crd = *edev.chip.extra_nodes[&key].cells.first().unwrap();
+        for key in [SpecialTileKey::LsOsc, SpecialTileKey::HsOsc] {
+            let crd = *edev.chip.special_tiles[&key].cells.first().unwrap();
             let tile = &edev.egrid[crd.tile(tslots::OSC)];
             let tcls = &edev.egrid.db.tile_classes[tile.class];
             for (bslot, bel) in &tcls.bels {
@@ -498,9 +498,9 @@ pub fn make_sample(
                     let tcls_ioi = edev.chip.kind.tile_class_ioi(io.edge()).unwrap();
                     let tcls_iob = edev.chip.kind.tile_class_iob(io.edge()).unwrap();
                     let mut global_idx = None;
-                    for (&loc, node) in &edev.chip.extra_nodes {
-                        if let ExtraNodeLoc::GbIo(idx) = loc
-                            && node.io[&ExtraNodeIo::GbIn] == io
+                    for (&key, special) in &edev.chip.special_tiles {
+                        if let SpecialTileKey::GbIo(idx) = key
+                            && special.io[&SpecialIoKey::GbIn] == io
                         {
                             global_idx = Some(idx);
                         }
@@ -557,14 +557,16 @@ pub fn make_sample(
                                     _ => None,
                                 }
                             {
-                                for xloc in [ExtraNodeLoc::Pll(side), ExtraNodeLoc::PllStub(side)] {
-                                    if let Some(xnode) = edev.chip.extra_nodes.get(&xloc) {
-                                        let xnode_kind = xloc.tile_class(edev.chip.kind);
+                                for key in
+                                    [SpecialTileKey::Pll(side), SpecialTileKey::PllStub(side)]
+                                {
+                                    if let Some(special) = edev.chip.special_tiles.get(&key) {
+                                        let tcid = key.tile_class(edev.chip.kind);
                                         let tiles = if edev.chip.kind.is_ice65() {
                                             vec![BitOwner::Pll(0), BitOwner::Pll(1)]
                                         } else {
                                             Vec::from_iter(
-                                                xnode
+                                                special
                                                     .cells
                                                     .values()
                                                     .map(|&crd| BitOwner::Main(crd.col, crd.row)),
@@ -572,7 +574,7 @@ pub fn make_sample(
                                         };
                                         sample.add_tiled_pattern(
                                             &tiles,
-                                            format!("{xnode_kind}:PLL:LATCH_GLOBAL_OUT_{ab}:BIT0"),
+                                            format!("{tcid}:PLL:LATCH_GLOBAL_OUT_{ab}:BIT0"),
                                         );
                                         handled = true;
                                     }
@@ -861,16 +863,16 @@ pub fn make_sample(
                 }
                 kind if kind.starts_with("SB_PLL") => {
                     let side = if loc.loc.y == 0 { DirV::S } else { DirV::N };
-                    let xnode = &edev.chip.extra_nodes[&ExtraNodeLoc::Pll(side)];
-                    let io_a = xnode.io[&ExtraNodeIo::PllA];
-                    let io_b = xnode.io[&ExtraNodeIo::PllB];
+                    let special = &edev.chip.special_tiles[&SpecialTileKey::Pll(side)];
+                    let io_a = special.io[&SpecialIoKey::PllA];
+                    let io_b = special.io[&SpecialIoKey::PllB];
                     let crd_a = edev.chip.get_io_loc(io_a).cell;
                     let crd_b = edev.chip.get_io_loc(io_b).cell;
                     let tiles = if edev.chip.kind.is_ice65() {
                         vec![BitOwner::Pll(0), BitOwner::Pll(1)]
                     } else {
                         Vec::from_iter(
-                            xnode
+                            special
                                 .cells
                                 .values()
                                 .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -878,7 +880,7 @@ pub fn make_sample(
                     };
                     let tiles_io_a = [BitOwner::Main(crd_a.col, crd_a.row)];
                     let tiles_io_b = [BitOwner::Main(crd_b.col, crd_b.row)];
-                    let tcls_pll = ExtraNodeLoc::Pll(side).tile_class(edev.chip.kind);
+                    let tcls_pll = SpecialTileKey::Pll(side).tile_class(edev.chip.kind);
                     sample.add_tiled_pattern(&tiles, format!("{tcls_pll}:PLL:MODE:{kind}"));
                     let tcls_ioi = edev.chip.kind.tile_class_ioi(Dir::V(side)).unwrap();
                     let tcls_iob = edev.chip.kind.tile_class_iob(Dir::V(side)).unwrap();
@@ -1014,17 +1016,17 @@ pub fn make_sample(
                 "SB_MAC16" => {
                     let col = pkg_info.xlat_col[loc.loc.x as usize];
                     let row = pkg_info.xlat_row[loc.loc.y as usize];
-                    let mut xnloc = ExtraNodeLoc::Mac16(col, row);
-                    if !edev.chip.extra_nodes.contains_key(&xnloc) {
-                        xnloc = ExtraNodeLoc::Mac16Trim(col, row);
+                    let mut key = SpecialTileKey::Mac16(col, row);
+                    if !edev.chip.special_tiles.contains_key(&key) {
+                        key = SpecialTileKey::Mac16Trim(col, row);
                     }
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&xnloc]
+                        edev.chip.special_tiles[&key]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
-                    let nk = xnloc.tile_class(edev.chip.kind);
+                    let nk = key.tile_class(edev.chip.kind);
                     let tcls_plb = edev.chip.kind.tile_class_plb();
                     for i in 0..4 {
                         for j in 0..8 {
@@ -1074,12 +1076,12 @@ pub fn make_sample(
                 }
                 "SB_HFOSC" => {
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
+                        edev.chip.special_tiles[&SpecialTileKey::Trim]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
-                    let tcls_trim = ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
+                    let tcls_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
                     if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
                         && val == "1"
                     {
@@ -1104,12 +1106,12 @@ pub fn make_sample(
                 }
                 "SB_LFOSC" => {
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
+                        edev.chip.special_tiles[&SpecialTileKey::Trim]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
-                    let tcls_trim = ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
+                    let tcls_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
                     if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
                         && val == "1"
                     {
@@ -1121,7 +1123,7 @@ pub fn make_sample(
                 }
                 "SB_LED_DRV_CUR" => {
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::LedDrvCur]
+                        edev.chip.special_tiles[&SpecialTileKey::LedDrvCur]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1131,12 +1133,12 @@ pub fn make_sample(
                         "LED_DRV_CUR_T04:LED_DRV_CUR:ENABLE:BIT0",
                     );
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
+                        edev.chip.special_tiles[&SpecialTileKey::Trim]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
-                    let tcls_trim = ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
+                    let tcls_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
                     if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
                         && val == "1"
                     {
@@ -1148,7 +1150,7 @@ pub fn make_sample(
                 }
                 "SB_RGB_DRV" => {
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::RgbDrv]
+                        edev.chip.special_tiles[&SpecialTileKey::RgbDrv]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1175,10 +1177,10 @@ pub fn make_sample(
                     }
                 }
                 "SB_RGBA_DRV" => {
-                    let tcls_rgba_drv = ExtraNodeLoc::RgbaDrv.tile_class(edev.chip.kind);
+                    let tcls_rgba_drv = SpecialTileKey::RgbaDrv.tile_class(edev.chip.kind);
                     has_led_v2 = true;
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::RgbaDrv]
+                        edev.chip.special_tiles[&SpecialTileKey::RgbaDrv]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1210,7 +1212,7 @@ pub fn make_sample(
                     );
                     if edev.chip.kind == ChipKind::Ice40T01 {
                         let tiles = Vec::from_iter(
-                            edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
+                            edev.chip.special_tiles[&SpecialTileKey::Ir500Drv]
                                 .cells
                                 .values()
                                 .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1220,7 +1222,7 @@ pub fn make_sample(
                 }
                 "SB_IR_DRV" => {
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::IrDrv]
+                        edev.chip.special_tiles[&SpecialTileKey::IrDrv]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1249,7 +1251,7 @@ pub fn make_sample(
                 "SB_IR500_DRV" => {
                     has_led_v2 = true;
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
+                        edev.chip.special_tiles[&SpecialTileKey::Ir500Drv]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1287,7 +1289,7 @@ pub fn make_sample(
                 "SB_IR400_DRV" => {
                     has_led_v2 = true;
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
+                        edev.chip.special_tiles[&SpecialTileKey::Ir500Drv]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1313,7 +1315,7 @@ pub fn make_sample(
                 "SB_BARCODE_DRV" => {
                     has_led_v2 = true;
                     let tiles = Vec::from_iter(
-                        edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
+                        edev.chip.special_tiles[&SpecialTileKey::Ir500Drv]
                             .cells
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1338,16 +1340,16 @@ pub fn make_sample(
                 }
                 "SB_SPRAM256KA" => {
                     for key in [
-                        ExtraNodeLoc::SpramPair(DirH::W),
-                        ExtraNodeLoc::SpramPair(DirH::E),
+                        SpecialTileKey::SpramPair(DirH::W),
+                        SpecialTileKey::SpramPair(DirH::E),
                     ] {
-                        let Some(sprams) = extra_node_locs.get(&key) else {
+                        let Some(sprams) = special_tiles.get(&key) else {
                             continue;
                         };
                         for (i, &sloc) in sprams.iter().enumerate() {
                             if loc.loc == sloc {
                                 let tiles = Vec::from_iter(
-                                    edev.chip.extra_nodes[&key]
+                                    edev.chip.special_tiles[&key]
                                         .cells
                                         .values()
                                         .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1361,11 +1363,11 @@ pub fn make_sample(
                     }
                 }
                 "SB_FILTER_50NS" => {
-                    let filters = &extra_node_locs.get(&ExtraNodeLoc::I3c).unwrap()[..2];
+                    let filters = &special_tiles.get(&SpecialTileKey::I3c).unwrap()[..2];
                     for (i, &sloc) in filters.iter().enumerate() {
                         if loc.loc == sloc {
                             let tiles = Vec::from_iter(
-                                edev.chip.extra_nodes[&ExtraNodeLoc::I3c]
+                                edev.chip.special_tiles[&SpecialTileKey::I3c]
                                     .cells
                                     .values()
                                     .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1375,39 +1377,39 @@ pub fn make_sample(
                     }
                 }
                 "SB_SPI" | "SB_I2C" | "SB_I2C_FIFO" => {
-                    for xnloc in [
-                        ExtraNodeLoc::Spi(DirH::W),
-                        ExtraNodeLoc::Spi(DirH::E),
-                        ExtraNodeLoc::I2c(DirH::W),
-                        ExtraNodeLoc::I2c(DirH::E),
-                        ExtraNodeLoc::I2cFifo(DirH::W),
-                        ExtraNodeLoc::I2cFifo(DirH::E),
+                    for key in [
+                        SpecialTileKey::Spi(DirH::W),
+                        SpecialTileKey::Spi(DirH::E),
+                        SpecialTileKey::I2c(DirH::W),
+                        SpecialTileKey::I2c(DirH::E),
+                        SpecialTileKey::I2cFifo(DirH::W),
+                        SpecialTileKey::I2cFifo(DirH::E),
                     ] {
-                        let Some(slocs) = extra_node_locs.get(&xnloc) else {
+                        let Some(slocs) = special_tiles.get(&key) else {
                             continue;
                         };
                         if loc.loc == slocs[0] {
-                            let xnode = &edev.chip.extra_nodes[&xnloc];
+                            let special = &edev.chip.special_tiles[&key];
                             let dedio = if inst.kind == "SB_SPI" {
                                 [
-                                    (ExtraNodeIo::SpiSck, "SCKO", "SCKOE", Some("SCKI")),
-                                    (ExtraNodeIo::SpiCopi, "MO", "MOE", Some("SI")),
-                                    (ExtraNodeIo::SpiCipo, "SO", "SOE", Some("MI")),
-                                    (ExtraNodeIo::SpiCsB0, "MCSNO0", "MCSNOE0", Some("SCSNI")),
-                                    (ExtraNodeIo::SpiCsB1, "MCSNO1", "MCSNOE1", None),
+                                    (SpecialIoKey::SpiSck, "SCKO", "SCKOE", Some("SCKI")),
+                                    (SpecialIoKey::SpiCopi, "MO", "MOE", Some("SI")),
+                                    (SpecialIoKey::SpiCipo, "SO", "SOE", Some("MI")),
+                                    (SpecialIoKey::SpiCsB0, "MCSNO0", "MCSNOE0", Some("SCSNI")),
+                                    (SpecialIoKey::SpiCsB1, "MCSNO1", "MCSNOE1", None),
                                 ]
                                 .as_slice()
                             } else {
                                 [
-                                    (ExtraNodeIo::I2cScl, "SCLO", "SCLOE", Some("SCLI")),
-                                    (ExtraNodeIo::I2cSda, "SDAO", "SDAOE", Some("SDAI")),
+                                    (SpecialIoKey::I2cScl, "SCLO", "SCLOE", Some("SCLI")),
+                                    (SpecialIoKey::I2cSda, "SDAO", "SDAOE", Some("SDAI")),
                                 ]
                                 .as_slice()
                             };
                             let mut all_ded_ins = true;
                             let mut all_ded_outs = true;
                             for &(xnio, o, _oe, i) in dedio {
-                                let crd = xnode.io[&xnio];
+                                let crd = special.io[&xnio];
                                 let tcls_iob = edev.chip.kind.tile_class_iob(crd.edge()).unwrap();
                                 let iobel = edev.chip.get_io_loc(crd);
                                 let iob = crd.iob();
@@ -1457,20 +1459,20 @@ pub fn make_sample(
                                 }
                             }
                             if edev.chip.kind == ChipKind::Ice40R04 {
-                                let nk = xnloc.tile_class(edev.chip.kind);
-                                let node_info = edev.egrid.db.tile_classes.get(&nk).unwrap().1;
-                                let bslot = match xnloc {
-                                    ExtraNodeLoc::Spi(_) => bels::SPI,
-                                    ExtraNodeLoc::I2c(_) => bels::I2C,
-                                    ExtraNodeLoc::I2cFifo(_) => bels::I2C_FIFO,
+                                let tcname = key.tile_class(edev.chip.kind);
+                                let tcls = edev.egrid.db.tile_classes.get(&tcname).unwrap().1;
+                                let bslot = match key {
+                                    SpecialTileKey::Spi(_) => bels::SPI,
+                                    SpecialTileKey::I2c(_) => bels::I2C,
+                                    SpecialTileKey::I2cFifo(_) => bels::I2C_FIFO,
                                     _ => unreachable!(),
                                 };
-                                let BelInfo::Bel(bel) = &node_info.bels[bslot] else {
+                                let BelInfo::Bel(bel) = &tcls.bels[bslot] else {
                                     unreachable!()
                                 };
                                 for (pin, pin_info) in &bel.pins {
                                     let pin_wire = *pin_info.wires.iter().next().unwrap();
-                                    let pin_crd = xnode.cells[pin_wire.cell];
+                                    let pin_crd = special.cells[pin_wire.cell];
                                     let pin_btile = BitOwner::Main(pin_crd.col, pin_crd.row);
                                     if all_ded_outs
                                         && matches!(
@@ -1538,7 +1540,7 @@ pub fn make_sample(
                                 if let Some(val) = inst.props.get(prop)
                                     && val == "1"
                                 {
-                                    let crd = xnode.io[&ExtraNodeIo::I2cSda];
+                                    let crd = special.io[&SpecialIoKey::I2cSda];
                                     let iobel = edev.chip.get_io_loc(crd);
                                     let iob = crd.iob();
                                     let tcls_iob =
@@ -1559,19 +1561,19 @@ pub fn make_sample(
     if has_led_v2 {
         if led_v2_current_mode {
             let tiles = Vec::from_iter(
-                edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv]
+                edev.chip.special_tiles[&SpecialTileKey::Ir500Drv]
                     .cells
                     .values()
                     .map(|&cell| BitOwner::Main(cell.col, cell.row)),
             );
             sample.add_tiled_pattern(&tiles, "IR500_DRV:IR500_DRV:CURRENT_MODE:BIT0");
         }
-        let tcls_trim = ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
+        let tcls_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
         if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
             && val == "1"
         {
             let tiles = Vec::from_iter(
-                edev.chip.extra_nodes[&ExtraNodeLoc::Trim]
+                edev.chip.special_tiles[&SpecialTileKey::Trim]
                     .cells
                     .values()
                     .map(|&cell| BitOwner::Main(cell.col, cell.row)),
@@ -1742,12 +1744,12 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         if edge == Dir::S
             && (edev
                 .chip
-                .extra_nodes
-                .contains_key(&ExtraNodeLoc::Pll(DirV::S))
+                .special_tiles
+                .contains_key(&SpecialTileKey::Pll(DirV::S))
                 || edev
                     .chip
-                    .extra_nodes
-                    .contains_key(&ExtraNodeLoc::PllStub(DirV::S)))
+                    .special_tiles
+                    .contains_key(&SpecialTileKey::PllStub(DirV::S)))
             && edev.chip.kind.has_iob_we()
         {
             has_latch_global_out = false;
@@ -1755,12 +1757,12 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         if edge == Dir::N
             && (edev
                 .chip
-                .extra_nodes
-                .contains_key(&ExtraNodeLoc::Pll(DirV::N))
+                .special_tiles
+                .contains_key(&SpecialTileKey::Pll(DirV::N))
                 || edev
                     .chip
-                    .extra_nodes
-                    .contains_key(&ExtraNodeLoc::PllStub(DirV::N)))
+                    .special_tiles
+                    .contains_key(&SpecialTileKey::PllStub(DirV::N)))
         {
             has_latch_global_out = false;
         }
@@ -1776,9 +1778,9 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         }
     }
     for side in [DirV::S, DirV::N] {
-        let xnloc = ExtraNodeLoc::Pll(side);
-        if edev.chip.extra_nodes.contains_key(&xnloc) {
-            let tile = xnloc.tile_class(edev.chip.kind);
+        let key = SpecialTileKey::Pll(side);
+        if edev.chip.special_tiles.contains_key(&key) {
+            let tile = key.tile_class(edev.chip.kind);
             if edev.chip.kind.is_ice65() {
                 for (attr, vals) in [
                     (
@@ -1873,9 +1875,9 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                 }
             }
         }
-        let xnloc = ExtraNodeLoc::PllStub(side);
-        let tile = xnloc.tile_class(edev.chip.kind);
-        if edev.chip.extra_nodes.contains_key(&xnloc) {
+        let key = SpecialTileKey::PllStub(side);
+        let tile = key.tile_class(edev.chip.kind);
+        if edev.chip.special_tiles.contains_key(&key) {
             for attr in ["LATCH_GLOBAL_OUT_A", "LATCH_GLOBAL_OUT_B"] {
                 result.push(format!("{tile}:PLL:{attr}:BIT0"));
             }
@@ -1883,7 +1885,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     }
     if edev.chip.kind.is_ultra() {
         // OSC & TRIM
-        let tcls_trim = ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
+        let tcls_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
         result.push(format!("{tcls_trim}:HFOSC:CLKHF_DIV:BIT0"));
         result.push(format!("{tcls_trim}:HFOSC:CLKHF_DIV:BIT1"));
         result.push(format!("{tcls_trim}:HFOSC:TRIM_FABRIC:BIT0"));
@@ -1902,7 +1904,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                 result.push(format!("IR_DRV:IR_DRV:IR_CURRENT:BIT{j}"));
             }
         } else {
-            let tcls_rgba_drv = ExtraNodeLoc::RgbaDrv.tile_class(edev.chip.kind);
+            let tcls_rgba_drv = SpecialTileKey::RgbaDrv.tile_class(edev.chip.kind);
             result.push(format!("{tcls_rgba_drv}:RGBA_DRV:ENABLE:BIT0"));
             result.push(format!("{tcls_rgba_drv}:RGBA_DRV:CURRENT_MODE:BIT0"));
             for i in 0..3 {

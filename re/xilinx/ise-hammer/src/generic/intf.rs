@@ -16,7 +16,7 @@ use super::{
     fbuild::{FuzzBuilderBase, FuzzCtx},
     props::{
         DynProp,
-        mutex::{IntMutex, NodeMutexExclusive, TileMutexExclusive},
+        mutex::{IntMutex, WireMutexExclusive, TileMutexExclusive},
     },
 };
 
@@ -26,10 +26,10 @@ fn resolve_intf_test_pip<'a>(
     wire_to: TileWireCoord,
     wire_from: TileWireCoord,
 ) -> Option<(&'a str, &'a str, &'a str)> {
-    let nnode = &backend.ngrid.tiles[&tcrd];
+    let ntile = &backend.ngrid.tiles[&tcrd];
     let intdb = backend.egrid.db;
     let ndb = backend.ngrid.db;
-    let node_naming = &ndb.tile_class_namings[nnode.naming];
+    let tile_naming = &ndb.tile_class_namings[ntile.naming];
     backend
         .egrid
         .resolve_wire(backend.egrid.tile_wire(tcrd, wire_to))?;
@@ -38,19 +38,19 @@ fn resolve_intf_test_pip<'a>(
         .resolve_wire(backend.egrid.tile_wire(tcrd, wire_from))?;
     if let ExpandedDevice::Virtex4(edev) = backend.edev
         && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5
-        && ndb.tile_class_namings.key(nnode.naming) == "INTF.PPC_R"
+        && ndb.tile_class_namings.key(ntile.naming) == "INTF.PPC_R"
         && intdb.wires.key(wire_from.wire).starts_with("TEST")
     {
         // ISE.
         return None;
     }
     Some((
-        &nnode.names[RawTileId::from_idx(0)],
-        match node_naming.intf_wires_out.get(&wire_to)? {
+        &ntile.names[RawTileId::from_idx(0)],
+        match tile_naming.intf_wires_out.get(&wire_to)? {
             IntfWireOutNaming::Simple { name } => name,
             IntfWireOutNaming::Buf { name_out, .. } => name_out,
         },
-        match node_naming.intf_wires_in.get(&wire_from)? {
+        match tile_naming.intf_wires_in.get(&wire_from)? {
             IntfWireInNaming::Simple { name } => name,
             IntfWireInNaming::Buf { name_in, .. } => name_in,
             IntfWireInNaming::TestBuf { name_out, .. } => name_out,
@@ -102,24 +102,24 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfTestPip {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.egrid.db;
-    for (node_kind, tile, node) in &intdb.tile_classes {
-        if node.intfs.is_empty() {
+    for (tcid, tcname, tcls) in &intdb.tile_classes {
+        if tcls.intfs.is_empty() {
             continue;
         }
-        if backend.egrid.tile_index[node_kind].is_empty() {
+        if backend.egrid.tile_index[tcid].is_empty() {
             continue;
         }
-        let mut ctx = FuzzCtx::new(session, backend, tile);
-        for (&wire, intf) in &node.intfs {
+        let mut ctx = FuzzCtx::new(session, backend, tcname);
+        for (&wire, intf) in &tcls.intfs {
             match intf {
                 prjcombine_interconnect::db::IntfInfo::OutputTestMux(inps) => {
-                    let mux_name = if node.cells.len() == 1 {
+                    let mux_name = if tcls.cells.len() == 1 {
                         format!("MUX.{}", intdb.wires.key(wire.wire))
                     } else {
                         format!("MUX.{:#}.{}", wire.cell, intdb.wires.key(wire.wire))
                     };
                     for &wire_from in inps {
-                        let in_name = if node.cells.len() == 1 {
+                        let in_name = if tcls.cells.len() == 1 {
                             intdb.wires.key(wire_from.wire).to_string()
                         } else {
                             format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
@@ -128,8 +128,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .prop(IntMutex::new("INTF".into()))
                             .test_manual("INTF", &mux_name, in_name)
                             .prop(TileMutexExclusive::new("INTF".into()))
-                            .prop(NodeMutexExclusive::new(wire))
-                            .prop(NodeMutexExclusive::new(wire_from))
+                            .prop(WireMutexExclusive::new(wire))
+                            .prop(WireMutexExclusive::new(wire_from))
                             .prop(FuzzIntfTestPip::new(wire, wire_from))
                             .commit();
                     }
@@ -143,31 +143,31 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let egrid = ctx.edev.egrid();
     let intdb = egrid.db;
-    for (node_kind, name, node) in &intdb.tile_classes {
-        if node.intfs.is_empty() {
+    for (tcid, tcname, tcls) in &intdb.tile_classes {
+        if tcls.intfs.is_empty() {
             continue;
         }
-        if egrid.tile_index[node_kind].is_empty() {
+        if egrid.tile_index[tcid].is_empty() {
             continue;
         }
         let mut test_muxes = vec![];
         let mut test_bits: Option<HashMap<_, _>> = None;
-        for (&wire, intf) in &node.intfs {
+        for (&wire, intf) in &tcls.intfs {
             match intf {
                 prjcombine_interconnect::db::IntfInfo::OutputTestMux(inps) => {
-                    let mux_name = if node.cells.len() == 1 {
+                    let mux_name = if tcls.cells.len() == 1 {
                         format!("MUX.{}", intdb.wires.key(wire.wire))
                     } else {
                         format!("MUX.{:#}.{}", wire.cell, intdb.wires.key(wire.wire))
                     };
                     let mut mux_inps = vec![];
                     for &wire_from in inps {
-                        let in_name = if node.cells.len() == 1 {
+                        let in_name = if tcls.cells.len() == 1 {
                             intdb.wires.key(wire_from.wire).to_string()
                         } else {
                             format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                         };
-                        let diff = ctx.state.get_diff(name, "INTF", &mux_name, &in_name);
+                        let diff = ctx.state.get_diff(tcname, "INTF", &mux_name, &in_name);
 
                         match test_bits {
                             Some(ref mut bits) => bits.retain(|bit, _| diff.bits.contains_key(bit)),
@@ -208,14 +208,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             res
                         });
                     ctx.tiledb.insert_misc_data(
-                        format!("{name}:INTF_GROUP:{mux_name}:{in_name}"),
+                        format!("{tcname}:INTF_GROUP:{mux_name}:{in_name}"),
                         format!("{idx}"),
                     );
                     assert!(mux_groups.insert(idx));
                 }
             }
             ctx.tiledb.insert(
-                name,
+                tcname,
                 "INTF",
                 "TEST_ENABLE",
                 xlat_enum_default(
@@ -237,7 +237,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
         ctx.tiledb
-            .insert(name, "INTF", "TEST_ENABLE", xlat_bit(test_diff));
+            .insert(tcname, "INTF", "TEST_ENABLE", xlat_bit(test_diff));
         if let ExpandedDevice::Virtex4(edev) = ctx.edev {
             match edev.kind {
                 prjcombine_virtex4::chip::ChipKind::Virtex4 => {
@@ -302,7 +302,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 } else {
                     xlat_enum_default(diffs, "NONE")
                 };
-                ctx.tiledb.insert(name, "INTF", mux_name, item);
+                ctx.tiledb.insert(tcname, "INTF", mux_name, item);
             }
         }
     }

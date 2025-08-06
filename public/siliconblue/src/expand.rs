@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::{
-    chip::{Chip, ExtraNodeLoc},
+    chip::{Chip, SpecialTileKey},
     expanded::ExpandedDevice,
     regions,
 };
@@ -60,15 +60,15 @@ impl Chip {
             self.kind.tile_class_gb_root(),
         );
 
-        for (&loc, node) in &self.extra_nodes {
-            if matches!(loc, ExtraNodeLoc::GbIo(..)) {
+        for (&key, special) in &self.special_tiles {
+            if matches!(key, SpecialTileKey::GbIo(..)) {
                 continue;
             }
-            let fcell = *node.cells.first().unwrap();
+            let fcell = *special.cells.first().unwrap();
             egrid.add_tile(
                 fcell,
-                &loc.tile_class(self.kind),
-                &Vec::from_iter(node.cells.values().copied()),
+                &key.tile_class(self.kind),
+                &Vec::from_iter(special.cells.values().copied()),
             );
         }
 

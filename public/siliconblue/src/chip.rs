@@ -300,13 +300,13 @@ impl std::fmt::Display for SharedCfgPad {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
-pub struct ExtraNode {
-    pub io: BTreeMap<ExtraNodeIo, EdgeIoCoord>,
+pub struct SpecialTile {
+    pub io: BTreeMap<SpecialIoKey, EdgeIoCoord>,
     pub cells: EntityVec<CellSlotId, CellCoord>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
-pub enum ExtraNodeLoc {
+pub enum SpecialTileKey {
     GbFabric(usize),
     GbIo(usize),
     LatchIo(Dir),
@@ -336,13 +336,13 @@ pub enum ExtraNodeLoc {
     SmcClk,
 }
 
-impl ExtraNodeLoc {
+impl SpecialTileKey {
     pub fn tile_class(self, kind: ChipKind) -> String {
         match self {
-            ExtraNodeLoc::GbFabric(_) => "GB_FABRIC".to_string(),
-            ExtraNodeLoc::LatchIo(_) => "IO_LATCH".to_string(),
-            ExtraNodeLoc::I3c => "I3C".to_string(),
-            ExtraNodeLoc::Pll(dir) => match (dir, kind) {
+            SpecialTileKey::GbFabric(_) => "GB_FABRIC".to_string(),
+            SpecialTileKey::LatchIo(_) => "IO_LATCH".to_string(),
+            SpecialTileKey::I3c => "I3C".to_string(),
+            SpecialTileKey::Pll(dir) => match (dir, kind) {
                 (DirV::S, ChipKind::Ice65P04) => "PLL_S_P04",
                 (DirV::S, ChipKind::Ice40P01) => "PLL_S_P01",
                 (DirV::S, ChipKind::Ice40P08) => "PLL_S_P08",
@@ -355,67 +355,67 @@ impl ExtraNodeLoc {
                 _ => unreachable!(),
             }
             .into(),
-            ExtraNodeLoc::Spi(..) => match kind {
+            SpecialTileKey::Spi(..) => match kind {
                 ChipKind::Ice40R04 => "SPI_R04",
                 ChipKind::Ice40T04 => "SPI_T04",
                 ChipKind::Ice40T05 => "SPI_T05",
                 _ => unreachable!(),
             }
             .into(),
-            ExtraNodeLoc::I2c(..) => match kind {
+            SpecialTileKey::I2c(..) => match kind {
                 ChipKind::Ice40R04 => "I2C_R04",
                 ChipKind::Ice40T04 | ChipKind::Ice40T05 => "I2C_T04",
                 _ => unreachable!(),
             }
             .into(),
-            ExtraNodeLoc::I2cFifo(..) => "I2C_FIFO".into(),
-            ExtraNodeLoc::Mac16(..) => "MAC16".to_string(),
-            ExtraNodeLoc::Mac16Trim(..) => "MAC16_TRIM".to_string(),
-            ExtraNodeLoc::SpramPair(_) => "SPRAM".to_string(),
-            ExtraNodeLoc::Warmboot => match kind {
+            SpecialTileKey::I2cFifo(..) => "I2C_FIFO".into(),
+            SpecialTileKey::Mac16(..) => "MAC16".to_string(),
+            SpecialTileKey::Mac16Trim(..) => "MAC16_TRIM".to_string(),
+            SpecialTileKey::SpramPair(_) => "SPRAM".to_string(),
+            SpecialTileKey::Warmboot => match kind {
                 ChipKind::Ice40T01 => "WARMBOOT_T01",
                 _ => "WARMBOOT",
             }
             .into(),
-            ExtraNodeLoc::SmcClk => match kind {
+            SpecialTileKey::SmcClk => match kind {
                 ChipKind::Ice40T04 => "SMCCLK_T04",
                 ChipKind::Ice40T05 => "SMCCLK_T05",
                 ChipKind::Ice40T01 => "SMCCLK_T01",
                 _ => unreachable!(),
             }
             .into(),
-            ExtraNodeLoc::LeddaIp => match kind {
+            SpecialTileKey::LeddaIp => match kind {
                 ChipKind::Ice40T05 => "LEDDA_IP_T05",
                 ChipKind::Ice40T01 => "LEDDA_IP_T01",
                 _ => unreachable!(),
             }
             .into(),
-            ExtraNodeLoc::LfOsc => match kind {
+            SpecialTileKey::LfOsc => match kind {
                 ChipKind::Ice40T04 | ChipKind::Ice40T05 => "LFOSC_T04",
                 ChipKind::Ice40T01 => "LFOSC_T01",
                 _ => unreachable!(),
             }
             .into(),
-            ExtraNodeLoc::HfOsc => match kind {
+            SpecialTileKey::HfOsc => match kind {
                 ChipKind::Ice40T04 | ChipKind::Ice40T05 => "HFOSC_T04",
                 ChipKind::Ice40T01 => "HFOSC_T01",
                 _ => unreachable!(),
             }
             .into(),
-            ExtraNodeLoc::Trim => match kind {
+            SpecialTileKey::Trim => match kind {
                 ChipKind::Ice40T04 | ChipKind::Ice40T05 => "TRIM_T04",
                 ChipKind::Ice40T01 => "TRIM_T01",
                 _ => unreachable!(),
             }
             .into(),
-            ExtraNodeLoc::LedDrvCur => match kind {
+            SpecialTileKey::LedDrvCur => match kind {
                 ChipKind::Ice40T04 => "LED_DRV_CUR_T04",
                 ChipKind::Ice40T05 => "LED_DRV_CUR_T05",
                 ChipKind::Ice40T01 => "LED_DRV_CUR_T01",
                 _ => unreachable!(),
             }
             .into(),
-            ExtraNodeLoc::RgbaDrv => match kind {
+            SpecialTileKey::RgbaDrv => match kind {
                 ChipKind::Ice40T05 => "RGBA_DRV_T05",
                 ChipKind::Ice40T01 => "RGBA_DRV_T01",
                 _ => unreachable!(),
@@ -426,42 +426,42 @@ impl ExtraNodeLoc {
     }
 }
 
-impl std::fmt::Display for ExtraNodeLoc {
+impl std::fmt::Display for SpecialTileKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ExtraNodeLoc::GbFabric(idx) => write!(f, "GB{idx}_FABRIC"),
-            ExtraNodeLoc::GbIo(idx) => write!(f, "GB{idx}_IO"),
-            ExtraNodeLoc::LatchIo(edge) => write!(f, "LATCH_IO_{edge}"),
-            ExtraNodeLoc::Warmboot => write!(f, "WARMBOOT"),
-            ExtraNodeLoc::Pll(edge) => write!(f, "PLL_{edge}"),
-            ExtraNodeLoc::PllStub(edge) => write!(f, "PLL_STUB_{edge}"),
-            ExtraNodeLoc::Spi(edge) => write!(f, "SPI_{edge}"),
-            ExtraNodeLoc::I2c(edge) => write!(f, "I2C_{edge}"),
-            ExtraNodeLoc::I2cFifo(edge) => write!(f, "I2C_FIFO_{edge}"),
-            ExtraNodeLoc::LsOsc => write!(f, "LSOSC"),
-            ExtraNodeLoc::HsOsc => write!(f, "HSOSC"),
-            ExtraNodeLoc::LfOsc => write!(f, "LFOSC"),
-            ExtraNodeLoc::HfOsc => write!(f, "HFOSC"),
-            ExtraNodeLoc::Trim => write!(f, "TRIM"),
-            ExtraNodeLoc::I3c => write!(f, "I3C"),
-            ExtraNodeLoc::IrDrv => write!(f, "IR_DRV"),
-            ExtraNodeLoc::RgbDrv => write!(f, "RGB_DRV"),
-            ExtraNodeLoc::Ir500Drv => write!(f, "IR500_DRV"),
-            ExtraNodeLoc::RgbaDrv => write!(f, "RGBA_DRV"),
-            ExtraNodeLoc::LedDrvCur => write!(f, "LED_DRV_CUR"),
-            ExtraNodeLoc::LeddIp => write!(f, "LEDD_IP"),
-            ExtraNodeLoc::LeddaIp => write!(f, "LEDDA_IP"),
-            ExtraNodeLoc::IrIp => write!(f, "IR_IP"),
-            ExtraNodeLoc::Mac16(col, row) => write!(f, "MAC16_{col}{row}"),
-            ExtraNodeLoc::Mac16Trim(col, row) => write!(f, "MAC16_TRIM_{col}{row}"),
-            ExtraNodeLoc::SpramPair(edge) => write!(f, "SPRAM_{edge}"),
-            ExtraNodeLoc::SmcClk => write!(f, "SMCCLK"),
+            SpecialTileKey::GbFabric(idx) => write!(f, "GB{idx}_FABRIC"),
+            SpecialTileKey::GbIo(idx) => write!(f, "GB{idx}_IO"),
+            SpecialTileKey::LatchIo(edge) => write!(f, "LATCH_IO_{edge}"),
+            SpecialTileKey::Warmboot => write!(f, "WARMBOOT"),
+            SpecialTileKey::Pll(edge) => write!(f, "PLL_{edge}"),
+            SpecialTileKey::PllStub(edge) => write!(f, "PLL_STUB_{edge}"),
+            SpecialTileKey::Spi(edge) => write!(f, "SPI_{edge}"),
+            SpecialTileKey::I2c(edge) => write!(f, "I2C_{edge}"),
+            SpecialTileKey::I2cFifo(edge) => write!(f, "I2C_FIFO_{edge}"),
+            SpecialTileKey::LsOsc => write!(f, "LSOSC"),
+            SpecialTileKey::HsOsc => write!(f, "HSOSC"),
+            SpecialTileKey::LfOsc => write!(f, "LFOSC"),
+            SpecialTileKey::HfOsc => write!(f, "HFOSC"),
+            SpecialTileKey::Trim => write!(f, "TRIM"),
+            SpecialTileKey::I3c => write!(f, "I3C"),
+            SpecialTileKey::IrDrv => write!(f, "IR_DRV"),
+            SpecialTileKey::RgbDrv => write!(f, "RGB_DRV"),
+            SpecialTileKey::Ir500Drv => write!(f, "IR500_DRV"),
+            SpecialTileKey::RgbaDrv => write!(f, "RGBA_DRV"),
+            SpecialTileKey::LedDrvCur => write!(f, "LED_DRV_CUR"),
+            SpecialTileKey::LeddIp => write!(f, "LEDD_IP"),
+            SpecialTileKey::LeddaIp => write!(f, "LEDDA_IP"),
+            SpecialTileKey::IrIp => write!(f, "IR_IP"),
+            SpecialTileKey::Mac16(col, row) => write!(f, "MAC16_{col}{row}"),
+            SpecialTileKey::Mac16Trim(col, row) => write!(f, "MAC16_TRIM_{col}{row}"),
+            SpecialTileKey::SpramPair(edge) => write!(f, "SPRAM_{edge}"),
+            SpecialTileKey::SmcClk => write!(f, "SMCCLK"),
         }
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum ExtraNodeIo {
+pub enum SpecialIoKey {
     GbIn,
     PllA,
     PllB,
@@ -481,26 +481,26 @@ pub enum ExtraNodeIo {
     I3c1,
 }
 
-impl std::fmt::Display for ExtraNodeIo {
+impl std::fmt::Display for SpecialIoKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ExtraNodeIo::GbIn => write!(f, "GB_IN"),
-            ExtraNodeIo::PllA => write!(f, "PLL_A"),
-            ExtraNodeIo::PllB => write!(f, "PLL_B"),
-            ExtraNodeIo::SpiCopi => write!(f, "SPI_COPI"),
-            ExtraNodeIo::SpiCipo => write!(f, "SPI_CIPO"),
-            ExtraNodeIo::SpiSck => write!(f, "SPI_SCK"),
-            ExtraNodeIo::SpiCsB0 => write!(f, "SPI_CS_B0"),
-            ExtraNodeIo::SpiCsB1 => write!(f, "SPI_CS_B1"),
-            ExtraNodeIo::I2cScl => write!(f, "I2C_SCL"),
-            ExtraNodeIo::I2cSda => write!(f, "I2C_SDA"),
-            ExtraNodeIo::RgbLed0 => write!(f, "RGB_LED0"),
-            ExtraNodeIo::RgbLed1 => write!(f, "RGB_LED1"),
-            ExtraNodeIo::RgbLed2 => write!(f, "RGB_LED2"),
-            ExtraNodeIo::IrLed => write!(f, "IR_LED"),
-            ExtraNodeIo::BarcodeLed => write!(f, "BARCODE_LED"),
-            ExtraNodeIo::I3c0 => write!(f, "I3C0"),
-            ExtraNodeIo::I3c1 => write!(f, "I3C1"),
+            SpecialIoKey::GbIn => write!(f, "GB_IN"),
+            SpecialIoKey::PllA => write!(f, "PLL_A"),
+            SpecialIoKey::PllB => write!(f, "PLL_B"),
+            SpecialIoKey::SpiCopi => write!(f, "SPI_COPI"),
+            SpecialIoKey::SpiCipo => write!(f, "SPI_CIPO"),
+            SpecialIoKey::SpiSck => write!(f, "SPI_SCK"),
+            SpecialIoKey::SpiCsB0 => write!(f, "SPI_CS_B0"),
+            SpecialIoKey::SpiCsB1 => write!(f, "SPI_CS_B1"),
+            SpecialIoKey::I2cScl => write!(f, "I2C_SCL"),
+            SpecialIoKey::I2cSda => write!(f, "I2C_SDA"),
+            SpecialIoKey::RgbLed0 => write!(f, "RGB_LED0"),
+            SpecialIoKey::RgbLed1 => write!(f, "RGB_LED1"),
+            SpecialIoKey::RgbLed2 => write!(f, "RGB_LED2"),
+            SpecialIoKey::IrLed => write!(f, "IR_LED"),
+            SpecialIoKey::BarcodeLed => write!(f, "BARCODE_LED"),
+            SpecialIoKey::I3c0 => write!(f, "I3C0"),
+            SpecialIoKey::I3c1 => write!(f, "I3C1"),
         }
     }
 }
@@ -518,7 +518,7 @@ pub struct Chip {
     pub cfg_io: BTreeMap<SharedCfgPad, EdgeIoCoord>,
     pub io_iob: BTreeMap<EdgeIoCoord, EdgeIoCoord>,
     pub io_od: BTreeSet<EdgeIoCoord>,
-    pub extra_nodes: BTreeMap<ExtraNodeLoc, ExtraNode>,
+    pub special_tiles: BTreeMap<SpecialTileKey, SpecialTile>,
 }
 
 impl Chip {
@@ -636,11 +636,11 @@ impl Chip {
     }
 }
 
-impl From<&ExtraNode> for JsonValue {
-    fn from(node: &ExtraNode) -> Self {
+impl From<&SpecialTile> for JsonValue {
+    fn from(special: &SpecialTile) -> Self {
         jzon::object! {
-            io: jzon::object::Object::from_iter(node.io.iter().map(|(slot, io)| (slot.to_string(), io.to_string()))),
-            cells: Vec::from_iter(node.cells.values().map(|cell| cell.to_string())),
+            io: jzon::object::Object::from_iter(special.io.iter().map(|(slot, io)| (slot.to_string(), io.to_string()))),
+            cells: Vec::from_iter(special.cells.values().map(|cell| cell.to_string())),
         }
     }
 }
@@ -662,7 +662,7 @@ impl From<&Chip> for JsonValue {
             })),
             io_iob: jzon::object::Object::from_iter(chip.io_iob.iter().map(|(&k, &v)| (k.to_string(), v.to_string()))),
             io_od: Vec::from_iter(chip.io_od.iter().map(|crd| crd.to_string())),
-            extra_nodes: jzon::object::Object::from_iter(chip.extra_nodes.iter().map(|(&k, v)| (k.to_string(), v))),
+            special_tiles: jzon::object::Object::from_iter(chip.special_tiles.iter().map(|(&k, v)| (k.to_string(), v))),
         }
     }
 }
@@ -686,12 +686,12 @@ impl std::fmt::Display for Chip {
                 writeln!(f, "\t\t{row_mid}: {row_bot}..{row_top}")?;
             }
         }
-        for (&loc, node) in &self.extra_nodes {
-            writeln!(f, "\tEXTRA {loc}:")?;
-            for (slot, io) in &node.io {
+        for (&key, special) in &self.special_tiles {
+            writeln!(f, "\tSPECIAL {key}:")?;
+            for (slot, io) in &special.io {
                 writeln!(f, "\t\tIO {slot}: {io}")?;
             }
-            for (idx, cell) in &node.cells {
+            for (idx, cell) in &special.cells {
                 writeln!(f, "\t\t{idx}: {cell}")?;
             }
         }

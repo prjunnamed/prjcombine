@@ -9,15 +9,15 @@ use crate::backend::IseBackend;
 use super::DynProp;
 
 pub trait TileRelation: Clone + Debug {
-    fn resolve(&self, backend: &IseBackend, nloc: TileCoord) -> Option<TileCoord>;
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord>;
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct NoopRelation;
 
 impl TileRelation for NoopRelation {
-    fn resolve(&self, _backend: &IseBackend, nloc: TileCoord) -> Option<TileCoord> {
-        Some(nloc)
+    fn resolve(&self, _backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
+        Some(tcrd)
     }
 }
 
@@ -25,7 +25,7 @@ impl TileRelation for NoopRelation {
 pub struct FixedRelation(pub TileCoord);
 
 impl TileRelation for FixedRelation {
-    fn resolve(&self, _backend: &IseBackend, _nloc: TileCoord) -> Option<TileCoord> {
+    fn resolve(&self, _backend: &IseBackend, _tcrd: TileCoord) -> Option<TileCoord> {
         Some(self.0)
     }
 }
@@ -34,23 +34,23 @@ impl TileRelation for FixedRelation {
 pub struct Delta {
     pub dx: i32,
     pub dy: i32,
-    pub nodes: Vec<String>,
+    pub tcnames: Vec<String>,
 }
 
 impl Delta {
-    pub fn new(dx: i32, dy: i32, node: impl Into<String>) -> Self {
+    pub fn new(dx: i32, dy: i32, tcname: impl Into<String>) -> Self {
         Self {
             dx,
             dy,
-            nodes: vec![node.into()],
+            tcnames: vec![tcname.into()],
         }
     }
 
-    pub fn new_any(dx: i32, dy: i32, nodes: &[impl AsRef<str>]) -> Self {
+    pub fn new_any(dx: i32, dy: i32, tcnames: &[impl AsRef<str>]) -> Self {
         Self {
             dx,
             dy,
-            nodes: nodes.iter().map(|x| x.as_ref().to_string()).collect(),
+            tcnames: tcnames.iter().map(|x| x.as_ref().to_string()).collect(),
         }
     }
 }
@@ -60,7 +60,7 @@ impl TileRelation for Delta {
         let cell = backend.egrid.cell_delta(tcrd.cell, self.dx, self.dy)?;
         backend
             .egrid
-            .find_tile_by_class(cell, |node| self.nodes.iter().any(|x| x == node))
+            .find_tile_by_class(cell, |tcname| self.tcnames.iter().any(|x| x == tcname))
     }
 }
 
@@ -91,11 +91,11 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for Related<'b, R>
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
-        let nloc = self.relation.resolve(backend, nloc)?;
-        self.prop.apply(backend, nloc, fuzzer)
+        let tcrd = self.relation.resolve(backend, tcrd)?;
+        self.prop.apply(backend, tcrd, fuzzer)
     }
 }
 
@@ -119,10 +119,10 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for HasRelated<R> 
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
-        if self.relation.resolve(backend, nloc).is_some() == self.val {
+        if self.relation.resolve(backend, tcrd).is_some() == self.val {
             Some((fuzzer, false))
         } else {
             None

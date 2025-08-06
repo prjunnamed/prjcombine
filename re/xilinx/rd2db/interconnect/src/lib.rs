@@ -43,27 +43,27 @@ pub enum BelPinInfo {
 }
 
 #[derive(Debug)]
-pub struct XNodeRawTile {
+pub struct XTileRawTile {
     pub xy: Coord,
     pub tile_map: Option<EntityPartVec<CellSlotId, CellSlotId>>,
     pub extract_muxes: bool,
 }
 
 #[derive(Debug)]
-pub struct XNodeRef {
+pub struct XTileRef {
     pub xy: Coord,
     pub naming: Option<TileClassNamingId>,
     pub tile_map: EntityPartVec<CellSlotId, CellSlotId>,
 }
 
-pub struct XNodeInfo<'a, 'b> {
+pub struct XTileInfo<'a, 'b> {
     pub slot: TileSlotId,
     pub builder: &'b mut IntBuilder<'a>,
     pub kind: String,
     pub naming: String,
-    pub raw_tiles: Vec<XNodeRawTile>,
+    pub raw_tiles: Vec<XTileRawTile>,
     pub num_tiles: usize,
-    pub refs: Vec<XNodeRef>,
+    pub refs: Vec<XTileRef>,
     pub extract_intfs: bool,
     pub delay_sb: Option<BelSlotId>,
     pub has_intf_out_bufs: bool,
@@ -220,9 +220,9 @@ impl ExtrBelInfo {
     }
 }
 
-impl XNodeInfo<'_, '_> {
+impl XTileInfo<'_, '_> {
     pub fn raw_tile(mut self, xy: Coord) -> Self {
-        self.raw_tiles.push(XNodeRawTile {
+        self.raw_tiles.push(XTileRawTile {
             xy,
             tile_map: None,
             extract_muxes: false,
@@ -231,7 +231,7 @@ impl XNodeInfo<'_, '_> {
     }
 
     pub fn raw_tile_single(mut self, xy: Coord, slot: usize) -> Self {
-        self.raw_tiles.push(XNodeRawTile {
+        self.raw_tiles.push(XTileRawTile {
             xy,
             tile_map: Some(
                 [(CellSlotId::from_idx(0), CellSlotId::from_idx(slot))]
@@ -244,7 +244,7 @@ impl XNodeInfo<'_, '_> {
     }
 
     pub fn ref_int(mut self, xy: Coord, slot: usize) -> Self {
-        self.refs.push(XNodeRef {
+        self.refs.push(XTileRef {
             xy,
             naming: None,
             tile_map: [(CellSlotId::from_idx(0), CellSlotId::from_idx(slot))]
@@ -255,7 +255,7 @@ impl XNodeInfo<'_, '_> {
     }
 
     pub fn ref_single(mut self, xy: Coord, slot: usize, naming: TileClassNamingId) -> Self {
-        self.refs.push(XNodeRef {
+        self.refs.push(XTileRef {
             xy,
             naming: Some(naming),
             tile_map: [(CellSlotId::from_idx(0), CellSlotId::from_idx(slot))]
@@ -271,7 +271,7 @@ impl XNodeInfo<'_, '_> {
         slots: &[Option<usize>],
         naming: TileClassNamingId,
     ) -> Self {
-        self.refs.push(XNodeRef {
+        self.refs.push(XTileRef {
             xy,
             naming: Some(naming),
             tile_map: slots
@@ -585,10 +585,10 @@ impl XNodeInfo<'_, '_> {
             })
             .collect();
 
-        let mut extractor = XNodeExtractor {
+        let mut extractor = XTileExtractor {
             rd: self.builder.rd,
             db: &self.builder.db,
-            xnode: &self,
+            xtile: &self,
             names,
             buf_out,
             buf_in,
@@ -626,10 +626,10 @@ impl XNodeInfo<'_, '_> {
 }
 
 #[allow(clippy::type_complexity)]
-struct XNodeExtractor<'a, 'b, 'c> {
+struct XTileExtractor<'a, 'b, 'c> {
     rd: &'c Part,
     db: &'c IntDb,
-    xnode: &'a XNodeInfo<'b, 'c>,
+    xtile: &'a XTileInfo<'b, 'c>,
     names: HashMap<NodeOrWire, (IntConnKind, TileWireCoord)>,
     buf_out: HashMap<NodeOrWire, (NodeOrWire, usize, rawdump::WireId, rawdump::WireId)>,
     buf_in: HashMap<NodeOrWire, (NodeOrWire, usize, rawdump::WireId, rawdump::WireId)>,
@@ -657,7 +657,7 @@ struct XNodeExtractor<'a, 'b, 'c> {
     tcls_naming: TileClassNaming,
 }
 
-impl XNodeExtractor<'_, '_, '_> {
+impl XTileExtractor<'_, '_, '_> {
     fn walk_to_int(
         &self,
         pin: &str,
@@ -674,7 +674,7 @@ impl XNodeExtractor<'_, '_, '_> {
         let mut wn = wire;
         let mut nw = self
             .rd
-            .lookup_wire_raw_force(self.xnode.raw_tiles[tile].xy, wire);
+            .lookup_wire_raw_force(self.xtile.raw_tiles[tile].xy, wire);
         let mut pips = Vec::new();
         loop {
             if let Some(&(ick, w)) = self.names.get(&nw) {
@@ -707,7 +707,7 @@ impl XNodeExtractor<'_, '_, '_> {
                     }
                     panic!(
                         "CANNOT WALK INPUT WIRE {} {} {}",
-                        self.rd.part, self.xnode.kind, pin
+                        self.rd.part, self.xtile.kind, pin
                     );
                 }
                 PinDir::Output => {
@@ -756,13 +756,13 @@ impl XNodeExtractor<'_, '_, '_> {
                     }
                     panic!(
                         "CANNOT WALK OUTPUT WIRE {} {} {}",
-                        self.rd.part, self.xnode.kind, pin
+                        self.rd.part, self.xtile.kind, pin
                     );
                 }
                 PinDir::Inout => {
                     panic!(
                         "CANNOT WALK INOUT WIRE {} {} {}",
-                        self.rd.part, self.xnode.kind, pin
+                        self.rd.part, self.xtile.kind, pin
                     );
                 }
             }
@@ -780,7 +780,7 @@ impl XNodeExtractor<'_, '_, '_> {
         let mut wn = wire;
         let mut nw = self
             .rd
-            .lookup_wire_raw_force(self.xnode.raw_tiles[tile].xy, wire);
+            .lookup_wire_raw_force(self.xtile.raw_tiles[tile].xy, wire);
         let mut pips = Vec::new();
         for _ in 0..cnt {
             match dir {
@@ -816,14 +816,14 @@ impl XNodeExtractor<'_, '_, '_> {
             }
             panic!(
                 "CANNOT WALK WIRE {} {} {}",
-                self.rd.part, self.xnode.kind, pin
+                self.rd.part, self.xtile.kind, pin
             );
         }
         (wn, pips)
     }
 
     fn extract_bel(&mut self, bel: &ExtrBelInfo) {
-        let crd = self.xnode.raw_tiles[bel.raw_tile].xy;
+        let crd = self.xtile.raw_tiles[bel.raw_tile].xy;
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
         let mut pins = BTreeMap::new();
@@ -841,7 +841,7 @@ impl XNodeExtractor<'_, '_, '_> {
                         if tksp.wire.is_none() {
                             panic!(
                                 "missing site wire for pin {name} tile {tile}",
-                                tile = self.xnode.kind
+                                tile = self.xtile.kind
                             );
                         }
                         let (ick, wires, wnf, pips, int_pips) =
@@ -894,7 +894,7 @@ impl XNodeExtractor<'_, '_, '_> {
                         if tksp.wire.is_none() {
                             panic!(
                                 "missing site wire for pin {name} tile {tile}",
-                                tile = self.xnode.kind
+                                tile = self.xtile.kind
                             );
                         }
                         if buf_cnt == 0 {
@@ -1056,13 +1056,13 @@ impl XNodeExtractor<'_, '_, '_> {
     }
 
     fn get_wire_by_name(&self, rti: usize, name: rawdump::WireId) -> Option<TileWireCoord> {
-        let rt = &self.xnode.raw_tiles[rti];
+        let rt = &self.xtile.raw_tiles[rti];
         let tile = &self.rd.tiles[&rt.xy];
-        if let Some(&(IntConnKind::Raw, res)) = self.xnode.force_names.get(&(rti, name)) {
+        if let Some(&(IntConnKind::Raw, res)) = self.xtile.force_names.get(&(rti, name)) {
             return Some(res);
         }
         if let Some(TileWireCoord { cell: t, wire: w }) = self
-            .xnode
+            .xtile
             .builder
             .get_wire_by_name(tile.kind, &self.rd.wires[name])
             && let Some(&xt) = rt.tile_map.as_ref().and_then(|x| x.get(t))
@@ -1077,11 +1077,11 @@ impl XNodeExtractor<'_, '_, '_> {
     }
 
     fn extract_muxes(&mut self, pips: &mut Pips) {
-        for &(wt, wf) in &self.xnode.force_pips {
-            let mode = self.xnode.builder.pip_mode(wt.wire);
+        for &(wt, wf) in &self.xtile.force_pips {
+            let mode = self.xtile.builder.pip_mode(wt.wire);
             pips.pips.insert((wt, wf), mode);
         }
-        for (i, rt) in self.xnode.raw_tiles.iter().enumerate() {
+        for (i, rt) in self.xtile.raw_tiles.iter().enumerate() {
             let tile = &self.rd.tiles[&rt.xy];
             let tk = &self.rd.tile_kinds[tile.kind];
 
@@ -1089,18 +1089,18 @@ impl XNodeExtractor<'_, '_, '_> {
                 if let Some(wt) = self.get_wire_by_name(i, wti) {
                     let mut pass = rt.extract_muxes
                         && !matches!(self.db.wires[wt.wire], WireKind::LogicOut)
-                        && !self.xnode.skip_muxes.contains(&wt.wire);
-                    if self.xnode.optin_muxes.contains(&wt.wire) {
+                        && !self.xtile.skip_muxes.contains(&wt.wire);
+                    if self.xtile.optin_muxes.contains(&wt.wire) {
                         pass = true;
                     }
-                    if self.xnode.optin_muxes_tile.contains(&wt) {
+                    if self.xtile.optin_muxes_tile.contains(&wt) {
                         pass = true;
                     }
                     if !pass {
                         continue;
                     }
                     if let Some(wf) = self.get_wire_by_name(i, wfi) {
-                        if self.xnode.force_skip_pips.contains(&(wt, wf)) {
+                        if self.xtile.force_skip_pips.contains(&(wt, wf)) {
                             continue;
                         }
                         if i == 0 {
@@ -1120,13 +1120,13 @@ impl XNodeExtractor<'_, '_, '_> {
                                 },
                             );
                         }
-                        let mode = self.xnode.builder.pip_mode(wt.wire);
+                        let mode = self.xtile.builder.pip_mode(wt.wire);
                         pips.pips.insert((wt, wf), mode);
-                    } else if self.xnode.builder.stub_outs.contains(&self.rd.wires[wfi]) {
+                    } else if self.xtile.builder.stub_outs.contains(&self.rd.wires[wfi]) {
                         // ignore
                     } else {
                         println!(
-                            "UNEXPECTED XNODE MUX IN {} {} {} {}",
+                            "UNEXPECTED XTILE MUX IN {} {} {} {}",
                             self.rd.tile_kinds.key(tile.kind),
                             tile.name,
                             self.rd.wires[wti],
@@ -1139,10 +1139,10 @@ impl XNodeExtractor<'_, '_, '_> {
     }
 
     fn extract_delay(&mut self) {
-        let crd = self.xnode.raw_tiles[0].xy;
+        let crd = self.xtile.raw_tiles[0].xy;
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
-        if let Some(sb) = self.xnode.delay_sb {
+        if let Some(sb) = self.xtile.delay_sb {
             let mut items = vec![];
             for &(wfi, wdi) in tk.pips.keys() {
                 let nwf = self.rd.lookup_wire_raw_force(crd, wfi);
@@ -1164,7 +1164,7 @@ impl XNodeExtractor<'_, '_, '_> {
                     if !matches!(self.db.wires[wf.wire], WireKind::MuxOut) {
                         continue;
                     }
-                    let Some(&wtw) = self.xnode.builder.delay_wires.get(&wf.wire) else {
+                    let Some(&wtw) = self.xtile.builder.delay_wires.get(&wf.wire) else {
                         continue;
                     };
                     let wt = TileWireCoord {
@@ -1197,7 +1197,7 @@ impl XNodeExtractor<'_, '_, '_> {
     }
 
     fn extract_intfs(&mut self) {
-        let crd = self.xnode.raw_tiles[0].xy;
+        let crd = self.xtile.raw_tiles[0].xy;
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
         let mut out_muxes: HashMap<TileWireCoord, (Vec<TileWireCoord>, Option<TileWireCoord>)> =
@@ -1224,7 +1224,7 @@ impl XNodeExtractor<'_, '_, '_> {
                     );
                     assert!(!self.tcls.intfs.contains_key(&wf));
                     if self.db.wires[wf.wire] == WireKind::LogicOut
-                        || self.xnode.builder.test_mux_pass.contains(&wf.wire)
+                        || self.xtile.builder.test_mux_pass.contains(&wf.wire)
                     {
                         assert!(out_muxes.entry(wt).or_default().1.replace(wf).is_none());
                     } else {
@@ -1232,7 +1232,7 @@ impl XNodeExtractor<'_, '_, '_> {
                     }
                 } else if let Some(&(_, wf, rt, bwti, bwfi)) = self.int_in.get(&nwf) {
                     if !self.buf_in.contains_key(&nwf) {
-                        assert!(!self.xnode.has_intf_out_bufs);
+                        assert!(!self.xtile.has_intf_out_bufs);
                         continue;
                     }
                     assert_eq!(rt, 0);
@@ -1246,7 +1246,7 @@ impl XNodeExtractor<'_, '_, '_> {
                     );
                     assert!(!self.tcls.intfs.contains_key(&wf));
                     out_muxes.entry(wt).or_default().0.push(wf);
-                } else if self.xnode.has_intf_out_bufs {
+                } else if self.xtile.has_intf_out_bufs {
                     out_muxes.entry(wt).or_default();
                     self.tcls_naming.intf_wires_out.insert(
                         wt,
@@ -1272,7 +1272,7 @@ impl XNodeExtractor<'_, '_, '_> {
 }
 
 #[derive(Clone, Debug)]
-struct NodeType {
+struct IntType {
     tki: rawdump::TileKindId,
     naming: TileClassNamingId,
 }
@@ -1301,8 +1301,8 @@ pub struct IntBuilder<'a> {
     is_mirror_square: bool,
     allow_mux_to_branch: bool,
     main_passes: DirMap<EntityPartVec<WireId, WireId>>,
-    node_types: Vec<NodeType>,
-    injected_node_types: Vec<rawdump::TileKindId>,
+    int_types: Vec<IntType>,
+    injected_int_types: Vec<rawdump::TileKindId>,
     stub_outs: HashSet<String>,
     extra_names: HashMap<String, TileWireCoord>,
     extra_names_tile: HashMap<rawdump::TileKindId, HashMap<String, TileWireCoord>>,
@@ -1330,8 +1330,8 @@ impl<'a> IntBuilder<'a> {
             is_mirror_square: false,
             allow_mux_to_branch: false,
             main_passes: Default::default(),
-            node_types: vec![],
-            injected_node_types: vec![],
+            int_types: vec![],
+            injected_int_types: vec![],
             stub_outs: Default::default(),
             extra_names: Default::default(),
             extra_names_tile: Default::default(),
@@ -1716,7 +1716,7 @@ impl<'a> IntBuilder<'a> {
 
     fn extract_bels(
         &self,
-        node: &mut TileClass,
+        tcls: &mut TileClass,
         naming: &mut TileClassNaming,
         bels: &[ExtrBelInfo],
         tki: rawdump::TileKindId,
@@ -2082,7 +2082,7 @@ impl<'a> IntBuilder<'a> {
                     _ => (),
                 }
             }
-            node.bels.insert(bel.bel, BelInfo::Bel(Bel { pins }));
+            tcls.bels.insert(bel.bel, BelInfo::Bel(Bel { pins }));
             naming.bels.insert(
                 bel.bel,
                 BelNaming::Bel(ProperBelNaming {
@@ -2093,7 +2093,7 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn extract_node(
+    pub fn extract_int(
         &mut self,
         slot: TileSlotId,
         sb: BelSlotId,
@@ -2148,11 +2148,11 @@ impl<'a> IntBuilder<'a> {
 
             self.insert_tcls_merge(kind, tcls, BTreeMap::from_iter([(sb, pips)]));
             let naming = self.insert_tcls_naming(naming, tcls_naming);
-            self.node_types.push(NodeType { tki, naming });
+            self.int_types.push(IntType { tki, naming });
         }
     }
 
-    pub fn extract_node_bels(
+    pub fn extract_int_bels(
         &mut self,
         slot: TileSlotId,
         tile_kind: &str,
@@ -2178,7 +2178,7 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn node_type(
+    pub fn int_type(
         &mut self,
         slot: TileSlotId,
         sb: BelSlotId,
@@ -2186,24 +2186,24 @@ impl<'a> IntBuilder<'a> {
         kind: &str,
         naming: &str,
     ) {
-        self.extract_node(slot, sb, tile_kind, kind, naming, &[]);
+        self.extract_int(slot, sb, tile_kind, kind, naming, &[]);
     }
 
-    pub fn inject_node_type(&mut self, tile_kind: &str) {
+    pub fn inject_int_type(&mut self, tile_kind: &str) {
         if let Some((tki, _)) = self.rd.tile_kinds.get(tile_kind) {
-            self.injected_node_types.push(tki);
+            self.injected_int_types.push(tki);
         }
     }
 
-    pub fn inject_node_type_naming(&mut self, tile_kind: &str, naming: TileClassNamingId) {
+    pub fn inject_int_type_naming(&mut self, tile_kind: &str, naming: TileClassNamingId) {
         if let Some((tki, _)) = self.rd.tile_kinds.get(tile_kind) {
-            self.node_types.push(NodeType { tki, naming });
+            self.int_types.push(IntType { tki, naming });
         }
     }
 
     fn get_int_naming(&self, int_xy: Coord) -> Option<TileClassNamingId> {
         let int_tile = &self.rd.tiles[&int_xy];
-        self.node_types.iter().find_map(|nt| {
+        self.int_types.iter().find_map(|nt| {
             if nt.tki == int_tile.kind {
                 Some(nt.naming)
             } else {
@@ -2319,20 +2319,20 @@ impl<'a> IntBuilder<'a> {
     fn insert_tcls_merge(
         &mut self,
         name: &str,
-        node: TileClass,
+        tcls: TileClass,
         pips: BTreeMap<BelSlotId, Pips>,
     ) -> TileClassId {
         match self.db.tile_classes.get_mut(name) {
             None => {
-                let tcls = self.db.tile_classes.insert(name.to_string(), node).0;
+                let tcls = self.db.tile_classes.insert(name.to_string(), tcls).0;
                 for (slot, sb_pips) in pips {
                     self.pips.insert((tcls, slot), sb_pips);
                 }
                 tcls
             }
             Some((id, cnode)) => {
-                assert_eq!(node.cells, cnode.cells);
-                assert_eq!(node.bels, cnode.bels);
+                assert_eq!(tcls.cells, cnode.cells);
+                assert_eq!(tcls.bels, cnode.bels);
                 for (slot, sb_pips) in pips {
                     match self.pips.entry((id, slot)) {
                         btree_map::Entry::Vacant(e) => {
@@ -2354,9 +2354,9 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
                 for &k in cnode.intfs.keys() {
-                    assert!(node.intfs.contains_key(&k));
+                    assert!(tcls.intfs.contains_key(&k));
                 }
-                for (k, v) in node.intfs {
+                for (k, v) in tcls.intfs {
                     let cv = cnode.intfs.get_mut(&k).unwrap();
                     match v {
                         IntfInfo::OutputTestMux(ref wfs) => {
@@ -2756,8 +2756,8 @@ impl<'a> IntBuilder<'a> {
         loop {
             if !step {
                 let tile = &self.rd.tiles[&xy];
-                if self.node_types.iter().any(|x| x.tki == tile.kind)
-                    || self.injected_node_types.contains(&tile.kind)
+                if self.int_types.iter().any(|x| x.tki == tile.kind)
+                    || self.injected_int_types.contains(&tile.kind)
                 {
                     return Some(xy);
                 }
@@ -2881,8 +2881,8 @@ impl<'a> IntBuilder<'a> {
         near: Option<Coord>,
         far: Option<Coord>,
         naming: Option<&str>,
-        node: Option<(TileSlotId, BelSlotId, &str, &str)>,
-        splitter_node: Option<(TileSlotId, BelSlotId, &str, &str)>,
+        tcls: Option<(TileSlotId, BelSlotId, &str, &str)>,
+        splitter_tcls: Option<(TileSlotId, BelSlotId, &str, &str)>,
         src_xy: Coord,
         force_pass: &[WireId],
     ) {
@@ -3160,7 +3160,7 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
             }
-            if let Some((slot, sb, nn, nnn)) = node {
+            if let Some((slot, sb, nn, nnn)) = tcls {
                 self.insert_tcls_merge(
                     nn,
                     TileClass::new(slot, node_tiles.len()),
@@ -3233,7 +3233,7 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
             }
-            if let Some((slot, sb, nn, nnn)) = splitter_node {
+            if let Some((slot, sb, nn, nnn)) = splitter_tcls {
                 self.insert_tcls_merge(
                     nn,
                     TileClass::new(slot, snode_tiles.len()),
@@ -3376,7 +3376,7 @@ impl<'a> IntBuilder<'a> {
         sb_delay: Option<BelSlotId>,
     ) {
         let mut x = self
-            .xnode(slot, name.as_ref(), naming.as_ref(), xy)
+            .xtile(slot, name.as_ref(), naming.as_ref(), xy)
             .num_tiles(int_xy.len())
             .extract_intfs(has_out_bufs);
         if let Some(sb) = sb_delay {
@@ -3425,7 +3425,7 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn extract_xnode(
+    pub fn extract_xtile(
         &mut self,
         slot: TileSlotId,
         sb: BelSlotId,
@@ -3438,7 +3438,7 @@ impl<'a> IntBuilder<'a> {
         skip_wires: &[WireId],
     ) {
         let mut x = self
-            .xnode(slot, name, naming, xy)
+            .xtile(slot, name, naming, xy)
             .num_tiles(int_xy.len())
             .extract_muxes(sb)
             .skip_muxes(skip_wires);
@@ -3454,7 +3454,7 @@ impl<'a> IntBuilder<'a> {
         x.extract();
     }
 
-    pub fn extract_xnode_bels(
+    pub fn extract_xtile_bels(
         &mut self,
         slot: TileSlotId,
         name: &str,
@@ -3464,7 +3464,7 @@ impl<'a> IntBuilder<'a> {
         naming: &str,
         bels: &[ExtrBelInfo],
     ) {
-        let mut x = self.xnode(slot, name, naming, xy).num_tiles(int_xy.len());
+        let mut x = self.xtile(slot, name, naming, xy).num_tiles(int_xy.len());
         for &xy in buf_xy {
             x = x.raw_tile(xy);
         }
@@ -3477,7 +3477,7 @@ impl<'a> IntBuilder<'a> {
         x.extract();
     }
 
-    pub fn extract_xnode_bels_intf(
+    pub fn extract_xtile_bels_intf(
         &mut self,
         slot: TileSlotId,
         name: &str,
@@ -3489,7 +3489,7 @@ impl<'a> IntBuilder<'a> {
         bels: &[ExtrBelInfo],
     ) {
         let mut x = self
-            .xnode(slot, name, naming, xy)
+            .xtile(slot, name, naming, xy)
             .num_tiles(Ord::max(int_xy.len(), intf_xy.len()));
         for &xy in buf_xy {
             x = x.raw_tile(xy);
@@ -3544,24 +3544,24 @@ impl<'a> IntBuilder<'a> {
         self.insert_tcls_naming(naming, tcls_naming);
     }
 
-    pub fn make_marker_node(&mut self, slot: TileSlotId, name: &str, ntiles: usize) {
+    pub fn make_marker_tile(&mut self, slot: TileSlotId, name: &str, ntiles: usize) {
         let tcls = TileClass::new(slot, ntiles);
         self.insert_tcls_merge(name, tcls, BTreeMap::new());
     }
 
-    pub fn xnode<'b>(
+    pub fn xtile<'b>(
         &'b mut self,
         slot: TileSlotId,
         kind: impl Into<String>,
         naming: impl Into<String>,
         tile: Coord,
-    ) -> XNodeInfo<'a, 'b> {
-        XNodeInfo {
+    ) -> XTileInfo<'a, 'b> {
+        XTileInfo {
             slot,
             builder: self,
             kind: kind.into(),
             naming: naming.into(),
-            raw_tiles: vec![XNodeRawTile {
+            raw_tiles: vec![XTileRawTile {
                 xy: tile,
                 tile_map: None,
                 extract_muxes: false,

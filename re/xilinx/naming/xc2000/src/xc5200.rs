@@ -20,33 +20,33 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let r = edev.chip.row_n() - row;
         match &kind[..] {
             "CNR.BL" => {
-                let nnode = ngrid.name_tile(tcrd, "CNR.BL", ["BL".into()]);
-                nnode.add_bel(bels::BUFG, "BUFG_BL".to_string());
-                nnode.add_bel(bels::RDBK, "RDBK".to_string());
-                nnode.tie_name = Some(format!("GND_R{r}C{c}"));
+                let ntile = ngrid.name_tile(tcrd, "CNR.BL", ["BL".into()]);
+                ntile.add_bel(bels::BUFG, "BUFG_BL".to_string());
+                ntile.add_bel(bels::RDBK, "RDBK".to_string());
+                ntile.tie_name = Some(format!("GND_R{r}C{c}"));
             }
             "CNR.TL" => {
-                let nnode = ngrid.name_tile(tcrd, "CNR.TL", ["TL".into()]);
-                nnode.add_bel(bels::BUFG, "BUFG_TL".to_string());
-                nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
-                nnode.tie_name = Some(format!("GND_R{r}C{c}"));
+                let ntile = ngrid.name_tile(tcrd, "CNR.TL", ["TL".into()]);
+                ntile.add_bel(bels::BUFG, "BUFG_TL".to_string());
+                ntile.add_bel(bels::BSCAN, "BSCAN".to_string());
+                ntile.tie_name = Some(format!("GND_R{r}C{c}"));
             }
             "CNR.BR" => {
-                let nnode = ngrid.name_tile(tcrd, "CNR.BR", ["BR".into()]);
-                nnode.add_bel(bels::BUFG, "BUFG_BR".to_string());
-                nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
-                nnode.tie_name = Some(format!("GND_R{r}C{c}"));
+                let ntile = ngrid.name_tile(tcrd, "CNR.BR", ["BR".into()]);
+                ntile.add_bel(bels::BUFG, "BUFG_BR".to_string());
+                ntile.add_bel(bels::STARTUP, "STARTUP".to_string());
+                ntile.tie_name = Some(format!("GND_R{r}C{c}"));
             }
             "CNR.TR" => {
-                let nnode = ngrid.name_tile(tcrd, "CNR.TR", ["TR".into()]);
-                nnode.add_bel(bels::BUFG, "BUFG_TR".to_string());
-                nnode.add_bel(bels::OSC, "OSC".to_string());
-                nnode.add_bel(bels::BYPOSC, "BYPOSC".to_string());
-                nnode.add_bel(bels::BSUPD, "BSUPD".to_string());
-                nnode.tie_name = Some(format!("GND_R{r}C{c}"));
+                let ntile = ngrid.name_tile(tcrd, "CNR.TR", ["TR".into()]);
+                ntile.add_bel(bels::BUFG, "BUFG_TR".to_string());
+                ntile.add_bel(bels::OSC, "OSC".to_string());
+                ntile.add_bel(bels::BYPOSC, "BYPOSC".to_string());
+                ntile.add_bel(bels::BSUPD, "BSUPD".to_string());
+                ntile.tie_name = Some(format!("GND_R{r}C{c}"));
             }
             "IO.L" => {
-                let nnode = if row == edev.chip.row_n() - 1 {
+                let ntile = if row == edev.chip.row_n() - 1 {
                     ngrid.name_tile(tcrd, "IO.L.CLK", ["LCLK".into()])
                 } else {
                     ngrid.name_tile(tcrd, "IO.L", [format!("LR{r}")])
@@ -55,18 +55,18 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     + (edev.chip.rows - 2) * 4
                     + (row.to_idx() - 1) * 4
                     + 1;
-                nnode.add_bel(bels::IO0, format!("PAD{p}"));
-                nnode.add_bel(bels::IO1, format!("PAD{}", p + 1));
-                nnode.add_bel(bels::IO2, format!("PAD{}", p + 2));
-                nnode.add_bel(bels::IO3, format!("PAD{}", p + 3));
-                nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
-                nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
-                nnode.add_bel(bels::TBUF2, format!("TBUF_R{r}C{c}.2"));
-                nnode.add_bel(bels::TBUF3, format!("TBUF_R{r}C{c}.3"));
-                nnode.tie_name = Some(format!("GND_R{r}C{c}"));
+                ntile.add_bel(bels::IO0, format!("PAD{p}"));
+                ntile.add_bel(bels::IO1, format!("PAD{}", p + 1));
+                ntile.add_bel(bels::IO2, format!("PAD{}", p + 2));
+                ntile.add_bel(bels::IO3, format!("PAD{}", p + 3));
+                ntile.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
+                ntile.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
+                ntile.add_bel(bels::TBUF2, format!("TBUF_R{r}C{c}.2"));
+                ntile.add_bel(bels::TBUF3, format!("TBUF_R{r}C{c}.3"));
+                ntile.tie_name = Some(format!("GND_R{r}C{c}"));
             }
             "IO.R" => {
-                let nnode = if row == edev.chip.row_s() + 1 {
+                let ntile = if row == edev.chip.row_s() + 1 {
                     ngrid.name_tile(tcrd, "IO.R.CLK", ["RCLK".into()])
                 } else {
                     ngrid.name_tile(tcrd, "IO.R", [format!("RR{r}")])
@@ -74,18 +74,18 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let p = (edev.chip.columns - 2) * 4
                     + (edev.chip.row_n().to_idx() - row.to_idx() - 1) * 4
                     + 1;
-                nnode.add_bel(bels::IO0, format!("PAD{}", p + 3));
-                nnode.add_bel(bels::IO1, format!("PAD{}", p + 2));
-                nnode.add_bel(bels::IO2, format!("PAD{}", p + 1));
-                nnode.add_bel(bels::IO3, format!("PAD{p}"));
-                nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
-                nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
-                nnode.add_bel(bels::TBUF2, format!("TBUF_R{r}C{c}.2"));
-                nnode.add_bel(bels::TBUF3, format!("TBUF_R{r}C{c}.3"));
-                nnode.tie_name = Some(format!("GND_R{r}C{c}"));
+                ntile.add_bel(bels::IO0, format!("PAD{}", p + 3));
+                ntile.add_bel(bels::IO1, format!("PAD{}", p + 2));
+                ntile.add_bel(bels::IO2, format!("PAD{}", p + 1));
+                ntile.add_bel(bels::IO3, format!("PAD{p}"));
+                ntile.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
+                ntile.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
+                ntile.add_bel(bels::TBUF2, format!("TBUF_R{r}C{c}.2"));
+                ntile.add_bel(bels::TBUF3, format!("TBUF_R{r}C{c}.3"));
+                ntile.tie_name = Some(format!("GND_R{r}C{c}"));
             }
             "IO.B" => {
-                let nnode = if col == edev.chip.col_w() + 1 {
+                let ntile = if col == edev.chip.col_w() + 1 {
                     ngrid.name_tile(tcrd, "IO.B.CLK", ["BCLK".into()])
                 } else {
                     ngrid.name_tile(tcrd, "IO.B", [format!("BC{c}")])
@@ -94,44 +94,44 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     + (edev.chip.rows - 2) * 4
                     + (edev.chip.col_e().to_idx() - col.to_idx() - 1) * 4
                     + 1;
-                nnode.add_bel(bels::IO0, format!("PAD{p}"));
-                nnode.add_bel(bels::IO1, format!("PAD{}", p + 1));
-                nnode.add_bel(bels::IO2, format!("PAD{}", p + 2));
-                nnode.add_bel(bels::IO3, format!("PAD{}", p + 3));
-                nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
-                nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
-                nnode.add_bel(bels::TBUF2, format!("TBUF_R{r}C{c}.2"));
-                nnode.add_bel(bels::TBUF3, format!("TBUF_R{r}C{c}.3"));
-                nnode.tie_name = Some(format!("GND_R{r}C{c}"));
+                ntile.add_bel(bels::IO0, format!("PAD{p}"));
+                ntile.add_bel(bels::IO1, format!("PAD{}", p + 1));
+                ntile.add_bel(bels::IO2, format!("PAD{}", p + 2));
+                ntile.add_bel(bels::IO3, format!("PAD{}", p + 3));
+                ntile.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
+                ntile.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
+                ntile.add_bel(bels::TBUF2, format!("TBUF_R{r}C{c}.2"));
+                ntile.add_bel(bels::TBUF3, format!("TBUF_R{r}C{c}.3"));
+                ntile.tie_name = Some(format!("GND_R{r}C{c}"));
             }
             "IO.T" => {
-                let nnode = if col == edev.chip.col_e() - 2 {
+                let ntile = if col == edev.chip.col_e() - 2 {
                     ngrid.name_tile(tcrd, "IO.T.CLK", ["TCLK".into()])
                 } else {
                     ngrid.name_tile(tcrd, "IO.T", [format!("TC{c}")])
                 };
                 let p = (col.to_idx() - 1) * 4 + 1;
-                nnode.add_bel(bels::IO0, format!("PAD{}", p + 3));
-                nnode.add_bel(bels::IO1, format!("PAD{}", p + 2));
-                nnode.add_bel(bels::IO2, format!("PAD{}", p + 1));
-                nnode.add_bel(bels::IO3, format!("PAD{p}"));
-                nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
-                nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
-                nnode.add_bel(bels::TBUF2, format!("TBUF_R{r}C{c}.2"));
-                nnode.add_bel(bels::TBUF3, format!("TBUF_R{r}C{c}.3"));
-                nnode.tie_name = Some(format!("GND_R{r}C{c}"));
+                ntile.add_bel(bels::IO0, format!("PAD{}", p + 3));
+                ntile.add_bel(bels::IO1, format!("PAD{}", p + 2));
+                ntile.add_bel(bels::IO2, format!("PAD{}", p + 1));
+                ntile.add_bel(bels::IO3, format!("PAD{p}"));
+                ntile.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
+                ntile.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
+                ntile.add_bel(bels::TBUF2, format!("TBUF_R{r}C{c}.2"));
+                ntile.add_bel(bels::TBUF3, format!("TBUF_R{r}C{c}.3"));
+                ntile.tie_name = Some(format!("GND_R{r}C{c}"));
             }
             "CLB" => {
-                let nnode = ngrid.name_tile(tcrd, "CLB", [format!("R{r}C{c}")]);
-                nnode.add_bel(bels::LC0, format!("CLB_R{r}C{c}.LC0"));
-                nnode.add_bel(bels::LC1, format!("CLB_R{r}C{c}.LC1"));
-                nnode.add_bel(bels::LC2, format!("CLB_R{r}C{c}.LC2"));
-                nnode.add_bel(bels::LC3, format!("CLB_R{r}C{c}.LC3"));
-                nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
-                nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
-                nnode.add_bel(bels::TBUF2, format!("TBUF_R{r}C{c}.2"));
-                nnode.add_bel(bels::TBUF3, format!("TBUF_R{r}C{c}.3"));
-                nnode.add_bel(bels::VCC_GND, format!("VCC_GND_R{r}C{c}"));
+                let ntile = ngrid.name_tile(tcrd, "CLB", [format!("R{r}C{c}")]);
+                ntile.add_bel(bels::LC0, format!("CLB_R{r}C{c}.LC0"));
+                ntile.add_bel(bels::LC1, format!("CLB_R{r}C{c}.LC1"));
+                ntile.add_bel(bels::LC2, format!("CLB_R{r}C{c}.LC2"));
+                ntile.add_bel(bels::LC3, format!("CLB_R{r}C{c}.LC3"));
+                ntile.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
+                ntile.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
+                ntile.add_bel(bels::TBUF2, format!("TBUF_R{r}C{c}.2"));
+                ntile.add_bel(bels::TBUF3, format!("TBUF_R{r}C{c}.3"));
+                ntile.add_bel(bels::VCC_GND, format!("VCC_GND_R{r}C{c}"));
             }
             "CLKL" => {
                 ngrid.name_tile(tcrd, "CLKL", ["LM".into()]);

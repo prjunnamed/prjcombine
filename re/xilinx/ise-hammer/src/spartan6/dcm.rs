@@ -33,12 +33,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllOtherDcms {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend.egrid.db.get_tile_class("CMT_DCM");
-        for &nnloc in &backend.egrid.tile_index[node] {
-            if nloc == nnloc {
+        let tcid = backend.egrid.db.get_tile_class("CMT_DCM");
+        for &ntcrd in &backend.egrid.tile_index[tcid] {
+            if tcrd == ntcrd {
                 continue;
             }
             fuzzer.info.features.push(FuzzerFeature {
@@ -48,7 +48,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllOtherDcms {
                     attr: self.1.into(),
                     val: self.2.into(),
                 },
-                tiles: backend.edev.tile_bits(nnloc),
+                tiles: backend.edev.tile_bits(ntcrd),
             });
         }
 

@@ -11,7 +11,7 @@ use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 
 use prjcombine_re_xilinx_naming::db::{BelNaming, NamingDb};
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
-use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XNodeInfo, XNodeRef};
+use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XTileInfo, XTileRef};
 use prjcombine_ultrascale::{bels, cslots, regions, tslots};
 use unnamed_entity::{EntityId, EntityPartVec};
 
@@ -65,13 +65,13 @@ impl IntBuilderExt for IntBuilder<'_> {
     }
 }
 
-trait XNodeInfoExt {
+trait XTileInfoExt {
     fn ref_int_side(self, xy: Coord, side: Dir, slot: usize) -> Self;
 }
 
-impl XNodeInfoExt for XNodeInfo<'_, '_> {
+impl XTileInfoExt for XTileInfo<'_, '_> {
     fn ref_int_side(mut self, xy: Coord, side: Dir, slot: usize) -> Self {
-        self.refs.push(XNodeRef {
+        self.refs.push(XTileRef {
             xy,
             naming: None,
             tile_map: [(
@@ -757,7 +757,7 @@ impl IntMaker<'_> {
 
     fn fill_tiles_int(&mut self) {
         self.builder
-            .node_type(tslots::INT, bels::INT, "INT", "INT", "INT");
+            .int_type(tslots::INT, bels::INT, "INT", "INT", "INT");
         let nk = self.builder.db.get_tile_class("INT");
         let node = &mut self.builder.db.tile_classes[nk];
         node.cells.push(());
@@ -1037,7 +1037,7 @@ impl IntMaker<'_> {
                 }
                 bels.push(bel);
                 self.builder
-                    .xnode(tslots::RCLK_INT, "RCLK_INT", "RCLK_INT", xy)
+                    .xtile(tslots::RCLK_INT, "RCLK_INT", "RCLK_INT", xy)
                     .num_tiles(4)
                     .ref_int_side(xy.delta(0, 1), Dir::W, 0)
                     .ref_int_side(xy.delta(0, 1), Dir::E, 1)
@@ -1141,7 +1141,7 @@ impl IntMaker<'_> {
                 let int_xy = self.builder.walk_to_int(xy, !dir, false).unwrap();
                 let mut xn = self
                     .builder
-                    .xnode(tslots::INTF, kind, naming, xy)
+                    .xtile(tslots::INTF, kind, naming, xy)
                     .extract_intfs(true)
                     .ref_int_side(int_xy, dir, 0);
                 if let Some(sb) = sb_delay {
@@ -1167,7 +1167,7 @@ impl IntMaker<'_> {
                     .pin_name_only("CIN", 1)
                     .pin_name_only("COUT", 0);
                 self.builder
-                    .xnode(tslots::BEL, kind, kind, xy)
+                    .xtile(tslots::BEL, kind, kind, xy)
                     .ref_int_side(int_xy, side, 0)
                     .bel(bel)
                     .extract();
@@ -1231,7 +1231,7 @@ impl IntMaker<'_> {
                     .extra_wire("VCC", &["VCC_WIRE"]),
             );
             self.builder
-                .xnode(tslots::BEL, "LAGUNA", "LAGUNA", xy)
+                .xtile(tslots::BEL, "LAGUNA", "LAGUNA", xy)
                 .ref_int_side(xy.delta(2, 0), Dir::W, 0)
                 .bels(bels)
                 .extract();
@@ -1293,7 +1293,7 @@ impl IntMaker<'_> {
             }
             let mut xn = self
                 .builder
-                .xnode(tslots::BEL, "BRAM", "BRAM", xy)
+                .xtile(tslots::BEL, "BRAM", "BRAM", xy)
                 .num_tiles(5);
             for i in 0..5 {
                 xn = xn
@@ -1315,7 +1315,7 @@ impl IntMaker<'_> {
                     bels.push(self.builder.bel_xy(bels::HARD_SYNC[i], "HARD_SYNC", x, y));
                 }
                 self.builder
-                    .xnode(tslots::RCLK_BEL, "HARD_SYNC", "HARD_SYNC", xy)
+                    .xtile(tslots::RCLK_BEL, "HARD_SYNC", "HARD_SYNC", xy)
                     .ref_int_side(xy.delta(2, 1), Dir::W, 0)
                     .ref_single(xy.delta(1, 1), 0, intf)
                     .bels(bels)
@@ -1356,7 +1356,7 @@ impl IntMaker<'_> {
             }
             let mut xn = self
                 .builder
-                .xnode(tslots::BEL, "DSP", "DSP", xy)
+                .xtile(tslots::BEL, "DSP", "DSP", xy)
                 .num_tiles(5);
             for i in 0..5 {
                 xn = xn
@@ -1384,7 +1384,7 @@ impl IntMaker<'_> {
             ];
             let mut xn = self
                 .builder
-                .xnode(tslots::BEL, "BLI", "BLI", xy)
+                .xtile(tslots::BEL, "BLI", "BLI", xy)
                 .num_tiles(15);
             for i in 0..15 {
                 xn = xn
@@ -1431,7 +1431,7 @@ impl IntMaker<'_> {
                 }
                 let mut xn = self
                     .builder
-                    .xnode(tslots::BEL, "URAM", "URAM", xy)
+                    .xtile(tslots::BEL, "URAM", "URAM", xy)
                     .num_tiles(30);
                 for i in 0..15 {
                     xn = xn
@@ -1518,7 +1518,7 @@ impl IntMaker<'_> {
                 }
                 let mut xn = self
                     .builder
-                    .xnode(tslots::BEL, kind, naming, xy)
+                    .xtile(tslots::BEL, kind, naming, xy)
                     .num_tiles(120);
                 for i in 0..60 {
                     xn = xn
@@ -1543,7 +1543,7 @@ impl IntMaker<'_> {
             let bel = self.builder.bel_xy(bels::DFE_B, "DFE_B", 0, 0);
             let mut xn = self
                 .builder
-                .xnode(tslots::BEL, "DFE_B", "DFE_B", xy)
+                .xtile(tslots::BEL, "DFE_B", "DFE_B", xy)
                 .num_tiles(60);
             for i in 0..60 {
                 xn = xn
@@ -1559,7 +1559,7 @@ impl IntMaker<'_> {
             let bel = self.builder.bel_xy(bels::FE, "FE", 0, 0);
             let mut xn = self
                 .builder
-                .xnode(tslots::BEL, "FE", "FE", xy)
+                .xtile(tslots::BEL, "FE", "FE", xy)
                 .num_tiles(60);
             for i in 0..60 {
                 xn = xn
@@ -1648,7 +1648,7 @@ impl IntMaker<'_> {
             }
             let mut xn = self
                 .builder
-                .xnode(tslots::BEL, "PS", "PS", xy)
+                .xtile(tslots::BEL, "PS", "PS", xy)
                 .num_tiles(180);
             for i in 0..180 {
                 xn = xn
@@ -1676,7 +1676,7 @@ impl IntMaker<'_> {
                 .pins_name_only(&["VCU_PLL_TEST_CLK_OUT0", "VCU_PLL_TEST_CLK_OUT1"]);
             let mut xn = self
                 .builder
-                .xnode(tslots::BEL, "VCU", "VCU", xy)
+                .xtile(tslots::BEL, "VCU", "VCU", xy)
                 .num_tiles(60);
             for i in 0..60 {
                 xn = xn
@@ -1731,7 +1731,7 @@ impl IntMaker<'_> {
                         .extra_wire("VCC", &["VCC_WIRE"]),
                 );
                 self.builder
-                    .xnode(tslots::RCLK_BEL, "RCLK_PS", "RCLK_PS", xy)
+                    .xtile(tslots::RCLK_BEL, "RCLK_PS", "RCLK_PS", xy)
                     .ref_xlat(xy.delta(1, 0), &[Some(0), None, None, None], rclk_int)
                     .bels(bels)
                     .extract();
@@ -1756,7 +1756,7 @@ impl IntMaker<'_> {
                 ];
                 let mut xn = self
                     .builder
-                    .xnode(tslots::BEL, kind, kind, xy)
+                    .xtile(tslots::BEL, kind, kind, xy)
                     .num_tiles(60);
                 for i in 0..60 {
                     xn = xn
@@ -1780,7 +1780,7 @@ impl IntMaker<'_> {
                 ];
                 let mut xn = self
                     .builder
-                    .xnode(tslots::BEL, "CFGIO", "CFGIO", xy)
+                    .xtile(tslots::BEL, "CFGIO", "CFGIO", xy)
                     .num_tiles(30);
                 for i in 0..30 {
                     xn = xn
@@ -1802,7 +1802,7 @@ impl IntMaker<'_> {
             }
             let mut xn = self
                 .builder
-                .xnode(tslots::BEL, "AMS", "AMS", xy)
+                .xtile(tslots::BEL, "AMS", "AMS", xy)
                 .num_tiles(30);
             for i in 0..30 {
                 xn = xn
@@ -1828,7 +1828,7 @@ impl IntMaker<'_> {
                 );
             }
             self.builder
-                .xnode(tslots::CMT, "HBM_ABUS_SWITCH", "HBM_ABUS_SWITCH", xy)
+                .xtile(tslots::CMT, "HBM_ABUS_SWITCH", "HBM_ABUS_SWITCH", xy)
                 .num_tiles(0)
                 .bels(bels)
                 .extract();
@@ -1909,7 +1909,7 @@ impl IntMaker<'_> {
                 let kind = if is_bot { "HDIO_S" } else { "HDIO_N" };
                 let mut xn = self
                     .builder
-                    .xnode(tslots::BEL, kind, kind, xy)
+                    .xtile(tslots::BEL, kind, kind, xy)
                     .num_tiles(30);
                 for i in 0..30 {
                     xn = xn
@@ -2001,7 +2001,7 @@ impl IntMaker<'_> {
                     bels.push(self.builder.bel_xy(bels::HDIO_VREF[i], "HDIO_VREF", 0, i));
                 }
                 bels.push(self.builder.bel_xy(bels::HDIO_BIAS, "HDIO_BIAS", 0, 0));
-                let mut xn = self.builder.xnode(tslots::BEL, kind, tkn, xy).num_tiles(30);
+                let mut xn = self.builder.xtile(tslots::BEL, kind, tkn, xy).num_tiles(30);
                 for i in 0..30 {
                     xn = xn
                         .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), side, i)
@@ -2116,7 +2116,7 @@ impl IntMaker<'_> {
                 );
                 let mut xn = self
                     .builder
-                    .xnode(tslots::BEL, "HDIOS", tkn, xy)
+                    .xtile(tslots::BEL, "HDIOS", tkn, xy)
                     .raw_tile(xy.delta(0, 31))
                     .num_tiles(120);
                 for i in 0..60 {
@@ -2203,7 +2203,7 @@ impl IntMaker<'_> {
                 );
                 let mut xn = self
                     .builder
-                    .xnode(tslots::RCLK_BEL, kind, kind, xy)
+                    .xtile(tslots::RCLK_BEL, kind, kind, xy)
                     .num_tiles(60);
                 for i in 0..60 {
                     xn = xn
@@ -2319,7 +2319,7 @@ impl IntMaker<'_> {
                 );
                 let mut xn = self
                     .builder
-                    .xnode(tslots::RCLK_BEL, "RCLK_HDIOL", naming, xy)
+                    .xtile(tslots::RCLK_BEL, "RCLK_HDIOL", naming, xy)
                     .num_tiles(60);
                 for i in 0..60 {
                     xn = xn
@@ -2672,7 +2672,7 @@ impl IntMaker<'_> {
                 );
                 let mut xn = self
                     .builder
-                    .xnode(tslots::CMT, kind, naming, xy)
+                    .xtile(tslots::CMT, kind, naming, xy)
                     .num_tiles(60)
                     .ref_xlat(
                         int_xy.delta(0, 30),
@@ -3015,7 +3015,7 @@ impl IntMaker<'_> {
                 bels.push(bel);
                 let mut xn = self
                     .builder
-                    .xnode(tslots::BEL, "XIPHY", "XIPHY", xy)
+                    .xtile(tslots::BEL, "XIPHY", "XIPHY", xy)
                     .num_tiles(15);
                 for i in 0..15 {
                     xn = xn
@@ -3063,7 +3063,7 @@ impl IntMaker<'_> {
                     .bel_virtual(bels::VCC_RCLK_XIPHY)
                     .extra_wire("VCC", &["VCC_WIRE"]);
                 self.builder
-                    .xnode(tslots::RCLK_BEL, "RCLK_XIPHY", naming, xy)
+                    .xtile(tslots::RCLK_BEL, "RCLK_XIPHY", naming, xy)
                     .num_tiles(0)
                     .bel(bel)
                     .bel(bel_vcc)
@@ -3184,7 +3184,7 @@ impl IntMaker<'_> {
                 };
                 let mut xn = self
                     .builder
-                    .xnode(tslots::IOB, "HPIO", naming, xy)
+                    .xtile(tslots::IOB, "HPIO", naming, xy)
                     .num_tiles(30);
                 for i in 0..30 {
                     xn = xn
@@ -3230,7 +3230,7 @@ impl IntMaker<'_> {
                 bels.push(self.builder.bel_xy(bels::HPIO_PRBS, "HPIO_RCLK_PRBS", 0, 0));
                 let mut xn = self
                     .builder
-                    .xnode(tslots::RCLK_IOB, "RCLK_HPIO", "RCLK_HPIO", xy)
+                    .xtile(tslots::RCLK_IOB, "RCLK_HPIO", "RCLK_HPIO", xy)
                     .num_tiles(60);
                 for i in 0..60 {
                     xn = xn
@@ -3435,7 +3435,7 @@ impl IntMaker<'_> {
 
             let mut xn = self
                 .builder
-                .xnode(tslots::BEL, "XP5IO", "XP5IO", xy)
+                .xtile(tslots::BEL, "XP5IO", "XP5IO", xy)
                 .raw_tile(xy.delta(-2, 30))
                 .num_tiles(60);
             for i in 0..60 {
@@ -3478,7 +3478,7 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_rclk(&mut self) {
-        for (node, tkn) in [
+        for (tcname, tkn) in [
             ("RCLK_HROUTE_SPLITTER.HARD", "PCIE4_PCIE4_FT"),
             ("RCLK_HROUTE_SPLITTER.HARD", "PCIE4C_PCIE4C_FT"),
             ("RCLK_HROUTE_SPLITTER.HARD", "PCIE4CE_PCIE4CE_FT"),
@@ -3506,7 +3506,7 @@ impl IntMaker<'_> {
                     .bel_virtual(bels::VCC_RCLK_HROUTE_SPLITTER)
                     .extra_wire("VCC", &["VCC_WIRE"]);
                 self.builder
-                    .xnode(tslots::RCLK_SPLITTER, node, "RCLK_HROUTE_SPLITTER", xy)
+                    .xtile(tslots::RCLK_SPLITTER, tcname, "RCLK_HROUTE_SPLITTER", xy)
                     .num_tiles(0)
                     .bel(bel)
                     .bel(bel_vcc)
@@ -3534,14 +3534,14 @@ impl IntMaker<'_> {
                 .bel_virtual(bels::VCC_RCLK_SPLITTER)
                 .extra_wire("VCC", &["VCC_WIRE"]);
             self.builder
-                .xnode(tslots::RCLK_SPLITTER, "RCLK_SPLITTER", "RCLK_SPLITTER", xy)
+                .xtile(tslots::RCLK_SPLITTER, "RCLK_SPLITTER", "RCLK_SPLITTER", xy)
                 .num_tiles(0)
                 .bel(bel)
                 .bel(bel_vcc)
                 .extract();
         }
 
-        for (node, tkn) in [
+        for (tcname, tkn) in [
             ("RCLK_V_SINGLE.CLE", "RCLK_CLEL_L_L"),
             ("RCLK_V_SINGLE.CLE", "RCLK_CLEL_L_R"),
             ("RCLK_V_SINGLE.CLE", "RCLK_CLEM_L"),
@@ -3594,9 +3594,9 @@ impl IntMaker<'_> {
                         .extra_wire("VCC", &["VCC_WIRE"]),
                 ];
                 self.builder
-                    .xnode(
+                    .xtile(
                         tslots::RCLK_V,
-                        node,
+                        tcname,
                         if is_alt {
                             "RCLK_V_SINGLE.ALT"
                         } else {
@@ -3695,7 +3695,7 @@ impl IntMaker<'_> {
                         .extra_wire("VCC", &["VCC_WIRE"]),
                 );
                 self.builder
-                    .xnode(
+                    .xtile(
                         tslots::RCLK_V,
                         "RCLK_V_DOUBLE.DSP",
                         if is_alt {
@@ -3711,7 +3711,7 @@ impl IntMaker<'_> {
             }
         }
 
-        for (node, tkn) in [
+        for (tcname, tkn) in [
             ("RCLK_V_QUAD.BRAM", "RCLK_BRAM_INTF_L"),
             ("RCLK_V_QUAD.BRAM", "RCLK_BRAM_INTF_TD_L"),
             ("RCLK_V_QUAD.BRAM", "RCLK_BRAM_INTF_TD_R"),
@@ -3803,13 +3803,13 @@ impl IntMaker<'_> {
                         .extra_wire("VCC", &["VCC_WIRE"]),
                 );
                 self.builder
-                    .xnode(
+                    .xtile(
                         tslots::RCLK_V,
-                        node,
+                        tcname,
                         &if is_alt {
-                            format!("{node}.ALT")
+                            format!("{tcname}.ALT")
                         } else {
-                            node.to_string()
+                            tcname.to_string()
                         },
                         xy,
                     )
@@ -4187,7 +4187,7 @@ impl IntMaker<'_> {
                 );
                 let mut xn = self
                     .builder
-                    .xnode(tslots::BEL, kind, naming, xy)
+                    .xtile(tslots::BEL, kind, naming, xy)
                     .num_tiles(60)
                     .ref_xlat(
                         int_xy.delta(0, 30),

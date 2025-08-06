@@ -460,10 +460,10 @@ impl<'a> Verifier<'a> {
                 let tname = &self.rd.tiles[&crd].name;
                 println!("INT INTF NODE PRESENT FOR {tname} {wire} BUT WAS MISSING PREVIOUSLY");
                 iwd.intf_node = Some(cnw);
-                self.claim_node(&[(crd, wire)]);
+                self.claim_net(&[(crd, wire)]);
             } else {
                 iwd.intf_node = Some(cnw);
-                self.claim_node(&[(crd, wire)]);
+                self.claim_net(&[(crd, wire)]);
             }
             true
         } else {
@@ -481,7 +481,7 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn verify_node(&mut self, tiles: &[(Coord, &str)]) {
+    pub fn verify_net(&mut self, tiles: &[(Coord, &str)]) {
         let mut nw = None;
         for &(crd, wn) in tiles {
             let tile = &self.rd.tiles[&crd];
@@ -520,7 +520,7 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn claim_node(&mut self, tiles: &[(Coord, &str)]) {
+    pub fn claim_net(&mut self, tiles: &[(Coord, &str)]) {
         let mut nw = None;
         for &(crd, wn) in tiles {
             let tile = &self.rd.tiles[&crd];
@@ -617,7 +617,7 @@ impl<'a> Verifier<'a> {
                         }
                         let act_wire = tkp.wire.map(|x| &*self.rd.wires[x]);
                         if act_wire.is_some() && pin.wire.is_none() {
-                            self.claim_node(&[(crd, act_wire.unwrap())]);
+                            self.claim_net(&[(crd, act_wire.unwrap())]);
                         } else if pin.wire != act_wire {
                             println!(
                                 "PIN WIRE MISMATCH {} {} {} {} {} {:?} {:?}",
@@ -649,10 +649,10 @@ impl<'a> Verifier<'a> {
 
     pub fn get_node_crds(
         &self,
-        nloc: TileCoord,
+        tcrd: TileCoord,
     ) -> Option<EntityPartVec<RawTileId, rawdump::Coord>> {
         let mut crds = EntityPartVec::new();
-        if let Some(nnode) = self.ngrid.tiles.get(&nloc) {
+        if let Some(nnode) = self.ngrid.tiles.get(&tcrd) {
             for (k, name) in &nnode.names {
                 if let Some(c) = self.xlat_tile(name) {
                     crds.insert(k, c);
@@ -753,7 +753,7 @@ impl<'a> Verifier<'a> {
                                 wn = self.print_nw(delay.dst),
                             );
                         }
-                        self.claim_node(&[(crds[def_rt], wdn)]);
+                        self.claim_net(&[(crds[def_rt], wdn)]);
                         self.claim_pip(crds[def_rt], wtn, wfn);
                         self.claim_pip(crds[def_rt], wtn, wdn);
                         self.claim_pip(crds[def_rt], wdn, wfn);
@@ -772,7 +772,7 @@ impl<'a> Verifier<'a> {
                 } else if wftie {
                     if !wires_pinned.contains(&wf) {
                         wires_pinned.insert(wf);
-                        self.claim_node(&[(crds[en.tile], &en.wire_from)]);
+                        self.claim_net(&[(crds[en.tile], &en.wire_from)]);
                         tie_pins_extra.insert(wf.wire, &en.wire_from);
                     }
                     pip_found = self.pin_int_wire(crds[en.tile], &en.wire_to, wti);
@@ -811,7 +811,7 @@ impl<'a> Verifier<'a> {
                 } else if wires_missing.contains(&wf) {
                     wff = false;
                 } else if wftie {
-                    self.claim_node(&[(crds[def_rt], &naming.wires[&wf])]);
+                    self.claim_net(&[(crds[def_rt], &naming.wires[&wf])]);
                     wires_pinned.insert(wf);
                     wff = true;
                 } else if let Some(n) = naming.wires.get(&wf) {
@@ -824,7 +824,7 @@ impl<'a> Verifier<'a> {
                         wff = self.pin_int_wire(crds[pip.tile], &pip.wire_from, wfi);
                         if wff {
                             self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
-                            self.claim_node(&[
+                            self.claim_net(&[
                                 (crds[pip.tile], &pip.wire_to),
                                 (crds[def_rt], &naming.wires[&wf]),
                             ]);
@@ -877,7 +877,7 @@ impl<'a> Verifier<'a> {
                     _ => continue,
                 };
                 if !wires_pinned.contains(&k) {
-                    self.claim_node(&[(crds[nnode.tie_rt], v)]);
+                    self.claim_net(&[(crds[nnode.tie_rt], v)]);
                 }
                 pins.push(SitePin {
                     dir: SitePinDir::Out,
@@ -924,12 +924,12 @@ impl<'a> Verifier<'a> {
                             let ncrd = crds[pip.tile];
                             wn = match v.dir {
                                 PinDir::Input => {
-                                    self.claim_node(&[(crd, wn), (ncrd, &pip.wire_to)]);
+                                    self.claim_net(&[(crd, wn), (ncrd, &pip.wire_to)]);
                                     self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
                                     &pip.wire_from
                                 }
                                 PinDir::Output => {
-                                    self.claim_node(&[(crd, wn), (ncrd, &pip.wire_from)]);
+                                    self.claim_net(&[(crd, wn), (ncrd, &pip.wire_from)]);
                                     self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
                                     &pip.wire_to
                                 }
@@ -951,11 +951,11 @@ impl<'a> Verifier<'a> {
                             if let Some(pip) = n.int_pips.get(&w) {
                                 self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
                                 if v.dir == PinDir::Input {
-                                    self.verify_node(&[(crd, wn), (crds[pip.tile], &pip.wire_to)]);
+                                    self.verify_net(&[(crd, wn), (crds[pip.tile], &pip.wire_to)]);
                                     wcrd = crds[pip.tile];
                                     ww = &pip.wire_from;
                                 } else {
-                                    self.verify_node(&[
+                                    self.verify_net(&[
                                         (crd, wn),
                                         (crds[pip.tile], &pip.wire_from),
                                     ]);
@@ -993,7 +993,7 @@ impl<'a> Verifier<'a> {
                             }
                         }
                         if claim {
-                            self.claim_node(&[(crd, wn)]);
+                            self.claim_net(&[(crd, wn)]);
                         }
                     }
                 }
@@ -1087,7 +1087,7 @@ impl<'a> Verifier<'a> {
         }
         for (&wf, iwin) in &naming.intf_wires_in {
             if let IntfWireInNaming::TestBuf { name_out, name_in } = iwin {
-                self.claim_node(&[(crds[def_rt], name_out)]);
+                self.claim_net(&[(crds[def_rt], name_out)]);
                 self.claim_pip(crds[def_rt], name_out, name_in);
             }
             if let IntfWireInNaming::Buf { name_out, name_in } = iwin
@@ -1168,7 +1168,7 @@ impl<'a> Verifier<'a> {
                                 let wff = self.pin_int_wire(crd, wfin, wf);
                                 pip_found = wtf && wff;
                                 if pip_found {
-                                    self.claim_node(&[(crd, wfn)]);
+                                    self.claim_net(&[(crd, wfn)]);
                                     self.claim_pip(crd, wtn, wfn);
                                     self.claim_pip(crd, wfn, wfin);
                                 }
@@ -1181,7 +1181,7 @@ impl<'a> Verifier<'a> {
                                 let wff = self.pin_int_wire(crd_far.unwrap(), wffin, wf);
                                 pip_found = wtf && wff;
                                 if pip_found {
-                                    self.claim_node(&[(crd, wfn), (crd_far.unwrap(), wffon)]);
+                                    self.claim_net(&[(crd, wfn), (crd_far.unwrap(), wffon)]);
                                     self.claim_pip(crd_far.unwrap(), wffon, wffin);
                                     self.claim_pip(crd, wtn, wfn);
                                 }
@@ -1447,7 +1447,7 @@ impl<'a> Verifier<'a> {
             let tk = &self.rd.tile_kinds[tile.kind];
             for &w in tk.wires.keys() {
                 if self.stub_outs.contains(&w) || self.stub_ins.contains(&w) {
-                    self.claim_node(&[(crd, &self.rd.wires[w])]);
+                    self.claim_net(&[(crd, &self.rd.wires[w])]);
                 }
                 if let Some(nw) = self.rd.lookup_wire_raw(crd, w) {
                     if self.cond_stub_outs.contains(&w) && !self.is_claimed_raw(crd, w) {

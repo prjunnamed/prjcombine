@@ -765,8 +765,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     } else {
         ["CLBLL", "CLBLM"]
     } {
-        let node_kind = ctx.edev.egrid().db.get_tile_class(tile);
-        if ctx.edev.egrid().tile_index[node_kind].is_empty() {
+        let tcls = ctx.edev.egrid().db.get_tile_class(tile);
+        if ctx.edev.egrid().tile_index[tcls].is_empty() {
             continue;
         }
         for (idx, bel) in ["SLICE0", "SLICE1"].into_iter().enumerate() {

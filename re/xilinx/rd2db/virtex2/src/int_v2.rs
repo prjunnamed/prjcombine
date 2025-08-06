@@ -776,7 +776,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let bels_int_sigh = [builder
         .bel_xy(bels::RLL, "RLL", 0, 0)
         .pins_name_only(&["LH0", "LH6", "LH12", "LH18", "LV0", "LV6", "LV12", "LV18"])];
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "CENTER",
@@ -784,7 +784,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.CLB",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "LR_IOIS",
@@ -792,7 +792,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.IOI.LR",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TB_IOIS",
@@ -800,7 +800,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.IOI.TB",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "ML_TB_IOIS",
@@ -808,7 +808,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.IOI.TB",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "ML_TBS_IOIS",
@@ -816,7 +816,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.IOI.TB",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "GIGABIT_IOI",
@@ -824,7 +824,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.IOI.TB",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "GIGABIT10_IOI",
@@ -832,7 +832,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.IOI.TB",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "MK_B_IOIS",
@@ -840,7 +840,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.IOI.CLK_B",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "MK_T_IOIS",
@@ -848,7 +848,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.IOI.CLK_T",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BRAM0",
@@ -856,7 +856,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.BRAM",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BRAM1",
@@ -864,7 +864,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.BRAM",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BRAM2",
@@ -872,7 +872,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.BRAM",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BRAM3",
@@ -880,7 +880,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.BRAM",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BRAM_IOIS",
@@ -888,7 +888,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.BRAM_IOIS",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "ML_BRAM_IOIS",
@@ -896,7 +896,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.ML_BRAM_IOIS",
         &bels_int_sigh,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "LL",
@@ -904,7 +904,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.CNR",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "LR",
@@ -912,7 +912,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.CNR",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "UL",
@@ -920,7 +920,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.CNR",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "UR",
@@ -928,7 +928,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.CNR",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT_INT0",
@@ -936,7 +936,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT_INT1",
@@ -944,7 +944,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT_INT2",
@@ -952,7 +952,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT_INT3",
@@ -960,7 +960,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT_INT4",
@@ -968,7 +968,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT.CLKPAD",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT_INT0",
@@ -976,7 +976,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT_INT1",
@@ -984,7 +984,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT_INT2",
@@ -992,7 +992,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT_INT3",
@@ -1000,7 +1000,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT_INT4",
@@ -1008,7 +1008,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT.CLKPAD",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT10_INT0",
@@ -1016,7 +1016,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT10_INT1",
@@ -1024,7 +1024,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT10_INT2",
@@ -1032,7 +1032,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT10_INT3",
@@ -1040,7 +1040,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT10_INT4",
@@ -1048,7 +1048,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT10_INT5",
@@ -1056,7 +1056,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT10_INT6",
@@ -1064,7 +1064,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT10_INT7",
@@ -1072,7 +1072,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BGIGABIT10_INT8",
@@ -1080,7 +1080,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT.CLKPAD",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT10_INT0",
@@ -1088,7 +1088,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT10_INT1",
@@ -1096,7 +1096,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT10_INT2",
@@ -1104,7 +1104,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT10_INT3",
@@ -1112,7 +1112,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT10_INT4",
@@ -1120,7 +1120,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT10_INT5",
@@ -1128,7 +1128,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT10_INT6",
@@ -1136,7 +1136,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT10_INT7",
@@ -1144,7 +1144,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TGIGABIT10_INT8",
@@ -1152,7 +1152,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.GT.CLKPAD",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "LPPC_X0Y0_INT",
@@ -1160,7 +1160,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.L",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "LPPC_X1Y0_INT",
@@ -1168,7 +1168,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.L",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "LLPPC_X0Y0_INT",
@@ -1176,7 +1176,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.L",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "LLPPC_X1Y0_INT",
@@ -1184,7 +1184,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.L",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "ULPPC_X0Y0_INT",
@@ -1192,7 +1192,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.L",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "ULPPC_X1Y0_INT",
@@ -1200,7 +1200,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.L",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "RPPC_X0Y0_INT",
@@ -1208,7 +1208,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.R",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "RPPC_X1Y0_INT",
@@ -1216,7 +1216,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.R",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BPPC_X0Y0_INT",
@@ -1224,7 +1224,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.B",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "BPPC_X1Y0_INT",
@@ -1232,7 +1232,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.B",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TPPC_X0Y0_INT",
@@ -1240,7 +1240,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT.PPC.T",
         &bels_int,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::INT,
         bels::INT,
         "TPPC_X1Y0_INT",
@@ -1292,7 +1292,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_wire("BUS3_E", &["TBUF3_E"])
             .extra_int_out("OUT", &["TBUS"]),
     ];
-    builder.extract_node_bels(tslots::BEL, "CENTER", "CLB", "CLB", &bels_clb);
+    builder.extract_int_bels(tslots::BEL, "CENTER", "CLB", "CLB", &bels_clb);
 
     let ioi_name_only = ["DIFFI_IN", "PADOUT", "DIFFO_IN", "DIFFO_OUT"];
     let bels_ioi = [
@@ -1313,12 +1313,12 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .pins_name_only(&ioi_name_only)
             .extra_wire_force("IBUF", "IOIS_IBUF3"),
     ];
-    builder.extract_node_bels(tslots::BEL, "LR_IOIS", "IOI", "IOI", &bels_ioi);
-    builder.extract_node_bels(tslots::BEL, "TB_IOIS", "IOI", "IOI", &bels_ioi);
-    builder.extract_node_bels(tslots::BEL, "ML_TB_IOIS", "IOI", "IOI", &bels_ioi);
-    builder.extract_node_bels(tslots::BEL, "ML_TBS_IOIS", "IOI", "IOI.TBS", &bels_ioi);
-    builder.extract_node_bels(tslots::BEL, "GIGABIT_IOI", "IOI", "IOI", &bels_ioi);
-    builder.extract_node_bels(tslots::BEL, "GIGABIT10_IOI", "IOI", "IOI", &bels_ioi);
+    builder.extract_int_bels(tslots::BEL, "LR_IOIS", "IOI", "IOI", &bels_ioi);
+    builder.extract_int_bels(tslots::BEL, "TB_IOIS", "IOI", "IOI", &bels_ioi);
+    builder.extract_int_bels(tslots::BEL, "ML_TB_IOIS", "IOI", "IOI", &bels_ioi);
+    builder.extract_int_bels(tslots::BEL, "ML_TBS_IOIS", "IOI", "IOI.TBS", &bels_ioi);
+    builder.extract_int_bels(tslots::BEL, "GIGABIT_IOI", "IOI", "IOI", &bels_ioi);
+    builder.extract_int_bels(tslots::BEL, "GIGABIT10_IOI", "IOI", "IOI", &bels_ioi);
     if rd.part.contains("vpx") {
         let bels_ioi_clk_b = [
             bels_ioi[0].clone(),
@@ -1346,14 +1346,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .bel_virtual(bels::BREFCLK_INT)
                 .extra_int_out("BREFCLK", &["IOIS_BREFCLK_SE"]),
         ];
-        builder.extract_node_bels(
+        builder.extract_int_bels(
             tslots::BEL,
             "MK_B_IOIS",
             "IOI.CLK_B",
             "IOI.CLK_B",
             &bels_ioi_clk_b,
         );
-        builder.extract_node_bels(
+        builder.extract_int_bels(
             tslots::BEL,
             "MK_T_IOIS",
             "IOI.CLK_T",
@@ -1383,7 +1383,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ("IOBS.V2P.R.B2", 2),
             ("IOBS.V2P.R.T2", 2),
         ] {
-            builder.make_marker_node(tslots::IOB, kind, num);
+            builder.make_marker_tile(tslots::IOB, kind, num);
         }
     } else {
         for (kind, num) in [
@@ -1396,20 +1396,20 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ("IOBS.V2.R.B2", 2),
             ("IOBS.V2.R.T2", 2),
         ] {
-            builder.make_marker_node(tslots::IOB, kind, num);
+            builder.make_marker_tile(tslots::IOB, kind, num);
         }
     }
 
     let bels_dcm = [builder.bel_xy(bels::DCM, "DCM", 0, 0)];
-    builder.extract_node_bels(tslots::BEL, "BRAM_IOIS", "DCM.V2", "DCM.V2", &bels_dcm);
-    builder.extract_node_bels(tslots::BEL, "ML_BRAM_IOIS", "DCM.V2P", "DCM.V2P", &bels_dcm);
+    builder.extract_int_bels(tslots::BEL, "BRAM_IOIS", "DCM.V2", "DCM.V2", &bels_dcm);
+    builder.extract_int_bels(tslots::BEL, "ML_BRAM_IOIS", "DCM.V2P", "DCM.V2P", &bels_dcm);
 
     let (ll, lr, ul, ur) = if rd.family == "virtex2p" {
         ("LL.V2P", "LR.V2P", "UL.V2P", "UR.V2P")
     } else {
         ("LL.V2", "LR.V2", "UL.V2", "UR.V2")
     };
-    builder.extract_node_bels(
+    builder.extract_int_bels(
         tslots::BEL,
         "LL",
         ll,
@@ -1420,7 +1420,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ],
     );
 
-    builder.extract_node_bels(
+    builder.extract_int_bels(
         tslots::BEL,
         "LR",
         lr,
@@ -1433,7 +1433,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_single(bels::ICAP, "ICAP"),
         ],
     );
-    builder.extract_node_bels(
+    builder.extract_int_bels(
         tslots::BEL,
         "UL",
         ul,
@@ -1445,7 +1445,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ],
     );
     if rd.family == "virtex2p" {
-        builder.extract_node_bels(
+        builder.extract_int_bels(
             tslots::BEL,
             "UR",
             ur,
@@ -1458,7 +1458,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
     } else {
-        builder.extract_node_bels(
+        builder.extract_int_bels(
             tslots::BEL,
             "UR",
             ur,
@@ -1776,7 +1776,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .extra_wire("BREFCLK2", &["ML_CLKB_BREFCLK2"]),
                 );
             }
-            builder.extract_xnode(
+            builder.extract_xtile(
                 tslots::CLK,
                 bels::CLK_INT,
                 nn,
@@ -1881,7 +1881,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .extra_wire("BREFCLK2", &["ML_CLKT_BREFCLK2"]),
                 );
             }
-            builder.extract_xnode(
+            builder.extract_xtile(
                 tslots::CLK,
                 bels::CLK_INT,
                 nn,
@@ -1904,7 +1904,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_B{i}"), &[format!("CLKC_GCLKB{i}")])
                 .extra_wire(format!("OUT_T{i}"), &[format!("CLKC_GCLKT{i}")]);
         }
-        builder.extract_xnode_bels(tslots::CLK, "CLKC", xy, &[], &[], "CLKC", &[bel]);
+        builder.extract_xtile_bels(tslots::CLK, "CLKC", xy, &[], &[], "CLKC", &[bel]);
     }
 
     for &xy in rd.tiles_by_kind_name("GCLKC") {
@@ -1917,7 +1917,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLKL{i}")])
                     .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLKR{i}")]);
             }
-            builder.extract_xnode_bels(tslots::HROW, nn, xy, &[], &[], "GCLKC", &[bel]);
+            builder.extract_xtile_bels(tslots::HROW, nn, xy, &[], &[], "GCLKC", &[bel]);
         }
     }
 
@@ -1932,7 +1932,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_int_out(format!("OUT_T{i}"), &[format!("GCLKH_GCLK_UP{i}")])
                     .extra_int_out(format!("OUT_B{i}"), &[format!("GCLKH_GCLK_DN{i}")]);
             }
-            builder.extract_xnode_bels(
+            builder.extract_xtile_bels(
                 tslots::HCLK,
                 "GCLKH",
                 xy,
@@ -1949,7 +1949,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for dy in 0..4 {
             int_xy.push(xy.delta(-1, dy));
         }
-        builder.extract_xnode_bels(
+        builder.extract_xtile_bels(
             tslots::BEL,
             "BRAM",
             xy,
@@ -1966,7 +1966,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for (tkn, kind) in [("BBTERM", "DCMCONN.BOT"), ("BTTERM", "DCMCONN.TOP")] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_xy = [xy.delta(0, if kind == "DCMCONN.BOT" { 1 } else { -1 })];
-            builder.extract_xnode_bels(
+            builder.extract_xtile_bels(
                 tslots::CLK,
                 kind,
                 xy,
@@ -2013,7 +2013,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for dy in 0..4 {
             int_xy.push(xy.delta(-1, dy));
         }
-        builder.extract_xnode_bels(
+        builder.extract_xtile_bels(
             tslots::BEL,
             "GIGABIT.B",
             xy,
@@ -2048,7 +2048,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for dy in 0..4 {
             int_xy.push(xy.delta(-1, dy));
         }
-        builder.extract_xnode_bels(
+        builder.extract_xtile_bels(
             tslots::BEL,
             "GIGABIT.T",
             xy,
@@ -2083,7 +2083,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for dy in [0, 1, 2, 3, 5, 6, 7, 8] {
             int_xy.push(xy.delta(-1, dy));
         }
-        builder.extract_xnode_bels(
+        builder.extract_xtile_bels(
             tslots::BEL,
             "GIGABIT10.B",
             xy,
@@ -2118,7 +2118,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for dy in [0, 1, 2, 3, 5, 6, 7, 8] {
             int_xy.push(xy.delta(-1, dy));
         }
-        builder.extract_xnode_bels(
+        builder.extract_xtile_bels(
             tslots::BEL,
             "GIGABIT10.T",
             xy,
@@ -2162,7 +2162,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             for dx in [0, 2, 3, 4, 5, 6, 7, 8] {
                 int_xy.push(xy.delta(-5 + dx, 7));
             }
-            builder.extract_xnode_bels(
+            builder.extract_xtile_bels(
                 tslots::BEL,
                 tkn,
                 xy,
@@ -2195,7 +2195,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     y: int_n_xy.y,
                 },
             ];
-            builder.extract_xnode_bels(
+            builder.extract_xtile_bels(
                 tslots::CLK,
                 tkn,
                 xy,

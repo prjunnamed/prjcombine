@@ -10,7 +10,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_siliconblue::{
     bels,
-    chip::{Chip, ChipKind, ExtraNode, ExtraNodeIo},
+    chip::{Chip, ChipKind, SpecialTile, SpecialIoKey},
     cslots, regions, tslots,
 };
 use unnamed_entity::{EntityId, EntityVec};
@@ -197,7 +197,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     }
 
     {
-        let mut node = TileClass::new(tslots::MAIN, 1);
+        let mut tcls = TileClass::new(tslots::MAIN, 1);
         for i in 0..8 {
             let mut bel = Bel::default();
             for j in 0..4 {
@@ -213,19 +213,19 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             add_input(&db, &mut bel, "RST", 0, "IMUX.RST");
             add_input(&db, &mut bel, "CE", 0, "IMUX.CE");
             add_output(&db, &mut bel, "O", 0, &[&format!("OUT.LC{i}")]);
-            node.bels.insert(bels::LC[i], BelInfo::Bel(bel));
+            tcls.bels.insert(bels::LC[i], BelInfo::Bel(bel));
         }
-        db.tile_classes.insert(kind.tile_class_plb().into(), node);
+        db.tile_classes.insert(kind.tile_class_plb().into(), tcls);
     }
     if kind != ChipKind::Ice40P03 {
-        let node = TileClass::new(tslots::MAIN, 1);
-        db.tile_classes.insert("INT_BRAM".into(), node);
+        let tcls = TileClass::new(tslots::MAIN, 1);
+        db.tile_classes.insert("INT_BRAM".into(), tcls);
     }
     for dir in Dir::DIRS {
         let Some(tile) = kind.tile_class_ioi(dir) else {
             continue;
         };
-        let mut node = TileClass::new(tslots::MAIN, 1);
+        let mut tcls = TileClass::new(tslots::MAIN, 1);
         for i in 0..2 {
             let mut bel = Bel::default();
             for pin in ["DOUT0", "DOUT1", "OE"] {
@@ -255,19 +255,19 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                     &format!("OUT.LC{}", 2 * i + 5)[..],
                 ],
             );
-            node.bels.insert(bels::IO[i], BelInfo::Bel(bel));
+            tcls.bels.insert(bels::IO[i], BelInfo::Bel(bel));
         }
-        db.tile_classes.insert(tile.into(), node);
+        db.tile_classes.insert(tile.into(), tcls);
         let Some(tile) = kind.tile_class_iob(dir) else {
             continue;
         };
-        let node = TileClass::new(tslots::IOB, 1);
-        db.tile_classes.insert(tile.into(), node);
+        let tcls = TileClass::new(tslots::IOB, 1);
+        db.tile_classes.insert(tile.into(), tcls);
     }
 
     if kind != ChipKind::Ice40P03 {
         let ice40_bramv2 = kind.has_ice40_bramv2();
-        let mut node = TileClass::new(tslots::BEL, 2);
+        let mut tcls = TileClass::new(tslots::BEL, 2);
         let mut bel = Bel::default();
         let (tile_w, tile_r) = if ice40_bramv2 { (1, 0) } else { (0, 1) };
         add_input(&db, &mut bel, "WCLK", tile_w, "IMUX.CLK.OPTINV");
@@ -322,35 +322,35 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 &[&format!("OUT.LC{lc}")],
             );
         }
-        node.bels.insert(bels::BRAM, BelInfo::Bel(bel));
-        db.tile_classes.insert(kind.tile_class_bram().into(), node);
+        tcls.bels.insert(bels::BRAM, BelInfo::Bel(bel));
+        db.tile_classes.insert(kind.tile_class_bram().into(), tcls);
     }
 
-    if let Some(tcls) = kind.tile_class_colbuf() {
-        for tcls in [tcls, "COLBUF_IO_W", "COLBUF_IO_E"] {
-            let node = TileClass::new(tslots::COLBUF, 1);
-            db.tile_classes.insert(tcls.into(), node);
+    if let Some(tcname) = kind.tile_class_colbuf() {
+        for tcname in [tcname, "COLBUF_IO_W", "COLBUF_IO_E"] {
+            let tcls = TileClass::new(tslots::COLBUF, 1);
+            db.tile_classes.insert(tcname.into(), tcls);
         }
     }
 
     {
-        let mut node = TileClass::new(tslots::BEL, 1);
+        let mut tcls = TileClass::new(tslots::BEL, 1);
         let mut bel = Bel::default();
         add_input(&db, &mut bel, "LATCH", 0, "IMUX.IO.EXTRA");
-        node.bels.insert(bels::IO_LATCH, BelInfo::Bel(bel));
-        db.tile_classes.insert("IO_LATCH".into(), node);
+        tcls.bels.insert(bels::IO_LATCH, BelInfo::Bel(bel));
+        db.tile_classes.insert("IO_LATCH".into(), tcls);
     }
 
     {
-        let mut node = TileClass::new(tslots::BEL, 1);
+        let mut tcls = TileClass::new(tslots::BEL, 1);
         let mut bel = Bel::default();
         add_input(&db, &mut bel, "I", 0, "IMUX.IO.EXTRA");
-        node.bels.insert(bels::GB_FABRIC, BelInfo::Bel(bel));
-        db.tile_classes.insert("GB_FABRIC".into(), node);
+        tcls.bels.insert(bels::GB_FABRIC, BelInfo::Bel(bel));
+        db.tile_classes.insert("GB_FABRIC".into(), tcls);
     }
 
     {
-        let mut node = TileClass::new(tslots::GB_ROOT, 1);
+        let mut tcls = TileClass::new(tslots::GB_ROOT, 1);
         let mut bel = Bel::default();
         for i in 0..8 {
             add_output(
@@ -361,36 +361,36 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 &[&format!("GLOBAL.{i}")],
             );
         }
-        node.bels.insert(bels::GB_ROOT, BelInfo::Bel(bel));
+        tcls.bels.insert(bels::GB_ROOT, BelInfo::Bel(bel));
         db.tile_classes
-            .insert(kind.tile_class_gb_root().into(), node);
+            .insert(kind.tile_class_gb_root().into(), tcls);
     }
 
     db
 }
 
-pub struct MiscNodeBuilder<'a> {
+pub struct MiscTileBuilder<'a> {
     pub chip: &'a Chip,
     pub tcls: TileClass,
-    pub io: BTreeMap<ExtraNodeIo, EdgeIoCoord>,
-    pub fixed_tiles: usize,
+    pub io: BTreeMap<SpecialIoKey, EdgeIoCoord>,
+    pub fixed_cells: usize,
     pub cells: EntityVec<CellSlotId, CellCoord>,
     pub cells_map: HashMap<CellCoord, CellSlotId>,
 }
 
-impl<'a> MiscNodeBuilder<'a> {
-    pub fn new(chip: &'a Chip, slot: TileSlotId, fixed_tiles: &[CellCoord]) -> Self {
+impl<'a> MiscTileBuilder<'a> {
+    pub fn new(chip: &'a Chip, slot: TileSlotId, fixed_cells: &[CellCoord]) -> Self {
         let mut cells = EntityVec::new();
         let mut cells_map = HashMap::new();
-        for &crd in fixed_tiles {
-            let tile = cells.push(crd);
-            cells_map.insert(crd, tile);
+        for &crd in fixed_cells {
+            let cell = cells.push(crd);
+            cells_map.insert(crd, cell);
         }
         Self {
             chip,
             tcls: TileClass::new(slot, cells.len()),
             io: Default::default(),
-            fixed_tiles: fixed_tiles.len(),
+            fixed_cells: fixed_cells.len(),
             cells,
             cells_map,
         }
@@ -434,10 +434,10 @@ impl<'a> MiscNodeBuilder<'a> {
         self.tcls.bels.insert(slot, BelInfo::Bel(bel));
     }
 
-    pub fn finish(mut self) -> (TileClass, ExtraNode) {
+    pub fn finish(mut self) -> (TileClass, SpecialTile) {
         let mut cells_sorted = Vec::from_iter(self.cells.values().copied());
         let mut new_cells: EntityVec<CellSlotId, _> =
-            EntityVec::from_iter(cells_sorted[..self.fixed_tiles].iter().copied());
+            EntityVec::from_iter(cells_sorted[..self.fixed_cells].iter().copied());
         let mut new_cells_map: HashMap<_, _> =
             HashMap::from_iter(new_cells.iter().map(|(k, &v)| (v, k)));
         cells_sorted.sort_by_key(|&crd| {
@@ -484,7 +484,7 @@ impl<'a> MiscNodeBuilder<'a> {
         }
         (
             self.tcls,
-            ExtraNode {
+            SpecialTile {
                 io: self.io,
                 cells: new_cells,
             },

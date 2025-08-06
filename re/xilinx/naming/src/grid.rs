@@ -271,7 +271,7 @@ impl<'a> ExpandedGridNaming<'a> {
 
     pub fn name_tile(
         &mut self,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         naming: &str,
         names: impl IntoIterator<Item = String>,
     ) -> &mut TileNaming {
@@ -286,7 +286,7 @@ impl<'a> ExpandedGridNaming<'a> {
             naming: self.db.get_tile_class_naming(naming),
             bels: EntityPartVec::new(),
         };
-        let hash_map::Entry::Vacant(entry) = self.tiles.entry(nloc) else {
+        let hash_map::Entry::Vacant(entry) = self.tiles.entry(tcrd) else {
             unreachable!()
         };
         entry.insert(ntile)

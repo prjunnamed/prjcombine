@@ -6,8 +6,8 @@ use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzC
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     for tile_name in ["LBRAM", "RBRAM", "MBRAM"] {
-        let node_kind = backend.egrid.db.get_tile_class(tile_name);
-        if backend.egrid.tile_index[node_kind].is_empty() {
+        let tcls = backend.egrid.db.get_tile_class(tile_name);
+        if backend.egrid.tile_index[tcls].is_empty() {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tile_name);
@@ -53,8 +53,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let egrid = ctx.edev.egrid();
     for tile in ["LBRAM", "RBRAM", "MBRAM"] {
-        let node_kind = egrid.db.get_tile_class(tile);
-        if egrid.tile_index[node_kind].is_empty() {
+        let tcls = egrid.db.get_tile_class(tile);
+        if egrid.tile_index[tcls].is_empty() {
             continue;
         }
         let bel = "BRAM";

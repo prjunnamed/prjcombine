@@ -18,7 +18,7 @@ use crate::{
 pub struct FuzzCtx<'sm, 'a> {
     pub session: &'sm mut Session<'a, XactBackend<'a>>,
     pub backend: &'a XactBackend<'a>,
-    pub node_kind: TileClassId,
+    pub tile_class: TileClassId,
 }
 
 impl<'sm, 'a> FuzzCtx<'sm, 'a> {
@@ -28,11 +28,11 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
         tile: impl Into<String>,
     ) -> Self {
         let tile = tile.into();
-        let node_kind = backend.egrid.db.get_tile_class(&tile);
+        let tile_class = backend.egrid.db.get_tile_class(&tile);
         Self {
             session,
             backend,
-            node_kind,
+            tile_class,
         }
     }
 
@@ -42,14 +42,14 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
         tile: impl Into<String>,
     ) -> Option<Self> {
         let tile = tile.into();
-        let node_kind = backend.egrid.db.get_tile_class(&tile);
-        if backend.egrid.tile_index[node_kind].is_empty() {
+        let tile_class = backend.egrid.db.get_tile_class(&tile);
+        if backend.egrid.tile_index[tile_class].is_empty() {
             return None;
         }
         Some(Self {
             session,
             backend,
-            node_kind,
+            tile_class,
         })
     }
 
@@ -57,7 +57,7 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
         FuzzCtxBel {
             session: &mut *self.session,
             backend: self.backend,
-            node_kind: self.node_kind,
+            tile_class: self.tile_class,
             bel,
         }
     }
@@ -66,7 +66,7 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
         FuzzBuilder {
             session: &mut *self.session,
             backend: self.backend,
-            node_kind: self.node_kind,
+            tile_class: self.tile_class,
             props: vec![],
         }
     }
@@ -87,7 +87,7 @@ impl<'sm, 'a> FuzzCtx<'sm, 'a> {
 pub struct FuzzBuilder<'sm, 'b> {
     pub session: &'sm mut Session<'b, XactBackend<'b>>,
     pub backend: &'b XactBackend<'b>,
-    pub node_kind: TileClassId,
+    pub tile_class: TileClassId,
     pub props: Vec<Box<DynProp<'b>>>,
 }
 
@@ -117,7 +117,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
                     .egrid
                     .db
                     .tile_classes
-                    .key(self.node_kind)
+                    .key(self.tile_class)
                     .clone(),
                 bel: bel.into(),
                 attr: opt.into(),
@@ -130,7 +130,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
                 val.into(),
             )));
             let fgen = FpgaFuzzerGen {
-                node_kind: Some(self.node_kind),
+                tile_class: Some(self.tile_class),
                 feature,
                 props,
             };
@@ -146,7 +146,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
                     .egrid
                     .db
                     .tile_classes
-                    .key(self.node_kind)
+                    .key(self.tile_class)
                     .clone(),
                 bel: bel.into(),
                 attr: opt.into(),
@@ -163,7 +163,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
                 true.into(),
             )));
             let fgen = FpgaFuzzerGen {
-                node_kind: Some(self.node_kind),
+                tile_class: Some(self.tile_class),
                 feature,
                 props,
             };
@@ -179,7 +179,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
                     .egrid
                     .db
                     .tile_classes
-                    .key(self.node_kind)
+                    .key(self.tile_class)
                     .clone(),
                 bel: bel.into(),
                 attr: opt.into(),
@@ -196,7 +196,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
                 true.into(),
             )));
             let fgen = FpgaFuzzerGen {
-                node_kind: Some(self.node_kind),
+                tile_class: Some(self.tile_class),
                 feature,
                 props,
             };
@@ -218,7 +218,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
                 .egrid
                 .db
                 .tile_classes
-                .key(self.node_kind)
+                .key(self.tile_class)
                 .clone(),
             bel: bel.into(),
             attr: attr.into(),
@@ -226,7 +226,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
         };
         FuzzBuilderTestManual {
             session: self.session,
-            node_kind: self.node_kind,
+            tile_class: self.tile_class,
             props: self.props,
             feature,
         }
@@ -235,7 +235,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
 
 pub struct FuzzBuilderTestManual<'sm, 'b> {
     pub session: &'sm mut Session<'b, XactBackend<'b>>,
-    pub node_kind: TileClassId,
+    pub tile_class: TileClassId,
     pub props: Vec<Box<DynProp<'b>>>,
     pub feature: FeatureId,
 }
@@ -269,7 +269,7 @@ impl<'b> FuzzBuilderTestManual<'_, 'b> {
 
     pub fn commit(self) {
         let fgen = FpgaFuzzerGen {
-            node_kind: Some(self.node_kind),
+            tile_class: Some(self.tile_class),
             feature: self.feature,
             props: self.props,
         };
@@ -280,7 +280,7 @@ impl<'b> FuzzBuilderTestManual<'_, 'b> {
 pub struct FuzzCtxBel<'sm, 'a> {
     pub session: &'sm mut Session<'a, XactBackend<'a>>,
     pub backend: &'a XactBackend<'a>,
-    pub node_kind: TileClassId,
+    pub tile_class: TileClassId,
     pub bel: BelSlotId,
 }
 
@@ -289,7 +289,7 @@ impl<'a> FuzzCtxBel<'_, 'a> {
         FuzzBuilderBel {
             session: &mut *self.session,
             backend: self.backend,
-            node_kind: self.node_kind,
+            tile_class: self.tile_class,
             bel: self.bel,
             props: vec![],
         }
@@ -307,7 +307,7 @@ impl<'a> FuzzCtxBel<'_, 'a> {
 pub struct FuzzBuilderBel<'sm, 'b> {
     pub session: &'sm mut Session<'b, XactBackend<'b>>,
     pub backend: &'b XactBackend<'b>,
-    pub node_kind: TileClassId,
+    pub tile_class: TileClassId,
     pub bel: BelSlotId,
     pub props: Vec<Box<DynProp<'b>>>,
 }
@@ -320,12 +320,12 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
 
     pub fn extra_tile(
         self,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         bel: impl Into<String>,
         attr: impl Into<String>,
         val: impl Into<String>,
     ) -> Self {
-        self.prop(ExtraTile::new(nloc, bel.into(), attr.into(), val.into()))
+        self.prop(ExtraTile::new(tcrd, bel.into(), attr.into(), val.into()))
     }
 
     pub fn mode(self, mode: impl Into<String>) -> Self {
@@ -373,7 +373,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
                     .egrid
                     .db
                     .tile_classes
-                    .key(self.node_kind)
+                    .key(self.tile_class)
                     .clone(),
                 bel: self.backend.egrid.db.bel_slots.key(self.bel).clone(),
                 attr: attr.into(),
@@ -391,7 +391,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
                 val.into(),
             )));
             let fgen = FpgaFuzzerGen {
-                node_kind: Some(self.node_kind),
+                tile_class: Some(self.tile_class),
                 feature,
                 props,
             };
@@ -438,7 +438,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
                 .egrid
                 .db
                 .tile_classes
-                .key(self.node_kind)
+                .key(self.tile_class)
                 .clone(),
             bel: self.backend.egrid.db.bel_slots.key(self.bel).clone(),
             attr: attr.into(),
@@ -446,7 +446,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         };
         FuzzBuilderBelTestManual {
             session: self.session,
-            node_kind: self.node_kind,
+            tile_class: self.tile_class,
             bel: self.bel,
             props: self.props,
             feature,
@@ -456,7 +456,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
 
 pub struct FuzzBuilderBelTestManual<'sm, 'b> {
     pub session: &'sm mut Session<'b, XactBackend<'b>>,
-    pub node_kind: TileClassId,
+    pub tile_class: TileClassId,
     pub bel: BelSlotId,
     pub props: Vec<Box<DynProp<'b>>>,
     pub feature: FeatureId,
@@ -495,7 +495,7 @@ impl<'b> FuzzBuilderBelTestManual<'_, 'b> {
 
     pub fn commit(self) {
         let fgen = FpgaFuzzerGen {
-            node_kind: Some(self.node_kind),
+            tile_class: Some(self.tile_class),
             feature: self.feature,
             props: self.props,
         };

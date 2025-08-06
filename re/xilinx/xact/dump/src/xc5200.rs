@@ -9,7 +9,7 @@ use prjcombine_interconnect::{
     grid::{CellCoord, DieId, EdgeIoCoord},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
-use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
+use prjcombine_re_xilinx_xact_naming::db::{NamingDb, TileNaming};
 use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
 use prjcombine_xc2000::{
     bels::xc5200 as bels,
@@ -617,7 +617,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     let mut intdb = make_intdb();
     let mut ndb = NamingDb::default();
     for name in intdb.tile_classes.keys() {
-        ndb.node_namings.insert(name.clone(), NodeNaming::default());
+        ndb.tile_namings.insert(name.clone(), TileNaming::default());
     }
     for (key, kind) in [
         ("L", "left"),
@@ -641,13 +641,13 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     for (tcrd, tile) in edev.egrid.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
-        let node_kind = &intdb.tile_classes[tile.class];
-        let nnode = &endev.ngrid.tiles[&tcrd];
-        if !nnode.tie_names.is_empty() {
-            let mut tie = extractor.grab_prim_a(&nnode.tie_names[0]);
+        let tcls = &intdb.tile_classes[tile.class];
+        let ntile = &endev.ngrid.tiles[&tcrd];
+        if !ntile.tie_names.is_empty() {
+            let mut tie = extractor.grab_prim_a(&ntile.tie_names[0]);
             let o = tie.get_pin("O");
             extractor.net_int(o, cell.wire(intdb.get_wire("GND")));
-            let mut dummy = extractor.grab_prim_a(&nnode.tie_names[1]);
+            let mut dummy = extractor.grab_prim_a(&ntile.tie_names[1]);
             let i = dummy.get_pin("I");
             let wire = if col == chip.col_w() {
                 if row == chip.row_s() {
@@ -678,12 +678,12 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             extractor.net_dummy(i);
             let (line, _) = extractor.consume_one_bwd(i, tcrd);
             extractor.net_int(line, wire);
-            if nnode.tie_names.len() > 2 {
+            if ntile.tie_names.len() > 2 {
                 // SCANTEST
-                extractor.grab_prim_ab(&nnode.tie_names[2], &nnode.tie_names[3]);
+                extractor.grab_prim_ab(&ntile.tie_names[2], &ntile.tie_names[3]);
             }
         }
-        for (slot, bel_info) in &node_kind.bels {
+        for (slot, bel_info) in &tcls.bels {
             let BelInfo::Bel(bel_info) = bel_info else {
                 continue;
             };
@@ -691,13 +691,13 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             let slot_name = intdb.bel_slots.key(slot);
             match slot {
                 bels::BUFG | bels::RDBK | bels::BSCAN => {
-                    let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);
+                    let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
                     for pin in bel_info.pins.keys() {
                         extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                     }
                 }
                 bels::STARTUP => {
-                    let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);
+                    let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
                     for pin in ["DONEIN", "Q1Q4", "Q2", "Q3", "GTS"] {
                         extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                     }
@@ -705,7 +705,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                     extractor.net_bel_int(prim.get_pin("GCLR"), bel, "GR");
                 }
                 bels::OSC => {
-                    let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);
+                    let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
                     for pin in ["OSC1", "OSC2"] {
                         extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                     }
@@ -719,33 +719,33 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                     // handled with OSC
                 }
                 bels::CLKIOB => {
-                    let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);
+                    let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
                     extractor.net_bel_int(prim.get_pin("I"), bel, "OUT");
                 }
                 bels::IO0 | bels::IO1 | bels::IO2 | bels::IO3 => {
-                    let mut prim = extractor.grab_prim_i(&nnode.bels[slot][0]);
+                    let mut prim = extractor.grab_prim_i(&ntile.bels[slot][0]);
                     for pin in bel_info.pins.keys() {
                         extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                     }
                 }
                 bels::TBUF0 | bels::TBUF1 | bels::TBUF2 | bels::TBUF3 => {
                     let mut prim =
-                        extractor.grab_prim_ab(&nnode.bels[slot][0], &nnode.bels[slot][1]);
+                        extractor.grab_prim_ab(&ntile.bels[slot][0], &ntile.bels[slot][1]);
                     let o = prim.get_pin("O");
                     extractor.net_bel(o, bel, "O");
                     let (net_o, pip) = extractor.consume_one_fwd(o, tcrd);
                     extractor.net_bel_int(net_o, bel, "O");
-                    extractor.bel_pip(nnode.naming, slot, "O", pip);
+                    extractor.bel_pip(ntile.naming, slot, "O", pip);
                     let i = prim.get_pin("I");
                     extractor.net_bel(i, bel, "I");
                     let (net_i, pip) = extractor.consume_one_bwd(i, tcrd);
                     extractor.net_bel_int(net_i, bel, "I");
-                    extractor.bel_pip(nnode.naming, slot, "I", pip);
+                    extractor.bel_pip(ntile.naming, slot, "I", pip);
                     let t = prim.get_pin("T");
                     extractor.net_bel(t, bel, "T");
                     let (net_t, pip) = extractor.consume_one_bwd(t, tcrd);
                     extractor.net_bel_int(net_t, bel, "T");
-                    extractor.bel_pip(nnode.naming, slot, "T", pip);
+                    extractor.bel_pip(ntile.naming, slot, "T", pip);
                     extractor.mark_tbuf_pseudo(net_o, net_i);
 
                     let wib = bel_info.pins["I"].wires.iter().next().unwrap().wire;
@@ -759,7 +759,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                 }
                 bels::LC0 => {
                     let mut prim =
-                        extractor.grab_prim_ab(&nnode.bels[slot][0], &nnode.bels[slot][1]);
+                        extractor.grab_prim_ab(&ntile.bels[slot][0], &ntile.bels[slot][1]);
                     for pin in ["CE", "CK", "CLR"] {
                         extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                     }
@@ -826,7 +826,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                         extractor.net_bel(co, bel, "CO");
                     }
                     let (co_b, pip) = extractor.consume_one_bwd(ci, tcrd);
-                    extractor.bel_pip(nnode.naming, slot, "CI", pip);
+                    extractor.bel_pip(ntile.naming, slot, "CI", pip);
                     if row == chip.row_s() + 1 {
                         extractor.net_bel_int(co_b, cell.delta(0, -1).bel(bels::CIN), "IN");
                     } else {
@@ -837,7 +837,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                     // handled with LC0
                 }
                 bels::SCANTEST => {
-                    extractor.grab_prim_ab(&nnode.bels[slot][0], &nnode.bels[slot][1]);
+                    extractor.grab_prim_ab(&ntile.bels[slot][0], &ntile.bels[slot][1]);
                 }
 
                 _ => panic!("umm bel {slot_name}?"),
@@ -847,15 +847,15 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     extractor.grab_prim_a("_cfg5200_");
 
     for (tcrd, tile) in edev.egrid.tiles() {
-        let nnode = &endev.ngrid.tiles[&tcrd];
-        let node_kind = &intdb.tile_classes[tile.class];
-        for (slot, _) in &node_kind.bels {
+        let ntile = &endev.ngrid.tiles[&tcrd];
+        let tcls = &intdb.tile_classes[tile.class];
+        for (slot, _) in &tcls.bels {
             if slot == bels::BUFR {
                 let bel = tcrd.bel(slot);
                 let net = extractor.get_bel_int_net(bel, "OUT");
                 let (imux, pip) = extractor.consume_one_bwd(net, tcrd);
                 extractor.net_bel_int(imux, bel, "IN");
-                extractor.bel_pip(nnode.naming, slot, "BUF", pip);
+                extractor.bel_pip(ntile.naming, slot, "BUF", pip);
             }
         }
     }

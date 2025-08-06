@@ -573,8 +573,8 @@ impl Expander<'_, '_> {
 
     fn fill_ioi(&mut self, cell: CellCoord) {
         let tile = &mut self.egrid[cell];
-        let node = &mut tile.tiles[tslots::INT];
-        node.class = self.db.get_tile_class("INT.IOI");
+        let tile = &mut tile.tiles[tslots::INT];
+        tile.class = self.db.get_tile_class("INT.IOI");
         self.egrid.add_tile(cell, "INTF.IOI", &[cell]);
         let kind = if cell.col == self.chip.col_w() || cell.col == self.chip.col_e() {
             "IOI.LR"

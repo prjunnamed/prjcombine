@@ -60,9 +60,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DeviceSide {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct PinNodeMutexShared(BelSlotId, &'static str);
+struct PinWireMutexShared(BelSlotId, &'static str);
 
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for PinNodeMutexShared {
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for PinWireMutexShared {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -73,18 +73,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for PinNodeMutexShared {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = &backend.egrid[tcrd];
-        let node_data = &backend.egrid.db.tile_classes[node.class];
-        let bel_data = &node_data.bels[self.0];
+        let tile = &backend.egrid[tcrd];
+        let tcls = &backend.egrid.db.tile_classes[tile.class];
+        let bel_data = &tcls.bels[self.0];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
         let pin_data = &bel_data.pins[self.1];
         for &wire in &pin_data.wires {
-            let node = backend
+            let wire = backend
                 .egrid
                 .resolve_wire(backend.egrid.tile_wire(tcrd, wire))?;
-            fuzzer = fuzzer.base(Key::NodeMutex(node), "SHARED");
+            fuzzer = fuzzer.base(Key::WireMutex(wire), "SHARED");
         }
         Some((fuzzer, false))
     }
@@ -101,11 +101,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzGlobalDll {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let nnode = &backend.ngrid.tiles[&nloc];
-        let site = &nnode.bels[self.0];
+        let ntile = &backend.ngrid.tiles[&tcrd];
+        let site = &ntile.bels[self.0];
         let opt = self.1;
         let ExpandedDevice::Virtex(edev) = backend.edev else {
             unreachable!()
@@ -201,8 +201,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 bctx.mode("DLL")
                     .global_mutex("DLL", "USE")
-                    .prop(PinNodeMutexShared(bels::DLL, "CLKIN"))
-                    .prop(PinNodeMutexShared(bels::DLL, "CLKFB"))
+                    .prop(PinWireMutexShared(bels::DLL, "CLKIN"))
+                    .prop(PinWireMutexShared(bels::DLL, "CLKFB"))
                     .test_manual(attr, val)
                     .prop(FuzzGlobalDll(bels::DLL, opt, val))
                     .commit();

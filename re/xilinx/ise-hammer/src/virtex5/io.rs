@@ -358,13 +358,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
             "EXCLUSIVE",
         );
 
-        let hclk_ioi_node = &edev.egrid[hclk_ioi];
+        let hclk_ioi_tile = &edev.egrid[hclk_ioi];
         fuzzer.info.features.push(FuzzerFeature {
             id: FeatureId {
                 tile: if edev.kind == ChipKind::Virtex5 {
                     "HCLK_IOI".into()
                 } else {
-                    edev.egrid.db.tile_classes.key(hclk_ioi_node.class).clone()
+                    edev.egrid.db.tile_classes.key(hclk_ioi_tile.class).clone()
                 },
                 bel: "LVDS".into(),
                 attr: self.0.into(),
@@ -1181,7 +1181,7 @@ pub fn add_fuzzers<'a>(
         let io_tile = CellCoord::new(die, edev.col_cfg, io_row).tile(tslots::BEL);
         let io_bel = io_tile.cell.bel(bels::IOB0);
         let hclk_row = chip.row_hclk(io_row);
-        let hclk_node = CellCoord::new(die, edev.col_cfg, hclk_row).tile(tslots::HCLK_BEL);
+        let hclk_tcrd = CellCoord::new(die, edev.col_cfg, hclk_row).tile(tslots::HCLK_BEL);
 
         // Ensure nothing is placed in VR.
         for bel in [bels::IOB0, bels::IOB1] {
@@ -1191,7 +1191,7 @@ pub fn add_fuzzers<'a>(
         builder = builder.extra_tile_attr_fixed(vr_tile, "IOB_COMMON", "PRESENT", "VR");
 
         // Set up hclk.
-        builder = builder.extra_tile_attr_fixed(hclk_node, "DCI", "ENABLE", "1");
+        builder = builder.extra_tile_attr_fixed(hclk_tcrd, "DCI", "ENABLE", "1");
 
         // Set up the IO and fire.
         let site = backend.ngrid.get_bel_name(io_bel).unwrap();
@@ -1233,7 +1233,7 @@ pub fn add_fuzzers<'a>(
         let io_tile_to = CellCoord::new(die, edev.col_cfg, io_row_to).tile(tslots::BEL);
         let io_bel_to = io_tile_to.cell.bel(bels::IOB0);
         let hclk_row_to = chip.row_hclk(io_row_to);
-        let hclk_node_to = CellCoord::new(die, edev.col_cfg, hclk_row_to).tile(tslots::HCLK_BEL);
+        let hclk_tcrd_to = CellCoord::new(die, edev.col_cfg, hclk_row_to).tile(tslots::HCLK_BEL);
 
         // Ensure nothing else in the bank.
         let bot = chip.row_reg_bot(chip.row_to_reg(io_row_from));
@@ -1306,7 +1306,7 @@ pub fn add_fuzzers<'a>(
             .raw_diff(Key::DciCascade(bank_to), None, bank_from)
             .extra_tile_attr_fixed(io_tile_to, "IOB0", "OSTD", "LVDCI_33")
             .extra_tile_attr_fixed(
-                hclk_node_to,
+                hclk_tcrd_to,
                 "DCI",
                 if bank_to == 1 {
                     "CASCADE_FROM_ABOVE"

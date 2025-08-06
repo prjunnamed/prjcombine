@@ -52,8 +52,8 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
 
     pub fn has_tile(&self, tile: &str) -> bool {
         let egrid = self.edev.egrid();
-        let node = egrid.db.get_tile_class(tile);
-        !egrid.tile_index[node].is_empty()
+        let tcid = egrid.db.get_tile_class(tile);
+        !egrid.tile_index[tcid].is_empty()
     }
 
     fn int_sb(&self, tcname: &str) -> &'a str {
@@ -78,8 +78,8 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     ) {
         let intdb = self.edev.egrid().db;
         let slot = intdb.bel_slots.get(bel).unwrap().0;
-        let node = intdb.tile_classes.get(tile).unwrap().1;
-        let bel = &node.bels[slot];
+        let tcls = intdb.tile_classes.get(tile).unwrap().1;
+        let bel = &tcls.bels[slot];
         let BelInfo::Bel(bel) = bel else {
             unreachable!()
         };
@@ -100,8 +100,8 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     pub fn item_int_inv(&self, int_tiles: &[&str], tile: &str, bel: &str, pin: &str) -> TileItem {
         let intdb = self.edev.egrid().db;
         let slot = intdb.bel_slots.get(bel).unwrap().0;
-        let node = intdb.tile_classes.get(tile).unwrap().1;
-        let bel = &node.bels[slot];
+        let tcls = intdb.tile_classes.get(tile).unwrap().1;
+        let bel = &tcls.bels[slot];
         let BelInfo::Bel(bel) = bel else {
             unreachable!()
         };

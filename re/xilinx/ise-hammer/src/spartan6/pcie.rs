@@ -111,12 +111,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let egrid = ctx.edev.egrid();
-    let node = egrid.db.get_tile_class("PCIE");
-    if egrid.tile_index[node].is_empty() {
+    let tile = "PCIE";
+    if !ctx.has_tile(tile) {
         return;
     }
-    let tile = "PCIE";
     let bel = "PCIE";
     ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     for attr in [

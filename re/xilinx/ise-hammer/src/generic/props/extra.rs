@@ -149,7 +149,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         if let Some(locs) = backend.egrid.tile_index.get(self.kind) {
@@ -204,12 +204,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        for (node_kind, locs) in &backend.egrid.tile_index {
-            let node_kind = &backend.egrid.db.tile_classes[node_kind];
-            if !node_kind.bels.contains_id(self.slot) {
+        for (tcls, locs) in &backend.egrid.tile_index {
+            let tcls = &backend.egrid.db.tile_classes[tcls];
+            if !tcls.bels.contains_id(self.slot) {
                 continue;
             }
             for &tcrd in locs {
@@ -269,7 +269,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraReg {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         for die in backend.egrid.die.ids() {
@@ -301,7 +301,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraGtz {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let main_id = &fuzzer.info.features[0].id;

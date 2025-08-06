@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_siliconblue::{
     bond::BondPad,
-    chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
+    chip::{ChipKind, SpecialIoKey, SpecialTileKey},
     expanded::ExpandedDevice,
 };
 use prjcombine_types::bitvec::BitVec;
@@ -26,7 +26,7 @@ pub struct GeneratorConfig<'a> {
     pub allow_global: bool,
     pub rows_colbuf: Vec<(RowId, RowId, RowId)>,
     pub prims: &'a BTreeMap<&'static str, Primitive>,
-    pub extra_node_locs: &'a BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
+    pub special_tiles: &'a BTreeMap<SpecialTileKey, Vec<RawLoc>>,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -123,14 +123,14 @@ impl Generator<'_> {
         let is_od = self.cfg.edev.chip.io_od.contains(&crd);
         let mut global_idx = None;
         let mut pll = None;
-        for (&loc, node) in &self.cfg.edev.chip.extra_nodes {
-            if let ExtraNodeLoc::GbIo(idx) = loc
-                && node.io[&ExtraNodeIo::GbIn] == crd
+        for (&key, special) in &self.cfg.edev.chip.special_tiles {
+            if let SpecialTileKey::GbIo(idx) = key
+                && special.io[&SpecialIoKey::GbIn] == crd
             {
                 global_idx = Some(idx);
             }
-            if let ExtraNodeLoc::Pll(side) = loc
-                && node.io[&ExtraNodeIo::PllA] == crd
+            if let SpecialTileKey::Pll(side) = key
+                && special.io[&SpecialIoKey::PllA] == crd
             {
                 pll = Some(side);
             }
@@ -151,14 +151,15 @@ impl Generator<'_> {
         if self.rng.random() {
             global_idx = None;
         }
-        let is_i3c = if let Some(xnode) = self.cfg.edev.chip.extra_nodes.get(&ExtraNodeLoc::I3c) {
-            xnode.io.values().any(|&x| x == crd)
-                && global_idx.is_none()
-                && self.cfg.allow_global
-                && self.rng.random()
-        } else {
-            false
-        };
+        let is_i3c =
+            if let Some(special) = self.cfg.edev.chip.special_tiles.get(&SpecialTileKey::I3c) {
+                special.io.values().any(|&x| x == crd)
+                    && global_idx.is_none()
+                    && self.cfg.allow_global
+                    && self.rng.random()
+            } else {
+                false
+            };
         let mut lvds = self.cfg.allow_global
             && self.rng.random()
             && !is_od
@@ -388,7 +389,7 @@ impl Generator<'_> {
     }
 
     fn emit_pll(&mut self, side: DirV) -> usize {
-        let xnode = &self.cfg.edev.chip.extra_nodes[&ExtraNodeLoc::Pll(side)];
+        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::Pll(side)];
         let mut kind = if self.cfg.edev.chip.kind.is_ice65() {
             *["SB_PLL_CORE", "SB_PLL_PAD", "SB_PLL_2_PAD"]
                 .choose(&mut self.rng)
@@ -404,7 +405,7 @@ impl Generator<'_> {
             .choose(&mut self.rng)
             .unwrap()
         };
-        let io_b = xnode.io[&ExtraNodeIo::PllB];
+        let io_b = special.io[&SpecialIoKey::PllB];
         if matches!(
             kind,
             "SB_PLL_2_PAD" | "SB_PLL40_2_PAD" | "SB_PLL40_2F_CORE" | "SB_PLL40_2F_PAD"
@@ -971,28 +972,28 @@ impl Generator<'_> {
 
     fn emit_led_drv(&mut self) {
         let mut do_rgb: bool = self.rng.random();
-        let xnode = &self.cfg.edev.chip.extra_nodes[&ExtraNodeLoc::RgbDrv];
-        for io in xnode.io.values() {
+        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::RgbDrv];
+        for io in special.io.values() {
             if !self.unused_io.contains(io) {
                 do_rgb = false;
             }
         }
         if do_rgb {
-            for io in xnode.io.values() {
+            for io in special.io.values() {
                 let io_idx = self.unused_io.iter().position(|x| x == io).unwrap();
                 self.unused_io.swap_remove(io_idx);
             }
         }
 
         let mut do_ir: bool = self.rng.random();
-        let xnode = &self.cfg.edev.chip.extra_nodes[&ExtraNodeLoc::IrDrv];
-        for io in xnode.io.values() {
+        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::IrDrv];
+        for io in special.io.values() {
             if !self.unused_io.contains(io) {
                 do_ir = false;
             }
         }
         if do_ir {
-            for io in xnode.io.values() {
+            for io in special.io.values() {
                 let io_idx = self.unused_io.iter().position(|x| x == io).unwrap();
                 self.unused_io.swap_remove(io_idx);
             }
@@ -1072,14 +1073,14 @@ impl Generator<'_> {
 
     fn emit_led_drv_v2(&mut self) {
         let mut do_rgba: bool = self.rng.random();
-        let xnode = &self.cfg.edev.chip.extra_nodes[&ExtraNodeLoc::RgbaDrv];
-        for io in xnode.io.values() {
+        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::RgbaDrv];
+        for io in special.io.values() {
             if !self.unused_io.contains(io) {
                 do_rgba = false;
             }
         }
         if do_rgba {
-            for io in xnode.io.values() {
+            for io in special.io.values() {
                 let io_idx = self.unused_io.iter().position(|x| x == io).unwrap();
                 self.unused_io.swap_remove(io_idx);
             }
@@ -1091,26 +1092,26 @@ impl Generator<'_> {
         let mut do_barcode =
             self.cfg.edev.chip.kind == ChipKind::Ice40T01 && !do_ir500 && self.rng.random();
         if self.cfg.edev.chip.kind == ChipKind::Ice40T01 {
-            let xnode = &self.cfg.edev.chip.extra_nodes[&ExtraNodeLoc::Ir500Drv];
-            let io = xnode.io[&ExtraNodeIo::IrLed];
+            let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::Ir500Drv];
+            let io = special.io[&SpecialIoKey::IrLed];
             if !self.unused_io.contains(&io) {
                 do_ir500 = false;
                 do_ir400 = false;
             }
 
-            let io = xnode.io[&ExtraNodeIo::BarcodeLed];
+            let io = special.io[&SpecialIoKey::BarcodeLed];
             if !self.unused_io.contains(&io) {
                 do_ir500 = false;
                 do_barcode = false;
             }
 
             if do_ir500 || do_ir400 {
-                let io = xnode.io[&ExtraNodeIo::IrLed];
+                let io = special.io[&SpecialIoKey::IrLed];
                 let io_idx = self.unused_io.iter().position(|x| *x == io).unwrap();
                 self.unused_io.swap_remove(io_idx);
             }
             if do_ir500 || do_barcode {
-                let io = xnode.io[&ExtraNodeIo::BarcodeLed];
+                let io = special.io[&SpecialIoKey::BarcodeLed];
                 let io_idx = self.unused_io.iter().position(|x| *x == io).unwrap();
                 self.unused_io.swap_remove(io_idx);
             }
@@ -1339,7 +1340,7 @@ impl Generator<'_> {
         }
         for (ii, inst) in insts.into_iter().enumerate() {
             let Some(mut inst) = inst else { continue };
-            inst.loc = Some(self.cfg.extra_node_locs[&ExtraNodeLoc::SpramPair(side)][ii]);
+            inst.loc = Some(self.cfg.special_tiles[&SpecialTileKey::SpramPair(side)][ii]);
             let inst = self.design.insts.push(inst);
             let outps = std::mem::take(&mut outps[ii]);
             let num_outps = self.rng.random_range(1..=outps.len());
@@ -1355,7 +1356,7 @@ impl Generator<'_> {
         }
         let prim = &self.cfg.prims[kind];
         let mut inst = Instance::new(kind);
-        let (xnloc, dedio, dedio_pair) = match kind {
+        let (key, dedio, dedio_pair) = match kind {
             "SB_SPI" => {
                 inst.prop(
                     "BUS_ADDR74",
@@ -1366,29 +1367,29 @@ impl Generator<'_> {
                 );
                 if self.cfg.edev.chip.kind == ChipKind::Ice40R04 {
                     (
-                        ExtraNodeLoc::Spi(side),
-                        [(ExtraNodeIo::SpiCsB1, "MCSNO1", "MCSNOE1", None)].as_slice(),
+                        SpecialTileKey::Spi(side),
+                        [(SpecialIoKey::SpiCsB1, "MCSNO1", "MCSNOE1", None)].as_slice(),
                         [
                             [
-                                (ExtraNodeIo::SpiCopi, "MO", "MOE", "SI"),
-                                (ExtraNodeIo::SpiCipo, "SO", "SOE", "MI"),
+                                (SpecialIoKey::SpiCopi, "MO", "MOE", "SI"),
+                                (SpecialIoKey::SpiCipo, "SO", "SOE", "MI"),
                             ],
                             [
-                                (ExtraNodeIo::SpiSck, "SCKO", "SCKOE", "SCKI"),
-                                (ExtraNodeIo::SpiCsB0, "MCSNO0", "MCSNOE0", "SCSNI"),
+                                (SpecialIoKey::SpiSck, "SCKO", "SCKOE", "SCKI"),
+                                (SpecialIoKey::SpiCsB0, "MCSNO0", "MCSNOE0", "SCSNI"),
                             ],
                         ]
                         .as_slice(),
                     )
                 } else {
                     (
-                        ExtraNodeLoc::Spi(side),
+                        SpecialTileKey::Spi(side),
                         [
-                            (ExtraNodeIo::SpiSck, "SCKO", "SCKOE", Some("SCKI")),
-                            (ExtraNodeIo::SpiCopi, "MO", "MOE", Some("SI")),
-                            (ExtraNodeIo::SpiCipo, "SO", "SOE", Some("MI")),
-                            (ExtraNodeIo::SpiCsB0, "MCSNO0", "MCSNOE0", Some("SCSNI")),
-                            (ExtraNodeIo::SpiCsB1, "MCSNO1", "MCSNOE1", None),
+                            (SpecialIoKey::SpiSck, "SCKO", "SCKOE", Some("SCKI")),
+                            (SpecialIoKey::SpiCopi, "MO", "MOE", Some("SI")),
+                            (SpecialIoKey::SpiCipo, "SO", "SOE", Some("MI")),
+                            (SpecialIoKey::SpiCsB0, "MCSNO0", "MCSNOE0", Some("SCSNI")),
+                            (SpecialIoKey::SpiCsB1, "MCSNO1", "MCSNOE1", None),
                         ]
                         .as_slice(),
                         [].as_slice(),
@@ -1411,10 +1412,10 @@ impl Generator<'_> {
                     },
                 );
                 (
-                    ExtraNodeLoc::I2c(side),
+                    SpecialTileKey::I2c(side),
                     [
-                        (ExtraNodeIo::I2cScl, "SCLO", "SCLOE", Some("SCLI")),
-                        (ExtraNodeIo::I2cSda, "SDAO", "SDAOE", Some("SDAI")),
+                        (SpecialIoKey::I2cScl, "SCLO", "SCLOE", Some("SCLI")),
+                        (SpecialIoKey::I2cSda, "SDAO", "SDAOE", Some("SDAI")),
                     ]
                     .as_slice(),
                     [].as_slice(),
@@ -1433,10 +1434,10 @@ impl Generator<'_> {
                     ["DISABLED", "ENABLED"].choose(&mut self.rng).unwrap(),
                 );
                 (
-                    ExtraNodeLoc::I2cFifo(side),
+                    SpecialTileKey::I2cFifo(side),
                     [
-                        (ExtraNodeIo::I2cScl, "SCLO", "SCLOE", Some("SCLI")),
-                        (ExtraNodeIo::I2cSda, "SDAO", "SDAOE", Some("SDAI")),
+                        (SpecialIoKey::I2cScl, "SCLO", "SCLOE", Some("SCLI")),
+                        (SpecialIoKey::I2cSda, "SDAO", "SDAOE", Some("SDAI")),
                     ]
                     .as_slice(),
                     [].as_slice(),
@@ -1456,9 +1457,9 @@ impl Generator<'_> {
         }
         let inst = self.design.insts.push(inst);
         let mut ded_pins = HashSet::new();
-        let xnode = &self.cfg.edev.chip.extra_nodes[&xnloc];
+        let special = &self.cfg.edev.chip.special_tiles[&key];
         for &(key, o, oe, i) in dedio {
-            let crd = xnode.io[&key];
+            let crd = special.io[&key];
             if self.rng.random_bool(0.7)
                 && *actual_ios > 6
                 && let Some(io_idx) = self.unused_io.iter().position(|&x| x == crd)
@@ -1492,8 +1493,8 @@ impl Generator<'_> {
             if *actual_ios < 8 {
                 continue;
             }
-            let crd0 = xnode.io[&pair[0].0];
-            let crd1 = xnode.io[&pair[1].0];
+            let crd0 = special.io[&pair[0].0];
+            let crd1 = special.io[&pair[1].0];
             if !self.unused_io.contains(&crd0) {
                 continue;
             }
@@ -1507,7 +1508,7 @@ impl Generator<'_> {
             *actual_ios -= 2;
             let do_inp = self.rng.random();
             for (key, o, oe, i) in pair {
-                let crd = xnode.io[&key];
+                let crd = special.io[&key];
                 ded_pins.insert(o);
                 ded_pins.insert(oe);
                 let pad = self.io_map[&crd];
@@ -1682,9 +1683,9 @@ impl Generator<'_> {
         for _ in 0..actual_lcs {
             things.push(Thing::Lut);
         }
-        for &key in self.cfg.edev.chip.extra_nodes.keys() {
+        for &key in self.cfg.edev.chip.special_tiles.keys() {
             match key {
-                ExtraNodeLoc::Spi(side) => {
+                SpecialTileKey::Spi(side) => {
                     if matches!(self.design.device.as_str(), "iCE5LP1K" | "iCE40LM1K")
                         && side == DirH::E
                     {
@@ -1692,7 +1693,7 @@ impl Generator<'_> {
                     }
                     things.push(Thing::Spi(side));
                 }
-                ExtraNodeLoc::I2c(side) => {
+                SpecialTileKey::I2c(side) => {
                     if matches!(self.design.device.as_str(), "iCE5LP1K" | "iCE40LM1K")
                         && side == DirH::E
                     {
@@ -1700,40 +1701,40 @@ impl Generator<'_> {
                     }
                     things.push(Thing::I2c(side));
                 }
-                ExtraNodeLoc::I2cFifo(side) => {
+                SpecialTileKey::I2cFifo(side) => {
                     things.push(Thing::I2cFifo(side));
                 }
-                ExtraNodeLoc::LsOsc => {
+                SpecialTileKey::LsOsc => {
                     things.push(Thing::LsOsc);
                 }
-                ExtraNodeLoc::HsOsc => {
+                SpecialTileKey::HsOsc => {
                     things.push(Thing::HsOsc);
                 }
-                ExtraNodeLoc::LfOsc => {
+                SpecialTileKey::LfOsc => {
                     things.push(Thing::LfOsc);
                 }
-                ExtraNodeLoc::HfOsc => {
+                SpecialTileKey::HfOsc => {
                     things.push(Thing::HfOsc);
                 }
-                ExtraNodeLoc::LeddIp => {
+                SpecialTileKey::LeddIp => {
                     things.push(Thing::LeddIp);
                 }
-                ExtraNodeLoc::LeddaIp => {
+                SpecialTileKey::LeddaIp => {
                     things.push(Thing::LeddaIp);
                 }
-                ExtraNodeLoc::IrIp => {
+                SpecialTileKey::IrIp => {
                     things.push(Thing::IrIp);
                 }
-                ExtraNodeLoc::Mac16(_, _) => {
+                SpecialTileKey::Mac16(_, _) => {
                     if dsp_limit > 0 {
                         things.push(Thing::Dsp);
                         dsp_limit -= 1;
                     }
                 }
-                ExtraNodeLoc::SpramPair(side) => {
+                SpecialTileKey::SpramPair(side) => {
                     things.push(Thing::Spram(side));
                 }
-                ExtraNodeLoc::I3c => {
+                SpecialTileKey::I3c => {
                     let num = self.rng.random_range(0..=2);
                     for _ in 0..num {
                         things.push(Thing::Filter);
@@ -1819,8 +1820,8 @@ impl Generator<'_> {
             .cfg
             .edev
             .chip
-            .extra_nodes
-            .contains_key(&ExtraNodeLoc::Warmboot)
+            .special_tiles
+            .contains_key(&SpecialTileKey::Warmboot)
             && self.rng.random()
         {
             self.emit_warmboot();

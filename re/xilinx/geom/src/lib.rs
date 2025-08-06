@@ -212,13 +212,13 @@ impl<'a> ExpandedDevice<'a> {
         }
     }
 
-    pub fn tile_bits(&self, nloc: TileCoord) -> Vec<BitTile> {
+    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
         match self {
-            ExpandedDevice::Xc2000(edev) => edev.tile_bits(nloc),
-            ExpandedDevice::Virtex(edev) => edev.tile_bits(nloc),
-            ExpandedDevice::Virtex2(edev) => edev.tile_bits(nloc),
-            ExpandedDevice::Spartan6(edev) => edev.tile_bits(nloc),
-            ExpandedDevice::Virtex4(edev) => edev.tile_bits(nloc),
+            ExpandedDevice::Xc2000(edev) => edev.tile_bits(tcrd),
+            ExpandedDevice::Virtex(edev) => edev.tile_bits(tcrd),
+            ExpandedDevice::Virtex2(edev) => edev.tile_bits(tcrd),
+            ExpandedDevice::Spartan6(edev) => edev.tile_bits(tcrd),
+            ExpandedDevice::Virtex4(edev) => edev.tile_bits(tcrd),
             ExpandedDevice::Ultrascale(_) => todo!(),
             ExpandedDevice::Versal(_) => todo!(),
         }

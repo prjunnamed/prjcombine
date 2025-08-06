@@ -12,7 +12,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::mutex::NodeMutexExclusive,
+        props::mutex::WireMutexExclusive,
     },
 };
 
@@ -131,9 +131,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .no_pin("GTS")
             .no_pin("GWE")
             .test_manual("GSR", "1")
-            .prop(NodeMutexExclusive::new(wire_gwe))
-            .prop(NodeMutexExclusive::new(wire_gts))
-            .prop(NodeMutexExclusive::new(wire_gsr))
+            .prop(WireMutexExclusive::new(wire_gwe))
+            .prop(WireMutexExclusive::new(wire_gts))
+            .prop(WireMutexExclusive::new(wire_gsr))
             .pin("GSR")
             .attr("GSRMUX", "GSR_B")
             .commit();
@@ -141,9 +141,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .no_pin("GSR")
             .no_pin("GWE")
             .test_manual("GTS", "1")
-            .prop(NodeMutexExclusive::new(wire_gwe))
-            .prop(NodeMutexExclusive::new(wire_gts))
-            .prop(NodeMutexExclusive::new(wire_gsr))
+            .prop(WireMutexExclusive::new(wire_gwe))
+            .prop(WireMutexExclusive::new(wire_gts))
+            .prop(WireMutexExclusive::new(wire_gsr))
             .pin("GTS")
             .attr("GTSMUX", "GTS_B")
             .commit();
@@ -151,9 +151,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .no_pin("GTS")
             .no_pin("GSR")
             .test_manual("GWE", "1")
-            .prop(NodeMutexExclusive::new(wire_gwe))
-            .prop(NodeMutexExclusive::new(wire_gts))
-            .prop(NodeMutexExclusive::new(wire_gsr))
+            .prop(WireMutexExclusive::new(wire_gwe))
+            .prop(WireMutexExclusive::new(wire_gts))
+            .prop(WireMutexExclusive::new(wire_gsr))
             .pin("GWE")
             .attr("GWEMUX", "GWE")
             .commit();

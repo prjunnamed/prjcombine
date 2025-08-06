@@ -569,8 +569,8 @@ impl<'a> ExpandedGrid<'a> {
             for col in self.cols(die) {
                 for row in self.rows(die) {
                     let cell = CellCoord::new(die, col, row);
-                    for (slot, node) in &self[cell].tiles {
-                        tile_index[node.class].push(TileCoord {
+                    for (slot, tile) in &self[cell].tiles {
+                        tile_index[tile.class].push(TileCoord {
                             cell: CellCoord { die, col, row },
                             slot,
                         });

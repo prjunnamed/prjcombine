@@ -16,12 +16,12 @@ use crate::{
     generic::{
         fbuild::FuzzCtx,
         int::{
-            BaseIntPip, DriveLLH, DriveLLV, FuzzIntPip, NodeIntDistinct, NodeIntDstFilter,
-            NodeIntSrcFilter,
+            BaseIntPip, DriveLLH, DriveLLV, FuzzIntPip, WireIntDistinct, WireIntDstFilter,
+            WireIntSrcFilter,
         },
         props::{
             DynProp,
-            mutex::{IntMutex, NodeMutexExclusive},
+            mutex::{IntMutex, WireMutexExclusive},
         },
     },
 };
@@ -86,12 +86,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let mut builder = ctx
                     .build()
                     .test_manual("INT", &mux_name, &in_name)
-                    .prop(NodeIntDistinct::new(wire_to, wire_from))
-                    .prop(NodeIntDstFilter::new(wire_to))
-                    .prop(NodeIntSrcFilter::new(wire_from))
+                    .prop(WireIntDistinct::new(wire_to, wire_from))
+                    .prop(WireIntDstFilter::new(wire_to))
+                    .prop(WireIntSrcFilter::new(wire_from))
                     .prop(IntMutex::new("MAIN".to_string()))
-                    .prop(NodeMutexExclusive::new(wire_to))
-                    .prop(NodeMutexExclusive::new(wire_from))
+                    .prop(WireMutexExclusive::new(wire_to))
+                    .prop(WireMutexExclusive::new(wire_from))
                     .prop(FuzzIntPip::new(wire_to, wire_from));
 
                 if let Some(rev) = tcls_index.pips_fwd.get(&wire_to)
@@ -118,8 +118,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         if let Some(wire_help) = wire_help {
                             builder = builder
                                 .prop(BaseIntPip::new(wire_from, wire_help))
-                                .prop(NodeMutexExclusive::new(wire_from))
-                                .prop(NodeMutexExclusive::new(wire_help));
+                                .prop(WireMutexExclusive::new(wire_from))
+                                .prop(WireMutexExclusive::new(wire_help));
                         } else {
                             let mut wire_help_a = None;
                             let mut wire_help_b = None;
@@ -151,9 +151,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 builder = builder
                                     .prop(BaseIntPip::new(wire_from, wire_help_a))
                                     .prop(BaseIntPip::new(wire_help_a, wire_help_b))
-                                    .prop(NodeMutexExclusive::new(wire_from))
-                                    .prop(NodeMutexExclusive::new(wire_help_a))
-                                    .prop(NodeMutexExclusive::new(wire_help_b));
+                                    .prop(WireMutexExclusive::new(wire_from))
+                                    .prop(WireMutexExclusive::new(wire_help_a))
+                                    .prop(WireMutexExclusive::new(wire_help_b));
                             }
                         }
                     }

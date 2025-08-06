@@ -33,14 +33,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for StabilizeGclkc {
     fn apply(
         &self,
         backend: &IseBackend<'b>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
-        for (node_kind, node_name, _) in &backend.egrid.db.tile_classes {
-            if !node_name.starts_with("GCLKC") {
+        for (tcid, tcname, _) in &backend.egrid.db.tile_classes {
+            if !tcname.starts_with("GCLKC") {
                 continue;
             }
-            for &nloc in &backend.egrid.tile_index[node_kind] {
+            for &tcrd in &backend.egrid.tile_index[tcid] {
                 for (o, i) in [
                     ("OUT_L0", "IN_B0"),
                     ("OUT_R0", "IN_B0"),
@@ -59,13 +59,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for StabilizeGclkc {
                     ("OUT_L7", "IN_B7"),
                     ("OUT_R7", "IN_B7"),
                 ] {
-                    fuzzer = fuzzer.base(Key::TileMutex(nloc, o.into()), i);
+                    fuzzer = fuzzer.base(Key::TileMutex(tcrd, o.into()), i);
                     (fuzzer, _) = BasePip::new(
                         NoopRelation,
                         PipWire::BelPinNear(bels::GCLKC, o.into()),
                         PipWire::BelPinNear(bels::GCLKC, i.into()),
                     )
-                    .apply(backend, nloc, fuzzer)?;
+                    .apply(backend, tcrd, fuzzer)?;
                 }
             }
         }
@@ -507,15 +507,15 @@ pub fn add_fuzzers<'a>(
     if !grid_kind.is_virtex2() && grid_kind != ChipKind::FpgaCore {
         // PTE2OMUX
         for tile in ["INT.DCM", "INT.DCM.S3E.DUMMY"] {
-            let node_kind = backend.egrid.db.get_tile_class(tile);
-            if backend.egrid.tile_index[node_kind].is_empty() {
+            let tcls = backend.egrid.db.get_tile_class(tile);
+            if backend.egrid.tile_index[tcls].is_empty() {
                 continue;
             }
             for i in 0..4 {
                 let mut ctx = FuzzCtx::new(session, backend, tile);
-                let node_kind = backend.egrid.db.get_tile_class(tile);
+                let tcid = backend.egrid.db.get_tile_class(tile);
                 let mut bctx = ctx.bel(bels::PTE2OMUX[i]);
-                let bel_data = &backend.egrid.db.tile_classes[node_kind].bels[bels::PTE2OMUX[i]];
+                let bel_data = &backend.egrid.db.tile_classes[tcid].bels[bels::PTE2OMUX[i]];
                 let BelInfo::Bel(bel_data) = bel_data else {
                     unreachable!()
                 };
@@ -590,8 +590,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     for tile in [clkb, clkt] {
         for i in 0..bufg_num {
             if edev.chip.kind != ChipKind::FpgaCore {
-                let node_kind = intdb.get_tile_class(tile);
-                let bel = &intdb.tile_classes[node_kind].bels[bels::BUFGMUX[i]];
+                let tcid = intdb.get_tile_class(tile);
+                let bel = &intdb.tile_classes[tcid].bels[bels::BUFGMUX[i]];
                 let BelInfo::Bel(bel) = bel else {
                     unreachable!()
                 };
@@ -786,11 +786,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             if !ctx.has_tile(tile) {
                 continue;
             }
-            let node_kind = intdb.get_tile_class(tile);
+            let tcid = intdb.get_tile_class(tile);
             let bel = "PTE2OMUX";
             for i in 0..4 {
                 let bel_id = bels::PTE2OMUX[i];
-                let bel_data = &intdb.tile_classes[node_kind].bels[bel_id];
+                let bel_data = &intdb.tile_classes[tcid].bels[bel_id];
                 let BelInfo::Bel(bel_data) = bel_data else {
                     unreachable!()
                 };

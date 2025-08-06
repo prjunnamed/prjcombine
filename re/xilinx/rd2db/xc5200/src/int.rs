@@ -471,7 +471,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     builder.extract_main_passes();
 
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "CENTER",
@@ -549,8 +549,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .bel_virtual(bels::COUT)
             .extra_int_out("OUT", &["WIRE_COUT_TOP"]),
     );
-    builder.extract_node(tslots::MAIN, bels::INT, "LEFT", "IO.L", "IO.L", &bels_io);
-    builder.extract_node(
+    builder.extract_int(tslots::MAIN, bels::INT, "LEFT", "IO.L", "IO.L", &bels_io);
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "LEFTCLK",
@@ -558,8 +558,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IO.L.CLK",
         &bels_io,
     );
-    builder.extract_node(tslots::MAIN, bels::INT, "RIGHT", "IO.R", "IO.R", &bels_io);
-    builder.extract_node(
+    builder.extract_int(tslots::MAIN, bels::INT, "RIGHT", "IO.R", "IO.R", &bels_io);
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "RIGHTCLK",
@@ -567,8 +567,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IO.R.CLK",
         &bels_io,
     );
-    builder.extract_node(tslots::MAIN, bels::INT, "BOT", "IO.B", "IO.B", &bels_io_b);
-    builder.extract_node(
+    builder.extract_int(tslots::MAIN, bels::INT, "BOT", "IO.B", "IO.B", &bels_io_b);
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "BOTCLK",
@@ -576,8 +576,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IO.B.CLK",
         &bels_io_b,
     );
-    builder.extract_node(tslots::MAIN, bels::INT, "TOP", "IO.T", "IO.T", &bels_io_t);
-    builder.extract_node(
+    builder.extract_int(tslots::MAIN, bels::INT, "TOP", "IO.T", "IO.T", &bels_io_t);
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "TOPCLK",
@@ -585,7 +585,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IO.T.CLK",
         &bels_io_t,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "LL",
@@ -599,7 +599,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_single(bels::RDBK, "RDBK"),
         ],
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "LR",
@@ -613,7 +613,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_single(bels::STARTUP, "STARTUP"),
         ],
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "UL",
@@ -627,7 +627,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_single(bels::BSCAN, "BSCAN"),
         ],
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "UR",
@@ -644,8 +644,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ],
     );
 
-    let node_bot = builder.db.tile_classes.get_mut("IO.B").unwrap().0;
-    let pips = builder.pips.get_mut(&(node_bot, bels::INT)).unwrap();
+    let tcls_bot = builder.db.tile_classes.get_mut("IO.B").unwrap().0;
+    let pips = builder.pips.get_mut(&(tcls_bot, bels::INT)).unwrap();
     pips.pips.retain(|&(_, wf), _| wf.wire != bot_cin);
 
     for tkn in ["CLKV", "CLKB", "CLKT"] {

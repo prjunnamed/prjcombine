@@ -178,7 +178,7 @@ fn has_any_vref<'a>(
     tile: &str,
     slot: BelSlotId,
 ) -> Option<&'a str> {
-    let node_kind = edev.egrid.db.get_tile_class(tile);
+    let tile_class = edev.egrid.db.get_tile_class(tile);
     let mut bonded_ios = HashMap::new();
     for devbond in device.bonds.values() {
         let bond = &db.bonds[devbond.bond];
@@ -189,7 +189,7 @@ fn has_any_vref<'a>(
             bonded_ios.insert(io, &devbond.name[..]);
         }
     }
-    for &tcrd in &edev.egrid.tile_index[node_kind] {
+    for &tcrd in &edev.egrid.tile_index[tile_class] {
         let crd = edev.chip.get_io_crd(tcrd.bel(slot));
         if let Some(&pkg) = bonded_ios.get(&crd) {
             return Some(pkg);

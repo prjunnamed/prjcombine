@@ -56,7 +56,7 @@ pub enum Key<'a> {
     GlobalMutex(String),
     RowMutex(String, RowId),
     BelMutex(BelCoord, String),
-    NodeMutex(WireCoord),
+    WireMutex(WireCoord),
     TileMutex(TileCoord, String),
     IntMutex(CellCoord),
 }
@@ -230,17 +230,17 @@ impl<'a> Backend for IseBackend<'a> {
         };
 
         let mut site_to_tile = HashMap::new();
-        for nnode in self.ngrid.tiles.values() {
-            if let Some(ref name) = nnode.tie_name {
-                site_to_tile.insert(name.to_string(), nnode.names[nnode.tie_rt].to_string());
+        for ntile in self.ngrid.tiles.values() {
+            if let Some(ref name) = ntile.tie_name {
+                site_to_tile.insert(name.to_string(), ntile.names[ntile.tie_rt].to_string());
             }
-            for (id, name) in &nnode.bels {
-                let BelNaming::Bel(bn) = &self.ngrid.db.tile_class_namings[nnode.naming].bels[id]
+            for (id, name) in &ntile.bels {
+                let BelNaming::Bel(bn) = &self.ngrid.db.tile_class_namings[ntile.naming].bels[id]
                 else {
                     unreachable!()
                 };
                 let rt = bn.tile;
-                site_to_tile.insert(name.to_string(), nnode.names[rt].to_string());
+                site_to_tile.insert(name.to_string(), ntile.names[rt].to_string());
             }
         }
         if let ExpandedNamedDevice::Virtex4(endev) = self.endev {
@@ -301,8 +301,8 @@ impl<'a> Backend for IseBackend<'a> {
             _ => None,
         };
         if let Some(dummy_kind) = dummy_kind {
-            for nnode in self.ngrid.tiles.values() {
-                if let Some(ref name) = nnode.tie_name {
+            for ntile in self.ngrid.tiles.values() {
+                if let Some(ref name) = ntile.tie_name {
                     insts.insert(
                         "DUMMY_INST".to_string(),
                         Instance {
@@ -779,8 +779,8 @@ impl<'a> Backend for IseBackend<'a> {
 impl FpgaBackend for IseBackend<'_> {
     type BitTile = BitTile;
 
-    fn tile_bits(&self, nloc: TileCoord) -> Vec<Self::BitTile> {
-        self.edev.tile_bits(nloc)
+    fn tile_bits(&self, tcrd: TileCoord) -> Vec<Self::BitTile> {
+        self.edev.tile_bits(tcrd)
     }
 
     fn egrid(&self) -> &ExpandedGrid<'_> {

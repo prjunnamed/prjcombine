@@ -1217,7 +1217,7 @@ pub fn add_fuzzers<'a>(
             CellCoord::new(die, edev.col_lcio.unwrap(), chip.row_bufg()).tile(tslots::BEL);
         let io_bel = io_tile.cell.bel(bels::IOB0);
         let hclk_row = chip.row_hclk(io_tile.cell.row);
-        let hclk_node =
+        let hclk_tcrd =
             CellCoord::new(die, edev.col_lcio.unwrap(), hclk_row).tile(tslots::HCLK_BEL);
 
         // Ensure nothing is placed in VR.
@@ -1228,7 +1228,7 @@ pub fn add_fuzzers<'a>(
         builder = builder.extra_tile_attr_fixed(vr_tile, "IOB_COMMON", "PRESENT", "VR");
 
         // Set up hclk.
-        builder = builder.extra_tile_attr_fixed(hclk_node, "DCI", "ENABLE", "1");
+        builder = builder.extra_tile_attr_fixed(hclk_tcrd, "DCI", "ENABLE", "1");
 
         // Set up the IO and fire.
         let site = backend.ngrid.get_bel_name(io_bel).unwrap();
@@ -1240,7 +1240,7 @@ pub fn add_fuzzers<'a>(
             .raw_diff(Key::SiteAttr(site, "OUSED".into()), None, "0")
             .raw_diff(Key::SiteAttr(site, "OSTANDARD".into()), None, "LVDCI_25")
             // Make note of anchor VCCO.
-            .raw(Key::TileMutex(hclk_node, "VCCO".to_string()), "2500")
+            .raw(Key::TileMutex(hclk_tcrd, "VCCO".to_string()), "2500")
             // Take exclusive mutex on global DCI.
             .raw_diff(Key::GlobalMutex("GLOBAL_DCI".into()), None, "EXCLUSIVE")
             // Avoid interference.

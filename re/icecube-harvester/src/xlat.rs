@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     grid::{CellCoord, ColId, DieId, RowId, WireCoord},
 };
 use prjcombine_siliconblue::{
-    chip::{ChipKind, ExtraNodeIo, ExtraNodeLoc},
+    chip::{ChipKind, SpecialIoKey, SpecialTileKey},
     expanded::ExpandedDevice,
 };
 use unnamed_entity::EntityId;
@@ -164,8 +164,8 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else {
                 unreachable!()
             };
-            if let Some(node) = edev.chip.extra_nodes.get(&ExtraNodeLoc::LatchIo(edge)) {
-                return GenericNet::Int(node.cells.first().unwrap().wire(wire));
+            if let Some(special) = edev.chip.special_tiles.get(&SpecialTileKey::LatchIo(edge)) {
+                return GenericNet::Int(special.cells.first().unwrap().wire(wire));
             } else {
                 return GenericNet::DummyHold(cell);
             }
@@ -279,12 +279,12 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(idx) = name.strip_prefix("fabout_") {
                 let idx: usize = idx.parse().unwrap();
                 let wire = edev.egrid.db.get_wire("IMUX.IO.EXTRA");
-                let node = &edev.chip.extra_nodes[&ExtraNodeLoc::GbFabric(idx)];
-                return GenericNet::Int(node.cells.first().unwrap().wire(wire));
+                let special = &edev.chip.special_tiles[&SpecialTileKey::GbFabric(idx)];
+                return GenericNet::Int(special.cells.first().unwrap().wire(wire));
             } else if let Some(idx) = name.strip_prefix("padin_") {
                 let idx: usize = idx.parse().unwrap();
-                if let Some(node) = edev.chip.extra_nodes.get(&ExtraNodeLoc::GbIo(idx)) {
-                    let bel = edev.chip.get_io_loc(node.io[&ExtraNodeIo::GbIn]);
+                if let Some(special) = edev.chip.special_tiles.get(&SpecialTileKey::GbIo(idx)) {
+                    let bel = edev.chip.get_io_loc(special.io[&SpecialIoKey::GbIn]);
                     return GenericNet::GlobalPadIn(bel.cell);
                 } else {
                     return match idx {

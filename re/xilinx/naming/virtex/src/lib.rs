@@ -85,18 +85,18 @@ impl Namer<'_> {
             if col == self.chip.col_w() || col == self.chip.col_e() {
                 continue;
             }
-            let nnode = self
+            let ntile = self
                 .ngrid
                 .tiles
                 .get_mut(&CellCoord::new(die, col, row).tile(tslots::MAIN))
                 .unwrap();
-            nnode.add_bel(bels::IO3, format!("EMPTY{ctr_empty}"));
+            ntile.add_bel(bels::IO3, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
-            nnode.add_bel(bels::IO2, format!("PAD{ctr_pad}"));
+            ntile.add_bel(bels::IO2, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
-            nnode.add_bel(bels::IO1, format!("PAD{ctr_pad}"));
+            ntile.add_bel(bels::IO1, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
-            nnode.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
+            ntile.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
         }
         for row in self.edev.egrid.rows(self.die).rev() {
@@ -104,18 +104,18 @@ impl Namer<'_> {
             if row == self.chip.row_s() || row == self.chip.row_n() {
                 continue;
             }
-            let nnode = self
+            let ntile = self
                 .ngrid
                 .tiles
                 .get_mut(&CellCoord::new(die, col, row).tile(tslots::MAIN))
                 .unwrap();
-            nnode.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
+            ntile.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
-            nnode.add_bel(bels::IO1, format!("PAD{ctr_pad}"));
+            ntile.add_bel(bels::IO1, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
-            nnode.add_bel(bels::IO2, format!("PAD{ctr_pad}"));
+            ntile.add_bel(bels::IO2, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
-            nnode.add_bel(bels::IO3, format!("PAD{ctr_pad}"));
+            ntile.add_bel(bels::IO3, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
         }
         for col in self.edev.egrid.cols(self.die).rev() {
@@ -126,18 +126,18 @@ impl Namer<'_> {
             if col == self.chip.col_w() || col == self.chip.col_e() {
                 continue;
             }
-            let nnode = self
+            let ntile = self
                 .ngrid
                 .tiles
                 .get_mut(&CellCoord::new(die, col, row).tile(tslots::MAIN))
                 .unwrap();
-            nnode.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
+            ntile.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
-            nnode.add_bel(bels::IO1, format!("PAD{ctr_pad}"));
+            ntile.add_bel(bels::IO1, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
-            nnode.add_bel(bels::IO2, format!("PAD{ctr_pad}"));
+            ntile.add_bel(bels::IO2, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
-            nnode.add_bel(bels::IO3, format!("EMPTY{ctr_empty}"));
+            ntile.add_bel(bels::IO3, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
         }
         for row in self.edev.egrid.rows(self.die) {
@@ -145,18 +145,18 @@ impl Namer<'_> {
             if row == self.chip.row_s() || row == self.chip.row_n() {
                 continue;
             }
-            let nnode = self
+            let ntile = self
                 .ngrid
                 .tiles
                 .get_mut(&CellCoord::new(die, col, row).tile(tslots::MAIN))
                 .unwrap();
-            nnode.add_bel(bels::IO3, format!("PAD{ctr_pad}"));
+            ntile.add_bel(bels::IO3, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
-            nnode.add_bel(bels::IO2, format!("PAD{ctr_pad}"));
+            ntile.add_bel(bels::IO2, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
-            nnode.add_bel(bels::IO1, format!("PAD{ctr_pad}"));
+            ntile.add_bel(bels::IO1, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
-            nnode.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
+            ntile.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
         }
     }
@@ -187,13 +187,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let kind = egrid.db.tile_classes.key(tile.class);
         match &kind[..] {
             "CNR.BL" => {
-                let nnode = namer.ngrid.name_tile(tcrd, "CNR.BL", ["BL".into()]);
-                nnode.add_bel(bels::CAPTURE, "CAPTURE".to_string());
+                let ntile = namer.ngrid.name_tile(tcrd, "CNR.BL", ["BL".into()]);
+                ntile.add_bel(bels::CAPTURE, "CAPTURE".to_string());
             }
             "CNR.TL" => {
-                let nnode = namer.ngrid.name_tile(tcrd, "CNR.TL", ["TL".into()]);
-                nnode.add_bel(bels::STARTUP, "STARTUP".to_string());
-                nnode.add_bel(bels::BSCAN, "BSCAN".to_string());
+                let ntile = namer.ngrid.name_tile(tcrd, "CNR.TL", ["TL".into()]);
+                ntile.add_bel(bels::STARTUP, "STARTUP".to_string());
+                ntile.add_bel(bels::BSCAN, "BSCAN".to_string());
             }
             "CNR.BR" => {
                 namer.ngrid.name_tile(tcrd, "CNR.BR", ["BR".into()]);
@@ -204,16 +204,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             "IO.L" => {
                 let c = namer.clut[col];
                 let r = namer.rlut[row];
-                let nnode = namer.ngrid.name_tile(tcrd, "IO.L", [format!("LR{r}")]);
-                nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.1"));
-                nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.0"));
+                let ntile = namer.ngrid.name_tile(tcrd, "IO.L", [format!("LR{r}")]);
+                ntile.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.1"));
+                ntile.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.0"));
             }
             "IO.R" => {
                 let c = namer.clut[col];
                 let r = namer.rlut[row];
-                let nnode = namer.ngrid.name_tile(tcrd, "IO.R", [format!("RR{r}")]);
-                nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
-                nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
+                let ntile = namer.ngrid.name_tile(tcrd, "IO.R", [format!("RR{r}")]);
+                ntile.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
+                ntile.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
             }
             "IO.B" => {
                 let c = namer.clut[col];
@@ -226,15 +226,15 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             "CLB" => {
                 let c = namer.clut[col];
                 let r = namer.rlut[row];
-                let nnode = namer.ngrid.name_tile(tcrd, "CLB", [format!("R{r}C{c}")]);
-                nnode.add_bel(bels::SLICE0, format!("CLB_R{r}C{c}.S0"));
-                nnode.add_bel(bels::SLICE1, format!("CLB_R{r}C{c}.S1"));
+                let ntile = namer.ngrid.name_tile(tcrd, "CLB", [format!("R{r}C{c}")]);
+                ntile.add_bel(bels::SLICE0, format!("CLB_R{r}C{c}.S0"));
+                ntile.add_bel(bels::SLICE1, format!("CLB_R{r}C{c}.S1"));
                 if c % 2 == 1 {
-                    nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
-                    nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
+                    ntile.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.0"));
+                    ntile.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.1"));
                 } else {
-                    nnode.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.1"));
-                    nnode.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.0"));
+                    ntile.add_bel(bels::TBUF0, format!("TBUF_R{r}C{c}.1"));
+                    ntile.add_bel(bels::TBUF1, format!("TBUF_R{r}C{c}.0"));
                 }
             }
             "BRAM_BOT" => {
@@ -301,22 +301,22 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 let br = (chip.rows - 1 - row.to_idx() - 4) / 4;
                 let bc = namer.brambelclut[col];
-                let nnode = namer.ngrid.name_tile(tcrd, kind, names);
-                nnode.add_bel(bels::BRAM, format!("RAMB4_R{br}C{bc}"));
+                let ntile = namer.ngrid.name_tile(tcrd, kind, names);
+                ntile.add_bel(bels::BRAM, format!("RAMB4_R{br}C{bc}"));
             }
             "CLKB" | "CLKB_2DLL" | "CLKB_4DLL" => {
-                let nnode = namer.ngrid.name_tile(tcrd, kind, ["BM".into()]);
-                nnode.add_bel(bels::GCLK_IO0, "GCLKPAD0".to_string());
-                nnode.add_bel(bels::GCLK_IO1, "GCLKPAD1".to_string());
-                nnode.add_bel(bels::BUFG0, "GCLKBUF0".to_string());
-                nnode.add_bel(bels::BUFG1, "GCLKBUF1".to_string());
+                let ntile = namer.ngrid.name_tile(tcrd, kind, ["BM".into()]);
+                ntile.add_bel(bels::GCLK_IO0, "GCLKPAD0".to_string());
+                ntile.add_bel(bels::GCLK_IO1, "GCLKPAD1".to_string());
+                ntile.add_bel(bels::BUFG0, "GCLKBUF0".to_string());
+                ntile.add_bel(bels::BUFG1, "GCLKBUF1".to_string());
             }
             "CLKT" | "CLKT_2DLL" | "CLKT_4DLL" => {
-                let nnode = namer.ngrid.name_tile(tcrd, kind, ["TM".into()]);
-                nnode.add_bel(bels::GCLK_IO0, "GCLKPAD2".to_string());
-                nnode.add_bel(bels::GCLK_IO1, "GCLKPAD3".to_string());
-                nnode.add_bel(bels::BUFG0, "GCLKBUF2".to_string());
-                nnode.add_bel(bels::BUFG1, "GCLKBUF3".to_string());
+                let ntile = namer.ngrid.name_tile(tcrd, kind, ["TM".into()]);
+                ntile.add_bel(bels::GCLK_IO0, "GCLKPAD2".to_string());
+                ntile.add_bel(bels::GCLK_IO1, "GCLKPAD3".to_string());
+                ntile.add_bel(bels::BUFG0, "GCLKBUF2".to_string());
+                ntile.add_bel(bels::BUFG1, "GCLKBUF3".to_string());
             }
             "DLL.BOT" => {
                 let (naming, name, bname) = if col < chip.col_clk() {
@@ -324,10 +324,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 } else {
                     ("DLL.BR", "RBRAM_BOT", "DLL0")
                 };
-                let nnode = namer
+                let ntile = namer
                     .ngrid
                     .name_tile(tcrd, naming, [name.into(), "BM".into()]);
-                nnode.add_bel(bels::DLL, bname.to_string());
+                ntile.add_bel(bels::DLL, bname.to_string());
             }
             "DLL.TOP" => {
                 let (naming, name, bname) = if col < chip.col_clk() {
@@ -335,10 +335,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 } else {
                     ("DLL.TR", "RBRAM_TOP", "DLL2")
                 };
-                let nnode = namer
+                let ntile = namer
                     .ngrid
                     .name_tile(tcrd, naming, [name.into(), "TM".into()]);
-                nnode.add_bel(bels::DLL, bname.to_string());
+                ntile.add_bel(bels::DLL, bname.to_string());
             }
             "DLLS.BOT" | "DLLP.BOT" | "DLLS.TOP" | "DLLP.TOP" => {
                 let c = namer.bramclut[col];
@@ -367,18 +367,18 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 } else {
                     format!("DLL{sp}.{bt}{lr}")
                 };
-                let nnode = namer
+                let ntile = namer
                     .ngrid
                     .name_tile(tcrd, &naming, [name, format!("{bt}M")]);
-                nnode.add_bel(bels::DLL, format!("DLL{dll}{spn}"));
+                ntile.add_bel(bels::DLL, format!("DLL{dll}{spn}"));
             }
             "CLKL" => {
-                let nnode = namer.ngrid.name_tile(tcrd, "CLKL", ["LM".into()]);
-                nnode.add_bel(bels::PCILOGIC, "LPCILOGIC".to_string());
+                let ntile = namer.ngrid.name_tile(tcrd, "CLKL", ["LM".into()]);
+                ntile.add_bel(bels::PCILOGIC, "LPCILOGIC".to_string());
             }
             "CLKR" => {
-                let nnode = namer.ngrid.name_tile(tcrd, "CLKR", ["RM".into()]);
-                nnode.add_bel(bels::PCILOGIC, "RPCILOGIC".to_string());
+                let ntile = namer.ngrid.name_tile(tcrd, "CLKR", ["RM".into()]);
+                ntile.add_bel(bels::PCILOGIC, "RPCILOGIC".to_string());
             }
             "CLKV_BRAM_S" => {
                 let name = if chip.kind == ChipKind::Virtex {

@@ -7,15 +7,15 @@ use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzC
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.egrid.db;
     for tile in ["RBPPC", "LBPPC"] {
-        let node_kind = intdb.get_tile_class(tile);
-        if backend.egrid.tile_index[node_kind].is_empty() {
+        let tcid = intdb.get_tile_class(tile);
+        if backend.egrid.tile_index[tcid].is_empty() {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tile);
         let mut bctx = ctx.bel(bels::PPC405);
         let mode = "PPC405";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
-        let bel_data = &intdb.tile_classes[node_kind].bels[bels::PPC405];
+        let bel_data = &intdb.tile_classes[tcid].bels[bels::PPC405];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
@@ -38,13 +38,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let egrid = ctx.edev.egrid();
     for tile in ["RBPPC", "LBPPC"] {
-        let node_kind = egrid.db.get_tile_class(tile);
-        if egrid.tile_index[node_kind].is_empty() {
+        let tcid = egrid.db.get_tile_class(tile);
+        if egrid.tile_index[tcid].is_empty() {
             continue;
         }
         let bel = "PPC405";
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-        let bel_data = &egrid.db.tile_classes[node_kind].bels[bels::PPC405];
+        let bel_data = &egrid.db.tile_classes[tcid].bels[bels::PPC405];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };

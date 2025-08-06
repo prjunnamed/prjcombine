@@ -40,7 +40,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     for (tcrd, tile) in egrid.tiles() {
         let kind = egrid.db.tile_classes.key(tile.class);
         if kind.starts_with("BIDI") {
-            ngrid.name_node(tcrd, kind, []);
+            ngrid.name_tile(tcrd, kind, []);
             continue;
         }
         let mut naming = &kind[..];
@@ -50,24 +50,24 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         if tcrd.col == grid.col_e() && tcrd.row == grid.row_s() + 1 {
             naming = "CLB.B1R";
         }
-        let nnode = ngrid.name_node(
+        let ntile = ngrid.name_tile(
             tcrd,
             naming,
             [(col_x[tcrd.col].clone(), row_y[tcrd.row].clone())],
         );
         if (kind.starts_with("CLB.B") || kind.starts_with("CLB.T")) && !kind.ends_with('R') {
-            nnode
+            ntile
                 .coords
                 .push((col_x[tcrd.col + 1].clone(), row_y[tcrd.row].clone()));
         }
 
         if kind.ends_with(['L', 'R']) && !kind.starts_with("CLB.B") {
-            nnode
+            ntile
                 .coords
                 .push((col_x[tcrd.col].clone(), row_y[tcrd.row - 1].clone()));
         }
         if !kind.starts_with("CLB.T") {
-            nnode
+            ntile
                 .coords
                 .push((col_x[tcrd.col].clone(), row_y[tcrd.row + 1].clone()));
         }
@@ -77,61 +77,61 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let ridx = u32::try_from(ridx).unwrap();
         let r = char::from_u32(u32::from('A') + ridx).unwrap();
         let c = char::from_u32(u32::from('A') + cidx).unwrap();
-        nnode.add_bel(bels::CLB, vec![format!("{r}{c}")]);
+        ntile.add_bel(bels::CLB, vec![format!("{r}{c}")]);
         if kind.starts_with("CLB.B") {
             let p0 = 1 + grid.columns * 2 + grid.rows * 2 - 3
                 + (grid.col_e().to_idx() - tcrd.col.to_idx()) * 2;
             let p1 = p0 + 1;
-            nnode.add_bel(bels::IO_S0, vec![format!("PAD{p1}")]);
-            nnode.add_bel(bels::IO_S1, vec![format!("PAD{p0}")]);
+            ntile.add_bel(bels::IO_S0, vec![format!("PAD{p1}")]);
+            ntile.add_bel(bels::IO_S1, vec![format!("PAD{p0}")]);
             if kind == "CLB.BL" {
                 let p2 = p0 + 2;
-                nnode.add_bel(bels::IO_W0, vec![format!("PAD{p2}")]);
+                ntile.add_bel(bels::IO_W0, vec![format!("PAD{p2}")]);
             } else if kind == "CLB.BR" {
                 let p2 = p0 - 1;
-                nnode.add_bel(bels::IO_E0, vec![format!("PAD{p2}")]);
+                ntile.add_bel(bels::IO_E0, vec![format!("PAD{p2}")]);
                 let cidx = tcrd.col.to_idx() + 1;
                 let ridx = grid.rows - tcrd.row.to_idx();
                 let cidx = u32::try_from(cidx).unwrap();
                 let ridx = u32::try_from(ridx).unwrap();
                 let r = char::from_u32(u32::from('A') + ridx).unwrap();
                 let c = char::from_u32(u32::from('A') + cidx).unwrap();
-                nnode.add_bel(bels::BUFG, vec![format!("CLK.{r}{c}")]);
-                nnode.add_bel(bels::OSC, vec![format!("OSC.{r}{c}")]);
+                ntile.add_bel(bels::BUFG, vec![format!("CLK.{r}{c}")]);
+                ntile.add_bel(bels::OSC, vec![format!("OSC.{r}{c}")]);
             }
         } else if kind.starts_with("CLB.T") {
             let p0 = 1 + tcrd.col.to_idx() * 2;
             let p1 = p0 + 1;
-            nnode.add_bel(bels::IO_N0, vec![format!("PAD{p0}")]);
-            nnode.add_bel(bels::IO_N1, vec![format!("PAD{p1}")]);
+            ntile.add_bel(bels::IO_N0, vec![format!("PAD{p0}")]);
+            ntile.add_bel(bels::IO_N1, vec![format!("PAD{p1}")]);
             if kind == "CLB.TL" {
                 let p = grid.columns * 4 + grid.rows * 4 - 6;
-                nnode.add_bel(bels::IO_W1, vec![format!("PAD{p}")]);
-                nnode.add_bel(bels::BUFG, vec!["CLK.AA".into()]);
+                ntile.add_bel(bels::IO_W1, vec![format!("PAD{p}")]);
+                ntile.add_bel(bels::BUFG, vec!["CLK.AA".into()]);
             } else if kind == "CLB.TR" {
                 let p2 = p0 + 2;
-                nnode.add_bel(bels::IO_E1, vec![format!("PAD{p2}")]);
+                ntile.add_bel(bels::IO_E1, vec![format!("PAD{p2}")]);
             }
         } else if kind == "CLB.ML" {
             let p = 1 + grid.columns * 4 + grid.rows * 2 - 3 + tcrd.row.to_idx() * 2 - 1;
-            nnode.add_bel(bels::IO_W1, vec![format!("PAD{p}")]);
+            ntile.add_bel(bels::IO_W1, vec![format!("PAD{p}")]);
         } else if kind == "CLB.MR" {
             let p = 1 + grid.columns * 2 + (grid.row_n().to_idx() - tcrd.row.to_idx()) * 2 - 1;
-            nnode.add_bel(bels::IO_E1, vec![format!("PAD{p}")]);
+            ntile.add_bel(bels::IO_E1, vec![format!("PAD{p}")]);
         } else if kind == "CLB.L" {
             let p0 = 1 + grid.columns * 4 + grid.rows * 2 - 3 + tcrd.row.to_idx() * 2
                 - 1
                 - usize::from(tcrd.row >= grid.row_mid());
             let p1 = p0 + 1;
-            nnode.add_bel(bels::IO_W0, vec![format!("PAD{p1}")]);
-            nnode.add_bel(bels::IO_W1, vec![format!("PAD{p0}")]);
+            ntile.add_bel(bels::IO_W0, vec![format!("PAD{p1}")]);
+            ntile.add_bel(bels::IO_W1, vec![format!("PAD{p0}")]);
         } else if kind == "CLB.R" {
             let p0 = 1 + grid.columns * 2 + (grid.row_n().to_idx() - tcrd.row.to_idx()) * 2
                 - 1
                 - usize::from(tcrd.row < grid.row_mid());
             let p1 = p0 + 1;
-            nnode.add_bel(bels::IO_E0, vec![format!("PAD{p0}")]);
-            nnode.add_bel(bels::IO_E1, vec![format!("PAD{p1}")]);
+            ntile.add_bel(bels::IO_E0, vec![format!("PAD{p0}")]);
+            ntile.add_bel(bels::IO_E1, vec![format!("PAD{p1}")]);
         }
     }
 

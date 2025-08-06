@@ -43,7 +43,7 @@ pub enum Key<'a> {
     Pip(PipCoords),
     GlobalOpt(String),
     BelMutex(BelCoord, String),
-    NodeMutex(WireCoord),
+    WireMutex(WireCoord),
     GlobalMutex(String),
 }
 
@@ -375,8 +375,8 @@ impl<'a> Backend for XactBackend<'a> {
 impl FpgaBackend for XactBackend<'_> {
     type BitTile = BitTile;
 
-    fn tile_bits(&self, nloc: TileCoord) -> Vec<BitTile> {
-        self.edev.tile_bits(nloc)
+    fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+        self.edev.tile_bits(tcrd)
     }
 
     fn egrid(&self) -> &ExpandedGrid<'_> {

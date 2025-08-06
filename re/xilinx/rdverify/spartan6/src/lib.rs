@@ -21,12 +21,12 @@ fn verify_sliceml(vrf: &mut Verifier, bel: &BelContext<'_>) {
         &[],
     );
     if let Some(obel) = vrf.find_bel_walk(bel, 0, -1, bels::SLICE0) {
-        vrf.claim_node(&[bel.fwire("CIN"), obel.fwire_far("COUT")]);
+        vrf.claim_net(&[bel.fwire("CIN"), obel.fwire_far("COUT")]);
         vrf.claim_pip(obel.crd(), obel.wire_far("COUT"), obel.wire("COUT"));
     } else {
-        vrf.claim_node(&[bel.fwire("CIN")]);
+        vrf.claim_net(&[bel.fwire("CIN")]);
     }
-    vrf.claim_node(&[bel.fwire("COUT")]);
+    vrf.claim_net(&[bel.fwire("COUT")]);
 }
 
 fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -42,12 +42,12 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
     vrf.verify_bel(bel, "DSP48A1", &pins, &[]);
     for (o, i) in &carry {
-        vrf.claim_node(&[bel.fwire(o)]);
-        vrf.claim_node(&[bel.fwire(i)]);
+        vrf.claim_net(&[bel.fwire(o)]);
+        vrf.claim_net(&[bel.fwire(i)]);
     }
     if let Some(obel) = vrf.find_bel_walk(bel, 0, -4, bels::DSP) {
         for (o, i) in &carry {
-            vrf.verify_node(&[bel.fwire(i), obel.fwire_far(o)]);
+            vrf.verify_net(&[bel.fwire(i), obel.fwire_far(o)]);
             vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
         }
     }
@@ -75,7 +75,7 @@ fn verify_ilogic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
     vrf.verify_bel(bel, "ILOGIC2", &pins, &["SR_INT"]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
     let oslot = match bel.slot {
@@ -110,7 +110,7 @@ fn verify_ilogic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("IOCE"), obel.wire("IOCE0"));
     vrf.claim_pip(bel.crd(), bel.wire("IOCE"), obel_tie.wire("HARD1"));
 
-    vrf.claim_node(&[bel.fwire("D_MUX")]);
+    vrf.claim_net(&[bel.fwire("D_MUX")]);
     vrf.claim_pip(bel.crd(), bel.wire("D"), bel.wire("D_MUX"));
     vrf.claim_pip(bel.crd(), bel.wire("D_MUX"), bel.wire("IOB_I"));
 
@@ -120,13 +120,13 @@ fn verify_ilogic(vrf: &mut Verifier, bel: &BelContext<'_>) {
         _ => unreachable!(),
     };
     if let Some(obel) = vrf.find_bel_delta(bel, 0, 0, oslot) {
-        vrf.verify_node(&[bel.fwire("IOB_I"), obel.fwire_far("I")]);
+        vrf.verify_net(&[bel.fwire("IOB_I"), obel.fwire_far("I")]);
 
         vrf.claim_pip(bel.crd(), bel.wire("MCB_FABRICOUT"), bel.wire("FABRICOUT"));
     } else {
-        vrf.claim_node(&[bel.fwire("IOB_I")]);
+        vrf.claim_net(&[bel.fwire("IOB_I")]);
     }
-    vrf.claim_node(&[bel.fwire("MCB_FABRICOUT")]);
+    vrf.claim_net(&[bel.fwire("MCB_FABRICOUT")]);
 
     let oslot = match bel.slot {
         bels::ILOGIC0 => bels::ILOGIC1,
@@ -158,7 +158,7 @@ fn verify_ologic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     ];
     vrf.verify_bel(bel, "OLOGIC2", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
     let oslot = match bel.slot {
@@ -196,8 +196,8 @@ fn verify_ologic(vrf: &mut Verifier, bel: &BelContext<'_>) {
         _ => unreachable!(),
     };
     if let Some(obel) = vrf.find_bel_delta(bel, 0, 0, oslot) {
-        vrf.verify_node(&[bel.fwire("IOB_O"), obel.fwire_far("O")]);
-        vrf.verify_node(&[bel.fwire("IOB_T"), obel.fwire_far("T")]);
+        vrf.verify_net(&[bel.fwire("IOB_O"), obel.fwire_far("O")]);
+        vrf.verify_net(&[bel.fwire("IOB_T"), obel.fwire_far("T")]);
 
         vrf.claim_pip(bel.crd(), bel.wire("D1"), bel.wire("MCB_D1"));
         vrf.claim_pip(bel.crd(), bel.wire("D2"), bel.wire("MCB_D2"));
@@ -205,8 +205,8 @@ fn verify_ologic(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_pip(bel.crd(), bel.wire("T2"), obel_ioi.wire("MCB_T2"));
         vrf.claim_pip(bel.crd(), bel.wire("TRAIN"), obel_ioi.wire("MCB_DRPTRAIN"));
     } else {
-        vrf.claim_node(&[bel.fwire("IOB_T")]);
-        vrf.claim_node(&[bel.fwire("IOB_O")]);
+        vrf.claim_net(&[bel.fwire("IOB_T")]);
+        vrf.claim_net(&[bel.fwire("IOB_O")]);
     }
 
     let oslot = match bel.slot {
@@ -249,7 +249,7 @@ fn verify_iodelay(vrf: &mut Verifier, bel: &BelContext<'_>) {
     ];
     vrf.verify_bel(bel, "IODELAY2", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
     let oslot = match bel.slot {
@@ -285,7 +285,7 @@ fn verify_iodelay(vrf: &mut Verifier, bel: &BelContext<'_>) {
         bels::IODELAY1 => bels::IOB1,
         _ => unreachable!(),
     };
-    vrf.claim_node(&[bel.fwire("MCB_DQSOUTP")]);
+    vrf.claim_net(&[bel.fwire("MCB_DQSOUTP")]);
     if vrf.find_bel_delta(bel, 0, 0, oslot).is_some() {
         vrf.claim_pip(bel.crd(), bel.wire("MCB_DQSOUTP"), bel.wire("DQSOUTP"));
         vrf.claim_pip(bel.crd(), bel.wire("CAL"), obel_ioi.wire("MCB_DRPADD"));
@@ -302,41 +302,41 @@ fn verify_iodelay(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_ioiclk(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel = vrf.find_bel_sibling(bel, bels::IOI);
-    vrf.claim_node(&[bel.fwire("CLK0INTER")]);
+    vrf.claim_net(&[bel.fwire("CLK0INTER")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLK0INTER"), bel.wire("CKINT0"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK0INTER"), bel.wire("CKINT1"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK0INTER"), obel.wire("IOCLK0"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK0INTER"), obel.wire("IOCLK2"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK0INTER"), obel.wire("PLLCLK0"));
-    vrf.claim_node(&[bel.fwire("CLK1INTER")]);
+    vrf.claim_net(&[bel.fwire("CLK1INTER")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLK1INTER"), bel.wire("CKINT0"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK1INTER"), bel.wire("CKINT1"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK1INTER"), obel.wire("IOCLK1"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK1INTER"), obel.wire("IOCLK3"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK1INTER"), obel.wire("PLLCLK1"));
-    vrf.claim_node(&[bel.fwire("CLK2INTER")]);
+    vrf.claim_net(&[bel.fwire("CLK2INTER")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLK2INTER"), obel.wire("PLLCLK0"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK2INTER"), obel.wire("PLLCLK1"));
-    vrf.claim_node(&[bel.fwire("CLK0_ILOGIC")]);
+    vrf.claim_net(&[bel.fwire("CLK0_ILOGIC")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLK0_ILOGIC"), bel.wire("CLK0INTER"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK0_ILOGIC"), bel.wire("CLK1INTER"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK0_ILOGIC"), bel.wire("CLK2INTER"));
-    vrf.claim_node(&[bel.fwire("CLK0_OLOGIC")]);
+    vrf.claim_net(&[bel.fwire("CLK0_OLOGIC")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLK0_OLOGIC"), bel.wire("CLK0INTER"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK0_OLOGIC"), bel.wire("CLK1INTER"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK0_OLOGIC"), bel.wire("CLK2INTER"));
-    vrf.claim_node(&[bel.fwire("CLK1")]);
+    vrf.claim_net(&[bel.fwire("CLK1")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLK1"), bel.wire("CLK0INTER"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK1"), bel.wire("CLK1INTER"));
     vrf.claim_pip(bel.crd(), bel.wire("CLK1"), bel.wire("CLK2INTER"));
-    vrf.claim_node(&[bel.fwire("IOCE0")]);
+    vrf.claim_net(&[bel.fwire("IOCE0")]);
     vrf.claim_pip(bel.crd(), bel.wire("IOCE0"), obel.wire("IOCE0"));
     vrf.claim_pip(bel.crd(), bel.wire("IOCE0"), obel.wire("IOCE1"));
     vrf.claim_pip(bel.crd(), bel.wire("IOCE0"), obel.wire("IOCE2"));
     vrf.claim_pip(bel.crd(), bel.wire("IOCE0"), obel.wire("IOCE3"));
     vrf.claim_pip(bel.crd(), bel.wire("IOCE0"), obel.wire("PLLCE0"));
     vrf.claim_pip(bel.crd(), bel.wire("IOCE0"), obel.wire("PLLCE1"));
-    vrf.claim_node(&[bel.fwire("IOCE1")]);
+    vrf.claim_net(&[bel.fwire("IOCE1")]);
     vrf.claim_pip(bel.crd(), bel.wire("IOCE1"), obel.wire("IOCE0"));
     vrf.claim_pip(bel.crd(), bel.wire("IOCE1"), obel.wire("IOCE1"));
     vrf.claim_pip(bel.crd(), bel.wire("IOCE1"), obel.wire("IOCE2"));
@@ -352,21 +352,21 @@ fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         let ud = if bel.row < srow { 'D' } else { 'U' };
         let obel = vrf.get_bel(bel.cell.with_row(srow).bel(bels::LRIOI_CLK));
         for i in 0..4 {
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("IOCLK{i}")),
                 obel.fwire(&format!("IOCLK{i}_O_{ud}")),
             ]);
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("IOCE{i}")),
                 obel.fwire(&format!("IOCE{i}_O_{ud}")),
             ]);
         }
         for i in 0..2 {
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("PLLCLK{i}")),
                 obel.fwire(&format!("PLLCLK{i}_O_{ud}")),
             ]);
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("PLLCE{i}")),
                 obel.fwire(&format!("PLLCE{i}_O_{ud}")),
             ]);
@@ -378,30 +378,30 @@ fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
             endev.chip.row_tio_outer()
         };
         let obel = vrf.get_bel(bel.cell.with_row(srow).bel(bels::BTIOI_CLK));
-        vrf.verify_node(&[bel.fwire("PCI_CE"), obel.fwire("PCI_CE_O")]);
+        vrf.verify_net(&[bel.fwire("PCI_CE"), obel.fwire("PCI_CE_O")]);
         for i in 0..4 {
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("IOCLK{i}")),
                 obel.fwire(&format!("IOCLK{i}_O")),
             ]);
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("IOCE{i}")),
                 obel.fwire(&format!("IOCE{i}_O")),
             ]);
         }
         for i in 0..2 {
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("PLLCLK{i}")),
                 obel.fwire(&format!("PLLCLK{i}_O")),
             ]);
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("PLLCE{i}")),
                 obel.fwire(&format!("PLLCE{i}_O")),
             ]);
         }
     }
 
-    vrf.claim_node(&[bel.fwire("MCB_DRPSDI")]);
+    vrf.claim_net(&[bel.fwire("MCB_DRPSDI")]);
     if endev.edev.disabled.contains(&DisabledPart::Mcb)
         || endev.chip.columns[bel.col].kind != ColumnKind::Io
     {
@@ -415,12 +415,12 @@ fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
             "MCB_T1",
             "MCB_T2",
         ] {
-            vrf.claim_node(&[bel.fwire(pin)]);
+            vrf.claim_net(&[bel.fwire(pin)]);
         }
         for slot in bels::OLOGIC {
             let obel = vrf.find_bel_sibling(bel, slot);
-            vrf.claim_node(&[obel.fwire("MCB_D1")]);
-            vrf.claim_node(&[obel.fwire("MCB_D2")]);
+            vrf.claim_net(&[obel.fwire("MCB_D1")]);
+            vrf.claim_net(&[obel.fwire("MCB_D2")]);
         }
         // in other cases, nodes will be verified by MCB code
     }
@@ -444,11 +444,11 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
     };
     vrf.verify_bel(bel, kind, &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
-    vrf.claim_node(&[bel.fwire_far("I")]);
-    vrf.claim_node(&[bel.fwire_far("O")]);
-    vrf.claim_node(&[bel.fwire_far("T")]);
+    vrf.claim_net(&[bel.fwire_far("I")]);
+    vrf.claim_net(&[bel.fwire_far("O")]);
+    vrf.claim_net(&[bel.fwire_far("T")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire_far("O"));
     vrf.claim_pip(bel.crd(), bel.wire("T"), bel.wire_far("T"));
     vrf.claim_pip(bel.crd(), bel.wire_far("I"), bel.wire("I"));
@@ -470,10 +470,10 @@ fn verify_clkpin_buf(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("CLKPIN0_O", "CLKPIN0_I", bels::ILOGIC1),
         ("CLKPIN1_O", "CLKPIN1_I", bels::ILOGIC0),
     ] {
-        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_net(&[bel.fwire(opin)]);
         vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
         let obel = vrf.find_bel_sibling(bel, oslot);
-        vrf.verify_node(&[bel.fwire(ipin), obel.fwire("IOB_I")]);
+        vrf.verify_net(&[bel.fwire(ipin), obel.fwire("IOB_I")]);
     }
     for (opin, ipin, oslot, fopin, fpin) in [
         ("DFB0_O", "DFB0_I", bels::ILOGIC1, "DFB_OUT", "DFB"),
@@ -485,10 +485,10 @@ fn verify_clkpin_buf(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("DQSP_O", "DQSP_I", bels::IODELAY1, "DQSOUTP_OUT", "DQSOUTP"),
         ("DQSN_O", "DQSN_I", bels::IODELAY1, "DQSOUTN_OUT", "DQSOUTN"),
     ] {
-        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_net(&[bel.fwire(opin)]);
         vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
         let obel = vrf.find_bel_sibling(bel, oslot);
-        vrf.claim_node(&[bel.fwire(ipin), obel.fwire(fopin)]);
+        vrf.claim_net(&[bel.fwire(ipin), obel.fwire(fopin)]);
         vrf.claim_pip(obel.crd(), obel.wire(fopin), obel.wire(fpin));
     }
 }
@@ -505,7 +505,7 @@ fn verify_tieoff(vrf: &mut Verifier, bel: &BelContext<'_>) {
         &[],
     );
     for pin in ["HARD0", "HARD1", "KEEP1"] {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 }
 
@@ -520,8 +520,8 @@ fn verify_pcilogicse(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
         ],
         &[],
     );
-    vrf.claim_node(&[bel.fwire("PCI_CE"), bel.pip_iwire("PCI_CE", 0)]);
-    vrf.claim_node(&[bel.pip_owire("PCI_CE", 0)]);
+    vrf.claim_net(&[bel.fwire("PCI_CE"), bel.pip_iwire("PCI_CE", 0)]);
+    vrf.claim_net(&[bel.pip_owire("PCI_CE", 0)]);
     let (pcrd, po, pi) = bel.pip("PCI_CE", 0);
     vrf.claim_pip(pcrd, po, pi);
     let rdy = if bel.col == endev.chip.col_w() {
@@ -531,10 +531,10 @@ fn verify_pcilogicse(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
     };
     for (pin, dy, slot) in rdy {
         let (pcrd, po, pi) = bel.pip(pin, 0);
-        vrf.claim_node(&[bel.fwire(pin), bel.pip_owire(pin, 0)]);
+        vrf.claim_net(&[bel.fwire(pin), bel.pip_owire(pin, 0)]);
         vrf.claim_pip(pcrd, po, pi);
         let obel = vrf.find_bel_delta(bel, 0, dy, slot).unwrap();
-        vrf.claim_node(&[bel.pip_iwire(pin, 0), obel.fwire_far("PCI_RDY")]);
+        vrf.claim_net(&[bel.pip_iwire(pin, 0), obel.fwire_far("PCI_RDY")]);
         vrf.claim_pip(obel.crd(), obel.wire_far("PCI_RDY"), obel.wire("PCI_RDY"));
     }
 }
@@ -614,54 +614,54 @@ fn verify_mcb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     vrf.verify_bel(bel, "MCB", &pins_ref, &[]);
     for (pin, dir) in pins_ref {
         if dir == SitePinDir::In {
-            vrf.claim_node(&[bel.fwire(pin), bel.pip_owire(pin, 0)]);
+            vrf.claim_net(&[bel.fwire(pin), bel.pip_owire(pin, 0)]);
         } else {
-            vrf.claim_node(&[bel.fwire(pin), bel.pip_iwire(pin, 0)]);
+            vrf.claim_net(&[bel.fwire(pin), bel.pip_iwire(pin, 0)]);
         }
         let (pc, po, pi) = bel.pip(pin, 0);
         vrf.claim_pip(pc, po, pi);
     }
 
     let obel = vrf.find_bel_sibling(bel, bels::LRIOI_CLK_TERM);
-    vrf.verify_node(&[bel.pip_iwire("PLLCE0", 0), obel.fwire("PLLCE0_O")]);
-    vrf.verify_node(&[bel.pip_iwire("PLLCE1", 0), obel.fwire("PLLCE1_O")]);
-    vrf.verify_node(&[bel.pip_iwire("PLLCLK0", 0), obel.fwire("PLLCLK0_O")]);
-    vrf.verify_node(&[bel.pip_iwire("PLLCLK1", 0), obel.fwire("PLLCLK1_O")]);
+    vrf.verify_net(&[bel.pip_iwire("PLLCE0", 0), obel.fwire("PLLCE0_O")]);
+    vrf.verify_net(&[bel.pip_iwire("PLLCE1", 0), obel.fwire("PLLCE1_O")]);
+    vrf.verify_net(&[bel.pip_iwire("PLLCLK0", 0), obel.fwire("PLLCLK0_O")]);
+    vrf.verify_net(&[bel.pip_iwire("PLLCLK1", 0), obel.fwire("PLLCLK1_O")]);
 
     let mut rows_handled = HashSet::new();
     {
         let obel = vrf.get_bel(bel.cell.with_row(mcb.iop_clk).bel(bels::IOI));
-        vrf.claim_node(&[obel.fwire("MCB_T1")]);
-        vrf.claim_node(&[obel.fwire("MCB_T2")]);
+        vrf.claim_net(&[obel.fwire("MCB_T1")]);
+        vrf.claim_net(&[obel.fwire("MCB_T2")]);
         rows_handled.insert(mcb.iop_clk);
     }
 
     let mut rows_out_handled = HashSet::new();
     for (pin, io) in pins_out {
         let obel = vrf.get_bel(bel.cell.with_row(io.row).bel(bels::OLOGIC[io.iob.to_idx()]));
-        vrf.claim_node(&[
+        vrf.claim_net(&[
             bel.fwire_far(&pin),
             obel.fwire("MCB_D1"),
             obel.fwire("MCB_D2"),
         ]);
         if !rows_out_handled.contains(&io.row) {
             let obel = vrf.get_bel(bel.cell.with_row(io.row).bel(bels::IOI));
-            vrf.claim_node(&[obel.fwire("MCB_T1")]);
-            vrf.claim_node(&[obel.fwire("MCB_T2")]);
+            vrf.claim_net(&[obel.fwire("MCB_T1")]);
+            vrf.claim_net(&[obel.fwire("MCB_T2")]);
         }
         rows_handled.insert(io.row);
         rows_out_handled.insert(io.row);
     }
-    vrf.claim_node(&[bel.fwire_far("DQIOWEN0")]);
+    vrf.claim_net(&[bel.fwire_far("DQIOWEN0")]);
     for (i, op, on, row, bi) in pins_dq {
         rows_handled.insert(row);
         let obel = vrf.get_bel(bel.cell.with_row(row).bel(bels::OLOGIC[bi]));
-        vrf.claim_node(&[bel.fwire_far(&op), obel.fwire("MCB_D1")]);
-        vrf.claim_node(&[bel.fwire_far(&on), obel.fwire("MCB_D2")]);
+        vrf.claim_net(&[bel.fwire_far(&op), obel.fwire("MCB_D1")]);
+        vrf.claim_net(&[bel.fwire_far(&on), obel.fwire("MCB_D2")]);
         let obel = vrf.get_bel(bel.cell.with_row(row).bel(bels::IODELAY[bi]));
-        vrf.verify_node(&[bel.fwire_far(&i), obel.fwire("MCB_DQSOUTP")]);
+        vrf.verify_net(&[bel.fwire_far(&i), obel.fwire("MCB_DQSOUTP")]);
         let obel = vrf.get_bel(bel.cell.with_row(row).bel(bels::IOI));
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire_far("DQIOWEN0"),
             obel.fwire("MCB_T1"),
             obel.fwire("MCB_T2"),
@@ -670,26 +670,26 @@ fn verify_mcb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     for (op, on, io) in pins_dm {
         rows_handled.insert(io.row);
         let obel = vrf.get_bel(bel.cell.with_row(io.row).bel(bels::OLOGIC[io.iob.to_idx()]));
-        vrf.claim_node(&[bel.fwire_far(op), obel.fwire("MCB_D1")]);
-        vrf.claim_node(&[bel.fwire_far(on), obel.fwire("MCB_D2")]);
+        vrf.claim_net(&[bel.fwire_far(op), obel.fwire("MCB_D1")]);
+        vrf.claim_net(&[bel.fwire_far(on), obel.fwire("MCB_D2")]);
         let obel = vrf.get_bel(bel.cell.with_row(io.row).bel(bels::IOI));
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire_far("DQIOWEN0"),
             obel.fwire("MCB_T1"),
             obel.fwire("MCB_T2"),
         ]);
     }
-    vrf.claim_node(&[bel.fwire_far("DQSIOWEN90P")]);
-    vrf.claim_node(&[bel.fwire_far("DQSIOWEN90N")]);
+    vrf.claim_net(&[bel.fwire_far("DQSIOWEN90P")]);
+    vrf.claim_net(&[bel.fwire_far("DQSIOWEN90N")]);
     for (pp, pn, row) in pins_dqs {
         rows_handled.insert(row);
         let obel = vrf.get_bel(bel.cell.with_row(row).bel(bels::IOI));
-        vrf.verify_node(&[bel.fwire_far("DQSIOWEN90N"), obel.fwire("MCB_T1")]);
-        vrf.verify_node(&[bel.fwire_far("DQSIOWEN90P"), obel.fwire("MCB_T2")]);
+        vrf.verify_net(&[bel.fwire_far("DQSIOWEN90N"), obel.fwire("MCB_T1")]);
+        vrf.verify_net(&[bel.fwire_far("DQSIOWEN90P"), obel.fwire("MCB_T2")]);
         let obel = vrf.get_bel(bel.cell.with_row(row).bel(bels::IODELAY1));
-        vrf.verify_node(&[bel.fwire_far(pp), obel.fwire("MCB_DQSOUTP")]);
+        vrf.verify_net(&[bel.fwire_far(pp), obel.fwire("MCB_DQSOUTP")]);
         let obel = vrf.get_bel(bel.cell.with_row(row).bel(bels::IODELAY0));
-        vrf.verify_node(&[bel.fwire_far(pn), obel.fwire("MCB_DQSOUTP")]);
+        vrf.verify_net(&[bel.fwire_far(pn), obel.fwire("MCB_DQSOUTP")]);
     }
 
     for pin in [
@@ -706,7 +706,7 @@ fn verify_mcb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         "IOIDRPSDO",
         "IOIDRPTRAIN",
     ] {
-        vrf.claim_node(&[bel.fwire_far(pin)]);
+        vrf.claim_net(&[bel.fwire_far(pin)]);
     }
 
     for row in endev.chip.rows.ids() {
@@ -727,7 +727,7 @@ fn verify_mcb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
                 ("IOIDRPSDO", "MCB_DRPSDO"),
                 ("IOIDRPTRAIN", "MCB_DRPTRAIN"),
             ] {
-                vrf.verify_node(&[bel.fwire_far(pin), obel.fwire(opin)]);
+                vrf.verify_net(&[bel.fwire_far(pin), obel.fwire(opin)]);
             }
             for slot in bels::IODELAY {
                 let oobel = vrf.find_bel_sibling(&obel, slot);
@@ -739,17 +739,17 @@ fn verify_mcb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
                     ("IOIDRPADDR4", "MCB_AUXADDR4", "AUXADDR4"),
                     ("IOIDRPUPDATE", "MCB_MEMUPDATE", "MEMUPDATE"),
                 ] {
-                    vrf.verify_node(&[bel.fwire_far(pin), oobel.fwire(opin)]);
+                    vrf.verify_net(&[bel.fwire_far(pin), oobel.fwire(opin)]);
                     vrf.claim_pip(oobel.crd(), oobel.wire(dpin), oobel.wire(opin));
                 }
             }
             if !rows_handled.contains(&row) {
-                vrf.claim_node(&[obel.fwire("MCB_T1")]);
-                vrf.claim_node(&[obel.fwire("MCB_T2")]);
+                vrf.claim_net(&[obel.fwire("MCB_T1")]);
+                vrf.claim_net(&[obel.fwire("MCB_T2")]);
                 for slot in bels::OLOGIC {
                     let oobel = vrf.find_bel_sibling(&obel, slot);
-                    vrf.claim_node(&[oobel.fwire("MCB_D1")]);
-                    vrf.claim_node(&[oobel.fwire("MCB_D2")]);
+                    vrf.claim_net(&[oobel.fwire("MCB_D1")]);
+                    vrf.claim_net(&[oobel.fwire("MCB_D2")]);
                 }
             }
         }
@@ -770,7 +770,7 @@ fn verify_mcb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     ] {
         for slot in [bels::IODELAY1, bels::IODELAY0] {
             let bel = vrf.get_bel(bel.cell.with_row(row).bel(slot));
-            vrf.claim_node(&[last, bel.fwire("MCB_AUXSDO")]);
+            vrf.claim_net(&[last, bel.fwire("MCB_AUXSDO")]);
             vrf.claim_pip(bel.crd(), bel.wire("MCB_AUXSDO"), bel.wire("AUXSDO"));
             vrf.claim_pip(bel.crd(), bel.wire("AUXSDOIN"), bel.wire("MCB_AUXSDOIN"));
             last = bel.fwire("MCB_AUXSDOIN");
@@ -792,11 +792,11 @@ fn verify_mcb_tie(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
     vrf.claim_pip(bel.crd(), bel.wire("OUTP1"), obel.wire("HARD1"));
     vrf.claim_pip(bel.crd(), bel.wire("OUTN1"), obel.wire("HARD0"));
     let o0 = vrf.get_bel(bel.cell.with_row(row).bel(bels::OLOGIC1));
-    vrf.claim_node(&[bel.fwire("OUTP0"), o0.fwire("MCB_D1")]);
-    vrf.claim_node(&[bel.fwire("OUTN0"), o0.fwire("MCB_D2")]);
+    vrf.claim_net(&[bel.fwire("OUTP0"), o0.fwire("MCB_D1")]);
+    vrf.claim_net(&[bel.fwire("OUTN0"), o0.fwire("MCB_D2")]);
     let o1 = vrf.get_bel(bel.cell.with_row(row).bel(bels::OLOGIC0));
-    vrf.claim_node(&[bel.fwire("OUTP1"), o1.fwire("MCB_D1")]);
-    vrf.claim_node(&[bel.fwire("OUTN1"), o1.fwire("MCB_D2")]);
+    vrf.claim_net(&[bel.fwire("OUTP1"), o1.fwire("MCB_D1")]);
+    vrf.claim_net(&[bel.fwire("OUTN1"), o1.fwire("MCB_D2")]);
 }
 
 fn verify_pci_ce_trunk_src(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -817,25 +817,25 @@ fn verify_pci_ce_trunk_src(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel:
         }
     }
     if let Some(obel) = obel {
-        vrf.verify_node(&[bel.fwire("PCI_CE_I"), obel.fwire("PCI_CE_O")]);
+        vrf.verify_net(&[bel.fwire("PCI_CE_I"), obel.fwire("PCI_CE_O")]);
     } else {
         let obel = vrf.get_bel(
             bel.cell
                 .with_row(endev.chip.row_clk())
                 .bel(bels::PCILOGICSE),
         );
-        vrf.verify_node(&[bel.fwire("PCI_CE_I"), obel.pip_owire("PCI_CE", 0)]);
+        vrf.verify_net(&[bel.fwire("PCI_CE_I"), obel.pip_owire("PCI_CE", 0)]);
     }
 }
 
 fn verify_pci_ce_trunk_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    vrf.claim_node(&[bel.fwire("PCI_CE_O")]);
+    vrf.claim_net(&[bel.fwire("PCI_CE_O")]);
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
     verify_pci_ce_trunk_src(endev, vrf, bel);
 }
 
 fn verify_pci_ce_split(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    vrf.claim_node(&[bel.fwire("PCI_CE_O")]);
+    vrf.claim_net(&[bel.fwire("PCI_CE_O")]);
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
     verify_pci_ce_trunk_src(endev, vrf, bel);
 }
@@ -878,11 +878,11 @@ fn verify_pci_ce_v_src(
     let obel = obel
         .or_else(|| vrf.find_bel(bel.cell.with_row(split_row).bel(bels::PCI_CE_SPLIT)))
         .unwrap();
-    vrf.verify_node(&[bel.fwire(ipin), obel.fwire("PCI_CE_O")]);
+    vrf.verify_net(&[bel.fwire(ipin), obel.fwire("PCI_CE_O")]);
 }
 
 fn verify_pci_ce_v_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    vrf.claim_node(&[bel.fwire("PCI_CE_O")]);
+    vrf.claim_net(&[bel.fwire("PCI_CE_O")]);
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
     verify_pci_ce_v_src(endev, vrf, bel, false, "PCI_CE_I");
 }
@@ -898,11 +898,11 @@ fn verify_pci_ce_h_src(
     } else {
         vrf.find_bel_walk(bel, 1, 0, bels::PCI_CE_H_BUF).unwrap()
     };
-    vrf.verify_node(&[bel.fwire(ipin), obel.fwire("PCI_CE_O")]);
+    vrf.verify_net(&[bel.fwire(ipin), obel.fwire("PCI_CE_O")]);
 }
 
 fn verify_pci_ce_h_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    vrf.claim_node(&[bel.fwire("PCI_CE_O")]);
+    vrf.claim_net(&[bel.fwire("PCI_CE_O")]);
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
     if endev.chip.columns[bel.col].kind == ColumnKind::Io {
         verify_pci_ce_trunk_src(endev, vrf, bel);
@@ -912,7 +912,7 @@ fn verify_pci_ce_h_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
 }
 
 fn verify_btioi_clk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    vrf.claim_node(&[bel.fwire("PCI_CE_O")]);
+    vrf.claim_net(&[bel.fwire("PCI_CE_O")]);
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
     verify_pci_ce_h_src(endev, vrf, bel, "PCI_CE_I");
     let bi = if bel.col <= endev.chip.col_clk {
@@ -929,8 +929,8 @@ fn verify_btioi_clk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
         }
     };
     for i in 0..4 {
-        vrf.claim_node(&[bel.fwire(&format!("IOCLK{i}_O"))]);
-        vrf.claim_node(&[bel.fwire(&format!("IOCE{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("IOCLK{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("IOCE{i}_O"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("IOCLK{i}_O")),
@@ -946,16 +946,16 @@ fn verify_btioi_clk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
                 .with_col(endev.chip.col_clk)
                 .bel(bels::BUFIO2[bi + i]),
         );
-        vrf.verify_node(&[bel.fwire(&format!("IOCLK{i}_I")), obel.fwire_far("IOCLK")]);
-        vrf.verify_node(&[
+        vrf.verify_net(&[bel.fwire(&format!("IOCLK{i}_I")), obel.fwire_far("IOCLK")]);
+        vrf.verify_net(&[
             bel.fwire(&format!("IOCE{i}_I")),
             obel.fwire_far("SERDESSTROBE"),
         ]);
     }
     let obel = vrf.get_bel(bel.cell.with_col(endev.chip.col_clk).bel(bels::BUFPLL_BUF));
     for i in 0..2 {
-        vrf.claim_node(&[bel.fwire(&format!("PLLCLK{i}_O"))]);
-        vrf.claim_node(&[bel.fwire(&format!("PLLCE{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("PLLCLK{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("PLLCE{i}_O"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("PLLCLK{i}_O")),
@@ -966,11 +966,11 @@ fn verify_btioi_clk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
             bel.wire(&format!("PLLCE{i}_O")),
             bel.wire(&format!("PLLCE{i}_I")),
         );
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("PLLCLK{i}_I")),
             obel.fwire(&format!("PLLCLK{i}_O")),
         ]);
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("PLLCE{i}_I")),
             obel.fwire(&format!("PLLCE{i}_O")),
         ]);
@@ -994,8 +994,8 @@ fn verify_lrioi_clk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
             continue;
         }
         for i in 0..4 {
-            vrf.claim_node(&[bel.fwire(&format!("IOCLK{i}_O_{ud}"))]);
-            vrf.claim_node(&[bel.fwire(&format!("IOCE{i}_O_{ud}"))]);
+            vrf.claim_net(&[bel.fwire(&format!("IOCLK{i}_O_{ud}"))]);
+            vrf.claim_net(&[bel.fwire(&format!("IOCE{i}_O_{ud}"))]);
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(&format!("IOCLK{i}_O_{ud}")),
@@ -1006,18 +1006,18 @@ fn verify_lrioi_clk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
                 bel.wire(&format!("IOCE{i}_O_{ud}")),
                 bel.wire(&format!("IOCE{i}_I")),
             );
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("IOCLK{i}_I")),
                 obel.fwire(&format!("IOCLK{i}_O")),
             ]);
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("IOCE{i}_I")),
                 obel.fwire(&format!("IOCE{i}_O")),
             ]);
         }
         for i in 0..2 {
-            vrf.claim_node(&[bel.fwire(&format!("PLLCLK{i}_O_{ud}"))]);
-            vrf.claim_node(&[bel.fwire(&format!("PLLCE{i}_O_{ud}"))]);
+            vrf.claim_net(&[bel.fwire(&format!("PLLCLK{i}_O_{ud}"))]);
+            vrf.claim_net(&[bel.fwire(&format!("PLLCE{i}_O_{ud}"))]);
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(&format!("PLLCLK{i}_O_{ud}")),
@@ -1028,11 +1028,11 @@ fn verify_lrioi_clk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
                 bel.wire(&format!("PLLCE{i}_O_{ud}")),
                 bel.wire(&format!("PLLCE{i}_I")),
             );
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("PLLCLK{i}_I")),
                 obel.fwire(&format!("PLLCLK{i}_O")),
             ]);
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("PLLCE{i}_I")),
                 obel.fwire(&format!("PLLCE{i}_O")),
             ]);
@@ -1059,8 +1059,8 @@ fn verify_lrioi_clk_term(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         if bel.col == endev.chip.col_w() { 4 } else { 0 }
     };
     for i in 0..4 {
-        vrf.claim_node(&[bel.fwire(&format!("IOCLK{i}_O"))]);
-        vrf.claim_node(&[bel.fwire(&format!("IOCE{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("IOCLK{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("IOCE{i}_O"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("IOCLK{i}_O")),
@@ -1076,8 +1076,8 @@ fn verify_lrioi_clk_term(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
                 .with_row(endev.chip.row_clk())
                 .bel(bels::BUFIO2[bi + i]),
         );
-        vrf.verify_node(&[bel.fwire(&format!("IOCLK{i}_I")), obel.fwire_far("IOCLK")]);
-        vrf.verify_node(&[
+        vrf.verify_net(&[bel.fwire(&format!("IOCLK{i}_I")), obel.fwire_far("IOCLK")]);
+        vrf.verify_net(&[
             bel.fwire(&format!("IOCE{i}_I")),
             obel.fwire_far("SERDESSTROBE"),
         ]);
@@ -1088,8 +1088,8 @@ fn verify_lrioi_clk_term(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
             .bel(bels::BUFPLL_BUF),
     );
     for i in 0..2 {
-        vrf.claim_node(&[bel.fwire(&format!("PLLCLK{i}_O"))]);
-        vrf.claim_node(&[bel.fwire(&format!("PLLCE{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("PLLCLK{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("PLLCE{i}_O"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("PLLCLK{i}_O")),
@@ -1100,11 +1100,11 @@ fn verify_lrioi_clk_term(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
             bel.wire(&format!("PLLCE{i}_O")),
             bel.wire(&format!("PLLCE{i}_I")),
         );
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("PLLCLK{i}_I")),
             obel.fwire(&format!("PLLCLK{i}_O")),
         ]);
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("PLLCE{i}_I")),
             obel.fwire(&format!("PLLCE{i}_O")),
         ]);
@@ -1118,10 +1118,10 @@ fn verify_bufh(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
         &[("I", SitePinDir::In), ("O", SitePinDir::Out)],
         &[],
     );
-    vrf.claim_node(&[bel.fwire("I")]);
-    vrf.claim_node(&[bel.fwire("O")]);
-    vrf.claim_node(&[bel.fwire_far("I")]);
-    vrf.claim_node(&[bel.fwire_far("O")]);
+    vrf.claim_net(&[bel.fwire("I")]);
+    vrf.claim_net(&[bel.fwire("O")]);
+    vrf.claim_net(&[bel.fwire_far("I")]);
+    vrf.claim_net(&[bel.fwire_far("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("I"), bel.wire_far("I"));
     vrf.claim_pip(bel.crd(), bel.wire_far("O"), bel.wire("O"));
     let idx = bels::BUFH_E
@@ -1156,7 +1156,7 @@ fn verify_hclk_row(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
     };
     let obel = vrf.get_bel(bel.cell.with_row(srow).bel(bels::HCLK_V_MIDBUF));
     for i in 0..16 {
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("BUFG{i}")),
             obel.fwire(&format!("GCLK{i}_O")),
         ]);
@@ -1164,7 +1164,7 @@ fn verify_hclk_row(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
     if bel.row != endev.chip.row_clk() {
         let obel = vrf.find_bel_sibling(bel, bels::CMT);
         for i in 0..16 {
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("CMT{i}")),
                 obel.fwire(&format!("HCLK{i}")),
             ]);
@@ -1174,8 +1174,8 @@ fn verify_hclk_row(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
 
 fn verify_hclk_v_midbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..16 {
-        vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_O"))]);
-        vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_M"))]);
+        vrf.claim_net(&[bel.fwire(&format!("GCLK{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("GCLK{i}_M"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("GCLK{i}_O")),
@@ -1191,7 +1191,7 @@ fn verify_hclk_v_midbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
                 .with_row(endev.chip.row_clk())
                 .bel(bels::BUFGMUX[i]),
         );
-        vrf.verify_node(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire_far("O")]);
+        vrf.verify_net(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire_far("O")]);
     }
 }
 
@@ -1202,8 +1202,8 @@ fn verify_hclk_h_midbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
         bels::BUFH_E
     };
     for i in 0..16 {
-        vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_O"))]);
-        vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_M"))]);
+        vrf.claim_net(&[bel.fwire(&format!("GCLK{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("GCLK{i}_M"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("GCLK{i}_O")),
@@ -1215,7 +1215,7 @@ fn verify_hclk_h_midbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
             bel.wire(&format!("GCLK{i}_I")),
         );
         let obel = vrf.get_bel(bel.cell.with_col(endev.chip.col_clk).bel(slots[i]));
-        vrf.verify_node(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire_far("O")]);
+        vrf.verify_net(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire_far("O")]);
     }
 }
 
@@ -1240,7 +1240,7 @@ fn verify_hclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
         };
         let obel = vrf.get_bel(bel.cell.with_col(col).bel(bels::HCLK_H_MIDBUF));
         for i in 0..16 {
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("GCLK{i}_I")),
                 obel.fwire(&format!("GCLK{i}_O")),
             ]);
@@ -1253,7 +1253,7 @@ fn verify_hclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
         };
         for i in 0..16 {
             let obel = vrf.get_bel(bel.cell.with_col(endev.chip.col_clk).bel(slots[i]));
-            vrf.verify_node(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire_far("O")]);
+            vrf.verify_net(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire_far("O")]);
         }
     }
 }
@@ -1273,10 +1273,10 @@ fn verify_bufgmux(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ],
         &[],
     );
-    vrf.claim_node(&[bel.fwire("I0")]);
-    vrf.claim_node(&[bel.fwire("I1")]);
-    vrf.claim_node(&[bel.fwire("O")]);
-    vrf.claim_node(&[bel.fwire_far("O")]);
+    vrf.claim_net(&[bel.fwire("I0")]);
+    vrf.claim_net(&[bel.fwire("I1")]);
+    vrf.claim_net(&[bel.fwire("O")]);
+    vrf.claim_net(&[bel.fwire_far("O")]);
     vrf.claim_pip(bel.crd(), bel.wire_far("O"), bel.wire("O"));
     let obel = vrf.find_bel_sibling(bel, bels::CLKC);
     let swz = [0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 10, 12, 11, 13, 14, 15];
@@ -1310,7 +1310,7 @@ fn verify_clkc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
     let obel_d = vrf.find_bel_walk(bel, 0, -8, bels::CMT).unwrap();
     let obel_u = vrf.find_bel_walk(bel, 0, 8, bels::CMT).unwrap();
     for i in 0..16 {
-        vrf.claim_node(&[bel.fwire(&format!("MUX{i}"))]);
+        vrf.claim_net(&[bel.fwire(&format!("MUX{i}"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("MUX{i}")),
@@ -1322,20 +1322,20 @@ fn verify_clkc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
             bel.wire(&format!("CKPIN_V{i}")),
         );
         if i < 8 {
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("CKPIN_H{i}")),
                 obel_ckpin_r.fwire(&format!("CKPIN{i}_O")),
             ]);
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("CKPIN_V{i}")),
                 obel_ckpin_t.fwire(&format!("CKPIN{i}_O")),
             ]);
         } else {
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("CKPIN_H{i}")),
                 obel_ckpin_l.fwire(&format!("CKPIN{ii}_O", ii = i - 8)),
             ]);
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("CKPIN_V{i}")),
                 obel_ckpin_b.fwire(&format!("CKPIN{ii}_O", ii = i - 8)),
             ]);
@@ -1350,11 +1350,11 @@ fn verify_clkc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
             bel.wire(&format!("MUX{i}")),
             bel.wire(&format!("CMT_D{i}")),
         );
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("CMT_D{i}")),
             obel_d.fwire(&format!("CASC{i}_O")),
         ]);
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("CMT_U{i}")),
             obel_u.fwire(&format!("CASC{i}_O")),
         ]);
@@ -1368,14 +1368,14 @@ fn verify_ckpin_v_midbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         endev.chip.row_tio_outer()
     };
     for i in 0..8 {
-        vrf.claim_node(&[bel.fwire(&format!("CKPIN{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("CKPIN{i}_O"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("CKPIN{i}_O")),
             bel.wire(&format!("CKPIN{i}_I")),
         );
         let obel = vrf.get_bel(bel.cell.with_row(srow).bel(bels::BUFIO2[i]));
-        vrf.verify_node(&[bel.fwire(&format!("CKPIN{i}_I")), obel.fwire("CKPIN")]);
+        vrf.verify_net(&[bel.fwire(&format!("CKPIN{i}_I")), obel.fwire("CKPIN")]);
     }
 }
 
@@ -1386,14 +1386,14 @@ fn verify_ckpin_h_midbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         endev.chip.col_e()
     };
     for i in 0..8 {
-        vrf.claim_node(&[bel.fwire(&format!("CKPIN{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("CKPIN{i}_O"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("CKPIN{i}_O")),
             bel.wire(&format!("CKPIN{i}_I")),
         );
         let obel = vrf.get_bel(bel.cell.with_col(scol).bel(bels::BUFIO2[i]));
-        vrf.verify_node(&[bel.fwire(&format!("CKPIN{i}_I")), obel.fwire("CKPIN")]);
+        vrf.verify_net(&[bel.fwire(&format!("CKPIN{i}_I")), obel.fwire("CKPIN")]);
     }
 }
 
@@ -1432,17 +1432,17 @@ fn verify_bufio2_ins(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
     for (i, (col, row)) in source_iois.into_iter().enumerate() {
         let obel = vrf.get_bel(bel.cell.with_cr(col, row).bel(bels::CLKPIN_BUF));
         for pin in ["CLKPIN", "DFB", "CFB0_", "CFB1_"] {
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("{pin}{ii}", ii = i * 2)),
                 obel.fwire(&format!("{pin}0_O")),
             ]);
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("{pin}{ii}", ii = i * 2 + 1)),
                 obel.fwire(&format!("{pin}1_O")),
             ]);
         }
-        vrf.verify_node(&[bel.fwire(&format!("DQSP{i}")), obel.fwire("DQSP_O")]);
-        vrf.verify_node(&[bel.fwire(&format!("DQSN{i}")), obel.fwire("DQSN_O")]);
+        vrf.verify_net(&[bel.fwire(&format!("DQSP{i}")), obel.fwire("DQSP_O")]);
+        vrf.verify_net(&[bel.fwire(&format!("DQSN{i}")), obel.fwire("DQSN_O")]);
     }
     if bel.row == endev.chip.row_bio_outer() {
         let mut found_l = false;
@@ -1451,11 +1451,11 @@ fn verify_bufio2_ins(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
             if let Some(obel) = vrf.find_bel(bel.cell.with_col(cl).bel(bels::GTP_BUF)) {
                 for i in 0..4 {
                     let ii = i + 4;
-                    vrf.verify_node(&[
+                    vrf.verify_net(&[
                         bel.fwire(&format!("GTPCLK{ii}")),
                         obel.fwire(&format!("GTPCLK{i}_O")),
                     ]);
-                    vrf.verify_node(&[
+                    vrf.verify_net(&[
                         bel.fwire(&format!("GTPFB{ii}")),
                         obel.fwire(&format!("GTPFB{i}_O")),
                     ]);
@@ -1464,11 +1464,11 @@ fn verify_bufio2_ins(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
             }
             if let Some(obel) = vrf.find_bel(bel.cell.with_col(cr).bel(bels::GTP_BUF)) {
                 for i in 0..4 {
-                    vrf.verify_node(&[
+                    vrf.verify_net(&[
                         bel.fwire(&format!("GTPCLK{i}")),
                         obel.fwire(&format!("GTPCLK{i}_O")),
                     ]);
-                    vrf.verify_node(&[
+                    vrf.verify_net(&[
                         bel.fwire(&format!("GTPFB{i}")),
                         obel.fwire(&format!("GTPFB{i}_O")),
                     ]);
@@ -1478,14 +1478,14 @@ fn verify_bufio2_ins(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
         }
         if !found_l {
             for i in 4..8 {
-                vrf.claim_node(&[bel.fwire(&format!("GTPCLK{i}"))]);
-                vrf.claim_node(&[bel.fwire(&format!("GTPFB{i}"))]);
+                vrf.claim_net(&[bel.fwire(&format!("GTPCLK{i}"))]);
+                vrf.claim_net(&[bel.fwire(&format!("GTPFB{i}"))]);
             }
         }
         if !found_r {
             for i in 0..4 {
-                vrf.claim_node(&[bel.fwire(&format!("GTPCLK{i}"))]);
-                vrf.claim_node(&[bel.fwire(&format!("GTPFB{i}"))]);
+                vrf.claim_net(&[bel.fwire(&format!("GTPCLK{i}"))]);
+                vrf.claim_net(&[bel.fwire(&format!("GTPFB{i}"))]);
             }
         }
     } else if bel.row == endev.chip.row_tio_outer() {
@@ -1493,19 +1493,19 @@ fn verify_bufio2_ins(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
             && let Some(obel) = vrf.find_bel(bel.cell.with_col(cl).bel(bels::GTP_BUF))
         {
             for i in 0..4 {
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("GTPCLK{i}")),
                     obel.fwire(&format!("GTPCLK{i}_O")),
                 ]);
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("GTPFB{i}")),
                     obel.fwire(&format!("GTPFB{i}_O")),
                 ]);
             }
         } else {
             for i in 0..4 {
-                vrf.claim_node(&[bel.fwire(&format!("GTPCLK{i}"))]);
-                vrf.claim_node(&[bel.fwire(&format!("GTPFB{i}"))]);
+                vrf.claim_net(&[bel.fwire(&format!("GTPCLK{i}"))]);
+                vrf.claim_net(&[bel.fwire(&format!("GTPFB{i}"))]);
             }
         }
         if let Gts::Double(_, cr) | Gts::Quad(_, cr) = endev.chip.gts
@@ -1513,25 +1513,25 @@ fn verify_bufio2_ins(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
         {
             for i in 0..4 {
                 let ii = i + 4;
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("GTPCLK{ii}")),
                     obel.fwire(&format!("GTPCLK{i}_O")),
                 ]);
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("GTPFB{ii}")),
                     obel.fwire(&format!("GTPFB{i}_O")),
                 ]);
             }
         } else {
             for i in 4..8 {
-                vrf.claim_node(&[bel.fwire(&format!("GTPCLK{i}"))]);
-                vrf.claim_node(&[bel.fwire(&format!("GTPFB{i}"))]);
+                vrf.claim_net(&[bel.fwire(&format!("GTPCLK{i}"))]);
+                vrf.claim_net(&[bel.fwire(&format!("GTPFB{i}"))]);
             }
         }
     } else {
         for i in 0..8 {
-            vrf.claim_node(&[bel.fwire(&format!("GTPCLK{i}"))]);
-            vrf.claim_node(&[bel.fwire(&format!("GTPFB{i}"))]);
+            vrf.claim_net(&[bel.fwire(&format!("GTPCLK{i}"))]);
+            vrf.claim_net(&[bel.fwire(&format!("GTPFB{i}"))]);
         }
     }
 }
@@ -1544,12 +1544,12 @@ fn verify_bufio2_ckpin(vrf: &mut Verifier, bel: &BelContext<'_>) {
             bel.wire(&format!("CKPIN{i}")),
             bel.wire(&format!("CLKPIN{i}")),
         );
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("CLKPIN{i}")),
             obel_ins.fwire(&format!("CLKPIN{i}")),
         ]);
         let obel = vrf.find_bel_sibling(bel, bels::BUFIO2[i]);
-        vrf.verify_node(&[bel.fwire(&format!("CKPIN{i}")), obel.fwire("CKPIN")]);
+        vrf.verify_net(&[bel.fwire(&format!("CKPIN{i}")), obel.fwire("CKPIN")]);
     }
 }
 
@@ -1567,11 +1567,11 @@ fn verify_bufio2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
         &[],
     );
     for pin in ["I", "IB", "IOCLK", "DIVCLK", "SERDESSTROBE", "CMT", "CKPIN"] {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
     for pin in ["IOCLK", "DIVCLK", "SERDESSTROBE"] {
         vrf.claim_pip(bel.crd(), bel.wire_far(pin), bel.wire(pin));
-        vrf.claim_node(&[bel.fwire_far(pin)]);
+        vrf.claim_net(&[bel.fwire_far(pin)]);
     }
 
     let obel_ins = vrf.find_bel_sibling(bel, bels::BUFIO2_INS);
@@ -1662,7 +1662,7 @@ fn verify_bufio2fb(vrf: &mut Verifier, bel: &BelContext<'_>) {
         &[],
     );
     for pin in ["I", "IB", "O", "CMT"] {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
     let obel_ins = vrf.find_bel_sibling(bel, bels::BUFIO2_INS);
@@ -1716,7 +1716,7 @@ fn verify_bufpll(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
         &[],
     );
     for pin in ["PLLIN", "GCLK", "LOCKED", "IOCLK", "SERDESSTROBE", "LOCK"] {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
     let idx = bels::BUFPLL
         .into_iter()
@@ -1796,7 +1796,7 @@ fn verify_bufpll_mcb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
         "SERDESSTROBE1",
         "LOCK",
     ] {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
     if endev.chip.columns[bel.col].kind == ColumnKind::Io {
         let obel = vrf.find_bel_sibling(bel, bels::BUFPLL_INS_LR);
@@ -1836,10 +1836,10 @@ fn verify_bufpll_out(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel1 = vrf.find_bel_sibling(bel, bels::BUFPLL1);
     let obel_mcb = vrf.find_bel_sibling(bel, bels::BUFPLL_MCB);
     let obel_tie = vrf.find_bel_sibling(bel, bels::TIEOFF_REG);
-    vrf.claim_node(&[bel.fwire("PLLCLK0")]);
-    vrf.claim_node(&[bel.fwire("PLLCLK1")]);
-    vrf.claim_node(&[bel.fwire("PLLCE0")]);
-    vrf.claim_node(&[bel.fwire("PLLCE1")]);
+    vrf.claim_net(&[bel.fwire("PLLCLK0")]);
+    vrf.claim_net(&[bel.fwire("PLLCLK1")]);
+    vrf.claim_net(&[bel.fwire("PLLCE0")]);
+    vrf.claim_net(&[bel.fwire("PLLCE1")]);
     vrf.claim_pip(bel.crd(), bel.wire("PLLCLK0"), obel0.wire("IOCLK"));
     vrf.claim_pip(bel.crd(), bel.wire("PLLCLK0"), obel_mcb.wire("IOCLK0"));
     vrf.claim_pip(bel.crd(), bel.wire("PLLCLK0"), obel_tie.wire("HARD1"));
@@ -1866,8 +1866,8 @@ fn verify_bufpll_out(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_bufpll_buf(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel = vrf.find_bel_sibling(bel, bels::BUFPLL_OUT);
     for i in 0..2 {
-        vrf.claim_node(&[bel.fwire(&format!("PLLCLK{i}_O"))]);
-        vrf.claim_node(&[bel.fwire(&format!("PLLCE{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("PLLCLK{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("PLLCE{i}_O"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("PLLCLK{i}_O")),
@@ -1878,11 +1878,11 @@ fn verify_bufpll_buf(vrf: &mut Verifier, bel: &BelContext<'_>) {
             bel.wire(&format!("PLLCE{i}_O")),
             bel.wire(&format!("PLLCE{i}_I")),
         );
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("PLLCLK{i}_I")),
             obel.fwire(&format!("PLLCLK{i}")),
         ]);
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("PLLCE{i}_I")),
             obel.fwire(&format!("PLLCE{i}")),
         ]);
@@ -1902,7 +1902,7 @@ fn verify_bufpll_ins_lr(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
         ("LOCKED0", "LOCKED0"),
         ("LOCKED1", "LOCKED1"),
     ] {
-        vrf.verify_node(&[bel.fwire(pin), obel.fwire(&format!("OUT{lr}_{opin}"))]);
+        vrf.verify_net(&[bel.fwire(pin), obel.fwire(&format!("OUT{lr}_{opin}"))]);
     }
 }
 
@@ -1922,7 +1922,7 @@ fn verify_bufpll_ins_bt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
             ("LOCKED1", "PLL1_LOCKED_O"),
             ("LOCKED2", "CLKC_LOCKED_O"),
         ] {
-            vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
+            vrf.verify_net(&[bel.fwire(pin), obel.fwire(opin)]);
         }
     } else {
         let obel = vrf.find_bel_delta(bel, 0, -7, bels::PLL_BUFPLL).unwrap();
@@ -1931,7 +1931,7 @@ fn verify_bufpll_ins_bt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
             ("PLLIN3", "CLKOUT1_U"),
             ("LOCKED1", "LOCKED_U"),
         ] {
-            vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
+            vrf.verify_net(&[bel.fwire(pin), obel.fwire(opin)]);
         }
         if let Some(obel) = vrf.find_bel_delta(bel, 0, -23, bels::DCM_BUFPLL_BUF_N_MID) {
             for (pin, opin) in [
@@ -1942,7 +1942,7 @@ fn verify_bufpll_ins_bt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
                 ("LOCKED0", "PLL0_LOCKED_O"),
                 ("LOCKED2", "CLKC_LOCKED_O"),
             ] {
-                vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
+                vrf.verify_net(&[bel.fwire(pin), obel.fwire(opin)]);
             }
         } else {
             let obel = vrf
@@ -1956,7 +1956,7 @@ fn verify_bufpll_ins_bt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &B
                 ("LOCKED0", "PLL0_LOCKED_I"),
                 ("LOCKED2", "CLKC_LOCKED_O"),
             ] {
-                vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
+                vrf.verify_net(&[bel.fwire(pin), obel.fwire(opin)]);
             }
         }
     }
@@ -1996,7 +1996,7 @@ fn verify_dcm(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ],
     );
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
     let out_pins = [
@@ -2005,16 +2005,16 @@ fn verify_dcm(vrf: &mut Verifier, bel: &BelContext<'_>) {
     ];
 
     for &pin in &out_pins {
-        vrf.claim_node(&[bel.fwire(&format!("{pin}_OUT"))]);
-        vrf.claim_node(&[bel.fwire(&format!("{pin}_TEST"))]);
+        vrf.claim_net(&[bel.fwire(&format!("{pin}_OUT"))]);
+        vrf.claim_net(&[bel.fwire(&format!("{pin}_TEST"))]);
         vrf.claim_pip(bel.crd(), bel.wire(&format!("{pin}_OUT")), bel.wire(pin));
         vrf.claim_pip(bel.crd(), bel.wire(&format!("{pin}_TEST")), bel.wire(pin));
     }
 
     let obel = vrf.find_bel_sibling(bel, bels::CMT);
 
-    vrf.claim_node(&[bel.fwire("CLKIN_TEST")]);
-    vrf.claim_node(&[bel.fwire("CLKFB_TEST")]);
+    vrf.claim_net(&[bel.fwire("CLKIN_TEST")]);
+    vrf.claim_net(&[bel.fwire("CLKFB_TEST")]);
     for opin in ["CLKIN", "CLKIN_TEST"] {
         vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire("CLKIN_CKINT0"));
         vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire("CLKIN_CKINT1"));
@@ -2049,7 +2049,7 @@ fn verify_dcm(vrf: &mut Verifier, bel: &BelContext<'_>) {
         }
     }
 
-    vrf.claim_node(&[bel.fwire("CLK_TO_PLL")]);
+    vrf.claim_net(&[bel.fwire("CLK_TO_PLL")]);
     for &pin in &out_pins {
         vrf.claim_pip(bel.crd(), bel.wire("CLK_TO_PLL"), bel.wire(pin));
         vrf.claim_pip(
@@ -2061,7 +2061,7 @@ fn verify_dcm(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("SKEWCLKIN1"), bel.wire("CLK_TO_PLL"));
 
     let obel_pll = vrf.find_bel_delta(bel, 0, 16, bels::PLL).unwrap();
-    vrf.verify_node(&[
+    vrf.verify_net(&[
         bel.fwire("CLK_FROM_PLL"),
         obel_pll.fwire(&format!("CLK_TO_DCM{idx}")),
     ]);
@@ -2079,21 +2079,21 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         bels::CMT,
     );
     for i in 0..16 {
-        vrf.claim_node(&[bel.fwire(&format!("HCLK{i}"))]);
+        vrf.claim_net(&[bel.fwire(&format!("HCLK{i}"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("HCLK{i}")),
             bel.wire(&format!("HCLK{i}_CKINT")),
         );
 
-        vrf.claim_node(&[bel.fwire(&format!("HCLK{i}_BUF"))]);
+        vrf.claim_net(&[bel.fwire(&format!("HCLK{i}_BUF"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("HCLK{i}_BUF")),
             bel.wire(&format!("HCLK{i}")),
         );
 
-        vrf.claim_node(&[bel.fwire(&format!("CASC{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("CASC{i}_O"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("CASC{i}_O")),
@@ -2105,12 +2105,12 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
             bel.wire(&format!("CASC{i}_I")),
         );
         if let Some(ref obel) = obel {
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("CASC{i}_I")),
                 obel.fwire(&format!("CASC{i}_O")),
             ]);
         } else {
-            vrf.claim_node(&[bel.fwire(&format!("CASC{i}_I"))]);
+            vrf.claim_net(&[bel.fwire(&format!("CASC{i}_I"))]);
         }
     }
     if let Some(obel_pll) = vrf.find_bel_delta(bel, 0, 0, bels::PLL) {
@@ -2161,13 +2161,13 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
                     .with_row(endev.chip.row_bio_outer())
                     .bel(bels::BUFIO2[i]),
             );
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_BT{i}")), obel.fwire("CMT")]);
+            vrf.verify_net(&[bel.fwire(&format!("BUFIO2_BT{i}")), obel.fwire("CMT")]);
             let obel = vrf.get_bel(
                 bel.cell
                     .with_row(endev.chip.row_bio_outer())
                     .bel(bels::BUFIO2FB[i]),
             );
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_BT{i}")), obel.fwire("CMT")]);
+            vrf.verify_net(&[bel.fwire(&format!("BUFIO2FB_BT{i}")), obel.fwire("CMT")]);
             let scol = if i < 4 {
                 endev.chip.col_e()
             } else {
@@ -2178,13 +2178,13 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
                     .with_cr(scol, endev.chip.row_clk())
                     .bel(bels::BUFIO2[i ^ 4]),
             );
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_LR{i}")), obel.fwire("CMT")]);
+            vrf.verify_net(&[bel.fwire(&format!("BUFIO2_LR{i}")), obel.fwire("CMT")]);
             let obel = vrf.get_bel(
                 bel.cell
                     .with_cr(scol, endev.chip.row_clk())
                     .bel(bels::BUFIO2FB[i ^ 4]),
             );
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_LR{i}")), obel.fwire("CMT")]);
+            vrf.verify_net(&[bel.fwire(&format!("BUFIO2FB_LR{i}")), obel.fwire("CMT")]);
         } else {
             let scol = if i < 4 {
                 endev.chip.col_e()
@@ -2196,25 +2196,25 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
                     .with_cr(scol, endev.chip.row_clk())
                     .bel(bels::BUFIO2[i]),
             );
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_LR{i}")), obel.fwire("CMT")]);
+            vrf.verify_net(&[bel.fwire(&format!("BUFIO2_LR{i}")), obel.fwire("CMT")]);
             let obel = vrf.get_bel(
                 bel.cell
                     .with_cr(scol, endev.chip.row_clk())
                     .bel(bels::BUFIO2FB[i]),
             );
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_LR{i}")), obel.fwire("CMT")]);
+            vrf.verify_net(&[bel.fwire(&format!("BUFIO2FB_LR{i}")), obel.fwire("CMT")]);
             let obel = vrf.get_bel(
                 bel.cell
                     .with_row(endev.chip.row_tio_outer())
                     .bel(bels::BUFIO2[i]),
             );
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_BT{i}")), obel.fwire("CMT")]);
+            vrf.verify_net(&[bel.fwire(&format!("BUFIO2_BT{i}")), obel.fwire("CMT")]);
             let obel = vrf.get_bel(
                 bel.cell
                     .with_row(endev.chip.row_tio_outer())
                     .bel(bels::BUFIO2FB[i]),
             );
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_BT{i}")), obel.fwire("CMT")]);
+            vrf.verify_net(&[bel.fwire(&format!("BUFIO2FB_BT{i}")), obel.fwire("CMT")]);
         }
     }
 }
@@ -2256,16 +2256,16 @@ fn verify_pll(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ],
     );
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
-    vrf.claim_node(&[bel.fwire_far("CLKFBOUT")]);
+    vrf.claim_net(&[bel.fwire_far("CLKFBOUT")]);
     vrf.claim_pip(bel.crd(), bel.wire_far("CLKFBOUT"), bel.wire("CLKFBOUT"));
 
     let obel = vrf.find_bel_sibling(bel, bels::CMT);
 
-    vrf.claim_node(&[bel.fwire_far("CLKIN1")]);
-    vrf.claim_node(&[bel.fwire_far("CLKIN2")]);
+    vrf.claim_net(&[bel.fwire_far("CLKIN1")]);
+    vrf.claim_net(&[bel.fwire_far("CLKIN2")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLKIN1"), bel.wire_far("CLKIN1"));
     vrf.claim_pip(bel.crd(), bel.wire("CLKIN2"), bel.wire_far("CLKIN2"));
     vrf.claim_pip(bel.crd(), bel.wire_far("CLKIN1"), bel.wire("CLKIN1_CKINT0"));
@@ -2298,7 +2298,7 @@ fn verify_pll(vrf: &mut Verifier, bel: &BelContext<'_>) {
         );
     }
 
-    vrf.claim_node(&[bel.fwire_far("CLKFBIN")]);
+    vrf.claim_net(&[bel.fwire_far("CLKFBIN")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLKFBIN"), bel.wire_far("CLKFBIN"));
     vrf.claim_pip(bel.crd(), bel.wire_far("CLKFBIN"), bel.wire_far("CLKFBOUT"));
     vrf.claim_pip(
@@ -2326,19 +2326,19 @@ fn verify_pll(vrf: &mut Verifier, bel: &BelContext<'_>) {
         );
     }
 
-    vrf.claim_node(&[bel.fwire_far("CLKIN1_TEST")]);
-    vrf.claim_node(&[bel.fwire_far("CLKFBIN_TEST")]);
+    vrf.claim_net(&[bel.fwire_far("CLKIN1_TEST")]);
+    vrf.claim_net(&[bel.fwire_far("CLKFBIN_TEST")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLKIN1_TEST"), bel.wire_far("CLKIN1"));
     vrf.claim_pip(bel.crd(), bel.wire("CLKFBIN_TEST"), bel.wire_far("CLKFBIN"));
 
-    vrf.claim_node(&[bel.fwire_far("CLKFBDCM_TEST")]);
+    vrf.claim_net(&[bel.fwire_far("CLKFBDCM_TEST")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLKFBDCM_TEST"), bel.wire("CLKFBDCM"));
 
     let obel = vrf.find_bel_sibling(bel, bels::TIEOFF_PLL);
     vrf.claim_pip(bel.crd(), bel.wire("REL"), obel.wire("HARD1"));
 
-    vrf.claim_node(&[bel.fwire("CLK_TO_DCM0")]);
-    vrf.claim_node(&[bel.fwire("CLK_TO_DCM1")]);
+    vrf.claim_net(&[bel.fwire("CLK_TO_DCM0")]);
+    vrf.claim_net(&[bel.fwire("CLK_TO_DCM1")]);
     for pin in [
         "CLKOUTDCM0",
         "CLKOUTDCM1",
@@ -2360,12 +2360,12 @@ fn verify_pll(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
     let obel_dcm0 = vrf.find_bel_delta(bel, 0, -16, bels::DCM0).unwrap();
     let obel_dcm1 = vrf.find_bel_delta(bel, 0, -16, bels::DCM1).unwrap();
-    vrf.verify_node(&[bel.fwire("CLK_FROM_DCM0"), obel_dcm0.fwire("CLK_TO_PLL")]);
-    vrf.verify_node(&[bel.fwire("CLK_FROM_DCM1"), obel_dcm1.fwire("CLK_TO_PLL")]);
-    vrf.verify_node(&[bel.fwire("DCM0_CLKIN_TEST"), obel_dcm0.fwire("CLKIN_TEST")]);
-    vrf.verify_node(&[bel.fwire("DCM1_CLKIN_TEST"), obel_dcm1.fwire("CLKIN_TEST")]);
-    vrf.verify_node(&[bel.fwire("DCM0_CLKFB_TEST"), obel_dcm0.fwire("CLKFB_TEST")]);
-    vrf.verify_node(&[bel.fwire("DCM1_CLKFB_TEST"), obel_dcm1.fwire("CLKFB_TEST")]);
+    vrf.verify_net(&[bel.fwire("CLK_FROM_DCM0"), obel_dcm0.fwire("CLK_TO_PLL")]);
+    vrf.verify_net(&[bel.fwire("CLK_FROM_DCM1"), obel_dcm1.fwire("CLK_TO_PLL")]);
+    vrf.verify_net(&[bel.fwire("DCM0_CLKIN_TEST"), obel_dcm0.fwire("CLKIN_TEST")]);
+    vrf.verify_net(&[bel.fwire("DCM1_CLKIN_TEST"), obel_dcm1.fwire("CLKIN_TEST")]);
+    vrf.verify_net(&[bel.fwire("DCM0_CLKFB_TEST"), obel_dcm0.fwire("CLKFB_TEST")]);
+    vrf.verify_net(&[bel.fwire("DCM1_CLKFB_TEST"), obel_dcm1.fwire("CLKFB_TEST")]);
 
     vrf.claim_pip(bel.crd(), bel.wire("TEST_CLK"), bel.wire("CLKIN1_TEST"));
     vrf.claim_pip(bel.crd(), bel.wire("TEST_CLK"), bel.wire("CLKFBIN_TEST"));
@@ -2373,7 +2373,7 @@ fn verify_pll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("TEST_CLK"), bel.wire("DCM1_CLKIN_TEST"));
     vrf.claim_pip(bel.crd(), bel.wire("TEST_CLK"), bel.wire("DCM0_CLKFB_TEST"));
     vrf.claim_pip(bel.crd(), bel.wire("TEST_CLK"), bel.wire("DCM1_CLKFB_TEST"));
-    vrf.claim_node(&[bel.fwire("TEST_CLK_OUT")]);
+    vrf.claim_net(&[bel.fwire("TEST_CLK_OUT")]);
     vrf.claim_pip(bel.crd(), bel.wire("TEST_CLK_OUT"), bel.wire("TEST_CLK"));
 }
 
@@ -2382,9 +2382,9 @@ fn verify_pll_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for pin in ["CLKOUT0", "CLKOUT1", "LOCKED"] {
         let pin_d = format!("{pin}_D");
         let pin_u = format!("{pin}_U");
-        vrf.claim_node(&[bel.fwire(pin)]);
-        vrf.claim_node(&[bel.fwire(&pin_d)]);
-        vrf.claim_node(&[bel.fwire(&pin_u)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(&pin_d)]);
+        vrf.claim_net(&[bel.fwire(&pin_u)]);
         vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire(pin));
         vrf.claim_pip(bel.crd(), bel.wire(&pin_d), bel.wire(pin));
         vrf.claim_pip(bel.crd(), bel.wire(&pin_u), bel.wire(pin));
@@ -2395,7 +2395,7 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
     const PINS: [&str; 3] = ["LOCKED", "CLKOUT0", "CLKOUT1"];
     for src in ["PLL0", "PLL1", "CLKC"] {
         for pin in PINS {
-            vrf.claim_node(&[bel.fwire(&format!("{src}_{pin}_O"))]);
+            vrf.claim_net(&[bel.fwire(&format!("{src}_{pin}_O"))]);
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(&format!("{src}_{pin}_O")),
@@ -2409,11 +2409,11 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
     ) {
         if let Some(obel) = vrf.find_bel_delta(bel, 0, 32, bels::DCM_BUFPLL_BUF_S_MID) {
             for pin in PINS {
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("PLL0_{pin}_I")),
                     obel.fwire(&format!("PLL0_{pin}_O")),
                 ]);
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("CLKC_{pin}_I")),
                     obel.fwire(&format!("CLKC_{pin}_O")),
                 ]);
@@ -2422,12 +2422,12 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
             if bel.slot == bels::DCM_BUFPLL_BUF_S {
                 // no PLL0 in this case
                 for pin in PINS {
-                    vrf.claim_node(&[bel.fwire(&format!("PLL0_{pin}_I"))]);
+                    vrf.claim_net(&[bel.fwire(&format!("PLL0_{pin}_I"))]);
                 }
             } else {
                 let obel = vrf.find_bel_delta(bel, 0, 16, bels::PLL_BUFPLL).unwrap();
                 for pin in PINS {
-                    vrf.verify_node(&[
+                    vrf.verify_net(&[
                         bel.fwire(&format!("PLL0_{pin}_I")),
                         obel.fwire(&format!("{pin}_D")),
                     ]);
@@ -2439,7 +2439,7 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
                     .bel(bels::CLKC_BUFPLL),
             );
             for pin in PINS {
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("CLKC_{pin}_I")),
                     obel.fwire(&format!("OUTD_{pin}")),
                 ]);
@@ -2448,14 +2448,14 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         if bel.slot == bels::DCM_BUFPLL_BUF_S {
             let obel = vrf.find_bel_delta(bel, 0, 16, bels::PLL_BUFPLL).unwrap();
             for pin in PINS {
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("PLL1_{pin}_I")),
                     obel.fwire(&format!("{pin}_D")),
                 ]);
             }
         } else if let Some(obel) = vrf.find_bel_delta(bel, 0, -32, bels::DCM_BUFPLL_BUF_S_MID) {
             for pin in PINS {
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("PLL1_{pin}_I")),
                     obel.fwire(&format!("PLL1_{pin}_O")),
                 ]);
@@ -2463,7 +2463,7 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         } else {
             let obel = vrf.find_bel_delta(bel, 0, -16, bels::PLL_BUFPLL).unwrap();
             for pin in PINS {
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("PLL1_{pin}_I")),
                     obel.fwire(&format!("{pin}_U")),
                 ]);
@@ -2472,7 +2472,7 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
     } else {
         if let Some(obel) = vrf.find_bel_delta(bel, 0, 32, bels::DCM_BUFPLL_BUF_N_MID) {
             for pin in PINS {
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("PLL1_{pin}_I")),
                     obel.fwire(&format!("PLL1_{pin}_O")),
                 ]);
@@ -2480,7 +2480,7 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
             if bel.slot == bels::DCM_BUFPLL_BUF_N {
                 let obel = vrf.find_bel_delta(bel, 0, 16, bels::PLL_BUFPLL).unwrap();
                 for pin in PINS {
-                    vrf.verify_node(&[
+                    vrf.verify_net(&[
                         bel.fwire(&format!("PLL0_{pin}_I")),
                         obel.fwire(&format!("{pin}_D")),
                     ]);
@@ -2489,7 +2489,7 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         } else {
             let obel = vrf.find_bel_delta(bel, 0, 16, bels::PLL_BUFPLL).unwrap();
             for pin in PINS {
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("PLL1_{pin}_I")),
                     obel.fwire(&format!("{pin}_D")),
                 ]);
@@ -2497,7 +2497,7 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
             if bel.slot == bels::DCM_BUFPLL_BUF_N {
                 // no PLL0 in this case
                 for pin in PINS {
-                    vrf.claim_node(&[bel.fwire(&format!("PLL0_{pin}_I"))]);
+                    vrf.claim_net(&[bel.fwire(&format!("PLL0_{pin}_I"))]);
                 }
             }
         }
@@ -2508,7 +2508,7 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
                     .bel(bels::CLKC_BUFPLL),
             );
             for pin in PINS {
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("CLKC_{pin}_I")),
                     obel.fwire(&format!("OUTU_{pin}")),
                 ]);
@@ -2516,11 +2516,11 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
         } else {
             if let Some(obel) = vrf.find_bel_delta(bel, 0, -32, bels::DCM_BUFPLL_BUF_N_MID) {
                 for pin in PINS {
-                    vrf.verify_node(&[
+                    vrf.verify_net(&[
                         bel.fwire(&format!("PLL0_{pin}_I")),
                         obel.fwire(&format!("PLL0_{pin}_O")),
                     ]);
-                    vrf.verify_node(&[
+                    vrf.verify_net(&[
                         bel.fwire(&format!("CLKC_{pin}_I")),
                         obel.fwire(&format!("CLKC_{pin}_O")),
                     ]);
@@ -2528,7 +2528,7 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
             } else {
                 let obel = vrf.find_bel_delta(bel, 0, -16, bels::PLL_BUFPLL).unwrap();
                 for pin in PINS {
-                    vrf.verify_node(&[
+                    vrf.verify_net(&[
                         bel.fwire(&format!("PLL0_{pin}_I")),
                         obel.fwire(&format!("{pin}_U")),
                     ]);
@@ -2537,7 +2537,7 @@ fn verify_dcm_bufpll_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
                     .find_bel_delta(bel, 0, -32, bels::DCM_BUFPLL_BUF_N)
                     .unwrap();
                 for pin in PINS {
-                    vrf.verify_node(&[
+                    vrf.verify_net(&[
                         bel.fwire(&format!("CLKC_{pin}_I")),
                         obel.fwire(&format!("CLKC_{pin}_O")),
                     ]);
@@ -2558,7 +2558,7 @@ fn verify_clkc_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("OUTR_CLKOUT0", '_'),
         ("OUTR_CLKOUT1", '_'),
     ] {
-        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_net(&[bel.fwire(opin)]);
         if skip != 'D' {
             vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire("PLL0D_CLKOUT0"));
             vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire("PLL0D_CLKOUT1"));
@@ -2580,7 +2580,7 @@ fn verify_clkc_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("OUTR_LOCKED0", '_'),
         ("OUTR_LOCKED1", '_'),
     ] {
-        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_net(&[bel.fwire(opin)]);
         if skip != 'D' {
             vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire("PLL0D_LOCKED"));
             vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire("PLL1D_LOCKED"));
@@ -2597,7 +2597,7 @@ fn verify_clkc_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
             ("PLL1D_CLKOUT1", "PLL1_CLKOUT1_O"),
             ("PLL1D_LOCKED", "PLL1_LOCKED_O"),
         ] {
-            vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
+            vrf.verify_net(&[bel.fwire(pin), obel.fwire(opin)]);
         }
         let obel = vrf.find_bel_walk(bel, 0, -8, bels::PLL_BUFPLL).unwrap();
         for (pin, opin) in [
@@ -2605,7 +2605,7 @@ fn verify_clkc_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
             ("PLL0D_CLKOUT1", "CLKOUT1_U"),
             ("PLL0D_LOCKED", "LOCKED_U"),
         ] {
-            vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
+            vrf.verify_net(&[bel.fwire(pin), obel.fwire(opin)]);
         }
     } else {
         let obel = vrf
@@ -2616,7 +2616,7 @@ fn verify_clkc_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
             ("PLL0D_CLKOUT1", "PLL0_CLKOUT1_I"),
             ("PLL0D_LOCKED", "PLL0_LOCKED_I"),
         ] {
-            vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
+            vrf.verify_net(&[bel.fwire(pin), obel.fwire(opin)]);
         }
         let obel = vrf.find_bel_walk(bel, 0, -8, bels::PLL_BUFPLL).unwrap();
         for (pin, opin) in [
@@ -2624,7 +2624,7 @@ fn verify_clkc_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
             ("PLL1D_CLKOUT1", "CLKOUT1_U"),
             ("PLL1D_LOCKED", "LOCKED_U"),
         ] {
-            vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
+            vrf.verify_net(&[bel.fwire(pin), obel.fwire(opin)]);
         }
     }
 
@@ -2639,7 +2639,7 @@ fn verify_clkc_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("PLL1U_CLKOUT1", "PLL1_CLKOUT1_O"),
         ("PLL1U_LOCKED", "PLL1_LOCKED_O"),
     ] {
-        vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
+        vrf.verify_net(&[bel.fwire(pin), obel.fwire(opin)]);
     }
 }
 
@@ -2707,7 +2707,7 @@ fn verify_gtp(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     ] {
         pins.push((pin, SitePinDir::Out));
         vrf.claim_pip(bel.crd(), bel.wire_far(pin), bel.wire(pin));
-        vrf.claim_node(&[bel.fwire_far(pin)]);
+        vrf.claim_net(&[bel.fwire_far(pin)]);
     }
     for pin in [
         "RCALINEAST0",
@@ -2737,14 +2737,14 @@ fn verify_gtp(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     ] {
         pins.push((pin, SitePinDir::Out));
     }
-    vrf.claim_node(&[bel.fwire("CLKOUT_EW")]);
+    vrf.claim_net(&[bel.fwire("CLKOUT_EW")]);
     for pin in ["REFCLKPLL0", "REFCLKPLL1"] {
         pins.push((pin, SitePinDir::Out));
         vrf.claim_pip(bel.crd(), bel.wire("CLKOUT_EW"), bel.wire(pin));
     }
     vrf.verify_bel(bel, "GTPA1_DUAL", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
     let obel = vrf.find_bel_sibling(bel, bels::GTP_BUF);
@@ -2754,19 +2754,19 @@ fn verify_gtp(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         ("CLKINEAST", "CLKINEAST_O"),
         ("CLKINWEST", "CLKINWEST_O"),
     ] {
-        vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
+        vrf.verify_net(&[bel.fwire(pin), obel.fwire(opin)]);
     }
     for (pin, opin) in [
         ("RXCHBONDI0", "RXCHBONDI0_O"),
         ("RXCHBONDI1", "RXCHBONDI1_O"),
         ("RXCHBONDI2", "RXCHBONDI2_O"),
     ] {
-        vrf.verify_node(&[bel.fwire_far(pin), obel.fwire(opin)]);
+        vrf.verify_net(&[bel.fwire_far(pin), obel.fwire(opin)]);
     }
 
     if bel.col < endev.chip.col_clk {
         for i in 0..5 {
-            vrf.claim_node(&[bel.fwire(&format!("RCALOUTEAST{i}_BUF"))]);
+            vrf.claim_net(&[bel.fwire(&format!("RCALOUTEAST{i}_BUF"))]);
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(&format!("RCALOUTEAST{i}_BUF")),
@@ -2780,7 +2780,7 @@ fn verify_gtp(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
                 bel.wire(&format!("RCALINEAST{i}")),
                 bel.wire(&format!("RCALINEAST{i}_BUF")),
             );
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("RCALINEAST{i}_BUF")),
                 obel.fwire(&format!("RCALINEAST{i}_O")),
             ]);
@@ -2796,11 +2796,11 @@ fn verify_gtp_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
         ("CLKINWEST_O", "CLKINWEST_I"),
         ("CLKOUT_EW_O", "CLKOUT_EW_I"),
     ] {
-        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_net(&[bel.fwire(opin)]);
         vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
     }
     let obel = vrf.find_bel_sibling(bel, bels::GTP);
-    vrf.verify_node(&[bel.fwire("CLKOUT_EW_I"), obel.fwire("CLKOUT_EW")]);
+    vrf.verify_net(&[bel.fwire("CLKOUT_EW_I"), obel.fwire("CLKOUT_EW")]);
     let srow = if bel.row < endev.chip.row_clk() {
         endev.chip.row_bio_outer()
     } else {
@@ -2811,27 +2811,27 @@ fn verify_gtp_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             .with_cr(endev.chip.col_clk, srow)
             .bel(bels::BUFPLL_BUF),
     );
-    vrf.verify_node(&[bel.fwire("PLLCLK0_I"), obel_bufpll.fwire("PLLCLK0_O")]);
-    vrf.verify_node(&[bel.fwire("PLLCLK1_I"), obel_bufpll.fwire("PLLCLK1_O")]);
+    vrf.verify_net(&[bel.fwire("PLLCLK0_I"), obel_bufpll.fwire("PLLCLK0_O")]);
+    vrf.verify_net(&[bel.fwire("PLLCLK1_I"), obel_bufpll.fwire("PLLCLK1_O")]);
 
     for i in 0..4 {
-        vrf.claim_node(&[bel.fwire(&format!("GTPCLK{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("GTPCLK{i}_O"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("GTPCLK{i}_O")),
             bel.wire(&format!("GTPCLK{i}_I")),
         );
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("GTPCLK{i}_I")),
             obel.fwire_far(["GTPCLKOUT00", "GTPCLKOUT01", "GTPCLKOUT10", "GTPCLKOUT11"][i]),
         ]);
-        vrf.claim_node(&[bel.fwire(&format!("GTPFB{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("GTPFB{i}_O"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("GTPFB{i}_O")),
             bel.wire(&format!("GTPFB{i}_I")),
         );
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("GTPFB{i}_I")),
             obel.fwire_far(
                 [
@@ -2851,15 +2851,15 @@ fn verify_gtp_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
         'R'
     };
     for i in 0..3 {
-        vrf.verify_node(&[
+        vrf.verify_net(&[
             bel.fwire(&format!("RXCHBONDO{i}_I")),
             obel.fwire_far(&format!("RXCHBONDO{i}")),
         ]);
-        vrf.claim_node(&[bel.fwire(&format!("RXCHBONDI{i}_O"))]);
+        vrf.claim_net(&[bel.fwire(&format!("RXCHBONDI{i}_O"))]);
     }
     if !matches!(endev.chip.gts, Gts::Single(_)) {
         for i in 0..3 {
-            vrf.claim_node(&[bel.fwire(&format!("RXCHBONDO{i}_O"))]);
+            vrf.claim_net(&[bel.fwire(&format!("RXCHBONDO{i}_O"))]);
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(&format!("RXCHBONDO{i}_O")),
@@ -2870,44 +2870,44 @@ fn verify_gtp_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
                 bel.wire(&format!("RXCHBONDI{i}_O")),
                 bel.wire(&format!("RXCHBONDI{i}_I")),
             );
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("RXCHBONDI{i}_I")),
                 obel_h.fwire_far(&format!("RXCHBONDI{i}_{lr}")),
             ]);
         }
         if bel.col < endev.chip.col_clk {
             for i in 0..5 {
-                vrf.claim_node(&[bel.fwire(&format!("RCALOUTEAST{i}_O"))]);
+                vrf.claim_net(&[bel.fwire(&format!("RCALOUTEAST{i}_O"))]);
                 vrf.claim_pip(
                     bel.crd(),
                     bel.wire(&format!("RCALOUTEAST{i}_O")),
                     bel.wire(&format!("RCALOUTEAST{i}_I")),
                 );
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("RCALOUTEAST{i}_I")),
                     obel.fwire(&format!("RCALOUTEAST{i}_BUF")),
                 ]);
             }
         } else {
             for i in 0..5 {
-                vrf.claim_node(&[bel.fwire(&format!("RCALINEAST{i}_O"))]);
+                vrf.claim_net(&[bel.fwire(&format!("RCALINEAST{i}_O"))]);
                 vrf.claim_pip(
                     bel.crd(),
                     bel.wire(&format!("RCALINEAST{i}_O")),
                     bel.wire(&format!("RCALINEAST{i}_I")),
                 );
-                vrf.verify_node(&[
+                vrf.verify_net(&[
                     bel.fwire(&format!("RCALINEAST{i}_I")),
                     obel_h.fwire(&format!("RCALINEAST{i}_{lr}")),
                 ]);
             }
         }
     }
-    vrf.verify_node(&[
+    vrf.verify_net(&[
         bel.fwire("CLKINEAST_I"),
         obel_h.fwire_far(&format!("CLKINEAST_{lr}")),
     ]);
-    vrf.verify_node(&[
+    vrf.verify_net(&[
         bel.fwire("CLKINWEST_I"),
         obel_h.fwire_far(&format!("CLKINWEST_{lr}")),
     ]);
@@ -2940,28 +2940,28 @@ fn verify_gtp_h_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
     }
     if let Some(cl) = l {
         let obel_l = vrf.get_bel(bel.cell.with_col(cl).bel(bels::GTP_BUF));
-        vrf.verify_node(&[bel.fwire("CLKOUT_EW_L"), obel_l.fwire("CLKOUT_EW_O")]);
+        vrf.verify_net(&[bel.fwire("CLKOUT_EW_L"), obel_l.fwire("CLKOUT_EW_O")]);
     } else {
-        vrf.claim_node(&[bel.fwire("CLKOUT_EW_L")]);
+        vrf.claim_net(&[bel.fwire("CLKOUT_EW_L")]);
     }
     if let Some(cr) = r {
         let obel_r = vrf.get_bel(bel.cell.with_col(cr).bel(bels::GTP_BUF));
-        vrf.verify_node(&[bel.fwire("CLKOUT_EW_R"), obel_r.fwire("CLKOUT_EW_O")]);
+        vrf.verify_net(&[bel.fwire("CLKOUT_EW_R"), obel_r.fwire("CLKOUT_EW_O")]);
     } else {
-        vrf.claim_node(&[bel.fwire("CLKOUT_EW_R")]);
+        vrf.claim_net(&[bel.fwire("CLKOUT_EW_R")]);
     }
-    vrf.claim_node(&[bel.fwire("CLKINEAST_L")]);
-    vrf.claim_node(&[bel.fwire("CLKINWEST_L")]);
-    vrf.claim_node(&[bel.fwire("CLKINEAST_R")]);
-    vrf.claim_node(&[bel.fwire("CLKINWEST_R")]);
+    vrf.claim_net(&[bel.fwire("CLKINEAST_L")]);
+    vrf.claim_net(&[bel.fwire("CLKINWEST_L")]);
+    vrf.claim_net(&[bel.fwire("CLKINEAST_R")]);
+    vrf.claim_net(&[bel.fwire("CLKINWEST_R")]);
     vrf.claim_pip(bel.crd(), bel.wire("CLKINWEST_L"), bel.wire("CLKOUT_EW_R"));
     vrf.claim_pip(bel.crd(), bel.wire("CLKINEAST_R"), bel.wire("CLKOUT_EW_L"));
     if let Some((cl, cr)) = have_both {
         let obel_l = vrf.get_bel(bel.cell.with_col(cl).bel(bels::GTP_BUF));
         let obel_r = vrf.get_bel(bel.cell.with_col(cr).bel(bels::GTP_BUF));
         for i in 0..3 {
-            vrf.claim_node(&[bel.fwire(&format!("RXCHBONDI{i}_L"))]);
-            vrf.claim_node(&[bel.fwire(&format!("RXCHBONDI{i}_R"))]);
+            vrf.claim_net(&[bel.fwire(&format!("RXCHBONDI{i}_L"))]);
+            vrf.claim_net(&[bel.fwire(&format!("RXCHBONDI{i}_R"))]);
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(&format!("RXCHBONDI{i}_L")),
@@ -2972,23 +2972,23 @@ fn verify_gtp_h_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
                 bel.wire(&format!("RXCHBONDI{i}_R")),
                 bel.wire(&format!("RXCHBONDO{i}_L")),
             );
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("RXCHBONDO{i}_L")),
                 obel_l.fwire(&format!("RXCHBONDO{i}_O")),
             ]);
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("RXCHBONDO{i}_R")),
                 obel_r.fwire(&format!("RXCHBONDO{i}_O")),
             ]);
         }
         for i in 0..5 {
-            vrf.claim_node(&[bel.fwire(&format!("RCALINEAST{i}_R"))]);
+            vrf.claim_net(&[bel.fwire(&format!("RCALINEAST{i}_R"))]);
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(&format!("RCALINEAST{i}_R")),
                 bel.wire(&format!("RCALOUTEAST{i}_L")),
             );
-            vrf.verify_node(&[
+            vrf.verify_net(&[
                 bel.fwire(&format!("RCALOUTEAST{i}_L")),
                 obel_l.fwire(&format!("RCALOUTEAST{i}_O")),
             ]);
@@ -3004,7 +3004,7 @@ fn verify_bufds(vrf: &mut Verifier, bel: &BelContext<'_>) {
     ];
     vrf.verify_bel(bel, "BUFDS", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
     let idx = match bel.slot {
         bels::BUFDS0 => 0,
@@ -3022,12 +3022,12 @@ fn verify_bufds(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_ipad(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "IPAD", &[("O", SitePinDir::Out)], &[]);
-    vrf.claim_node(&[bel.fwire("O")]);
+    vrf.claim_net(&[bel.fwire("O")]);
 }
 
 fn verify_opad(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "OPAD", &[("I", SitePinDir::In)], &[]);
-    vrf.claim_node(&[bel.fwire("I")]);
+    vrf.claim_net(&[bel.fwire("I")]);
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -3124,8 +3124,8 @@ fn verify_extra(_endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
         if tile.kind == otile.kind {
             let tk = &vrf.rd.tile_kinds[tile.kind];
             for &(wi, wo) in tk.pips.keys() {
-                vrf.claim_node(&[(crd, &vrf.rd.wires[wo])]);
-                vrf.claim_node(&[(crd, &vrf.rd.wires[wi])]);
+                vrf.claim_net(&[(crd, &vrf.rd.wires[wo])]);
+                vrf.claim_net(&[(crd, &vrf.rd.wires[wi])]);
                 vrf.claim_pip(crd, &vrf.rd.wires[wo], &vrf.rd.wires[wi]);
             }
             dummy_terms.insert(crd);
@@ -3170,18 +3170,18 @@ fn verify_extra(_endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
             for i in 0..8 {
                 let idx = base + i;
                 for j in 0..63 {
-                    vrf.claim_node(&[(crd, &format!("GTPDUAL_LEFT_LOGICIN_B{j}_{idx}"))]);
-                    vrf.claim_node(&[(crd, &format!("GTPDUAL_RIGHT_LOGICIN_B{j}_{idx}"))]);
+                    vrf.claim_net(&[(crd, &format!("GTPDUAL_LEFT_LOGICIN_B{j}_{idx}"))]);
+                    vrf.claim_net(&[(crd, &format!("GTPDUAL_RIGHT_LOGICIN_B{j}_{idx}"))]);
                 }
                 for j in 0..2 {
-                    vrf.claim_node(&[(crd, &format!("GTPDUAL_LEFT_CLK{j}_{idx}"))]);
-                    vrf.claim_node(&[(crd, &format!("GTPDUAL_RIGHT_CLK{j}_{idx}"))]);
-                    vrf.claim_node(&[(crd, &format!("GTPDUAL_LEFT_SR{j}_{idx}"))]);
-                    vrf.claim_node(&[(crd, &format!("GTPDUAL_RIGHT_SR{j}_{idx}"))]);
+                    vrf.claim_net(&[(crd, &format!("GTPDUAL_LEFT_CLK{j}_{idx}"))]);
+                    vrf.claim_net(&[(crd, &format!("GTPDUAL_RIGHT_CLK{j}_{idx}"))]);
+                    vrf.claim_net(&[(crd, &format!("GTPDUAL_LEFT_SR{j}_{idx}"))]);
+                    vrf.claim_net(&[(crd, &format!("GTPDUAL_RIGHT_SR{j}_{idx}"))]);
                 }
                 for j in 0..24 {
-                    vrf.claim_node(&[(crd, &format!("GTPDUAL_LEFT_LOGICOUT{j}_{idx}"))]);
-                    vrf.claim_node(&[(crd, &format!("GTPDUAL_RIGHT_LOGICOUT{j}_{idx}"))]);
+                    vrf.claim_net(&[(crd, &format!("GTPDUAL_LEFT_LOGICOUT{j}_{idx}"))]);
+                    vrf.claim_net(&[(crd, &format!("GTPDUAL_RIGHT_LOGICOUT{j}_{idx}"))]);
                 }
             }
         }

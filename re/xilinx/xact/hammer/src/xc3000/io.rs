@@ -17,14 +17,14 @@ use crate::{
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let grid = backend.edev.chip;
-    for (_, tile, node) in &backend.egrid.db.tile_classes {
-        if !tile.starts_with("CLB") {
+    for (_, tcname, tcls) in &backend.egrid.db.tile_classes {
+        if !tcname.starts_with("CLB") {
             continue;
         }
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
             continue;
         };
-        for slot in node.bels.ids() {
+        for slot in tcls.bels.ids() {
             let slot_name = backend.egrid.db.bel_slots.key(slot).as_str();
             if !slot_name.starts_with("IO") {
                 continue;
@@ -57,7 +57,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 .cfg("TRI", "T")
                 .test_cfg("TRI", "NOT");
         }
-        if tile.starts_with("CLB.BR") {
+        if tcname.starts_with("CLB.BR") {
             ctx.test_global("DONE", "DONEPAD", &["PULLUP", "NOPULLUP"]);
             ctx.test_global("MISC", "REPROGRAM", &["ENABLE", "DISABLE"]);
             ctx.test_global("MISC", "DONETIME", &["BEFORE", "AFTER"]);
@@ -77,8 +77,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             let rwf = backend.egrid.resolve_tile_wire(tcrd, wf).unwrap();
             for val in ["ENABLE", "DIV2"] {
                 ctx.build()
-                    .raw(Key::NodeMutex(rwt), "OSC_SPECIAL")
-                    .raw(Key::NodeMutex(rwf), "OSC_SPECIAL")
+                    .raw(Key::WireMutex(rwt), "OSC_SPECIAL")
+                    .raw(Key::WireMutex(rwf), "OSC_SPECIAL")
                     .test_manual("OSC", "MODE", val)
                     .global_diff("XTALOSC", "DISABLE", val)
                     .raw_diff(Key::Pip(crd), None, Value::FromPin("OSC", "O".into()))
@@ -92,62 +92,62 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                     .commit();
             }
         }
-        if tile.starts_with("CLB.BL") {
+        if tcname.starts_with("CLB.BL") {
             ctx.test_global("MISC", "READ", &["COMMAND", "ONCE", "DISABLE"]);
         }
-        if tile.starts_with("CLB.TL") {
+        if tcname.starts_with("CLB.TL") {
             ctx.test_global("MISC", "INPUT", &["TTL", "CMOS"]);
         }
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for (_, tile, node) in &ctx.edev.egrid.db.tile_classes {
-        if tile == "LLV.RS" {
+    for (_, tcname, tcls) in &ctx.edev.egrid.db.tile_classes {
+        if tcname == "LLV.RS" {
             let bel = "MISC";
             ctx.tiledb.insert(
-                tile,
+                tcname,
                 bel,
                 "TLC",
                 TileItem::from_bit(TileBit::new(0, 0, 0), true),
             );
-        } else if tile == "LLV.R" {
+        } else if tcname == "LLV.R" {
             let bel = "MISC";
             ctx.tiledb.insert(
-                tile,
+                tcname,
                 bel,
                 "TLC",
                 TileItem::from_bit(TileBit::new(1, 0, 0), true),
             );
         }
-        if !tile.starts_with("CLB") {
+        if !tcname.starts_with("CLB") {
             continue;
         }
-        if !ctx.has_tile(tile) {
+        if !ctx.has_tile(tcname) {
             continue;
         }
-        for slot in node.bels.ids() {
+        for slot in tcls.bels.ids() {
             let bel = ctx.edev.egrid.db.bel_slots.key(slot).as_str();
             if !bel.starts_with("IO") {
                 continue;
             }
-            ctx.state.get_diff(tile, bel, "IN", "IQ").assert_empty();
-            let item = ctx.extract_bit(tile, bel, "TRI", "NOT");
-            ctx.tiledb.insert(tile, bel, "INV.T", item);
-            let item = ctx.extract_bit(tile, bel, "OUT", "NOT");
-            ctx.tiledb.insert(tile, bel, "INV.O", item);
+            ctx.state.get_diff(tcname, bel, "IN", "IQ").assert_empty();
+            let item = ctx.extract_bit(tcname, bel, "TRI", "NOT");
+            ctx.tiledb.insert(tcname, bel, "INV.T", item);
+            let item = ctx.extract_bit(tcname, bel, "OUT", "NOT");
+            ctx.tiledb.insert(tcname, bel, "INV.O", item);
             let item = xlat_enum(vec![
                 ("SLOW", Diff::default()),
-                ("FAST", ctx.state.get_diff(tile, bel, "OUT", "FAST")),
+                ("FAST", ctx.state.get_diff(tcname, bel, "OUT", "FAST")),
             ]);
-            ctx.tiledb.insert(tile, bel, "SLEW", item);
+            ctx.tiledb.insert(tcname, bel, "SLEW", item);
             let item = xlat_enum(vec![
                 ("O", Diff::default()),
-                ("OFF", ctx.state.get_diff(tile, bel, "OUT", "OQ")),
+                ("OFF", ctx.state.get_diff(tcname, bel, "OUT", "OQ")),
             ]);
-            ctx.tiledb.insert(tile, bel, "MUX.O", item);
-            let item = ctx.extract_enum_bool(tile, bel, "IN", "FF", "LATCH");
-            ctx.tiledb.insert(tile, bel, "IFF_LATCH", item);
+            ctx.tiledb.insert(tcname, bel, "MUX.O", item);
+            let item = ctx.extract_enum_bool(tcname, bel, "IN", "FF", "LATCH");
+            ctx.tiledb.insert(tcname, bel, "IFF_LATCH", item);
         }
         for (prefix, bel, what, frame, bit) in [
             ("CLB.BR", "IO_S0", "I", 28, 1),
@@ -203,70 +203,70 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("CLB.TL", "IO_W1", "I", 9, 3),
             ("CLB.TL", "IO_W1", "IFF", 22, 1),
         ] {
-            if tile.starts_with(prefix) {
+            if tcname.starts_with(prefix) {
                 ctx.tiledb.insert(
-                    tile,
+                    tcname,
                     bel,
                     format!("READBACK_{what}"),
                     TileItem::from_bit(TileBit::new(0, frame, bit), true),
                 );
             }
         }
-        if tile.starts_with("CLB.BR") {
+        if tcname.starts_with("CLB.BR") {
             let bel = "MISC";
-            ctx.collect_enum_bool_wide_mixed(tile, bel, "REPROGRAM", "DISABLE", "ENABLE");
-            ctx.collect_enum(tile, bel, "DONETIME", &["BEFORE", "AFTER"]);
-            ctx.collect_enum(tile, bel, "RESETTIME", &["BEFORE", "AFTER"]);
+            ctx.collect_enum_bool_wide_mixed(tcname, bel, "REPROGRAM", "DISABLE", "ENABLE");
+            ctx.collect_enum(tcname, bel, "DONETIME", &["BEFORE", "AFTER"]);
+            ctx.collect_enum(tcname, bel, "RESETTIME", &["BEFORE", "AFTER"]);
             ctx.tiledb.insert(
-                tile,
+                tcname,
                 bel,
                 "TLC",
                 TileItem::from_bit(TileBit::new(0, 1, 0), true),
             );
             ctx.tiledb.insert(
-                tile,
+                tcname,
                 bel,
                 "SLOWOSC_HALT",
                 TileItem::from_bit(TileBit::new(0, 5, 0), false),
             );
             let bel = "DONE";
             let item = xlat_enum(vec![
-                ("PULLUP", ctx.state.get_diff(tile, bel, "DONEPAD", "PULLUP")),
+                ("PULLUP", ctx.state.get_diff(tcname, bel, "DONEPAD", "PULLUP")),
                 (
                     "PULLNONE",
-                    ctx.state.get_diff(tile, bel, "DONEPAD", "NOPULLUP"),
+                    ctx.state.get_diff(tcname, bel, "DONEPAD", "NOPULLUP"),
                 ),
             ]);
-            ctx.tiledb.insert(tile, bel, "PULL", item);
+            ctx.tiledb.insert(tcname, bel, "PULL", item);
             let bel = "OSC";
             let mut diffs = vec![("DISABLE", Diff::default())];
             for val in ["ENABLE", "DIV2"] {
-                let mut diff = ctx.state.get_diff(tile, bel, "MODE", val);
-                diff.discard_bits(ctx.tiledb.item(tile, "INT", "MUX.IMUX.BUFG"));
-                diff.apply_bit_diff(ctx.tiledb.item(tile, "IO_S1", "PULLUP"), false, true);
-                diff.apply_bit_diff(ctx.tiledb.item(tile, "IO_E0", "PULLUP"), false, true);
+                let mut diff = ctx.state.get_diff(tcname, bel, "MODE", val);
+                diff.discard_bits(ctx.tiledb.item(tcname, "INT", "MUX.IMUX.BUFG"));
+                diff.apply_bit_diff(ctx.tiledb.item(tcname, "IO_S1", "PULLUP"), false, true);
+                diff.apply_bit_diff(ctx.tiledb.item(tcname, "IO_E0", "PULLUP"), false, true);
                 diffs.push((val, diff));
             }
-            ctx.tiledb.insert(tile, bel, "MODE", xlat_enum(diffs));
+            ctx.tiledb.insert(tcname, bel, "MODE", xlat_enum(diffs));
         }
-        if tile.starts_with("CLB.BL") {
+        if tcname.starts_with("CLB.BL") {
             let bel = "MISC";
-            ctx.collect_enum(tile, bel, "READ", &["COMMAND", "ONCE", "DISABLE"]);
+            ctx.collect_enum(tcname, bel, "READ", &["COMMAND", "ONCE", "DISABLE"]);
         }
-        if tile.starts_with("CLB.TL") {
+        if tcname.starts_with("CLB.TL") {
             let bel = "MISC";
-            ctx.collect_enum(tile, bel, "INPUT", &["TTL", "CMOS"]);
+            ctx.collect_enum(tcname, bel, "INPUT", &["TTL", "CMOS"]);
         }
-        if tile.starts_with("CLB.TR") {
+        if tcname.starts_with("CLB.TR") {
             let bel = "MISC";
             ctx.tiledb.insert(
-                tile,
+                tcname,
                 bel,
                 "TAC",
                 TileItem::from_bit(TileBit::new(0, 0, 5), true),
             );
             ctx.tiledb.insert(
-                tile,
+                tcname,
                 bel,
                 "POR",
                 TileItem::from_bit(TileBit::new(0, 11, 9), true),

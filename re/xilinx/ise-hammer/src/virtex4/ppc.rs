@@ -28,9 +28,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
         return;
     };
-    let node_kind = intdb.get_tile_class(tile);
-    let node_data = &intdb.tile_classes[node_kind];
-    for (slot, bel_data) in &node_data.bels {
+    let tcid = intdb.get_tile_class(tile);
+    let tcls = &intdb.tile_classes[tcid];
+    for (slot, bel_data) in &tcls.bels {
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
@@ -68,12 +68,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let egrid = ctx.edev.egrid();
     let tile = "PPC";
-    let node_kind = egrid.db.get_tile_class(tile);
-    if egrid.tile_index[node_kind].is_empty() {
+    let tcid = egrid.db.get_tile_class(tile);
+    if !ctx.has_tile(tile) {
         return;
     }
-    let node_data = &egrid.db.tile_classes[node_kind];
-    for (slot, bel_data) in &node_data.bels {
+    let tcls = &egrid.db.tile_classes[tcid];
+    for (slot, bel_data) in &tcls.bels {
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };

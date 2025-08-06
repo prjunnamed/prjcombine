@@ -115,26 +115,26 @@ impl PipWire {
         backend: &IseBackend<'a>,
         tcrd: TileCoord,
     ) -> Option<(&'a str, &'a str)> {
-        let node = &backend.egrid[tcrd];
+        let tile = &backend.egrid[tcrd];
         let ndb = backend.ngrid.db;
-        let nnode = &backend.ngrid.tiles[&tcrd];
-        let node_naming = &ndb.tile_class_namings[nnode.naming];
+        let ntile = &backend.ngrid.tiles[&tcrd];
+        let tile_naming = &ndb.tile_class_namings[ntile.naming];
         Some(match self {
             PipWire::Int(wire) => {
                 backend
                     .egrid
                     .resolve_wire(backend.egrid.tile_wire(tcrd, *wire))?;
                 (
-                    &nnode.names[RawTileId::from_idx(0)],
-                    node_naming.wires.get(wire)?,
+                    &ntile.names[RawTileId::from_idx(0)],
+                    tile_naming.wires.get(wire)?,
                 )
             }
             PipWire::BelPinNear(bel, pin) => {
-                let BelNaming::Bel(bel_naming) = &node_naming.bels[*bel] else {
+                let BelNaming::Bel(bel_naming) = &tile_naming.bels[*bel] else {
                     unreachable!()
                 };
                 (
-                    &nnode.names[bel_naming.tile],
+                    &ntile.names[bel_naming.tile],
                     &bel_naming
                         .pins
                         .get(pin)
@@ -142,18 +142,18 @@ impl PipWire {
                             panic!(
                                 "missing pin {pin} in bel {bel} tile {tile}",
                                 bel = backend.egrid.db.bel_slots.key(*bel),
-                                tile = backend.egrid.db.tile_classes.key(node.class),
+                                tile = backend.egrid.db.tile_classes.key(tile.class),
                             )
                         })
                         .name,
                 )
             }
             PipWire::BelPinFar(bel, pin) => {
-                let BelNaming::Bel(bel_naming) = &node_naming.bels[*bel] else {
+                let BelNaming::Bel(bel_naming) = &tile_naming.bels[*bel] else {
                     unreachable!()
                 };
                 (
-                    &nnode.names[bel_naming.tile],
+                    &ntile.names[bel_naming.tile],
                     &bel_naming
                         .pins
                         .get(pin)
@@ -161,7 +161,7 @@ impl PipWire {
                             panic!(
                                 "missing pin {pin} in bel {bel} tile {tile}",
                                 bel = backend.egrid.db.bel_slots.key(*bel),
-                                tile = backend.egrid.db.tile_classes.key(node.class),
+                                tile = backend.egrid.db.tile_classes.key(tile.class),
                             )
                         })
                         .name_far,

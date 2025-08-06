@@ -9,25 +9,25 @@ use prjcombine_interconnect::{
 };
 use unnamed_entity::{EntityPartVec, EntityVec};
 
-use crate::db::{IntPipNaming, NamingDb, NodeNamingId, NodeRawTileId};
+use crate::db::{IntPipNaming, NamingDb, TileNamingId, TileRawCellId};
 
 #[derive(Clone, Debug)]
 pub struct ExpandedGridNaming<'a> {
     pub db: &'a NamingDb,
     pub egrid: &'a ExpandedGrid<'a>,
-    pub tiles: HashMap<TileCoord, GridNodeNaming>,
+    pub tiles: HashMap<TileCoord, GridTileNaming>,
     pub tie_pin_gnd: Option<String>,
 }
 
 #[derive(Clone, Debug)]
-pub struct GridNodeNaming {
-    pub naming: NodeNamingId,
-    pub coords: EntityVec<NodeRawTileId, (Range<usize>, Range<usize>)>,
+pub struct GridTileNaming {
+    pub naming: TileNamingId,
+    pub coords: EntityVec<TileRawCellId, (Range<usize>, Range<usize>)>,
     pub tie_names: Vec<String>,
     pub bels: EntityPartVec<BelSlotId, Vec<String>>,
 }
 
-impl GridNodeNaming {
+impl GridTileNaming {
     pub fn add_bel(&mut self, slot: BelSlotId, names: Vec<String>) {
         self.bels.insert(slot, names);
     }
@@ -49,64 +49,64 @@ impl<'a> ExpandedGridNaming<'a> {
         }
     }
 
-    pub fn name_node(
+    pub fn name_tile(
         &mut self,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         naming: &str,
         coords: impl IntoIterator<Item = (Range<usize>, Range<usize>)>,
-    ) -> &mut GridNodeNaming {
-        let nnode = GridNodeNaming {
+    ) -> &mut GridTileNaming {
+        let ntile = GridTileNaming {
             coords: coords.into_iter().collect(),
-            naming: self.db.get_node_naming(naming),
+            naming: self.db.get_tile_naming(naming),
             tie_names: vec![],
             bels: EntityPartVec::new(),
         };
-        let hash_map::Entry::Vacant(entry) = self.tiles.entry(nloc) else {
+        let hash_map::Entry::Vacant(entry) = self.tiles.entry(tcrd) else {
             unreachable!()
         };
-        entry.insert(nnode)
+        entry.insert(ntile)
     }
 
     pub fn get_bel_name(&self, bel: BelCoord) -> Option<&str> {
-        if let Some(nloc) = self.egrid.find_tile_by_bel(bel) {
-            let nnode = &self.tiles[&nloc];
-            Some(&nnode.bels[bel.slot][0])
+        if let Some(tcrd) = self.egrid.find_tile_by_bel(bel) {
+            let ntile = &self.tiles[&tcrd];
+            Some(&ntile.bels[bel.slot][0])
         } else {
             None
         }
     }
 
     pub fn bel_pip(&self, bel: BelCoord, key: &str) -> PipCoords {
-        let nloc = self.egrid.get_tile_by_bel(bel);
-        let nnode = &self.tiles[&nloc];
-        let naming = &self.db.node_namings[nnode.naming].bel_pips[&(bel.slot, key.to_string())];
+        let tcrd = self.egrid.get_tile_by_bel(bel);
+        let ntile = &self.tiles[&tcrd];
+        let naming = &self.db.tile_namings[ntile.naming].bel_pips[&(bel.slot, key.to_string())];
         PipCoords::Pip((
-            naming.x + nnode.coords[naming.rt].0.start,
-            naming.y + nnode.coords[naming.rt].1.start,
+            naming.x + ntile.coords[naming.rt].0.start,
+            naming.y + ntile.coords[naming.rt].1.start,
         ))
     }
 
     pub fn int_pip(
         &self,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         wire_to: TileWireCoord,
         wire_from: TileWireCoord,
     ) -> PipCoords {
-        let nnode = &self.tiles[&nloc];
-        let naming = &self.db.node_namings[nnode.naming].int_pips[&(wire_to, wire_from)];
+        let ntile = &self.tiles[&tcrd];
+        let naming = &self.db.tile_namings[ntile.naming].int_pips[&(wire_to, wire_from)];
         match naming {
             IntPipNaming::Pip(pip) => PipCoords::Pip((
-                pip.x + nnode.coords[pip.rt].0.start,
-                pip.y + nnode.coords[pip.rt].1.start,
+                pip.x + ntile.coords[pip.rt].0.start,
+                pip.y + ntile.coords[pip.rt].1.start,
             )),
             IntPipNaming::Box(pip1, pip2) => PipCoords::BoxPip(
                 (
-                    pip1.x + nnode.coords[pip1.rt].0.start,
-                    pip1.y + nnode.coords[pip1.rt].1.start,
+                    pip1.x + ntile.coords[pip1.rt].0.start,
+                    pip1.y + ntile.coords[pip1.rt].1.start,
                 ),
                 (
-                    pip2.x + nnode.coords[pip2.rt].0.start,
-                    pip2.y + nnode.coords[pip2.rt].1.start,
+                    pip2.x + ntile.coords[pip2.rt].0.start,
+                    pip2.y + ntile.coords[pip2.rt].1.start,
                 ),
             ),
         }

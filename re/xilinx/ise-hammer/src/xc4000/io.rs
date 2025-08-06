@@ -54,7 +54,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
             .egrid
             .resolve_wire(backend.egrid.tile_wire(tcrd, wire))
             .unwrap();
-        fuzzer = fuzzer.fuzz(Key::NodeMutex(res_wire), None, "EXCLUSIVE");
+        fuzzer = fuzzer.fuzz(Key::WireMutex(res_wire), None, "EXCLUSIVE");
         if self.drive {
             let otcrd = res_wire.cell.tile(tslots::MAIN);
             let otile = &backend.egrid[otcrd];
@@ -71,7 +71,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
                 .unwrap();
             let (tile, wt, wf) = resolve_int_pip(backend, otcrd, wt, wf).unwrap();
             fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true).fuzz(
-                Key::NodeMutex(res_wf),
+                Key::WireMutex(res_wf),
                 None,
                 "EXCLUSIVE",
             );

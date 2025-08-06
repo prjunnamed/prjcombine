@@ -10,7 +10,7 @@ use std::{
 use clap::Parser;
 use collect::{collect, collect_iob};
 use generate::{GeneratorConfig, generate};
-use intdb::{MiscNodeBuilder, make_intdb};
+use intdb::{MiscTileBuilder, make_intdb};
 use parts::Part;
 use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
@@ -27,7 +27,7 @@ use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{
     bels,
     bond::{Bond, BondPad, CfgPad},
-    chip::{Chip, ChipKind, ExtraNode, ExtraNodeIo, ExtraNodeLoc, SharedCfgPad},
+    chip::{Chip, ChipKind, SharedCfgPad, SpecialIoKey, SpecialTile, SpecialTileKey},
     db::Database,
     expanded::{BitOwner, ExpandedDevice},
     tslots,
@@ -87,7 +87,7 @@ struct PartContext<'a> {
     pkgs: BTreeMap<(&'static str, &'static str), PkgInfo>,
     extra_wire_names: BTreeMap<(u32, u32, String), WireCoord>,
     bel_pins: BTreeMap<(&'static str, RawLoc), BelPins>,
-    extra_node_locs: BTreeMap<ExtraNodeLoc, Vec<RawLoc>>,
+    special_tiles: BTreeMap<SpecialTileKey, Vec<RawLoc>>,
     bsdata: BsData,
     speed: BTreeMap<(&'static str, &'static str), Speed>,
     debug: u8,
@@ -238,11 +238,11 @@ impl HarvestContext<'_> {
     }
 
     fn pips_complete(&self) -> bool {
-        let mut nodes_complete = 0;
+        let mut tiles_complete = 0;
         let pips = self.pips.lock().unwrap();
-        for (&nk, pips) in &*pips {
+        for (&tcname, pips) in &*pips {
             let mut stats: BTreeMap<String, usize> = BTreeMap::new();
-            let nkn = self.edev.egrid.db.tile_classes.key(nk);
+            let tcid = self.edev.egrid.db.tile_classes.key(tcname);
             for &(wt, wf) in pips {
                 let wtn = self.edev.egrid.db.wires.key(wt.wire);
                 let wfn = self.edev.egrid.db.wires.key(wf.wire);
@@ -271,14 +271,14 @@ impl HarvestContext<'_> {
                 };
                 *stats.entry(bucket.to_string()).or_default() += 1;
             }
-            let golden_stats = get_golden_mux_stats(self.edev.chip.kind, nkn);
+            let golden_stats = get_golden_mux_stats(self.edev.chip.kind, tcid);
             if stats == golden_stats {
-                nodes_complete += 1;
+                tiles_complete += 1;
             } else {
                 for (k, &v) in &stats {
                     let gv = golden_stats.get(k).copied().unwrap_or(0);
                     if v > gv {
-                        println!("UMMMM GOT MORE MUXES THAN BARGAINED FOR AT {nkn} {k} {v}/{gv}");
+                        println!("UMMMM GOT MORE MUXES THAN BARGAINED FOR AT {tcid} {k} {v}/{gv}");
                     }
                 }
                 let mut missing = BTreeMap::new();
@@ -289,7 +289,7 @@ impl HarvestContext<'_> {
                     }
                 }
                 if self.ctx.debug >= 1 && !missing.is_empty() {
-                    print!("missing muxes in {nkn}:");
+                    print!("missing muxes in {tcid}:");
                     for (k, v) in missing {
                         print!(" {v}×{k}");
                     }
@@ -297,14 +297,14 @@ impl HarvestContext<'_> {
                 }
             }
         }
-        let golden_nodes_complete = if self.edev.chip.kind == ChipKind::Ice40P03 {
+        let golden_tiles_complete = if self.edev.chip.kind == ChipKind::Ice40P03 {
             5 // PLB, 4×IO
         } else if self.edev.chip.kind.has_ioi_we() {
             6 // PLB, INT.BRAM, 4×IO
         } else {
             4 // PLB, INT.BRAM, 2×IO
         };
-        golden_nodes_complete == nodes_complete
+        golden_tiles_complete == tiles_complete
     }
 
     fn speed_complete(&mut self) -> bool {
@@ -369,7 +369,7 @@ impl HarvestContext<'_> {
             &self.ctx.pkgs[&(design.device.as_str(), design.package.as_str())],
             &self.gencfg.rows_colbuf,
             &self.ctx.extra_wire_names,
-            &self.ctx.extra_node_locs,
+            &self.ctx.special_tiles,
         );
         let mut harvester = self.harvester.lock().unwrap();
         let mut pips = self.pips.lock().unwrap();
@@ -1160,9 +1160,9 @@ impl PartContext<'_> {
         };
         assert_eq!(pkg_pins.iter().count(), expected);
         for (edge, (x, y)) in find_io_latch_locs(self.toolchain, pkg_info.part, pkg, &pkg_pins) {
-            self.chip.extra_nodes.insert(
-                ExtraNodeLoc::LatchIo(edge),
-                ExtraNode {
+            self.chip.special_tiles.insert(
+                SpecialTileKey::LatchIo(edge),
+                SpecialTile {
                     io: Default::default(),
                     cells: EntityVec::from_iter([CellCoord::new(
                         DieId::from_idx(0),
@@ -1186,9 +1186,9 @@ impl PartContext<'_> {
             );
             let index = site.global_nets[&InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())];
             assert!(found.insert(index));
-            self.chip.extra_nodes.insert(
-                ExtraNodeLoc::GbFabric(index as usize),
-                ExtraNode {
+            self.chip.special_tiles.insert(
+                SpecialTileKey::GbFabric(index as usize),
+                SpecialTile {
                     io: Default::default(),
                     cells: EntityVec::from_iter([crd]),
                 },
@@ -1247,17 +1247,17 @@ impl PartContext<'_> {
         }
 
         for (index, io) in gb_io {
-            let node = ExtraNode {
-                io: BTreeMap::from_iter([(ExtraNodeIo::GbIn, io)]),
+            let special = SpecialTile {
+                io: BTreeMap::from_iter([(SpecialIoKey::GbIn, io)]),
                 cells: Default::default(),
             };
-            let loc = ExtraNodeLoc::GbIo(index);
-            self.chip.extra_nodes.insert(loc, node);
+            let key = SpecialTileKey::GbIo(index);
+            self.chip.special_tiles.insert(key, special);
         }
     }
 
     fn fill_trim(&mut self) {
-        let loc = ExtraNodeLoc::Trim;
+        let key = SpecialTileKey::Trim;
         let crd = match self.chip.kind {
             ChipKind::Ice40T04 | ChipKind::Ice40T05 => {
                 CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(16))
@@ -1267,12 +1267,12 @@ impl PartContext<'_> {
             }
             _ => return,
         };
-        let nb = MiscNodeBuilder::new(&self.chip, tslots::TRIM, &[crd]);
-        let (int_node, extra_node) = nb.finish();
+        let builder = MiscTileBuilder::new(&self.chip, tslots::TRIM, &[crd]);
+        let (tcls, special) = builder.finish();
         self.intdb
             .tile_classes
-            .insert(loc.tile_class(self.chip.kind), int_node);
-        self.chip.extra_nodes.insert(loc, extra_node);
+            .insert(key.tile_class(self.chip.kind), tcls);
+        self.chip.special_tiles.insert(key, special);
     }
 
     fn fill_extra_misc(&mut self) {
@@ -1295,7 +1295,7 @@ impl PartContext<'_> {
                 continue;
             };
             for site in sites {
-                let (loc, slot, bel, extra_crd, dedio) = match kind {
+                let (key, slot, bel, extra_crd, dedio) = match kind {
                     "SB_MAC16" => {
                         let col = pkg_info.xlat_col[site.loc.x as usize];
                         let row = pkg_info.xlat_row[site.loc.y as usize];
@@ -1304,9 +1304,9 @@ impl PartContext<'_> {
                                 && col.to_idx() == 0
                                 && row.to_idx() == 15
                             {
-                                ExtraNodeLoc::Mac16Trim(col, row)
+                                SpecialTileKey::Mac16Trim(col, row)
                             } else {
-                                ExtraNodeLoc::Mac16(col, row)
+                                SpecialTileKey::Mac16(col, row)
                             },
                             tslots::BEL,
                             bels::MAC16,
@@ -1315,7 +1315,7 @@ impl PartContext<'_> {
                         )
                     }
                     "SB_WARMBOOT" => (
-                        ExtraNodeLoc::Warmboot,
+                        SpecialTileKey::Warmboot,
                         tslots::WARMBOOT,
                         bels::WARMBOOT,
                         vec![],
@@ -1324,16 +1324,16 @@ impl PartContext<'_> {
                     "SB_SPI" => {
                         let edge = if site.loc.x == 0 { DirH::W } else { DirH::E };
                         (
-                            ExtraNodeLoc::Spi(edge),
+                            SpecialTileKey::Spi(edge),
                             tslots::BEL,
                             bels::SPI,
                             vec![],
                             [
-                                (ExtraNodeIo::SpiCopi, "MOSI"),
-                                (ExtraNodeIo::SpiCipo, "MISO"),
-                                (ExtraNodeIo::SpiSck, "SCK"),
-                                (ExtraNodeIo::SpiCsB0, "CSN0"),
-                                (ExtraNodeIo::SpiCsB1, "CSN1"),
+                                (SpecialIoKey::SpiCopi, "MOSI"),
+                                (SpecialIoKey::SpiCipo, "MISO"),
+                                (SpecialIoKey::SpiSck, "SCK"),
+                                (SpecialIoKey::SpiCsB0, "CSN0"),
+                                (SpecialIoKey::SpiCsB1, "CSN1"),
                             ]
                             .as_slice(),
                         )
@@ -1341,67 +1341,69 @@ impl PartContext<'_> {
                     "SB_I2C" => {
                         let edge = if site.loc.x == 0 { DirH::W } else { DirH::E };
                         (
-                            ExtraNodeLoc::I2c(edge),
+                            SpecialTileKey::I2c(edge),
                             tslots::BEL,
                             bels::I2C,
                             vec![],
-                            [(ExtraNodeIo::I2cScl, "SCL"), (ExtraNodeIo::I2cSda, "SDA")].as_slice(),
+                            [(SpecialIoKey::I2cScl, "SCL"), (SpecialIoKey::I2cSda, "SDA")]
+                                .as_slice(),
                         )
                     }
                     "SB_I2C_FIFO" => {
                         let edge = if site.loc.x == 0 { DirH::W } else { DirH::E };
                         (
-                            ExtraNodeLoc::I2cFifo(edge),
+                            SpecialTileKey::I2cFifo(edge),
                             tslots::BEL,
                             bels::I2C_FIFO,
                             vec![],
-                            [(ExtraNodeIo::I2cScl, "SCL"), (ExtraNodeIo::I2cSda, "SDA")].as_slice(),
+                            [(SpecialIoKey::I2cScl, "SCL"), (SpecialIoKey::I2cSda, "SDA")]
+                                .as_slice(),
                         )
                     }
                     "SB_HSOSC" => (
-                        ExtraNodeLoc::HsOsc,
+                        SpecialTileKey::HsOsc,
                         tslots::OSC,
                         bels::HSOSC,
                         vec![],
                         [].as_slice(),
                     ),
                     "SB_LSOSC" => (
-                        ExtraNodeLoc::LsOsc,
+                        SpecialTileKey::LsOsc,
                         tslots::OSC,
                         bels::LSOSC,
                         vec![],
                         [].as_slice(),
                     ),
                     "SB_HFOSC" => (
-                        ExtraNodeLoc::HfOsc,
+                        SpecialTileKey::HfOsc,
                         tslots::OSC,
                         bels::HFOSC,
                         vec![],
                         [].as_slice(),
                     ),
                     "SB_LFOSC" => (
-                        ExtraNodeLoc::LfOsc,
+                        SpecialTileKey::LfOsc,
                         tslots::OSC,
                         bels::LFOSC,
                         vec![],
                         [].as_slice(),
                     ),
                     "SB_LEDD_IP" => (
-                        ExtraNodeLoc::LeddIp,
+                        SpecialTileKey::LeddIp,
                         tslots::LED_IP,
                         bels::LEDD_IP,
                         vec![],
                         [].as_slice(),
                     ),
                     "SB_LEDDA_IP" => (
-                        ExtraNodeLoc::LeddaIp,
+                        SpecialTileKey::LeddaIp,
                         tslots::LED_IP,
                         bels::LEDDA_IP,
                         vec![],
                         [].as_slice(),
                     ),
                     "SB_IR_IP" => (
-                        ExtraNodeLoc::IrIp,
+                        SpecialTileKey::IrIp,
                         tslots::LED_IP,
                         bels::IR_IP,
                         vec![],
@@ -1416,23 +1418,23 @@ impl PartContext<'_> {
                         fixed_crd.push(bel_pins.ins[pin].cell);
                     }
                 }
-                let mut nb = MiscNodeBuilder::new(&self.chip, slot, &fixed_crd);
-                nb.add_bel(bel, bel_pins);
+                let mut builder = MiscTileBuilder::new(&self.chip, slot, &fixed_crd);
+                builder.add_bel(bel, bel_pins);
                 for crd in extra_crd {
-                    nb.get_cell(crd);
+                    builder.get_cell(crd);
                 }
-                let (int_node, mut extra_node) = nb.finish();
+                let (tcls, mut special) = builder.finish();
                 for &(slot, pin) in dedio {
                     let loc = site.dedio[pin];
                     let xy = (loc.x, loc.y, loc.bel);
                     let io = pkg_info.xlat_io[&xy];
-                    extra_node.io.insert(slot, io);
+                    special.io.insert(slot, io);
                 }
                 self.intdb
                     .tile_classes
-                    .insert(loc.tile_class(self.chip.kind), int_node);
-                self.chip.extra_nodes.insert(loc, extra_node);
-                self.extra_node_locs.insert(loc, vec![site.loc]);
+                    .insert(key.tile_class(self.chip.kind), tcls);
+                self.chip.special_tiles.insert(key, special);
+                self.special_tiles.insert(key, vec![site.loc]);
             }
         }
     }
@@ -1459,11 +1461,11 @@ impl PartContext<'_> {
                 let mut bel_pins = self.bel_pins[&(kind, site.loc)].clone();
                 bel_pins.ins.remove("LATCHINPUTVALUE");
                 bel_pins.outs.retain(|k, _| !k.starts_with("PLLOUT"));
-                let mut nb = MiscNodeBuilder::new(&self.chip, tslots::BEL, &[]);
+                let mut builder = MiscTileBuilder::new(&self.chip, tslots::BEL, &[]);
                 if self.chip.kind.is_ice40() {
                     if self.chip.kind == ChipKind::Ice40P01 {
                         for i in 1..=5 {
-                            nb.get_cell(CellCoord::new(
+                            builder.get_cell(CellCoord::new(
                                 DieId::from_idx(0),
                                 self.chip.col_w(),
                                 RowId::from_idx(i),
@@ -1471,43 +1473,43 @@ impl PartContext<'_> {
                         }
                     } else {
                         for i in 0..5 {
-                            nb.get_cell(bel.delta(-2 + i, 0));
+                            builder.get_cell(bel.delta(-2 + i, 0));
                         }
                     }
                 }
-                nb.io.insert(ExtraNodeIo::PllA, io);
-                nb.io.insert(ExtraNodeIo::PllB, io2);
-                nb.add_bel(bels::PLL, &bel_pins);
-                let (int_node, extra_node) = nb.finish();
-                let loc = ExtraNodeLoc::Pll(if bel.row == self.chip.row_s() {
+                builder.io.insert(SpecialIoKey::PllA, io);
+                builder.io.insert(SpecialIoKey::PllB, io2);
+                builder.add_bel(bels::PLL, &bel_pins);
+                let (tcls, special) = builder.finish();
+                let loc = SpecialTileKey::Pll(if bel.row == self.chip.row_s() {
                     DirV::S
                 } else {
                     DirV::N
                 });
-                match self.chip.extra_nodes.entry(loc) {
+                match self.chip.special_tiles.entry(loc) {
                     btree_map::Entry::Vacant(entry) => {
-                        entry.insert(extra_node);
+                        entry.insert(special);
                         self.intdb
                             .tile_classes
-                            .insert(loc.tile_class(self.chip.kind), int_node);
-                        self.extra_node_locs.insert(loc, vec![site.loc]);
+                            .insert(loc.tile_class(self.chip.kind), tcls);
+                        self.special_tiles.insert(loc, vec![site.loc]);
                     }
                     btree_map::Entry::Occupied(entry) => {
-                        assert_eq!(*entry.get(), extra_node);
+                        assert_eq!(*entry.get(), special);
                     }
                 }
             }
         }
         if matches!(self.chip.kind, ChipKind::Ice40T04 | ChipKind::Ice40T05) {
-            let xnode = ExtraNode {
+            let special = SpecialTile {
                 io: BTreeMap::from_iter([
                     (
-                        ExtraNodeIo::PllA,
-                        self.chip.extra_nodes[&ExtraNodeLoc::GbIo(6)].io[&ExtraNodeIo::GbIn],
+                        SpecialIoKey::PllA,
+                        self.chip.special_tiles[&SpecialTileKey::GbIo(6)].io[&SpecialIoKey::GbIn],
                     ),
                     (
-                        ExtraNodeIo::PllB,
-                        self.chip.extra_nodes[&ExtraNodeLoc::GbIo(3)].io[&ExtraNodeIo::GbIn],
+                        SpecialIoKey::PllB,
+                        self.chip.special_tiles[&SpecialTileKey::GbIo(3)].io[&SpecialIoKey::GbIn],
                     ),
                 ]),
                 cells: EntityVec::from_iter([CellCoord::new(
@@ -1516,12 +1518,12 @@ impl PartContext<'_> {
                     self.chip.row_s(),
                 )]),
             };
-            let xloc = ExtraNodeLoc::PllStub(DirV::S);
-            self.chip.extra_nodes.insert(xloc, xnode);
+            let key = SpecialTileKey::PllStub(DirV::S);
+            self.chip.special_tiles.insert(key, special);
             let tcls = TileClass::new(tslots::PLL_STUB, 1);
             self.intdb
                 .tile_classes
-                .insert(xloc.tile_class(self.chip.kind), tcls);
+                .insert(key.tile_class(self.chip.kind), tcls);
         }
     }
 
@@ -1532,14 +1534,14 @@ impl PartContext<'_> {
         let mut filter_sites = sites.clone();
         filter_sites.sort_by_key(|site| site.loc);
         assert_eq!(filter_sites.len(), 2);
-        let loc = ExtraNodeLoc::I3c;
-        let mut nb = MiscNodeBuilder::new(&self.chip, tslots::BEL, &[]);
+        let key = SpecialTileKey::I3c;
+        let mut builder = MiscTileBuilder::new(&self.chip, tslots::BEL, &[]);
 
         for (i, site) in filter_sites.iter().enumerate() {
             let bel_pins = &self.bel_pins[&("SB_FILTER_50NS", site.loc)];
-            nb.add_bel(bels::FILTER[i], bel_pins);
+            builder.add_bel(bels::FILTER[i], bel_pins);
         }
-        nb.get_cell(CellCoord::new(
+        builder.get_cell(CellCoord::new(
             DieId::from_idx(0),
             ColId::from_idx(25),
             RowId::from_idx(30),
@@ -1567,20 +1569,20 @@ impl PartContext<'_> {
         for &(site_loc, crd) in &io_sites {
             let mut bel_pins = self.bel_pins[&("SB_IO_I3C", site_loc)].clone();
             bel_pins.outs.clear();
-            nb.add_bel(bels::IO_I3C[crd.iob().to_idx()], &bel_pins);
-            nb.io.insert(
-                [ExtraNodeIo::I3c0, ExtraNodeIo::I3c1][crd.iob().to_idx()],
+            builder.add_bel(bels::IO_I3C[crd.iob().to_idx()], &bel_pins);
+            builder.io.insert(
+                [SpecialIoKey::I3c0, SpecialIoKey::I3c1][crd.iob().to_idx()],
                 crd,
             );
         }
 
-        let (int_node, extra_node) = nb.finish();
+        let (tcls, special) = builder.finish();
         self.intdb
             .tile_classes
-            .insert(loc.tile_class(self.chip.kind), int_node);
-        self.chip.extra_nodes.insert(loc, extra_node);
-        self.extra_node_locs.insert(
-            loc,
+            .insert(key.tile_class(self.chip.kind), tcls);
+        self.chip.special_tiles.insert(key, special);
+        self.special_tiles.insert(
+            key,
             vec![
                 filter_sites[0].loc,
                 filter_sites[1].loc,
@@ -1592,102 +1594,134 @@ impl PartContext<'_> {
 
     fn fill_drv(&mut self) {
         for pkg_info in self.pkgs.values() {
-            for (loc, node_bels, extra_crd) in [
+            for (key, bels, extra_cells) in [
                 (
-                    ExtraNodeLoc::RgbDrv,
+                    SpecialTileKey::RgbDrv,
                     [(
                         "SB_RGB_DRV",
                         bels::RGB_DRV,
                         [
-                            (ExtraNodeIo::RgbLed0, "RGB0"),
-                            (ExtraNodeIo::RgbLed1, "RGB1"),
-                            (ExtraNodeIo::RgbLed2, "RGB2"),
+                            (SpecialIoKey::RgbLed0, "RGB0"),
+                            (SpecialIoKey::RgbLed1, "RGB1"),
+                            (SpecialIoKey::RgbLed2, "RGB2"),
                         ]
                         .as_slice(),
                     )]
                     .as_slice(),
                     vec![
-                        (ColId::from_idx(0), RowId::from_idx(18)),
-                        (ColId::from_idx(0), RowId::from_idx(19)),
-                        (ColId::from_idx(0), RowId::from_idx(20)),
+                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(18)),
+                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(19)),
+                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(20)),
                     ],
                 ),
                 (
-                    ExtraNodeLoc::IrDrv,
+                    SpecialTileKey::IrDrv,
                     [(
                         "SB_IR_DRV",
                         bels::IR_DRV,
-                        [(ExtraNodeIo::IrLed, "IRLED")].as_slice(),
+                        [(SpecialIoKey::IrLed, "IRLED")].as_slice(),
                     )]
                     .as_slice(),
                     vec![
-                        (ColId::from_idx(25), RowId::from_idx(19)),
-                        (ColId::from_idx(25), RowId::from_idx(20)),
+                        CellCoord::new(
+                            DieId::from_idx(0),
+                            ColId::from_idx(25),
+                            RowId::from_idx(19),
+                        ),
+                        CellCoord::new(
+                            DieId::from_idx(0),
+                            ColId::from_idx(25),
+                            RowId::from_idx(20),
+                        ),
                     ],
                 ),
                 (
-                    ExtraNodeLoc::RgbaDrv,
+                    SpecialTileKey::RgbaDrv,
                     [(
                         "SB_RGBA_DRV",
                         bels::RGBA_DRV,
                         [
-                            (ExtraNodeIo::RgbLed0, "RGB0"),
-                            (ExtraNodeIo::RgbLed1, "RGB1"),
-                            (ExtraNodeIo::RgbLed2, "RGB2"),
+                            (SpecialIoKey::RgbLed0, "RGB0"),
+                            (SpecialIoKey::RgbLed1, "RGB1"),
+                            (SpecialIoKey::RgbLed2, "RGB2"),
                         ]
                         .as_slice(),
                     )]
                     .as_slice(),
                     match self.chip.kind {
                         ChipKind::Ice40T05 => vec![
-                            (ColId::from_idx(0), RowId::from_idx(28)),
-                            (ColId::from_idx(0), RowId::from_idx(29)),
-                            (ColId::from_idx(0), RowId::from_idx(30)),
+                            CellCoord::new(
+                                DieId::from_idx(0),
+                                ColId::from_idx(0),
+                                RowId::from_idx(28),
+                            ),
+                            CellCoord::new(
+                                DieId::from_idx(0),
+                                ColId::from_idx(0),
+                                RowId::from_idx(29),
+                            ),
+                            CellCoord::new(
+                                DieId::from_idx(0),
+                                ColId::from_idx(0),
+                                RowId::from_idx(30),
+                            ),
                         ],
                         ChipKind::Ice40T01 => vec![
-                            (ColId::from_idx(0), RowId::from_idx(1)),
-                            (ColId::from_idx(0), RowId::from_idx(2)),
-                            (ColId::from_idx(0), RowId::from_idx(3)),
+                            CellCoord::new(
+                                DieId::from_idx(0),
+                                ColId::from_idx(0),
+                                RowId::from_idx(1),
+                            ),
+                            CellCoord::new(
+                                DieId::from_idx(0),
+                                ColId::from_idx(0),
+                                RowId::from_idx(2),
+                            ),
+                            CellCoord::new(
+                                DieId::from_idx(0),
+                                ColId::from_idx(0),
+                                RowId::from_idx(3),
+                            ),
                         ],
                         _ => vec![],
                     },
                 ),
                 (
-                    ExtraNodeLoc::Ir500Drv,
+                    SpecialTileKey::Ir500Drv,
                     [
                         (
                             "SB_IR400_DRV",
                             bels::IR400_DRV,
-                            [(ExtraNodeIo::IrLed, "IRLED")].as_slice(),
+                            [(SpecialIoKey::IrLed, "IRLED")].as_slice(),
                         ),
                         (
                             "SB_BARCODE_DRV",
                             bels::BARCODE_DRV,
-                            [(ExtraNodeIo::BarcodeLed, "BARCODE")].as_slice(),
+                            [(SpecialIoKey::BarcodeLed, "BARCODE")].as_slice(),
                         ),
                     ]
                     .as_slice(),
                     vec![
-                        (ColId::from_idx(13), RowId::from_idx(1)),
-                        (ColId::from_idx(13), RowId::from_idx(2)),
-                        (ColId::from_idx(13), RowId::from_idx(3)),
+                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(13), RowId::from_idx(1)),
+                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(13), RowId::from_idx(2)),
+                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(13), RowId::from_idx(3)),
                     ],
                 ),
             ] {
-                let Some(sites) = pkg_info.bel_info.get(&node_bels[0].0) else {
+                let Some(sites) = pkg_info.bel_info.get(&bels[0].0) else {
                     continue;
                 };
                 if sites.is_empty() {
                     continue;
                 }
-                let mut nb = MiscNodeBuilder::new(&self.chip, tslots::LED_DRV, &[]);
-                for crd in extra_crd {
-                    nb.get_cell(CellCoord::new(DieId::from_idx(0), crd.0, crd.1));
+                let mut builder = MiscTileBuilder::new(&self.chip, tslots::LED_DRV, &[]);
+                for cell in extra_cells {
+                    builder.get_cell(cell);
                 }
 
                 let mut site_locs = vec![];
-                let mut more_xnodes = vec![];
-                for &(kind, slot, io_pins) in node_bels {
+                let mut more_tiles = vec![];
+                for &(kind, slot, io_pins) in bels {
                     let sites = &pkg_info.bel_info[kind];
                     assert_eq!(sites.len(), 1);
                     let site = &sites[0];
@@ -1712,56 +1746,56 @@ impl PartContext<'_> {
                         let io = site.pads[pin].0;
                         let xy = (io.x, io.y, io.bel);
                         let crd = pkg_info.xlat_io[&xy];
-                        nb.io.insert(slot, crd);
+                        builder.io.insert(slot, crd);
                     }
-                    nb.add_bel(slot, &bel_pins);
+                    builder.add_bel(slot, &bel_pins);
 
-                    let mut nb_drv_cur = MiscNodeBuilder::new(&self.chip, tslots::LED_DRV_CUR, &[]);
+                    let mut nb_drv_cur = MiscTileBuilder::new(&self.chip, tslots::LED_DRV_CUR, &[]);
                     nb_drv_cur.add_bel(bels::LED_DRV_CUR, &bel_pins_drv);
-                    let (int_node, extra_node) = nb_drv_cur.finish();
-                    let loc = ExtraNodeLoc::LedDrvCur;
-                    more_xnodes.push((loc, int_node, extra_node));
+                    let (tcls, special) = nb_drv_cur.finish();
+                    let loc = SpecialTileKey::LedDrvCur;
+                    more_tiles.push((loc, tcls, special));
                 }
-                let (int_node, extra_node) = nb.finish();
-                match self.chip.extra_nodes.entry(loc) {
+                let (tcls, special) = builder.finish();
+                match self.chip.special_tiles.entry(key) {
                     btree_map::Entry::Vacant(entry) => {
-                        entry.insert(extra_node);
+                        entry.insert(special);
                         self.intdb
                             .tile_classes
-                            .insert(loc.tile_class(self.chip.kind), int_node);
-                        self.extra_node_locs.insert(loc, site_locs);
+                            .insert(key.tile_class(self.chip.kind), tcls);
+                        self.special_tiles.insert(key, site_locs);
                     }
                     btree_map::Entry::Occupied(entry) => {
-                        assert_eq!(*entry.get(), extra_node);
+                        assert_eq!(*entry.get(), special);
                         assert_eq!(
                             *self
                                 .intdb
                                 .tile_classes
-                                .get(&loc.tile_class(self.chip.kind))
+                                .get(&key.tile_class(self.chip.kind))
                                 .unwrap()
                                 .1,
-                            int_node
+                            tcls
                         );
                     }
                 }
-                for (loc, int_node, extra_node) in more_xnodes {
-                    match self.chip.extra_nodes.entry(loc) {
+                for (key, tcls, special) in more_tiles {
+                    match self.chip.special_tiles.entry(key) {
                         btree_map::Entry::Vacant(entry) => {
-                            entry.insert(extra_node);
+                            entry.insert(special);
                             self.intdb
                                 .tile_classes
-                                .insert(loc.tile_class(self.chip.kind), int_node);
+                                .insert(key.tile_class(self.chip.kind), tcls);
                         }
                         btree_map::Entry::Occupied(entry) => {
-                            assert_eq!(*entry.get(), extra_node);
+                            assert_eq!(*entry.get(), special);
                             assert_eq!(
                                 *self
                                     .intdb
                                     .tile_classes
-                                    .get(&loc.tile_class(self.chip.kind))
+                                    .get(&key.tile_class(self.chip.kind))
                                     .unwrap()
                                     .1,
-                                int_node
+                                tcls
                             );
                         }
                     }
@@ -1784,19 +1818,19 @@ impl PartContext<'_> {
             } else {
                 DirH::E
             };
-            let loc = ExtraNodeLoc::SpramPair(edge);
-            let mut nb = MiscNodeBuilder::new(&self.chip, tslots::BEL, &[]);
+            let key = SpecialTileKey::SpramPair(edge);
+            let mut builder = MiscTileBuilder::new(&self.chip, tslots::BEL, &[]);
             for (i, site) in edge_sites.iter().enumerate() {
                 let bel_pins = &self.bel_pins[&("SB_SPRAM256KA", site.loc)];
-                nb.add_bel(bels::SPRAM[i], bel_pins);
+                builder.add_bel(bels::SPRAM[i], bel_pins);
             }
-            let (int_node, extra_node) = nb.finish();
+            let (tcls, special) = builder.finish();
             self.intdb
                 .tile_classes
-                .insert(loc.tile_class(self.chip.kind), int_node);
-            self.chip.extra_nodes.insert(loc, extra_node);
-            self.extra_node_locs
-                .insert(loc, vec![edge_sites[0].loc, edge_sites[1].loc]);
+                .insert(key.tile_class(self.chip.kind), tcls);
+            self.chip.special_tiles.insert(key, special);
+            self.special_tiles
+                .insert(key, vec![edge_sites[0].loc, edge_sites[1].loc]);
         }
     }
 
@@ -1820,10 +1854,10 @@ impl PartContext<'_> {
         tcls.bels.insert(bels::SMCCLK, BelInfo::Bel(bel));
         self.intdb
             .tile_classes
-            .insert(ExtraNodeLoc::SmcClk.tile_class(self.chip.kind), tcls);
-        self.chip.extra_nodes.insert(
-            ExtraNodeLoc::SmcClk,
-            ExtraNode {
+            .insert(SpecialTileKey::SmcClk.tile_class(self.chip.kind), tcls);
+        self.chip.special_tiles.insert(
+            SpecialTileKey::SmcClk,
+            SpecialTile {
                 io: Default::default(),
                 cells: EntityVec::from_iter([CellCoord::new(DieId::from_idx(0), col, row)]),
             },
@@ -2096,7 +2130,7 @@ impl PartContext<'_> {
             pkgs: &self.pkgs,
             allow_global: false,
             rows_colbuf: vec![],
-            extra_node_locs: &self.extra_node_locs,
+            special_tiles: &self.special_tiles,
         };
         let muxes = Mutex::new(pips);
         harvester.debug = self.debug;
@@ -2291,7 +2325,7 @@ fn main() {
                 cfg_io: BTreeMap::new(),
                 io_iob: BTreeMap::new(),
                 io_od: BTreeSet::new(),
-                extra_nodes: BTreeMap::new(),
+                special_tiles: BTreeMap::new(),
             },
             intdb: make_intdb(kind),
             toolchain: &toolchain,
@@ -2299,7 +2333,7 @@ fn main() {
             pkgs: BTreeMap::new(),
             extra_wire_names: BTreeMap::new(),
             bel_pins: BTreeMap::new(),
-            extra_node_locs: BTreeMap::new(),
+            special_tiles: BTreeMap::new(),
             bsdata: BsData::default(),
             speed: BTreeMap::new(),
             debug: args.debug,

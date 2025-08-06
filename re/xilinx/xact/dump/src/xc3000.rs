@@ -9,7 +9,7 @@ use prjcombine_interconnect::{
     grid::{CellCoord, DieId, EdgeIoCoord},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
-use prjcombine_re_xilinx_xact_naming::db::{NamingDb, NodeNaming};
+use prjcombine_re_xilinx_xact_naming::db::{NamingDb, TileNaming};
 use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
 use prjcombine_xc2000::{
     bels::xc2000 as bels,
@@ -485,18 +485,18 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     let mut intdb = make_intdb();
     let mut ndb = NamingDb::default();
     for name in intdb.tile_classes.keys() {
-        ndb.node_namings.insert(name.clone(), NodeNaming::default());
+        ndb.tile_namings.insert(name.clone(), TileNaming::default());
         if name.starts_with("CLB") && !name.contains("L.") && !name.contains("R.") {
-            ndb.node_namings
-                .insert(format!("{name}.L1"), NodeNaming::default());
+            ndb.tile_namings
+                .insert(format!("{name}.L1"), TileNaming::default());
             if !name.starts_with("CLB.B") && !name.starts_with("CLB.T") {
-                ndb.node_namings
-                    .insert(format!("{name}.L1.B1"), NodeNaming::default());
+                ndb.tile_namings
+                    .insert(format!("{name}.L1.B1"), TileNaming::default());
             }
         }
         if name.starts_with("CLB") && !name.starts_with("CLB.B") && !name.starts_with("CLB.T") {
-            ndb.node_namings
-                .insert(format!("{name}.B1"), NodeNaming::default());
+            ndb.tile_namings
+                .insert(format!("{name}.B1"), TileNaming::default());
         }
     }
     let bd_c20 = die
@@ -537,9 +537,9 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
 
     let die = DieId::from_idx(0);
     for (tcrd, tile) in edev.egrid.tiles() {
-        let node_kind = &intdb.tile_classes[tile.class];
-        let nnode = &endev.ngrid.tiles[&tcrd];
-        for (slot, bel_info) in &node_kind.bels {
+        let tcld = &intdb.tile_classes[tile.class];
+        let ntile = &endev.ngrid.tiles[&tcrd];
+        for (slot, bel_info) in &tcld.bels {
             let BelInfo::Bel(bel_info) = bel_info else {
                 continue;
             };
@@ -547,19 +547,19 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             let slot_name = intdb.bel_slots.key(slot);
             match slot {
                 bels::CLB | bels::OSC | bels::CLKIOB | bels::BUFG => {
-                    let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);
+                    let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
                     for pin in bel_info.pins.keys() {
                         extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                     }
                 }
                 _ if slot_name.starts_with("IO") => {
-                    let mut prim = extractor.grab_prim_i(&nnode.bels[slot][0]);
+                    let mut prim = extractor.grab_prim_i(&ntile.bels[slot][0]);
                     for pin in bel_info.pins.keys() {
                         extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                     }
                 }
                 _ if slot_name.starts_with("TBUF") => {
-                    let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);
+                    let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
                     for pin in ["I", "T"] {
                         extractor.net_bel_int(prim.get_pin(pin), bel, pin);
                     }
@@ -567,7 +567,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                     extractor.net_bel(o, bel, "O");
                     let (line, pip) = extractor.consume_one_fwd(o, tcrd);
                     extractor.net_bel_int(line, bel, "O");
-                    extractor.bel_pip(nnode.naming, slot, "O", pip);
+                    extractor.bel_pip(ntile.naming, slot, "O", pip);
 
                     let net_i = extractor.get_bel_int_net(bel, "I");
                     let net_o = extractor.get_bel_int_net(bel, "O");
@@ -577,12 +577,12 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                     }
                 }
                 _ if slot_name.starts_with("PULLUP") => {
-                    let mut prim = extractor.grab_prim_a(&nnode.bels[slot][0]);
+                    let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
                     let o = prim.get_pin("O");
                     extractor.net_bel(o, bel, "O");
                     let (line, pip) = extractor.consume_one_fwd(o, tcrd);
                     extractor.net_bel_int(line, bel, "O");
-                    extractor.bel_pip(nnode.naming, slot, "O", pip);
+                    extractor.bel_pip(ntile.naming, slot, "O", pip);
                 }
                 _ => panic!("umm bel {slot_name}?"),
             }

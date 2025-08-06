@@ -29,7 +29,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraBramFixup {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let mut feature = fuzzer.info.features[0].clone();

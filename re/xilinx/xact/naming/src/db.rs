@@ -7,35 +7,35 @@ use unnamed_entity::{
     id::{EntityIdU16, EntityTag},
 };
 
-pub struct NodeRawTileTag;
-impl EntityTag for NodeRawTileTag {
+pub struct TileRawCellTag;
+impl EntityTag for TileRawCellTag {
     const PREFIX: &'static str = "RT";
 }
-impl EntityTag for NodeNaming {
+impl EntityTag for TileNaming {
     const PREFIX: &'static str = "TNCLS";
 }
-pub type NodeNamingId = EntityIdU16<NodeNaming>;
-pub type NodeRawTileId = EntityIdU16<NodeRawTileTag>;
+pub type TileNamingId = EntityIdU16<TileNaming>;
+pub type TileRawCellId = EntityIdU16<TileRawCellTag>;
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct NamingDb {
-    pub node_namings: EntityMap<NodeNamingId, String, NodeNaming>,
+    pub tile_namings: EntityMap<TileNamingId, String, TileNaming>,
     pub tile_widths: BTreeMap<String, usize>,
     pub tile_heights: BTreeMap<String, usize>,
 }
 
 impl NamingDb {
     #[track_caller]
-    pub fn get_node_naming(&self, name: &str) -> NodeNamingId {
-        self.node_namings
+    pub fn get_tile_naming(&self, name: &str) -> TileNamingId {
+        self.tile_namings
             .get(name)
-            .unwrap_or_else(|| panic!("no node naming {name}"))
+            .unwrap_or_else(|| panic!("no tile naming {name}"))
             .0
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
-pub struct NodeNaming {
+pub struct TileNaming {
     pub int_pips: BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>,
     pub bel_pips: BTreeMap<(BelSlotId, String), PipNaming>,
 }
@@ -48,15 +48,15 @@ pub enum IntPipNaming {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct PipNaming {
-    pub rt: NodeRawTileId,
+    pub rt: TileRawCellId,
     pub x: usize,
     pub y: usize,
 }
 
 impl NamingDb {
     pub fn print(&self, intdb: &IntDb, o: &mut dyn std::io::Write) -> std::io::Result<()> {
-        for (_, name, naming) in &self.node_namings {
-            writeln!(o, "\tNODE NAMING {name}")?;
+        for (_, name, naming) in &self.tile_namings {
+            writeln!(o, "\tTILE NAMING {name}")?;
             for (&k, &v) in &naming.int_pips {
                 let (wt, wf) = k;
                 write!(

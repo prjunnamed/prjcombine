@@ -17,20 +17,20 @@ fn verify_lc(vrf: &mut Verifier, bel: &BelContext<'_>) {
             bels::LC2 => bels::LC3,
             _ => unreachable!(),
         };
-        vrf.claim_node(&[bel.fwire("F5I")]);
+        vrf.claim_net(&[bel.fwire("F5I")]);
         let obel = vrf.find_bel_sibling(bel, oslot);
         vrf.claim_pip(bel.crd(), bel.wire("F5I"), obel.wire("X"));
     }
     vrf.verify_bel(bel, kind, &pins, &[]);
-    vrf.claim_node(&[bel.fwire("CI")]);
-    vrf.claim_node(&[bel.fwire("CO")]);
+    vrf.claim_net(&[bel.fwire("CI")]);
+    vrf.claim_net(&[bel.fwire("CO")]);
     if bel.slot == bels::LC0 {
         vrf.claim_pip(bel.crd(), bel.wire("CI"), bel.wire_far("CI"));
         if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bels::LC3) {
-            vrf.claim_node(&[bel.fwire_far("CI"), obel.fwire_far("CO")]);
+            vrf.claim_net(&[bel.fwire_far("CI"), obel.fwire_far("CO")]);
         } else {
             let obel = vrf.find_bel_delta(bel, 0, -1, bels::CIN).unwrap();
-            vrf.verify_node(&[bel.fwire_far("CI"), obel.fwire("IN")]);
+            vrf.verify_net(&[bel.fwire_far("CI"), obel.fwire("IN")]);
         }
     } else {
         let okey = match bel.slot {
@@ -63,7 +63,7 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
             unreachable!()
         };
         let obel = vrf.get_bel(bel.cell.with_cr(col, row).bel(bels::CLKIOB));
-        vrf.verify_node(&[bel.fwire("CLKIN"), obel.fwire("OUT")]);
+        vrf.verify_net(&[bel.fwire("CLKIN"), obel.fwire("OUT")]);
         "CLKIOB"
     } else {
         "IOB"
@@ -73,7 +73,7 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
 
 fn verify_top_cout(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel = vrf.find_bel_delta(bel, 0, -1, bels::LC3).unwrap();
-    vrf.verify_node(&[bel.fwire("OUT"), obel.fwire_far("CO")]);
+    vrf.verify_net(&[bel.fwire("OUT"), obel.fwire_far("CO")]);
     // artifact of unbuffered pip representation — disregard
     vrf.claim_pip(bel.crd(), "WIRE_COUT_TOP", "WIRE_M14_TOP");
 }

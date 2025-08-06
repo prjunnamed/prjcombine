@@ -37,7 +37,7 @@ pub struct IobData {
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct IobTileData {
-    pub node: &'static str,
+    pub tcname: &'static str,
     pub edge: Dir,
     pub tiles: usize,
     pub iobs: Vec<IobData>,
@@ -415,11 +415,11 @@ pub fn get_iob_tiles(kind: ChipKind) -> Vec<IobTileData> {
     }
 }
 
-pub fn get_iob_data(node: &str) -> IobTileData {
-    let mut data = match node {
+pub fn get_iob_data(tcname: &str) -> IobTileData {
+    let mut data = match tcname {
         // Virtex 2
         "IOBS.V2.T.L2" => IobTileData {
-            node: "IOBS.V2.T.L2",
+            tcname: "IOBS.V2.T.L2",
             edge: Dir::N,
             tiles: 2,
             iobs: vec![
@@ -432,7 +432,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2.T.R2" => IobTileData {
-            node: "IOBS.V2.T.R2",
+            tcname: "IOBS.V2.T.R2",
             edge: Dir::N,
             tiles: 2,
             iobs: vec![
@@ -445,7 +445,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2.R.T2" => IobTileData {
-            node: "IOBS.V2.R.T2",
+            tcname: "IOBS.V2.R.T2",
             edge: Dir::E,
             tiles: 2,
             iobs: vec![
@@ -458,7 +458,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2.R.B2" => IobTileData {
-            node: "IOBS.V2.R.B2",
+            tcname: "IOBS.V2.R.B2",
             edge: Dir::E,
             tiles: 2,
             iobs: vec![
@@ -471,7 +471,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2.B.R2" => IobTileData {
-            node: "IOBS.V2.B.R2",
+            tcname: "IOBS.V2.B.R2",
             edge: Dir::S,
             tiles: 2,
             iobs: vec![
@@ -484,7 +484,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2.B.L2" => IobTileData {
-            node: "IOBS.V2.B.L2",
+            tcname: "IOBS.V2.B.L2",
             edge: Dir::S,
             tiles: 2,
             iobs: vec![
@@ -497,7 +497,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2.L.B2" => IobTileData {
-            node: "IOBS.V2.L.B2",
+            tcname: "IOBS.V2.L.B2",
             edge: Dir::W,
             tiles: 2,
             iobs: vec![
@@ -510,7 +510,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2.L.T2" => IobTileData {
-            node: "IOBS.V2.L.T2",
+            tcname: "IOBS.V2.L.T2",
             edge: Dir::W,
             tiles: 2,
             iobs: vec![
@@ -525,31 +525,31 @@ pub fn get_iob_data(node: &str) -> IobTileData {
 
         // Virtex 2 Pro
         "IOBS.V2P.T.L1" => IobTileData {
-            node: "IOBS.V2P.T.L1",
+            tcname: "IOBS.V2P.T.L1",
             edge: Dir::N,
             tiles: 1,
             iobs: vec![iob(0, 2), iobc(0, 1, 2), iobt(0, 0, 1)],
         },
         "IOBS.V2P.T.L1.ALT" => IobTileData {
-            node: "IOBS.V2P.T.L1.ALT",
+            tcname: "IOBS.V2P.T.L1.ALT",
             edge: Dir::N,
             tiles: 1,
             iobs: vec![iobc(0, 2, 1), iobt(0, 1, 0), iob(0, 0)],
         },
         "IOBS.V2P.T.R1" => IobTileData {
-            node: "IOBS.V2P.T.R1",
+            tcname: "IOBS.V2P.T.R1",
             edge: Dir::N,
             tiles: 1,
             iobs: vec![iobc(0, 3, 1), iobt(0, 2, 0), iob(0, 1)],
         },
         "IOBS.V2P.T.R1.ALT" => IobTileData {
-            node: "IOBS.V2P.T.R1.ALT",
+            tcname: "IOBS.V2P.T.R1.ALT",
             edge: Dir::N,
             tiles: 1,
             iobs: vec![iob(0, 3), iobc(0, 2, 2), iobt(0, 1, 1)],
         },
         "IOBS.V2P.T.L2" => IobTileData {
-            node: "IOBS.V2P.T.L2",
+            tcname: "IOBS.V2P.T.L2",
             edge: Dir::N,
             tiles: 2,
             iobs: vec![
@@ -562,7 +562,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2P.T.R2" => IobTileData {
-            node: "IOBS.V2P.T.R2",
+            tcname: "IOBS.V2P.T.R2",
             edge: Dir::N,
             tiles: 2,
             iobs: vec![
@@ -575,7 +575,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2P.T.R2.CLK" => IobTileData {
-            node: "IOBS.V2P.T.R2.CLK",
+            tcname: "IOBS.V2P.T.R2.CLK",
             edge: Dir::N,
             tiles: 2,
             iobs: vec![
@@ -588,7 +588,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2P.R.T2" => IobTileData {
-            node: "IOBS.V2P.R.T2",
+            tcname: "IOBS.V2P.R.T2",
             edge: Dir::E,
             tiles: 2,
             iobs: vec![
@@ -601,7 +601,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2P.R.B2" => IobTileData {
-            node: "IOBS.V2P.R.B2",
+            tcname: "IOBS.V2P.R.B2",
             edge: Dir::E,
             tiles: 2,
             iobs: vec![
@@ -614,31 +614,31 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2P.B.R1" => IobTileData {
-            node: "IOBS.V2P.B.R1",
+            tcname: "IOBS.V2P.B.R1",
             edge: Dir::S,
             tiles: 1,
             iobs: vec![iob(0, 2), iobc(0, 1, 2), iobt(0, 0, 1)],
         },
         "IOBS.V2P.B.R1.ALT" => IobTileData {
-            node: "IOBS.V2P.B.R1.ALT",
+            tcname: "IOBS.V2P.B.R1.ALT",
             edge: Dir::S,
             tiles: 1,
             iobs: vec![iobc(0, 2, 1), iobt(0, 1, 0), iob(0, 0)],
         },
         "IOBS.V2P.B.L1" => IobTileData {
-            node: "IOBS.V2P.B.L1",
+            tcname: "IOBS.V2P.B.L1",
             edge: Dir::S,
             tiles: 1,
             iobs: vec![iobc(0, 3, 1), iobt(0, 2, 0), iob(0, 1)],
         },
         "IOBS.V2P.B.L1.ALT" => IobTileData {
-            node: "IOBS.V2P.B.L1.ALT",
+            tcname: "IOBS.V2P.B.L1.ALT",
             edge: Dir::S,
             tiles: 1,
             iobs: vec![iob(0, 3), iobc(0, 2, 2), iobt(0, 1, 1)],
         },
         "IOBS.V2P.B.R2" => IobTileData {
-            node: "IOBS.V2P.B.R2",
+            tcname: "IOBS.V2P.B.R2",
             edge: Dir::S,
             tiles: 2,
             iobs: vec![
@@ -651,7 +651,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2P.B.L2" => IobTileData {
-            node: "IOBS.V2P.B.L2",
+            tcname: "IOBS.V2P.B.L2",
             edge: Dir::S,
             tiles: 2,
             iobs: vec![
@@ -664,7 +664,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2P.B.R2.CLK" => IobTileData {
-            node: "IOBS.V2P.B.R2.CLK",
+            tcname: "IOBS.V2P.B.R2.CLK",
             edge: Dir::S,
             tiles: 2,
             iobs: vec![
@@ -677,7 +677,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2P.L.B2" => IobTileData {
-            node: "IOBS.V2P.L.B2",
+            tcname: "IOBS.V2P.L.B2",
             edge: Dir::W,
             tiles: 2,
             iobs: vec![
@@ -690,7 +690,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.V2P.L.T2" => IobTileData {
-            node: "IOBS.V2P.L.T2",
+            tcname: "IOBS.V2P.L.T2",
             edge: Dir::W,
             tiles: 2,
             iobs: vec![
@@ -705,7 +705,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
 
         // Spartan 3
         "IOBS.S3.T2" => IobTileData {
-            node: "IOBS.S3.T2",
+            tcname: "IOBS.S3.T2",
             edge: Dir::N,
             tiles: 2,
             iobs: vec![
@@ -717,13 +717,13 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.S3.R1" => IobTileData {
-            node: "IOBS.S3.R1",
+            tcname: "IOBS.S3.R1",
             edge: Dir::E,
             tiles: 1,
             iobs: vec![iobc(0, 1, 1), iobt(0, 0, 0)],
         },
         "IOBS.S3.B2" => IobTileData {
-            node: "IOBS.S3.B2",
+            tcname: "IOBS.S3.B2",
             edge: Dir::S,
             tiles: 2,
             iobs: vec![
@@ -735,7 +735,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.S3.L1" => IobTileData {
-            node: "IOBS.S3.L1",
+            tcname: "IOBS.S3.L1",
             edge: Dir::W,
             tiles: 1,
             iobs: vec![iobc(0, 0, 1), iobt(0, 1, 0)],
@@ -743,7 +743,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
 
         // FPGA core
         "IOBS.FC.T" => IobTileData {
-            node: "IOBS.FC.T",
+            tcname: "IOBS.FC.T",
             edge: Dir::N,
             tiles: 1,
             iobs: vec![
@@ -758,7 +758,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.FC.R" => IobTileData {
-            node: "IOBS.FC.R",
+            tcname: "IOBS.FC.R",
             edge: Dir::E,
             tiles: 1,
             iobs: vec![
@@ -773,7 +773,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.FC.B" => IobTileData {
-            node: "IOBS.FC.B",
+            tcname: "IOBS.FC.B",
             edge: Dir::S,
             tiles: 1,
             iobs: vec![
@@ -788,7 +788,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.FC.L" => IobTileData {
-            node: "IOBS.FC.L",
+            tcname: "IOBS.FC.L",
             edge: Dir::W,
             tiles: 1,
             iobs: vec![
@@ -805,19 +805,19 @@ pub fn get_iob_data(node: &str) -> IobTileData {
 
         // Spartan 3E
         "IOBS.S3E.T1" => IobTileData {
-            node: "IOBS.S3E.T1",
+            tcname: "IOBS.S3E.T1",
             edge: Dir::N,
             tiles: 1,
             iobs: vec![iob(0, 2)],
         },
         "IOBS.S3E.T2" => IobTileData {
-            node: "IOBS.S3E.T2",
+            tcname: "IOBS.S3E.T2",
             edge: Dir::N,
             tiles: 2,
             iobs: vec![iobc(0, 1, 1), iobt(0, 0, 0), ibuf(1, 2)],
         },
         "IOBS.S3E.T3" => IobTileData {
-            node: "IOBS.S3E.T3",
+            tcname: "IOBS.S3E.T3",
             edge: Dir::N,
             tiles: 3,
             iobs: vec![
@@ -829,7 +829,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.S3E.T4" => IobTileData {
-            node: "IOBS.S3E.T4",
+            tcname: "IOBS.S3E.T4",
             edge: Dir::N,
             tiles: 4,
             iobs: vec![
@@ -843,25 +843,25 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.S3E.R1" => IobTileData {
-            node: "IOBS.S3E.R1",
+            tcname: "IOBS.S3E.R1",
             edge: Dir::E,
             tiles: 1,
             iobs: vec![iob(0, 2)],
         },
         "IOBS.S3E.R2" => IobTileData {
-            node: "IOBS.S3E.R2",
+            tcname: "IOBS.S3E.R2",
             edge: Dir::E,
             tiles: 2,
             iobs: vec![iobc(0, 1, 1), iobt(0, 0, 0)],
         },
         "IOBS.S3E.R3" => IobTileData {
-            node: "IOBS.S3E.R3",
+            tcname: "IOBS.S3E.R3",
             edge: Dir::E,
             tiles: 3,
             iobs: vec![ibuf(2, 2), iob(1, 2), iobc(0, 1, 3), iobt(0, 0, 2)],
         },
         "IOBS.S3E.R4" => IobTileData {
-            node: "IOBS.S3E.R4",
+            tcname: "IOBS.S3E.R4",
             edge: Dir::E,
             tiles: 4,
             iobs: vec![
@@ -873,19 +873,19 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.S3E.B1" => IobTileData {
-            node: "IOBS.S3E.B1",
+            tcname: "IOBS.S3E.B1",
             edge: Dir::S,
             tiles: 1,
             iobs: vec![iob(0, 2)],
         },
         "IOBS.S3E.B2" => IobTileData {
-            node: "IOBS.S3E.B2",
+            tcname: "IOBS.S3E.B2",
             edge: Dir::S,
             tiles: 2,
             iobs: vec![iobc(1, 1, 1), iobt(1, 0, 0), ibuf(0, 2)],
         },
         "IOBS.S3E.B3" => IobTileData {
-            node: "IOBS.S3E.B3",
+            tcname: "IOBS.S3E.B3",
             edge: Dir::S,
             tiles: 3,
             iobs: vec![
@@ -897,7 +897,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.S3E.B4" => IobTileData {
-            node: "IOBS.S3E.B4",
+            tcname: "IOBS.S3E.B4",
             edge: Dir::S,
             tiles: 4,
             iobs: vec![
@@ -911,25 +911,25 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.S3E.L1" => IobTileData {
-            node: "IOBS.S3E.L1",
+            tcname: "IOBS.S3E.L1",
             edge: Dir::W,
             tiles: 1,
             iobs: vec![iob(0, 2)],
         },
         "IOBS.S3E.L2" => IobTileData {
-            node: "IOBS.S3E.L2",
+            tcname: "IOBS.S3E.L2",
             edge: Dir::W,
             tiles: 2,
             iobs: vec![iobc(1, 1, 1), iobt(1, 0, 0)],
         },
         "IOBS.S3E.L3" => IobTileData {
-            node: "IOBS.S3E.L3",
+            tcname: "IOBS.S3E.L3",
             edge: Dir::W,
             tiles: 3,
             iobs: vec![ibuf(0, 2), iob(1, 2), iobc(2, 1, 3), iobt(2, 0, 2)],
         },
         "IOBS.S3E.L4" => IobTileData {
-            node: "IOBS.S3E.L4",
+            tcname: "IOBS.S3E.L4",
             edge: Dir::W,
             tiles: 4,
             iobs: vec![
@@ -943,7 +943,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
 
         // Spartan 3A
         "IOBS.S3A.T2" => IobTileData {
-            node: "IOBS.S3A.T2",
+            tcname: "IOBS.S3A.T2",
             edge: Dir::N,
             tiles: 2,
             iobs: vec![
@@ -955,7 +955,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.S3A.R4" => IobTileData {
-            node: "IOBS.S3A.R4",
+            tcname: "IOBS.S3A.R4",
             edge: Dir::E,
             tiles: 4,
             iobs: vec![
@@ -970,7 +970,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.S3A.B2" => IobTileData {
-            node: "IOBS.S3A.B2",
+            tcname: "IOBS.S3A.B2",
             edge: Dir::S,
             tiles: 2,
             iobs: vec![
@@ -982,7 +982,7 @@ pub fn get_iob_data(node: &str) -> IobTileData {
             ],
         },
         "IOBS.S3A.L4" => IobTileData {
-            node: "IOBS.S3A.L4",
+            tcname: "IOBS.S3A.L4",
             edge: Dir::W,
             tiles: 4,
             iobs: vec![

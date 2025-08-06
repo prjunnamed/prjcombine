@@ -83,14 +83,14 @@ fn main() {
                         entry.insert(intdb);
                     }
                     btree_map::Entry::Occupied(mut entry) => {
-                        let cintdb = entry.get_mut();
-                        assert_eq!(cintdb.wires, intdb.wires);
-                        assert_eq!(cintdb.conn_classes, intdb.conn_classes);
-                        for (_, name, node) in intdb.tile_classes {
-                            if let Some((_, cnode)) = cintdb.tile_classes.get(&name) {
-                                assert_eq!(*cnode, node, "mismatch for node {name}");
+                        let col_intdb = entry.get_mut();
+                        assert_eq!(col_intdb.wires, intdb.wires);
+                        assert_eq!(col_intdb.conn_classes, intdb.conn_classes);
+                        for (_, tcname, tcls) in intdb.tile_classes {
+                            if let Some((_, col_tcls)) = col_intdb.tile_classes.get(&tcname) {
+                                assert_eq!(*col_tcls, tcls, "mismatch for tile class {tcname}");
                             } else {
-                                cintdb.tile_classes.insert(name, node);
+                                col_intdb.tile_classes.insert(tcname, tcls);
                             }
                         }
                     }
@@ -103,11 +103,11 @@ fn main() {
                         let cndb = entry.get_mut();
                         assert_eq!(cndb.tile_widths, ndb.tile_widths);
                         assert_eq!(cndb.tile_heights, ndb.tile_heights);
-                        for (_, name, node) in ndb.node_namings {
-                            if let Some((_, cnode)) = cndb.node_namings.get(&name) {
-                                assert_eq!(*cnode, node);
+                        for (_, name, naming) in ndb.tile_namings {
+                            if let Some((_, col_naming)) = cndb.tile_namings.get(&name) {
+                                assert_eq!(*col_naming, naming);
                             } else {
-                                cndb.node_namings.insert(name, node);
+                                cndb.tile_namings.insert(name, naming);
                             }
                         }
                     }

@@ -557,7 +557,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     let slice_name_only = ["F5IN", "F5", "CIN", "COUT"];
 
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "CENTER",
@@ -612,8 +612,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_int_out("BUS3", &["LEFT_TBUFO1"])
             .extra_wire("BUS3_E", &["LEFT_TBUF1_STUB"]),
     ];
-    builder.extract_node(tslots::MAIN, bels::INT, "LEFT", "IO.L", "IO.L", &bels_left);
-    builder.extract_node(
+    builder.extract_int(tslots::MAIN, bels::INT, "LEFT", "IO.L", "IO.L", &bels_left);
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "LEFT_PCI_BOT",
@@ -621,7 +621,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IO.L",
         &bels_left,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "LEFT_PCI_TOP",
@@ -652,7 +652,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_int_out("BUS2", &["RIGHT_TBUFO0"])
             .extra_int_out("BUS3", &["RIGHT_TBUFO1"]),
     ];
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "RIGHT",
@@ -660,7 +660,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IO.R",
         &bels_right,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "RIGHT_PCI_BOT",
@@ -668,7 +668,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IO.R",
         &bels_right,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "RIGHT_PCI_TOP",
@@ -687,8 +687,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_wire_force("DLLFB", "BR_DLLIOB_IOFB"),
         builder.bel_indexed(bels::IO3, "IOB", 3),
     ];
-    builder.extract_node(tslots::MAIN, bels::INT, "BOT", "IO.B", "IO.B", &bels_bot);
-    builder.extract_node(
+    builder.extract_int(tslots::MAIN, bels::INT, "BOT", "IO.B", "IO.B", &bels_bot);
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "BL_DLLIOB",
@@ -696,7 +696,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IO.B",
         &bels_bot,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "BR_DLLIOB",
@@ -715,8 +715,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_wire_force("DLLFB", "TR_DLLIOB_IOFB"),
         builder.bel_indexed(bels::IO3, "IOB", 3),
     ];
-    builder.extract_node(tslots::MAIN, bels::INT, "TOP", "IO.T", "IO.T", &bels_top);
-    builder.extract_node(
+    builder.extract_int(tslots::MAIN, bels::INT, "TOP", "IO.T", "IO.T", &bels_top);
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "TL_DLLIOB",
@@ -724,7 +724,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IO.T",
         &bels_top,
     );
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "TR_DLLIOB",
@@ -733,7 +733,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         &bels_top,
     );
 
-    builder.extract_node(
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "LL",
@@ -741,8 +741,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "CNR.BL",
         &[builder.bel_single(bels::CAPTURE, "CAPTURE")],
     );
-    builder.extract_node(tslots::MAIN, bels::INT, "LR", "CNR.BR", "CNR.BR", &[]);
-    builder.extract_node(
+    builder.extract_int(tslots::MAIN, bels::INT, "LR", "CNR.BR", "CNR.BR", &[]);
+    builder.extract_int(
         tslots::MAIN,
         bels::INT,
         "UL",
@@ -753,7 +753,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_single(bels::BSCAN, "BSCAN"),
         ],
     );
-    builder.extract_node(tslots::MAIN, bels::INT, "UR", "CNR.TR", "CNR.TR", &[]);
+    builder.extract_int(tslots::MAIN, bels::INT, "UR", "CNR.TR", "CNR.TR", &[]);
 
     for tkn in ["LBRAM", "RBRAM", "MBRAM"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
@@ -801,7 +801,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
                 bels.push(bel);
             }
-            builder.extract_xnode(
+            builder.extract_xtile(
                 tslots::MAIN,
                 bels::INT,
                 tkn,
@@ -815,7 +815,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
 
-    for (tkn, node, naming) in [
+    for (tkn, tcname, naming) in [
         ("BRAM_BOT", "BRAM_BOT", "BRAM_BOT.BOT"),
         ("BRAM_BOT_GCLK", "BRAM_BOT", "BRAM_BOT.BOT"),
         ("LBRAM_BOTS_GCLK", "BRAM_BOT", "BRAM_BOT.BOT"),
@@ -843,10 +843,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 dx -= 1;
             }
             let coords = [xy, xy.delta(dx, 0)];
-            builder.extract_xnode(
+            builder.extract_xtile(
                 tslots::MAIN,
                 bels::INT,
-                node,
+                tcname,
                 xy,
                 &[],
                 &coords,
@@ -857,7 +857,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
 
-    for (tkn, node, mut naming) in [
+    for (tkn, tcname, mut naming) in [
         ("BRAM_BOT", "DLL.BOT", ""),
         ("LBRAM_BOTS_GCLK", "DLLS.BOT", "DLLS.BL.GCLK"),
         ("RBRAM_BOTS_GCLK", "DLLS.BOT", "DLLS.BR.GCLK"),
@@ -875,7 +875,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             if rd.family == "virtex" {
-                naming = match node {
+                naming = match tcname {
                     "DLL.BOT" => {
                         if xy.x == 1 {
                             "DLL.BL"
@@ -898,10 +898,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 dx -= 1;
             }
             let coords = [xy, xy.delta(dx, 0)];
-            builder.extract_xnode(
+            builder.extract_xtile(
                 tslots::DLL,
                 bels::DLL_INT,
-                node,
+                tcname,
                 xy,
                 &[],
                 &coords,
@@ -1288,7 +1288,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .extra_int_out("O", &["CLKB_IOFB1", "CLKT_IOFB1"]),
                 );
             }
-            builder.extract_xnode(
+            builder.extract_xtile(
                 tslots::CLKBT,
                 bels::GCLK_INT,
                 tkn,
@@ -1304,7 +1304,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for tkn in ["CLKL", "CLKR"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            builder.extract_xnode(
+            builder.extract_xtile(
                 tslots::PCILOGIC,
                 bels::PCI_INT,
                 tkn,
@@ -1322,7 +1322,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     for &xy in rd.tiles_by_kind_name("CLKC") {
-        builder.extract_xnode_bels(
+        builder.extract_xtile_bels(
             tslots::CLKC,
             "CLKC",
             xy,
@@ -1355,7 +1355,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     for &xy in rd.tiles_by_kind_name("GCLKC") {
-        builder.extract_xnode_bels(
+        builder.extract_xtile_bels(
             tslots::CLKC,
             "GCLKC",
             xy,
@@ -1376,7 +1376,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     for &xy in rd.tiles_by_kind_name("BRAM_CLKH") {
-        builder.extract_xnode_bels(
+        builder.extract_xtile_bels(
             tslots::CLKC,
             "BRAM_CLKH",
             xy,
@@ -1475,7 +1475,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     ],
                 );
             }
-            builder.extract_xnode_bels(
+            builder.extract_xtile_bels(
                 tslots::CLKV,
                 kind,
                 xy,
@@ -1515,7 +1515,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
             }
             let bram_xy = xy; // dummy position
-            builder.extract_xnode_bels(
+            builder.extract_xtile_bels(
                 tslots::CLKV,
                 kind,
                 xy,

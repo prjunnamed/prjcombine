@@ -133,7 +133,7 @@ impl Expander<'_, '_> {
             if cd.io != ColumnIoKind::None {
                 let (data, tidx) = get_iob_data_n(self.chip.kind, cd.io);
                 if tidx.to_idx() == 0 {
-                    self.egrid.add_tile_e(cell, data.node, data.tiles);
+                    self.egrid.add_tile_e(cell, data.tcname, data.tiles);
                 }
             }
             if !self.chip.kind.is_virtex2() {
@@ -158,7 +158,7 @@ impl Expander<'_, '_> {
             self.egrid.add_tile_single(cell, ioi_kind);
             let (data, tidx) = get_iob_data_e(self.chip.kind, self.chip.rows[cell.row]);
             if tidx.to_idx() == 0 {
-                self.egrid.add_tile_n(cell, data.node, data.tiles);
+                self.egrid.add_tile_n(cell, data.tcname, data.tiles);
             }
         }
     }
@@ -194,7 +194,7 @@ impl Expander<'_, '_> {
             if cd.io != ColumnIoKind::None {
                 let (data, tidx) = get_iob_data_s(self.chip.kind, cd.io);
                 if tidx.to_idx() == 0 {
-                    self.egrid.add_tile_e(cell, data.node, data.tiles);
+                    self.egrid.add_tile_e(cell, data.tcname, data.tiles);
                 }
             }
             if !self.chip.kind.is_virtex2() && self.chip.kind != ChipKind::FpgaCore {
@@ -236,7 +236,7 @@ impl Expander<'_, '_> {
             self.egrid.add_tile_single(cell, ioi_kind);
             let (data, tidx) = get_iob_data_w(self.chip.kind, self.chip.rows[cell.row]);
             if tidx.to_idx() == 0 {
-                self.egrid.add_tile_n(cell, data.node, data.tiles);
+                self.egrid.add_tile_n(cell, data.tcname, data.tiles);
             }
         }
     }
@@ -912,7 +912,7 @@ impl Expander<'_, '_> {
     fn fill_gclkc(&mut self) {
         for &(row_m, _, _) in &self.chip.rows_hclk {
             if self.chip.kind.is_virtex2() {
-                let node_kind = if row_m == self.chip.row_s() + 1 {
+                let kind = if row_m == self.chip.row_s() + 1 {
                     "GCLKC.B"
                 } else if row_m == self.chip.row_n() {
                     "GCLKC.T"
@@ -921,7 +921,7 @@ impl Expander<'_, '_> {
                 };
                 self.egrid.add_tile(
                     CellCoord::new(self.die, self.chip.col_clk, row_m),
-                    node_kind,
+                    kind,
                     &[],
                 );
             } else if let Some((col_cl, col_cr)) = self.chip.cols_clkv {

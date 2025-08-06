@@ -14,7 +14,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_xact_data::die::{BoxId, Die, PrimId};
 use prjcombine_re_xilinx_xact_naming::{
-    db::{IntPipNaming, NamingDb, NodeNamingId, NodeRawTileId, PipNaming},
+    db::{IntPipNaming, NamingDb, TileNamingId, TileRawCellId, PipNaming},
     grid::ExpandedGridNaming,
 };
 use unnamed_entity::{EntityBitVec, EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
@@ -68,19 +68,19 @@ pub struct Extractor<'a> {
     pub tbuf_pseudos: BTreeSet<(NetId, NetId)>,
     pub int_pip_force_dst: BTreeMap<(NetId, NetId), TileWireCoord>,
     pub used_pips: BTreeSet<(NetId, NetId)>,
-    pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
+    pub bel_pips: EntityVec<TileNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
     pub tcls_pips: EntityPartVec<TileClassId, BTreeSet<(TileWireCoord, TileWireCoord)>>,
     pub int_pips:
-        EntityPartVec<NodeNamingId, BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>>,
+        EntityPartVec<TileNamingId, BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>>,
     pub net_by_cell_override: BTreeMap<CellCoord, BTreeMap<NetId, WireId>>,
     pub junk_prim_names: BTreeSet<String>,
 }
 
 pub struct Finisher {
-    pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
+    pub bel_pips: EntityVec<TileNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
     pub tcls_pips: EntityPartVec<TileClassId, BTreeSet<(TileWireCoord, TileWireCoord)>>,
     pub int_pips:
-        EntityPartVec<NodeNamingId, BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>>,
+        EntityPartVec<TileNamingId, BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>>,
 }
 
 #[derive(Debug)]
@@ -134,7 +134,7 @@ impl<'a> Extractor<'a> {
             prims_by_name_i: Default::default(),
             bel_pips: ngrid
                 .db
-                .node_namings
+                .tile_namings
                 .ids()
                 .map(|_| Default::default())
                 .collect(),
@@ -347,9 +347,9 @@ impl<'a> Extractor<'a> {
         self.bel_nets[&(bel, pin)]
     }
 
-    pub fn xlat_pip_loc(&self, nloc: TileCoord, crd: (usize, usize)) -> PipNaming {
-        let nnode = &self.ngrid.tiles[&nloc];
-        for (rt, (xr, yr)) in &nnode.coords {
+    pub fn xlat_pip_loc(&self, tcrd: TileCoord, crd: (usize, usize)) -> PipNaming {
+        let ntile = &self.ngrid.tiles[&tcrd];
+        for (rt, (xr, yr)) in &ntile.coords {
             if xr.contains(&crd.0) && yr.contains(&crd.1) {
                 return PipNaming {
                     rt,
@@ -358,7 +358,7 @@ impl<'a> Extractor<'a> {
                 };
             }
         }
-        panic!("can't xlat pip {crd:?} in {nloc:?}");
+        panic!("can't xlat pip {crd:?} in {tcrd:?}");
     }
 
     pub fn use_pip(&mut self, net_t: NetId, net_f: NetId) -> (usize, usize) {
@@ -375,36 +375,36 @@ impl<'a> Extractor<'a> {
         crd
     }
 
-    pub fn consume_all_fwd(&mut self, net_id: NetId, nloc: TileCoord) -> Vec<(NetId, PipNaming)> {
+    pub fn consume_all_fwd(&mut self, net_id: NetId, tcrd: TileCoord) -> Vec<(NetId, PipNaming)> {
         let net = &self.nets[net_id];
         let mut res = vec![];
         for (net_t, crd) in net.pips_fwd.clone() {
             self.use_pip(net_t, net_id);
-            let pip = self.xlat_pip_loc(nloc, crd);
+            let pip = self.xlat_pip_loc(tcrd, crd);
             res.push((net_t, pip));
         }
         res
     }
 
-    pub fn consume_all_bwd(&mut self, net_id: NetId, nloc: TileCoord) -> Vec<(NetId, PipNaming)> {
+    pub fn consume_all_bwd(&mut self, net_id: NetId, tcrd: TileCoord) -> Vec<(NetId, PipNaming)> {
         let net = &self.nets[net_id];
         let mut res = vec![];
         for (net_f, crd) in net.pips_bwd.clone() {
             self.use_pip(net_id, net_f);
-            let pip = self.xlat_pip_loc(nloc, crd);
+            let pip = self.xlat_pip_loc(tcrd, crd);
             res.push((net_f, pip));
         }
         res
     }
 
-    pub fn consume_one_fwd(&mut self, net_id: NetId, nloc: TileCoord) -> (NetId, PipNaming) {
-        let list = self.consume_all_fwd(net_id, nloc);
+    pub fn consume_one_fwd(&mut self, net_id: NetId, tcrd: TileCoord) -> (NetId, PipNaming) {
+        let list = self.consume_all_fwd(net_id, tcrd);
         assert_eq!(list.len(), 1);
         list[0]
     }
 
-    pub fn consume_one_bwd(&mut self, net_id: NetId, nloc: TileCoord) -> (NetId, PipNaming) {
-        let list = self.consume_all_bwd(net_id, nloc);
+    pub fn consume_one_bwd(&mut self, net_id: NetId, tcrd: TileCoord) -> (NetId, PipNaming) {
+        let list = self.consume_all_bwd(net_id, tcrd);
         assert_eq!(list.len(), 1);
         list[0]
     }
@@ -466,7 +466,7 @@ impl<'a> Extractor<'a> {
 
     pub fn bel_pip(
         &mut self,
-        naming: NodeNamingId,
+        naming: TileNamingId,
         bel: BelSlotId,
         key: impl Into<String>,
         pip: PipNaming,
@@ -482,22 +482,22 @@ impl<'a> Extractor<'a> {
         }
     }
 
-    pub fn own_box(&mut self, box_id: BoxId, nloc: TileCoord) {
+    pub fn own_box(&mut self, box_id: BoxId, tcrd: TileCoord) {
         assert!(!self.box_owner.contains_id(box_id));
-        self.box_owner.insert(box_id, nloc);
+        self.box_owner.insert(box_id, tcrd);
     }
 
-    pub fn own_mux(&mut self, wire: WireCoord, nloc: TileCoord) {
+    pub fn own_mux(&mut self, wire: WireCoord, tcrd: TileCoord) {
         let net = self.int_nets[&wire];
         for &net_f in self.nets[net].pips_bwd.keys() {
             if matches!(self.nets[net_f].binding, NetBinding::Int(_)) {
-                assert_eq!(self.pip_owner.insert((net, net_f), nloc), None);
+                assert_eq!(self.pip_owner.insert((net, net_f), tcrd), None);
             }
         }
     }
 
-    pub fn own_pip(&mut self, net_t: NetId, net_f: NetId, nloc: TileCoord) {
-        assert_eq!(self.pip_owner.insert((net_t, net_f), nloc), None);
+    pub fn own_pip(&mut self, net_t: NetId, net_f: NetId, tcrd: TileCoord) {
+        assert_eq!(self.pip_owner.insert((net_t, net_f), tcrd), None);
     }
 
     pub fn mark_tbuf_pseudo(&mut self, net_t: NetId, net_f: NetId) {
@@ -516,21 +516,21 @@ impl<'a> Extractor<'a> {
         self.int_pip_force_dst.insert((net_t, net_f), nw);
     }
 
-    fn extract_nodes(&mut self) {
-        let mut node_boxes: BTreeMap<_, Vec<_>> = BTreeMap::new();
+    fn extract_tiles(&mut self) {
+        let mut tile_boxes: BTreeMap<_, Vec<_>> = BTreeMap::new();
         for (box_id, boxx) in &self.die.boxes {
-            if let Some(&nloc) = self.box_owner.get(box_id) {
-                node_boxes.entry(nloc).or_default().push(box_id);
+            if let Some(&tcrd) = self.box_owner.get(box_id) {
+                tile_boxes.entry(tcrd).or_default().push(box_id);
             } else {
                 eprintln!("box {name} not owned!", name = boxx.name);
             }
         }
         for (tcrd, _tile) in self.egrid.tiles() {
-            let nnode = &self.ngrid.tiles[&tcrd];
-            if nnode.coords.is_empty() {
+            let ntile = &self.ngrid.tiles[&tcrd];
+            if ntile.coords.is_empty() {
                 continue;
             }
-            let rng = nnode.coords[NodeRawTileId::from_idx(0)].clone();
+            let rng = ntile.coords[TileRawCellId::from_idx(0)].clone();
 
             for x in rng.0 {
                 for y in rng.1.clone() {
@@ -551,9 +551,9 @@ impl<'a> Extractor<'a> {
                 }
             }
         }
-        let mut node_pips: BTreeMap<_, Vec<_>> = BTreeMap::new();
-        for (&pip, &nloc) in &self.pip_owner {
-            node_pips.entry(nloc).or_default().push(pip);
+        let mut tile_pips: BTreeMap<_, Vec<_>> = BTreeMap::new();
+        for (&pip, &tcrd) in &self.pip_owner {
+            tile_pips.entry(tcrd).or_default().push(pip);
         }
         let mut net_by_cell: BTreeMap<_, BTreeMap<_, _>> = BTreeMap::new();
         for (cell, _) in self.egrid.cells() {
@@ -590,8 +590,8 @@ impl<'a> Extractor<'a> {
             }
             let mut muxes = BTreeSet::new();
             let mut int_pips = BTreeMap::new();
-            let nnode = &self.ngrid.tiles[&tcrd];
-            if let Some(boxes) = node_boxes.get(&tcrd) {
+            let ntile = &self.ngrid.tiles[&tcrd];
+            if let Some(boxes) = tile_boxes.get(&tcrd) {
                 for &box_id in boxes {
                     let boxx = &self.die.boxes[box_id];
                     let boxdef = &self.die.boxdefs[boxx.boxdef];
@@ -617,7 +617,7 @@ impl<'a> Extractor<'a> {
                     }
                 }
             }
-            if let Some(pips) = node_pips.get(&tcrd) {
+            if let Some(pips) = tile_pips.get(&tcrd) {
                 for &(nt, nf) in pips {
                     if self.used_pips.contains(&(nt, nf)) {
                         continue;
@@ -647,25 +647,25 @@ impl<'a> Extractor<'a> {
                 assert_eq!(
                     self.tcls_pips[tile.class],
                     muxes,
-                    "fail merging node {}",
+                    "fail merging tile {}",
                     self.egrid.db.tile_classes.key(tile.class)
                 );
             }
-            if !self.int_pips.contains_id(nnode.naming) {
-                self.int_pips.insert(nnode.naming, int_pips);
+            if !self.int_pips.contains_id(ntile.naming) {
+                self.int_pips.insert(ntile.naming, int_pips);
             } else {
                 assert_eq!(
-                    self.int_pips[nnode.naming],
+                    self.int_pips[ntile.naming],
                     int_pips,
-                    "fail merging node naming {}",
-                    self.ngrid.db.node_namings.key(nnode.naming)
+                    "fail merging tile naming {}",
+                    self.ngrid.db.tile_namings.key(ntile.naming)
                 );
             }
         }
     }
 
     pub fn finish(mut self) -> Finisher {
-        self.extract_nodes();
+        self.extract_tiles();
         for net in self.nets.values() {
             if net.binding == NetBinding::None {
                 let (nx, ny, nd) = net.root;
@@ -708,23 +708,23 @@ impl Finisher {
         ndb: &mut NamingDb,
         mut classify_pip: impl FnMut(&IntDb, TileSlotId, TileWireCoord, TileWireCoord) -> PipMode,
     ) {
-        let mut new_node_namings = EntityMap::new();
-        for (naming, name, mut node_naming) in core::mem::take(&mut ndb.node_namings) {
+        let mut new_tile_namings = EntityMap::new();
+        for (naming, name, mut tile_naming) in core::mem::take(&mut ndb.tile_namings) {
             if let Some(int_pips) = self.int_pips.remove(naming) {
-                node_naming.int_pips = int_pips;
-                node_naming.bel_pips = core::mem::take(&mut self.bel_pips[naming]);
-                new_node_namings.insert(name, node_naming);
+                tile_naming.int_pips = int_pips;
+                tile_naming.bel_pips = core::mem::take(&mut self.bel_pips[naming]);
+                new_tile_namings.insert(name, tile_naming);
             }
         }
-        ndb.node_namings = new_node_namings;
-        let mut new_nodes = EntityMap::new();
-        for (kind, name, mut node) in core::mem::take(&mut db.tile_classes) {
+        ndb.tile_namings = new_tile_namings;
+        let mut new_tile_classes = EntityMap::new();
+        for (kind, name, mut tcls) in core::mem::take(&mut db.tile_classes) {
             if let Some(pips) = self.tcls_pips.remove(kind) {
                 let mut muxes: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
                 let mut items = vec![];
                 let mut passes = BTreeSet::new();
                 for (wt, wf) in pips {
-                    match classify_pip(db, node.slot, wt, wf) {
+                    match classify_pip(db, tcls.slot, wt, wf) {
                         PipMode::Mux => {
                             muxes.entry(wt).or_default().insert(wf.pos());
                         }
@@ -759,7 +759,7 @@ impl Finisher {
                 }
                 items.sort();
                 let mut found = false;
-                for bel in node.bels.values_mut() {
+                for bel in tcls.bels.values_mut() {
                     if let BelInfo::SwitchBox(sb) = bel {
                         found = true;
                         sb.items = items;
@@ -767,9 +767,9 @@ impl Finisher {
                     }
                 }
                 assert!(found);
-                new_nodes.insert(name, node);
+                new_tile_classes.insert(name, tcls);
             }
         }
-        db.tile_classes = new_nodes;
+        db.tile_classes = new_tile_classes;
     }
 }

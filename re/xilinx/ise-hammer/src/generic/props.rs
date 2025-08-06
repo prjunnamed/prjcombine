@@ -35,7 +35,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseRaw<'b> {
     fn apply(
         &self,
         _backend: &IseBackend<'b>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         Some((fuzzer.base(self.key.clone(), self.val.clone()), false))
@@ -63,7 +63,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzRaw<'b> {
     fn apply(
         &self,
         _backend: &IseBackend<'b>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         Some((
@@ -94,7 +94,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzRawMulti<'b> {
     fn apply(
         &self,
         _backend: &IseBackend<'b>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         fuzzer.bits = self.width;
@@ -113,7 +113,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NullBits {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        _nloc: TileCoord,
+        _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         fuzzer.info.features[0].tiles.clear();

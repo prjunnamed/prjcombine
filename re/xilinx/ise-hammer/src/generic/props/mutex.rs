@@ -85,11 +85,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TileMutex {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         Some((
-            fuzzer.base(Key::TileMutex(nloc, self.key.clone()), self.val.clone()),
+            fuzzer.base(Key::TileMutex(tcrd, self.key.clone()), self.val.clone()),
             false,
         ))
     }
@@ -114,28 +114,28 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TileMutexExclusive {
     fn apply<'a>(
         &self,
         _backend: &IseBackend<'a>,
-        nloc: TileCoord,
+        tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         Some((
-            fuzzer.fuzz(Key::TileMutex(nloc, self.key.clone()), None, "EXCLUSIVE"),
+            fuzzer.fuzz(Key::TileMutex(tcrd, self.key.clone()), None, "EXCLUSIVE"),
             false,
         ))
     }
 }
 
 #[derive(Clone, Debug)]
-pub struct NodeMutexShared {
+pub struct WireMutexShared {
     pub wire: TileWireCoord,
 }
 
-impl NodeMutexShared {
+impl WireMutexShared {
     pub fn new(wire: TileWireCoord) -> Self {
         Self { wire }
     }
 }
 
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeMutexShared {
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireMutexShared {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -146,25 +146,25 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeMutexShared {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend
+        let wire = backend
             .egrid
             .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire))?;
-        Some((fuzzer.base(Key::NodeMutex(node), "SHARED"), false))
+        Some((fuzzer.base(Key::WireMutex(wire), "SHARED"), false))
     }
 }
 
 #[derive(Clone, Debug)]
-pub struct NodeMutexExclusive {
+pub struct WireMutexExclusive {
     pub wire: TileWireCoord,
 }
 
-impl NodeMutexExclusive {
+impl WireMutexExclusive {
     pub fn new(wire: TileWireCoord) -> Self {
         Self { wire }
     }
 }
 
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeMutexExclusive {
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireMutexExclusive {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -175,9 +175,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NodeMutexExclusive {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let node = backend
+        let wire = backend
             .egrid
             .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire))?;
-        Some((fuzzer.fuzz(Key::NodeMutex(node), None, "EXCLUSIVE"), false))
+        Some((fuzzer.fuzz(Key::WireMutex(wire), None, "EXCLUSIVE"), false))
     }
 }

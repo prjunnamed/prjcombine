@@ -289,12 +289,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
-        let node_kind = backend.egrid.db.get_tile_class(tile);
-        let node_data = &backend.egrid.db.tile_classes[node_kind];
+        let tcid = backend.egrid.db.get_tile_class(tile);
+        let tcls = &backend.egrid.db.tile_classes[tcid];
 
         for i in 0..4 {
             let bel = bels::BUFIO[i];
-            if !node_data.bels.contains_id(bel) {
+            if !tcls.bels.contains_id(bel) {
                 continue;
             }
             let mut bctx = ctx.bel(bel);
@@ -307,7 +307,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
         for i in 0..2 {
             let bel = bels::BUFR[i];
-            if !node_data.bels.contains_id(bel) {
+            if !tcls.bels.contains_id(bel) {
                 continue;
             }
             let mut bctx = ctx.bel(bel);
@@ -364,8 +364,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             "HCLK_IOI_CMT",
                             "HCLK_CMT_IOI",
                         ] {
-                            let onode = backend.egrid.db.get_tile_class(otile);
-                            if !backend.egrid.tile_index[onode].is_empty() {
+                            let otcls = backend.egrid.db.get_tile_class(otile);
+                            if !backend.egrid.tile_index[otcls].is_empty() {
                                 extras.push(Box::new(HclkIoiCenter(
                                     otile,
                                     "IOCLK",
@@ -612,8 +612,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "HCLK_IOI_CMT",
         "HCLK_CMT_IOI",
     ] {
-        let node_kind = edev.egrid.db.get_tile_class(tile);
-        let node_data = &edev.egrid.db.tile_classes[node_kind];
+        let tcid = edev.egrid.db.get_tile_class(tile);
+        let tcls = &edev.egrid.db.tile_classes[tcid];
 
         if !ctx.has_tile(tile) {
             continue;
@@ -621,7 +621,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diffs = vec![];
         for i in 0..4 {
             let bel = format!("BUFIO{i}");
-            if !node_data.bels.contains_id(bels::BUFIO[i]) {
+            if !tcls.bels.contains_id(bels::BUFIO[i]) {
                 continue;
             }
             ctx.state

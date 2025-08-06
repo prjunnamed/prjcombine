@@ -34,7 +34,7 @@ pub fn verify_xp5iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
     ];
     vrf.verify_bel(bel, "XP5IOB", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
     let obel_vref = vrf.find_bel_sibling(bel, bels::XP5IO_VREF[nidx]);
@@ -1822,7 +1822,7 @@ pub fn verify_xp5io_vref(vrf: &mut Verifier, bel: &BelContext<'_>) {
     ];
     vrf.verify_bel(bel, "XP5IO_VREF", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
     let obel_x5phy_ls = vrf.find_bel_sibling(bel, bels::X5PHY_LS[idx]);
@@ -1984,7 +1984,7 @@ pub fn verify_x5phy_ls(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
     vrf.verify_bel(bel, "X5PHY_LS", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
     for i in 0..3 {
@@ -2081,11 +2081,11 @@ pub fn verify_x5phy_ls(vrf: &mut Verifier, bel: &BelContext<'_>) {
         }
         if let Some(obel) = vrf.find_bel_delta(bel, 0, 60, bels::X5PHY_LS[9]) {
             for &(ipin, opin) in XP5IO_RTRIM {
-                vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire(opin)]);
+                vrf.verify_net(&[bel.fwire_far(ipin), obel.fwire(opin)]);
             }
         } else {
             for &(ipin, _) in XP5IO_RTRIM {
-                vrf.claim_node(&[bel.fwire_far(ipin)]);
+                vrf.claim_net(&[bel.fwire_far(ipin)]);
             }
         }
     } else {
@@ -2219,7 +2219,7 @@ pub fn verify_x5phy_hs(vrf: &mut Verifier, bel: &BelContext<'_>) {
     ]);
     vrf.verify_bel(bel, "X5PHY_HS", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
     for i in 0..3 {
         let obel_iob = vrf.find_bel_sibling(bel, bels::XP5IOB[idx * 3 + i]);
@@ -2279,7 +2279,7 @@ pub fn verify_x5phy_pll_select(vrf: &mut Verifier, bel: &BelContext<'_>) {
     ];
     vrf.verify_bel(bel, "X5PHY_PLL_SELECT", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
     let obel = vrf.find_bel_sibling(bel, bels::LPDDRMC);
     vrf.claim_pip(bel.crd(), bel.wire("D0"), obel.wire("PLL0_CLKOUTPHY_OABUT"));
@@ -2667,7 +2667,7 @@ pub fn verify_xp5pio_cmu_ana(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
     vrf.verify_bel(bel, "XP5PIO_CMU_ANA", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
     let obel = vrf.find_bel_sibling(bel, bels::XP5PIO_CMU_DIG_TOP);
     for (pin, opin) in XP5PIO_ANA_FROM_DIG {
@@ -2726,7 +2726,7 @@ pub fn verify_xp5pio_cmu_dig(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
     vrf.verify_bel(bel, "XP5PIO_CMU_DIG_TOP", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
     let obel = vrf.find_bel_sibling(bel, bels::XP5PIO_CMU_ANA);
     for (pin, opin) in XP5PIO_DIG_FROM_ANA {
@@ -2846,7 +2846,7 @@ pub fn verify_lpddrmc(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ],
     );
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
     }
 
     let obel = vrf.find_bel_sibling(bel, bels::XP5PIO_CMU_DIG_TOP);
@@ -2897,7 +2897,7 @@ pub fn verify_lpddrmc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     ] {
         vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
         let obel = vrf.find_bel_sibling(bel, oslot);
-        vrf.verify_node(&[bel.fwire_far(pin), obel.fwire(opin)]);
+        vrf.verify_net(&[bel.fwire_far(pin), obel.fwire(opin)]);
     }
 
     let obel = vrf.find_bel_sibling(bel, bels::X5PHY_LS[5]);
@@ -2928,7 +2928,7 @@ pub fn verify_lpddrmc(vrf: &mut Verifier, bel: &BelContext<'_>) {
         );
     }
     for nibble in [0, 1, 2, 3, 7, 8, 9] {
-        vrf.claim_node(&[bel.fwire(&format!("NIBBLE{nibble}_CCIO_DUMMY"))]);
+        vrf.claim_net(&[bel.fwire(&format!("NIBBLE{nibble}_CCIO_DUMMY"))]);
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("NIBBLE{nibble}_CCIO_DUMMY")),

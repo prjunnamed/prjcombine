@@ -45,7 +45,7 @@ pub fn add_fuzzers<'a>(
         ("DCM.S3E.RT", Some(Delta::new(0, -1, "DCM.S3E.RB"))),
     ] {
         let vreg_tile = if let Some(ref vreg) = vreg {
-            vreg.nodes[0].clone()
+            vreg.tcnames[0].clone()
         } else {
             tile.to_string()
         };
@@ -366,8 +366,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ("DCM.S3E.RT", Some("DCM.S3E.RB")),
     ] {
         let bel = "DCM";
-        let node = edev.egrid.db.get_tile_class(tile);
-        if edev.egrid.tile_index[node].is_empty() {
+        if !ctx.has_tile(tile) {
             continue;
         }
         for pin in [

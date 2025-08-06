@@ -21,7 +21,7 @@ fn verify_rll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     if bel.info.pins.is_empty() {
         for pin in bel.naming.pins.keys() {
             pins.push((&**pin, SitePinDir::In));
-            vrf.claim_node(&[bel.fwire(pin)]);
+            vrf.claim_net(&[bel.fwire(pin)]);
         }
     }
     vrf.verify_bel(bel, "RESERVED_LL", &pins, &[]);
@@ -48,10 +48,10 @@ fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelConte
             (bels::IO[0], bels::IO[1])
         };
         for (pin, oslot) in [("BREFCLKPIN", slot_p), ("BREFCLKNIN", slot_n)] {
-            vrf.claim_node(&[bel.fwire(pin)]);
+            vrf.claim_net(&[bel.fwire(pin)]);
             vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
             let obel = vrf.get_bel(bel.cell.with_col(endev.chip.col_clk - 1).bel(oslot));
-            vrf.verify_node(&[bel.fwire_far(pin), obel.fwire_far("I")]);
+            vrf.verify_net(&[bel.fwire_far(pin), obel.fwire_far("I")]);
         }
     } else {
         vrf.verify_bel(
@@ -71,20 +71,20 @@ fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelConte
         );
         let obel = vrf.get_bel(bel.cell.with_col(endev.chip.col_clk).bel(bels::BREFCLK));
         for pin in ["BREFCLK", "BREFCLK2"] {
-            vrf.claim_node(&[bel.fwire(pin)]);
+            vrf.claim_net(&[bel.fwire(pin)]);
             vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
-            vrf.verify_node(&[bel.fwire_far(pin), obel.fwire(pin)]);
+            vrf.verify_net(&[bel.fwire_far(pin), obel.fwire(pin)]);
         }
-        vrf.claim_node(&[bel.fwire("TST10B8BICRD0")]);
-        vrf.claim_node(&[bel.fwire("TST10B8BICRD1")]);
+        vrf.claim_net(&[bel.fwire("TST10B8BICRD0")]);
+        vrf.claim_net(&[bel.fwire("TST10B8BICRD1")]);
     }
     for (pin, oslot) in [("RXP", bels::IPAD_RXP), ("RXN", bels::IPAD_RXN)] {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
         let obel = vrf.find_bel_sibling(bel, oslot);
         vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("I"));
     }
     for (pin, oslot) in [("TXP", bels::OPAD_TXP), ("TXN", bels::OPAD_TXN)] {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_net(&[bel.fwire(pin)]);
         let obel = vrf.find_bel_sibling(bel, oslot);
         vrf.claim_pip(bel.crd(), obel.wire("O"), bel.wire(pin));
     }
@@ -102,12 +102,12 @@ fn verify_mult(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCon
         }
         vrf.verify_bel(bel, "MULT18X18SIO", &pins, &[]);
         for (o, i) in &carry {
-            vrf.claim_node(&[bel.fwire(o)]);
-            vrf.claim_node(&[bel.fwire(i)]);
+            vrf.claim_net(&[bel.fwire(o)]);
+            vrf.claim_net(&[bel.fwire(i)]);
         }
         if let Some(obel) = vrf.find_bel_walk(bel, 0, -4, bels::MULT) {
             for (o, i) in &carry {
-                vrf.verify_node(&[bel.fwire(i), obel.fwire_far(o)]);
+                vrf.verify_net(&[bel.fwire(i), obel.fwire_far(o)]);
                 vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
             }
         }
@@ -148,12 +148,12 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
     vrf.verify_bel(bel, "DSP48A", &pins, &[]);
     for (o, i) in &carry {
-        vrf.claim_node(&[bel.fwire(o)]);
-        vrf.claim_node(&[bel.fwire(i)]);
+        vrf.claim_net(&[bel.fwire(o)]);
+        vrf.claim_net(&[bel.fwire(i)]);
     }
     if let Some(obel) = vrf.find_bel_walk(bel, 0, -4, bels::DSP) {
         for (o, i) in &carry {
-            vrf.verify_node(&[bel.fwire(i), obel.fwire_far(o)]);
+            vrf.verify_net(&[bel.fwire(i), obel.fwire_far(o)]);
             vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
         }
     }
@@ -172,7 +172,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
         }
         bels::TBUF0 | bels::TBUF1 => {
             vrf.verify_bel(bel, "TBUF", &[("O", SitePinDir::Out)], &[]);
-            vrf.claim_node(&[bel.fwire("O")]);
+            vrf.claim_net(&[bel.fwire("O")]);
         }
         bels::TBUS => {
             clb::verify_tbus(vrf, bel);
@@ -230,11 +230,11 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
         bels::GT | bels::GT10 => verify_gt(endev, vrf, bel),
         bels::IPAD_RXP | bels::IPAD_RXN => {
             vrf.verify_bel(bel, "GTIPAD", &[("I", SitePinDir::Out)], &[]);
-            vrf.claim_node(&[bel.fwire("I")]);
+            vrf.claim_net(&[bel.fwire("I")]);
         }
         bels::OPAD_TXP | bels::OPAD_TXN => {
             vrf.verify_bel(bel, "GTOPAD", &[("O", SitePinDir::In)], &[]);
-            vrf.claim_node(&[bel.fwire("O")]);
+            vrf.claim_net(&[bel.fwire("O")]);
         }
 
         bels::STARTUP
@@ -252,7 +252,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
             vrf.verify_bel(bel, "DCM", &[], &[]);
             if endev.chip.kind.is_virtex2p() {
                 // just some detritus.
-                vrf.claim_node(&[(bel.crd(), "BRAM_IOIS_DATA29")]);
+                vrf.claim_net(&[(bel.crd(), "BRAM_IOIS_DATA29")]);
                 vrf.claim_pip(bel.crd(), "BRAM_IOIS_DATA29", "BRAM_IOIS_VCC_WIRE");
             }
         }
@@ -260,7 +260,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
             vrf.verify_bel(bel, "ICAP", &[], &[]);
             if endev.chip.kind == ChipKind::Spartan3E {
                 // eh.
-                vrf.claim_node(&[bel.fwire("I2")]);
+                vrf.claim_net(&[bel.fwire("I2")]);
             }
         }
         _ if slot_name.starts_with("GLOBALSIG") => {
@@ -283,7 +283,7 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
         }
         bels::VCC => {
             vrf.verify_bel(bel, "VCC", &[("VCCOUT", SitePinDir::Out)], &[]);
-            vrf.claim_node(&[bel.fwire("VCCOUT")]);
+            vrf.claim_net(&[bel.fwire("VCCOUT")]);
         }
         bels::MISR => (),
 

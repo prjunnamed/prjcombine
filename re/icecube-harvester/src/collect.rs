@@ -11,7 +11,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
-    chip::{ChipKind, ExtraNodeLoc},
+    chip::{ChipKind, SpecialTileKey},
     expanded::{BitOwner, ExpandedDevice},
 };
 use prjcombine_types::{
@@ -179,8 +179,8 @@ pub fn collect(
         tiledb: &mut tiledb,
     };
 
-    for (&node_kind, tile_sb) in sbs {
-        let tile = edev.egrid.db.tile_classes.key(node_kind);
+    for (&tcid, tile_sb) in sbs {
+        let tile = edev.egrid.db.tile_classes.key(tcid);
         let bel = "INT";
         if !tile.starts_with("IO") {
             collector.collect_bit(tile, bel, "INV.IMUX.CLK.OPTINV", "");
@@ -461,12 +461,12 @@ pub fn collect(
         if edge == Dir::S
             && (edev
                 .chip
-                .extra_nodes
-                .contains_key(&ExtraNodeLoc::Pll(DirV::S))
+                .special_tiles
+                .contains_key(&SpecialTileKey::Pll(DirV::S))
                 || edev
                     .chip
-                    .extra_nodes
-                    .contains_key(&ExtraNodeLoc::PllStub(DirV::S)))
+                    .special_tiles
+                    .contains_key(&SpecialTileKey::PllStub(DirV::S)))
             && edev.chip.kind.has_iob_we()
         {
             has_latch_global_out = false;
@@ -474,12 +474,12 @@ pub fn collect(
         if edge == Dir::N
             && (edev
                 .chip
-                .extra_nodes
-                .contains_key(&ExtraNodeLoc::Pll(DirV::N))
+                .special_tiles
+                .contains_key(&SpecialTileKey::Pll(DirV::N))
                 || edev
                     .chip
-                    .extra_nodes
-                    .contains_key(&ExtraNodeLoc::PllStub(DirV::N)))
+                    .special_tiles
+                    .contains_key(&SpecialTileKey::PllStub(DirV::N)))
         {
             has_latch_global_out = false;
         }
@@ -495,9 +495,9 @@ pub fn collect(
         }
     }
     for side in [DirV::S, DirV::N] {
-        let xnloc = ExtraNodeLoc::Pll(side);
-        if edev.chip.extra_nodes.contains_key(&xnloc) {
-            let tile = &xnloc.tile_class(edev.chip.kind);
+        let key = SpecialTileKey::Pll(side);
+        if edev.chip.special_tiles.contains_key(&key) {
+            let tile = &key.tile_class(edev.chip.kind);
             let bel = "PLL";
             if edev.chip.kind.is_ice65() {
                 for (attr, vals, default) in [
@@ -606,9 +606,9 @@ pub fn collect(
                 }
             }
         }
-        let xnloc = ExtraNodeLoc::PllStub(side);
-        let tile = &xnloc.tile_class(edev.chip.kind);
-        if edev.chip.extra_nodes.contains_key(&xnloc) {
+        let key = SpecialTileKey::PllStub(side);
+        let tile = &key.tile_class(edev.chip.kind);
+        if edev.chip.special_tiles.contains_key(&key) {
             let bel = "PLL";
             for attr in ["LATCH_GLOBAL_OUT_A", "LATCH_GLOBAL_OUT_B"] {
                 collector.collect_bitvec(tile, bel, attr, "");
@@ -617,7 +617,7 @@ pub fn collect(
     }
 
     if edev.chip.kind.is_ultra() {
-        let tile = &ExtraNodeLoc::Trim.tile_class(edev.chip.kind);
+        let tile = &SpecialTileKey::Trim.tile_class(edev.chip.kind);
         let bel = "LFOSC";
         collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
         let bel = "HFOSC";
@@ -644,7 +644,7 @@ pub fn collect(
                 .insert(tile, bel, "IR_CURRENT", xlat_bitvec(diffs));
             collector.tiledb.insert(tile, bel, "ENABLE", xlat_bit(en));
         } else {
-            let tile = &ExtraNodeLoc::RgbaDrv.tile_class(edev.chip.kind);
+            let tile = &SpecialTileKey::RgbaDrv.tile_class(edev.chip.kind);
             let bel = "RGBA_DRV";
             collector.collect_bit(tile, bel, "ENABLE", "");
             collector.collect_bit(tile, bel, "CURRENT_MODE", "");

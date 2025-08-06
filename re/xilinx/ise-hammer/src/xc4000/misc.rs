@@ -28,14 +28,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesIoW {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        for (node_kind, locs) in &backend.egrid.tile_index {
-            let tile = backend.egrid.db.tile_classes.key(node_kind);
+        for (tile_class, locs) in &backend.egrid.tile_index {
+            let tile = backend.egrid.db.tile_classes.key(tile_class);
             if !tile.starts_with("IO.L") {
                 continue;
             }
             for &tcrd in locs {
-                let node = &backend.egrid[tcrd];
-                let tile = backend.egrid.db.tile_classes.key(node.class);
+                let tile = &backend.egrid[tcrd];
+                let tile = backend.egrid.db.tile_classes.key(tile.class);
                 let fuzzer_id = fuzzer.info.features[0].id.clone();
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
@@ -64,14 +64,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesAllIo {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        for (node_kind, locs) in &backend.egrid.tile_index {
-            let tile = backend.egrid.db.tile_classes.key(node_kind);
+        for (tile_class, locs) in &backend.egrid.tile_index {
+            let tile = backend.egrid.db.tile_classes.key(tile_class);
             if !tile.starts_with("IO") {
                 continue;
             }
             for &tcrd in locs {
-                let node = &backend.egrid[tcrd];
-                let tile = backend.egrid.db.tile_classes.key(node.class);
+                let tile = &backend.egrid[tcrd];
+                let tile = backend.egrid.db.tile_classes.key(tile.class);
                 let fuzzer_id = fuzzer.info.features[0].id.clone();
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
