@@ -35,7 +35,7 @@ bels![
     DLL: tslots::BEL,
     DDRDLL: tslots::BEL,
     DTR: tslots::BEL,
-    // patched to CLK for XO2, ECP4
+    // patched to CLK for XO2, ECP4, ECP5
     DLLDEL0: tslots::BEL,
     DLLDEL1: tslots::BEL,
     DLLDEL2: tslots::BEL,
@@ -44,7 +44,7 @@ bels![
     DLLDEL5: tslots::BEL,
     DLLDEL6: tslots::BEL,
     DLLDEL7: tslots::BEL,
-    // patched to CLK for XO2, ECP4
+    // patched to CLK for XO2, ECP4, ECP5
     CLKDIV0: tslots::BEL,
     CLKDIV1: tslots::BEL,
     CLKDIV2: tslots::BEL,
@@ -62,6 +62,7 @@ bels![
     GSR: tslots::BEL,
     TSALL: tslots::BEL,
     SED: tslots::BEL,
+    CCLK: tslots::BEL,
     SPIM: tslots::BEL,
     SSPI: tslots::BEL,
     WAKEUP: tslots::BEL,

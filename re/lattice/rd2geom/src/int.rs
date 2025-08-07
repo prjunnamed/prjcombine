@@ -11,6 +11,23 @@ mod pips;
 mod wires;
 
 impl ChipContext<'_> {
+    fn process_pclk_cols(&mut self) {
+        let mut ranges = vec![];
+        let mut prev = self.chip.col_w();
+        for (col, cd) in &self.chip.columns {
+            if cd.pclk_break {
+                ranges.push((prev, col));
+                prev = col;
+            }
+        }
+        ranges.push((prev, self.chip.col_e() + 1));
+        for (col_w, col_e) in ranges {
+            for _ in col_w.range(col_e) {
+                self.pclk_cols.push((col_w, col_e));
+            }
+        }
+    }
+
     fn process_cibtest(&mut self) {
         for (cell, cell_data) in self.edev.egrid.cells() {
             let Some(tile) = cell_data.tiles.get(tslots::INT) else {
@@ -54,7 +71,7 @@ impl ChipContext<'_> {
                     }
                     self.insert_bel(bcrd, bel);
                 } else {
-                    let num_clk = if self.chip.kind == ChipKind::Ecp4 {
+                    let num_clk = if matches!(self.chip.kind, ChipKind::Ecp4 | ChipKind::Ecp5) {
                         2
                     } else {
                         4
@@ -91,6 +108,9 @@ impl ChipContext<'_> {
                         }
                     }
                     for (l, n) in [("F", 8), ("Q", 8), ("OFX", 8)] {
+                        if l == "OFX" && matches!(self.chip.kind, ChipKind::Ecp5) {
+                            continue;
+                        }
                         for i in 0..n {
                             let wf = self.rc_wire(cell, &format!("J{l}{i}_CIBTEST"));
                             let wt = cell.wire(self.intdb.get_wire(&format!("OUT_{l}{i}")));
@@ -102,6 +122,7 @@ impl ChipContext<'_> {
                                     | ChipKind::Ecp3A
                                     | ChipKind::MachXo2(_)
                                     | ChipKind::Ecp4
+                                    | ChipKind::Ecp5
                             ) {
                                 self.claim_pip_int_out(wt, wf);
                             } else {
@@ -272,6 +293,7 @@ impl ChipContext<'_> {
     }
 
     pub fn process_int(&mut self) {
+        self.process_pclk_cols();
         self.process_int_wires();
         self.process_int_pips();
         self.process_cibtest();

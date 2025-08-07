@@ -61,6 +61,8 @@ struct ChipContext<'a> {
     pips_fwd: BTreeMap<WireName, BTreeSet<WireName>>,
     pips_bwd: BTreeMap<WireName, BTreeSet<WireName>>,
     bels: BTreeMap<(TileClassId, BelSlotId), BelInfo>,
+    dummy_sites: BTreeSet<String>,
+    skip_serdes: bool,
 }
 
 impl ChipContext<'_> {
@@ -308,6 +310,7 @@ impl ChipContext<'_> {
                 "DQSDLL",
                 "DQSDLLTEST",
                 "DLLDEL",
+                "DDRDLL",
                 "JTAG",
                 "OSC",
                 "GSR",
@@ -323,6 +326,7 @@ impl ChipContext<'_> {
                 "PCNTR",
                 "EFB",
                 "ESB",
+                "CCLK",
                 "TESTIN",
                 "TESTOUT",
                 "CENTEST",
@@ -335,6 +339,7 @@ impl ChipContext<'_> {
                 "SPLL",
                 "PCS",
                 "ASB",
+                "DCU",
                 "BCPG",
                 "BCINRD",
                 "BCLVDSO",
@@ -411,6 +416,7 @@ struct ChipResult {
     chip: Chip,
     naming: ChipNaming,
     bels: BTreeMap<(TileClassId, BelSlotId), BelInfo>,
+    dummy_sites: BTreeSet<String>,
 }
 
 fn init_nodes(grid: &Grid) -> (ChipNaming, EntityVec<NodeId, WireName>) {
@@ -457,8 +463,9 @@ fn process_chip(name: &str, grid: &Grid, kind: ChipKind, intdb: &IntDb) -> ChipR
         pips_fwd: Default::default(),
         pips_bwd: Default::default(),
         bels: Default::default(),
+        dummy_sites: Default::default(),
+        skip_serdes: false,
     };
-    ctx.process_clk_zones();
     ctx.process_int();
     ctx.sort_bel_wires();
     ctx.process_plc();
@@ -473,7 +480,13 @@ fn process_chip(name: &str, grid: &Grid, kind: ChipKind, intdb: &IntDb) -> ChipR
     println!("{name}: DONE");
     let naming = ctx.naming;
     let bels = ctx.bels;
-    ChipResult { chip, naming, bels }
+    let dummy_sites = ctx.dummy_sites;
+    ChipResult {
+        chip,
+        naming,
+        bels,
+        dummy_sites,
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -501,6 +514,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "ecp3" => ChipKind::Ecp3,
         "machxo2" => ChipKind::MachXo2(MachXo2Kind::MachXo2),
         "ecp4" => ChipKind::Ecp4,
+        "ecp5" => ChipKind::Ecp5,
         _ => panic!("unknown family {}", rawdb.family),
     };
     let mut int = init_intdb(kind);
@@ -563,6 +577,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .flat_map(|bnaming| bnaming.names.iter())
                     .map(|&x| naming.strings[x].clone()),
             );
+            for site in &cres.dummy_sites {
+                expected_sites.insert(site.clone());
+            }
             let has_jtag_pin_bels = matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A);
             for (pin, &pad) in &bres.bond.pins {
                 match pad {
@@ -583,6 +600,27 @@ fn main() -> Result<(), Box<dyn Error>> {
                     BondPad::Serdes(edge, col, spad) => {
                         if chip.kind == ChipKind::Ecp4 {
                             // apparently nothing?
+                        } else if chip.kind == ChipKind::Ecp5 {
+                            let bcrd = chip.bel_serdes(edge, col);
+                            let Some(bnaming) = naming.bels.get(&bcrd) else {
+                                continue;
+                            };
+                            let idx = match spad {
+                                SerdesPad::ClkP => 2,
+                                SerdesPad::ClkN => 3,
+                                SerdesPad::InP(0) => 4,
+                                SerdesPad::InN(0) => 5,
+                                SerdesPad::InP(1) => 6,
+                                SerdesPad::InN(1) => 7,
+                                SerdesPad::OutP(0) => 8,
+                                SerdesPad::OutN(0) => 9,
+                                SerdesPad::OutP(1) => 10,
+                                SerdesPad::OutN(1) => 11,
+                                _ => continue,
+                            };
+                            let name = &naming.strings[bnaming.names[idx]];
+                            assert!(expected_sites.remove(name));
+                            expected_sites.insert(pin.clone());
                         } else {
                             let bcrd = chip.bel_serdes(edge, col);
                             let Some(bnaming) = naming.bels.get(&bcrd) else {

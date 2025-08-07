@@ -739,6 +739,56 @@ impl ChipContext<'_> {
         self.claim_pip(wire, wire_osc);
     }
 
+    fn process_config_ecp5(&mut self) {
+        let cell = self.chip.special_loc[&SpecialLocKey::Config];
+
+        let bcrd = cell.bel(bels::JTAG);
+        self.name_bel(bcrd, ["JTAG", "TCK", "TMS", "TDI", "TDO"]);
+        self.insert_simple_bel(bcrd, cell, "JTAG");
+        for pin in ["TCK", "TMS", "TDI", "TDO"] {
+            let wire = self.rc_wire(cell, &format!("J{pin}_JTAG"));
+            let wire_pin = WireName {
+                r: self.chip.rows.len() as u8 + 1,
+                c: 0,
+                suffix: self.naming.strings.get(&format!("J{pin}_{pin}")).unwrap(),
+            };
+            self.add_bel_wire(bcrd, pin, wire);
+            self.add_bel_wire(bcrd, format!("{pin}_{pin}"), wire_pin);
+            if pin == "TDO" {
+                self.claim_pip(wire_pin, wire);
+            } else {
+                self.claim_pip(wire, wire_pin);
+            }
+        }
+
+        let bcrd_osc = cell.bel(bels::OSC);
+        self.name_bel(bcrd_osc, ["OSC"]);
+        self.insert_simple_bel(bcrd_osc, cell, "OSC");
+
+        let bcrd = cell.bel(bels::START);
+        self.name_bel(bcrd, ["START"]);
+        self.insert_simple_bel(bcrd, cell, "START");
+
+        let bcrd = cell.bel(bels::GSR);
+        self.name_bel(bcrd, ["GSR"]);
+        self.insert_simple_bel(bcrd, cell, "GSR");
+
+        let bcrd = cell.bel(bels::CCLK);
+        self.name_bel(bcrd, ["CCLK"]);
+        self.insert_simple_bel(bcrd, cell.with_col(self.chip.col_w()), "CCLK");
+
+        let bcrd = cell.bel(bels::SED);
+        self.name_bel(bcrd, ["SED"]);
+        self.insert_simple_bel(bcrd, cell, "SED");
+        let wire_osc = self.rc_wire(cell, "SEDSTDBY_OSC");
+        self.add_bel_wire(bcrd_osc, "SEDSTDBY", wire_osc);
+        let wire_osc_in = self.rc_wire(cell, "JSTDBY_OSC");
+        self.claim_pip(wire_osc, wire_osc_in);
+        let wire = self.rc_wire(cell, "SEDSTDBY_SED");
+        self.add_bel_wire(bcrd, "SEDSTDBY", wire);
+        self.claim_pip(wire, wire_osc);
+    }
+
     pub fn process_config(&mut self) {
         match self.chip.kind {
             ChipKind::Ecp | ChipKind::Xp => {
@@ -762,6 +812,9 @@ impl ChipContext<'_> {
             }
             ChipKind::Ecp4 => {
                 self.process_config_ecp4();
+            }
+            ChipKind::Ecp5 => {
+                self.process_config_ecp5();
             }
         }
     }

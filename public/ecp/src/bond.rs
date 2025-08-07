@@ -88,6 +88,8 @@ pub enum SerdesPad {
     ClkP,
     ClkN,
     VccP,
+    VccA,
+    VccAuxA,
     VccAux33,
     VccTx(u8),
     VccRx(u8),
@@ -97,6 +99,7 @@ pub enum SerdesPad {
     RxantOutN,
     AuxTstPadOutP,
     AuxTstPadOutN,
+    VccTxCommon,
 }
 
 impl std::fmt::Display for SerdesPad {
@@ -118,6 +121,9 @@ impl std::fmt::Display for SerdesPad {
             SerdesPad::RxantOutN => write!(f, "RXANTOUTN"),
             SerdesPad::AuxTstPadOutP => write!(f, "AUXTSTPADOUTP"),
             SerdesPad::AuxTstPadOutN => write!(f, "AUXTSTPADOUTN"),
+            SerdesPad::VccA => write!(f, "VCCA"),
+            SerdesPad::VccAuxA => write!(f, "VCCAUXA"),
+            SerdesPad::VccTxCommon => write!(f, "VCCTX_COMMON"),
         }
     }
 }

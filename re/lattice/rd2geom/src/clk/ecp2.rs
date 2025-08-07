@@ -599,7 +599,7 @@ impl ChipContext<'_> {
         }
 
         for (col, cd) in &self.chip.columns {
-            if !cd.pclk_leaf_break && col != self.chip.col_w() {
+            if !cd.pclk_break && col != self.chip.col_w() {
                 continue;
             }
             let h = if col < self.chip.col_clk {
@@ -619,7 +619,7 @@ impl ChipContext<'_> {
                         continue 'cells;
                     }
                     cell.col += 1;
-                    if self.chip.columns[cell.col].pclk_leaf_break {
+                    if self.chip.columns[cell.col].pclk_break {
                         continue 'cells;
                     }
                 }
@@ -631,22 +631,5 @@ impl ChipContext<'_> {
         }
 
         self.insert_bel(bcrd, bel);
-    }
-
-    pub(super) fn process_clk_zones_ecp2(&mut self) {
-        let mut ranges = vec![];
-        let mut prev = self.chip.col_w();
-        for (col, cd) in &self.chip.columns {
-            if cd.pclk_leaf_break {
-                ranges.push((prev, col));
-                prev = col;
-            }
-        }
-        ranges.push((prev, self.chip.col_e() + 1));
-        for (col_w, col_e) in ranges {
-            for _ in col_w.range(col_e) {
-                self.pclk_cols.push((col_w, col_e));
-            }
-        }
     }
 }

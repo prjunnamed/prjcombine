@@ -198,6 +198,13 @@ impl ChipContext<'_> {
                 ChipKind::Ecp4 => {
                     vec![cell.wire(wire)]
                 }
+                ChipKind::Ecp5 => {
+                    let (col_start, col_end) = self.pclk_cols[cell.col];
+                    col_start
+                        .range(col_end)
+                        .map(|col| cell.with_col(col).wire(wire))
+                        .collect()
+                }
             }
         } else if suffix.starts_with("HSSX") && suffix.len() == 8 {
             assert!(suffix.ends_with("00"));
@@ -249,7 +256,11 @@ impl ChipContext<'_> {
                 Some("OUT_OFX3_W")
             }
             "HL7W0001" if !self.chip.kind.has_ecp_plc() && self.chip.kind.has_out_ofx_branch() => {
-                Some("OUT_OFX3_W")
+                if matches!(self.chip.kind, ChipKind::Ecp5) {
+                    Some("OUT_F3_W")
+                } else {
+                    Some("OUT_OFX3_W")
+                }
             }
             "HF0W0000" if self.chip.kind.has_out_f_branch() => Some("OUT_F0_W"),
             "HF1W0000" if self.chip.kind.has_out_f_branch() => Some("OUT_F1_W"),

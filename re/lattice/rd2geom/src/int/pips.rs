@@ -26,7 +26,11 @@ impl ChipContext<'_> {
             out_e.extend(["F4", "F5", "F6", "F7"]);
         }
         if self.chip.kind.has_out_ofx_branch() {
-            out_w.push("OFX3");
+            if matches!(self.chip.kind, ChipKind::Ecp5) {
+                out_w.push("F3");
+            } else {
+                out_w.push("OFX3");
+            }
         }
         let out_w = Vec::from_iter(out_w.into_iter().map(|w| {
             (

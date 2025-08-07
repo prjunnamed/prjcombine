@@ -49,7 +49,7 @@ impl ChipContext<'_> {
             | ChipKind::Ecp3
             | ChipKind::Ecp3A
             | ChipKind::MachXo2(_) => self.process_ebr_ecp(),
-            ChipKind::Ecp4 => self.process_ebr_ecp4(),
+            ChipKind::Ecp4 | ChipKind::Ecp5 => self.process_ebr_ecp4(),
         }
     }
 }

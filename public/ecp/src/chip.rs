@@ -22,6 +22,7 @@ pub enum ChipKind {
     Ecp3A,
     MachXo2(MachXo2Kind),
     Ecp4,
+    Ecp5,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
@@ -51,7 +52,12 @@ impl ChipKind {
     pub fn has_out_ofx_branch(self) -> bool {
         matches!(
             self,
-            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo | ChipKind::MachXo2(_) | ChipKind::Ecp4
+            ChipKind::Ecp
+                | ChipKind::Xp
+                | ChipKind::MachXo
+                | ChipKind::MachXo2(_)
+                | ChipKind::Ecp4
+                | ChipKind::Ecp5
         )
     }
 
@@ -110,6 +116,7 @@ impl Display for ChipKind {
             ChipKind::MachXo2(MachXo2Kind::MachXo3D) => write!(f, "machxo3d"),
             ChipKind::MachXo2(MachXo2Kind::MachNx) => write!(f, "machnx"),
             ChipKind::Ecp4 => write!(f, "ecp4"),
+            ChipKind::Ecp5 => write!(f, "ecp5"),
         }
     }
 }
@@ -150,6 +157,7 @@ impl Display for RowKind {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum IoGroupKind {
     None,
+    Single,
     Double,
     DoubleA,
     DoubleB,
@@ -172,6 +180,7 @@ impl Display for IoGroupKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             IoGroupKind::None => write!(f, "NONE"),
+            IoGroupKind::Single => write!(f, "SINGLE"),
             IoGroupKind::Double => write!(f, "DOUBLE"),
             IoGroupKind::DoubleA => write!(f, "DOUBLE_A"),
             IoGroupKind::DoubleB => write!(f, "DOUBLE_B"),
@@ -211,7 +220,8 @@ pub struct Column {
     pub bank_n: Option<u32>,
     pub eclk_tap_s: bool,
     pub eclk_tap_n: bool,
-    pub pclk_leaf_break: bool,
+    pub pclk_break: bool,
+    pub pclk_drive: bool,
     pub sdclk_break: bool,
 }
 
@@ -372,6 +382,8 @@ pub enum SpecialLocKey {
     SerdesSingle,
     SerdesDouble,
     SerdesTriple,
+    DdrDll(DirHV),
+    ClkQuarter(DirV),
 }
 
 impl Display for SpecialLocKey {
@@ -390,6 +402,8 @@ impl Display for SpecialLocKey {
             SpecialLocKey::SerdesSingle => write!(f, "SERDES_SINGLE"),
             SpecialLocKey::SerdesDouble => write!(f, "SERDES_DOUBLE"),
             SpecialLocKey::SerdesTriple => write!(f, "SERDES_TRIPLE"),
+            SpecialLocKey::DdrDll(dir) => write!(f, "DDRDLL_{dir}"),
+            SpecialLocKey::ClkQuarter(dir) => write!(f, "CLK_QUARTER_{dir}"),
         }
     }
 }
@@ -552,6 +566,10 @@ impl Chip {
             },
             ChipKind::MachXo2(_) => IoKind::Io,
             ChipKind::Ecp4 => IoKind::Io,
+            ChipKind::Ecp5 => match io.edge() {
+                Dir::H(_) => IoKind::Io,
+                Dir::V(_) => IoKind::Sio,
+            },
         }
     }
 
@@ -597,6 +615,7 @@ impl Chip {
             ChipKind::MachXo => unreachable!(),
             ChipKind::MachXo2(_) => unreachable!(),
             ChipKind::Ecp4 => unreachable!(),
+            ChipKind::Ecp5 => unreachable!(),
         }
     }
 
@@ -677,14 +696,23 @@ impl Chip {
     }
 
     pub fn bel_eclksync_bank(&self, bank: u32, idx: usize) -> BelCoord {
-        assert_eq!(self.kind, ChipKind::Ecp4);
-        match bank {
-            0..4 => CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_n())
-                .bel(bels::ECLKSYNC[(bank as usize) * 4 + idx]),
-            4..6 => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
-                .bel(bels::ECLKSYNC[(5 - bank as usize) * 4 + idx]),
-            6..8 => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
-                .bel(bels::ECLKSYNC[(bank as usize - 6) * 4 + idx]),
+        match self.kind {
+            ChipKind::Ecp4 => match bank {
+                0..4 => CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_n())
+                    .bel(bels::ECLKSYNC[(bank as usize) * 4 + idx]),
+                4..6 => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
+                    .bel(bels::ECLKSYNC[(5 - bank as usize) * 4 + idx]),
+                6..8 => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
+                    .bel(bels::ECLKSYNC[(bank as usize - 6) * 4 + idx]),
+                _ => unreachable!(),
+            },
+            ChipKind::Ecp5 => match bank {
+                2..4 => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
+                    .bel(bels::ECLKSYNC[(3 - bank as usize) * 2 + idx]),
+                6..8 => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
+                    .bel(bels::ECLKSYNC[(bank as usize - 6) * 2 + idx]),
+                _ => unreachable!(),
+            },
             _ => unreachable!(),
         }
     }
@@ -715,6 +743,10 @@ impl Chip {
                 assert_eq!(edge, DirV::S);
                 CellCoord::new(DieId::from_idx(0), col, self.row_s() + 9).bel(bels::SERDES)
             }
+            ChipKind::Ecp5 => {
+                assert_eq!(edge, DirV::S);
+                CellCoord::new(DieId::from_idx(0), col, self.row_s()).bel(bels::SERDES)
+            }
             _ => unreachable!(),
         }
     }
@@ -729,7 +761,8 @@ impl From<&Column> for JsonValue {
             bank_n: value.bank_n,
             eclk_tap_s: value.eclk_tap_s,
             eclk_tap_n: value.eclk_tap_n,
-            pclk_leaf_break: value.pclk_leaf_break,
+            pclk_break: value.pclk_break,
+            pclk_drive: value.pclk_drive,
             sdclk_break: value.sdclk_break,
         }
     }
@@ -773,8 +806,8 @@ impl std::fmt::Display for Chip {
             if self.col_clk == col {
                 writeln!(f, "\t\t--- clock")?;
             }
-            if cd.pclk_leaf_break {
-                writeln!(f, "\t\t--- pclk leaf break")?;
+            if cd.pclk_break {
+                writeln!(f, "\t\t--- pclk break")?;
             }
             if cd.sdclk_break {
                 writeln!(f, "\t\t--- sdclk break")?;
@@ -805,6 +838,9 @@ impl std::fmt::Display for Chip {
             }
             if cd.eclk_tap_n {
                 write!(f, " ECLK_TAP_N")?;
+            }
+            if cd.pclk_drive {
+                write!(f, " PCLK_DRIVE")?;
             }
             writeln!(f)?;
         }

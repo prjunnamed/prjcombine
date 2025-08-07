@@ -498,6 +498,7 @@ impl ChipContext<'_> {
 
     fn process_plc_machxo2(&mut self) {
         let tcid = self.intdb.get_tile_class("PLC");
+        let is_ecp5 = matches!(self.chip.kind, ChipKind::Ecp5);
         for &tcrd in &self.edev.egrid.tile_index[tcid] {
             let cell = tcrd.cell;
             let slices = [
@@ -551,8 +552,14 @@ impl ChipContext<'_> {
                 }
 
                 // F5, FX
-                let ofx0_int = self.edev.egrid.get_bel_pin(slices[i], "OFX0")[0];
-                let ofx1_int = self.edev.egrid.get_bel_pin(slices[i], "OFX1")[0];
+                let ofx0_int = self
+                    .edev
+                    .egrid
+                    .get_bel_pin(slices[i], if is_ecp5 { "F0" } else { "OFX0" })[0];
+                let ofx1_int = self
+                    .edev
+                    .egrid
+                    .get_bel_pin(slices[i], if is_ecp5 { "F1" } else { "OFX1" })[0];
                 let ofx0_slice = self.rc_wire(cell, &format!("F5{abcd}_SLICE"));
                 let ofx1_slice = self.rc_wire(cell, &format!("FX{abcd}_SLICE"));
                 self.add_bel_wire(slices[i], "OFX0", ofx0_slice);
@@ -574,18 +581,30 @@ impl ChipContext<'_> {
 
                 let (ia, ib) = [(2, 0), (5, 1), (6, 4), (3, 3)][i];
                 if i == 3 {
-                    if let Some(&fxa_int) = self
-                        .naming
-                        .interconnect
-                        .get(&cell.wire(self.intdb.get_wire("OUT_OFX3_W")))
+                    if let Some(&fxa_int) =
+                        self.naming
+                            .interconnect
+                            .get(&cell.wire(self.intdb.get_wire(if is_ecp5 {
+                                "OUT_F3_W"
+                            } else {
+                                "OUT_OFX3_W"
+                            })))
                     {
                         self.claim_pip(fxa, fxa_int);
                     }
                 } else {
-                    let fxa_int = cell.wire(self.intdb.get_wire(&format!("OUT_OFX{ia}")));
+                    let fxa_int = cell.wire(self.intdb.get_wire(&if is_ecp5 {
+                        format!("OUT_F{ia}")
+                    } else {
+                        format!("OUT_OFX{ia}")
+                    }));
                     self.claim_pip_int_in(fxa, fxa_int);
                 }
-                let fxb_int = cell.wire(self.intdb.get_wire(&format!("OUT_OFX{ib}")));
+                let fxb_int = cell.wire(self.intdb.get_wire(&if is_ecp5 {
+                    format!("OUT_F{ib}")
+                } else {
+                    format!("OUT_OFX{ib}")
+                }));
                 self.claim_pip_int_in(fxb, fxb_int);
 
                 // DI
@@ -602,9 +621,11 @@ impl ChipContext<'_> {
                 let f0 = self.edev.egrid.get_bel_pin(slices[i], "F0")[0];
                 let f1 = self.edev.egrid.get_bel_pin(slices[i], "F1")[0];
                 self.claim_pip_int_in(di0, f0);
-                self.claim_pip_int_in(di0, ofx0_int);
                 self.claim_pip_int_in(di1, f1);
-                self.claim_pip_int_in(di1, ofx1_int);
+                if !is_ecp5 {
+                    self.claim_pip_int_in(di0, ofx0_int);
+                    self.claim_pip_int_in(di1, ofx1_int);
+                }
 
                 for pin in [
                     "WAD0", "WAD1", "WAD2", "WAD3", "WADO0", "WADO1", "WADO2", "WADO3", "WD0",
@@ -697,15 +718,28 @@ impl ChipContext<'_> {
                 self.claim_pip(wt, wf);
             }
 
-            for (wt, wf) in [
-                ("WCK0_SLICE", "CLK"),
-                ("WRE0_SLICE", "LSR"),
-                ("WCK1_SLICE", "CLK"),
-                ("WRE1_SLICE", "LSR"),
-            ] {
-                let wt = self.rc_wire(cell, wt);
-                let wf = self.edev.egrid.get_bel_pin(slices[2], wf)[0];
-                self.claim_pip_int_in(wt, wf);
+            if is_ecp5 {
+                for (wt, wf) in [
+                    ("WCK0_SLICE", "WCK"),
+                    ("WRE0_SLICE", "WRE"),
+                    ("WCK1_SLICE", "WCK"),
+                    ("WRE1_SLICE", "WRE"),
+                ] {
+                    let wt = self.rc_wire(cell, wt);
+                    let wf = self.edev.egrid.get_bel_pin(slices[2], wf)[0];
+                    self.claim_pip_int_in(wt, wf);
+                }
+            } else {
+                for (wt, wf) in [
+                    ("WCK0_SLICE", "CLK"),
+                    ("WRE0_SLICE", "LSR"),
+                    ("WCK1_SLICE", "CLK"),
+                    ("WRE1_SLICE", "LSR"),
+                ] {
+                    let wt = self.rc_wire(cell, wt);
+                    let wf = self.edev.egrid.get_bel_pin(slices[2], wf)[0];
+                    self.claim_pip_int_in(wt, wf);
+                }
             }
         }
     }
@@ -716,7 +750,7 @@ impl ChipContext<'_> {
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 | ChipKind::Ecp3 | ChipKind::Ecp3A => {
                 self.process_plc_ecp2()
             }
-            ChipKind::MachXo2(_) | ChipKind::Ecp4 => self.process_plc_machxo2(),
+            ChipKind::MachXo2(_) | ChipKind::Ecp4 | ChipKind::Ecp5 => self.process_plc_machxo2(),
         }
     }
 }

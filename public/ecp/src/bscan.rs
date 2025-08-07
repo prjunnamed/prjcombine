@@ -707,6 +707,88 @@ impl Chip {
                 pads.insert(BondPad::Cfg(CfgPad::Cclk), builder.get_tb());
                 pads.insert(BondPad::Cfg(CfgPad::InitB), builder.get_tb());
             }
+            ChipKind::Ecp5 => {
+                for (col, cd) in &self.columns {
+                    if cd.io_s == IoGroupKind::Serdes {
+                        pads.insert(
+                            BondPad::Serdes(DirV::S, col, SerdesPad::OutP(0)),
+                            builder.get_o(),
+                        );
+                        pads.insert(
+                            BondPad::Serdes(DirV::S, col, SerdesPad::InP(0)),
+                            builder.get_i(),
+                        );
+                        pads.insert(
+                            BondPad::Serdes(DirV::S, col, SerdesPad::InP(1)),
+                            builder.get_i(),
+                        );
+                        pads.insert(
+                            BondPad::Serdes(DirV::S, col, SerdesPad::OutP(1)),
+                            builder.get_o(),
+                        );
+                        pads.insert(
+                            BondPad::Serdes(DirV::S, col, SerdesPad::ClkP),
+                            builder.get_i(),
+                        );
+                    }
+                    if cd.io_s == IoGroupKind::Double && col >= self.col_clk {
+                        for iob in 0..2 {
+                            let crd = EdgeIoCoord::S(col, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                for (row, rd) in &self.rows {
+                    if matches!(rd.io_e, IoGroupKind::Quad | IoGroupKind::QuadDqs) {
+                        for iob in (0..4).rev() {
+                            let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                for (col, cd) in self.columns.iter().rev() {
+                    if matches!(cd.io_n, IoGroupKind::Double) {
+                        for iob in (0..2).rev() {
+                            let crd = EdgeIoCoord::N(col, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                for (row, rd) in self.rows.iter().rev() {
+                    if matches!(rd.io_w, IoGroupKind::Quad | IoGroupKind::QuadDqs) {
+                        for iob in 0..4 {
+                            let crd = EdgeIoCoord::W(row, TileIobId::from_idx(iob));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                    }
+                }
+                for (col, cd) in &self.columns {
+                    if col >= self.col_clk {
+                        break;
+                    }
+                    match cd.io_s {
+                        IoGroupKind::Double => {
+                            for iob in 0..2 {
+                                let crd = EdgeIoCoord::S(col, TileIobId::from_idx(iob));
+                                pads.insert(BondPad::Io(crd), builder.get_tb());
+                            }
+                        }
+                        IoGroupKind::Single => {
+                            let crd = EdgeIoCoord::S(col, TileIobId::from_idx(0));
+                            pads.insert(BondPad::Io(crd), builder.get_tb());
+                        }
+                        _ => (),
+                    }
+                }
+
+                pads.insert(BondPad::Cfg(CfgPad::Cclk), builder.get_tb());
+                pads.insert(BondPad::Cfg(CfgPad::InitB), builder.get_tb());
+                pads.insert(BondPad::Cfg(CfgPad::ProgB), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::Done), builder.get_tb());
+                pads.insert(BondPad::Cfg(CfgPad::M2), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::M1), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::M0), builder.get_i());
+            }
         }
         BScan {
             bits: builder.bits,

@@ -127,6 +127,19 @@ fn get_filename(datadir: &Path, part: &Part, chip: &Chip) -> PathBuf {
             };
             ("ep5d00", format!("ep5d{size}"))
         }
+        ChipKind::Ecp5 => match part.name.as_str() {
+            "LFE5U-12F" | "LAE5U-12F" => ("sa5p00b", "sa5p25b".to_string()),
+            "LFE5U-25F" => ("sa5p00", "sa5p25".to_string()),
+            "LFE5U-45F" => ("sa5p00", "sa5p45".to_string()),
+            "LFE5U-85F" => ("sa5p00", "sa5p85".to_string()),
+            "LFE5UM-25F" | "LAE5UM-25F" => ("sa5p00m", "sa5p25m".to_string()),
+            "LFE5UM-45F" | "LAE5UM-45F" => ("sa5p00m", "sa5p45m".to_string()),
+            "LFE5UM-85F" | "LAE5UM-85F" => ("sa5p00m", "sa5p85m".to_string()),
+            "LFE5UM5G-25F" => ("sa5p00a", "sa5p25a".to_string()),
+            "LFE5UM5G-45F" => ("sa5p00a", "sa5p45a".to_string()),
+            "LFE5UM5G-85F" => ("sa5p00a", "sa5p85a".to_string()),
+            _ => unreachable!(),
+        },
     };
     datadir.join(dir).join("data").join(format!("{fname}.pkg"))
 }
@@ -396,10 +409,45 @@ fn parse_io_ecp4(chip: &Chip, func: &str) -> Option<EdgeIoCoord> {
     }
 }
 
+fn parse_io_ecp5(chip: &Chip, func: &str) -> Option<EdgeIoCoord> {
+    let (func, iob_idx) = if let Some(f) = func.strip_suffix('A') {
+        (f, 0)
+    } else if let Some(f) = func.strip_suffix('B') {
+        (f, 1)
+    } else if let Some(f) = func.strip_suffix('C') {
+        (f, 2)
+    } else if let Some(f) = func.strip_suffix('D') {
+        (f, 3)
+    } else {
+        (func, 0)
+    };
+    let iob = TileIobId::from_idx(iob_idx);
+    if let Some(r) = func.strip_prefix("PL")
+        && let Ok(r) = r.parse()
+    {
+        Some(EdgeIoCoord::W(chip.xlat_row(r) - 2, iob))
+    } else if let Some(r) = func.strip_prefix("PR")
+        && let Ok(r) = r.parse()
+    {
+        Some(EdgeIoCoord::E(chip.xlat_row(r) - 2, iob))
+    } else if let Some(c) = func.strip_prefix("PB")
+        && let Ok(c) = c.parse()
+    {
+        Some(EdgeIoCoord::S(chip.xlat_col(c), iob))
+    } else if let Some(c) = func.strip_prefix("PT")
+        && let Ok(c) = c.parse()
+    {
+        Some(EdgeIoCoord::N(chip.xlat_col(c), iob))
+    } else {
+        None
+    }
+}
+
 fn parse_io(chip: &Chip, func: &str) -> Option<EdgeIoCoord> {
     match chip.kind {
         ChipKind::Ecp3 | ChipKind::Ecp3A => parse_io_ecp3(chip, func),
         ChipKind::Ecp4 => parse_io_ecp4(chip, func),
+        ChipKind::Ecp5 => parse_io_ecp5(chip, func),
         _ => parse_io_ecp(chip, func),
     }
 }
@@ -531,6 +579,8 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 || pin == "VSSD_GND"
                 || pin == "VSSA"
                 || pin == "VSS"
+                || pin == "DB"
+                || pin.starts_with("VCCA")
                 || pin.starts_with("VCCNX")
                 || pin.starts_with("VCCXD")
                 || pin.starts_with("VCCIO")
@@ -549,7 +599,13 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
             "NXJTAGEN" => "NX_JTAGEN",
             _ => pin,
         };
+        let pin = pin.strip_suffix("_DB").unwrap_or(pin);
         let pin = pin.to_string();
+        if let Some(n) = func.strip_suffix("_DB")
+            && n == pin
+        {
+            continue;
+        }
         let pad = if let Some(pads) = virt_io.get_mut(func) {
             pads.sort();
             match *pads.as_slice() {
@@ -571,6 +627,7 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
             let mut spec = if let Some(pclk) = cfg.strip_prefix("PCLK") {
                 let pclk = pclk.strip_suffix("/INTEST_OVER").unwrap_or(pclk);
                 let pclk = pclk.split_once("/GR_").map(|x| x.0).unwrap_or(pclk);
+                let pclk = pclk.split_once("/S").map(|x| x.0).unwrap_or(pclk);
                 let (which, idx) = pclk.split_once('_').unwrap();
                 let mut pclk_bank: i32 = if let Some(pclk_bank) = which.strip_prefix('T') {
                     pclk_bank.parse().unwrap()
@@ -600,6 +657,19 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                             idx += 2;
                         }
                         5 | 6 => (),
+                        _ => unreachable!(),
+                    }
+                }
+                if chip.kind == ChipKind::Ecp5 {
+                    match pclk_bank {
+                        0 => (),
+                        1 => {
+                            idx += 2;
+                        }
+                        2 | 7 => {
+                            idx += 2;
+                        }
+                        3 | 6 => (),
                         _ => unreachable!(),
                     }
                 }
@@ -636,7 +706,7 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
             } else {
                 match cfg.as_str() {
                     _ if cfg.contains("PLL") || cfg.contains("DLL") => 'pll: {
-                        if chip.kind == ChipKind::Ecp4 {
+                        if matches!(chip.kind, ChipKind::Ecp4 | ChipKind::Ecp5) {
                             if cfg.contains("MFGOUT") {
                                 break 'pll None;
                             }
@@ -652,11 +722,23 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                             };
                             let (idx, pad, is_c) = match sig {
                                 "GPLL0T_IN" => (0, PllPad::PllIn0, false),
-                                "GPLL0C_IN" => (0, PllPad::PllIn0, true),
+                                "GPLL0C_IN" | "GPLL0C_IN/S7_OUT" | "GPLL0C_IN/S0_IN" => {
+                                    (0, PllPad::PllIn0, true)
+                                }
                                 "GPLL0T_FB" => (0, PllPad::PllFb, false),
                                 "GPLL0C_FB" => (0, PllPad::PllFb, true),
-                                "GPLL1T_IN" => (1, PllPad::PllIn0, false),
-                                "GPLL1C_IN" => (1, PllPad::PllIn0, true),
+                                "GPLL1T_IN" if chip.kind == ChipKind::Ecp4 => {
+                                    (1, PllPad::PllIn0, false)
+                                }
+                                "GPLL1C_IN" if chip.kind == ChipKind::Ecp4 => {
+                                    (1, PllPad::PllIn0, true)
+                                }
+                                "GPLL1T_IN" if chip.kind == ChipKind::Ecp5 => {
+                                    (0, PllPad::PllIn1, false)
+                                }
+                                "GPLL1C_IN" if chip.kind == ChipKind::Ecp5 => {
+                                    (0, PllPad::PllIn1, true)
+                                }
                                 "GPLL1T_FB" => (1, PllPad::PllFb, false),
                                 "GPLL1C_FB" => (1, PllPad::PllFb, true),
                                 _ => {
@@ -699,7 +781,8 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                                 | ChipKind::MachXo
                                 | ChipKind::Xp2
                                 | ChipKind::MachXo2(_)
-                                | ChipKind::Ecp4 => PllLoc::new(hv, idx),
+                                | ChipKind::Ecp4
+                                | ChipKind::Ecp5 => PllLoc::new(hv, idx),
                                 ChipKind::Ecp2
                                 | ChipKind::Ecp2M
                                 | ChipKind::Ecp3
@@ -806,13 +889,13 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                         Some(SpecialIoKey::JtagEn)
                     }
                     "PROGRAMN/ATB_FORCE_2" => Some(SpecialIoKey::ProgB),
-                    // ECP4
-                    "D0/SI/SISPI1/IO0" => Some(SpecialIoKey::D(0)),
-                    "D1/SO/SPISO1/IO1" => Some(SpecialIoKey::D(1)),
+                    // ECP4, ECP5
+                    "D0/SI/SISPI1/IO0" | "D0/MOSI/IO0" => Some(SpecialIoKey::D(0)),
+                    "D1/SO/SPISO1/IO1" | "D1/MISO/IO1" => Some(SpecialIoKey::D(1)),
                     "D2/IO2" => Some(SpecialIoKey::D(2)),
                     "D3/IO3" => Some(SpecialIoKey::D(3)),
-                    "D4/SISPI2/IO4" => Some(SpecialIoKey::D(4)),
-                    "D5/SPISO2/IO5" => Some(SpecialIoKey::D(5)),
+                    "D4/SISPI2/IO4" | "D4/MOSI2/IO4" => Some(SpecialIoKey::D(4)),
+                    "D5/SPISO2/IO5" | "D5/MISO2/IO5" => Some(SpecialIoKey::D(5)),
                     "D6/IO6" => Some(SpecialIoKey::D(6)),
                     "D7/IO7" => Some(SpecialIoKey::D(7)),
                     "D8/IO8" => Some(SpecialIoKey::D(8)),
@@ -823,15 +906,24 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                     "D13/IO13" => Some(SpecialIoKey::D(13)),
                     "D14/IO14" => Some(SpecialIoKey::D(14)),
                     "D15/IO15" => Some(SpecialIoKey::D(15)),
-                    "SN/CSN" => Some(SpecialIoKey::CsN),
+                    "SN/CSN" | "SN/CSN/SCAN_SHFT_EN" => Some(SpecialIoKey::CsN),
                     "SDA/CS1N" => Some(SpecialIoKey::Cs1N),
                     "HOLDN/DI/BUSY/CSSPIN/CEN" => Some(SpecialIoKey::Di),
-                    "DOUT/CSON" => Some(SpecialIoKey::Dout),
-                    "SCL/WRITEN" => Some(SpecialIoKey::WriteN),
+                    "DOUT/CSON" | "DOUT/CSON/ATB_FORCE" => Some(SpecialIoKey::Dout),
+                    "SCL/WRITEN" | "WRITEN/ATB_SENSE" => Some(SpecialIoKey::WriteN),
                     "TDI0" | "TDI1" | "TDI2" | "TDI3" | "TDI4" | "TDI5" | "TDI6" | "TDI7"
                     | "TDO0" | "TDO1" | "TDO2" | "TDO3" | "TDO4" | "TDO5" | "TDO6" | "TDO7"
                     | "TDIB" | "ATB_FORCE" | "ATB_SENSE"
                         if chip.kind == ChipKind::Ecp4 =>
+                    {
+                        None
+                    }
+                    "S0_IN" | "S1_IN" | "S2_IN" | "S3_IN" | "S4_IN" | "S5_IN" | "S6_IN"
+                    | "S7_IN" | "S0_OUT" | "S1_OUT" | "S2_OUT" | "S3_OUT" | "S4_OUT" | "S5_OUT"
+                    | "S6_OUT" | "S7_OUT" | "GR_PCLK0_0" | "GR_PCLK0_1" | "GR_PCLK1_0"
+                    | "GR_PCLK1_1" | "GR_PCLK2_0" | "GR_PCLK2_1" | "GR_PCLK3_0" | "GR_PCLK3_1"
+                    | "GR_PCLK6_0" | "GR_PCLK6_1" | "GR_PCLK7_0" | "GR_PCLK7_1"
+                        if chip.kind == ChipKind::Ecp5 =>
                     {
                         None
                     }
@@ -974,6 +1066,55 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 .copied()
                 .unwrap();
             BondPad::Serdes(DirV::S, cell.col + quad, pad)
+        } else if (func.starts_with("HD") || func.starts_with("VCCH"))
+            && func.contains("_D")
+            && chip.kind == ChipKind::Ecp5
+        {
+            let (sig, idx) = func.split_once("_D").unwrap();
+            let (dual, ch) = idx.split_once("CH").unwrap();
+            let dual: usize = dual.parse().unwrap();
+            let exp_bank = match dual {
+                0 => 50,
+                1 => 51,
+                _ => unreachable!(),
+            };
+            let col = serdes_xlat[&exp_bank];
+            if sig.starts_with("HD") {
+                assert_eq!(bank, exp_bank as i32);
+            }
+            let ch = ch.parse().unwrap();
+            let pad = match sig {
+                "HDTXP0" => SerdesPad::OutP(ch),
+                "HDTXN0" => SerdesPad::OutN(ch),
+                "HDRXP0" => SerdesPad::InP(ch),
+                "HDRXN0" => SerdesPad::InN(ch),
+                "VCCHRX0" if ch == 0 => SerdesPad::VccRx(0),
+                "VCCHRX1" if ch == 1 => SerdesPad::VccRx(1),
+                "VCCHTX0" if ch == 0 => SerdesPad::VccTx(0),
+                "VCCHTX1" if ch == 1 => SerdesPad::VccTx(1),
+                _ => panic!("umm {sig}"),
+            };
+            BondPad::Serdes(DirV::S, col, pad)
+        } else if (func.ends_with("_D0") || func.ends_with("_D1")) && chip.kind == ChipKind::Ecp5 {
+            let (sig, dual) = func.split_once("_D").unwrap();
+            let dual: usize = dual.parse().unwrap();
+            let exp_bank = match dual {
+                0 => 50,
+                1 => 51,
+                _ => unreachable!(),
+            };
+            let col = serdes_xlat[&exp_bank];
+            if sig.starts_with("REFCLK") {
+                assert_eq!(bank, exp_bank as i32);
+            }
+            let pad = match sig {
+                "REFCLKP" => SerdesPad::ClkP,
+                "REFCLKN" => SerdesPad::ClkN,
+                "ATSTP" => SerdesPad::AuxTstPadOutP,
+                "ATSTN" => SerdesPad::AuxTstPadOutN,
+                _ => panic!("umm {sig}"),
+            };
+            BondPad::Serdes(DirV::S, col, pad)
         } else if let Some(vccio_bank) = func
             .strip_prefix("VCCIO")
             .or_else(|| func.strip_prefix("VCCO"))
@@ -1012,9 +1153,9 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 "CCLK" => BondPad::Cfg(CfgPad::Cclk),
                 "INITN" => BondPad::Cfg(CfgPad::InitB),
                 "DONE" => BondPad::Cfg(CfgPad::Done),
-                "CFG0" | "CFGMDN0" => BondPad::Cfg(CfgPad::M0),
-                "CFG1" | "CFGMDN1" => BondPad::Cfg(CfgPad::M1),
-                "CFG2" | "CFGMDN2" => BondPad::Cfg(CfgPad::M2),
+                "CFG0" | "CFGMDN0" | "CFG_0" => BondPad::Cfg(CfgPad::M0),
+                "CFG1" | "CFGMDN1" | "CFG_1" => BondPad::Cfg(CfgPad::M1),
+                "CFG2" | "CFGMDN2" | "CFG_2" => BondPad::Cfg(CfgPad::M2),
                 "SLEEPN/TOE" => BondPad::Cfg(CfgPad::SleepB),
                 "TOE" => BondPad::Cfg(CfgPad::Toe),
                 // ECP2M special.
@@ -1101,7 +1242,7 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 "VCCA" => BondPad::VccA,
                 "GND" | "GNDAUX" => BondPad::Gnd,
                 "GNDA" => BondPad::GndA,
-                "VSS" if bond.kind == BondKind::MachNx => BondPad::Gnd,
+                "VSS" => BondPad::Gnd,
                 "Unused" | "NC" => BondPad::Nc,
                 "XRES" => BondPad::XRes,
                 "TEMPVSS" => BondPad::TempVss,
@@ -1167,7 +1308,23 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 "RXANTOUTN" => BondPad::SerdesCorner(SerdesPad::RxantOutN),
                 "AUXTSTPADOUTP" => BondPad::SerdesCorner(SerdesPad::AuxTstPadOutP),
                 "AUXTSTPADOUTN" => BondPad::SerdesCorner(SerdesPad::AuxTstPadOutN),
+                "VCCA0" if chip.kind == ChipKind::Ecp5 => {
+                    BondPad::Serdes(DirV::S, serdes_xlat[&50], SerdesPad::VccA)
+                }
+                "VCCA1" if chip.kind == ChipKind::Ecp5 => {
+                    BondPad::Serdes(DirV::S, serdes_xlat[&51], SerdesPad::VccA)
+                }
+                "VCCAUXA0" if chip.kind == ChipKind::Ecp5 => {
+                    BondPad::Serdes(DirV::S, serdes_xlat[&50], SerdesPad::VccAuxA)
+                }
+                "VCCAUXA1" if chip.kind == ChipKind::Ecp5 => {
+                    BondPad::Serdes(DirV::S, serdes_xlat[&51], SerdesPad::VccAuxA)
+                }
+                "VCCHRX" if chip.kind == ChipKind::Ecp5 => {
+                    BondPad::Serdes(DirV::S, serdes_xlat[&50], SerdesPad::VccTxCommon)
+                }
                 _ if func.starts_with("GNDIO") => BondPad::Gnd,
+                _ if func.starts_with("VSSIO") => BondPad::Gnd,
                 _ if func.starts_with("GNDO") => BondPad::Gnd,
                 // sigh. what the fuck do you expect from a vendor.
                 _ if func.starts_with("GND0") => BondPad::Gnd,
@@ -1181,7 +1338,7 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 }
             }
         };
-        if !pin.starts_with("Unused") && pin != "GNDA" && pin != "VCCA" {
+        if !pin.starts_with("Unused") && pin != "GND" && pin != "GNDA" && pin != "VCCA" {
             if pin.starts_with("ICC")
                 || pin.starts_with("NX")
                 || pin == "FLASHCSN"
@@ -1231,9 +1388,17 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 bit += 2;
                 BScanPad::BiTristate(bit - 1, bit - 2)
             }
+            "BDC:1" => {
+                bit += 1;
+                if matches!(pad, BondPad::Serdes(_, _, SerdesPad::OutP(_))) {
+                    BScanPad::Output(bit - 1)
+                } else {
+                    BScanPad::Input(bit - 1)
+                }
+            }
             _ => panic!("unk BS_TYPE {bs_type}"),
         };
-        if pad == BondPad::Other {
+        if matches!(pad, BondPad::Other | BondPad::Nc) {
             continue;
         }
         if pad == BondPad::Nc && chip.kind == ChipKind::MachXo {

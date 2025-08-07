@@ -15,6 +15,7 @@ mod ecp;
 mod ecp2;
 mod ecp3;
 mod ecp4;
+mod ecp5;
 mod machxo;
 mod machxo2;
 
@@ -100,15 +101,11 @@ impl ChipContext<'_> {
                 self.process_clk_edge_ecp4();
                 self.process_clk_root_ecp4(pclk_roots);
             }
-        }
-    }
-
-    pub fn process_clk_zones(&mut self) {
-        // TODO: can we kill this function
-        match self.chip.kind {
-            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo => (),
-            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => self.process_clk_zones_ecp2(),
-            ChipKind::Ecp3 | ChipKind::Ecp3A | ChipKind::MachXo2(_) | ChipKind::Ecp4 => (),
+            ChipKind::Ecp5 => {
+                let hprx = self.process_pclk_ecp5();
+                self.process_clk_edge_ecp5();
+                self.process_clk_root_ecp5(hprx);
+            }
         }
     }
 }
