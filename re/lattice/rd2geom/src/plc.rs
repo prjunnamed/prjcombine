@@ -498,7 +498,7 @@ impl ChipContext<'_> {
 
     fn process_plc_machxo2(&mut self) {
         let tcid = self.intdb.get_tile_class("PLC");
-        let is_ecp5 = matches!(self.chip.kind, ChipKind::Ecp5);
+        let is_ecp5 = matches!(self.chip.kind, ChipKind::Ecp5 | ChipKind::Crosslink);
         for &tcrd in &self.edev.egrid.tile_index[tcid] {
             let cell = tcrd.cell;
             let slices = [
@@ -750,7 +750,9 @@ impl ChipContext<'_> {
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 | ChipKind::Ecp3 | ChipKind::Ecp3A => {
                 self.process_plc_ecp2()
             }
-            ChipKind::MachXo2(_) | ChipKind::Ecp4 | ChipKind::Ecp5 => self.process_plc_machxo2(),
+            ChipKind::MachXo2(_) | ChipKind::Ecp4 | ChipKind::Ecp5 | ChipKind::Crosslink => {
+                self.process_plc_machxo2()
+            }
         }
     }
 }

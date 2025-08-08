@@ -23,6 +23,7 @@ pub enum ChipKind {
     MachXo2(MachXo2Kind),
     Ecp4,
     Ecp5,
+    Crosslink,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
@@ -58,6 +59,7 @@ impl ChipKind {
                 | ChipKind::MachXo2(_)
                 | ChipKind::Ecp4
                 | ChipKind::Ecp5
+                | ChipKind::Crosslink
         )
     }
 
@@ -117,6 +119,7 @@ impl Display for ChipKind {
             ChipKind::MachXo2(MachXo2Kind::MachNx) => write!(f, "machnx"),
             ChipKind::Ecp4 => write!(f, "ecp4"),
             ChipKind::Ecp5 => write!(f, "ecp5"),
+            ChipKind::Crosslink => write!(f, "crosslink"),
         }
     }
 }
@@ -174,6 +177,7 @@ pub enum IoGroupKind {
     HexReverse,
     Serdes,
     Ebr,
+    Mipi,
 }
 
 impl Display for IoGroupKind {
@@ -197,6 +201,7 @@ impl Display for IoGroupKind {
             IoGroupKind::HexReverse => write!(f, "HEX_REVERSE"),
             IoGroupKind::Serdes => write!(f, "SERDES"),
             IoGroupKind::Ebr => write!(f, "EBR"),
+            IoGroupKind::Mipi => write!(f, "MIPI"),
         }
     }
 }
@@ -324,6 +329,9 @@ pub enum SpecialIoKey {
     SpiCipo,
     I2cScl,
     I2cSda,
+    // Crosslink
+    PmuWakeupN,
+    MipiClk(DirH),
 }
 
 impl Display for SpecialIoKey {
@@ -363,6 +371,8 @@ impl Display for SpecialIoKey {
             SpecialIoKey::JtagEn => write!(f, "JTAG_EN"),
             SpecialIoKey::I2cScl => write!(f, "I2C_SCL"),
             SpecialIoKey::I2cSda => write!(f, "I2C_SDA"),
+            SpecialIoKey::PmuWakeupN => write!(f, "PMU_WAKEUP_N"),
+            SpecialIoKey::MipiClk(side) => write!(f, "MIPI_CLK_{side}"),
         }
     }
 }
@@ -384,6 +394,7 @@ pub enum SpecialLocKey {
     SerdesTriple,
     DdrDll(DirHV),
     ClkQuarter(DirV),
+    Pmu,
 }
 
 impl Display for SpecialLocKey {
@@ -404,6 +415,7 @@ impl Display for SpecialLocKey {
             SpecialLocKey::SerdesTriple => write!(f, "SERDES_TRIPLE"),
             SpecialLocKey::DdrDll(dir) => write!(f, "DDRDLL_{dir}"),
             SpecialLocKey::ClkQuarter(dir) => write!(f, "CLK_QUARTER_{dir}"),
+            SpecialLocKey::Pmu => write!(f, "PMU"),
         }
     }
 }
@@ -464,9 +476,9 @@ impl Chip {
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
         let iob = TileIobId::from_idx(bels::IO.iter().position(|&x| x == bel.slot).unwrap());
-        if bel.col == self.col_w() {
+        if bel.col == self.col_w() && self.kind != ChipKind::Crosslink {
             EdgeIoCoord::W(bel.row, iob)
-        } else if bel.col == self.col_e() {
+        } else if bel.col == self.col_e() && self.kind != ChipKind::Crosslink {
             EdgeIoCoord::E(bel.row, iob)
         } else if bel.row == self.row_s() {
             EdgeIoCoord::S(bel.col, iob)
@@ -570,6 +582,16 @@ impl Chip {
                 Dir::H(_) => IoKind::Io,
                 Dir::V(_) => IoKind::Sio,
             },
+            ChipKind::Crosslink => {
+                let EdgeIoCoord::S(col, _) = io else {
+                    unreachable!()
+                };
+                if self.columns[col].bank_s == Some(0) {
+                    IoKind::Sio
+                } else {
+                    IoKind::Io
+                }
+            }
         }
     }
 
@@ -616,6 +638,7 @@ impl Chip {
             ChipKind::MachXo2(_) => unreachable!(),
             ChipKind::Ecp4 => unreachable!(),
             ChipKind::Ecp5 => unreachable!(),
+            ChipKind::Crosslink => unreachable!(),
         }
     }
 
@@ -713,6 +736,8 @@ impl Chip {
                     .bel(bels::ECLKSYNC[(bank as usize - 6) * 2 + idx]),
                 _ => unreachable!(),
             },
+            ChipKind::Crosslink => CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_s())
+                .bel(bels::ECLKSYNC[(2 - bank as usize) * 2 + idx]),
             _ => unreachable!(),
         }
     }
@@ -749,6 +774,11 @@ impl Chip {
             }
             _ => unreachable!(),
         }
+    }
+
+    pub fn bel_mipi(&self, col: ColId) -> BelCoord {
+        assert_eq!(self.kind, ChipKind::Crosslink);
+        CellCoord::new(DieId::from_idx(0), col, self.row_n()).bel(bels::MIPI)
     }
 }
 

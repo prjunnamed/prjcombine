@@ -1,3 +1,5 @@
+#![recursion_limit = "1024"]
+
 use std::{
     collections::{BTreeMap, BTreeSet, btree_map},
     error::Error,
@@ -7,7 +9,7 @@ use std::{
 use clap::Parser;
 use itertools::Itertools;
 use prjcombine_ecp::{
-    bond::{BondPad, CfgPad, SerdesPad},
+    bond::{BondPad, CfgPad, MipiPad, SerdesPad},
     chip::{Chip, ChipKind, MachXo2Kind, SpecialIoKey},
     db::Device,
     expanded::ExpandedDevice,
@@ -79,9 +81,9 @@ impl ChipContext<'_> {
         let mut r = (self.chip.rows.len() - cell.row.to_idx())
             .try_into()
             .unwrap();
-        if cell.col == self.chip.col_w() {
+        if cell.col == self.chip.col_w() && self.chip.kind != ChipKind::Crosslink {
             c -= 1;
-        } else if cell.col == self.chip.col_e() {
+        } else if cell.col == self.chip.col_e() && self.chip.kind != ChipKind::Crosslink {
             c += 1;
         } else if cell.row == self.chip.row_s() {
             r += 1;
@@ -326,6 +328,9 @@ impl ChipContext<'_> {
                 "PCNTR",
                 "EFB",
                 "ESB",
+                "PMU",
+                "PMUTEST",
+                "CFGTEST",
                 "CCLK",
                 "TESTIN",
                 "TESTOUT",
@@ -340,6 +345,9 @@ impl ChipContext<'_> {
                 "PCS",
                 "ASB",
                 "DCU",
+                "MIPIDPHY",
+                "I2C",
+                "NVCMTEST",
                 "BCPG",
                 "BCINRD",
                 "BCLVDSO",
@@ -515,6 +523,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "machxo2" => ChipKind::MachXo2(MachXo2Kind::MachXo2),
         "ecp4" => ChipKind::Ecp4,
         "ecp5" => ChipKind::Ecp5,
+        "crosslink" => ChipKind::Crosslink,
         _ => panic!("unknown family {}", rawdb.family),
     };
     let mut int = init_intdb(kind);
@@ -583,7 +592,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             let has_jtag_pin_bels = matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A);
             for (pin, &pad) in &bres.bond.pins {
                 match pad {
-                    BondPad::Io(io) | BondPad::IoAsc(io, _) | BondPad::IoPfr(io, _) => {
+                    BondPad::Io(io)
+                    | BondPad::IoAsc(io, _)
+                    | BondPad::IoPfr(io, _)
+                    | BondPad::IoCdone(io) => {
                         if chip.kind == ChipKind::MachXo
                             && io == chip.special_io[&SpecialIoKey::SleepN]
                         {
@@ -651,6 +663,28 @@ fn main() -> Result<(), Box<dyn Error>> {
                             assert!(expected_sites.remove(name));
                             expected_sites.insert(pin.clone());
                         }
+                    }
+                    BondPad::Mipi(col, mpad) => {
+                        let bcrd = chip.bel_mipi(col);
+                        let Some(bnaming) = naming.bels.get(&bcrd) else {
+                            continue;
+                        };
+                        let idx = match mpad {
+                            MipiPad::ClkP => 1,
+                            MipiPad::ClkN => 2,
+                            MipiPad::DataP(0) => 3,
+                            MipiPad::DataN(0) => 4,
+                            MipiPad::DataP(1) => 5,
+                            MipiPad::DataN(1) => 6,
+                            MipiPad::DataP(2) => 7,
+                            MipiPad::DataN(2) => 8,
+                            MipiPad::DataP(3) => 9,
+                            MipiPad::DataN(3) => 10,
+                            _ => continue,
+                        };
+                        let name = &naming.strings[bnaming.names[idx]];
+                        assert!(expected_sites.remove(name));
+                        expected_sites.insert(pin.clone());
                     }
                     BondPad::Cfg(CfgPad::Tck) if has_jtag_pin_bels => {
                         assert!(expected_sites.remove("TCK"));

@@ -789,6 +789,9 @@ impl Chip {
                 pads.insert(BondPad::Cfg(CfgPad::M1), builder.get_i());
                 pads.insert(BondPad::Cfg(CfgPad::M0), builder.get_i());
             }
+            ChipKind::Crosslink => {
+                // no JTAG
+            }
         }
         BScan {
             bits: builder.bits,

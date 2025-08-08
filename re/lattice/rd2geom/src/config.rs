@@ -3,7 +3,7 @@ use prjcombine_ecp::{
     chip::{ChipKind, MachXo2Kind, PllLoc, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    dir::{DirH, DirHV, DirV},
+    dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, DieId},
 };
 use prjcombine_re_lattice_naming::WireName;
@@ -789,6 +789,101 @@ impl ChipContext<'_> {
         self.claim_pip(wire, wire_osc);
     }
 
+    fn process_config_crosslink(&mut self) {
+        for tcname in ["I2C_W", "I2C_E"] {
+            let tcid = self.intdb.get_tile_class(tcname);
+            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+                let bcrd = tcrd.bel(bels::I2C);
+                let cell = bcrd.cell;
+                self.name_bel(bcrd, [if tcname == "I2C_W" { "I2C1" } else { "I2C0" }]);
+                self.insert_simple_bel(bcrd, cell, "I2C");
+                {
+                    let wire = self.rc_wire(cell, "JPMUWKUP_I2C");
+                    self.add_bel_wire(bcrd, "PMUWKUP", wire);
+                }
+                if tcname == "I2C_E" {
+                    for (pin, key) in [
+                        ("SDA", SpecialIoKey::Clock(Dir::S, 4)),
+                        ("SCL", SpecialIoKey::Clock(Dir::S, 5)),
+                    ] {
+                        let io = self.chip.special_io[&key];
+                        let (cell_io, abcd) = self.xlat_io_loc_crosslink(io);
+
+                        let wire_i = self.rc_wire(cell, &format!("J{pin}I_I2C"));
+                        self.add_bel_wire(bcrd, format!("{pin}I"), wire_i);
+                        let wire_paddi = self.rc_io_wire(cell_io, &format!("JPADDI{abcd}_PIO"));
+                        self.claim_pip(wire_i, wire_paddi);
+
+                        let wire_o = self.rc_wire(cell, &format!("J{pin}O_I2C"));
+                        self.add_bel_wire(bcrd, format!("{pin}O"), wire_o);
+                        let wire_paddo = self.rc_io_wire(cell_io, &format!("JPADDO{abcd}"));
+                        self.claim_pip(wire_paddo, wire_o);
+
+                        let wire_oen = self.rc_wire(cell, &format!("J{pin}OEN_I2C"));
+                        self.add_bel_wire(bcrd, format!("{pin}OEN"), wire_oen);
+                        let wire_paddt = self.rc_io_wire(cell_io, &format!("JPADDT{abcd}"));
+                        self.claim_pip(wire_paddt, wire_oen);
+                    }
+                }
+
+                if tcname == "I2C_E" {
+                    let bcrd = tcrd.bel(bels::NVCMTEST);
+                    let cell = bcrd.cell;
+                    self.name_bel(bcrd, ["NVCMTEST"]);
+                    self.insert_simple_bel(bcrd, cell.delta(1, 0), "NVCMTEST");
+                }
+            }
+        }
+
+        {
+            let cell = self.chip.special_loc[&SpecialLocKey::Osc];
+            let bcrd = cell.bel(bels::OSC);
+            self.name_bel(bcrd, ["OSC"]);
+            self.insert_simple_bel(bcrd, cell, "OSC");
+        }
+        {
+            let cell = self.chip.special_loc[&SpecialLocKey::Pmu];
+            let bcrd = cell.bel(bels::PMU);
+            self.name_bel(bcrd, ["PMU"]);
+            self.insert_simple_bel(bcrd, cell, "PMU");
+
+            let wire = self.rc_wire(cell, "JPMUCLK_PMU");
+            self.add_bel_wire(bcrd, "PMUCLK", wire);
+            let cell_osc = self.chip.special_loc[&SpecialLocKey::Osc];
+            let wire_osc = self.rc_wire(cell_osc, "JLFCLKOUT_OSC");
+            self.claim_pip(wire, wire_osc);
+
+            let wire = self.rc_wire(cell, "JPMUWKUP_PMU");
+            self.add_bel_wire(bcrd, "PMUWKUP", wire);
+            let cell_i2c = cell.with_cr(self.chip.col_e() - 1, self.chip.row_n());
+            let wire_i2c = self.rc_wire(cell_i2c, "JPMUWKUP_I2C");
+            self.claim_pip(wire, wire_i2c);
+
+            let wire = self.rc_wire(cell, "JUSRWKUPN_PMU");
+            self.add_bel_wire(bcrd, "USRWKUPN", wire);
+            let io = self.chip.special_io[&SpecialIoKey::PmuWakeupN];
+            let (cell_io, abcd) = self.xlat_io_loc_crosslink(io);
+            let wire_paddi = self.rc_io_wire(cell_io, &format!("JPADDI{abcd}_PIO"));
+            self.claim_pip(wire, wire_paddi);
+
+            let wire = self.rc_wire(cell, "SLEEPSTATUS_PMU");
+            self.add_bel_wire(bcrd, "SLEEPSTATUS", wire);
+
+            let bcrd = cell.bel(bels::PMUTEST);
+            self.name_bel(bcrd, ["PMUTEST"]);
+            self.insert_simple_bel(bcrd, cell, "PMUTEST");
+        }
+        {
+            let cell = self.chip.special_loc[&SpecialLocKey::Config];
+            let bcrd = cell.bel(bels::GSR);
+            self.name_bel(bcrd, ["GSR"]);
+            self.insert_simple_bel(bcrd, cell, "GSR");
+            let bcrd = cell.bel(bels::CFGTEST);
+            self.name_bel(bcrd, ["CFGTEST"]);
+            self.insert_simple_bel(bcrd, cell, "CFGTEST");
+        }
+    }
+
     pub fn process_config(&mut self) {
         match self.chip.kind {
             ChipKind::Ecp | ChipKind::Xp => {
@@ -815,6 +910,9 @@ impl ChipContext<'_> {
             }
             ChipKind::Ecp5 => {
                 self.process_config_ecp5();
+            }
+            ChipKind::Crosslink => {
+                self.process_config_crosslink();
             }
         }
     }

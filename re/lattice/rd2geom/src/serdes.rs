@@ -1,8 +1,11 @@
 use prjcombine_ecp::{
     bels,
-    chip::{ChipKind, IoGroupKind, SpecialLocKey},
+    chip::{ChipKind, IoGroupKind, SpecialIoKey, SpecialLocKey},
 };
-use prjcombine_interconnect::dir::{DirH, DirHV, DirV};
+use prjcombine_interconnect::{
+    db::Bel,
+    dir::{Dir, DirH, DirHV, DirV},
+};
 
 use crate::ChipContext;
 
@@ -951,6 +954,97 @@ impl ChipContext<'_> {
         }
     }
 
+    fn process_mipi_crosslink(&mut self) {
+        for tcname in ["MIPI_W", "MIPI_E"] {
+            let tcid = self.intdb.get_tile_class(tcname);
+            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+                let bcrd = tcrd.bel(bels::MIPI);
+                let cell = bcrd.cell;
+                let bank = self.chip.columns[bcrd.cell.col].bank_n.unwrap();
+                let idx = match bank {
+                    60 => 0,
+                    61 => 1,
+                    _ => unreachable!(),
+                };
+
+                self.name_bel(
+                    bcrd,
+                    [
+                        format!("MIPIDPHY{idx}"),
+                        format!("DPHY{idx}_CKP"),
+                        format!("DPHY{idx}_CKN"),
+                        format!("DPHY{idx}_DP0"),
+                        format!("DPHY{idx}_DN0"),
+                        format!("DPHY{idx}_DP1"),
+                        format!("DPHY{idx}_DN1"),
+                        format!("DPHY{idx}_DP2"),
+                        format!("DPHY{idx}_DN2"),
+                        format!("DPHY{idx}_DP3"),
+                        format!("DPHY{idx}_DN3"),
+                    ],
+                );
+                let mut bel = self.extract_simple_bel(bcrd, cell, "MIPIDPHY");
+
+                for pin in [
+                    "DP0", "DN0", "DP1", "DN1", "DP2", "DN2", "DP3", "DN3", "CKP", "CKN",
+                ] {
+                    let wire_abpio = self.rc_io_wire(cell, &format!("PAD{pin}_ABPIO"));
+                    self.add_bel_wire(bcrd, format!("PAD{pin}"), wire_abpio);
+                    let wire = self.rc_io_wire(cell, &format!("{pin}_MIPIDPHY"));
+                    self.add_bel_wire(bcrd, format!("PAD{pin}"), wire);
+                    self.claim_pip(wire_abpio, wire);
+                }
+
+                for pin in ["HSBYTECLKD", "HSBYTECLKS"] {
+                    let wire = self.rc_io_wire(cell, &format!("J{pin}_MIPIDPHY"));
+                    self.add_bel_wire(bcrd, format!("PAD{pin}"), wire);
+                }
+
+                let clkref = self.rc_io_wire(cell, "CLKREF_MIPIDPHY");
+                self.add_bel_wire(bcrd, "CLKREF", clkref);
+                let clkref_in = self.rc_io_wire(cell, "CLKREF");
+                self.add_bel_wire(bcrd, "CLKREF_IN", clkref_in);
+                self.claim_pip(clkref, clkref_in);
+                let clkref_int = self.rc_io_wire(cell, "JREFCLK1");
+                self.add_bel_wire(bcrd, "CLKREF_INT", clkref_int);
+                self.claim_pip(clkref_in, clkref_int);
+                bel.pins
+                    .insert("CLKREF".into(), self.xlat_int_wire(bcrd, clkref_int));
+                for (i, key) in [
+                    (2, SpecialIoKey::MipiClk([DirH::W, DirH::E][idx])),
+                    (3, SpecialIoKey::Clock(Dir::S, 4 + (idx as u8))),
+                ] {
+                    let clkref_io = self.rc_io_wire(cell, &format!("JREFCLK{i}"));
+                    self.add_bel_wire(bcrd, format!("REFCLK{i}"), clkref_io);
+                    let io = self.chip.special_io[&key];
+                    let (cell_io, abcd) = self.xlat_io_loc_crosslink(io);
+                    let paddi = self.rc_io_wire(cell_io, &format!("JPADDI{abcd}_PIO"));
+                    self.claim_pip(clkref_io, paddi);
+                    self.claim_pip(clkref_in, clkref_io);
+                }
+
+                self.insert_bel(bcrd, bel);
+
+                let bcrd = bcrd.bel(bels::CLKTEST_MIPI);
+                self.name_bel(bcrd, [format!("CLKTEST_MIPIDPHY{idx}")]);
+                let mut bel = Bel::default();
+
+                for i in 0..2 {
+                    let wire = self.rc_io_wire(cell, &format!("JTESTIN{i}_CLKTEST"));
+                    self.add_bel_wire(bcrd, format!("TESTIN{i}"), wire);
+                    bel.pins
+                        .insert(format!("TESTIN{i}"), self.xlat_int_wire(bcrd, wire));
+                }
+                for i in 2..6 {
+                    let wire = self.rc_io_wire(cell, &format!("TESTIN{i}_CLKTEST"));
+                    self.add_bel_wire(bcrd, format!("TESTIN{i}"), wire);
+                }
+
+                self.insert_bel(bcrd, bel);
+            }
+        }
+    }
+
     pub fn process_serdes(&mut self) {
         match self.chip.kind {
             ChipKind::Ecp2M => {
@@ -964,6 +1058,9 @@ impl ChipContext<'_> {
             }
             ChipKind::Ecp5 => {
                 self.process_serdes_ecp5();
+            }
+            ChipKind::Crosslink => {
+                self.process_mipi_crosslink();
             }
             _ => (),
         }

@@ -71,7 +71,10 @@ impl ChipContext<'_> {
                     }
                     self.insert_bel(bcrd, bel);
                 } else {
-                    let num_clk = if matches!(self.chip.kind, ChipKind::Ecp4 | ChipKind::Ecp5) {
+                    let num_clk = if matches!(
+                        self.chip.kind,
+                        ChipKind::Ecp4 | ChipKind::Ecp5 | ChipKind::Crosslink
+                    ) {
                         2
                     } else {
                         4
@@ -108,7 +111,9 @@ impl ChipContext<'_> {
                         }
                     }
                     for (l, n) in [("F", 8), ("Q", 8), ("OFX", 8)] {
-                        if l == "OFX" && matches!(self.chip.kind, ChipKind::Ecp5) {
+                        if l == "OFX"
+                            && matches!(self.chip.kind, ChipKind::Ecp5 | ChipKind::Crosslink)
+                        {
                             continue;
                         }
                         for i in 0..n {
@@ -123,6 +128,7 @@ impl ChipContext<'_> {
                                     | ChipKind::MachXo2(_)
                                     | ChipKind::Ecp4
                                     | ChipKind::Ecp5
+                                    | ChipKind::Crosslink
                             ) {
                                 self.claim_pip_int_out(wt, wf);
                             } else {

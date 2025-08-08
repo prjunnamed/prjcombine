@@ -104,7 +104,14 @@ impl ChipContext<'_> {
             result
         } else if suffix.starts_with("HPBX") || suffix.starts_with("HSBX") {
             assert_eq!(suffix.len(), 8);
-            let idx: u8 = suffix[4..6].parse().unwrap();
+            let mut idx: u8 = suffix[4..6].parse().unwrap();
+            if self.chip.kind == ChipKind::Crosslink {
+                idx = match idx {
+                    2..6 => idx - 2,
+                    12..16 => idx - 12 + 4,
+                    _ => unreachable!(),
+                };
+            }
             let is_sclk = suffix.starts_with("HSBX");
             let w = if is_sclk {
                 format!("SCLK{idx}")
@@ -198,7 +205,7 @@ impl ChipContext<'_> {
                 ChipKind::Ecp4 => {
                     vec![cell.wire(wire)]
                 }
-                ChipKind::Ecp5 => {
+                ChipKind::Ecp5 | ChipKind::Crosslink => {
                     let (col_start, col_end) = self.pclk_cols[cell.col];
                     col_start
                         .range(col_end)
@@ -256,7 +263,7 @@ impl ChipContext<'_> {
                 Some("OUT_OFX3_W")
             }
             "HL7W0001" if !self.chip.kind.has_ecp_plc() && self.chip.kind.has_out_ofx_branch() => {
-                if matches!(self.chip.kind, ChipKind::Ecp5) {
+                if matches!(self.chip.kind, ChipKind::Ecp5 | ChipKind::Crosslink) {
                     Some("OUT_F3_W")
                 } else {
                     Some("OUT_OFX3_W")

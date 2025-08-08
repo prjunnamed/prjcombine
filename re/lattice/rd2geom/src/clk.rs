@@ -11,6 +11,7 @@ use unnamed_entity::EntityId;
 
 use crate::ChipContext;
 
+mod crosslink;
 mod ecp;
 mod ecp2;
 mod ecp3;
@@ -105,6 +106,11 @@ impl ChipContext<'_> {
                 let hprx = self.process_pclk_ecp5();
                 self.process_clk_edge_ecp5();
                 self.process_clk_root_ecp5(hprx);
+            }
+            ChipKind::Crosslink => {
+                let hprx = self.process_pclk_crosslink();
+                self.process_clk_edge_crosslink();
+                self.process_clk_root_crosslink(hprx);
             }
         }
     }

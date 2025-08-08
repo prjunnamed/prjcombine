@@ -5,6 +5,7 @@ use unnamed_entity::EntityId;
 
 use crate::ChipContext;
 
+mod crosslink;
 mod ecp;
 mod ecp3;
 mod ecp4;
@@ -61,6 +62,13 @@ impl ChipContext<'_> {
                 self.process_dlldel_ecp5();
                 self.process_dtr_ecp5();
                 self.process_io_ecp5();
+            }
+            ChipKind::Crosslink => {
+                self.process_bc_crosslink();
+                self.process_eclk_crosslink();
+                self.process_ddrdll_crosslink();
+                self.process_dlldel_crosslink();
+                self.process_io_crosslink();
             }
         }
     }

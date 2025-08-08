@@ -160,7 +160,7 @@ impl IntDbBuilder {
             }
         }
 
-        if matches!(self.kind, ChipKind::Ecp5) {
+        if matches!(self.kind, ChipKind::Ecp5 | ChipKind::Crosslink) {
             for dir in Dir::DIRS {
                 for i in nums_x1 {
                     let w0 = self.db.get_wire(&format!("X1_{dir}{i}_0"));
@@ -266,6 +266,7 @@ impl IntDbBuilder {
             ChipKind::MachXo2(_) => 8,
             ChipKind::Ecp4 => 20,
             ChipKind::Ecp5 => 16,
+            ChipKind::Crosslink => 8,
         };
         for i in 0..num_clk {
             let region = if self.kind.has_distributed_sclk_ecp3() {
@@ -286,7 +287,7 @@ impl IntDbBuilder {
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => 8,
             ChipKind::Ecp3 | ChipKind::Ecp3A => 8,
             ChipKind::MachXo2(_) => 8,
-            ChipKind::Ecp4 | ChipKind::Ecp5 => 0,
+            ChipKind::Ecp4 | ChipKind::Ecp5 | ChipKind::Crosslink => 0,
         };
 
         for i in 0..num_clk {
@@ -354,7 +355,10 @@ impl IntDbBuilder {
                     .insert(format!("IMUX_{l}{i}"), WireKind::MuxOut);
             }
         }
-        let num_clk = if matches!(self.kind, ChipKind::Ecp4 | ChipKind::Ecp5) {
+        let num_clk = if matches!(
+            self.kind,
+            ChipKind::Ecp4 | ChipKind::Ecp5 | ChipKind::Crosslink
+        ) {
             2
         } else {
             4
@@ -373,7 +377,10 @@ impl IntDbBuilder {
                     .insert(format!("IMUX_CLK{i}_DELAY"), WireKind::MuxOut);
             }
         }
-        if matches!(self.kind, ChipKind::Ecp4 | ChipKind::Ecp5) {
+        if matches!(
+            self.kind,
+            ChipKind::Ecp4 | ChipKind::Ecp5 | ChipKind::Crosslink
+        ) {
             for i in 0..4 {
                 self.db
                     .wires
@@ -394,7 +401,7 @@ impl IntDbBuilder {
 
     fn fill_out_wires(&mut self) {
         for l in ["F", "Q", "OFX"] {
-            if matches!(self.kind, ChipKind::Ecp5) && l == "OFX" {
+            if matches!(self.kind, ChipKind::Ecp5 | ChipKind::Crosslink) && l == "OFX" {
                 continue;
             }
             for i in 0..8 {
@@ -404,7 +411,9 @@ impl IntDbBuilder {
                     .insert(format!("OUT_{l}{i}"), WireKind::LogicOut)
                     .0;
                 if (l == "OFX" && i == 3 && self.kind.has_out_ofx_branch())
-                    || (l == "F" && i == 3 && matches!(self.kind, ChipKind::Ecp5))
+                    || (l == "F"
+                        && i == 3
+                        && matches!(self.kind, ChipKind::Ecp5 | ChipKind::Crosslink))
                     || (l == "F" && matches!(i, 0..3) && self.kind.has_out_f_branch())
                 {
                     let w_w = self
@@ -512,6 +521,7 @@ impl IntDbBuilder {
             ChipKind::Ecp5 => {
                 ["INT_PLC", "INT_IO_WE", "INT_IO_S", "INT_IO_N", "INT_EBR"].as_slice()
             }
+            ChipKind::Crosslink => ["INT_PLC", "INT_IO_S", "INT_IO_N", "INT_EBR"].as_slice(),
         };
         for &name in int_tiles {
             let mut tcls = self.tile_class(name, tslots::INT, 1);
@@ -621,7 +631,8 @@ impl IntDbBuilder {
             | ChipKind::Ecp2M
             | ChipKind::Xp2
             | ChipKind::Ecp4
-            | ChipKind::Ecp5 => (),
+            | ChipKind::Ecp5
+            | ChipKind::Crosslink => (),
             ChipKind::Ecp3 | ChipKind::Ecp3A => self.fill_pclk_tiles_ecp3(),
             ChipKind::MachXo2(_) => self.fill_pclk_tiles_machxo2(),
         }
@@ -987,6 +998,51 @@ impl IntDbBuilder {
         }
     }
 
+    fn fill_clk_tiles_crosslink(&mut self) {
+        for slot in bels::CLKDIV {
+            self.db.bel_slots[slot].tile_slot = tslots::CLK;
+        }
+        for slot in bels::DLLDEL {
+            self.db.bel_slots[slot].tile_slot = tslots::CLK;
+        }
+        {
+            let mut tcls = self.tile_class("CLK_S", tslots::CLK, 6);
+            for i in 0..8 {
+                tcls.bel(bels::DCC[i]);
+            }
+            tcls.bel(bels::CLKTEST);
+            tcls.bel(bels::CLK_EDGE);
+            for i in 0..2 {
+                for j in 0..2 {
+                    tcls.bel(bels::ECLKSYNC[i * 2 + j]);
+                }
+            }
+            tcls.bel(bels::CLKTEST_ECLK);
+            for i in 0..2 {
+                for j in 0..2 {
+                    tcls.bel(bels::DLLDEL[i * 2 + j]);
+                }
+            }
+            for i in 0..4 {
+                tcls.bel(bels::CLKDIV[i]);
+            }
+        }
+        {
+            let mut tcls = self.tile_class("CLK_N", tslots::CLK, 2);
+            for i in 0..6 {
+                tcls.bel(bels::DCC[i]);
+            }
+            tcls.bel(bels::CLKTEST);
+            tcls.bel(bels::CLK_EDGE);
+        }
+        {
+            let mut tcls = self.tile_class("CLK_ROOT", tslots::CLK, 1);
+            tcls.bel(bels::DCS0);
+            tcls.bel(bels::CLK_ROOT);
+            tcls.bel(bels::CLKTEST);
+        }
+    }
+
     fn fill_clk_tiles(&mut self) {
         match self.kind {
             ChipKind::Ecp | ChipKind::Xp | ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
@@ -997,6 +1053,7 @@ impl IntDbBuilder {
             ChipKind::MachXo2(_) => self.fill_clk_tiles_machxo2(),
             ChipKind::Ecp4 => self.fill_clk_tiles_ecp4(),
             ChipKind::Ecp5 => self.fill_clk_tiles_ecp5(),
+            ChipKind::Crosslink => self.fill_clk_tiles_crosslink(),
         }
     }
 
@@ -1006,7 +1063,7 @@ impl IntDbBuilder {
             if name == "FPLC"
                 && matches!(
                     self.kind,
-                    ChipKind::MachXo2(_) | ChipKind::Ecp4 | ChipKind::Ecp5
+                    ChipKind::MachXo2(_) | ChipKind::Ecp4 | ChipKind::Ecp5 | ChipKind::Crosslink
                 )
             {
                 continue;
@@ -1021,7 +1078,7 @@ impl IntDbBuilder {
                     bel.add_input(&format!("{l}1"), 0, &format!("IMUX_{l}{i1}"));
                 }
                 if i < 3 || !kind.has_ecp2_plc() {
-                    if matches!(kind, ChipKind::Ecp4 | ChipKind::Ecp5) {
+                    if matches!(kind, ChipKind::Ecp4 | ChipKind::Ecp5 | ChipKind::Crosslink) {
                         bel.add_input("CLK", 0, &format!("IMUX_MUXCLK{i}"));
                         bel.add_input("LSR", 0, &format!("IMUX_MUXLSR{i}"));
                     } else {
@@ -1033,7 +1090,7 @@ impl IntDbBuilder {
                     bel.add_output("Q1", 0, &format!("OUT_Q{i1}"));
                 }
                 for l in ["F", "OFX"] {
-                    if matches!(kind, ChipKind::Ecp5) && l == "OFX" {
+                    if matches!(kind, ChipKind::Ecp5 | ChipKind::Crosslink) && l == "OFX" {
                         continue;
                     }
                     bel.add_output(&format!("{l}0"), 0, &format!("OUT_{l}{i0}"));
@@ -1045,10 +1102,10 @@ impl IntDbBuilder {
                 if i == 3 && matches!(kind, ChipKind::MachXo2(_) | ChipKind::Ecp4) {
                     bel.add_input("FXA", 0, "OUT_OFX3_W");
                 }
-                if i == 3 && matches!(kind, ChipKind::Ecp5) {
+                if i == 3 && matches!(kind, ChipKind::Ecp5 | ChipKind::Crosslink) {
                     bel.add_input("FXA", 0, "OUT_F3_W");
                 }
-                if i == 2 && matches!(kind, ChipKind::Ecp5) {
+                if i == 2 && matches!(kind, ChipKind::Ecp5 | ChipKind::Crosslink) {
                     bel.add_input("WCK", 0, "IMUX_CLK1");
                     bel.add_input("WRE", 0, "IMUX_LSR1");
                 }
@@ -1066,7 +1123,7 @@ impl IntDbBuilder {
             | ChipKind::Ecp3
             | ChipKind::Ecp3A
             | ChipKind::MachXo2(_) => (3, 1),
-            ChipKind::Ecp4 | ChipKind::Ecp5 => (9, 4),
+            ChipKind::Ecp4 | ChipKind::Ecp5 | ChipKind::Crosslink => (9, 4),
         };
         {
             let mut tcls = self.tile_class("EBR", tslots::BEL, num_cells);
@@ -1085,7 +1142,7 @@ impl IntDbBuilder {
     fn fill_dsp_tiles(&mut self) {
         let (num_cells, num_bels) = match self.kind {
             ChipKind::Ecp => (8, 1),
-            ChipKind::Xp | ChipKind::MachXo | ChipKind::MachXo2(_) => return,
+            ChipKind::Xp | ChipKind::MachXo | ChipKind::MachXo2(_) | ChipKind::Crosslink => return,
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => (9, 1),
             ChipKind::Ecp3 | ChipKind::Ecp3A | ChipKind::Ecp4 | ChipKind::Ecp5 => (9, 2),
         };
@@ -1209,6 +1266,27 @@ impl IntDbBuilder {
         tcls.bel(bels::CCLK);
     }
 
+    fn fill_config_tiles_crosslink(&mut self) {
+        for name in ["I2C_W", "I2C_E"] {
+            let mut tcls = self.tile_class(name, tslots::BEL, 2);
+            tcls.bel(bels::I2C);
+            if name == "I2C_E" {
+                tcls.bel(bels::NVCMTEST);
+            }
+        }
+        self.tile_class("OSC", tslots::BEL, 1).bel(bels::OSC);
+        {
+            let mut tcls = self.tile_class("CONFIG", tslots::BEL, 4);
+            tcls.bel(bels::GSR);
+            tcls.bel(bels::CFGTEST);
+        }
+        {
+            let mut tcls = self.tile_class("PMU", tslots::BEL, 1);
+            tcls.bel(bels::PMU);
+            tcls.bel(bels::PMUTEST);
+        }
+    }
+
     fn fill_config_tiles(&mut self) {
         match self.kind {
             ChipKind::Ecp => self.fill_config_tiles_ecp(),
@@ -1220,6 +1298,7 @@ impl IntDbBuilder {
             ChipKind::MachXo2(_) => self.fill_config_tiles_machxo2(),
             ChipKind::Ecp4 => self.fill_config_tiles_ecp4(),
             ChipKind::Ecp5 => self.fill_config_tiles_ecp5(),
+            ChipKind::Crosslink => self.fill_config_tiles_crosslink(),
         }
     }
 
@@ -1477,6 +1556,24 @@ impl IntDbBuilder {
         }
     }
 
+    fn fill_io_tiles_crosslink(&mut self) {
+        for slot in [bels::BCINRD, bels::BCLVDSO] {
+            self.db.bel_slots[slot].tile_slot = tslots::BEL;
+        }
+        {
+            let mut tcls = self.tile_class("BC", tslots::BEL, 1);
+            tcls.bel(bels::BCINRD);
+            tcls.bel(bels::BCLVDSO);
+            tcls.bel(bels::DDRDLL);
+        }
+        for (name, num_cells) in [("IO_S4", 4), ("IO_S1A", 1), ("IO_S1B", 1)] {
+            let mut tcls = self.tile_class(name, tslots::IO, num_cells);
+            for i in 0..num_cells {
+                tcls.bel(bels::IO[i]);
+            }
+        }
+    }
+
     fn fill_io_tiles(&mut self) {
         match self.kind {
             ChipKind::Ecp | ChipKind::Xp | ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
@@ -1487,6 +1584,7 @@ impl IntDbBuilder {
             ChipKind::MachXo2(_) => self.fill_io_tiles_machxo2(),
             ChipKind::Ecp4 => self.fill_io_tiles_ecp4(),
             ChipKind::Ecp5 => self.fill_io_tiles_ecp5(),
+            ChipKind::Crosslink => self.fill_io_tiles_crosslink(),
         }
     }
 
@@ -1511,6 +1609,14 @@ impl IntDbBuilder {
         self.tile_class("SERDES", tslots::BEL, 12).bel(bels::SERDES);
     }
 
+    fn fill_mipi_tiles_crosslink(&mut self) {
+        for name in ["MIPI_W", "MIPI_E"] {
+            let mut tcls = self.tile_class(name, tslots::BEL, 24);
+            tcls.bel(bels::MIPI);
+            tcls.bel(bels::CLKTEST_MIPI);
+        }
+    }
+
     fn fill_serdes_tiles(&mut self) {
         match self.kind {
             ChipKind::Ecp
@@ -1523,6 +1629,7 @@ impl IntDbBuilder {
             ChipKind::Ecp3 | ChipKind::Ecp3A => self.fill_serdes_tiles_ecp3(),
             ChipKind::Ecp4 => self.fill_serdes_tiles_ecp4(),
             ChipKind::Ecp5 => self.fill_serdes_tiles_ecp5(),
+            ChipKind::Crosslink => self.fill_mipi_tiles_crosslink(),
         }
     }
 
@@ -1602,6 +1709,12 @@ impl IntDbBuilder {
         }
     }
 
+    fn fill_pll_tiles_crosslink(&mut self) {
+        let mut tcls = self.tile_class("PLL", tslots::BEL, 2);
+        tcls.bel(bels::PLL0);
+        tcls.bel(bels::PLLREFCS0);
+    }
+
     fn fill_pll_tiles(&mut self) {
         match self.kind {
             ChipKind::Ecp | ChipKind::Xp => self.fill_pll_tiles_ecp(),
@@ -1612,6 +1725,7 @@ impl IntDbBuilder {
             ChipKind::MachXo2(_) => self.fill_pll_tiles_machxo2(),
             ChipKind::Ecp4 => self.fill_pll_tiles_ecp4(),
             ChipKind::Ecp5 => self.fill_pll_tiles_ecp5(),
+            ChipKind::Crosslink => self.fill_pll_tiles_crosslink(),
         }
     }
 

@@ -40,7 +40,9 @@ impl Expander<'_, '_> {
                 _ => continue,
             };
             for cell in self.egrid.row(self.die, row) {
-                if cell.col == self.chip.col_w() || cell.col == self.chip.col_e() {
+                if (cell.col == self.chip.col_w() || cell.col == self.chip.col_e())
+                    && self.chip.kind != ChipKind::Crosslink
+                {
                     continue;
                 }
                 if self.is_in_bel_hole(cell) {
@@ -615,6 +617,37 @@ impl Expander<'_, '_> {
         }
     }
 
+    fn fill_ebr_crosslink(&mut self) {
+        let mut col_start_w = self.chip.col_w();
+        let mut col_end_e = self.chip.col_e() + 1usize;
+        let col_end_w = self.chip.col_clk;
+        let col_start_e = self.chip.col_clk + 1usize;
+        while col_start_w.to_idx() % 10 != col_end_w.to_idx() % 10 {
+            col_start_w += 1;
+        }
+        while col_start_e.to_idx() % 10 != col_end_e.to_idx() % 10 {
+            col_end_e -= 1;
+        }
+
+        for (row, rd) in &self.chip.rows {
+            if rd.kind != RowKind::Ebr {
+                continue;
+            }
+            for cell in self.egrid.row(self.die, row) {
+                self.egrid.add_tile_single(cell, "INT_EBR");
+                if (cell.col >= col_start_w
+                    && cell.col < col_end_w
+                    && cell.col.to_idx() % 10 == col_start_w.to_idx() % 10)
+                    || (cell.col >= col_start_e
+                        && cell.col < col_end_e
+                        && cell.col.to_idx() % 10 == col_start_e.to_idx() % 10)
+                {
+                    self.egrid.add_tile_e(cell, "EBR", 9);
+                }
+            }
+        }
+    }
+
     fn fill_int_io(&mut self, cell: CellCoord) {
         match self.chip.kind {
             ChipKind::Ecp | ChipKind::Xp => {
@@ -900,7 +933,7 @@ impl Expander<'_, '_> {
                     match bank {
                         0 => "BCSR_N",
                         2 => "BCSR_S",
-                        3 | 4 | 5 => "BCSR_W",
+                        3..=5 => "BCSR_W",
                         _ => unreachable!(),
                     },
                 );
@@ -1440,6 +1473,44 @@ impl Expander<'_, '_> {
                     }
                 }
                 _ => unreachable!(),
+            }
+        }
+    }
+
+    fn fill_io_crosslink(&mut self) {
+        for (&key, &cell) in &self.chip.special_loc {
+            if matches!(key, SpecialLocKey::Bc(_)) {
+                self.egrid.add_tile_single(cell, "BC");
+            }
+        }
+        for cell in self.egrid.row(self.die, self.chip.row_s()) {
+            self.egrid.add_tile_single(cell, "INT_IO_S");
+            match self.chip.columns[cell.col].io_s {
+                IoGroupKind::Quad => {
+                    self.egrid.add_tile_e(cell, "IO_S4", 4);
+                }
+                IoGroupKind::Single => {
+                    if cell.col.to_idx() % 2 == 0 {
+                        self.egrid.add_tile_single(cell, "IO_S1A");
+                    } else {
+                        self.egrid.add_tile_single(cell, "IO_S1B");
+                    }
+                }
+                _ => (),
+            }
+        }
+        for cell in self.egrid.row(self.die, self.chip.row_n()) {
+            self.egrid.add_tile_single(cell, "INT_IO_N");
+            if self.chip.columns[cell.col].io_n == IoGroupKind::Mipi {
+                self.egrid.add_tile_e(
+                    cell,
+                    if cell.col < self.chip.col_clk {
+                        "MIPI_W"
+                    } else {
+                        "MIPI_E"
+                    },
+                    24,
+                );
             }
         }
     }
@@ -2422,6 +2493,26 @@ impl Expander<'_, '_> {
         }
     }
 
+    fn fill_clk_crosslink(&mut self) {
+        for cell in self.egrid.die_cells(self.die) {
+            self.egrid[cell].region_root[regions::PCLK0] =
+                cell.with_cr(self.chip.col_clk, self.chip.row_clk);
+        }
+
+        let cell = CellCoord::new(self.die, self.chip.col_clk, self.chip.row_s());
+        let mut tcells = cell.delta(-2, 0).cells_e(4);
+        for i in 0..2 {
+            tcells.push(self.chip.special_loc[&SpecialLocKey::PclkIn(Dir::S, i)]);
+        }
+        self.egrid.add_tile(cell, "CLK_S", &tcells);
+
+        let cell = CellCoord::new(self.die, self.chip.col_clk, self.chip.row_n());
+        self.egrid.add_tile_we(cell, "CLK_N", 1, 2);
+
+        let cell = self.chip.bel_clk_root().cell;
+        self.egrid.add_tile_single(cell, "CLK_ROOT");
+    }
+
     fn fill_config_xp(&mut self) {
         let cell = self.chip.special_loc[&SpecialLocKey::Config];
         self.egrid.add_tile_single(cell, "CONFIG");
@@ -2469,6 +2560,30 @@ impl Expander<'_, '_> {
         tcells.extend([cell.with_cr(self.chip.col_clk, self.chip.row_clk)]);
         self.egrid.add_tile(cell, "CONFIG", &tcells);
         self.egrid.add_tile_single(cell.delta(18, 0), "DTR");
+    }
+
+    fn fill_config_crosslink(&mut self) {
+        let cell = CellCoord::new(self.die, self.chip.col_w(), self.chip.row_n());
+        self.egrid.add_tile_e(cell, "I2C_W", 2);
+        let cell = CellCoord::new(self.die, self.chip.col_e() - 1, self.chip.row_n());
+        self.egrid.add_tile_e(cell, "I2C_E", 2);
+
+        let cell = self.chip.special_loc[&SpecialLocKey::Config];
+        let mut tcells = cell.cells_e(2);
+        tcells.extend([
+            cell.delta(-2, 0),
+            cell.with_cr(self.chip.col_clk, self.chip.row_clk),
+        ]);
+        self.egrid.add_tile(cell, "CONFIG", &tcells);
+
+        let cell = self.chip.special_loc[&SpecialLocKey::Osc];
+        self.egrid.add_tile_single(cell, "OSC");
+
+        let cell = self.chip.special_loc[&SpecialLocKey::Pmu];
+        self.egrid.add_tile_single(cell, "PMU");
+
+        let cell = self.chip.special_loc[&SpecialLocKey::Pll(PllLoc::new(DirHV::SE, 0))];
+        self.egrid.add_tile_e(cell, "PLL", 2);
     }
 
     fn fill_io_machxo(&mut self) {
@@ -2729,6 +2844,13 @@ impl Chip {
                 expander.fill_ebr_ecp4();
                 expander.fill_io_ecp5();
                 expander.fill_clk_ecp5();
+            }
+            ChipKind::Crosslink => {
+                expander.fill_config_crosslink();
+                expander.fill_plc();
+                expander.fill_ebr_crosslink();
+                expander.fill_io_crosslink();
+                expander.fill_clk_crosslink();
             }
         }
         expander.fill_conns();

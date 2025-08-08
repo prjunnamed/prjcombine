@@ -129,6 +129,37 @@ impl std::fmt::Display for SerdesPad {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
+pub enum MipiPad {
+    DataP(u8),
+    DataN(u8),
+    ClkP,
+    ClkN,
+    Gnd,
+    Vcc,
+    GndPll,
+    VccPll,
+    GndMu,
+    VccMu,
+}
+
+impl std::fmt::Display for MipiPad {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MipiPad::DataP(i) => write!(f, "DATA_P{i}"),
+            MipiPad::DataN(i) => write!(f, "DATA_N{i}"),
+            MipiPad::ClkP => write!(f, "CLK_P"),
+            MipiPad::ClkN => write!(f, "CLK_N"),
+            MipiPad::Gnd => write!(f, "GND"),
+            MipiPad::Vcc => write!(f, "VCC"),
+            MipiPad::GndPll => write!(f, "GNDPLL"),
+            MipiPad::VccPll => write!(f, "VCCPLL"),
+            MipiPad::GndMu => write!(f, "GNDMU"),
+            MipiPad::VccMu => write!(f, "VCCMU"),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum AscPad {
     HvOut(u8),
     HviMonP,
@@ -255,6 +286,10 @@ pub enum BondPad {
     IoAsc(EdgeIoCoord, AscPad),
     Pfr(PfrPad),
     IoPfr(EdgeIoCoord, PfrPad),
+    IoCdone(EdgeIoCoord),
+    Vpp,
+    Mipi(ColId, MipiPad),
+    MipiCommon(MipiPad),
 }
 
 impl std::fmt::Display for BondPad {
@@ -272,6 +307,7 @@ impl std::fmt::Display for BondPad {
             BondPad::VccAuxA => write!(f, "VCCAUXA"),
             BondPad::VccJtag => write!(f, "VCC_JTAG"),
             BondPad::VccIo(bank) => write!(f, "VCCIO{bank}"),
+            BondPad::Vpp => write!(f, "VPP"),
             BondPad::Vtt(bank) => write!(f, "VTT{bank}"),
             BondPad::VccPll(set) => write!(f, "VCCPLL_{set}"),
             BondPad::GndPll(set) => write!(f, "GNDPLL_{set}"),
@@ -285,6 +321,9 @@ impl std::fmt::Display for BondPad {
             BondPad::IoAsc(io, pad) => write!(f, "{io}_ASC_{pad}"),
             BondPad::Pfr(pad) => write!(f, "PFR_{pad}"),
             BondPad::IoPfr(io, pfr) => write!(f, "{io}_PFR_{pfr}"),
+            BondPad::IoCdone(io) => write!(f, "{io}_CDONE"),
+            BondPad::Mipi(col, pad) => write!(f, "MIPI_N{col:#}_{pad}"),
+            BondPad::MipiCommon(pad) => write!(f, "MIPI_COMMON_{pad}"),
         }
     }
 }
@@ -329,8 +368,10 @@ impl From<&Bond> for JsonValue {
 }
 
 fn pad_sort_key(name: &str) -> (usize, &str, u32) {
-    if let Some(pos) = name.rfind(|x: char| x.is_ascii_digit()) {
-        (pos, &name[..pos], name[pos..].parse().unwrap())
+    if let Some(pos) = name.rfind(|x: char| x.is_ascii_digit())
+        && let Ok(idx) = name[pos..].parse()
+    {
+        (pos, &name[..pos], idx)
     } else {
         (name.len(), name, 0)
     }
