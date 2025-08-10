@@ -12,3 +12,14 @@
     max-width: none;
     padding: 15px;
 }
+
+.light img[src$="#dark-only"],
+.rust  img[src$="#dark-only"] {
+    display:none;
+}
+
+.navy img[src$="#light-only"],
+.ayu  img[src$="#light-only"],
+.coal img[src$="#light-only"] {
+    display:none;
+}

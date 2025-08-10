@@ -33,6 +33,7 @@ Project Combine consists of:
      - `speed`: raw speed data description (for the databases)
      - `units`: newtypes over `f64` associated with physical units (used for speed data)
      - `bscan`: boundary scan chain description
+     - `cpld`: CPLD-related common types
    - `prjcombine-interconnect`: implements data structures for FPGA-like tile grids and general interconnect; this is the crate that FPGA targets are generally based around
    - `prjcombine-jed`: implements JESD3 bitstream format, also known as the `.jed` file format
    - `prjcombine-xilinx-bitstream`: the Xilinx bitstream format (common across Xilinx FPGA targets)

@@ -6,68 +6,10 @@ The provided databases include an *interconnect database* for each target, which
 
 Project Combine provides per-target Rust crates that construct an *expanded device* given the *device*.  The *expanded device* is a target-dependent structure that contains the *expanded grid* as one of its fields.
 
-TODO: the currently implemented interconnect model differs from the one described here in multiple places (mostly in naming, but there are more complex mismatches as well).  This document describes the *intended* model — the plan is to change the code to reflect this document.
-
-
-## General notes and scope
-
-The generic FPGA grid and interconnect system described here is designed for the objects that would be subject to generic place and route.  Thus, it is only used to describe general interconnect and the actual FPGA grid.  In particular, the following features are considered out of scope and are (usually) handled by target-specific means instead:
-
-1. Dedicated interconnect (connections between predefined bel pins that are not routable to/from the general interconnect) and any bel pins using only dedicated interconnect.  This includes:
-
-   - carry or cascade chains of all sorts
-     - if the carry chain can be sourced from the general interconnect at the start, or sunk into the general interconnect at the end, such entry / exit points are represented as special bels
-   - direct connections to and from dedicated or semi-dedicated I/O pads, such as:
-     - dedicated clock input pads
-     - dedicated PLL input or output pads
-     - designated I/O pads for a hard logic block, such as a memory controller, SPI or I²C controller, PCI logic, and so on
-   - fixed connections between bels that can be "combined together" and used as a larger bel, such as:
-     - wide mux connections between SLICEs
-     - SLICEs that can be combined together to form a large LUT-RAM
-     - two 18kbit blockRAMs that can be combined to form a 36kbit blockRAM
-
-   From a placer's point of view, dedicated interconnect behaves like a placement constraint (as opposed to general interconnect, which imposes no placement constraints other than those implied by timing requirements).  From a router's point of view, dedicated interconnect should be handled by dedicated router, as the routing resources involved are independent from the bulk of work involved in general interconnect routing, and routing failures tend to result from violations of relatively simple constraints that can be communicated to the user.  Thus, there is no need to represent it in the same data structures.
-
-2. Global / clock interconnect, except for the "last mile" where it enters the general interconnect muxes.
-
-   Clock interconnect tends to have special properties:
-
-   - is usually closely tied to clock enable / divider / multiplexer bels
-   - has low-skew properties that make the usual "Euclidean distance" approximate metric inapplicable for timing
-   - is scarce and should be allocated intentionally
-
-   These properties usually make it inconvenient to handle clock interconnect by the same means as general interconnect.
-
-3. Any sort of circuitry that's outside of the interconnect grid, except as needed to represent its connections to the general interconnect.
-
-   This includes things such as:
-
-   - the configuration logic, on targets where it doesn't have any routable pins
-   - on hard SoC devices such as Zynq, any sort of CPU cores, peripherials, or dedicated I/O pads
-   - the Virtex 7 GTZ transceivers
-   - on Versal:
-     - the NoC horizontal rows on the north and south edges of the device
-     - XPIO banks and their associated logic
-     - DDR and HBM memory controllers
-     - the AI engine grid
-
-   This sort of circuitry is exposed via target-specific means, as applicable.
-
-Further, grid columns and rows are intended to correspond 1-to-1 with columns and rows of interconnect tiles (tiles containing general interconnect muxes).  This means:
-
-- if the tile grid, as understood by vendor tools, has separate columns for interconnect and actual logic associated with that interconnect (such as later Xilinx FPGAs), we disregard this separation and treat both of those together as a single column
-  - for the special case of Ultrascale and Versal, which have independent logic columns on both sides of an interconnect column, we treat each vendor interconnect column as *two* grid columns (so that bels on both sides gets separate X coordinates)
-- any sort of special columns and rows (clock distribution, edge terminators, I/O buffers, ...) in between "normal" columns and rows or at the edges are not assigned their own grid coordinates; any sort of logic and wiring within is considered to be part of a nearby interconnect column or row:
-  - for a special column in between two interconnect columns, the column to the east is used
-  - for a special row in between two interconnect rows, the row to the north is used
-  - for a special column or row at the edge, the outermost column or row in the given direction is used
-
-The above rules aren't completely hard, and are mostly based on vibes and on how hard it would be to squash a given thing to match the grid model.
-
 
 ## The grid
 
-An *expanded grid* is made of one or more *die*, which are identified by `DieId`.  The target-specific *chip* structure generally describes a particular model of a *die*.  A *die* is a 2D array of *cells*, organized in *columns* and *rows*.  A *cell* is identified by its `(DieId, ColId, RowId)` coordinates.  There is no requirement that the *die* within the device have the same dimensions.
+An *expanded grid* is made of one or more *die*, which are identified by `DieId`.  The target-specific *chip* structure generally describes a particular model of a *die*.  A *die* is a 2D array of *cells*, organized in *columns* and *rows*.  A *cell* is identified by its `(DieId, ColId, RowId)` coordinates (known as `CellCoord`).  There is no requirement that the *die* within the device have the same dimensions.
 
 The directions within a die are:
 
@@ -79,22 +21,150 @@ The directions within a die are:
 The directions are always relative to the silicon die, not the package.  Thus, for flip-chip packages, package left tends to be east.  Note that for multi-die devices the orientation of individual die may vary (ie. some of them may be rotated).
 
 
-## Wires, wire segments, connectors
+## FPGA interconnect — general principles and examples
 
-The general interconnect is made of *wires* and *muxes*, which connect wires together.  A *wire* is a physical net, or a set of nets that are always logically connected together (through always-on buffers or similar means).  A *wire segment* is a part of wire contained in a particular *cell*.
+Wires within an FPGA generally come in several kinds:
 
-The interconnect database contains a list of wire segments present in each cell, indexed by `WireId`.
+- local wires (contained within a single cell): used as inputs and outputs of bels, or intermediate multiplexer steps
+- global or regional wires: connect all cells in the FPGA or in a region of an FPGA together, usually used for clocks or other high-fanout signals
+- const-span wires: used to route signals between cells, going a fixed distance (for example, a "quad horizontal wire" would cover the distance of 4 cells horizontally)
 
-A *wire segment* in the device is identified by a tuple of `(DieId, ColId, RowId, WireId)`, which is also known as `WireCoord`.  A *wire* is identified by choosing a *canonical wire segment* to represent it.  If the wire can only be driven in one cell, the single segment that can be driven is considered the canonical one.  Otherwise, the canonical segment is chosen by whatever means are convenient to get the device to fit in the interconnect model — it tends to be either an endpoint or a midpoint of the wire.
+Of these, const-span wires are the most complicated and dictate the design of the interconnect model.
 
-For every `WireId`, the database has:
+### Example 1 — simple bidirectional quad wire
 
-- a name
-- the segment's *kind* and kind-dependent information; the segment kind describes, among other things, how to determine how to find the *canonical wire segment* given a *wire segment*
+The first representative example (a horizontal quad wire) is shown below:
 
-The segment kinds are:
+![Example device](wires-1-light.svg#light-only)
+![Example device](wires-1-dark.svg#dark-only)
 
-- *tie to 0* and *tie to 1*:
+In the usual case, each wire in this example connects together 5 cells (thus covering a distance of 4 cells), and is made of five *segments*.  For example, the wire spanned between cells `X0Y0` and `X4Y0` has the following segments:
+
+- `X0Y0_QUAD_H_0`
+- `X1Y0_QUAD_H_1`
+- `X2Y0_QUAD_H_2`
+- `X3Y0_QUAD_H_3`
+- `X4Y0_QUAD_H_4`
+
+The wires cut off by the edge of the device are an exception, consisting of fewer segments:
+
+- short wire ending at `X0Y0`:
+
+  - `X0Y0_QUAD_H_4`
+
+- short wire ending at `X1Y0`:
+
+  - `X0Y0_QUAD_H_3`
+  - `X1Y0_QUAD_H_4`
+
+- short wire ending at `X2Y0`:
+
+  - `X0Y0_QUAD_H_2`
+  - `X1Y0_QUAD_H_3`
+  - `X2Y0_QUAD_H_4`
+
+- short wire ending at `X3Y0`:
+
+  - `X0Y0_QUAD_H_1`
+  - `X1Y0_QUAD_H_2`
+  - `X2Y0_QUAD_H_3`
+  - `X3Y0_QUAD_H_4`
+
+In this example, each cell has an interconnect tile in it.  The interconnect tiles are uniform, and each tile can drive its corresponding `QUAD_H_0` and `QUAD_H_4` segments (or, in other words, a wire can be driven from both its ends, but not in the middle).  A common variant (seen on Virtex or iCE40) includes special interconnect tiles at the edges of the device, in which all wire segments can be driven.
+
+In Project Combine (and, in fact, most toolchains), wires are identified by their "canonical" wire segment.  Which segment is considered canonical varies depending on the circumstances.  In this example, two (of many) reasonable rules would be:
+
+- the westmost segment of the wire is the canonical one (usually `QUAD_H_0`, except when the wire is cut off by the west edge of the device)
+- the `QUAD_H_2` (middle) segment is the canonical one, except when the wire is cut off by the west or east edge of the device, in which case the "closest" segment to `QUAD_H_2` is the canonical one (eg. `X0Y0_QUAD_H_3` would be canonical)
+
+### Example 2 — quad wire with u-turns
+
+A common variant of the above scheme includes "U-turns" at the edges, connecting together pairs of wires that would otherwise be cut off by the edge:
+
+![Example device](wires-uturn-light.svg#light-only)
+![Example device](wires-uturn-dark.svg#dark-only)
+
+In this variant, the quad wires always have exactly 5 segments, though sometimes they revisit the same cells.  For example, one of the wires above consists of the following segments:
+
+- `X2Y0_QUAD_H_4`
+- `X1Y0_QUAD_H_3`
+- `X0Y0_QUAD_H_2`
+- `X0Y0_QUAD_H_3`
+- `X1Y0_QUAD_H_4`
+
+For cases like these, Project Combine chooses the middle segment (`QUAD_H_2` in this example) as the canonical one, as that leads to reasonably simple rules (each wire has exactly one `QUAD_H_2` segment, even if it involves a U-turn).
+
+### Example 3 — directional quad-wire with u-turns
+
+The above examples had wires that could be driven from both ends.  On newer and larger devices, the common practice is to use fixed-direction wires.  This is illustrated in the following example, which has independent east quad wires and west quad wires:
+
+![Example device](wires-dir-light.svg#light-only)
+![Example device](wires-dir-dark.svg#dark-only)
+
+All wires here can be driven only at their `_0` segment.  This example also includes U-turns, which now turn `QUAD_W` wires onto `QUAD_E` wires (and the other way around at the east edge of the device).
+
+When only one segment of the wire can be driven, Project Combine always chooses it as the canonical one by convention.
+
+### Example 4 — regional wires
+
+Regional wires are much simpler in principle: they involve connecting all wire segments of a given type together within some area.
+
+Consider a simple (unrealistically small) 8×8 cell FPGA with 4 clock regions (corresponding to the four quadrants), with a single clock per region, driven from the center:
+
+![Example device](wires-regional-light.svg#light-only)
+![Example device](wires-regional-dark.svg#dark-only)
+
+There are four clock wires, each consisting of 16 wire segments:
+
+- `X3Y3_GCLK0` wire: `X[0-3]Y[0-3]_GCLK0` segments
+- `X4Y3_GCLK0` wire: `X[4-7]Y[0-3]_GCLK0` segments
+- `X3Y4_GCLK0` wire: `X[0-3]Y[4-7]_GCLK0` segments
+- `X4Y4_GCLK0` wire: `X[4-7]Y[4-7]_GCLK0` segments
+
+The usual convention is to consider the segment where the wire is driven (here: closest to center) as the canonical segment.
+
+
+## Wires, wire segments, connectors — Project Combine model
+
+In Project Combine, the interconnect database describes a number (usually between ~100 and ~1000) of *wire slots*, which are identified by `WireSlotId`.  A *wire segment* is uniquely identified by a tuple of `(CellCoord, WireSlotId)`, which is also known as `WireCoord`.  A *wire* is identified by the `WireCoord` of its canonical segment.
+
+### Regions
+
+Since the device may contain many kinds of regional wires with varying scopes, the interconnect database describes a number of *region slots*, identified by `RegionSlotId`.  Every regional wire slot is associated with such a region slot, and every cell of the expanded grid contains a mapping from `RegionSlotId` to a `CellCoord` where the canonical segment of all associated regional wires is located.  Thus, to describe [example 4](#example-4--regional-wires) above, one would allocate a single region slot, associate wire slot `GCLK0` with it, then store the following canonical coordinate for each cell:
+
+- `X[0-3]Y[0-3]`: `X3Y3` is the canonical cell
+- `X[4-7]Y[0-3]`: `X4Y3` is the canonical cell
+- `X[0-3]Y[4-7]`: `X3Y4` is the canonical cell
+- `X[4-7]Y[4-7]`: `X4Y4` is the canonical cell
+
+### Connectors
+
+For other kinds of wires, the connections between wire segments in (usually adjacent) cells are described by *connectors* and *connector classes*.
+
+The interconnect database describes a small number of *connector slots*, identified by `ConnectorSlotId`.  For most databases, there are four connector slots, corresponding to the four directions, but some devices (such as versal) require more complex descriptions.
+
+A *connector* in the grid is identified by a tuple of `(CellCoord, ConnectorSlotId)`, also known as a `ConnectorCoord`.  For each connector, the expanded grid has the following information:
+
+- the *connector class* for this connector (`ConnectorClassId`), if any (`ConnectorCoord`s can be unfilled)
+- optionally, *target cell* of the connector (`(ColId, RowId)`; the target cell is assumed to be within the same die)
+  - connectors without a target cell are usually used at the die edges for U-turn purposes
+
+Connector slots usually come in pairs, as do connectors themselves: if the cell `X0Y0` is connected to `X0Y1` via its `W` (west) connector slot, `X0Y1` must be connected to `X0Y0` via its `E` connector slot.
+
+The connector itself merely describes the target of the connection; the details of the connection are described by the *connector class*.  The connector classes are listed in the interconnect database and identified by `ConnectorClassId`.  A connector class essentially describes how to map from a wire segment in the source cell to another wire segment in the target cell, such that the target wire segment is "closer" to the canonical segment.  To obtain the canonical segment of a given wire segment, one would repeatedly traverse connectors in sequence until the canonical segment (with no further mapping) is reached.
+
+For a given wire segment, the connector class may have one of the following dispositions:
+
+- none: the lookup ends here (this is the canonical segment), or connector slot not applicable to this wire segment
+- *blackhole*: the wire segment is considered to be unusable, and should be disregarded because no wire exists to operate and only crimes are occuring (this is a rarely used disposition, created to deal with Virtex 5/6/7 long wire special cases)
+- *reflect* to a given `WireSlotId`: this wire segment is connected to the given wire segment *in the same cell*; used for U-turns and such
+- *pass* to a gien `WireSlotId`: this wire segment is connected to the given wire segment in the *target cell* of the connector
+
+### Wire kinds
+
+The interconnect database associates a name and a *kind* with each *wire slot*.  The wire kind is one of:
+
+- *tie to 0* or *tie to 1*:
   - permanently driven to a given constant value
   - this segment is the canonical wire segment
   - no other segment can be driven
@@ -103,16 +173,16 @@ The segment kinds are:
   - generally identical to *tie to 1*, except for edge cases involving partial reconfiguration
 - *regional*:
   - has an associated `RegionSlotId`
-  - every *cell* in the *expanded grid* has a map from `RegionSlotId` to `(DieId, ColId, RowId)`; the canonical wire segment is the same `WireId` at the given coordinates
-  - used for clock networks and other cases where a wire is widely distributed in a way that's not easily described by the branch construct
+  - every *cell* in the *expanded grid* has a map from `RegionSlotId` to `CellCoord`; the canonical wire segment is the same `WireSlotId` at the given coordinates
+  - used for clock networks and other cases where a wire is widely distributed in a way that's not easily described by the connector construct
 - *mux output*:
   - this segment is the canonical wire segment
-  - this segment is driven by interconnect muxes
+  - this segment is usually driven by a switchbox
   - no other segment can be driven
   - other segments of this wire, if any, will be of type *branch*
 - *logic output*:
   - this segment is the canonical wire segment
-  - this segment is driven by a bel
+  - this segment is usually driven by a proper bel
   - no other segment can be driven
   - other segments of this wire, if any, will be of type *branch*
 - *test output*:
@@ -121,12 +191,8 @@ The segment kinds are:
   - the output may not be routable without using special test muxes within interface logic
 - *multi mux output*:
   - this segment is the canonical wire segment
-  - this segment is driven by interconnect muxes
+  - this segment is driven by switchboxes
   - other segments can also be driven; they will be of type *multi branch*
-- *pass output*:
-  - this segment is the canonical wire segment
-  - this segment is driven by interconnect pass transistors
-  - other segments can also be driven; they will be of type *pass branch*
 - *branch*:
   - has an associated `ConnectorSlotId`
   - the canonical segment can be found by consulting the given connector at the current cell
@@ -137,42 +203,8 @@ The segment kinds are:
   - the canonical segment can be found by consulting the given connector at the current cell
   - the canonical segment will be a *multi mux output* or *multi branch*
   - any segment can be driven
-- *pass branch*:
-  - has an associated `ConnectorSlotId`
-  - the canonical segment can be found by consulting the given connector at the current cell
-  - the canonical segment will be a *pass output* or *pass branch*
-  - any segment can be driven
-- *buffer*:
-  - has an associated `WireId`
-  - is a buffered version of the given segment; essentially an alias, except for timing analysis
 
-With the exception of *regional* wires, connections between *wire segments* in adjacent *cells* are described through *connectors*.  A *connector* is essentially a map describing how to walk from a given wire segment one step towards the canonical wire segment.
-
-Every *cell* has a fixed number of *connector slots*, identified by `ConnectorSlotId`.  Most targets have four connector slots, corresponding to the four directions, but more complex arrangements are possible.  Every `(DieId, ColId, RowId, ConnectorSlotId)` tuple in the *expanded grid* may or may not have a *connector*.  If it has a connector, it has the following associated data:
-
-- the *connector class* (`ConnectorClassId`)
-- optionally, *target cell* of the connector (`(ColId, RowId)`; the target cell is assumed to be within the same die)
-  - connectors without a target cell are usually used at the die edges to "reflect" some of the wires back to the same cell
-
-The *connector slots* are described in the interconnect database.  For every `ConnectorSlotId`, it has:
-
-- the connector slot name
-- the *opposite* connector slot
-  - connectors are usually used in pairs: if cell A is connected to cell B via a "west" slot connector, then cell B must be connected to cell A via an "east" slot connector, "east" being the opposite of "west"
-  - however, sometimes a connector slot is only used to mirror a cell's own wire segments back to itself, without ever involving a target cell; in this case, the connector slot is considered to be its own opposite
-
-The *connector classes* are also described in the interconnect database.  For every `ConnectorClassId`, it has:
-
-- the connector class name
-- the corresponding *connector slot*
-- a partial map from `WireId` to its disposition, which is one of:
-
-  - none: wire segment not covered by this connector slot, or not connected to anything upstream; in the latter case, this is the canonical wire segment
-  - *blackhole*: the wire segment is considered to be unusable, and should be disregarded because no wire exists to operate and only crimes are occuring
-  - *reflect* to a given `WireId`: the wire segment is connected to the given other wire segment within the same cell, which is closer to the canonical wire segments
-  - *pass* to a given `WireId`: wire segment is connected to the given wire segment within the *target cell* of the connector, which is closer to the canonical wire segment
-
-  This map must only contain wires that have a *kind* of *branch*, *multi branch*, or *pass branch*, with the same `ConnectorSlotId` as this connector class.
+### Canonical wire algorithm
 
 In addition to the *regional* wires and *connectors*, some targets have weird one-off connections that defy normal rules.  For these cases, the *expanded grid* has a last-resort `extra_conns` map of `WireCoord` to `WireCoord` describing the irregular connections.  Currently this map is used on the following targets:
 
@@ -181,17 +213,17 @@ In addition to the *regional* wires and *connectors*, some targets have weird on
 
 The complete algorithm for determining the canonical wire segment is:
 
-1. If the current segment's kind is *branch*, *multi branch*, or *pass branch*:
+1. If the current segment's kind is *branch* or *multi branch*:
 
    - obtain the connector from the current cell and the segment's `ConnectorSlotId` from the database
    - if no connector exists in this slot, proceed to step 3
    - look up the current segment's disposition within the connector's class in the database:
      - none: proceed to step 3
      - *blackhole*: the wire segment should be considered unusable and correspond to no wire; no mission can continue and all segments are surrendered to FBI
-     - *reflect*: replace the current segment's `WireId` with the one from the disposition, repeat step 1 with the newly obtained segment
-     - *pass*: replace the current segment's `WireId` with the one from the disposition, and replace `ColId` and `RowId` with the connector's target cell, repeat step 1 with the newly obtained segment; the *expanded grid* is considered ill-formed if the connector has no target cell but the class has *pass* dispositions
+     - *reflect*: replace the current segment's `WireSlotId` with the one from the disposition, repeat step 1 with the newly obtained segment
+     - *pass*: replace the current segment's `WireSlotId` with the one from the disposition, and replace `ColId` and `RowId` with the connector's target cell, repeat step 1 with the newly obtained segment; the *expanded grid* is considered ill-formed if the connector has no target cell but the class has *pass* dispositions
 
-2. If the current segment's kind is *regional*: replace the current segment's cell with the one obtained by looking up the segment's `RegionSlotId` on the current cell; `WireId` stays the same.
+2. If the current segment's kind is *regional*: replace the current segment's cell with the one obtained by looking up the segment's `RegionSlotId` on the current cell; `WireSlotId` stays the same.
 
 3. Look up the current segment in the *expanded grid*'s `extra_conns` map; if found, the result of the lookup is the canonical segment; otherwise, the current segment is the canonical segment.
 
@@ -216,7 +248,7 @@ The contents of a tile are described by its *tile class*.  The interconnect data
 - interface logic in the tile
 - bels in the tile
 
-Within the tile class description, wire segments are identified by `(TileCellId, WireId)` tuples, also known as `TileClassWire`.  For a given tile, they can be translated to a `WireCoord` by using the tile anchor's `DieId` and looking up the `TileCellId` in the tile's referenced cells list to obtain `ColId` and `RowId`.
+Within the tile class description, wire segments are identified by `(TileCellId, WireSlotId)` tuples, also known as `TileClassWire`.  For a given tile, they can be translated to a `WireCoord` by using the tile anchor's `DieId` and looking up the `TileCellId` in the tile's referenced cells list to obtain `ColId` and `RowId`.
 
 Grid *tiles* correspond directly to the bitstream concept with the same name — each tile class will usually have a corresponding entry in the bitstream database (the exception is tile classes that have no associated bitstream bits).  If this is the case, then every grid tile of this class will have an associated bitstream tile, and vice versa.  However, a target may have bitstream tile classes that do not correspond to grid tile classes — these are used to describe configurable logic outside of the interconnect grid, such as the special configuration logic registers on most targets.
 
@@ -286,3 +318,60 @@ A tile class definition has a list of contained bels.  For each bel it has:
   - pin direction (input or output)
   - for an input pin: the wire segment connected to the pin (`TileClassWire`)
   - for an output pin: list of wire segments connected to the pin (nonempty list of `TileClassWire`)
+
+
+
+## General notes and scope
+
+The generic FPGA grid and interconnect system described here is designed for the objects that would be subject to generic place and route.  Thus, it is only used to describe general interconnect and the actual FPGA grid.  In particular, the following features are considered out of scope and are (usually) handled by target-specific means instead:
+
+1. Dedicated interconnect (connections between predefined bel pins that are not routable to/from the general interconnect) and any bel pins using only dedicated interconnect.  This includes:
+
+   - carry or cascade chains of all sorts
+     - if the carry chain can be sourced from the general interconnect at the start, or sunk into the general interconnect at the end, such entry / exit points are represented as special bels
+   - direct connections to and from dedicated or semi-dedicated I/O pads, such as:
+     - dedicated clock input pads
+     - dedicated PLL input or output pads
+     - designated I/O pads for a hard logic block, such as a memory controller, SPI or I²C controller, PCI logic, and so on
+   - fixed connections between bels that can be "combined together" and used as a larger bel, such as:
+     - wide mux connections between SLICEs
+     - SLICEs that can be combined together to form a large LUT-RAM
+     - two 18kbit blockRAMs that can be combined to form a 36kbit blockRAM
+
+   From a placer's point of view, dedicated interconnect behaves like a placement constraint (as opposed to general interconnect, which imposes no placement constraints other than those implied by timing requirements).  From a router's point of view, dedicated interconnect should be handled by dedicated router, as the routing resources involved are independent from the bulk of work involved in general interconnect routing, and routing failures tend to result from violations of relatively simple constraints that can be communicated to the user.  Thus, there is no need to represent it in the same data structures.
+
+2. Global / clock interconnect, except for the "last mile" where it enters the general interconnect muxes.
+
+   Clock interconnect tends to have special properties:
+
+   - is usually closely tied to clock enable / divider / multiplexer bels
+   - has low-skew properties that make the usual "Euclidean distance" approximate metric inapplicable for timing
+   - is scarce and should be allocated intentionally
+
+   These properties usually make it inconvenient to handle clock interconnect by the same means as general interconnect.
+
+3. Any sort of circuitry that's outside of the interconnect grid, except as needed to represent its connections to the general interconnect.
+
+   This includes things such as:
+
+   - the configuration logic, on targets where it doesn't have any routable pins
+   - on hard SoC devices such as Zynq, any sort of CPU cores, peripherials, or dedicated I/O pads
+   - the Virtex 7 GTZ transceivers
+   - on Versal:
+     - the NoC horizontal rows on the north and south edges of the device
+     - XPIO banks and their associated logic
+     - DDR and HBM memory controllers
+     - the AI engine grid
+
+   This sort of circuitry is exposed via target-specific means, as applicable.
+
+Further, grid columns and rows are intended to correspond 1-to-1 with columns and rows of interconnect tiles (tiles containing general interconnect muxes).  This means:
+
+- if the tile grid, as understood by vendor tools, has separate columns for interconnect and actual logic associated with that interconnect (such as later Xilinx FPGAs), we disregard this separation and treat both of those together as a single column
+  - for the special case of Ultrascale and Versal, which have independent logic columns on both sides of an interconnect column, we treat each vendor interconnect column as *two* grid columns (so that bels on both sides gets separate X coordinates)
+- any sort of special columns and rows (clock distribution, edge terminators, I/O buffers, ...) in between "normal" columns and rows or at the edges are not assigned their own grid coordinates; any sort of logic and wiring within is considered to be part of a nearby interconnect column or row:
+  - for a special column in between two interconnect columns, the column to the east is used
+  - for a special row in between two interconnect rows, the row to the north is used
+  - for a special column or row at the edge, the outermost column or row in the given direction is used
+
+The above rules aren't completely hard, and are mostly based on vibes and on how hard it would be to squash a given thing to match the grid model.

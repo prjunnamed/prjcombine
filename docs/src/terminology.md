@@ -10,6 +10,9 @@ A *target* is a group of "similar enough" devices that are handled by common cod
 
 ## Devices, chips, packages, speed grades
 
+![Example device](device-light.svg#light-only)
+![Example device](device-dark.svg#dark-only)
+
 A *chip* structure describes a single kind of piece of silicon with programmable logic.
 
 A *device* structure describes a single arrangement of programmable logic distributed by a vendor (eg. `iCE40UP5K`).  It generally corresponds to a vendor designation.
