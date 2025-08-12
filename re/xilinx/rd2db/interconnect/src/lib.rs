@@ -1638,23 +1638,13 @@ impl<'a> IntBuilder<'a> {
     }
 
     pub fn extra_name(&mut self, name: impl Into<String>, wire: WireId) {
-        self.extra_names.insert(
-            name.into(),
-            TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire,
-            },
-        );
+        self.extra_names
+            .insert(name.into(), TileWireCoord::new_idx(0, wire));
     }
 
     pub fn extra_name_sub(&mut self, name: impl Into<String>, sub: usize, wire: WireId) {
-        self.extra_names.insert(
-            name.into(),
-            TileWireCoord {
-                cell: CellSlotId::from_idx(sub),
-                wire,
-            },
-        );
+        self.extra_names
+            .insert(name.into(), TileWireCoord::new_idx(sub, wire));
     }
 
     pub fn extra_name_tile(
@@ -1664,13 +1654,10 @@ impl<'a> IntBuilder<'a> {
         wire: WireId,
     ) {
         if let Some((tki, _)) = self.rd.tile_kinds.get(tile.as_ref()) {
-            self.extra_names_tile.entry(tki).or_default().insert(
-                name.into(),
-                TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire,
-                },
-            );
+            self.extra_names_tile
+                .entry(tki)
+                .or_default()
+                .insert(name.into(), TileWireCoord::new_idx(0, wire));
         }
     }
 
@@ -1682,13 +1669,10 @@ impl<'a> IntBuilder<'a> {
         wire: WireId,
     ) {
         if let Some((tki, _)) = self.rd.tile_kinds.get(tile.as_ref()) {
-            self.extra_names_tile.entry(tki).or_default().insert(
-                name.into(),
-                TileWireCoord {
-                    cell: CellSlotId::from_idx(sub),
-                    wire,
-                },
-            );
+            self.extra_names_tile
+                .entry(tki)
+                .or_default()
+                .insert(name.into(), TileWireCoord::new_idx(sub, wire));
         }
     }
 
@@ -2586,21 +2570,9 @@ impl<'a> IntBuilder<'a> {
                 wires.insert(k, ConnectorWire::Reflect(v[0]));
             } else {
                 let def_t = CellSlotId::from_idx(0);
-                node_names.insert(
-                    TileWireCoord {
-                        cell: def_t,
-                        wire: k,
-                    },
-                    tnames[k].to_string(),
-                );
+                node_names.insert(TileWireCoord::new_idx(0, k), tnames[k].to_string());
                 for &x in &v {
-                    node_names.insert(
-                        TileWireCoord {
-                            cell: def_t,
-                            wire: x,
-                        },
-                        tnames[x].to_string(),
-                    );
+                    node_names.insert(TileWireCoord::new_idx(0, x), tnames[x].to_string());
                 }
                 let wt = TileWireCoord {
                     cell: def_t,
@@ -2904,10 +2876,7 @@ impl<'a> IntBuilder<'a> {
             }
         }
         for wn in self.main_passes[dir].ids() {
-            if let Some(wnn) = int_naming.wires.get(&TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: wn,
-            }) {
+            if let Some(wnn) = int_naming.wires.get(&TileWireCoord::new_idx(0, wn)) {
                 let wni = self.rd.wires.get(wnn).unwrap();
                 if let Some(nidx) = self.get_node(int_tile, int_tk, wni)
                     && let Some(w) = src_node2wires.get(&nidx)

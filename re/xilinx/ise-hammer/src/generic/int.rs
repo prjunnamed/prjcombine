@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use prjcombine_interconnect::{
-    db::{BelInfo, CellSlotId, ProgDelay, SwitchBoxItem, TileWireCoord},
+    db::{BelInfo, ProgDelay, SwitchBoxItem, TileWireCoord},
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
@@ -109,7 +109,6 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                         }
                     }
                     let (bram_tile, idx) = tgt.unwrap();
-                    let wire_tcell = CellSlotId::from_idx(idx);
                     let bram_tcls = &intdb.tile_classes[bram_tile.class];
                     if (edev.chip.kind.is_virtex2()
                         || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3)
@@ -124,10 +123,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                                 unreachable!()
                             };
                             for pin in bel.pins.values() {
-                                if pin.wires.contains(&TileWireCoord {
-                                    cell: wire_tcell,
-                                    wire: self.wire.wire,
-                                }) {
+                                if pin
+                                    .wires
+                                    .contains(&TileWireCoord::new_idx(idx, self.wire.wire))
+                                {
                                     found = true;
                                     break;
                                 }
@@ -430,10 +429,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                         .with_col(src_col)
                         .tile(prjcombine_xc2000::tslots::MAIN);
                     if let Some(src_tile) = backend.egrid.get_tile(int_tcrd) {
-                        let dwire = TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: self.wire.wire,
-                        };
+                        let dwire = TileWireCoord::new_idx(0, self.wire.wire);
                         if let Some(ins) = backend.egrid.db_index.tile_classes[src_tile.class]
                             .pips_bwd
                             .get(&dwire)
@@ -548,10 +544,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                         .with_row(src_row)
                         .tile(prjcombine_xc2000::tslots::MAIN);
                     if let Some(src_tile) = backend.egrid.get_tile(int_tcrd) {
-                        let dwire = TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: self.wire.wire,
-                        };
+                        let dwire = TileWireCoord::new_idx(0, self.wire.wire);
                         if let Some(ins) = backend.egrid.db_index.tile_classes[src_tile.class]
                             .pips_bwd
                             .get(&dwire)

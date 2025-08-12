@@ -13,27 +13,25 @@ use prjcombine_siliconblue::{
     chip::{Chip, ChipKind, SpecialIoKey, SpecialTile},
     cslots, regions, tslots,
 };
-use unnamed_entity::{EntityId, EntityVec};
+use unnamed_entity::EntityVec;
 
 use crate::sites::BelPins;
 
 fn add_input(db: &IntDb, bel: &mut Bel, name: &str, cell: usize, wire: &str) {
     bel.pins.insert(
         name.into(),
-        BelPin::new_in(TileWireCoord {
-            cell: CellSlotId::from_idx(cell),
-            wire: db.get_wire(wire),
-        }),
+        BelPin::new_in(TileWireCoord::new_idx(cell, db.get_wire(wire))),
     );
 }
 
 fn add_output(db: &IntDb, bel: &mut Bel, name: &str, cell: usize, wires: &[&str]) {
     bel.pins.insert(
         name.into(),
-        BelPin::new_out_multi(wires.iter().map(|wire| TileWireCoord {
-            cell: CellSlotId::from_idx(cell),
-            wire: db.get_wire(wire),
-        })),
+        BelPin::new_out_multi(
+            wires
+                .iter()
+                .map(|wire| TileWireCoord::new_idx(cell, db.get_wire(wire))),
+        ),
     );
 }
 

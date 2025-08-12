@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::{
-    db::{Bel, BelInfo, BelPin, CellSlotId, IntDb, TileWireCoord, WireKind},
+    db::{Bel, BelInfo, BelPin, IntDb, TileWireCoord, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{
@@ -2326,10 +2326,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let mut bel = Bel::default();
             bel.pins.insert(
                 "CLK".into(),
-                BelPin::new_in(TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: builder.db.get_wire("IMUX.CLK3"),
-                }),
+                BelPin::new_in(TileWireCoord::new_idx(0, builder.db.get_wire("IMUX.CLK3"))),
             );
             let tcls = builder.db.tile_classes.get_mut(tile).unwrap().1;
             tcls.bels.insert(bels::MISR, BelInfo::Bel(bel));
@@ -2360,10 +2357,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder.bel_single(bels::CAPTURE, "CAPTURE"),
                 builder.bel_single(bels::ICAP, "ICAP").pin_force_int(
                     "I2",
-                    TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: lr_di2.unwrap(),
-                    },
+                    TileWireCoord::new_idx(0, lr_di2.unwrap()),
                     "CNR_DATA_IN2",
                 ),
             ],
@@ -3630,18 +3624,12 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
                 .extra_int_out_force(
                     format!("OUT_T{i}"),
-                    TileWireCoord {
-                        cell: CellSlotId::from_idx(1),
-                        wire: gclk[i],
-                    },
+                    TileWireCoord::new_idx(1, gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_UP{i}"),
                 )
                 .extra_int_out_force(
                     format!("OUT_B{i}"),
-                    TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: gclk[i],
-                    },
+                    TileWireCoord::new_idx(0, gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_DN{i}"),
                 );
         }
@@ -3664,10 +3652,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
                 .extra_int_out_force(
                     format!("OUT_B{i}"),
-                    TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: gclk[i],
-                    },
+                    TileWireCoord::new_idx(0, gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_DN{i}"),
                 );
         }
@@ -3690,10 +3675,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
                 .extra_int_out_force(
                     format!("OUT_T{i}"),
-                    TileWireCoord {
-                        cell: CellSlotId::from_idx(1),
-                        wire: gclk[i],
-                    },
+                    TileWireCoord::new_idx(1, gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_UP{i}"),
                 )
         }

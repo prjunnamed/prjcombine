@@ -282,6 +282,13 @@ pub struct TileWireCoord {
 }
 
 impl TileWireCoord {
+    pub fn new_idx(cell_idx: usize, wire: WireId) -> Self {
+        TileWireCoord {
+            cell: CellSlotId::from_idx(cell_idx),
+            wire,
+        }
+    }
+
     pub fn pos(self) -> PolTileWireCoord {
         PolTileWireCoord {
             tw: self,

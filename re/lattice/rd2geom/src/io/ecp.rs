@@ -5,7 +5,7 @@ use prjcombine_ecp::{
     chip::{ChipKind, IoGroupKind, PllLoc, PllPad, RowKind, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, CellSlotId, TileWireCoord},
+    db::{Bel, BelPin, TileWireCoord},
     dir::{Dir, DirH, DirV},
     grid::{BelCoord, CellCoord, DieId},
 };
@@ -529,10 +529,7 @@ impl ChipContext<'_> {
                     self.claim_pip(eclk_pll, wire_pll);
 
                     let wire = self.intdb.get_wire(["OUT_F6", "OUT_F7"][i]);
-                    let wire = TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire,
-                    };
+                    let wire = TileWireCoord::new_idx(0, wire);
                     bel.pins
                         .insert(format!("PAD{i}_OUT"), BelPin::new_out(wire));
                     let wire = self.edev.egrid.tile_wire(tcrd, wire);
@@ -540,10 +537,7 @@ impl ChipContext<'_> {
                 } else {
                     for ci in 0..2 {
                         let wire = self.intdb.get_wire(["OUT_F6", "OUT_F7"][i]);
-                        let wire = TileWireCoord {
-                            cell: CellSlotId::from_idx(ci),
-                            wire,
-                        };
+                        let wire = TileWireCoord::new_idx(ci, wire);
                         bel.pins
                             .insert(format!("PAD{i}_OUT{ci}"), BelPin::new_out(wire));
                         let wire = self.edev.egrid.tile_wire(tcrd, wire);
@@ -648,10 +642,7 @@ impl ChipContext<'_> {
                     }
 
                     let wire = self.intdb.get_wire(["OUT_F6", "OUT_F7"][i]);
-                    let wire = TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire,
-                    };
+                    let wire = TileWireCoord::new_idx(0, wire);
                     bel.pins
                         .insert(format!("PAD{i}_OUT"), BelPin::new_out(wire));
                     let wire = self.edev.egrid.tile_wire(tcrd, wire);
@@ -659,10 +650,7 @@ impl ChipContext<'_> {
                 } else {
                     for ci in 0..2 {
                         let wire = self.intdb.get_wire(["OUT_F6", "OUT_F7"][i]);
-                        let wire = TileWireCoord {
-                            cell: CellSlotId::from_idx(ci),
-                            wire,
-                        };
+                        let wire = TileWireCoord::new_idx(ci, wire);
                         bel.pins
                             .insert(format!("PAD{i}_OUT{ci}"), BelPin::new_out(wire));
                         let wire = self.edev.egrid.tile_wire(tcrd, wire);

@@ -362,28 +362,12 @@ impl IntMaker<'_> {
                 );
                 match (length, dir) {
                     (1, Dir::W) => {
-                        self.sng_fixup_map.insert(
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(1),
-                                wire: w0,
-                            },
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: w,
-                            },
-                        );
+                        self.sng_fixup_map
+                            .insert(TileWireCoord::new_idx(1, w0), TileWireCoord::new_idx(0, w));
                     }
                     (1, Dir::E) => {
-                        self.sng_fixup_map.insert(
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: w0,
-                            },
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(1),
-                                wire: w,
-                            },
-                        );
+                        self.sng_fixup_map
+                            .insert(TileWireCoord::new_idx(0, w0), TileWireCoord::new_idx(1, w));
                     }
                     _ => (),
                 }
@@ -795,12 +779,9 @@ impl IntMaker<'_> {
             let ConnectorWire::Pass(wf) = ti else {
                 unreachable!()
             };
-            for tile in [0, 1] {
-                let tile = CellSlotId::from_idx(tile);
-                let Some(name) = naming.wires.get(&TileWireCoord {
-                    cell: tile,
-                    wire: wf,
-                }) else {
+            for cid in [0, 1] {
+                let tile = CellSlotId::from_idx(cid);
+                let Some(name) = naming.wires.get(&TileWireCoord::new_idx(cid, wf)) else {
                     continue;
                 };
                 let node = self.builder.rd.lookup_wire_force(int_xy, name);
@@ -825,18 +806,15 @@ impl IntMaker<'_> {
                 assert!(node2target.insert(node, twf).is_none());
             }
         }
-        for tile in [0, 1] {
+        for cid in [0, 1] {
             let pass = &self.builder.db.conn_classes
                 [self.builder.db.get_conn_class(&format!("MAIN.{dir}"))];
             let naming =
                 &self.builder.ndb.tile_class_namings[self.builder.ndb.get_tile_class_naming("INT")];
             let mut wires = EntityPartVec::new();
             for wt in pass.wires.ids() {
-                let tile = CellSlotId::from_idx(tile);
-                let Some(name) = naming.wires.get(&TileWireCoord {
-                    cell: tile,
-                    wire: wt,
-                }) else {
+                let tile = CellSlotId::from_idx(cid);
+                let Some(name) = naming.wires.get(&TileWireCoord::new_idx(cid, wt)) else {
                     continue;
                 };
                 let node = self.builder.rd.lookup_wire_force(int_xy, name);
@@ -850,7 +828,7 @@ impl IntMaker<'_> {
                 wires,
             };
             self.builder
-                .insert_term_merge(&format!("TERM.{dir}{tile}"), term);
+                .insert_term_merge(&format!("TERM.{dir}{cid}"), term);
         }
     }
 
@@ -874,7 +852,7 @@ impl IntMaker<'_> {
             w2e.insert(wt, wf);
         }
         let switch_tile = [w2e, e2w];
-        for (dir, xy_to, xy_from, tile_to, tile_from) in
+        for (dir, xy_to, xy_from, tile_to, cell_from) in
             [(Dir::W, xy_e, xy_w, 0, 1), (Dir::E, xy_w, xy_e, 1, 0)]
         {
             let pass = &self.builder.db.conn_classes
@@ -886,38 +864,33 @@ impl IntMaker<'_> {
                 let ConnectorWire::Pass(wf) = ti else {
                     unreachable!()
                 };
-                let name = if let Some(name) = naming.wires.get(&TileWireCoord {
-                    cell: CellSlotId::from_idx(tile_from),
-                    wire: wf,
-                }) {
-                    name
-                } else if let Some(&owf) = switch_tile[tile_from].get(wf) {
-                    if let Some(name) = naming.wires.get(&TileWireCoord {
-                        cell: CellSlotId::from_idx(tile_from ^ 1),
-                        wire: owf,
-                    }) {
+                let name =
+                    if let Some(name) = naming.wires.get(&TileWireCoord::new_idx(cell_from, wf)) {
                         name
+                    } else if let Some(&owf) = switch_tile[cell_from].get(wf) {
+                        if let Some(name) = naming
+                            .wires
+                            .get(&TileWireCoord::new_idx(cell_from ^ 1, owf))
+                        {
+                            name
+                        } else {
+                            continue;
+                        }
                     } else {
                         continue;
-                    }
-                } else {
-                    continue;
-                };
+                    };
                 let node = self.builder.rd.lookup_wire_force(xy_from, name);
                 assert!(node2target.insert(node, wf).is_none());
             }
             let mut wires = EntityPartVec::new();
             for wt in pass.wires.ids() {
-                let name = if let Some(name) = naming.wires.get(&TileWireCoord {
-                    cell: CellSlotId::from_idx(tile_to),
-                    wire: wt,
-                }) {
+                let name = if let Some(name) =
+                    naming.wires.get(&TileWireCoord::new_idx(tile_to, wt))
+                {
                     name
                 } else if let Some(&owt) = switch_tile[tile_to].get(wt) {
-                    if let Some(name) = naming.wires.get(&TileWireCoord {
-                        cell: CellSlotId::from_idx(tile_to ^ 1),
-                        wire: owt,
-                    }) {
+                    if let Some(name) = naming.wires.get(&TileWireCoord::new_idx(tile_to ^ 1, owt))
+                    {
                         name
                     } else {
                         continue;
@@ -949,11 +922,7 @@ impl IntMaker<'_> {
                 let ConnectorWire::Pass(wf) = ti else {
                     unreachable!()
                 };
-                let tile = CellSlotId::from_idx(0);
-                let Some(name) = naming.wires.get(&TileWireCoord {
-                    cell: tile,
-                    wire: wf,
-                }) else {
+                let Some(name) = naming.wires.get(&TileWireCoord::new_idx(0, wf)) else {
                     continue;
                 };
                 let node = self.builder.rd.lookup_wire_force(xy_from, name);
@@ -961,11 +930,7 @@ impl IntMaker<'_> {
             }
             let mut wires = EntityPartVec::new();
             for wt in pass.wires.ids() {
-                let tile = CellSlotId::from_idx(0);
-                let Some(name) = naming.wires.get(&TileWireCoord {
-                    cell: tile,
-                    wire: wt,
-                }) else {
+                let Some(name) = naming.wires.get(&TileWireCoord::new_idx(0, wt)) else {
                     continue;
                 };
                 let node = self.builder.rd.lookup_wire_force(xy_to, name);
@@ -3465,10 +3430,7 @@ impl IntMaker<'_> {
                 ("CAPTURE_DR", "IMUX.IMUX.30.DELAY"),
                 ("SELECT_DR", "IMUX.IMUX.31.DELAY"),
             ] {
-                let wire = TileWireCoord {
-                    cell: CellSlotId::from_idx(34),
-                    wire: self.builder.db.wires.get(wire).unwrap().0,
-                };
+                let wire = TileWireCoord::new_idx(34, self.builder.db.wires.get(wire).unwrap().0);
                 let bpin = bel.pins.get_mut(pin).unwrap();
                 bpin.wires = BTreeSet::from_iter([wire]);
                 let bnpin = beln.pins.get_mut(pin).unwrap();

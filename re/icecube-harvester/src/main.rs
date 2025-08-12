@@ -16,8 +16,8 @@ use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, Buf, CellSlotId, IntDb, Mux, ProgInv, SwitchBox, SwitchBoxItem,
-        TileClass, TileClassId, TileWireCoord,
+        Bel, BelInfo, BelPin, Buf, IntDb, Mux, ProgInv, SwitchBox, SwitchBoxItem, TileClass,
+        TileClassId, TileWireCoord,
     },
     dir::{Dir, DirH, DirPartMap, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
@@ -375,14 +375,8 @@ impl HarvestContext<'_> {
         let mut pips = self.pips.lock().unwrap();
         let mut ctr = 0;
         for pip in cur_pips {
-            let wt = TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: pip.1,
-            };
-            let wf = TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: pip.2,
-            };
+            let wt = TileWireCoord::new_idx(0, pip.1);
+            let wf = TileWireCoord::new_idx(0, pip.2);
             if pips.entry(pip.0).or_default().insert((wt, wf)) {
                 ctr += 1;
                 changed = true;
@@ -1846,10 +1840,7 @@ impl PartContext<'_> {
         let mut bel = Bel::default();
         bel.pins.insert(
             "CLK".into(),
-            BelPin::new_out(TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire,
-            }),
+            BelPin::new_out(TileWireCoord::new_idx(0, wire)),
         );
         tcls.bels.insert(bels::SMCCLK, BelInfo::Bel(bel));
         self.intdb
@@ -2067,14 +2058,11 @@ impl PartContext<'_> {
         }
         if has_g2l {
             for i in 0..4 {
-                let wt = TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: self.intdb.get_wire(&format!("LOCAL.0.{ii}", ii = i + 4)),
-                };
-                let wf = TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: self.intdb.get_wire(&format!("GOUT.{i}")),
-                };
+                let wt = TileWireCoord::new_idx(
+                    0,
+                    self.intdb.get_wire(&format!("LOCAL.0.{ii}", ii = i + 4)),
+                );
+                let wf = TileWireCoord::new_idx(0, self.intdb.get_wire(&format!("GOUT.{i}")));
                 g2l.insert(wt, wf);
                 muxes.entry(wt).or_default().insert(wf.pos());
             }
@@ -2101,10 +2089,7 @@ impl PartContext<'_> {
 
             let wtn = self.intdb.wires.key(wt.wire);
             if wtn.ends_with("CLK") {
-                let wi = TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: self.intdb.get_wire(&format!("{wtn}.OPTINV")),
-                };
+                let wi = TileWireCoord::new_idx(0, self.intdb.get_wire(&format!("{wtn}.OPTINV")));
                 items.push(SwitchBoxItem::ProgInv(ProgInv { dst: wi, src: wt }));
             }
         }

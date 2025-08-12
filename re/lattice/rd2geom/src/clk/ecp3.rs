@@ -5,7 +5,7 @@ use prjcombine_ecp::{
     chip::{ChipKind, IoGroupKind, RowKind, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, CellSlotId, TileWireCoord},
+    db::{Bel, BelPin, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, ColId, DieId},
 };
@@ -754,17 +754,11 @@ impl ChipContext<'_> {
                     let pclk = self.intdb.get_wire(&format!("PCLK{pclk_i}"));
                     bel.pins.insert(
                         "OUT_S".into(),
-                        BelPin::new_out(TileWireCoord {
-                            cell: CellSlotId::from_idx(1),
-                            wire: pclk,
-                        }),
+                        BelPin::new_out(TileWireCoord::new_idx(1, pclk)),
                     );
                     bel.pins.insert(
                         "OUT_N".into(),
-                        BelPin::new_out(TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: pclk,
-                        }),
+                        BelPin::new_out(TileWireCoord::new_idx(0, pclk)),
                     );
                     let out_s = self.rc_wire(cell, &format!("CLKO{pclk_i}B_DCC"));
                     self.add_bel_wire(bcrd, "OUT_S", out_s);
@@ -869,17 +863,11 @@ impl ChipContext<'_> {
                     let pclk = self.intdb.get_wire(&format!("PCLK{i}"));
                     bel.pins.insert(
                         format!("OUT_S{i}"),
-                        BelPin::new_out(TileWireCoord {
-                            cell: CellSlotId::from_idx(1),
-                            wire: pclk,
-                        }),
+                        BelPin::new_out(TileWireCoord::new_idx(1, pclk)),
                     );
                     bel.pins.insert(
                         format!("OUT_N{i}"),
-                        BelPin::new_out(TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: pclk,
-                        }),
+                        BelPin::new_out(TileWireCoord::new_idx(0, pclk)),
                     );
                     let hpsx = hpsx_wires[&(col_hpsx, i)];
                     self.claim_pip(vptx_wires_s[&(cell.col, i)], hpsx);

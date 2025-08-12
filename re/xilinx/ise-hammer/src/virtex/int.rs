@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use prjcombine_interconnect::{
-    db::{BelInfo, CellSlotId, SwitchBoxItem, TileWireCoord},
+    db::{BelInfo, SwitchBoxItem, TileWireCoord},
     grid::{ColId, RowId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
@@ -47,19 +47,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinBramLv {
         tcrd.row = RowId::from_idx(1);
         tcrd.slot = tslots::MAIN;
         for i in 0..12 {
-            let wire_pin = TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: backend.egrid.db.get_wire(&format!("LV.{i}")),
-            };
+            let wire_pin = TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("LV.{i}")));
 
             let resolved_pin = backend
                 .egrid
                 .resolve_wire(tcrd.wire(wire_pin.wire))
                 .unwrap();
-            let wire_clk = TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: backend.egrid.db.get_wire("IMUX.BRAM.CLKA"),
-            };
+            let wire_clk = TileWireCoord::new_idx(0, backend.egrid.db.get_wire("IMUX.BRAM.CLKA"));
             let resolved_clk = backend
                 .egrid
                 .resolve_wire(tcrd.wire(wire_clk.wire))
@@ -100,10 +94,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinLh {
         let tile = &backend.egrid[tcrd];
         let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
         for i in 0..12 {
-            let wire_pin = TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: backend.egrid.db.get_wire(&format!("LH.{i}")),
-            };
+            let wire_pin = TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("LH.{i}")));
             let resolved_pin = backend
                 .egrid
                 .resolve_wire(tcrd.wire(wire_pin.wire))
@@ -159,10 +150,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
                 "IO.B" | "IO.T"
             ) {
                 for i in [0, 6] {
-                    let wire_pin = TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: backend.egrid.db.get_wire(&format!("LH.{i}")),
-                    };
+                    let wire_pin =
+                        TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("LH.{i}")));
                     let resolved_pin = backend
                         .egrid
                         .resolve_wire(tcrd.wire(wire_pin.wire))
@@ -171,10 +160,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
                         continue;
                     }
                     // FOUND
-                    let wire_buf = TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: backend.egrid.db.get_wire(&format!("LH.{i}.FAKE")),
-                    };
+                    let wire_buf = TileWireCoord::new_idx(
+                        0,
+                        backend.egrid.db.get_wire(&format!("LH.{i}.FAKE")),
+                    );
                     let resolved_buf = backend
                         .egrid
                         .resolve_wire(tcrd.wire(wire_buf.wire))
@@ -229,10 +218,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
             {
                 let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
                 for j in 0..=6 {
-                    let wire_pin = TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: backend.egrid.db.get_wire(&format!("HEX.{h}{i}.{j}")),
-                    };
+                    let wire_pin = TileWireCoord::new_idx(
+                        0,
+                        backend.egrid.db.get_wire(&format!("HEX.{h}{i}.{j}")),
+                    );
                     let resolved_pin = backend
                         .egrid
                         .resolve_wire(tcrd.wire(wire_pin.wire))
@@ -309,10 +298,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
             {
                 let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
                 for j in 0..=6 {
-                    let wire_pin = TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: backend.egrid.db.get_wire(&format!("HEX.{v}{i}.{j}")),
-                    };
+                    let wire_pin = TileWireCoord::new_idx(
+                        0,
+                        backend.egrid.db.get_wire(&format!("HEX.{v}{i}.{j}")),
+                    );
                     let resolved_pin = backend
                         .egrid
                         .resolve_wire(tcrd.wire(wire_pin.wire))
@@ -388,10 +377,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
             {
                 let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
                 for j in 0..=6 {
-                    let wire_pin = TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: backend.egrid.db.get_wire(&format!("HEX.{h}{i}.{j}")),
-                    };
+                    let wire_pin = TileWireCoord::new_idx(
+                        0,
+                        backend.egrid.db.get_wire(&format!("HEX.{h}{i}.{j}")),
+                    );
                     let resolved_pin = backend
                         .egrid
                         .resolve_wire(tcrd.wire(wire_pin.wire))
@@ -471,10 +460,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
             {
                 let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
                 for j in 0..=6 {
-                    let wire_pin = TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: backend.egrid.db.get_wire(&format!("HEX.{v}{i}.{j}")),
-                    };
+                    let wire_pin = TileWireCoord::new_idx(
+                        0,
+                        backend.egrid.db.get_wire(&format!("HEX.{v}{i}.{j}")),
+                    );
                     let resolved_pin = backend
                         .egrid
                         .resolve_wire(tcrd.wire(wire_pin.wire))
@@ -549,10 +538,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     } else {
                         format!("{wire_name}.E")
                     };
-                    let clb_wire = TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: intdb.get_wire(&clb_wire),
-                    };
+                    let clb_wire = TileWireCoord::new_idx(0, intdb.get_wire(&clb_wire));
                     let wire_pin = clb_index.pips_fwd[&clb_wire].iter().next().unwrap().tw;
                     let relation = if tcname == "IO.L" {
                         Delta::new(2, 0, "CLB")
@@ -635,10 +621,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         'quad_src_all_pin: {
                             if in_wire_name.starts_with("SINGLE") {
                                 let wire_buf = format!("{in_wire_name}.BUF");
-                                let wire_buf = TileWireCoord {
-                                    cell: CellSlotId::from_idx(0),
-                                    wire: intdb.get_wire(&wire_buf),
-                                };
+                                let wire_buf = TileWireCoord::new_idx(0, intdb.get_wire(&wire_buf));
                                 let related = Delta::new(
                                     -1,
                                     wire_from.cell.to_idx() as i32 - 4,
@@ -648,10 +631,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     related.clone(),
                                     BaseIntPip::new(
                                         wire_buf,
-                                        TileWireCoord {
-                                            cell: CellSlotId::from_idx(0),
-                                            wire: wire_from.wire,
-                                        },
+                                        TileWireCoord::new_idx(0, wire_from.wire),
                                     ),
                                 )));
                                 props.push(Box::new(Related::new(
@@ -743,11 +723,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             } else if out_name.starts_with("SINGLE") {
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
 
-                let wire_buf = format!("{out_name}.BUF");
-                let wire_buf = TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: intdb.get_wire(&wire_buf),
-                };
+                let wire_buf =
+                    TileWireCoord::new_idx(0, intdb.get_wire(&format!("{out_name}.BUF")));
                 if !tcname.contains("BRAM") {
                     props.push(Box::new(BaseIntPip::new(wire_buf, wire_to)));
                     props.push(Box::new(WireMutexExclusive::new(wire_buf)));
@@ -759,13 +736,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     );
                     props.push(Box::new(Related::new(
                         related.clone(),
-                        BaseIntPip::new(
-                            wire_buf,
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: wire_to.wire,
-                            },
-                        ),
+                        BaseIntPip::new(wire_buf, TileWireCoord::new_idx(0, wire_to.wire)),
                     )));
                     props.push(Box::new(Related::new(
                         related,
@@ -825,11 +796,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
 
                 if out_name.starts_with("LH") && matches!(&tcname[..], "IO.B" | "IO.T") {
-                    let wire_buf = format!("{out_name}.FAKE");
-                    let wire_buf = TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: intdb.get_wire(&wire_buf),
-                    };
+                    let wire_buf =
+                        TileWireCoord::new_idx(0, intdb.get_wire(&format!("{out_name}.FAKE")));
                     props.push(Box::new(BaseIntPip::new(wire_buf, wire_to)));
                     props.push(Box::new(WireMutexExclusive::new(wire_buf)));
                 } else if out_name.starts_with("LV")
@@ -872,10 +840,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let in_wire_name = intdb.wires.key(wire_from.wire);
                     'll_src_pin: {
                         if let Some(wire_unbuf) = in_wire_name.strip_suffix(".BUF") {
-                            let wire_unbuf = TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: intdb.get_wire(wire_unbuf),
-                            };
+                            let wire_unbuf = TileWireCoord::new_idx(0, intdb.get_wire(wire_unbuf));
                             props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
                             props.push(Box::new(WireMutexExclusive::new(wire_unbuf)));
                             break 'll_src_pin;
@@ -902,10 +867,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             }
                             break 'll_src_pin;
                         } else if let Some(wire_unbuf) = in_wire_name.strip_suffix(".FAKE") {
-                            let wire_unbuf = TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: intdb.get_wire(wire_unbuf),
-                            };
+                            let wire_unbuf = TileWireCoord::new_idx(0, intdb.get_wire(wire_unbuf));
                             props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
                             props.push(Box::new(WireMutexExclusive::new(wire_unbuf)));
                             break 'll_src_pin;
@@ -928,11 +890,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 }
                             }
                         } else if in_wire_name.starts_with("SINGLE") {
-                            let wire_buf = format!("{in_wire_name}.BUF");
-                            let wire_buf = TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: intdb.get_wire(&wire_buf),
-                            };
+                            let wire_buf = TileWireCoord::new_idx(
+                                0,
+                                intdb.get_wire(&format!("{in_wire_name}.BUF")),
+                            );
                             if tcname.ends_with("BRAM") {
                                 let related = Delta::new(
                                     -1,
@@ -943,10 +904,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     related.clone(),
                                     BaseIntPip::new(
                                         wire_buf,
-                                        TileWireCoord {
-                                            cell: CellSlotId::from_idx(0),
-                                            wire: wire_from.wire,
-                                        },
+                                        TileWireCoord::new_idx(0, wire_from.wire),
                                     ),
                                 )));
                                 props.push(Box::new(Related::new(
@@ -1030,16 +988,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         }
                     }
                     if out_name == "DLL.IMUX.CLKIN" {
-                        alt_out_wire = Some(TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: backend.egrid.db.get_wire("DLL.IMUX.CLKFB"),
-                        });
+                        alt_out_wire = Some(TileWireCoord::new_idx(
+                            0,
+                            backend.egrid.db.get_wire("DLL.IMUX.CLKFB"),
+                        ));
                     }
                     if out_name == "DLL.IMUX.CLKFB" {
-                        alt_out_wire = Some(TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: backend.egrid.db.get_wire("DLL.IMUX.CLKIN"),
-                        });
+                        alt_out_wire = Some(TileWireCoord::new_idx(
+                            0,
+                            backend.egrid.db.get_wire("DLL.IMUX.CLKIN"),
+                        ));
                     }
                 }
                 if let Some(alt_out) = alt_out_wire {
@@ -1060,10 +1018,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         let in_wire_name = intdb.wires.key(wire_from.wire);
                         'imux_pin: {
                             if let Some(wire_unbuf) = in_wire_name.strip_suffix(".BUF") {
-                                let wire_unbuf = TileWireCoord {
-                                    cell: CellSlotId::from_idx(0),
-                                    wire: intdb.get_wire(wire_unbuf),
-                                };
+                                let wire_unbuf =
+                                    TileWireCoord::new_idx(0, intdb.get_wire(wire_unbuf));
                                 props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
                                 props.push(Box::new(WireMutexExclusive::new(wire_unbuf)));
                                 break 'imux_pin;
@@ -1114,11 +1070,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             // already pinned above
                             break 'imux_pin;
                         } else if out_name == "PCI.IMUX.I3" {
-                            let wire_buf = format!("{in_wire_name}.BUF");
-                            let wire_buf = TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: intdb.get_wire(&wire_buf),
-                            };
+                            let wire_buf = TileWireCoord::new_idx(
+                                0,
+                                intdb.get_wire(&format!("{in_wire_name}.BUF")),
+                            );
                             let related =
                                 Delta::new(0, 0, if tcname == "CLKL" { "IO.L" } else { "IO.R" });
                             props.push(Box::new(Related::new(

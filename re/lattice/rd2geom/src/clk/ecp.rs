@@ -5,7 +5,7 @@ use prjcombine_ecp::{
     chip::{SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, CellSlotId, TileWireCoord},
+    db::{Bel, BelPin, TileWireCoord},
     dir::{Dir, DirHV},
     grid::{CellCoord, DieId},
 };
@@ -104,15 +104,10 @@ impl ChipContext<'_> {
             .enumerate()
         {
             for wname in ["PCLK0", "PCLK1", "SCLK0", "SCLK1", "SCLK2", "SCLK3"] {
-                let wire = self.intdb.get_wire(wname);
-                let cell_slot = CellSlotId::from_idx(cell_idx);
-                let bpin = BelPin::new_in(TileWireCoord {
-                    cell: cell_slot,
-                    wire,
-                });
-                bel.pins.insert(format!("{wname}_{hv}"), bpin);
-                let wire_cell = self.edev.egrid.tile_cell(tcrd, cell_slot);
-                let wire = wire_cell.wire(wire);
+                let wire = TileWireCoord::new_idx(cell_idx, self.intdb.get_wire(wname));
+                bel.pins
+                    .insert(format!("{wname}_{hv}"), BelPin::new_in(wire));
+                let wire = self.edev.egrid.tile_wire(tcrd, wire);
                 let idx: u8 = wname[4..].parse().unwrap();
                 if wname.starts_with("PCLK") {
                     for &wf in pll_in.values().flatten() {
@@ -181,15 +176,10 @@ impl ChipContext<'_> {
             let out = self.rc_wire(cell, &format!("{ll}DCSOUT{i}_DCS"));
             self.add_bel_wire(bcrd, "OUT", out);
 
-            let pclk = self.intdb.get_wire(&format!("PCLK{}", i + 2));
-            let cell_slot = CellSlotId::from_idx(bidx / 2);
-            let bpin = BelPin::new_in(TileWireCoord {
-                cell: cell_slot,
-                wire: pclk,
-            });
-            bel.pins.insert("OUT".into(), bpin);
-            let pclk_cell = self.edev.egrid.tile_cell(tcrd, cell_slot);
-            let pclk = pclk_cell.wire(pclk);
+            let wire =
+                TileWireCoord::new_idx(bidx / 2, self.intdb.get_wire(&format!("PCLK{}", i + 2)));
+            bel.pins.insert("OUT".into(), BelPin::new_in(wire));
+            let pclk = self.edev.egrid.tile_wire(tcrd, wire);
             self.claim_pip_int_out(pclk, out);
 
             let clka = self.rc_wire(cell, &format!("{ll}CLK{i}A_DCS"));

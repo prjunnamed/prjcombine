@@ -348,24 +348,12 @@ impl IntMaker<'_> {
                             w_b,
                         );
                         self.sng_fixup_map.insert(
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: w_f,
-                            },
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(1),
-                                wire: n_f,
-                            },
+                            TileWireCoord::new_idx(0, w_f),
+                            TileWireCoord::new_idx(1, n_f),
                         );
                         self.sng_fixup_map.insert(
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(1),
-                                wire: w_b,
-                            },
-                            TileWireCoord {
-                                cell: CellSlotId::from_idx(0),
-                                wire: n_b,
-                            },
+                            TileWireCoord::new_idx(1, w_b),
+                            TileWireCoord::new_idx(0, n_b),
                         );
                     }
                     w_f = n_f;

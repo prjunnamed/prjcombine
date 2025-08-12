@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 
 use prjcombine_interconnect::{
-    db::{BelSlotId, CellSlotId, TileWireCoord},
+    db::{BelSlotId, TileWireCoord},
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
@@ -88,17 +88,15 @@ impl BelIntoPipWire for PipWire {
 
 impl BelIntoPipWire for (PipInt, usize, &str) {
     fn into_pip_wire(self, backend: &IseBackend, _slot: BelSlotId) -> PipWire {
-        let tile = CellSlotId::from_idx(self.1);
         let wire = backend.egrid.db.get_wire(self.2);
-        PipWire::Int(TileWireCoord { cell: tile, wire })
+        PipWire::Int(TileWireCoord::new_idx(self.1, wire))
     }
 }
 
 impl BelIntoPipWire for (PipInt, usize, String) {
     fn into_pip_wire(self, backend: &IseBackend, _slot: BelSlotId) -> PipWire {
-        let tile = CellSlotId::from_idx(self.1);
         let wire = backend.egrid.db.get_wire(&self.2);
-        PipWire::Int(TileWireCoord { cell: tile, wire })
+        PipWire::Int(TileWireCoord::new_idx(self.1, wire))
     }
 }
 

@@ -1,11 +1,10 @@
-use prjcombine_interconnect::db::{CellSlotId, TileWireCoord};
+use prjcombine_interconnect::db::TileWireCoord;
 use prjcombine_re_fpga_hammer::{OcdMode, xlat_bitvec, xlat_bool, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex::{bels, chip::ChipKind};
 use prjcombine_xilinx_bitstream::Reg;
-use unnamed_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -115,18 +114,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("STARTUP")
             .pin("GSR")
             .test_enum("GSRMUX", &["0", "1", "GSR", "GSR_B"]);
-        let wire_gwe = TileWireCoord {
-            cell: CellSlotId::from_idx(0),
-            wire: backend.egrid.db.get_wire("IMUX.STARTUP.GWE"),
-        };
-        let wire_gts = TileWireCoord {
-            cell: CellSlotId::from_idx(0),
-            wire: backend.egrid.db.get_wire("IMUX.STARTUP.GTS"),
-        };
-        let wire_gsr = TileWireCoord {
-            cell: CellSlotId::from_idx(0),
-            wire: backend.egrid.db.get_wire("IMUX.STARTUP.GSR"),
-        };
+        let wire_gwe = TileWireCoord::new_idx(0, backend.egrid.db.get_wire("IMUX.STARTUP.GWE"));
+        let wire_gts = TileWireCoord::new_idx(0, backend.egrid.db.get_wire("IMUX.STARTUP.GTS"));
+        let wire_gsr = TileWireCoord::new_idx(0, backend.egrid.db.get_wire("IMUX.STARTUP.GSR"));
         bctx.mode("STARTUP")
             .no_pin("GTS")
             .no_pin("GWE")

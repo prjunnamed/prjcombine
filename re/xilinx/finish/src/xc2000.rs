@@ -4,7 +4,7 @@ use std::{
 };
 
 use itertools::Itertools;
-use prjcombine_interconnect::db::{Bel, BelInfo, CellSlotId, SwitchBoxItem, TileWireCoord};
+use prjcombine_interconnect::db::{Bel, BelInfo, SwitchBoxItem, TileWireCoord};
 use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
 use prjcombine_xc2000::{
     bels,
@@ -13,7 +13,7 @@ use prjcombine_xc2000::{
     db::{Database, Device},
 };
 use regex::Regex;
-use unnamed_entity::{EntityId, EntityMap, EntitySet, EntityVec};
+use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
     chip: &'a Chip,
@@ -261,10 +261,7 @@ pub fn finish(
             let io_b = &mut int_i.tile_classes[io_b];
             io_b.bels
                 .insert(bels::xc5200::SCANTEST, BelInfo::Bel(Bel::default()));
-            let key = TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: int_i.get_wire("IMUX.BYPOSC.PUMP"),
-            };
+            let key = TileWireCoord::new_idx(0, int_i.get_wire("IMUX.BYPOSC.PUMP"));
             let BelInfo::SwitchBox(ref src_cnr_tr) =
                 int_i.tile_classes.get("CNR.TR").unwrap().1.bels[bels::xc5200::INT]
             else {

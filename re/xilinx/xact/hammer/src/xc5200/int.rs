@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{BelInfo, CellSlotId, SwitchBoxItem, TileWireCoord},
+    db::{BelInfo, SwitchBoxItem, TileWireCoord},
     grid::{TileCoord, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
@@ -8,7 +8,6 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
 use prjcombine_xilinx_bitstream::BitTile;
-use unnamed_entity::EntityId;
 
 use crate::{
     backend::{Key, Value, XactBackend},
@@ -110,10 +109,7 @@ fn drive_wire<'a>(
             .egrid
             .resolve_tile_wire(
                 tcrd,
-                TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: backend.egrid.db.get_wire("IMUX.GIN"),
-                },
+                TileWireCoord::new_idx(0, backend.egrid.db.get_wire("IMUX.GIN")),
             )
             .unwrap();
         let (fuzzer, block, pin) = drive_wire(backend, fuzzer, nwt, wire_avoid);
@@ -132,26 +128,14 @@ fn drive_wire<'a>(
     } else if wtn == "IMUX.GIN" {
         (
             cell.tile(tslots::MAIN),
-            TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: wire_target.slot,
-            },
-            TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: backend.egrid.db.get_wire("GND"),
-            },
+            TileWireCoord::new_idx(0, wire_target.slot),
+            TileWireCoord::new_idx(0, backend.egrid.db.get_wire("GND")),
         )
     } else if let Some(nwt) = wtn.strip_suffix(".BUF") {
         (
             cell.tile(tslots::MAIN),
-            TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: wire_target.slot,
-            },
-            TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: backend.egrid.db.get_wire(nwt),
-            },
+            TileWireCoord::new_idx(0, wire_target.slot),
+            TileWireCoord::new_idx(0, backend.egrid.db.get_wire(nwt)),
         )
     } else if wtn.starts_with("OMUX") {
         let nwt = if cell.col == grid.col_w()
@@ -165,14 +149,8 @@ fn drive_wire<'a>(
         };
         (
             cell.tile(tslots::MAIN),
-            TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: wire_target.slot,
-            },
-            TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: backend.egrid.db.get_wire(nwt),
-            },
+            TileWireCoord::new_idx(0, wire_target.slot),
+            TileWireCoord::new_idx(0, backend.egrid.db.get_wire(nwt)),
         )
     } else if wtn.starts_with("LONG") {
         if wtn.starts_with("LONG.H") {
@@ -191,35 +169,19 @@ fn drive_wire<'a>(
         let idx = wtn[6..].parse::<usize>().unwrap() % 4;
         (
             cell.tile(tslots::MAIN),
-            TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: wire_target.slot,
-            },
-            TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: backend.egrid.db.get_wire(&format!("OUT.TBUF{idx}")),
-            },
+            TileWireCoord::new_idx(0, wire_target.slot),
+            TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("OUT.TBUF{idx}"))),
         )
     } else if wtn.starts_with("CLB.M") || wtn.starts_with("IO.M") {
         let tcrd = cell.tile(tslots::MAIN);
         let tile = &backend.egrid[tcrd];
         let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
         'a: {
-            for &inp in &tcls_index.pips_bwd[&TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: wire_target.slot,
-            }] {
+            for &inp in &tcls_index.pips_bwd[&TileWireCoord::new_idx(0, wire_target.slot)] {
                 if backend.egrid.db.wires.key(inp.wire).starts_with("LONG")
                     || backend.egrid.db.wires.key(inp.wire).starts_with("GLOBAL")
                 {
-                    break 'a (
-                        tcrd,
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: wire_target.slot,
-                        },
-                        inp.tw,
-                    );
+                    break 'a (tcrd, TileWireCoord::new_idx(0, wire_target.slot), inp.tw);
                 }
             }
             panic!("ummm no long?")
@@ -230,24 +192,14 @@ fn drive_wire<'a>(
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.egrid[tcrd];
                 let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
-                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: w.slot,
-                }) {
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if backend.egrid.db.wires.key(inp.wire).starts_with("CLB.M")
                             || backend.egrid.db.wires.key(inp.wire).starts_with("IO.M")
                         {
                             let rwf = backend.egrid.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
-                                break 'a (
-                                    tcrd,
-                                    TileWireCoord {
-                                        cell: CellSlotId::from_idx(0),
-                                        wire: w.slot,
-                                    },
-                                    inp.tw,
-                                );
+                                break 'a (tcrd, TileWireCoord::new_idx(0, w.slot), inp.tw);
                             }
                         }
                     }

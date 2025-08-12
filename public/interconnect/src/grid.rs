@@ -761,10 +761,10 @@ impl ExpandedGrid<'_> {
         }
         let mut res = vec![];
         for w in wires {
-            for &(tcrd, tid) in &self[w.cell].tile_index {
+            for &(tcrd, cid) in &self[w.cell].tile_index {
                 let tcls = &self.db_index.tile_classes[self[tcrd].class];
                 let tcw = TileWireCoord {
-                    cell: tid,
+                    cell: cid,
                     wire: w.slot,
                 };
                 if let Some(ins) = tcls.pips_bwd.get(&tcw) {
@@ -793,10 +793,10 @@ impl ExpandedGrid<'_> {
         let wires = self.wire_tree(wire);
         let mut res = vec![];
         for w in wires {
-            for &(tcrd, tid) in &self[w.cell].tile_index {
+            for &(tcrd, cid) in &self[w.cell].tile_index {
                 let tcls = &self.db_index.tile_classes[self[tcrd].class];
                 let tcw = TileWireCoord {
-                    cell: tid,
+                    cell: cid,
                     wire: w.slot,
                 };
                 if let Some(outs) = tcls.pips_fwd.get(&tcw) {

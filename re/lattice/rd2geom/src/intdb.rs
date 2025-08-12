@@ -1,13 +1,11 @@
 use prjcombine_ecp::{bels, chip::ChipKind, cslots, regions, tslots};
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, BelSlotId, Buf, CellSlotId, ConnectorClass, ConnectorSlotId,
-        ConnectorWire, IntDb, SwitchBox, SwitchBoxItem, TileClass, TileSlotId, TileWireCoord,
-        WireKind,
+        Bel, BelInfo, BelPin, BelSlotId, Buf, ConnectorClass, ConnectorSlotId, ConnectorWire,
+        IntDb, SwitchBox, SwitchBoxItem, TileClass, TileSlotId, TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
 };
-use unnamed_entity::EntityId;
 
 struct TileClassBuilder<'db> {
     db: &'db mut IntDbBuilder,
@@ -44,20 +42,14 @@ impl BelBuilder<'_, '_> {
     fn add_input(&mut self, name: &str, cell: usize, wire: &str) {
         self.bel.pins.insert(
             name.into(),
-            BelPin::new_in(TileWireCoord {
-                cell: CellSlotId::from_idx(cell),
-                wire: self.tcls.db.db.get_wire(wire),
-            }),
+            BelPin::new_in(TileWireCoord::new_idx(cell, self.tcls.db.db.get_wire(wire))),
         );
     }
 
     fn add_output(&mut self, name: &str, cell: usize, wire: &str) {
         self.bel.pins.insert(
             name.into(),
-            BelPin::new_out(TileWireCoord {
-                cell: CellSlotId::from_idx(cell),
-                wire: self.tcls.db.db.get_wire(wire),
-            }),
+            BelPin::new_out(TileWireCoord::new_idx(cell, self.tcls.db.db.get_wire(wire))),
         );
     }
 }
@@ -671,15 +663,9 @@ impl IntDbBuilder {
                 let mut sb = SwitchBox::default();
                 for (si, vsdi) in clocks {
                     sb.items.push(SwitchBoxItem::PermaBuf(Buf {
-                        dst: TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: self.db.get_wire(&format!("SCLK{si}")),
-                        },
-                        src: TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: self.db.get_wire(&format!("VSDCLK{vsdi}")),
-                        }
-                        .pos(),
+                        dst: TileWireCoord::new_idx(0, self.db.get_wire(&format!("SCLK{si}"))),
+                        src: TileWireCoord::new_idx(0, self.db.get_wire(&format!("VSDCLK{vsdi}")))
+                            .pos(),
                     }));
                 }
                 let mut tcls = self.tile_class(name, tslots::SCLK_SOURCE, 1);
@@ -697,15 +683,13 @@ impl IntDbBuilder {
             for i in 0..2 {
                 let wire = self.db.get_wire(&format!("HSDCLK{ii}", ii = i * 4));
                 for j in 0..4 {
-                    let cell_w = CellSlotId::from_idx(j);
-                    let cell_e = CellSlotId::from_idx(4 + j);
                     sb.items.push(SwitchBoxItem::ProgBuf(Buf {
-                        dst: TileWireCoord { cell: cell_w, wire },
-                        src: TileWireCoord { cell: cell_e, wire }.pos(),
+                        dst: TileWireCoord::new_idx(j, wire),
+                        src: TileWireCoord::new_idx(4 + j, wire).pos(),
                     }));
                     sb.items.push(SwitchBoxItem::ProgBuf(Buf {
-                        dst: TileWireCoord { cell: cell_e, wire },
-                        src: TileWireCoord { cell: cell_w, wire }.pos(),
+                        dst: TileWireCoord::new_idx(4 + j, wire),
+                        src: TileWireCoord::new_idx(j, wire).pos(),
                     }));
                 }
             }

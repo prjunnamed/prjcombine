@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
 use prjcombine_interconnect::{
-    db::{CellSlotId, ConnectorClass, ConnectorWire, IntDb, TileWireCoord, WireId, WireKind},
+    db::{ConnectorClass, ConnectorWire, IntDb, TileWireCoord, WireId, WireKind},
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{NamingDb, TileClassNamingId};
@@ -725,10 +725,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileWireCoord>
     for (pin, opin) in [("F1", "O_2"), ("G1", "O_1"), ("C1", "TXIN2")] {
         let w = builder.mux_out(format!("IMUX.CLB.{pin}"), &[format!("CENTER_{pin}")]);
         imux_wires.push(w);
-        imux_nw.push(TileWireCoord {
-            cell: CellSlotId::from_idx(0),
-            wire: w,
-        });
+        imux_nw.push(TileWireCoord::new_idx(0, w));
         for &k in &RT_KINDS {
             builder.extra_name(format!("{k}_{opin}"), w);
         }
@@ -742,10 +739,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileWireCoord>
             &[format!("CENTER_{pin}")],
         );
         imux_wires.push(w);
-        imux_nw.push(TileWireCoord {
-            cell: CellSlotId::from_idx(0),
-            wire: w,
-        });
+        imux_nw.push(TileWireCoord::new_idx(0, w));
         imux_wires.push(ww);
         for k in LEFT_KINDS {
             builder.extra_name(format!("{k}_{pin}R"), w);
@@ -767,10 +761,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileWireCoord>
             &[format!("CENTER_{pin}")],
         );
         imux_wires.push(w);
-        imux_nw.push(TileWireCoord {
-            cell: CellSlotId::from_idx(0),
-            wire: w,
-        });
+        imux_nw.push(TileWireCoord::new_idx(0, w));
         imux_wires.push(ww);
         for &k in &RT_KINDS {
             builder.extra_name(format!("{k}_{pin}L"), w);
@@ -786,10 +777,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileWireCoord>
     ] {
         let w = builder.mux_out(format!("IMUX.CLB.{pin}"), &[format!("CENTER_{pin}")]);
         imux_wires.push(w);
-        imux_nw.push(TileWireCoord {
-            cell: CellSlotId::from_idx(0),
-            wire: w,
-        });
+        imux_nw.push(TileWireCoord::new_idx(0, w));
         for k in RT_KINDS {
             builder.extra_name(format!("{k}_{pin}"), w);
         }
@@ -801,10 +789,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileWireCoord>
     {
         let w = builder.mux_out("IMUX.CLB.K", &["CENTER_K"]);
         imux_wires.push(w);
-        imux_nw.push(TileWireCoord {
-            cell: CellSlotId::from_idx(0),
-            wire: w,
-        });
+        imux_nw.push(TileWireCoord::new_idx(0, w));
     }
 
     for i in 0..2 {
@@ -818,10 +803,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileWireCoord>
                 builder.extra_name(format!("{k}_TBUF{ii}{pin}"), w);
             }
             imux_wires.push(w);
-            imux_nw.push(TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: w,
-            });
+            imux_nw.push(TileWireCoord::new_idx(0, w));
         }
     }
 
@@ -845,10 +827,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileWireCoord>
             }
 
             imux_wires.push(w);
-            imux_nw.push(TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: w,
-            });
+            imux_nw.push(TileWireCoord::new_idx(0, w));
         }
     }
 
@@ -858,10 +837,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileWireCoord>
             builder.extra_name(format!("{k}_COUT"), w);
         }
         imux_wires.push(w);
-        imux_nw.push(TileWireCoord {
-            cell: CellSlotId::from_idx(0),
-            wire: w,
-        });
+        imux_nw.push(TileWireCoord::new_idx(0, w));
     }
 
     for pin in ["CLK", "GSR", "GTS"] {
@@ -887,10 +863,7 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileWireCoord>
     ] {
         let w = builder.mux_out(n, &[xn]);
         imux_wires.push(w);
-        imux_nw.push(TileWireCoord {
-            cell: CellSlotId::from_idx(0),
-            wire: w,
-        });
+        imux_nw.push(TileWireCoord::new_idx(0, w));
     }
 
     (imux_wires, imux_nw)
@@ -1234,27 +1207,14 @@ fn extract_clb(
             .skip_muxes(&tbuf_wires)
             .bels(bels);
         for &(rti, ref name, wire) in force_names {
-            xn = xn.force_name(
-                rti,
-                name,
-                TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire,
-                },
-            );
+            xn = xn.force_name(rti, name, TileWireCoord::new_idx(0, wire));
         }
         for (wt, wf) in [
             ("IMUX.CLB.F2", "IMUX.IOB0.O1"),
             ("IMUX.CLB.G2", "IMUX.IOB1.O1"),
         ] {
-            let wt = TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: xn.builder.db.get_wire(wt),
-            };
-            let wf = TileWireCoord {
-                cell: CellSlotId::from_idx(1),
-                wire: xn.builder.db.get_wire(wf),
-            };
+            let wt = TileWireCoord::new_idx(0, xn.builder.db.get_wire(wt));
+            let wf = TileWireCoord::new_idx(1, xn.builder.db.get_wire(wf));
             xn = xn.force_skip_pip(wt, wf);
         }
         if is_xv {
@@ -1327,68 +1287,24 @@ fn extract_bot(
                 .skip_muxes(imux_wires)
                 .bels(bels);
             for &(rti, ref name, wire) in force_names {
-                xn = xn.force_name(
-                    rti,
-                    name,
-                    TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire,
-                    },
-                );
+                xn = xn.force_name(rti, name, TileWireCoord::new_idx(0, wire));
             }
             if let Some(eclk_h) = eclk_h
                 && tkn == "BOTSL"
             {
                 xn = xn
-                    .force_name(
-                        3,
-                        "LL_FCLK",
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: eclk_h,
-                        },
-                    )
-                    .force_name(
-                        3,
-                        "LL_BHLL1",
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: long_io[0],
-                        },
-                    )
-                    .force_name(
-                        3,
-                        "LL_BHLL2",
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: long_io[1],
-                        },
-                    )
-                    .force_name(
-                        3,
-                        "LL_BHLL4",
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: long_io[2],
-                        },
-                    )
-                    .optin_muxes_tile(&[TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: eclk_h,
-                    }]);
+                    .force_name(3, "LL_FCLK", TileWireCoord::new_idx(0, eclk_h))
+                    .force_name(3, "LL_BHLL1", TileWireCoord::new_idx(0, long_io[0]))
+                    .force_name(3, "LL_BHLL2", TileWireCoord::new_idx(0, long_io[1]))
+                    .force_name(3, "LL_BHLL4", TileWireCoord::new_idx(0, long_io[2]))
+                    .optin_muxes_tile(&[TileWireCoord::new_idx(0, eclk_h)]);
             }
             for (wt, wf) in [
                 ("IMUX.CLB.F4", "IMUX.IOB0.O1"),
                 ("IMUX.CLB.G4", "IMUX.IOB1.O1"),
             ] {
-                let wt = TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: xn.builder.db.get_wire(wt),
-                };
-                let wf = TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: xn.builder.db.get_wire(wf),
-                };
+                let wt = TileWireCoord::new_idx(0, xn.builder.db.get_wire(wt));
+                let wf = TileWireCoord::new_idx(0, xn.builder.db.get_wire(wf));
                 xn = xn.force_skip_pip(wt, wf);
             }
             if is_xv {
@@ -1459,42 +1375,11 @@ fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileW
                 && tkn == "TOPSL"
             {
                 xn = xn
-                    .force_name(
-                        2,
-                        "UL_FCLK",
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: eclk_h,
-                        },
-                    )
-                    .force_name(
-                        2,
-                        "UL_THLL1",
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: long_io[0],
-                        },
-                    )
-                    .force_name(
-                        2,
-                        "UL_THLL2",
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: long_io[1],
-                        },
-                    )
-                    .force_name(
-                        2,
-                        "UL_THLL4",
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: long_io[2],
-                        },
-                    )
-                    .optin_muxes_tile(&[TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: eclk_h,
-                    }]);
+                    .force_name(2, "UL_FCLK", TileWireCoord::new_idx(0, eclk_h))
+                    .force_name(2, "UL_THLL1", TileWireCoord::new_idx(0, long_io[0]))
+                    .force_name(2, "UL_THLL2", TileWireCoord::new_idx(0, long_io[1]))
+                    .force_name(2, "UL_THLL4", TileWireCoord::new_idx(0, long_io[2]))
+                    .optin_muxes_tile(&[TileWireCoord::new_idx(0, eclk_h)]);
             }
             xn.extract();
             found_naming = Some(naming);
@@ -1568,38 +1453,20 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWi
                 xn = xn
                     .skip_muxes(&tbuf_wires)
                     .force_pip(
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: tbuf_wires[0],
-                        },
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: single_wires[0],
-                        },
+                        TileWireCoord::new_idx(0, tbuf_wires[0]),
+                        TileWireCoord::new_idx(0, single_wires[0]),
                     )
                     .force_pip(
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: tbuf_wires[1],
-                        },
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: single_wires[1],
-                        },
+                        TileWireCoord::new_idx(0, tbuf_wires[1]),
+                        TileWireCoord::new_idx(0, single_wires[1]),
                     );
             }
             for (wt, wf) in [
                 ("IMUX.CLB.G1", "IMUX.IOB0.O1"),
                 ("IMUX.CLB.F1", "IMUX.IOB1.O1"),
             ] {
-                let wt = TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: xn.builder.db.get_wire(wt),
-                };
-                let wf = TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: xn.builder.db.get_wire(wf),
-                };
+                let wt = TileWireCoord::new_idx(0, xn.builder.db.get_wire(wt));
+                let wf = TileWireCoord::new_idx(0, xn.builder.db.get_wire(wf));
                 xn = xn.force_skip_pip(wt, wf);
             }
             if is_xv {
@@ -1609,18 +1476,8 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWi
                 && tkn == "RTT"
             {
                 xn = xn
-                    .force_name(
-                        2,
-                        "UR_URKX",
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: eclk_v,
-                        },
-                    )
-                    .optin_muxes_tile(&[TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: eclk_v,
-                    }]);
+                    .force_name(2, "UR_URKX", TileWireCoord::new_idx(0, eclk_v))
+                    .optin_muxes_tile(&[TileWireCoord::new_idx(0, eclk_v)]);
             }
             xn.extract();
             found_naming = Some(naming);
@@ -1698,18 +1555,8 @@ fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[Tile
                 && tkn == "LEFTT"
             {
                 xn = xn
-                    .force_name(
-                        3,
-                        "UL_KX",
-                        TileWireCoord {
-                            cell: CellSlotId::from_idx(0),
-                            wire: eclk_v,
-                        },
-                    )
-                    .optin_muxes_tile(&[TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: eclk_v,
-                    }]);
+                    .force_name(3, "UL_KX", TileWireCoord::new_idx(0, eclk_v))
+                    .optin_muxes_tile(&[TileWireCoord::new_idx(0, eclk_v)]);
             }
             xn.extract();
             found_naming = Some(naming);

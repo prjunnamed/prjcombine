@@ -3,7 +3,7 @@ use prjcombine_ecp::{
     chip::{ChipKind, IoGroupKind, MachXo2Kind, PllLoc, RowKind, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, CellSlotId, TileWireCoord},
+    db::{Bel, BelPin, TileWireCoord},
     dir::{Dir, DirHV, DirV},
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
@@ -459,10 +459,7 @@ impl ChipContext<'_> {
         self.claim_pip(di, paddi_pio);
         if self.is_machnx_io(io) {
             let wire = self.intdb.get_wire(&format!("OUT_Q{idx}"));
-            let wire = TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire,
-            };
+            let wire = TileWireCoord::new_idx(0, wire);
             bel.pins.insert("DI".into(), BelPin::new_out(wire));
         } else {
             bel.pins.insert("DI".into(), self.xlat_int_wire(bcrd, di));

@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{Bel, BelInfo, BelPin, CellSlotId, IntDb, TileWireCoord, WireKind},
+    db::{Bel, BelInfo, BelPin, IntDb, TileWireCoord, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{
@@ -508,10 +508,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         dll_ins.push(w);
         dll_pins.insert(
             name.to_string(),
-            BelPin::new_in(TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: w,
-            }),
+            BelPin::new_in(TileWireCoord::new_idx(0, w)),
         );
         bram_bt_forbidden.push(w);
         if name == "CLKIN" {
@@ -545,10 +542,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         dll_pins.insert(
             name.to_string(),
-            BelPin::new_out(TileWireCoord {
-                cell: CellSlotId::from_idx(0),
-                wire: w,
-            }),
+            BelPin::new_out(TileWireCoord::new_idx(0, w)),
         );
     }
     let clk2x = clk2x.unwrap();
@@ -932,22 +926,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         if let Some((_, naming)) = builder.ndb.tile_class_namings.get_mut(naming) {
             let xt = if mode == 'S' { "_1" } else { "" };
             let tile = RawTileId::from_idx(1);
-            let t_dll = CellSlotId::from_idx(0);
-            let t_clk = CellSlotId::from_idx(2);
-            let t_dlls = CellSlotId::from_idx(3);
             let wt_clkin = format!("CLK{bt}_CLKIN{lr}{xt}");
             let wt_clkfb = format!("CLK{bt}_CLKFB{lr}{xt}");
             for i in 0..2 {
                 naming.ext_pips.insert(
                     (
-                        TileWireCoord {
-                            cell: t_dll,
-                            wire: clkin,
-                        },
-                        TileWireCoord {
-                            cell: t_clk,
-                            wire: clkpad[i],
-                        },
+                        TileWireCoord::new_idx(0, clkin),
+                        TileWireCoord::new_idx(2, clkpad[i]),
                     ),
                     PipNaming {
                         tile,
@@ -957,14 +942,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
                 naming.ext_pips.insert(
                     (
-                        TileWireCoord {
-                            cell: t_dll,
-                            wire: clkfb,
-                        },
-                        TileWireCoord {
-                            cell: t_clk,
-                            wire: clkpad[i],
-                        },
+                        TileWireCoord::new_idx(0, clkfb),
+                        TileWireCoord::new_idx(2, clkpad[i]),
                     ),
                     PipNaming {
                         tile,
@@ -977,14 +956,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 for i in 0..2 {
                     naming.ext_pips.insert(
                         (
-                            TileWireCoord {
-                                cell: t_dll,
-                                wire: clkin,
-                            },
-                            TileWireCoord {
-                                cell: t_clk,
-                                wire: iofb[i],
-                            },
+                            TileWireCoord::new_idx(0, clkin),
+                            TileWireCoord::new_idx(2, iofb[i]),
                         ),
                         PipNaming {
                             tile,
@@ -994,14 +967,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     );
                     naming.ext_pips.insert(
                         (
-                            TileWireCoord {
-                                cell: t_dll,
-                                wire: clkfb,
-                            },
-                            TileWireCoord {
-                                cell: t_clk,
-                                wire: iofb[i],
-                            },
+                            TileWireCoord::new_idx(0, clkfb),
+                            TileWireCoord::new_idx(2, iofb[i]),
                         ),
                         PipNaming {
                             tile,
@@ -1013,14 +980,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 if mode == 'P' {
                     naming.ext_pips.insert(
                         (
-                            TileWireCoord {
-                                cell: t_dll,
-                                wire: clkin,
-                            },
-                            TileWireCoord {
-                                cell: t_dlls,
-                                wire: clk2x,
-                            },
+                            TileWireCoord::new_idx(0, clkin),
+                            TileWireCoord::new_idx(3, clk2x),
                         ),
                         PipNaming {
                             tile,
@@ -1031,14 +992,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 } else {
                     naming.ext_pips.insert(
                         (
-                            TileWireCoord {
-                                cell: t_dll,
-                                wire: clkfb,
-                            },
-                            TileWireCoord {
-                                cell: t_dll,
-                                wire: clk2x,
-                            },
+                            TileWireCoord::new_idx(0, clkfb),
+                            TileWireCoord::new_idx(0, clk2x),
                         ),
                         PipNaming {
                             tile,
@@ -1097,33 +1052,18 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 tcls.cells.push(());
             }
             let pips = builder.pips.get_mut(&(tcid, bels::DLL_INT)).unwrap();
-            let t_dll = CellSlotId::from_idx(0);
-            let t_clk = CellSlotId::from_idx(2);
-            let t_dlls = CellSlotId::from_idx(3);
             for i in 0..2 {
                 pips.pips.insert(
                     (
-                        TileWireCoord {
-                            cell: t_dll,
-                            wire: clkin,
-                        },
-                        TileWireCoord {
-                            cell: t_clk,
-                            wire: clkpad[i],
-                        },
+                        TileWireCoord::new_idx(0, clkin),
+                        TileWireCoord::new_idx(2, clkpad[i]),
                     ),
                     PipMode::Mux,
                 );
                 pips.pips.insert(
                     (
-                        TileWireCoord {
-                            cell: t_dll,
-                            wire: clkfb,
-                        },
-                        TileWireCoord {
-                            cell: t_clk,
-                            wire: clkpad[i],
-                        },
+                        TileWireCoord::new_idx(0, clkfb),
+                        TileWireCoord::new_idx(2, clkpad[i]),
                     ),
                     PipMode::Mux,
                 );
@@ -1132,27 +1072,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 for i in 0..2 {
                     pips.pips.insert(
                         (
-                            TileWireCoord {
-                                cell: t_dll,
-                                wire: clkin,
-                            },
-                            TileWireCoord {
-                                cell: t_clk,
-                                wire: iofb[i],
-                            },
+                            TileWireCoord::new_idx(0, clkin),
+                            TileWireCoord::new_idx(2, iofb[i]),
                         ),
                         PipMode::Mux,
                     );
                     pips.pips.insert(
                         (
-                            TileWireCoord {
-                                cell: t_dll,
-                                wire: clkfb,
-                            },
-                            TileWireCoord {
-                                cell: t_clk,
-                                wire: iofb[i],
-                            },
+                            TileWireCoord::new_idx(0, clkfb),
+                            TileWireCoord::new_idx(2, iofb[i]),
                         ),
                         PipMode::Mux,
                     );
@@ -1160,28 +1088,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 if mode == 'P' {
                     pips.pips.insert(
                         (
-                            TileWireCoord {
-                                cell: t_dll,
-                                wire: clkin,
-                            },
-                            TileWireCoord {
-                                cell: t_dlls,
-                                wire: clk2x,
-                            },
+                            TileWireCoord::new_idx(0, clkin),
+                            TileWireCoord::new_idx(3, clk2x),
                         ),
                         PipMode::Mux,
                     );
                 } else {
                     pips.pips.insert(
                         (
-                            TileWireCoord {
-                                cell: t_dll,
-                                wire: clkfb,
-                            },
-                            TileWireCoord {
-                                cell: t_dll,
-                                wire: clk2x,
-                            },
+                            TileWireCoord::new_idx(0, clkfb),
+                            TileWireCoord::new_idx(0, clk2x),
                         ),
                         PipMode::Mux,
                     );
@@ -1391,34 +1307,22 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire_force("IN3", "BRAM_CLKH_GCLK3")
                 .extra_int_out_force(
                     "OUT0",
-                    TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: gclk[0],
-                    },
+                    TileWireCoord::new_idx(0, gclk[0]),
                     "BRAM_CLKH_VGCLK0",
                 )
                 .extra_int_out_force(
                     "OUT1",
-                    TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: gclk[1],
-                    },
+                    TileWireCoord::new_idx(0, gclk[1]),
                     "BRAM_CLKH_VGCLK1",
                 )
                 .extra_int_out_force(
                     "OUT2",
-                    TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: gclk[2],
-                    },
+                    TileWireCoord::new_idx(0, gclk[2]),
                     "BRAM_CLKH_VGCLK2",
                 )
                 .extra_int_out_force(
                     "OUT3",
-                    TileWireCoord {
-                        cell: CellSlotId::from_idx(0),
-                        wire: gclk[3],
-                    },
+                    TileWireCoord::new_idx(0, gclk[3]),
                     "BRAM_CLKH_VGCLK3",
                 )],
         );

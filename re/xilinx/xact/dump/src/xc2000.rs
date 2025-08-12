@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, CellSlotId, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
+        Bel, BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
         TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
@@ -28,10 +28,7 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
         bel.pins.insert(
             name.into(),
             BelPin {
-                wires: BTreeSet::from_iter([TileWireCoord {
-                    cell: CellSlotId::from_idx(0),
-                    wire: db.get_wire(wire),
-                }]),
+                wires: BTreeSet::from_iter([TileWireCoord::new_idx(0, db.get_wire(wire))]),
                 dir: if wire.starts_with("IMUX") || wire.starts_with("IOCLK") {
                     PinDir::Input
                 } else {

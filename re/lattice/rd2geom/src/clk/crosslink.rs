@@ -5,7 +5,7 @@ use prjcombine_ecp::{
     chip::{IoGroupKind, PllLoc, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, CellSlotId, TileWireCoord},
+    db::{Bel, BelPin, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, DieId},
 };
@@ -421,9 +421,7 @@ impl ChipContext<'_> {
         let mut bel = Bel::default();
 
         for i in 0..8 {
-            let tcid = CellSlotId::from_idx(0);
-            let wire = self.intdb.get_wire(&format!("PCLK{i}"));
-            let wire = TileWireCoord { cell: tcid, wire };
+            let wire = TileWireCoord::new_idx(0, self.intdb.get_wire(&format!("PCLK{i}")));
             bel.pins.insert(format!("PCLK{i}"), BelPin::new_out(wire));
 
             let mut pclk = None;
