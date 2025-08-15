@@ -639,14 +639,8 @@ impl IntMaker<'_> {
     }
 
     fn fill_wires(&mut self) {
-        let main_pass_lw = ConnectorClass {
-            slot: self.long_term_slots[Dir::W],
-            wires: Default::default(),
-        };
-        let main_pass_le = ConnectorClass {
-            slot: self.long_term_slots[Dir::E],
-            wires: Default::default(),
-        };
+        let main_pass_lw = ConnectorClass::new(self.long_term_slots[Dir::W]);
+        let main_pass_le = ConnectorClass::new(self.long_term_slots[Dir::E]);
         self.long_main_passes.insert(Dir::W, main_pass_lw);
         self.long_main_passes.insert(Dir::E, main_pass_le);
 

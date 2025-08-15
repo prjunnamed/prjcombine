@@ -58,26 +58,11 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         Dir::N => cslots::N,
     });
 
-    let mut main_terms = DirMap::from_fn(|dir| ConnectorClass {
-        slot: term_slots[dir],
-        wires: Default::default(),
-    });
-    let mut cnr_ll_w = ConnectorClass {
-        slot: cslots::W,
-        wires: Default::default(),
-    };
-    let cnr_lr_s = ConnectorClass {
-        slot: cslots::S,
-        wires: Default::default(),
-    };
-    let mut cnr_ul_n = ConnectorClass {
-        slot: cslots::N,
-        wires: Default::default(),
-    };
-    let mut cnr_ur_e = ConnectorClass {
-        slot: cslots::E,
-        wires: Default::default(),
-    };
+    let mut main_terms = DirMap::from_fn(|dir| ConnectorClass::new(term_slots[dir]));
+    let mut cnr_ll_w = ConnectorClass::new(cslots::W);
+    let cnr_lr_s = ConnectorClass::new(cslots::S);
+    let mut cnr_ul_n = ConnectorClass::new(cslots::N);
+    let mut cnr_ur_e = ConnectorClass::new(cslots::E);
 
     db.wires.insert("GND".into(), WireKind::Tie0);
 

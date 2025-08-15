@@ -2132,22 +2132,10 @@ pub fn init_intdb(kind: ChipKind) -> IntDb {
         kind,
         db: IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS),
         conn_slots,
-        passes: DirMap::from_fn(|dir| ConnectorClass {
-            slot: conn_slots[dir],
-            wires: Default::default(),
-        }),
-        terms: DirMap::from_fn(|dir| ConnectorClass {
-            slot: conn_slots[dir],
-            wires: Default::default(),
-        }),
-        pass_sw: ConnectorClass {
-            slot: cslots::SW,
-            wires: Default::default(),
-        },
-        pass_se: ConnectorClass {
-            slot: cslots::SE,
-            wires: Default::default(),
-        },
+        passes: DirMap::from_fn(|dir| ConnectorClass::new(conn_slots[dir])),
+        terms: DirMap::from_fn(|dir| ConnectorClass::new(conn_slots[dir])),
+        pass_sw: ConnectorClass::new(cslots::SW),
+        pass_se: ConnectorClass::new(cslots::SE),
     };
     builder.build()
 }

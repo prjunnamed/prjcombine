@@ -45,10 +45,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         Dir::N => cslots::N,
     });
 
-    let mut passes = DirMap::from_fn(|dir| ConnectorClass {
-        slot: term_slots[dir],
-        wires: Default::default(),
-    });
+    let mut passes = DirMap::from_fn(|dir| ConnectorClass::new(term_slots[dir]));
 
     for i in 0..8 {
         db.wires

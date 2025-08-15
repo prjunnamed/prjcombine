@@ -55,10 +55,7 @@ pub fn make_intdb() -> IntDb {
         Dir::N => cslots::N,
     });
 
-    let mut main_terms = DirMap::from_fn(|dir| ConnectorClass {
-        slot: term_slots[dir],
-        wires: Default::default(),
-    });
+    let mut main_terms = DirMap::from_fn(|dir| ConnectorClass::new(term_slots[dir]));
 
     for (name, stub) in [
         ("SINGLE.H0", true),
