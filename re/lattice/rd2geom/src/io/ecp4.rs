@@ -952,4 +952,119 @@ impl ChipContext<'_> {
             }
         }
     }
+
+    pub(super) fn process_clkdiv_ecp4(&mut self) {
+        let cell_n = CellCoord::new(DieId::from_idx(0), self.chip.col_clk, self.chip.row_n());
+        let cell_w = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_clk);
+        let cell_e = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_clk);
+        for (lrt, cell_tile, cell) in [
+            ('T', cell_n, cell_n.delta(-1, 0)),
+            ('L', cell_w, cell_w),
+            ('R', cell_e, cell_e),
+        ] {
+            for i in 0..4 {
+                let bcrd = cell_tile.bel(bels::CLKDIV[i]);
+                self.name_bel(bcrd, [format!("CLKDIV_{lrt}{i}")]);
+                let mut bel = Bel::default();
+
+                for pin in ["ALIGNWD", "RST", "CDIVX"] {
+                    let wire = self.rc_io_wire(cell, &format!("J{pin}_CLKDIV{i}"));
+                    self.add_bel_wire(bcrd, pin, wire);
+                    bel.pins.insert(pin.into(), self.xlat_int_wire(bcrd, wire));
+                }
+
+                let clki = self.rc_io_wire(cell, &format!("CLKI_CLKDIV{i}"));
+                self.add_bel_wire(bcrd, "CLKI", clki);
+                let clki_in = self.claim_single_in(clki);
+                self.add_bel_wire(bcrd, "CLKI_IN", clki_in);
+
+                for bank_idx in 0..4 {
+                    let bcrd_eclk = bcrd.bel(bels::ECLKSYNC[bank_idx * 4 + i]);
+                    if !self.edev.egrid.has_bel(bcrd_eclk) {
+                        continue;
+                    }
+                    let wire_eclk = self.naming.bel_wire(bcrd_eclk, "ECLK");
+                    self.claim_pip(clki_in, wire_eclk);
+                }
+
+                self.insert_bel(bcrd, bel);
+            }
+        }
+
+        let num_quads = if self
+            .chip
+            .special_loc
+            .contains_key(&SpecialLocKey::SerdesSingle)
+        {
+            1
+        } else if self
+            .chip
+            .special_loc
+            .contains_key(&SpecialLocKey::SerdesDouble)
+        {
+            2
+        } else if self
+            .chip
+            .special_loc
+            .contains_key(&SpecialLocKey::SerdesTriple)
+        {
+            3
+        } else {
+            unreachable!()
+        };
+        let cell_pcs = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_s());
+
+        let cell_tile = CellCoord::new(DieId::from_idx(0), self.chip.col_clk, self.chip.row_s());
+        let cell = cell_tile.delta(-1, 0);
+        for i in 0..4 {
+            let bcrd = cell_tile.bel(bels::PCSCLKDIV[i]);
+            self.name_bel(bcrd, [format!("PCSCLKDIV{i}")]);
+
+            let clki = self.rc_wire(cell, &format!("CLKI_PCSCLKDIV{i}"));
+            self.add_bel_wire(bcrd, "CLKI", clki);
+            let clki_in = self.claim_single_in(clki);
+            self.add_bel_wire(bcrd, "CLKI_IN", clki_in);
+
+            if i < num_quads {
+                let mut bel = Bel::default();
+                for pin in ["RST", "SEL0", "SEL1", "SEL2"] {
+                    let wire = self.rc_wire(cell, &format!("J{pin}_PCSCLKDIV{i}"));
+                    self.add_bel_wire(bcrd, pin, wire);
+                    bel.pins.insert(pin.into(), self.xlat_int_wire(bcrd, wire));
+                }
+                let clki_int = self.rc_wire(cell, &format!("JPCSCDIVCIB{i}"));
+                self.add_bel_wire(bcrd, "CLKI_INT", clki_int);
+                self.claim_pip(clki_in, clki_int);
+                bel.pins
+                    .insert("CLKI".into(), self.xlat_int_wire(bcrd, clki_int));
+
+                let abcd = ['A', 'B', 'C', 'D'][i];
+                for j in 0..4 {
+                    let clki_rxclk = self.rc_wire(cell, &format!("JPCS{abcd}RXCLK{j}"));
+                    self.add_bel_wire(bcrd, format!("CLKI_RXCLK{j}"), clki_rxclk);
+                    self.claim_pip(clki_in, clki_rxclk);
+                    let wire_pcs = self.rc_io_sn_wire(cell_pcs, &format!("JQ{i}CH{j}_FOPCLKB_ASB"));
+                    self.claim_pip(clki_rxclk, wire_pcs);
+
+                    let clki_txclk = self.rc_wire(cell, &format!("JPCS{abcd}TXCLK{j}"));
+                    self.add_bel_wire(bcrd, format!("CLKI_TXCLK{j}"), clki_txclk);
+                    self.claim_pip(clki_in, clki_txclk);
+                    let wire_pcs = self.rc_io_sn_wire(cell_pcs, &format!("JQ{i}CH{j}_FOPCLKA_ASB"));
+                    self.claim_pip(clki_txclk, wire_pcs);
+                }
+
+                self.insert_bel(bcrd, bel);
+            } else {
+                for pin in ["RST", "SEL0", "SEL1", "SEL2"] {
+                    let wire = self.rc_wire(cell, &format!("J{pin}_PCSCLKDIV{i}"));
+                    self.add_bel_wire(bcrd, pin, wire);
+                }
+            }
+
+            for pin in ["CDIV1", "CDIVX"] {
+                let wire = self.rc_wire(cell, &format!("{pin}_PCSCLKDIV{i}"));
+                self.add_bel_wire(bcrd, pin, wire);
+            }
+        }
+    }
 }

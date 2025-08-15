@@ -39,6 +39,7 @@ mod ebr;
 mod int;
 mod intdb;
 mod io;
+mod maco;
 mod pkg;
 mod plc;
 mod pll;
@@ -52,7 +53,10 @@ struct ChipContext<'a> {
     edev: &'a ExpandedDevice<'a>,
     naming: ChipNaming,
     nodes: EntityVec<NodeId, WireName>,
+    has_v01b: BTreeSet<CellCoord>,
     int_wires: BTreeMap<WireName, Vec<WireCoord>>,
+    io_int_wires: BTreeMap<WireName, Vec<WireCoord>>,
+    io_int_names: BTreeMap<WireCoord, WireName>,
     sorted_wires: BTreeMap<(CellCoord, &'static str), BTreeMap<String, WireName>>,
     pclk_cols: EntityVec<ColId, (ColId, ColId)>,
     hsdclk_locs: BTreeMap<WireName, CellCoord>,
@@ -65,6 +69,7 @@ struct ChipContext<'a> {
     bels: BTreeMap<(TileClassId, BelSlotId), BelInfo>,
     dummy_sites: BTreeSet<String>,
     skip_serdes: bool,
+    ebr_wires: BTreeMap<WireCoord, WireName>,
 }
 
 impl ChipContext<'_> {
@@ -235,6 +240,17 @@ impl ChipContext<'_> {
         }
     }
 
+    fn claim_pip_bi(&mut self, wt: WireName, wf: WireName) {
+        if !self.unclaimed_pips.remove(&(wt, wf)) && !self.unclaimed_pips.remove(&(wf, wt)) {
+            println!(
+                "{name}: DOUBLE CLAIMED: {wt} <-> {wf}",
+                name = self.name,
+                wt = wt.to_string(&self.naming),
+                wf = wf.to_string(&self.naming)
+            );
+        }
+    }
+
     #[track_caller]
     fn claim_pip_int_out(&mut self, wt: WireCoord, wf: WireName) {
         let Some(&wt) = self.naming.interconnect.get(&wt) else {
@@ -306,6 +322,7 @@ impl ChipContext<'_> {
                 "EBR",
                 "IOLOGIC",
                 "PIO",
+                "PICTEST",
                 "DQS",
                 "SDQS",
                 "DQSTEST",
@@ -313,7 +330,9 @@ impl ChipContext<'_> {
                 "DQSDLLTEST",
                 "DLLDEL",
                 "DDRDLL",
+                "SYSBUS",
                 "JTAG",
+                "RDBK",
                 "OSC",
                 "GSR",
                 "START",
@@ -331,7 +350,13 @@ impl ChipContext<'_> {
                 "PMU",
                 "PMUTEST",
                 "CFGTEST",
+                "TESTCK",
+                "RSTN",
                 "CCLK",
+                "M0",
+                "M1",
+                "M2",
+                "M3",
                 "TESTIN",
                 "TESTOUT",
                 "CENTEST",
@@ -355,6 +380,9 @@ impl ChipContext<'_> {
                 "PVTTEST",
                 "PVTCAL",
                 "DTR",
+                "RNET",
+                "PROMON1V",
+                "PROMON2V",
             ] {
                 if let Some(n) = name.strip_suffix(suffix)
                     && let Some(n) = n.strip_suffix('_')
@@ -370,9 +398,8 @@ impl ChipContext<'_> {
         }
     }
 
-    fn insert_bel(&mut self, bcrd: BelCoord, bel: Bel) {
+    fn insert_bel_generic(&mut self, bcrd: BelCoord, bel: BelInfo) {
         let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
-        let bel = BelInfo::Bel(bel);
         match self.bels.entry((self.edev.egrid[tcrd].class, bcrd.slot)) {
             btree_map::Entry::Vacant(e) => {
                 e.insert(bel);
@@ -381,6 +408,10 @@ impl ChipContext<'_> {
                 assert_eq!(*e.get(), bel);
             }
         }
+    }
+
+    fn insert_bel(&mut self, bcrd: BelCoord, bel: Bel) {
+        self.insert_bel_generic(bcrd, BelInfo::Bel(bel));
     }
 
     fn extract_simple_bel(&mut self, bcrd: BelCoord, cell: CellCoord, suffix: &'static str) -> Bel {
@@ -460,7 +491,10 @@ fn process_chip(name: &str, grid: &Grid, kind: ChipKind, intdb: &IntDb) -> ChipR
         edev: &edev,
         naming,
         nodes,
+        has_v01b: Default::default(),
         int_wires: Default::default(),
+        io_int_wires: Default::default(),
+        io_int_names: Default::default(),
         sorted_wires: Default::default(),
         pclk_cols: Default::default(),
         hsdclk_locs: Default::default(),
@@ -473,13 +507,15 @@ fn process_chip(name: &str, grid: &Grid, kind: ChipKind, intdb: &IntDb) -> ChipR
         bels: Default::default(),
         dummy_sites: Default::default(),
         skip_serdes: false,
+        ebr_wires: Default::default(),
     };
     ctx.process_int();
     ctx.sort_bel_wires();
     ctx.process_plc();
+    ctx.process_io();
+    ctx.process_maco();
     ctx.process_ebr();
     ctx.process_dsp();
-    ctx.process_io();
     ctx.process_pll();
     ctx.process_serdes();
     ctx.process_config();
@@ -513,6 +549,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let rawdb = prjcombine_re_lattice_rawdump::Db::from_file(args.rawdump)?;
     println!("processing start...");
     let kind = match rawdb.family.as_str() {
+        "scm" => ChipKind::Scm,
         "ecp" => ChipKind::Ecp,
         "xp" => ChipKind::Xp,
         "machxo" => ChipKind::MachXo,
@@ -589,7 +626,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             for site in &cres.dummy_sites {
                 expected_sites.insert(site.clone());
             }
-            let has_jtag_pin_bels = matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A);
+            let has_jtag_pin_bels =
+                matches!(chip.kind, ChipKind::Scm | ChipKind::Ecp3 | ChipKind::Ecp3A);
             for (pin, &pad) in &bres.bond.pins {
                 match pad {
                     BondPad::Io(io)
@@ -610,7 +648,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         expected_sites.insert(pin.clone());
                     }
                     BondPad::Serdes(edge, col, spad) => {
-                        if chip.kind == ChipKind::Ecp4 {
+                        if matches!(chip.kind, ChipKind::Scm | ChipKind::Ecp4) {
                             // apparently nothing?
                         } else if chip.kind == ChipKind::Ecp5 {
                             let bcrd = chip.bel_serdes(edge, col);
@@ -700,6 +738,22 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     BondPad::Cfg(CfgPad::Tdo) if has_jtag_pin_bels => {
                         assert!(expected_sites.remove("TDO"));
+                        expected_sites.insert(pin.clone());
+                    }
+                    BondPad::Cfg(CfgPad::Cclk) if chip.kind == ChipKind::Scm => {
+                        assert!(expected_sites.remove("CCLK"));
+                        expected_sites.insert(pin.clone());
+                    }
+                    BondPad::Cfg(CfgPad::RdCfgB) if chip.kind == ChipKind::Scm => {
+                        assert!(expected_sites.remove("RDCFGN"));
+                        expected_sites.insert(pin.clone());
+                    }
+                    BondPad::Cfg(CfgPad::ResetB) if chip.kind == ChipKind::Scm => {
+                        assert!(expected_sites.remove("RESETN"));
+                        expected_sites.insert(pin.clone());
+                    }
+                    BondPad::Cfg(CfgPad::MpiIrqB) if chip.kind == ChipKind::Scm => {
+                        assert!(expected_sites.remove("MPIIRQN"));
                         expected_sites.insert(pin.clone());
                     }
                     _ => (),

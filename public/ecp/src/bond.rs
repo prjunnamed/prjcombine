@@ -18,9 +18,13 @@ pub enum CfgPad {
     Done,
     ProgB,
     InitB,
+    ResetB,
+    RdCfgB,
+    MpiIrqB,
     M0,
     M1,
     M2,
+    M3,
     SleepB,
     Toe,
     Hfp,
@@ -42,8 +46,12 @@ impl std::fmt::Display for CfgPad {
             CfgPad::M0 => write!(f, "M0"),
             CfgPad::M1 => write!(f, "M1"),
             CfgPad::M2 => write!(f, "M2"),
+            CfgPad::M3 => write!(f, "M3"),
             CfgPad::ProgB => write!(f, "PROG_B"),
             CfgPad::InitB => write!(f, "INIT_B"),
+            CfgPad::ResetB => write!(f, "RESET_B"),
+            CfgPad::RdCfgB => write!(f, "RDCFG_B"),
+            CfgPad::MpiIrqB => write!(f, "MPIIRQ_B"),
             CfgPad::Tck => write!(f, "TCK"),
             CfgPad::Tms => write!(f, "TMS"),
             CfgPad::Tdi => write!(f, "TDI"),
@@ -87,12 +95,16 @@ pub enum SerdesPad {
     OutN(u8),
     ClkP,
     ClkN,
+    RxClkP,
+    RxClkN,
     VccP,
     VccA,
     VccAuxA,
+    VccAux25,
     VccAux33,
     VccTx(u8),
     VccRx(u8),
+    VccRxPair(u8),
     VccIB(u8),
     VccOB(u8),
     RxantOutP,
@@ -100,6 +112,8 @@ pub enum SerdesPad {
     AuxTstPadOutP,
     AuxTstPadOutN,
     VccTxCommon,
+    ResP,
+    ResPN,
 }
 
 impl std::fmt::Display for SerdesPad {
@@ -111,10 +125,14 @@ impl std::fmt::Display for SerdesPad {
             SerdesPad::OutN(ch) => write!(f, "CH{ch}_OUT_N"),
             SerdesPad::ClkP => write!(f, "CLK_P"),
             SerdesPad::ClkN => write!(f, "CLK_N"),
+            SerdesPad::RxClkP => write!(f, "RXCLK_P"),
+            SerdesPad::RxClkN => write!(f, "RXCLK_N"),
             SerdesPad::VccP => write!(f, "VCCP"),
+            SerdesPad::VccAux25 => write!(f, "VCCAUX25"),
             SerdesPad::VccAux33 => write!(f, "VCCAUX33"),
             SerdesPad::VccTx(ch) => write!(f, "CH{ch}_VCCTX"),
-            SerdesPad::VccRx(ch) => write!(f, "CH{ch}_VCCTX"),
+            SerdesPad::VccRx(ch) => write!(f, "CH{ch}_VCCRX"),
+            SerdesPad::VccRxPair(ch) => write!(f, "CH{ch}_CH{ch1}_VCCRX", ch1 = ch + 1),
             SerdesPad::VccIB(ch) => write!(f, "CH{ch}_VCCIB"),
             SerdesPad::VccOB(ch) => write!(f, "CH{ch}_VCCOB"),
             SerdesPad::RxantOutP => write!(f, "RXANTOUTP"),
@@ -124,6 +142,8 @@ impl std::fmt::Display for SerdesPad {
             SerdesPad::VccA => write!(f, "VCCA"),
             SerdesPad::VccAuxA => write!(f, "VCCAUXA"),
             SerdesPad::VccTxCommon => write!(f, "VCCTX_COMMON"),
+            SerdesPad::ResP => write!(f, "RESP"),
+            SerdesPad::ResPN => write!(f, "RESPN"),
         }
     }
 }
@@ -272,6 +292,7 @@ pub enum BondPad {
     VccAux,
     VccAuxA,
     VccJtag,
+    Vcc12,
     VccIo(u32),
     Vtt(u32),
     VccPll(PllSet),
@@ -280,6 +301,8 @@ pub enum BondPad {
     VccA,
     TempVss,
     TempSense,
+    ProbeVcc,
+    ProbeGnd,
     XRes,
     Other,
     Asc(AscPad),
@@ -306,6 +329,7 @@ impl std::fmt::Display for BondPad {
             BondPad::VccAux => write!(f, "VCCAUX"),
             BondPad::VccAuxA => write!(f, "VCCAUXA"),
             BondPad::VccJtag => write!(f, "VCC_JTAG"),
+            BondPad::Vcc12 => write!(f, "VCC12"),
             BondPad::VccIo(bank) => write!(f, "VCCIO{bank}"),
             BondPad::Vpp => write!(f, "VPP"),
             BondPad::Vtt(bank) => write!(f, "VTT{bank}"),
@@ -317,6 +341,8 @@ impl std::fmt::Display for BondPad {
             BondPad::Other => write!(f, "OTHER"),
             BondPad::TempVss => write!(f, "TEMP_VSS"),
             BondPad::TempSense => write!(f, "TEMP_SENSE"),
+            BondPad::ProbeVcc => write!(f, "PROBE_VCC"),
+            BondPad::ProbeGnd => write!(f, "PROBE_GND"),
             BondPad::Asc(pad) => write!(f, "ASC_{pad}"),
             BondPad::IoAsc(io, pad) => write!(f, "{io}_ASC_{pad}"),
             BondPad::Pfr(pad) => write!(f, "PFR_{pad}"),
@@ -368,7 +394,7 @@ impl From<&Bond> for JsonValue {
 }
 
 fn pad_sort_key(name: &str) -> (usize, &str, u32) {
-    if let Some(pos) = name.rfind(|x: char| x.is_ascii_digit())
+    if let Some(pos) = name.find(|x: char| x.is_ascii_digit())
         && let Ok(idx) = name[pos..].parse()
     {
         (pos, &name[..pos], idx)

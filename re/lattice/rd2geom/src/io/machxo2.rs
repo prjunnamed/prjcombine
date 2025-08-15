@@ -625,6 +625,44 @@ impl ChipContext<'_> {
         }
     }
 
+    pub(super) fn process_clkdiv_machxo2(&mut self) {
+        let is_smol = self.chip.rows[self.chip.row_clk].kind != RowKind::Ebr;
+        if is_smol {
+            return;
+        }
+        for edge in [DirV::S, DirV::N] {
+            for idx in 0..2 {
+                let bcrd = self
+                    .chip
+                    .bel_eclksync(Dir::V(edge), 0)
+                    .bel(bels::CLKDIV[idx]);
+                let cell = bcrd.cell;
+                self.name_bel(
+                    bcrd,
+                    [format!(
+                        "{bt}CLKDIV{idx}",
+                        bt = match edge {
+                            DirV::S => 'B',
+                            DirV::N => 'T',
+                        }
+                    )],
+                );
+                let mut bel = Bel::default();
+                for pin in ["ALIGNWD", "RST", "CDIV1", "CDIVX"] {
+                    let wire = self.rc_wire(cell, &format!("J{pin}{idx}_CLKDIV"));
+                    self.add_bel_wire(bcrd, pin, wire);
+                    bel.pins.insert(pin.into(), self.xlat_int_wire(bcrd, wire));
+                }
+                self.insert_bel(bcrd, bel);
+
+                let clki = self.rc_wire(cell, &format!("CLKI{idx}_CLKDIV"));
+                self.add_bel_wire(bcrd, "CLKI", clki);
+                let wire_eclk = self.rc_wire(cell, &format!("JECLKO{idx}_ECLKSYNC"));
+                self.claim_pip(clki, wire_eclk);
+            }
+        }
+    }
+
     pub(super) fn process_icc_machxo2(&mut self) {
         if self.chip.kind != ChipKind::MachXo2(MachXo2Kind::MachNx) {
             return;

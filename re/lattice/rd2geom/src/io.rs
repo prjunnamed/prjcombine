@@ -12,10 +12,16 @@ mod ecp4;
 mod ecp5;
 mod machxo;
 mod machxo2;
+mod scm;
 
 impl ChipContext<'_> {
     pub fn process_io(&mut self) {
         match self.chip.kind {
+            ChipKind::Scm => {
+                self.process_eclk_scm();
+                self.process_pll_scm();
+                self.process_io_scm();
+            }
             ChipKind::Ecp | ChipKind::Xp => {
                 self.process_dqsdll_ecp();
                 self.process_io_ecp();
@@ -45,6 +51,7 @@ impl ChipContext<'_> {
                 self.process_dqsdll_machxo2();
                 self.process_dqs_machxo2();
                 self.process_io_machxo2();
+                self.process_clkdiv_machxo2();
                 self.process_icc_machxo2();
             }
             ChipKind::Ecp4 => {
@@ -54,6 +61,7 @@ impl ChipContext<'_> {
                 self.process_dlldel_ecp4();
                 self.process_dtr_ecp4();
                 self.process_io_ecp4();
+                self.process_clkdiv_ecp4();
             }
             ChipKind::Ecp5 => {
                 self.process_bc_ecp5();
@@ -62,6 +70,7 @@ impl ChipContext<'_> {
                 self.process_dlldel_ecp5();
                 self.process_dtr_ecp5();
                 self.process_io_ecp5();
+                self.process_clkdiv_ecp5();
             }
             ChipKind::Crosslink => {
                 self.process_bc_crosslink();
@@ -69,6 +78,7 @@ impl ChipContext<'_> {
                 self.process_ddrdll_crosslink();
                 self.process_dlldel_crosslink();
                 self.process_io_crosslink();
+                self.process_clkdiv_crosslink();
             }
         }
     }

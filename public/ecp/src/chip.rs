@@ -12,6 +12,7 @@ use crate::bels;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ChipKind {
+    Scm,
     Ecp,
     Xp,
     MachXo,
@@ -53,7 +54,8 @@ impl ChipKind {
     pub fn has_out_ofx_branch(self) -> bool {
         matches!(
             self,
-            ChipKind::Ecp
+            ChipKind::Scm
+                | ChipKind::Ecp
                 | ChipKind::Xp
                 | ChipKind::MachXo
                 | ChipKind::MachXo2(_)
@@ -64,7 +66,10 @@ impl ChipKind {
     }
 
     pub fn has_ecp_plc(self) -> bool {
-        matches!(self, ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo)
+        matches!(
+            self,
+            ChipKind::Scm | ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo
+        )
     }
 
     pub fn has_ecp2_plc(self) -> bool {
@@ -104,6 +109,7 @@ impl ChipKind {
 impl Display for ChipKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            ChipKind::Scm => write!(f, "scm"),
             ChipKind::Ecp => write!(f, "ecp"),
             ChipKind::Xp => write!(f, "xp"),
             ChipKind::MachXo => write!(f, "machxo"),
@@ -175,6 +181,8 @@ pub enum IoGroupKind {
     QuadI3c,
     Hex,
     HexReverse,
+    Octal,
+    Dozen,
     Serdes,
     Ebr,
     Mipi,
@@ -199,6 +207,8 @@ impl Display for IoGroupKind {
             IoGroupKind::QuadI3c => write!(f, "QUAD_I3C"),
             IoGroupKind::Hex => write!(f, "HEX"),
             IoGroupKind::HexReverse => write!(f, "HEX_REVERSE"),
+            IoGroupKind::Octal => write!(f, "OCTAL"),
+            IoGroupKind::Dozen => write!(f, "DOZEN"),
             IoGroupKind::Serdes => write!(f, "SERDES"),
             IoGroupKind::Ebr => write!(f, "EBR"),
             IoGroupKind::Mipi => write!(f, "MIPI"),
@@ -274,6 +284,8 @@ pub enum PllPad {
     PllFb,
     DllIn0,
     DllIn1,
+    DllIn2,
+    DllIn3,
     DllFb,
 }
 
@@ -285,6 +297,8 @@ impl Display for PllPad {
             PllPad::PllFb => write!(f, "PLL_FB"),
             PllPad::DllIn0 => write!(f, "DLL_IN0"),
             PllPad::DllIn1 => write!(f, "DLL_IN1"),
+            PllPad::DllIn2 => write!(f, "DLL_IN2"),
+            PllPad::DllIn3 => write!(f, "DLL_IN3"),
             PllPad::DllFb => write!(f, "DLL_FB"),
         }
     }
@@ -298,17 +312,33 @@ pub enum SpecialIoKey {
     DqsE(u8),
     Vref1(u32),
     Vref2(u32),
+    DiffR(u32),
     Gsr,
     TsAll,
     WriteN,
+    ReadN,
     CsN,
     Cs1N,
+    Cs1,
     D(u8),
+    DP(u8),
+    A(u8),
     Dout,
+    Qout,
     Di,
     Busy,
     MClk,
     SleepN,
+    MpiClk,
+    MpiAckN,
+    MpiRetryN,
+    MpiTeaN,
+    Hdc,
+    Ldc,
+    ExtDoneI,
+    ExtDoneO,
+    ExtClkI(u8),
+    ExtClkO(u8),
     // XP2 stuff
     InitB,
     SpiSdi,
@@ -342,17 +372,33 @@ impl Display for SpecialIoKey {
             SpecialIoKey::DqsE(i) => write!(f, "DQS_E{i}"),
             SpecialIoKey::Vref1(bank) => write!(f, "VREF1_{bank}"),
             SpecialIoKey::Vref2(bank) => write!(f, "VREF2_{bank}"),
+            SpecialIoKey::DiffR(bank) => write!(f, "DIFFR_{bank}"),
             SpecialIoKey::Gsr => write!(f, "GSR"),
             SpecialIoKey::TsAll => write!(f, "TSALL"),
             SpecialIoKey::WriteN => write!(f, "WRITE_N"),
+            SpecialIoKey::ReadN => write!(f, "READ_N"),
             SpecialIoKey::CsN => write!(f, "CS_N"),
             SpecialIoKey::Cs1N => write!(f, "CS1_N"),
+            SpecialIoKey::Cs1 => write!(f, "CS1"),
             SpecialIoKey::D(i) => write!(f, "D{i}"),
+            SpecialIoKey::DP(i) => write!(f, "DP{i}"),
+            SpecialIoKey::A(i) => write!(f, "A{i}"),
             SpecialIoKey::Dout => write!(f, "DOUT"),
+            SpecialIoKey::Qout => write!(f, "QOUT"),
             SpecialIoKey::Di => write!(f, "DI"),
             SpecialIoKey::Busy => write!(f, "BUSY"),
             SpecialIoKey::MClk => write!(f, "MCLK"),
             SpecialIoKey::SleepN => write!(f, "SLEEP_N"),
+            SpecialIoKey::MpiClk => write!(f, "MPI_CLK"),
+            SpecialIoKey::MpiAckN => write!(f, "MPI_ACK_N"),
+            SpecialIoKey::MpiRetryN => write!(f, "MPI_RETRY_N"),
+            SpecialIoKey::MpiTeaN => write!(f, "MPI_TEA_N"),
+            SpecialIoKey::Hdc => write!(f, "HDC"),
+            SpecialIoKey::Ldc => write!(f, "LDC"),
+            SpecialIoKey::ExtDoneI => write!(f, "EXT_DONE_I"),
+            SpecialIoKey::ExtDoneO => write!(f, "EXT_DONE_O"),
+            SpecialIoKey::ExtClkI(idx) => write!(f, "EXT_CLK_I{idx}"),
+            SpecialIoKey::ExtClkO(idx) => write!(f, "EXT_CLK_O{idx}"),
             SpecialIoKey::InitB => write!(f, "INIT_B"),
             SpecialIoKey::SpiSdi => write!(f, "SPI_SDI"),
             SpecialIoKey::SpiSdo => write!(f, "SPI_SDO"),
@@ -513,6 +559,7 @@ impl Chip {
 
     pub fn get_io_kind(&self, io: EdgeIoCoord) -> IoKind {
         match self.kind {
+            ChipKind::Scm => IoKind::Io,
             ChipKind::MachXo => IoKind::Io,
             ChipKind::Ecp | ChipKind::Xp | ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
                 match io {
@@ -639,6 +686,7 @@ impl Chip {
             ChipKind::Ecp4 => unreachable!(),
             ChipKind::Ecp5 => unreachable!(),
             ChipKind::Crosslink => unreachable!(),
+            ChipKind::Scm => unreachable!(),
         }
     }
 
@@ -693,6 +741,16 @@ impl Chip {
                 CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_n()).bel(bels::ECLK_ROOT)
             }
         }
+    }
+
+    pub fn bel_eclk_root_bank(&self, bank: u32) -> BelCoord {
+        assert_eq!(self.kind, ChipKind::Scm);
+        let bank = match bank {
+            3 => 2,
+            6 => 7,
+            _ => bank,
+        };
+        self.special_loc[&SpecialLocKey::Bc(bank)].bel(bels::ECLK_ROOT)
     }
 
     pub fn bel_eclksync(&self, edge: Dir, idx: usize) -> BelCoord {
@@ -757,6 +815,10 @@ impl Chip {
 
     pub fn bel_serdes(&self, edge: DirV, col: ColId) -> BelCoord {
         match self.kind {
+            ChipKind::Scm => {
+                assert_eq!(edge, DirV::N);
+                CellCoord::new(DieId::from_idx(0), col, self.row_n() - 12).bel(bels::SERDES)
+            }
             ChipKind::Ecp2M => {
                 let row = match edge {
                     DirV::S => self.row_s() + 7,

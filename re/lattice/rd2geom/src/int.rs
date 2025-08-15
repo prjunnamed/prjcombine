@@ -7,6 +7,7 @@ use prjcombine_interconnect::db::Bel;
 
 use super::ChipContext;
 
+mod io;
 mod pips;
 mod wires;
 
@@ -122,7 +123,8 @@ impl ChipContext<'_> {
                             self.add_bel_wire(cell.bel(bels::INT), format!("{l}{i}"), wf);
                             if matches!(
                                 self.chip.kind,
-                                ChipKind::Xp2
+                                ChipKind::Scm
+                                    | ChipKind::Xp2
                                     | ChipKind::Ecp3
                                     | ChipKind::Ecp3A
                                     | ChipKind::MachXo2(_)
@@ -306,5 +308,10 @@ impl ChipContext<'_> {
         self.process_int_misc();
         self.process_int_delay();
         self.process_sclk_source();
+        if self.chip.kind == ChipKind::Scm {
+            self.process_int_io_wires();
+            self.process_int_io_conn_hv();
+            self.process_int_io_pips();
+        }
     }
 }

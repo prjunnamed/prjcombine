@@ -14,6 +14,16 @@ bels![
     IO3: tslots::IO,
     IO4: tslots::IO,
     IO5: tslots::IO,
+    IO6: tslots::IO,
+    IO7: tslots::IO,
+    IO8: tslots::IO,
+    IO9: tslots::IO,
+    IO10: tslots::IO,
+    IO11: tslots::IO,
+    PICTEST0: tslots::IO,
+    PICTEST1: tslots::IO,
+    PICTEST2: tslots::IO,
+    IO_INT: tslots::BEL,
     // patched to CLK for XO2
     DQS0: tslots::BEL,
     DQS1: tslots::BEL,
@@ -21,6 +31,10 @@ bels![
     DQSDLL: tslots::BEL,
     DQSDLLTEST: tslots::BEL,
     SERDES: tslots::BEL,
+    SERDES_CENTER: tslots::BEL,
+    SERDES_CORNER: tslots::BEL,
+    MACO: tslots::BEL,
+    MACO_INT: tslots::BEL,
     MIPI: tslots::BEL,
     CLKTEST_MIPI: tslots::BEL,
     CIBTEST_SEL: tslots::BEL,
@@ -28,13 +42,22 @@ bels![
     EBR1: tslots::BEL,
     EBR2: tslots::BEL,
     EBR3: tslots::BEL,
+    EBR_INT: tslots::BEL,
     DSP0: tslots::BEL,
     DSP1: tslots::BEL,
     PLL0: tslots::BEL,
     PLL1: tslots::BEL,
+    PLL_SMI: tslots::BEL,
     PLLREFCS0: tslots::BEL,
     PLLREFCS1: tslots::BEL,
-    DLL: tslots::BEL,
+    DLL0: tslots::BEL,
+    DLL1: tslots::BEL,
+    DLL2: tslots::BEL,
+    DLL3: tslots::BEL,
+    DLL_DCNTL0: tslots::BEL,
+    DLL_DCNTL1: tslots::BEL,
+    PROMON: tslots::BEL,
+    RNET: tslots::BEL,
     DDRDLL: tslots::BEL,
     DTR: tslots::BEL,
     // patched to CLK for XO2, ECP4, ECP5
@@ -46,7 +69,7 @@ bels![
     DLLDEL5: tslots::BEL,
     DLLDEL6: tslots::BEL,
     DLLDEL7: tslots::BEL,
-    // patched to CLK for XO2, ECP4, ECP5
+    // patched to CLK for XO2, ECP4, ECP5, SCM
     CLKDIV0: tslots::BEL,
     CLKDIV1: tslots::BEL,
     CLKDIV2: tslots::BEL,
@@ -57,6 +80,7 @@ bels![
     PCSCLKDIV3: tslots::CLK,
     ECLK_ALT_ROOT: tslots::BEL,
     SPLL: tslots::BEL,
+    SYSBUS: tslots::BEL,
     START: tslots::BEL,
     OSC: tslots::BEL,
     JTAG: tslots::BEL,
@@ -64,7 +88,16 @@ bels![
     GSR: tslots::BEL,
     TSALL: tslots::BEL,
     SED: tslots::BEL,
+    M0: tslots::BEL,
+    M1: tslots::BEL,
+    M2: tslots::BEL,
+    M3: tslots::BEL,
+    RESETN: tslots::BEL,
+    RDCFGN: tslots::BEL,
     CCLK: tslots::BEL,
+    TCK: tslots::BEL,
+    TMS: tslots::BEL,
+    TDI: tslots::BEL,
     SPIM: tslots::BEL,
     SSPI: tslots::BEL,
     WAKEUP: tslots::BEL,
@@ -181,13 +214,16 @@ bels![
 
 pub const SLICE: [BelSlotId; 4] = [SLICE0, SLICE1, SLICE2, SLICE3];
 
-pub const IO: [BelSlotId; 6] = [IO0, IO1, IO2, IO3, IO4, IO5];
+pub const IO: [BelSlotId; 12] = [IO0, IO1, IO2, IO3, IO4, IO5, IO6, IO7, IO8, IO9, IO10, IO11];
+pub const PICTEST: [BelSlotId; 3] = [PICTEST0, PICTEST1, PICTEST2];
 pub const DQS: [BelSlotId; 2] = [DQS0, DQS1];
 
 pub const DSP: [BelSlotId; 2] = [DSP0, DSP1];
 pub const EBR: [BelSlotId; 4] = [EBR0, EBR1, EBR2, EBR3];
 pub const PLL: [BelSlotId; 2] = [PLL0, PLL1];
 pub const PLLREFCS: [BelSlotId; 2] = [PLLREFCS0, PLLREFCS1];
+pub const DLL: [BelSlotId; 4] = [DLL0, DLL1, DLL2, DLL3];
+pub const DLL_DCNTL: [BelSlotId; 2] = [DLL_DCNTL0, DLL_DCNTL1];
 
 pub const DCS_SW: [BelSlotId; 2] = [DCS_SW0, DCS_SW1];
 pub const DCS_SE: [BelSlotId; 2] = [DCS_SE0, DCS_SE1];

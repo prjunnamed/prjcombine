@@ -1,15 +1,356 @@
 use prjcombine_ecp::{
     bels,
-    chip::{ChipKind, IoGroupKind, SpecialIoKey, SpecialLocKey},
+    chip::{ChipKind, IoGroupKind, PllLoc, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::Bel,
+    db::{Bel, BelPin, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
 };
 
 use crate::ChipContext;
 
 impl ChipContext<'_> {
+    fn process_serdes_scm(&mut self) {
+        for tcname in ["SERDES_W", "SERDES_E"] {
+            let tcid = self.intdb.get_tile_class(tcname);
+            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+                let bcrd = tcrd.bel(bels::SERDES);
+                let bank = self.chip.columns[bcrd.col].bank_n.unwrap();
+                let (edge, quad) = match bank {
+                    9 => (DirH::W, 0),
+                    11 => (DirH::W, 1),
+                    13 => (DirH::W, 2),
+                    15 => (DirH::W, 3),
+                    10 => (DirH::E, 0),
+                    12 => (DirH::E, 1),
+                    14 => (DirH::E, 2),
+                    16 => (DirH::E, 3),
+                    _ => unreachable!(),
+                };
+                let name_pcs = match edge {
+                    DirH::W => format!("PCS36{quad}00"),
+                    DirH::E => format!("PCS3E{quad}00"),
+                };
+                let abcd = ['A', 'B', 'C', 'D'][quad];
+                let lr = match edge {
+                    DirH::W => 'L',
+                    DirH::E => 'R',
+                };
+                let cell = match edge {
+                    DirH::W => bcrd.delta(6, 1),
+                    DirH::E => bcrd.delta(0, 1),
+                };
+                let cell_next = self
+                    .chip
+                    .columns
+                    .ids()
+                    .find(|&col| self.chip.columns[col].bank_n == Some(bank + 2))
+                    .map(|col| match edge {
+                        DirH::W => bcrd.with_col(col).delta(6, 1),
+                        DirH::E => bcrd.with_col(col).delta(0, 1),
+                    });
+                let cell_apio = match edge {
+                    DirH::W => [cell.delta(0, 11), cell.delta(-1, 11)],
+                    DirH::E => [cell.delta(0, 11), cell.delta(1, 11)],
+                };
+                let (_, c_apio1) = self.rc(cell_apio[1]);
+                self.name_bel(
+                    bcrd,
+                    [
+                        name_pcs,
+                        format!("{abcd}_REFCLKP_{lr}"),
+                        format!("{abcd}_REFCLKN_{lr}"),
+                        format!("{abcd}_HDINP0_{lr}"),
+                        format!("{abcd}_HDINN0_{lr}"),
+                        format!("{abcd}_HDINP1_{lr}"),
+                        format!("{abcd}_HDINN1_{lr}"),
+                        format!("{abcd}_HDINP2_{lr}"),
+                        format!("{abcd}_HDINN2_{lr}"),
+                        format!("{abcd}_HDINP3_{lr}"),
+                        format!("{abcd}_HDINN3_{lr}"),
+                        format!("{abcd}_HDOUTP0_{lr}"),
+                        format!("{abcd}_HDOUTN0_{lr}"),
+                        format!("{abcd}_HDOUTP1_{lr}"),
+                        format!("{abcd}_HDOUTN1_{lr}"),
+                        format!("{abcd}_HDOUTP2_{lr}"),
+                        format!("{abcd}_HDOUTN2_{lr}"),
+                        format!("{abcd}_HDOUTP3_{lr}"),
+                        format!("{abcd}_HDOUTN3_{lr}"),
+                        format!("PT{c_apio1}I"),
+                        format!("PT{c_apio1}J"),
+                    ],
+                );
+                let mut bel = Bel::default();
+
+                let wires = self.sorted_wires[&(cell, "PCS")].clone();
+                for (pin, wire) in wires {
+                    if pin.starts_with("HDOUT")
+                        || pin.starts_with("HDIN")
+                        || pin.starts_with("REFCLK")
+                        || pin.starts_with("RXREFCLK")
+                        || pin.starts_with("COUT")
+                        || pin.starts_with("CIN")
+                        || pin.starts_with("BIST_COUTP")
+                        || pin.starts_with("SCAN_COUTP")
+                        || pin.starts_with("SERDES_COUT")
+                        || pin.starts_with("TCK_FMAC")
+                        || pin.starts_with("TESTCLK")
+                        || pin.starts_with("FF_RXCLK_P")
+                        || pin.starts_with("FF_SYSCLK_P")
+                        || pin == "FFC_CK_CORE_TX"
+                        || pin == "CS_QIF"
+                    {
+                        continue;
+                    }
+                    self.add_bel_wire(bcrd, &pin, wire);
+                    bel.pins.insert(pin, self.xlat_int_wire(bcrd, wire));
+                }
+
+                for (cell_pio, abcd, pin) in [
+                    (cell_apio[0], 'A', "HDOUTP3"),
+                    (cell_apio[0], 'B', "HDOUTN3"),
+                    (cell_apio[0], 'C', "HDINP3"),
+                    (cell_apio[0], 'D', "HDINN3"),
+                    (cell_apio[0], 'E', "HDOUTP2"),
+                    (cell_apio[0], 'F', "HDOUTN2"),
+                    (cell_apio[0], 'G', "HDINP2"),
+                    (cell_apio[0], 'H', "HDINN2"),
+                    (cell_apio[0], 'I', "REFCLKP"),
+                    (cell_apio[0], 'J', "REFCLKN"),
+                    (cell_apio[1], 'A', "HDOUTP1"),
+                    (cell_apio[1], 'B', "HDOUTN1"),
+                    (cell_apio[1], 'C', "HDINP1"),
+                    (cell_apio[1], 'D', "HDINN1"),
+                    (cell_apio[1], 'E', "HDOUTP0"),
+                    (cell_apio[1], 'F', "HDOUTN0"),
+                    (cell_apio[1], 'G', "HDINP0"),
+                    (cell_apio[1], 'H', "HDINN0"),
+                    (cell_apio[1], 'I', "RXREFCLKP"),
+                    (cell_apio[1], 'J', "RXREFCLKN"),
+                ] {
+                    for pin_pio in ["INPUT", "OUTPUT", "CLOCK"] {
+                        let wire_apio =
+                            self.rc_io_wire(cell_pio, &format!("J{pin_pio}{abcd}_APIO"));
+                        self.add_bel_wire(bcrd, format!("{pin}_APIO_{pin_pio}"), wire_apio);
+                        if pin_pio == "INPUT"
+                            && (pin.starts_with("HDIN") || pin.starts_with("REFCLK"))
+                        {
+                            let wire = self.rc_wire(cell, &format!("J{pin}_PCS"));
+                            self.add_bel_wire(bcrd, pin, wire);
+                            self.claim_pip(wire, wire_apio);
+                        }
+                        if pin_pio == "OUTPUT" && pin.starts_with("HDOUT") {
+                            let wire = self.rc_wire(cell, &format!("J{pin}_PCS"));
+                            self.add_bel_wire(bcrd, pin, wire);
+                            self.claim_pip(wire_apio, wire);
+                        }
+                    }
+                }
+
+                {
+                    let wire = self.rc_wire(cell, "JCS_QIF_PCS");
+                    self.add_bel_wire(bcrd, "CS_QIF", wire);
+                    let cell_sysbus = self.chip.special_loc[&SpecialLocKey::Config].delta(2, 0);
+                    let wire_sysbus = self.rc_wire(cell_sysbus, &format!("J{lr}PCSQ{quad}_SYSBUS"));
+                    self.claim_pip(wire, wire_sysbus);
+                }
+
+                for i in 0..22 {
+                    let cout = self.rc_wire(cell, &format!("JCOUT_{i}_PCS"));
+                    self.add_bel_wire(bcrd, format!("COUT_{i}"), cout);
+                    let bist_coutp = self.rc_wire(cell, &format!("JBIST_COUTP_{i}_PCS"));
+                    self.add_bel_wire(bcrd, format!("BIST_COUTP_{i}"), bist_coutp);
+                    let scan_coutp = self.rc_wire(cell, &format!("JSCAN_COUTP_{i}_PCS"));
+                    self.add_bel_wire(bcrd, format!("SCAN_COUTP_{i}"), scan_coutp);
+                    self.claim_pip(cout, scan_coutp);
+                    self.claim_pip(cout, bist_coutp);
+                    if let Some(cell_next) = cell_next {
+                        let cout_next = self.rc_wire(cell_next, &format!("JCOUT_{i}_PCS"));
+                        self.claim_pip(scan_coutp, cout_next);
+                        self.claim_pip(bist_coutp, cout_next);
+                    }
+                }
+                for i in 0..22 {
+                    let cout = self.rc_wire(cell, &format!("JSERDES_COUT_{i}_PCS"));
+                    self.add_bel_wire(bcrd, format!("SERDES_COUT_{i}"), cout);
+                    let coutp = self.rc_wire(cell, &format!("JSERDES_COUTP_{i}_PCS"));
+                    self.add_bel_wire(bcrd, format!("SERDES_COUTP_{i}"), coutp);
+                    self.claim_pip(cout, coutp);
+                    if let Some(cell_next) = cell_next {
+                        let cout_next = self.rc_wire(cell_next, &format!("JSERDES_COUT_{i}_PCS"));
+                        self.claim_pip(coutp, cout_next);
+                    }
+                }
+                {
+                    let testclk = self.rc_wire(cell, "JTESTCLK_PCS");
+                    self.add_bel_wire(bcrd, "TESTCLK", testclk);
+                    let testclk_maco = self.rc_wire(cell, "JTESTCLK_MACO_PCS");
+                    self.add_bel_wire(bcrd, "TESTCLK_MACO", testclk_maco);
+                    self.claim_pip(testclk, testclk_maco);
+                    if let Some(cell_next) = cell_next {
+                        let testclk_maco_next = self.rc_wire(cell_next, "JTESTCLK_MACO_PCS");
+                        self.claim_pip(testclk_maco_next, testclk);
+                    }
+                }
+                {
+                    let tck_fmac = self.rc_wire(cell, "JTCK_FMAC_PCS");
+                    self.add_bel_wire(bcrd, "TCK_FMAC", tck_fmac);
+                    let tck_fmacp = self.rc_wire(cell, "JTCK_FMACP_PCS");
+                    self.add_bel_wire(bcrd, "TCK_FMACP", tck_fmacp);
+                    self.claim_pip(tck_fmac, tck_fmacp);
+                    if let Some(cell_next) = cell_next {
+                        let tck_fmac_next = self.rc_wire(cell_next, "JTCK_FMAC_PCS");
+                        self.claim_pip(tck_fmacp, tck_fmac_next);
+                    }
+                }
+                for i in 0..13 {
+                    let cin = self.rc_wire(cell, &format!("JCIN_{i}_PCS"));
+                    self.add_bel_wire(bcrd, format!("CIN_{i}"), cin);
+                }
+                for pin in [
+                    "FF_RXCLK_P1",
+                    "FF_RXCLK_P2",
+                    "FF_SYSCLK_P1",
+                    "RXREFCLKP",
+                    "RXREFCLKN",
+                ] {
+                    let wire = self.rc_wire(cell, &format!("J{pin}_PCS"));
+                    self.add_bel_wire(bcrd, pin, wire);
+                }
+
+                self.insert_bel(bcrd, bel);
+
+                {
+                    let bcrd_center =
+                        self.chip.special_loc[&SpecialLocKey::Config].bel(bels::SERDES_CENTER);
+                    let mut bel_center = Bel::default();
+                    let wire = self.rc_wire(cell, "JFFC_CK_CORE_TX_PCS");
+                    self.add_bel_wire(bcrd, "FFC_CK_CORE_TX", wire);
+                    bel_center.pins.insert(
+                        "FFC_CK_CORE_TX".into(),
+                        self.xlat_int_wire(bcrd_center, wire),
+                    );
+                    self.insert_bel(bcrd_center, bel_center);
+                }
+            }
+        }
+        for hv in [DirHV::NW, DirHV::NE] {
+            let bcrd = self.chip.special_loc[&SpecialLocKey::Pll(PllLoc::new(hv, 0))]
+                .bel(bels::SERDES_CORNER);
+            let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
+            let tcls = &self.intdb.tile_classes[self.edev.egrid[tcrd].class];
+            let cell = bcrd.with_row(self.chip.row_n());
+            let dir_s = !hv.h;
+            let dir_n = hv.h;
+            self.name_bel_null(bcrd);
+            let mut bel = Bel::default();
+
+            let mut cells_serdes = vec![];
+            match hv.h {
+                DirH::W => {
+                    for (col, cd) in &self.chip.columns {
+                        if cd.io_n == IoGroupKind::Serdes && col < self.chip.col_clk {
+                            cells_serdes.push(bcrd.with_cr(col + 6, self.chip.row_n() - 11));
+                        }
+                    }
+                }
+                DirH::E => {
+                    for (col, cd) in self.chip.columns.iter().rev() {
+                        if cd.io_n == IoGroupKind::Serdes && col >= self.chip.col_clk {
+                            cells_serdes.push(bcrd.with_cr(col, self.chip.row_n() - 11));
+                        }
+                    }
+                }
+            };
+
+            for i in 0..13 {
+                let twire =
+                    TileWireCoord::new_idx(2, self.intdb.get_wire(&format!("IO_{dir_n}{i}_1")));
+                bel.pins.insert(format!("CIN_{i}"), BelPin::new_in(twire));
+                let wire_int = self.io_int_names[&self.edev.egrid.tile_wire(tcrd, twire)];
+                let wire = self.rc_corner_wire(cell, &format!("JVMAN01{i:02}"));
+                self.claim_pip_bi(wire, wire_int);
+                self.add_bel_wire(bcrd, twire.to_string(self.intdb, tcls), wire);
+                for &cell_serdes in &cells_serdes {
+                    let wire_serdes = self.rc_wire(cell_serdes, &format!("JCIN_{i}_PCS"));
+                    self.claim_pip(wire_serdes, wire);
+                }
+            }
+            {
+                let twire =
+                    TileWireCoord::new_idx(2, self.intdb.get_wire(&format!("IO_{dir_n}14_1")));
+                bel.pins
+                    .insert("TESTCLK_MACO".into(), BelPin::new_in(twire));
+                let wire_int = self.io_int_names[&self.edev.egrid.tile_wire(tcrd, twire)];
+                let wire = self.rc_corner_wire(cell, "JVMAN0114");
+                self.claim_pip_bi(wire, wire_int);
+                self.add_bel_wire(bcrd, twire.to_string(self.intdb, tcls), wire);
+                for &cell_serdes in &cells_serdes {
+                    let wire_serdes = self.rc_wire(cell_serdes, "JTESTCLK_MACO_PCS");
+                    self.claim_pip(wire_serdes, wire);
+                }
+            }
+            let mut outps = vec![];
+            for i in 0..6 {
+                outps.push((
+                    1,
+                    i,
+                    format!("COUT_{i}"),
+                    Some(cells_serdes[0]),
+                    format!("JCOUT_{i}_PCS"),
+                ));
+            }
+            outps.push((
+                1,
+                7,
+                "TCK_FMAC_PCS".to_string(),
+                Some(cells_serdes[0]),
+                "JTCK_FMAC_PCS".to_string(),
+            ));
+            for i in 6..22 {
+                outps.push((
+                    1,
+                    i + 3,
+                    format!("COUT_{i}"),
+                    Some(cells_serdes[0]),
+                    format!("JCOUT_{i}_PCS"),
+                ));
+            }
+            for i in 0..4 {
+                for j in 0..4 {
+                    let idx = 25 + i * 4 + j;
+                    let idx = if idx < 38 { idx } else { idx + 3 };
+                    outps.push((
+                        1 + idx / 32,
+                        idx % 32,
+                        format!("SERDES{i}_BS4PAD_{j}"),
+                        cells_serdes.get(i).copied(),
+                        format!("JBS4PAD_{j}_PCS"),
+                    ));
+                }
+            }
+
+            for (seg, idx, pin, cell_serdes, wn_serdes) in outps {
+                let twire = TileWireCoord::new_idx(
+                    2,
+                    self.intdb
+                        .get_wire(&format!("IO_{dir_s}{idx}_{seg}", seg = seg + 1)),
+                );
+                bel.pins.insert(pin, BelPin::new_out(twire));
+                if let Some(cell_serdes) = cell_serdes {
+                    let wire_int = self.io_int_names[&self.edev.egrid.tile_wire(tcrd, twire)];
+                    let wire = self.rc_corner_wire(cell, &format!("JVMAS{seg:02}{idx:02}"));
+                    self.claim_pip_bi(wire, wire_int);
+                    self.add_bel_wire(bcrd, twire.to_string(self.intdb, tcls), wire);
+                    let wire_serdes = self.rc_wire(cell_serdes, &wn_serdes);
+                    self.claim_pip(wire, wire_serdes);
+                }
+            }
+
+            self.insert_bel(bcrd, bel);
+        }
+    }
+
     fn process_serdes_ecp2(&mut self) {
         for tcname in ["SERDES_S", "SERDES_N"] {
             let tcid = self.intdb.get_tile_class(tcname);
@@ -1047,21 +1388,12 @@ impl ChipContext<'_> {
 
     pub fn process_serdes(&mut self) {
         match self.chip.kind {
-            ChipKind::Ecp2M => {
-                self.process_serdes_ecp2();
-            }
-            ChipKind::Ecp3 | ChipKind::Ecp3A => {
-                self.process_serdes_ecp3();
-            }
-            ChipKind::Ecp4 => {
-                self.process_serdes_ecp4();
-            }
-            ChipKind::Ecp5 => {
-                self.process_serdes_ecp5();
-            }
-            ChipKind::Crosslink => {
-                self.process_mipi_crosslink();
-            }
+            ChipKind::Scm => self.process_serdes_scm(),
+            ChipKind::Ecp2M => self.process_serdes_ecp2(),
+            ChipKind::Ecp3 | ChipKind::Ecp3A => self.process_serdes_ecp3(),
+            ChipKind::Ecp4 => self.process_serdes_ecp4(),
+            ChipKind::Ecp5 => self.process_serdes_ecp5(),
+            ChipKind::Crosslink => self.process_mipi_crosslink(),
             _ => (),
         }
     }

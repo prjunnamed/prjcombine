@@ -19,6 +19,7 @@ mod ecp4;
 mod ecp5;
 mod machxo;
 mod machxo2;
+mod scm;
 
 impl ChipContext<'_> {
     fn process_hsdclk_splitter(&mut self) {
@@ -73,6 +74,11 @@ impl ChipContext<'_> {
 
     pub fn process_clk(&mut self) {
         match self.chip.kind {
+            ChipKind::Scm => {
+                let hpcx = self.process_pclk_scm();
+                self.process_clk_edge_scm();
+                self.process_clk_root_scm(hpcx);
+            }
             ChipKind::Ecp | ChipKind::Xp => self.process_clk_ecp(),
             ChipKind::MachXo => self.process_clk_machxo(),
             ChipKind::Ecp2 | ChipKind::Ecp2M => {

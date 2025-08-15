@@ -7,4 +7,8 @@ connector_slots![
     N: S,
     SW: SE,
     SE: SW,
+    EBR_W: EBR_E,
+    EBR_E: EBR_W,
+    IO_W: IO_E,
+    IO_E: IO_W,
 ];

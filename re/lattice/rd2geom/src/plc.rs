@@ -5,6 +5,9 @@ use super::ChipContext;
 impl ChipContext<'_> {
     fn process_plc_ecp(&mut self) {
         for tcname in ["PLC", "FPLC"] {
+            if tcname == "FPLC" && self.chip.kind == ChipKind::Scm {
+                continue;
+            }
             let tcid = self.intdb.get_tile_class(tcname);
             for &tcrd in &self.edev.egrid.tile_index[tcid] {
                 let cell = tcrd.cell;
@@ -178,6 +181,28 @@ impl ChipContext<'_> {
                     self.claim_pip(wt, wf);
                 }
 
+                if self.chip.kind == ChipKind::Scm {
+                    for (i, pin, wire) in
+                        [(0, "FCO", "FCOA"), (1, "FCO", "FCOB"), (2, "FCO", "FCOC")]
+                    {
+                        self.add_bel_wire(slices[i], pin, self.rc_wire(cell, wire));
+                    }
+                    for (wt, wf) in [
+                        ("FCOA", "FCOA_SLICE"),
+                        ("FCOB", "FCOB_SLICE"),
+                        ("FCOC", "FCOC_SLICE"),
+                    ] {
+                        let wt = self.rc_wire(cell, wt);
+                        let wf = self.rc_wire(cell, wf);
+                        self.claim_pip(wt, wf);
+                    }
+                    for (i, wf) in ["FCOA", "FCOB", "FCOC", "FCO"].into_iter().enumerate() {
+                        let ofx1_int = self.edev.egrid.get_bel_pin(slices[i], "OFX1")[0];
+                        let wf = self.rc_wire(cell, wf);
+                        self.claim_pip_int_out(ofx1_int, wf);
+                    }
+                }
+
                 if tcname == "PLC" {
                     for (i, wt) in [
                         (0, "CLK20_SLICE"),
@@ -190,29 +215,56 @@ impl ChipContext<'_> {
                         let wf = self.edev.egrid.get_bel_pin(slices[i ^ 1], "CLK")[0];
                         self.claim_pip_int_in(wt, wf);
                     }
-                    for (i, pin, wire) in [
-                        (0, "DP64_SLICE", "DP64A_SLICE"),
-                        (1, "DP64_SLICE", "DP64B_SLICE"),
-                        (2, "DP64_SLICE", "DP64C_SLICE"),
-                        (3, "DP64_SLICE", "DP64D_SLICE"),
-                        (0, "DP_SLICE", "DPA_SLICE"),
-                        (1, "DP_SLICE", "DPB_SLICE"),
-                        (2, "DP_SLICE", "DPC_SLICE"),
-                        (3, "DP_SLICE", "DPD_SLICE"),
-                        (0, "DP", "DP01"),
-                        (2, "DP", "DP23"),
-                    ] {
-                        self.add_bel_wire(slices[i], pin, self.rc_wire(cell, wire));
-                    }
-                    for (wt, wf) in [
-                        ("DP64B_SLICE", "DP01"),
-                        ("DP64D_SLICE", "DP23"),
-                        ("DP01", "DPA_SLICE"),
-                        ("DP23", "DPC_SLICE"),
-                    ] {
-                        let wt = self.rc_wire(cell, wt);
-                        let wf = self.rc_wire(cell, wf);
-                        self.claim_pip(wt, wf);
+                    if self.chip.kind == ChipKind::Scm {
+                        for (i, pin, wire) in [
+                            (0, "DP64_SLICE", "DPI64A_SLICE"),
+                            (1, "DP64_SLICE", "DPI64B_SLICE"),
+                            (2, "DP64_SLICE", "DPI64C_SLICE"),
+                            (3, "DP64_SLICE", "DPI64D_SLICE"),
+                            (0, "DP_SLICE", "DPOA_SLICE"),
+                            (1, "DP_SLICE", "DPOB_SLICE"),
+                            (2, "DP_SLICE", "DPOC_SLICE"),
+                            (3, "DP_SLICE", "DPOD_SLICE"),
+                            (0, "DP", "DPI01"),
+                            (2, "DP", "DPO23"),
+                        ] {
+                            self.add_bel_wire(slices[i], pin, self.rc_wire(cell, wire));
+                        }
+                        for (wt, wf) in [
+                            ("DPI64B_SLICE", "DPI01"),
+                            ("DPI64D_SLICE", "DPO23"),
+                            ("DPI01", "DPOA_SLICE"),
+                            ("DPO23", "DPOC_SLICE"),
+                        ] {
+                            let wt = self.rc_wire(cell, wt);
+                            let wf = self.rc_wire(cell, wf);
+                            self.claim_pip(wt, wf);
+                        }
+                    } else {
+                        for (i, pin, wire) in [
+                            (0, "DP64_SLICE", "DP64A_SLICE"),
+                            (1, "DP64_SLICE", "DP64B_SLICE"),
+                            (2, "DP64_SLICE", "DP64C_SLICE"),
+                            (3, "DP64_SLICE", "DP64D_SLICE"),
+                            (0, "DP_SLICE", "DPA_SLICE"),
+                            (1, "DP_SLICE", "DPB_SLICE"),
+                            (2, "DP_SLICE", "DPC_SLICE"),
+                            (3, "DP_SLICE", "DPD_SLICE"),
+                            (0, "DP", "DP01"),
+                            (2, "DP", "DP23"),
+                        ] {
+                            self.add_bel_wire(slices[i], pin, self.rc_wire(cell, wire));
+                        }
+                        for (wt, wf) in [
+                            ("DP64B_SLICE", "DP01"),
+                            ("DP64D_SLICE", "DP23"),
+                            ("DP01", "DPA_SLICE"),
+                            ("DP23", "DPC_SLICE"),
+                        ] {
+                            let wt = self.rc_wire(cell, wt);
+                            let wf = self.rc_wire(cell, wf);
+                            self.claim_pip(wt, wf);
+                        }
                     }
                 }
             }
@@ -746,7 +798,9 @@ impl ChipContext<'_> {
 
     pub fn process_plc(&mut self) {
         match self.chip.kind {
-            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo => self.process_plc_ecp(),
+            ChipKind::Scm | ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo => {
+                self.process_plc_ecp()
+            }
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 | ChipKind::Ecp3 | ChipKind::Ecp3A => {
                 self.process_plc_ecp2()
             }

@@ -4,7 +4,7 @@ use prjcombine_interconnect::{
         Bel, BelInfo, BelPin, BelSlotId, Buf, ConnectorClass, ConnectorSlotId, ConnectorWire,
         IntDb, SwitchBox, SwitchBoxItem, TileClass, TileSlotId, TileWireCoord, WireKind,
     },
-    dir::{Dir, DirMap},
+    dir::{Dir, DirH, DirMap},
 };
 
 struct TileClassBuilder<'db> {
@@ -125,7 +125,7 @@ impl IntDbBuilder {
             }
         }
 
-        let nums_x1 = if matches!(self.kind, ChipKind::Ecp4) {
+        let nums_x1 = if matches!(self.kind, ChipKind::Scm | ChipKind::Ecp4) {
             [0, 1, 4, 5, 6, 7].as_slice()
         } else if self.kind.has_x1_bi() {
             [0, 1, 4, 5].as_slice()
@@ -209,7 +209,7 @@ impl IntDbBuilder {
 
     fn fill_x6_wires(&mut self) {
         let num_x6 = match self.kind {
-            ChipKind::Ecp4 => 8,
+            ChipKind::Scm | ChipKind::Ecp4 => 8,
             _ => 4,
         };
         for dir in Dir::DIRS {
@@ -251,6 +251,7 @@ impl IntDbBuilder {
 
     fn fill_pclk_wires(&mut self) {
         let num_clk = match self.kind {
+            ChipKind::Scm => 12,
             ChipKind::Ecp | ChipKind::Xp => 4,
             ChipKind::MachXo => 4,
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => 8,
@@ -274,6 +275,7 @@ impl IntDbBuilder {
 
     fn fill_sclk_wires(&mut self) {
         let num_clk = match self.kind {
+            ChipKind::Scm => 0,
             ChipKind::Ecp | ChipKind::Xp => 4,
             ChipKind::MachXo => 4,
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => 8,
@@ -336,6 +338,68 @@ impl IntDbBuilder {
                     .wires
                     .insert(w_n, ConnectorWire::Pass(w));
             }
+        }
+    }
+
+    fn fill_sclk_wires_scm(&mut self) {
+        if self.kind != ChipKind::Scm {
+            return;
+        }
+        for i in 0..2 {
+            let w = self.db.wires.insert(format!("SCLK{i}"), WireKind::MuxOut).0;
+            for dir in [Dir::W, Dir::E] {
+                let w1 = self
+                    .db
+                    .wires
+                    .insert(
+                        format!("SCLK{i}_{dir}"),
+                        WireKind::Branch(self.conn_slots[!dir]),
+                    )
+                    .0;
+                self.passes[!dir].wires.insert(w1, ConnectorWire::Pass(w));
+            }
+        }
+        let mut w = self.db.wires.insert("VSDCLK0".into(), WireKind::MultiOut).0;
+        for seg in 1..=6 {
+            let nw = self
+                .db
+                .wires
+                .insert(format!("VSDCLK{seg}"), WireKind::MultiBranch(cslots::S))
+                .0;
+            self.passes[Dir::S].wires.insert(nw, ConnectorWire::Pass(w));
+            w = nw;
+        }
+        let mut hsdclk = vec![];
+        for i in 0..=6 {
+            hsdclk.push(
+                self.db
+                    .wires
+                    .insert(
+                        format!("HSDCLK{i}"),
+                        match i.cmp(&3) {
+                            std::cmp::Ordering::Less => WireKind::MultiBranch(cslots::E),
+                            std::cmp::Ordering::Equal => WireKind::MultiOut,
+                            std::cmp::Ordering::Greater => WireKind::MultiBranch(cslots::W),
+                        },
+                    )
+                    .0,
+            );
+        }
+        for i in 0..=2 {
+            self.passes[Dir::E]
+                .wires
+                .insert(hsdclk[i], ConnectorWire::Pass(hsdclk[i + 1]));
+            self.terms[Dir::E]
+                .wires
+                .insert(hsdclk[i], ConnectorWire::Reflect(hsdclk[6 - (i + 1)]));
+        }
+        for i in 4..=6 {
+            self.passes[Dir::W]
+                .wires
+                .insert(hsdclk[i], ConnectorWire::Pass(hsdclk[i - 1]));
+            self.terms[Dir::W]
+                .wires
+                .insert(hsdclk[i], ConnectorWire::Reflect(hsdclk[6 - (i - 1)]));
         }
     }
 
@@ -442,6 +506,166 @@ impl IntDbBuilder {
         }
     }
 
+    fn fill_ebr_wires_scm(&mut self) {
+        if self.kind != ChipKind::Scm {
+            return;
+        }
+        for pin in ["DIA", "DIB"] {
+            for i in 0..18 {
+                self.db
+                    .wires
+                    .insert(format!("IMUX_EBR_{pin}{i}"), WireKind::MuxOut);
+            }
+        }
+        for pin in ["ADA", "ADB"] {
+            for i in 3..14 {
+                self.db
+                    .wires
+                    .insert(format!("IMUX_EBR_{pin}{i}"), WireKind::MuxOut);
+            }
+        }
+        for pin in ["CLKA", "CLKB", "RSTA", "RSTB", "CEA", "CEB", "WEA", "WEB"] {
+            self.db
+                .wires
+                .insert(format!("IMUX_EBR_{pin}"), WireKind::MuxOut);
+        }
+        for pin in ["DOA", "DOB"] {
+            for i in 0..18 {
+                self.db
+                    .wires
+                    .insert(format!("OUT_EBR_{pin}{i}"), WireKind::LogicOut);
+            }
+        }
+        for pin in ["AE", "FF", "AF", "EF"] {
+            self.db
+                .wires
+                .insert(format!("OUT_EBR_{pin}"), WireKind::LogicOut);
+        }
+        for i in 0..64 {
+            self.db
+                .wires
+                .insert(format!("EBR_W{i}_0"), WireKind::MuxOut);
+            self.db
+                .wires
+                .insert(format!("EBR_W{i}_1"), WireKind::Branch(cslots::EBR_E));
+        }
+        for i in 0..64 {
+            self.db
+                .wires
+                .insert(format!("EBR_E{i}_0"), WireKind::MuxOut);
+            self.db
+                .wires
+                .insert(format!("EBR_E{i}_1"), WireKind::Branch(cslots::EBR_W));
+        }
+        let mut conn_w_w = ConnectorClass::new(cslots::EBR_W);
+        let mut conn_m_w = ConnectorClass::new(cslots::EBR_W);
+        let mut conn_e_w = ConnectorClass::new(cslots::EBR_W);
+        let mut conn_w_e = ConnectorClass::new(cslots::EBR_E);
+        let mut conn_m_e = ConnectorClass::new(cslots::EBR_E);
+        let mut conn_e_e = ConnectorClass::new(cslots::EBR_E);
+        for i in 0..64 {
+            let w1 = self.db.get_wire(&format!("EBR_E{i}_1"));
+            let w0 = self.db.get_wire(&format!("EBR_E{i}_0"));
+            conn_w_w.wires.insert(w1, ConnectorWire::Pass(w0));
+            if i < 48 {
+                conn_e_w.wires.insert(w1, ConnectorWire::Pass(w0));
+            }
+            let w1 = self.db.get_wire(&format!("EBR_W{i}_1"));
+            let w0 = self.db.get_wire(&format!("EBR_W{i}_0"));
+            conn_e_e.wires.insert(w1, ConnectorWire::Pass(w0));
+            if i < 48 {
+                conn_w_e.wires.insert(w1, ConnectorWire::Pass(w0));
+            }
+        }
+        for i in 0..48 {
+            let ii = if i < 24 { i } else { i + 16 };
+            let w1 = self.db.get_wire(&format!("EBR_E{i}_1"));
+            let w0 = self.db.get_wire(&format!("EBR_E{ii}_0"));
+            conn_m_w.wires.insert(w1, ConnectorWire::Pass(w0));
+            let w1 = self.db.get_wire(&format!("EBR_W{i}_1"));
+            let w0 = self.db.get_wire(&format!("EBR_W{ii}_0"));
+            conn_m_e.wires.insert(w1, ConnectorWire::Pass(w0));
+        }
+        self.db.conn_classes.insert("PASS_EBR_W_W".into(), conn_w_w);
+        self.db.conn_classes.insert("PASS_EBR_M_W".into(), conn_m_w);
+        self.db.conn_classes.insert("PASS_EBR_E_W".into(), conn_e_w);
+        self.db.conn_classes.insert("PASS_EBR_W_E".into(), conn_w_e);
+        self.db.conn_classes.insert("PASS_EBR_M_E".into(), conn_m_e);
+        self.db.conn_classes.insert("PASS_EBR_E_E".into(), conn_e_e);
+    }
+
+    fn fill_io_wires_scm(&mut self) {
+        if self.kind != ChipKind::Scm {
+            return;
+        }
+        for i in 0..32 {
+            self.db
+                .wires
+                .insert(format!("IMUX_IO{i}"), WireKind::MuxOut);
+        }
+        for i in 0..24 {
+            self.db
+                .wires
+                .insert(format!("OUT_IO{i}"), WireKind::LogicOut);
+        }
+        for dir in [Dir::S, Dir::N] {
+            for i in 0..8 {
+                for j in 0..32 {
+                    self.db
+                        .wires
+                        .insert(format!("OUT_MACO_IO_{dir}{i}_{j}"), WireKind::LogicOut);
+                }
+            }
+        }
+        let mut conn_w = ConnectorClass::new(cslots::IO_W);
+        let mut conn_e = ConnectorClass::new(cslots::IO_E);
+        for i in 0..32 {
+            let mut w = self
+                .db
+                .wires
+                .insert(format!("IO_W{i}_0"), WireKind::MuxOut)
+                .0;
+            for seg in 1..=8 {
+                let nw = self
+                    .db
+                    .wires
+                    .insert(format!("IO_W{i}_{seg}"), WireKind::Branch(cslots::IO_E))
+                    .0;
+                conn_e.wires.insert(nw, ConnectorWire::Pass(w));
+                w = nw;
+            }
+        }
+        for i in 0..32 {
+            let mut w = self
+                .db
+                .wires
+                .insert(format!("IO_E{i}_0"), WireKind::MuxOut)
+                .0;
+            for seg in 1..=8 {
+                let nw = self
+                    .db
+                    .wires
+                    .insert(format!("IO_E{i}_{seg}"), WireKind::Branch(cslots::IO_W))
+                    .0;
+                conn_w.wires.insert(nw, ConnectorWire::Pass(w));
+                w = nw;
+            }
+        }
+        for (dir, slot, conn) in [
+            (DirH::W, cslots::IO_E, &mut conn_e),
+            (DirH::E, cslots::IO_W, &mut conn_w),
+        ] {
+            let w = self
+                .db
+                .wires
+                .insert(format!("IO_T_{dir}"), WireKind::Branch(slot))
+                .0;
+            conn.wires.insert(w, ConnectorWire::Pass(w));
+        }
+        self.db.conn_classes.insert("PASS_IO_W".into(), conn_w);
+        self.db.conn_classes.insert("PASS_IO_E".into(), conn_e);
+    }
+
     fn fill_wires(&mut self) {
         self.db.wires.insert("TIE0".into(), WireKind::Tie0);
         self.db.wires.insert("TIE1".into(), WireKind::Tie1);
@@ -452,12 +676,16 @@ impl IntDbBuilder {
         self.fill_x6_wires();
         self.fill_pclk_wires();
         self.fill_sclk_wires();
+        self.fill_sclk_wires_scm();
         self.fill_imux_wires();
         self.fill_out_wires();
+        self.fill_ebr_wires_scm();
+        self.fill_io_wires_scm();
     }
 
     fn fill_int_tiles(&mut self) {
         let int_tiles = match self.kind {
+            ChipKind::Scm => ["INT_PLC", "INT_EBR", "INT_IO"].as_slice(),
             ChipKind::MachXo => [
                 "INT_PLC",
                 "INT_SIO_W",
@@ -616,7 +844,8 @@ impl IntDbBuilder {
 
     fn fill_pclk_tiles(&mut self) {
         match self.kind {
-            ChipKind::Ecp
+            ChipKind::Scm
+            | ChipKind::Ecp
             | ChipKind::Xp
             | ChipKind::MachXo
             | ChipKind::Ecp2
@@ -712,6 +941,42 @@ impl IntDbBuilder {
                     );
                 }
             }
+        }
+    }
+
+    fn fill_clk_tiles_scm(&mut self) {
+        for slot in bels::CLKDIV {
+            self.db.bel_slots[slot].tile_slot = tslots::CLK;
+        }
+        for name in ["CLK_W", "CLK_E", "CLK_N"] {
+            let mut tcls = self.tile_class(name, tslots::CLK, 2);
+            tcls.bel(bels::ECLK_ROOT);
+            for i in 0..4 {
+                tcls.bel(bels::CLKDIV[i]);
+            }
+            for i in 0..2 {
+                tcls.bel(bels::DCS[i]);
+            }
+            tcls.bel(bels::CLK_EDGE);
+        }
+        {
+            let mut tcls = self.tile_class("CLK_S", tslots::CLK, 2);
+            for i in 0..2 {
+                tcls.bel(bels::DCS[i]);
+            }
+            tcls.bel(bels::CLK_EDGE);
+        }
+        for name in ["CLK_SW", "CLK_SE"] {
+            let mut tcls = self.tile_class(name, tslots::CLK, 2);
+            tcls.bel(bels::ECLK_ROOT);
+            for i in 0..4 {
+                tcls.bel(bels::CLKDIV[i]);
+            }
+        }
+        {
+            let mut tcls = self.tile_class("CLK_ROOT", tslots::CLK, 4);
+            tcls.bel(bels::CLK_ROOT);
+            tcls.bel(bels::CLKTEST);
         }
     }
 
@@ -1029,6 +1294,7 @@ impl IntDbBuilder {
 
     fn fill_clk_tiles(&mut self) {
         match self.kind {
+            ChipKind::Scm => self.fill_clk_tiles_scm(),
             ChipKind::Ecp | ChipKind::Xp | ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
                 self.fill_clk_tiles_ecp()
             }
@@ -1047,7 +1313,11 @@ impl IntDbBuilder {
             if name == "FPLC"
                 && matches!(
                     self.kind,
-                    ChipKind::MachXo2(_) | ChipKind::Ecp4 | ChipKind::Ecp5 | ChipKind::Crosslink
+                    ChipKind::Scm
+                        | ChipKind::MachXo2(_)
+                        | ChipKind::Ecp4
+                        | ChipKind::Ecp5
+                        | ChipKind::Crosslink
                 )
             {
                 continue;
@@ -1099,7 +1369,7 @@ impl IntDbBuilder {
 
     fn fill_ebr_tiles(&mut self) {
         let (num_cells, num_bels) = match self.kind {
-            ChipKind::Ecp | ChipKind::Xp => (2, 1),
+            ChipKind::Scm | ChipKind::Ecp | ChipKind::Xp => (2, 1),
             ChipKind::MachXo => (4, 1),
             ChipKind::Ecp2
             | ChipKind::Ecp2M
@@ -1109,24 +1379,31 @@ impl IntDbBuilder {
             | ChipKind::MachXo2(_) => (3, 1),
             ChipKind::Ecp4 | ChipKind::Ecp5 | ChipKind::Crosslink => (9, 4),
         };
-        {
-            let mut tcls = self.tile_class("EBR", tslots::BEL, num_cells);
+        let tiles = match self.kind {
+            ChipKind::Scm => ["EBR_W", "EBR_E"].as_slice(),
+            ChipKind::MachXo2(_) => ["EBR", "EBR_N"].as_slice(),
+            _ => ["EBR"].as_slice(),
+        };
+        let kind = self.kind;
+        for &tcname in tiles {
+            let mut tcls = self.tile_class(tcname, tslots::BEL, num_cells);
             for i in 0..num_bels {
                 tcls.bel(bels::EBR[i]);
             }
-        }
-        if matches!(self.kind, ChipKind::MachXo2(_)) {
-            let mut tcls = self.tile_class("EBR_N", tslots::BEL, num_cells);
-            for i in 0..num_bels {
-                tcls.bel(bels::EBR[i]);
+            if kind == ChipKind::Scm {
+                tcls.bel(bels::EBR_INT);
             }
         }
     }
 
     fn fill_dsp_tiles(&mut self) {
         let (num_cells, num_bels) = match self.kind {
+            ChipKind::Scm
+            | ChipKind::Xp
+            | ChipKind::MachXo
+            | ChipKind::MachXo2(_)
+            | ChipKind::Crosslink => return,
             ChipKind::Ecp => (8, 1),
-            ChipKind::Xp | ChipKind::MachXo | ChipKind::MachXo2(_) | ChipKind::Crosslink => return,
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => (9, 1),
             ChipKind::Ecp3 | ChipKind::Ecp3A | ChipKind::Ecp4 | ChipKind::Ecp5 => (9, 2),
         };
@@ -1134,6 +1411,17 @@ impl IntDbBuilder {
         for i in 0..num_bels {
             tcls.bel(bels::DSP[i]);
         }
+    }
+
+    fn fill_config_tiles_scm(&mut self) {
+        let mut tcls = self.tile_class("CONFIG", tslots::BEL, 13);
+        tcls.bel(bels::JTAG);
+        tcls.bel(bels::RDBK);
+        tcls.bel(bels::GSR);
+        tcls.bel(bels::OSC);
+        tcls.bel(bels::START);
+        tcls.bel(bels::SYSBUS);
+        tcls.bel(bels::SERDES_CENTER);
     }
 
     fn fill_config_tiles_ecp(&mut self) {
@@ -1273,6 +1561,7 @@ impl IntDbBuilder {
 
     fn fill_config_tiles(&mut self) {
         match self.kind {
+            ChipKind::Scm => self.fill_config_tiles_scm(),
             ChipKind::Ecp => self.fill_config_tiles_ecp(),
             ChipKind::Xp => self.fill_config_tiles_xp(),
             ChipKind::MachXo => self.fill_config_tiles_machxo(),
@@ -1283,6 +1572,31 @@ impl IntDbBuilder {
             ChipKind::Ecp4 => self.fill_config_tiles_ecp4(),
             ChipKind::Ecp5 => self.fill_config_tiles_ecp5(),
             ChipKind::Crosslink => self.fill_config_tiles_crosslink(),
+        }
+    }
+
+    fn fill_io_tiles_scm(&mut self) {
+        for (name, num_io, num_cells) in [
+            ("IO_W4", 4, 2),
+            ("IO_W12", 12, 4),
+            ("IO_E4", 4, 2),
+            ("IO_E12", 12, 4),
+            ("IO_S4", 4, 2),
+            ("IO_S12", 12, 4),
+            ("IO_N4", 4, 2),
+            ("IO_N8", 8, 3),
+            ("IO_N12", 12, 4),
+        ] {
+            let mut tcls = self.tile_class(name, tslots::IO, num_cells);
+            for i in 0..num_io {
+                tcls.bel(bels::IO[i]);
+            }
+            for i in 0..num_io / 4 {
+                tcls.bel(bels::PICTEST[i]);
+            }
+        }
+        for name in ["IO_INT_W", "IO_INT_E", "IO_INT_S"] {
+            self.tile_class(name, tslots::BEL, 1).bel(bels::IO_INT);
         }
     }
 
@@ -1560,6 +1874,7 @@ impl IntDbBuilder {
 
     fn fill_io_tiles(&mut self) {
         match self.kind {
+            ChipKind::Scm => self.fill_io_tiles_scm(),
             ChipKind::Ecp | ChipKind::Xp | ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
                 self.fill_io_tiles_ecp()
             }
@@ -1569,6 +1884,17 @@ impl IntDbBuilder {
             ChipKind::Ecp4 => self.fill_io_tiles_ecp4(),
             ChipKind::Ecp5 => self.fill_io_tiles_ecp5(),
             ChipKind::Crosslink => self.fill_io_tiles_crosslink(),
+        }
+    }
+
+    fn fill_serdes_tiles_scm(&mut self) {
+        for name in ["SERDES_W", "SERDES_E"] {
+            self.tile_class(name, tslots::BEL, 7).bel(bels::SERDES);
+        }
+        for name in ["MACO_W", "MACO_E"] {
+            let mut tcls = self.tile_class(name, tslots::BEL, 16);
+            tcls.bel(bels::MACO);
+            tcls.bel(bels::MACO_INT);
         }
     }
 
@@ -1603,6 +1929,7 @@ impl IntDbBuilder {
 
     fn fill_serdes_tiles(&mut self) {
         match self.kind {
+            ChipKind::Scm => self.fill_serdes_tiles_scm(),
             ChipKind::Ecp
             | ChipKind::Xp
             | ChipKind::Ecp2
@@ -1614,6 +1941,54 @@ impl IntDbBuilder {
             ChipKind::Ecp4 => self.fill_serdes_tiles_ecp4(),
             ChipKind::Ecp5 => self.fill_serdes_tiles_ecp5(),
             ChipKind::Crosslink => self.fill_mipi_tiles_crosslink(),
+        }
+    }
+
+    fn fill_pll_tiles_scm(&mut self) {
+        for name in ["PLL_SW", "PLL_SE"] {
+            let mut tcls = self.tile_class(name, tslots::BEL, 6);
+            for i in 0..2 {
+                tcls.bel(bels::PLL[i]);
+            }
+            for i in 0..4 {
+                tcls.bel(bels::DLL[i]);
+            }
+            for i in 0..2 {
+                tcls.bel(bels::DLL_DCNTL[i]);
+            }
+            tcls.bel(bels::PLL_SMI);
+            tcls.bel(bels::PROMON);
+            if name == "PLL_SW" {
+                tcls.bel(bels::RNET);
+            }
+        }
+        for name in ["PLL_NW", "PLL_NE"] {
+            let mut tcls = self.tile_class(name, tslots::BEL, 3);
+            for i in 0..2 {
+                tcls.bel(bels::PLL[i]);
+            }
+            for i in 0..2 {
+                tcls.bel(bels::DLL[i]);
+            }
+            for i in 0..2 {
+                tcls.bel(bels::DLL_DCNTL[i]);
+            }
+            tcls.bel(bels::PLL_SMI);
+            tcls.bel(bels::SERDES_CORNER);
+            if name == "PLL_NW" {
+                tcls.bel(bels::M0);
+                tcls.bel(bels::M1);
+                tcls.bel(bels::M2);
+                tcls.bel(bels::M3);
+                tcls.bel(bels::RESETN);
+                tcls.bel(bels::RDCFGN);
+            }
+            if name == "PLL_NE" {
+                tcls.bel(bels::CCLK);
+                tcls.bel(bels::TCK);
+                tcls.bel(bels::TMS);
+                tcls.bel(bels::TDI);
+            }
         }
     }
 
@@ -1636,7 +2011,7 @@ impl IntDbBuilder {
         for name in ["PLL_W", "PLL_E"] {
             let mut tcls = self.tile_class(name, tslots::BEL, 4);
             tcls.bel(bels::PLL0);
-            tcls.bel(bels::DLL);
+            tcls.bel(bels::DLL0);
             tcls.bel(bels::DLLDEL0);
             tcls.bel(bels::CLKDIV0);
             tcls.bel(bels::ECLK_ALT_ROOT);
@@ -1654,7 +2029,7 @@ impl IntDbBuilder {
         for name in ["PLL_DLL_W", "PLL_DLL_E", "PLL_DLL_A_W", "PLL_DLL_A_E"] {
             let mut tcls = self.tile_class(name, tslots::BEL, 18);
             tcls.bel(bels::PLL0);
-            tcls.bel(bels::DLL);
+            tcls.bel(bels::DLL0);
             tcls.bel(bels::DLLDEL0);
             tcls.bel(bels::DQSDLL);
             tcls.bel(bels::DQSDLLTEST);
@@ -1701,6 +2076,7 @@ impl IntDbBuilder {
 
     fn fill_pll_tiles(&mut self) {
         match self.kind {
+            ChipKind::Scm => self.fill_pll_tiles_scm(),
             ChipKind::Ecp | ChipKind::Xp => self.fill_pll_tiles_ecp(),
             ChipKind::MachXo => self.fill_pll_tiles_machxo(),
             ChipKind::Ecp2 | ChipKind::Ecp2M => self.fill_pll_tiles_ecp2(),

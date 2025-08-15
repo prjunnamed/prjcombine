@@ -37,6 +37,12 @@ impl ChipNaming {
         let wire = self.strings.get(wire).unwrap();
         bel.wires[&wire]
     }
+
+    pub fn try_bel_wire(&self, bel: BelCoord, wire: &str) -> Option<WireName> {
+        let bel = &self.bels[&bel];
+        let wire = self.strings.get(wire)?;
+        bel.wires.get(&wire).copied()
+    }
 }
 
 #[derive(Clone, Debug, Encode, Decode, Default)]

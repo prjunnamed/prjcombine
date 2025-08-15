@@ -470,4 +470,29 @@ impl ChipContext<'_> {
             }
         }
     }
+
+    pub(super) fn process_clkdiv_crosslink(&mut self) {
+        let cell_tile = CellCoord::new(DieId::from_idx(0), self.chip.col_clk, self.chip.row_s());
+        let cell = cell_tile.delta(-1, 0);
+        for i in 0..4 {
+            let bcrd = cell_tile.bel(bels::CLKDIV[i]);
+            self.name_bel(bcrd, [format!("CLKDIV{i}")]);
+            let mut bel = Bel::default();
+
+            for pin in ["ALIGNWD", "RST", "CDIVX"] {
+                let wire = self.rc_io_wire(cell, &format!("J{pin}_CLKDIV{i}"));
+                self.add_bel_wire(bcrd, pin, wire);
+                bel.pins.insert(pin.into(), self.xlat_int_wire(bcrd, wire));
+            }
+
+            let clki = self.rc_io_wire(cell, &format!("CLKI_CLKDIV{i}"));
+            self.add_bel_wire(bcrd, "CLKI", clki);
+
+            let bcrd_eclk = bcrd.bel(bels::ECLKSYNC[i]);
+            let wire_eclk = self.naming.bel_wire(bcrd_eclk, "ECLK_MUX");
+            self.claim_pip(clki, wire_eclk);
+
+            self.insert_bel(bcrd, bel);
+        }
+    }
 }

@@ -23,6 +23,7 @@ The target devices currently include:
 - all SiliconBlue FPGAs
 - all Xilinx FPGAs
 - some Lattice FPGAs:
+  - SCM
   - ECP, XP, MachXO
   - ECP2, ECP2M, XP2
   - ECP3
@@ -67,6 +68,7 @@ For each of the supported device families:
 | Virtex 7, Kintex 7, Artix 7, Spartan 7, Zynq 7000   | ✅        | ✅         | ❌      | ❌    | ❌                   |
 | Ultrascale, Ultrascale+                             | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | Versal                                              | 👷🏼‍♀️        | ❌         | ❌      | ❌    | ❌                   |
+| SCM                                                 | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | ECP, XP, MachXO                                     | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | ECP2, ECP2M, XP2                                    | ✅        | ❌         | ❌      | ❌    | ❌                   |
 | ECP3                                                | ✅        | ❌         | ❌      | ❌    | ❌                   |

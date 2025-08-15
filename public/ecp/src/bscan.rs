@@ -23,6 +23,124 @@ impl Chip {
         let mut builder = BScanBuilder::new();
         let mut pads = BTreeMap::new();
         match self.kind {
+            ChipKind::Scm => {
+                for (col, cd) in self.columns.iter().rev() {
+                    if col >= self.col_clk {
+                        continue;
+                    }
+                    let num_io = match cd.io_n {
+                        IoGroupKind::None => 0,
+                        IoGroupKind::Quad => 4,
+                        IoGroupKind::Octal => 8,
+                        IoGroupKind::Dozen => 12,
+                        IoGroupKind::Serdes => {
+                            for (pad, val) in [
+                                (SerdesPad::InP(3), builder.get_i()),
+                                (SerdesPad::OutP(3), builder.get_o()),
+                                (SerdesPad::OutP(2), builder.get_o()),
+                                (SerdesPad::InP(2), builder.get_i()),
+                                (SerdesPad::InP(1), builder.get_i()),
+                                (SerdesPad::OutP(1), builder.get_o()),
+                                (SerdesPad::OutP(0), builder.get_o()),
+                                (SerdesPad::InP(0), builder.get_i()),
+                                (SerdesPad::ClkP, builder.get_i()),
+                                (SerdesPad::RxClkP, builder.get_i()),
+                            ] {
+                                pads.insert(BondPad::Serdes(DirV::N, col, pad), val);
+                            }
+                            continue;
+                        }
+                        _ => unreachable!(),
+                    };
+                    for iob in (0..num_io).rev() {
+                        let crd = EdgeIoCoord::N(col, TileIobId::from_idx(iob));
+                        pads.insert(BondPad::Io(crd), builder.get_tb());
+                    }
+                }
+                pads.insert(BondPad::Cfg(CfgPad::ResetB), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::RdCfgB), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::Done), builder.get_tb());
+                pads.insert(BondPad::Cfg(CfgPad::InitB), builder.get_tb());
+                pads.insert(BondPad::Cfg(CfgPad::M0), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::M1), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::M2), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::M3), builder.get_i());
+                for (row, rd) in self.rows.iter().rev() {
+                    let num_io = match rd.io_w {
+                        IoGroupKind::None => 0,
+                        IoGroupKind::Quad => 4,
+                        IoGroupKind::Octal => 8,
+                        IoGroupKind::Dozen => 12,
+                        _ => unreachable!(),
+                    };
+                    for iob in 0..num_io {
+                        let crd = EdgeIoCoord::W(row, TileIobId::from_idx(iob));
+                        pads.insert(BondPad::Io(crd), builder.get_tb());
+                    }
+                }
+                for (col, cd) in self.columns.iter() {
+                    let num_io = match cd.io_s {
+                        IoGroupKind::None => 0,
+                        IoGroupKind::Quad => 4,
+                        IoGroupKind::Octal => 8,
+                        IoGroupKind::Dozen => 12,
+                        _ => unreachable!(),
+                    };
+                    for iob in 0..num_io {
+                        let crd = EdgeIoCoord::S(col, TileIobId::from_idx(iob));
+                        pads.insert(BondPad::Io(crd), builder.get_tb());
+                    }
+                }
+                for (row, rd) in self.rows.iter() {
+                    let num_io = match rd.io_e {
+                        IoGroupKind::None => 0,
+                        IoGroupKind::Quad => 4,
+                        IoGroupKind::Octal => 8,
+                        IoGroupKind::Dozen => 12,
+                        _ => unreachable!(),
+                    };
+                    for iob in (0..num_io).rev() {
+                        let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob));
+                        pads.insert(BondPad::Io(crd), builder.get_tb());
+                    }
+                }
+                pads.insert(BondPad::Cfg(CfgPad::ProgB), builder.get_i());
+                pads.insert(BondPad::Cfg(CfgPad::MpiIrqB), builder.get_to());
+                pads.insert(BondPad::Cfg(CfgPad::Cclk), builder.get_tb());
+                for (col, cd) in self.columns.iter().rev() {
+                    if col < self.col_clk {
+                        continue;
+                    }
+                    let num_io = match cd.io_n {
+                        IoGroupKind::None => 0,
+                        IoGroupKind::Quad => 4,
+                        IoGroupKind::Octal => 8,
+                        IoGroupKind::Dozen => 12,
+                        IoGroupKind::Serdes => {
+                            for (pad, val) in [
+                                (SerdesPad::RxClkP, builder.get_i()),
+                                (SerdesPad::ClkP, builder.get_i()),
+                                (SerdesPad::InP(0), builder.get_i()),
+                                (SerdesPad::OutP(0), builder.get_o()),
+                                (SerdesPad::OutP(1), builder.get_o()),
+                                (SerdesPad::InP(1), builder.get_i()),
+                                (SerdesPad::InP(2), builder.get_i()),
+                                (SerdesPad::OutP(2), builder.get_o()),
+                                (SerdesPad::OutP(3), builder.get_o()),
+                                (SerdesPad::InP(3), builder.get_i()),
+                            ] {
+                                pads.insert(BondPad::Serdes(DirV::N, col, pad), val);
+                            }
+                            continue;
+                        }
+                        _ => unreachable!(),
+                    };
+                    for iob in (0..num_io).rev() {
+                        let crd = EdgeIoCoord::N(col, TileIobId::from_idx(iob));
+                        pads.insert(BondPad::Io(crd), builder.get_tb());
+                    }
+                }
+            }
             ChipKind::Ecp | ChipKind::Ecp2 | ChipKind::Ecp2M => {
                 for (col, cd) in &self.columns {
                     if col < self.col_clk {

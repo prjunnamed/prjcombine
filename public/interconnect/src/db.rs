@@ -463,6 +463,15 @@ pub struct ConnectorClass {
     pub wires: EntityPartVec<WireId, ConnectorWire>,
 }
 
+impl ConnectorClass {
+    pub fn new(slot: ConnectorSlotId) -> Self {
+        ConnectorClass {
+            slot,
+            wires: Default::default(),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ConnectorWire {
     BlackHole,

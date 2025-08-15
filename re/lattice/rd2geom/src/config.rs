@@ -3,6 +3,7 @@ use prjcombine_ecp::{
     chip::{ChipKind, MachXo2Kind, PllLoc, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
+    db::Bel,
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, DieId},
 };
@@ -12,6 +13,267 @@ use unnamed_entity::EntityId;
 use crate::ChipContext;
 
 impl ChipContext<'_> {
+    fn process_config_scm(&mut self) {
+        let cell = self.chip.special_loc[&SpecialLocKey::Config];
+
+        let cell_nw = cell.with_cr(self.chip.col_w(), self.chip.row_n());
+        let cell_ne = cell.with_cr(self.chip.col_e(), self.chip.row_n());
+
+        {
+            let bcrd = cell.bel(bels::START);
+            self.name_bel(bcrd, ["START"]);
+            self.insert_simple_bel(bcrd, cell, "START");
+        }
+
+        {
+            let bcrd = cell.bel(bels::RDBK);
+            self.name_bel(bcrd, ["RDBK"]);
+            let mut bel = Bel::default();
+            for pin in ["FFRDCFG", "FFRDCFGCLK", "RDDATA"] {
+                let wire = self.rc_wire(cell, &format!("J{pin}_RDBK"));
+                self.add_bel_wire(bcrd, pin, wire);
+                bel.pins.insert(pin.into(), self.xlat_int_wire(bcrd, wire));
+            }
+            self.insert_bel(bcrd, bel);
+        }
+
+        {
+            let bcrd = cell.bel(bels::OSC);
+            self.name_bel(bcrd, ["OSC"]);
+            self.insert_simple_bel(bcrd, cell, "OSC");
+        }
+
+        {
+            let bcrd = cell.bel(bels::GSR);
+            self.name_bel(bcrd, ["GSR"]);
+            self.insert_simple_bel(bcrd, cell, "GSR");
+            let rstn = self.rc_wire(cell, "JRSTN_GSR");
+            self.add_bel_wire(bcrd, "RSTN", rstn);
+            let rstn_io = self.rc_corner_wire(cell_nw, "JRSTN_RSTN");
+            self.claim_pip(rstn, rstn_io);
+            let usr = self.rc_wire(cell, "JUSR_GSR");
+            let gsr = self.rc_wire(cell, "GSR_GSR");
+            self.add_bel_wire(bcrd, "GSR", gsr);
+            self.claim_pip(gsr, rstn);
+            self.claim_pip(gsr, usr);
+        }
+
+        {
+            let bcrd = cell.bel(bels::JTAG);
+            let cell_jtag = cell.delta(1, 0);
+            let name = if self.chip.rows.len() == 58 {
+                // what the fuck.
+                "JTAG_R13C26"
+            } else {
+                "JTAG"
+            };
+            self.name_bel(bcrd, [name, "TDO"]);
+            let mut bel = self.extract_simple_bel(bcrd, cell_jtag, "JTAG");
+
+            for pin in ["TCK", "TMS", "TDI"] {
+                let wire = self.rc_wire(cell_jtag, &format!("J{pin}_JTAG"));
+                self.add_bel_wire(bcrd, pin, wire);
+                let wire_io = self.rc_corner_wire(cell_ne, &format!("J{pin}_{pin}"));
+                self.claim_pip(wire, wire_io);
+                bel.pins
+                    .insert(pin.into(), self.xlat_int_wire_filter(bcrd, wire_io));
+            }
+
+            let tdo = self.rc_wire(cell_jtag, "TDO_JTAG");
+            self.add_bel_wire(bcrd, "TDO", tdo);
+            let tdo_mux = self.rc_wire(cell_jtag, "JTDO");
+            self.add_bel_wire(bcrd, "TDO_MUX", tdo_mux);
+            let tdo_int = self.rc_wire(cell_jtag, "JTDOCIB");
+            self.add_bel_wire(bcrd, "TDO_INT", tdo_int);
+            let tdo_io = self.rc_corner_wire(cell_ne, "JTDO_TDO");
+            self.add_bel_wire(bcrd, "TDO_IO", tdo_io);
+            bel.pins
+                .insert("TDO".into(), self.xlat_int_wire(bcrd, tdo_int));
+            self.claim_pip(tdo_mux, tdo);
+            self.claim_pip(tdo_mux, tdo_int);
+            self.claim_pip(tdo_io, tdo_mux);
+
+            self.insert_bel(bcrd, bel);
+        }
+
+        {
+            let bcrd = cell.bel(bels::SYSBUS);
+            let cell_sysbus = cell.delta(2, 0);
+            self.name_bel(bcrd, ["SYSBUS", "MPIIRQN"]);
+            let mut bel = self.extract_simple_bel(bcrd, cell_sysbus, "SYSBUS");
+            for pin in [
+                "LPCSQ0",
+                "LPCSQ1",
+                "LPCSQ2",
+                "LPCSQ3",
+                "RPCSQ0",
+                "RPCSQ1",
+                "RPCSQ2",
+                "RPCSQ3",
+                "PD20TS",
+                "PD73TS",
+                "PD158TS",
+                "PD3116TS",
+                "MPIDPTS0",
+                "MPIDPTS1",
+                "MPIDPTS2",
+                "MPICNTLTS",
+            ] {
+                let wire = self.rc_wire(cell_sysbus, &format!("J{pin}_SYSBUS"));
+                self.add_bel_wire(bcrd, pin, wire);
+            }
+            for i in 0..32 {
+                let io = self.chip.special_io[&SpecialIoKey::D(i)];
+                let (cell_io, abcd) = self.xlat_io_loc_scm(io);
+
+                let rddata = self.rc_wire(cell_sysbus, &format!("JMPIRDDATA{i}_SYSBUS"));
+                self.add_bel_wire(bcrd, format!("MPIRDDATA{i}"), rddata);
+                let paddo = self.rc_io_wire(cell_io, &format!("JPADDO{abcd}_PIO"));
+                self.claim_pip(paddo, rddata);
+
+                let pdts = self.rc_wire(
+                    cell_sysbus,
+                    match i {
+                        0..3 => "JPD20TS_SYSBUS",
+                        3..8 => "JPD73TS_SYSBUS",
+                        8..16 => "JPD158TS_SYSBUS",
+                        16.. => "JPD3116TS_SYSBUS",
+                    },
+                );
+                let paddt = self.rc_io_wire(cell_io, &format!("JPADDT{abcd}_PIO"));
+                self.claim_pip(paddt, pdts);
+
+                let wrdata = self.rc_wire(cell_sysbus, &format!("JMPIWRDATA{i}_SYSBUS"));
+                self.add_bel_wire(bcrd, format!("MPIWRDATA{i}"), wrdata);
+                let inddck = self.rc_io_wire(cell_io, &format!("JINDDCK{abcd}"));
+                self.claim_pip(wrdata, inddck);
+            }
+            for i in 0..4 {
+                let io = self.chip.special_io[&SpecialIoKey::DP(i)];
+                let (cell_io, abcd) = self.xlat_io_loc_scm(io);
+
+                let rddata = self.rc_wire(cell_sysbus, &format!("JMPIRDPARITY{i}_SYSBUS"));
+                self.add_bel_wire(bcrd, format!("MPIRDPARITY{i}"), rddata);
+                let paddo = self.rc_io_wire(cell_io, &format!("JPADDO{abcd}_PIO"));
+                self.claim_pip(paddo, rddata);
+
+                let pdts = self.rc_wire(
+                    cell_sysbus,
+                    match i {
+                        0 => "JMPIDPTS0_SYSBUS",
+                        1 => "JMPIDPTS1_SYSBUS",
+                        _ => "JMPIDPTS2_SYSBUS",
+                    },
+                );
+                let paddt = self.rc_io_wire(cell_io, &format!("JPADDT{abcd}_PIO"));
+                self.claim_pip(paddt, pdts);
+
+                let wrdata = self.rc_wire(cell_sysbus, &format!("JMPIWRPARITY{i}_SYSBUS"));
+                self.add_bel_wire(bcrd, format!("MPIWRPARITY{i}"), wrdata);
+                let inddck = self.rc_io_wire(cell_io, &format!("JINDDCK{abcd}"));
+                self.claim_pip(wrdata, inddck);
+            }
+
+            let mpicntlts = self.rc_wire(cell_sysbus, "JMPICNTLTS_SYSBUS");
+            for (pin, key) in [
+                ("MPITEA", SpecialIoKey::MpiTeaN),
+                ("MPITA", SpecialIoKey::MpiAckN),
+                ("MPIRETRY", SpecialIoKey::MpiRetryN),
+            ] {
+                let wire = self.rc_wire(cell_sysbus, &format!("J{pin}_SYSBUS"));
+                self.add_bel_wire(bcrd, pin, wire);
+
+                let io = self.chip.special_io[&key];
+                let (cell_io, abcd) = self.xlat_io_loc_scm(io);
+
+                let paddo = self.rc_io_wire(cell_io, &format!("JPADDO{abcd}_PIO"));
+                self.claim_pip(paddo, wire);
+                let paddt = self.rc_io_wire(cell_io, &format!("JPADDT{abcd}_PIO"));
+                self.claim_pip(paddt, mpicntlts);
+            }
+            for (pin, key) in [
+                ("EXTDONEO", SpecialIoKey::ExtDoneO),
+                ("EXTCLKP1O", SpecialIoKey::ExtClkO(1)),
+                ("EXTCLKP2O", SpecialIoKey::ExtClkO(2)),
+            ] {
+                let wire = self.rc_wire(cell_sysbus, &format!("J{pin}_SYSBUS"));
+                self.add_bel_wire(bcrd, pin, wire);
+
+                let io = self.chip.special_io[&key];
+                let (cell_io, abcd) = self.xlat_io_loc_scm(io);
+
+                let paddo = self.rc_io_wire(cell_io, &format!("JPADDO{abcd}_PIO"));
+                self.claim_pip(paddo, wire);
+            }
+            for (pin, key) in [
+                ("CS0N", SpecialIoKey::CsN),
+                ("CS1", SpecialIoKey::Cs1),
+                ("MPISTRBN", SpecialIoKey::ReadN),
+                ("MPIRWN", SpecialIoKey::WriteN),
+                ("MPICLK", SpecialIoKey::MpiClk),
+                ("MPIADDR14", SpecialIoKey::A(0)),
+                ("MPIADDR15", SpecialIoKey::A(1)),
+                ("MPIADDR16", SpecialIoKey::A(2)),
+                ("MPIADDR17", SpecialIoKey::A(3)),
+                ("MPIADDR18", SpecialIoKey::A(4)),
+                ("MPIADDR19", SpecialIoKey::A(5)),
+                ("MPIADDR20", SpecialIoKey::A(6)),
+                ("MPIADDR21", SpecialIoKey::A(7)),
+                ("MPIADDR22", SpecialIoKey::A(8)),
+                ("MPIADDR23", SpecialIoKey::A(9)),
+                ("MPIADDR24", SpecialIoKey::A(10)),
+                ("MPIADDR25", SpecialIoKey::A(11)),
+                ("MPIADDR26", SpecialIoKey::A(12)),
+                ("MPIADDR27", SpecialIoKey::A(13)),
+                ("MPIADDR28", SpecialIoKey::A(14)),
+                ("MPIADDR29", SpecialIoKey::A(15)),
+                ("MPIADDR30", SpecialIoKey::A(16)),
+                ("MPIADDR31", SpecialIoKey::A(17)),
+                ("MPITSIZ0", SpecialIoKey::A(18)),
+                ("MPITSIZ1", SpecialIoKey::A(19)),
+                ("MPIBDIP", SpecialIoKey::A(20)),
+                ("MPIBURST", SpecialIoKey::A(21)),
+                ("EXTDONEI", SpecialIoKey::ExtDoneI),
+                ("EXTCLKP1I", SpecialIoKey::ExtClkI(1)),
+                ("EXTCLKP2I", SpecialIoKey::ExtClkI(2)),
+            ] {
+                let wire = self.rc_wire(cell_sysbus, &format!("J{pin}_SYSBUS"));
+                self.add_bel_wire(bcrd, pin, wire);
+
+                let io = self.chip.special_io[&key];
+                let (cell_io, abcd) = self.xlat_io_loc_scm(io);
+
+                let inddck = self.rc_io_wire(cell_io, &format!("JINDDCK{abcd}"));
+                self.claim_pip(wire, inddck);
+            }
+
+            for pin in ["MPIRSTN", "SYSRSTN"] {
+                let wire = self.rc_wire(cell_sysbus, &format!("{pin}_SYSBUS"));
+                self.add_bel_wire(bcrd, pin, wire);
+
+                let wire_int = self.rc_wire(cell_sysbus, &format!("JUSR_{pin}"));
+                self.add_bel_wire(bcrd, format!("{pin}_INT"), wire_int);
+                self.claim_pip(wire, wire_int);
+                bel.pins
+                    .insert(pin.into(), self.xlat_int_wire(bcrd, wire_int));
+
+                let wire_rstn = self.rc_wire(cell_sysbus, &format!("JRSTN_{pin}"));
+                self.add_bel_wire(bcrd, format!("{pin}_RSTN"), wire_rstn);
+                self.claim_pip(wire, wire_rstn);
+                let wire_io = self.rc_corner_wire(cell_nw, "JRSTN_RSTN");
+                self.claim_pip(wire_rstn, wire_io);
+            }
+
+            let mpiirq = self.rc_wire(cell_sysbus, "JMPIIRQN_SYSBUS");
+            self.add_bel_wire(bcrd, "MPIIRQN", mpiirq);
+            let mpiirq_out = self.rc_corner_wire(cell_ne, "JMPIIRQN_MPIIRQN");
+            self.add_bel_wire(bcrd, "MPIIRQN_OUT", mpiirq_out);
+            self.claim_pip(mpiirq_out, mpiirq);
+
+            self.insert_bel(bcrd, bel);
+        }
+    }
+
     fn process_config_ecp(&mut self) {
         let cell = self.chip.special_loc[&SpecialLocKey::Config];
 
@@ -886,6 +1148,9 @@ impl ChipContext<'_> {
 
     pub fn process_config(&mut self) {
         match self.chip.kind {
+            ChipKind::Scm => {
+                self.process_config_scm();
+            }
             ChipKind::Ecp | ChipKind::Xp => {
                 self.process_config_ecp();
             }

@@ -13,6 +13,7 @@ pub fn gen_ecp(ctx: &mut DocgenContext) {
         flip_bit: false,
     };
     for kind in [
+        "scm",
         "ecp",
         "xp",
         "machxo",
