@@ -88,29 +88,15 @@ impl IntDbBuilder {
     }
 
     fn fill_x0_wires(&mut self) {
-        let num_x0 = if self.kind.has_x0_branch() { 4 } else { 2 };
+        let num_x0 = match self.kind {
+            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo | ChipKind::MachXo2(_) => 4,
+            _ => 2,
+        };
         for dir in Dir::DIRS {
             for i in 0..num_x0 {
-                if self.kind.has_x0_branch() {
-                    let w0 = self
-                        .db
-                        .wires
-                        .insert(format!("X0_{dir}{i}_0"), WireKind::MuxOut)
-                        .0;
-                    let w1 = self
-                        .db
-                        .wires
-                        .insert(
-                            format!("X0_{dir}{i}_1"),
-                            WireKind::Branch(self.conn_slots[!dir]),
-                        )
-                        .0;
-                    self.passes[!dir].wires.insert(w1, ConnectorWire::Pass(w0));
-                } else {
-                    self.db
-                        .wires
-                        .insert(format!("X0_{dir}{i}"), WireKind::MuxOut);
-                }
+                self.db
+                    .wires
+                    .insert(format!("X0_{dir}{i}"), WireKind::MuxOut);
             }
         }
     }

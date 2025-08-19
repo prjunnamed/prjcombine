@@ -19,7 +19,6 @@ impl ChipContext<'_> {
     fn classify_int_wire(&self, wn: WireName) -> Vec<WireCoord> {
         let suffix = &self.naming.strings[wn.suffix];
         if suffix.starts_with("H00") || suffix.starts_with("V00") {
-            let mut result = vec![];
             assert_eq!(suffix.len(), 8);
             let dir = match (&suffix[0..1], &suffix[3..4]) {
                 ("H", "L") => Dir::W,
@@ -29,40 +28,21 @@ impl ChipContext<'_> {
                 _ => unreachable!(),
             };
             let idx: u8 = suffix[4..6].parse().unwrap();
-            let mut seg: u8 = suffix[6..8].parse().unwrap();
+            let seg: u8 = suffix[6..8].parse().unwrap();
             assert!(seg <= 1);
             let mut cell = self.chip.xlat_rc_wire(wn);
-            let conn_fwd = self.intdb.get_conn_slot(&dir.to_string());
             let conn_bwd = self.intdb.get_conn_slot(&(!dir).to_string());
-            while seg != 0 {
+            if seg != 0 {
                 if let Some(conn) = self.edev.egrid[cell].conns.get(conn_bwd)
                     && let Some(target) = conn.target
                 {
                     cell = target;
-                    seg -= 1;
                 } else {
-                    break;
+                    return vec![];
                 }
             }
-            let max = if self.chip.kind.has_x0_branch() { 1 } else { 0 };
-            while seg <= max {
-                let name = if self.chip.kind.has_x0_branch() {
-                    format!("X0_{dir}{idx}_{seg}")
-                } else {
-                    format!("X0_{dir}{idx}")
-                };
-                let wire = cell.wire(self.intdb.get_wire(&name));
-                result.push(wire);
-                if let Some(conn) = self.edev.egrid[cell].conns.get(conn_fwd)
-                    && let Some(target) = conn.target
-                {
-                    cell = target;
-                    seg += 1;
-                } else {
-                    break;
-                }
-            }
-            result
+            let wire = cell.wire(self.intdb.get_wire(&format!("X0_{dir}{idx}")));
+            vec![wire]
         } else if (suffix.starts_with("H0") || suffix.starts_with("V0")) && &suffix[3..4] != "M" {
             let mut result = vec![];
             assert_eq!(suffix.len(), 8);
@@ -617,6 +597,22 @@ impl ChipContext<'_> {
                         | "H01M0401"
                         | "V01M0101"
                         | "V01M0401"
+                        | "H00L0001"
+                        | "H00L0101"
+                        | "H00L0201"
+                        | "H00L0301"
+                        | "H00R0001"
+                        | "H00R0101"
+                        | "H00R0201"
+                        | "H00R0301"
+                        | "V00T0001"
+                        | "V00T0101"
+                        | "V00T0201"
+                        | "V00T0301"
+                        | "V00B0001"
+                        | "V00B0101"
+                        | "V00B0201"
+                        | "V00B0301"
                 ) || (suffix == "HL7W0001" && self.chip.kind == ChipKind::Ecp4)
                 {
                     self.discard_nodes.insert(wn);

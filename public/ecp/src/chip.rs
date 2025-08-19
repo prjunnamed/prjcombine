@@ -37,13 +37,6 @@ pub enum MachXo2Kind {
 }
 
 impl ChipKind {
-    pub fn has_x0_branch(self) -> bool {
-        matches!(
-            self,
-            ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo | ChipKind::MachXo2(_)
-        )
-    }
-
     pub fn has_out_f_branch(self) -> bool {
         matches!(
             self,
