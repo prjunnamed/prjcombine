@@ -27,11 +27,11 @@ In the simplest case, a device corresponds to a single chip.  However, reality i
 
 3. Some targets involve multi-chip devices, where several logic die are connected together with inter-chip wires through an interposer die.  In this case:
 
-  - a *die* is an individual *chip* instance within the device; they are identified by the `DieId` type
-  - a given device may consist of multiple instances of the same *chip* or be built from heterogenous *chip*s
-  - an *interposer* structure describes the interconnections between *die*, as well as any included extra logic that is not considered a *chip* (such as the HBM memory stacks included on the package, or GTZ transceivers for Virtex 7 devices)
-    - multiple devices can reuse the same interposer structure
-  - the *device* describes the *chip*s and *interposer* involved in the whole assembly, as well as their particular configuration
+    - a *die* is an individual instance of a *chip* within the device; they are identified by the `DieId` type
+    - a given device may consist of multiple instances of the same *chip* or be built from heterogenous *chip*s
+    - an *interposer* structure describes the interconnections between *die*, as well as any included extra logic that is not considered a *chip* (such as the HBM memory stacks included on the package, or GTZ transceivers for Virtex 7 devices)
+      - multiple devices can reuse the same interposer structure
+    - the *device* describes the *chip*s and *interposer* involved in the whole assembly, as well as their particular configuration
 
 4. In cases like eFPGAs where programmable logic is embedded in a larger device whose main function is not being a PLD, a Project Combine *device* and *chip* will be just a part of the physical silicon chip.  In this case, we may describe only the programmable logic "macro" and ignore the surroundings.
 

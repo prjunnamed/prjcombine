@@ -386,6 +386,9 @@ impl Rect {
     }
 }
 
+/// An expanded grid for a specific device.
+///
+/// This is usually obtained as part of a target-specific `ExpandedDevice`.
 #[derive(Clone, Debug)]
 pub struct ExpandedGrid<'a> {
     pub db: &'a IntDb,
@@ -394,9 +397,14 @@ pub struct ExpandedGrid<'a> {
     pub extra_conns: BiHashMap<WireCoord, WireCoord>,
     pub blackhole_wires: HashSet<WireCoord>,
     pub tile_index: EntityVec<TileClassId, Vec<TileCoord>>,
+    /// Inverse of [`Cell::region_root`].
     pub region_root_cells: EntityVec<RegionSlotId, HashMap<CellCoord, HashSet<CellCoord>>>,
 }
 
+/// The expanded grid for a specific die.
+///
+/// For devices made of multiple chips, an [`ExpandedGrid`] will consist of multiple
+/// [`ExpandedDie`], identified with consecutive [`DieId`].
 #[derive(Clone, Debug)]
 pub struct ExpandedDie {
     width: usize,
@@ -1072,6 +1080,12 @@ pub struct Cell {
     pub tiles: EntityPartVec<TileSlotId, Tile>,
     pub conns: EntityPartVec<ConnectorSlotId, Connector>,
     pub tile_index: Vec<(TileCoord, CellSlotId)>,
+    /// Regional wires, such as clock
+    ///
+    /// For each region slot, the canonical representative of the region this cell is part of. The
+    /// canonical representative is usually the cell that drives the wire in question, unless that
+    /// is inconvenient or impossible, e.g. when the wire can be driven by multiple different
+    /// cells.
     pub region_root: EntityVec<RegionSlotId, CellCoord>,
 }
 

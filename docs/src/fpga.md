@@ -1,10 +1,12 @@
 # FPGA grids and interconnect
 
-This document describes the Project Combine model for FPGA tile grid structure and interconnect
+This document describes the Project Combine model for FPGA tile grid structure and interconnect.
 
-The provided databases include an *interconnect database* for each target, which describes tile types, wire types, wire connections, and other objects that can be found in the devices.  An *expanded grid* structure describes how they are instantiated combined together within a given *device*.  Both *interconnect database* and *expanded grid* are target-independent structures.
+The provided databases include an *interconnect database* for each target, which describes tile types, wire types, wire connections, and other objects that can be found in the devices.  An *expanded grid* structure describes how they are combined together within a given *device*.  Both the *interconnect database* and the *expanded grid* are target-independent data structures.
 
-Project Combine provides per-target Rust crates that construct an *expanded device* given the *device*.  The *expanded device* is a target-dependent structure that contains the *expanded grid* as one of its fields.
+Project Combine provides per-target Rust crates that expand a *device* structure into an *expanded device*.  The *expanded device* is a target-specific structure that contains the *expanded grid* as one of its fields.
+
+Ideally, the target-specific sections of this documentation should describe how to perform this expansion process yourself. (TODO)
 
 
 ## The grid
@@ -230,11 +232,13 @@ The complete algorithm for determining the canonical wire segment is:
 
 ## Tiles
 
-A *tile* is a block of logic occupying some area on the grid.  A *tile* is defined by:
+A *tile* is a block of functionality occupying some concrete area on the grid. In particular, a tile may consist of more than one cell — for example, this is usually the case for block RAMs and DSPs. When this is the case, one of these cells is arbitrarily chosen to be the *anchor cell*, through.
+
+Moreover, a tile generally doesn't occupy an entire cell: A *tile* is defined by:
 
 - its *tile class* (a `TileClassId`)
-- its *anchor cell* (a `(DieId, ColId, RowId)`)
-- its list of referenced cells (a list of `(ColId, RowId)`, indexed by `TileCellId`)
+- its *anchor cell* (a `CellCoord`)
+- its list of referenced cells (a list of `CellCoord`, indexed by `CellSlotId`)
   - the anchor cell is generally included on this list, though not necessarily at the first position
   - the `DieId` of referenced cells is implicitly assumed to be the same as the anchor cell's
 

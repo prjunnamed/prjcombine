@@ -370,6 +370,18 @@ pub struct RegionSlotTag;
 impl EntityTag for RegionSlotTag {
     const PREFIX: &'static str = "RSLOT";
 }
+
+/// Identifies a region slot.
+///
+/// A region is the set of cells in which a particular regional wire is present. If multiple wires
+/// inhabit the same collection of cells, one region is used to describe all of them.
+///
+/// Since an FPGA can contain a rich variety of regional wires, a single cell will usually belong
+/// to multiple regions. Moreover, since the structure of the interconnect is regular, each cell
+/// will belong to the same number of regions. Thus, there is a fixed number of region slots,
+/// constant between all cells.
+///
+/// Each type of regional wire is associated with a fixed region slot.
 pub type RegionSlotId = EntityIdU8<RegionSlotTag>;
 
 impl EntityTag for WireKind {
