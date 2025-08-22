@@ -4,7 +4,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_interconnect::{
     db::Bel,
-    dir::{Dir, DirH, DirHV, DirV},
+    dir::{DirH, DirHV, DirV},
     grid::{CellCoord, DieId},
 };
 use prjcombine_re_lattice_naming::WireName;
@@ -442,8 +442,8 @@ impl ChipContext<'_> {
         for (pin, key) in [
             ("CLK", SpecialIoKey::Cclk),
             ("CS", SpecialIoKey::SpiPCsB),
-            ("SI", SpecialIoKey::SpiSdi),
-            ("SO", SpecialIoKey::SpiSdo),
+            ("SI", SpecialIoKey::D(0)),
+            ("SO", SpecialIoKey::D(1)),
         ] {
             let wire = self.rc_wire(cell, &format!("J{pin}_SSPIPIN"));
             self.add_bel_wire(bcrd, format!("{pin}_IO"), wire);
@@ -601,11 +601,11 @@ impl ChipContext<'_> {
         self.insert_simple_bel(bcrd_efb, cell, "EFB");
         for (pin, key) in [
             ("UFMSN", SpecialIoKey::SpiPCsB),
-            ("SPIMOSII", SpecialIoKey::SpiCopi),
-            ("SPIMISOI", SpecialIoKey::SpiCipo),
+            ("SPIMOSII", SpecialIoKey::D(0)),
+            ("SPIMISOI", SpecialIoKey::D(1)),
             ("SPISCKI", SpecialIoKey::Cclk),
-            ("I2C1SCLI", SpecialIoKey::I2cScl),
-            ("I2C1SDAI", SpecialIoKey::I2cSda),
+            ("I2C1SCLI", SpecialIoKey::D(2)),
+            ("I2C1SDAI", SpecialIoKey::D(3)),
         ] {
             let wire = self.rc_wire(cell, &format!("J{pin}_EFB"));
             self.add_bel_wire(bcrd_efb, pin, wire);
@@ -613,12 +613,12 @@ impl ChipContext<'_> {
             self.claim_pip(wire, wire_io);
         }
         for (pin_o, pin_oe, key) in [
-            ("I2C1SCLO", "I2C1SCLOEN", SpecialIoKey::I2cScl),
-            ("I2C1SDAO", "I2C1SDAOEN", SpecialIoKey::I2cSda),
+            ("I2C1SCLO", "I2C1SCLOEN", SpecialIoKey::D(2)),
+            ("I2C1SDAO", "I2C1SDAOEN", SpecialIoKey::D(3)),
             ("SPIMCSN0", "SPIMCSN0", SpecialIoKey::SpiCCsB),
             ("SPISCKO", "SPISCKEN", SpecialIoKey::Cclk),
-            ("SPIMISOO", "SPIMISOEN", SpecialIoKey::SpiCipo),
-            ("SPIMOSIO", "SPIMOSIEN", SpecialIoKey::SpiCopi),
+            ("SPIMISOO", "SPIMISOEN", SpecialIoKey::D(1)),
+            ("SPIMOSIO", "SPIMOSIEN", SpecialIoKey::D(0)),
         ] {
             let wire_o = self.rc_wire(cell, &format!("J{pin_o}_EFB"));
             let wire_oe = self.rc_wire(cell, &format!("J{pin_oe}_EFB"));
@@ -1064,10 +1064,7 @@ impl ChipContext<'_> {
                     self.add_bel_wire(bcrd, "PMUWKUP", wire);
                 }
                 if tcname == "I2C_E" {
-                    for (pin, key) in [
-                        ("SDA", SpecialIoKey::Clock(Dir::S, 4)),
-                        ("SCL", SpecialIoKey::Clock(Dir::S, 5)),
-                    ] {
+                    for (pin, key) in [("SDA", SpecialIoKey::D(2)), ("SCL", SpecialIoKey::D(3))] {
                         let io = self.chip.special_io[&key];
                         let (cell_io, abcd) = self.xlat_io_loc_crosslink(io);
 

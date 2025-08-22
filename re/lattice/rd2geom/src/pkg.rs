@@ -11,7 +11,7 @@ use prjcombine_ecp::{
     },
 };
 use prjcombine_interconnect::{
-    dir::{Dir, DirH, DirHV, DirV},
+    dir::{DirH, DirHV, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_re_lattice_naming::ChipNaming;
@@ -581,6 +581,474 @@ fn uncompl_io(_chip: &Chip, io: EdgeIoCoord) -> EdgeIoCoord {
     io.with_iob(TileIobId::from_idx(io.iob().to_idx() - 1))
 }
 
+fn parse_io_special(
+    part: &Part,
+    pin: &str,
+    io: EdgeIoCoord,
+    bank: u32,
+    chip: &Chip,
+    func: &str,
+) -> Option<(SpecialIoKey, bool)> {
+    if let Some(pclk) = func.strip_prefix("PCLK") {
+        let (which, idx) = pclk.split_once('_').unwrap();
+        let (mut pclk_bank, compl): (u32, bool) = if let Some(pclk_bank) = which.strip_prefix('T') {
+            (pclk_bank.parse().unwrap(), false)
+        } else if let Some(pclk_bank) = which.strip_prefix('C') {
+            (pclk_bank.parse().unwrap(), true)
+        } else {
+            unreachable!();
+        };
+        let mut idx = idx.parse().unwrap();
+        if chip.kind == ChipKind::Scm {
+            match pclk_bank {
+                1 => (),
+                5 => (),
+                4 => idx += 8,
+                6 | 3 => idx += 4,
+                7 | 2 => (),
+                _ => unreachable!(),
+            }
+        }
+        if chip.kind == ChipKind::Ecp4 {
+            match pclk_bank {
+                0 => {
+                    pclk_bank = 1;
+                }
+                1 => {
+                    idx += 2;
+                }
+                2 => {
+                    idx += 4;
+                }
+                3 => {
+                    pclk_bank = 2;
+                    idx += 6;
+                }
+                4 | 7 => {
+                    idx += 2;
+                }
+                5 | 6 => (),
+                _ => unreachable!(),
+            }
+        }
+        if chip.kind == ChipKind::Ecp5 {
+            match pclk_bank {
+                0 => (),
+                1 => {
+                    idx += 2;
+                }
+                2 | 7 => {
+                    idx += 2;
+                }
+                3 | 6 => (),
+                _ => unreachable!(),
+            }
+        }
+        if chip.kind == ChipKind::Crosslink {
+            match pclk_bank {
+                2 => (),
+                1 => {
+                    idx += 2;
+                }
+                0 => {
+                    idx += 4;
+                }
+                _ => unreachable!(),
+            }
+        }
+        if chip.kind != ChipKind::MachXo {
+            assert_eq!(bank, pclk_bank);
+        }
+        if matches!(
+            chip.kind,
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 | ChipKind::Ecp3 | ChipKind::Ecp3A
+        ) {
+            assert_eq!(idx, 0);
+            idx = match bank {
+                0 | 2 | 5 | 7 => 0,
+                1 | 3 | 4 | 6 => 1,
+                _ => unreachable!(),
+            };
+        }
+        if matches!(chip.kind, ChipKind::MachXo2(_)) && bank >= 3 && chip.rows.len() >= 14 {
+            idx = (bank - 3) as u8;
+        }
+        Some((SpecialIoKey::Clock(io.edge(), idx), compl))
+    } else if let Some(vref_bank) = func.strip_prefix("VREF1_") {
+        let vref_bank = vref_bank.parse().unwrap();
+        assert_eq!(bank, vref_bank);
+        Some((SpecialIoKey::Vref1(vref_bank), false))
+    } else if let Some(vref_bank) = func.strip_prefix("VREF2_") {
+        let vref_bank = vref_bank.parse().unwrap();
+        assert_eq!(bank, vref_bank);
+        Some((SpecialIoKey::Vref2(vref_bank), false))
+    } else if (func.contains("PLL") || func.contains("DLL")) && chip.kind == ChipKind::Scm {
+        let (loc, sig) = func.split_once('_').unwrap();
+        let hv = match loc {
+            "LLC" => DirHV::SW,
+            "ULC" => DirHV::NW,
+            "LRC" => DirHV::SE,
+            "URC" => DirHV::NE,
+            _ => panic!("weird PLL loc {loc}"),
+        };
+        let (pad, is_c) = match sig {
+            "PLLT_IN_A" | "PLLT_FB_B" => (PllPad::PllIn0, false),
+            "PLLC_IN_A" | "PLLC_FB_B" => (PllPad::PllIn0, true),
+            "PLLT_IN_B" | "PLLT_FB_A" => (PllPad::PllIn1, false),
+            "PLLC_IN_B" | "PLLC_FB_A" => (PllPad::PllIn1, true),
+            "DLLT_IN_C" | "DLLT_FB_D" => (PllPad::DllIn0, false),
+            "DLLC_IN_C" | "DLLC_FB_D" => (PllPad::DllIn0, true),
+            "DLLT_IN_D" | "DLLT_FB_C" => (PllPad::DllIn1, false),
+            "DLLC_IN_D" | "DLLC_FB_C" => (PllPad::DllIn1, true),
+            "DLLT_IN_E" | "DLLT_FB_F" => (PllPad::DllIn2, false),
+            "DLLC_IN_E" | "DLLC_FB_F" => (PllPad::DllIn2, true),
+            "DLLT_IN_F" | "DLLT_FB_E" => (PllPad::DllIn3, false),
+            "DLLC_IN_F" | "DLLC_FB_E" => (PllPad::DllIn3, true),
+            _ => {
+                println!("weird PLL pin {func}");
+                return None;
+            }
+        };
+        Some((SpecialIoKey::Pll(pad, PllLoc::new(hv, 0)), is_c))
+    } else if (func.contains("PLL") || func.contains("DLL"))
+        && matches!(chip.kind, ChipKind::Ecp4 | ChipKind::Ecp5)
+    {
+        if func.contains("MFGOUT") {
+            return None;
+        }
+        let (loc, sig) = func.split_once('_').unwrap();
+        let hv = match loc {
+            "LLC" => DirHV::SW,
+            "ULC" => DirHV::NW,
+            "LRC" => DirHV::SE,
+            "URC" => DirHV::NE,
+            _ => panic!("weird PLL loc {loc}"),
+        };
+        let (idx, pad, is_c) = match sig {
+            "GPLL0T_IN" => (0, PllPad::PllIn0, false),
+            "GPLL0C_IN" => (0, PllPad::PllIn0, true),
+            "GPLL0T_FB" => (0, PllPad::PllFb, false),
+            "GPLL0C_FB" => (0, PllPad::PllFb, true),
+            "GPLL1T_IN" if chip.kind == ChipKind::Ecp4 => (1, PllPad::PllIn0, false),
+            "GPLL1C_IN" if chip.kind == ChipKind::Ecp4 => (1, PllPad::PllIn0, true),
+            "GPLL1T_IN" if chip.kind == ChipKind::Ecp5 => (0, PllPad::PllIn1, false),
+            "GPLL1C_IN" if chip.kind == ChipKind::Ecp5 => (0, PllPad::PllIn1, true),
+            "GPLL1T_FB" => (1, PllPad::PllFb, false),
+            "GPLL1C_FB" => (1, PllPad::PllFb, true),
+            _ => {
+                println!("weird PLL pin {func}");
+                return None;
+            }
+        };
+        Some((SpecialIoKey::Pll(pad, PllLoc::new(hv, idx)), is_c))
+    } else if (func.contains("PLL") || func.contains("DLL")) && chip.kind != ChipKind::Crosslink {
+        let pll_rows_s = if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
+            Vec::from_iter(chip.rows.ids().rev().filter(|&row| {
+                row < chip.row_clk && matches!(chip.rows[row].kind, RowKind::Ebr | RowKind::Dsp)
+            }))
+        } else {
+            Vec::from_iter(chip.rows.ids().filter(|&row| {
+                row < chip.row_clk && matches!(chip.rows[row].kind, RowKind::Ebr | RowKind::Dsp)
+            }))
+        };
+        let pll_rows_n = if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
+            Vec::from_iter(chip.rows.ids().filter(|&row| {
+                row >= chip.row_clk && matches!(chip.rows[row].kind, RowKind::Ebr | RowKind::Dsp)
+            }))
+        } else {
+            Vec::from_iter(chip.rows.ids().rev().filter(|&row| {
+                row >= chip.row_clk && matches!(chip.rows[row].kind, RowKind::Ebr | RowKind::Dsp)
+            }))
+        };
+        let mut pll_xlat = BTreeMap::new();
+        for (&loc, &cell) in &chip.special_loc {
+            if let SpecialLocKey::Pll(loc) = loc {
+                pll_xlat.insert(cell, loc);
+            }
+        }
+
+        let (loc, sig) = func.split_once('_').unwrap();
+        let (hv, idx) = if loc.len() < 4 {
+            let hv = match loc {
+                "LLC" => DirHV::SW,
+                "ULC" => DirHV::NW,
+                "LRC" => DirHV::SE,
+                "URC" => DirHV::NE,
+                "L" if matches!(chip.kind, ChipKind::MachXo2(_)) => DirHV::NW,
+                "R" if matches!(chip.kind, ChipKind::MachXo2(_)) => DirHV::NE,
+                _ => panic!("weird PLL loc {loc}"),
+            };
+            (hv, 0)
+        } else {
+            let idx: u8 = loc[3..].parse().unwrap();
+            let loc = &loc[..3];
+            let hv = match loc {
+                "LLM" => DirHV::SW,
+                "LUM" => DirHV::NW,
+                "RLM" => DirHV::SE,
+                "RUM" => DirHV::NE,
+                _ => panic!("weird PLL loc {loc}"),
+            };
+            (hv, idx)
+        };
+        let loc = match chip.kind {
+            ChipKind::Scm
+            | ChipKind::Ecp
+            | ChipKind::Xp
+            | ChipKind::MachXo
+            | ChipKind::Xp2
+            | ChipKind::MachXo2(_)
+            | ChipKind::Ecp4
+            | ChipKind::Ecp5
+            | ChipKind::Crosslink => PllLoc::new(hv, idx),
+            ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Ecp3 | ChipKind::Ecp3A => {
+                let cell = CellCoord::new(
+                    DieId::from_idx(0),
+                    if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
+                        match hv.h {
+                            DirH::W => chip.col_w() + 1,
+                            DirH::E => chip.col_e() - 1,
+                        }
+                    } else {
+                        chip.col_edge(hv.h)
+                    },
+                    match hv.v {
+                        DirV::S => pll_rows_s[idx as usize],
+                        DirV::N => pll_rows_n[idx as usize],
+                    },
+                );
+                pll_xlat[&cell]
+            }
+        };
+        let (pad, is_c) = match sig {
+            "PLLT_IN_A" => (PllPad::PllIn0, false),
+            "PLLC_IN_A" => (PllPad::PllIn0, true),
+            "PLLT_FB_A" => (PllPad::PllFb, false),
+            "PLLC_FB_A" => (PllPad::PllFb, true),
+            "GPLLT_IN_A" => (PllPad::PllIn0, false),
+            "GPLLC_IN_A" | "GPLLT_IN_B" => (PllPad::PllIn0, true),
+            "GPLLT_FB_A" => (PllPad::PllFb, false),
+            "GPLLC_FB_A" | "GPLLT_FB_B" => (PllPad::PllFb, true),
+            "SPLLT_IN_A" => (PllPad::PllIn0, false),
+            "SPLLC_IN_A" => (PllPad::PllIn0, true),
+            "SPLLT_FB_A" => (PllPad::PllFb, false),
+            "SPLLC_FB_A" => (PllPad::PllFb, true),
+            "GDLLT_IN_A" => (PllPad::DllIn0, false),
+            "GDLLC_IN_A" | "GDLLT_IN_B" => (PllPad::DllIn0, true),
+            "GDLLT_FB_A" => (PllPad::DllFb, false),
+            "GDLLC_FB_A" | "GDLLT_FB_B" => (PllPad::DllFb, true),
+            // bug? bug.
+            "GDLLC_FB_D" => (PllPad::DllFb, true),
+            "GPLLT_IN" => (PllPad::PllIn0, false),
+            "GPLLC_IN" => (PllPad::PllIn0, true),
+            "GPLLT_FB" => (PllPad::PllFb, false),
+            "GPLLC_FB" => (PllPad::PllFb, true),
+            "GPLLT_MFGOUT1" | "GPLLC_MFGOUT1" | "GPLLT_MFGOUT2" | "GPLLC_MFGOUT2" => {
+                return None;
+            }
+            _ => panic!("weird PLL pin {sig}"),
+        };
+        Some((SpecialIoKey::Pll(pad, loc), is_c))
+    } else if let Some(idx) = func.strip_prefix('D')
+        && let Ok(idx) = idx.parse()
+    {
+        if chip.kind == ChipKind::MachXo {
+            None
+        } else {
+            Some((SpecialIoKey::D(idx), false))
+        }
+    } else if let Some(idx) = func.strip_prefix("IO")
+        && let Ok(idx) = idx.parse()
+    {
+        Some((SpecialIoKey::D(idx), false))
+    } else if let Some(idx) = func.strip_prefix("DP")
+        && let Ok(idx) = idx.parse()
+    {
+        Some((SpecialIoKey::DP(idx), false))
+    } else if let Some(idx) = func.strip_prefix('A')
+        && let Ok(idx) = idx.parse()
+    {
+        Some((SpecialIoKey::A(idx), false))
+    } else if func.starts_with("DEBUG_BUS") || func.starts_with("GR_PCLK") {
+        None
+    } else {
+        match func {
+            "DQS" | "Unused" => None,
+            "TSALLPAD" => Some((SpecialIoKey::TsAll, false)),
+            "GSR_PADN" => Some((SpecialIoKey::Gsr, false)),
+            "CSN" => Some((SpecialIoKey::CsN, false)),
+            "CS1N" => Some((SpecialIoKey::Cs1N, false)),
+            "WRITEN" => Some((SpecialIoKey::WriteN, false)),
+            "DI" => Some((SpecialIoKey::Di, false)),
+            "BUSY" if !matches!(chip.kind, ChipKind::Ecp4 | ChipKind::Ecp5) => {
+                Some((SpecialIoKey::Busy, false))
+            }
+            "DOUT" | "DOUT,CSON" | "DOUT_CSON" | "CSON" => Some((SpecialIoKey::Dout, false)),
+            "SPIFASTN" if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) => {
+                Some((SpecialIoKey::D(0), false))
+            }
+            "SI" if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) => {
+                Some((SpecialIoKey::D(3), false))
+            }
+            "SO" if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) => {
+                Some((SpecialIoKey::D(4), false))
+            }
+            "SPID1" if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) => {
+                Some((SpecialIoKey::D(6), false))
+            }
+            "SPID0" if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) => {
+                Some((SpecialIoKey::D(7), false))
+            }
+            "SN" | "CONT1N" | "OEN" if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) => {
+                Some((SpecialIoKey::CsN, false))
+            }
+            "HOLDN" | "CONT2N" | "RDY" if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) => {
+                Some((SpecialIoKey::Cs1N, false))
+            }
+            "CSSPI1N" if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) => {
+                Some((SpecialIoKey::Dout, false))
+            }
+            "CSSPI0N" | "CEN" | "CSSPIN"
+                if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) =>
+            {
+                Some((SpecialIoKey::Di, false))
+            }
+            "SISPI" | "AVDN" if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) => {
+                Some((SpecialIoKey::Busy, false))
+            }
+            "MCLK" if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) => {
+                Some((SpecialIoKey::MClk, false))
+            }
+            "MCLK" if matches!(chip.kind, ChipKind::MachXo2(_)) => {
+                Some((SpecialIoKey::Cclk, false))
+            }
+            // SCM
+            "RDN" => Some((SpecialIoKey::ReadN, false)),
+            "WRN" => Some((SpecialIoKey::WriteN, false)),
+            "MPICLK" => Some((SpecialIoKey::MpiClk, false)),
+            "QOUT" => Some((SpecialIoKey::Qout, false)),
+            "CS1" => Some((SpecialIoKey::Cs1, false)),
+            "CS0N" => Some((SpecialIoKey::CsN, false)),
+            "RDY" => Some((SpecialIoKey::Busy, false)),
+            "MPIACKN" => Some((SpecialIoKey::MpiAckN, false)),
+            "MPIRTRYN" => Some((SpecialIoKey::MpiRetryN, false)),
+            "MPITEAN" => Some((SpecialIoKey::MpiTeaN, false)),
+            "LDCN" => Some((SpecialIoKey::Ldc, false)),
+            "HDC" => Some((SpecialIoKey::Hdc, false)),
+            "EXTDONEI" => Some((SpecialIoKey::ExtDoneI, false)),
+            "EXTDONEO" => Some((SpecialIoKey::ExtDoneO, false)),
+            "EXTCLKP1I" => Some((SpecialIoKey::ExtClkI(1), false)),
+            "EXTCLKP2I" => Some((SpecialIoKey::ExtClkI(2), false)),
+            "EXTCLKP1O" => Some((SpecialIoKey::ExtClkO(1), false)),
+            "EXTCLKP2O" => Some((SpecialIoKey::ExtClkO(2), false)),
+            "DIFFR_2" => Some((SpecialIoKey::DiffR(2), false)),
+            "DIFFR_3" => Some((SpecialIoKey::DiffR(3), false)),
+            "DIFFR_6" => Some((SpecialIoKey::DiffR(6), false)),
+            "DIFFR_7" => Some((SpecialIoKey::DiffR(7), false)),
+            "TESTCFGN" => None,
+            // XP2 stuff
+            "INITN" => Some((SpecialIoKey::InitB, false)),
+            "SISPI" | "SI" if chip.kind != ChipKind::Ecp3 => Some((SpecialIoKey::D(0), false)),
+            "SPISO" | "SO" if chip.kind != ChipKind::Ecp3 => Some((SpecialIoKey::D(1), false)),
+            "CCLK" => Some((SpecialIoKey::Cclk, false)),
+            "CSSPIN" if matches!(chip.kind, ChipKind::Xp2 | ChipKind::MachXo2(_)) => {
+                Some((SpecialIoKey::SpiCCsB, false))
+            }
+            "CSSPISN" => Some((SpecialIoKey::SpiPCsB, false)),
+            "SN" if matches!(chip.kind, ChipKind::MachXo2(_)) => {
+                Some((SpecialIoKey::SpiPCsB, false))
+            }
+            "CFG1" => Some((SpecialIoKey::M1, false)),
+            "DONE" => Some((SpecialIoKey::Done, false)),
+            "PROGRAMN" => Some((SpecialIoKey::ProgB, false)),
+            "MFG_EXT_CLK" | "FL_EXT_PULSE_D" | "FL_EXT_PULSE_G" => None,
+            // MachXO2
+            "MD0" if matches!(chip.kind, ChipKind::MachXo2(_)) => Some((SpecialIoKey::D(0), false)),
+            "MD1" if matches!(chip.kind, ChipKind::MachXo2(_)) => Some((SpecialIoKey::D(1), false)),
+            "MD2" | "SCL" if matches!(chip.kind, ChipKind::MachXo2(_)) => {
+                Some((SpecialIoKey::D(2), false))
+            }
+            "MD3" | "SDA" if matches!(chip.kind, ChipKind::MachXo2(_)) => {
+                Some((SpecialIoKey::D(3), false))
+            }
+            "MD4" if matches!(chip.kind, ChipKind::MachXo2(_)) => None,
+            "MD5" if matches!(chip.kind, ChipKind::MachXo2(_)) => None,
+            "MD6" if matches!(chip.kind, ChipKind::MachXo2(_)) => None,
+            "MD7" if matches!(chip.kind, ChipKind::MachXo2(_)) => None,
+            "TEST_CLK" if matches!(chip.kind, ChipKind::MachXo2(_)) => None,
+            "TCK" => Some((SpecialIoKey::Tck, false)),
+            "TMS" => Some((SpecialIoKey::Tms, false)),
+            "TDI" => Some((SpecialIoKey::Tdi, false)),
+            "TDO" => Some((SpecialIoKey::Tdo, false)),
+            "JTAGENB" => Some((SpecialIoKey::JtagEn, false)),
+            "INTEST_OVER" => None,
+            // ECP4, ECP5
+            "SISPI1" | "MOSI" => Some((SpecialIoKey::D(0), false)),
+            "SPISO1" | "MISO" => Some((SpecialIoKey::D(1), false)),
+            "SISPI2" | "MOSI2" => Some((SpecialIoKey::D(4), false)),
+            "SPISO2" | "MISO2" => Some((SpecialIoKey::D(5), false)),
+            "SDA" if chip.kind == ChipKind::Ecp4 => Some((SpecialIoKey::Cs1N, false)),
+            "SCL" if chip.kind == ChipKind::Ecp4 => Some((SpecialIoKey::WriteN, false)),
+            "SN" if matches!(chip.kind, ChipKind::Ecp4 | ChipKind::Ecp5) => {
+                Some((SpecialIoKey::CsN, false))
+            }
+            "HOLDN" | "BUSY" | "CSSPIN" | "CEN"
+                if matches!(chip.kind, ChipKind::Ecp4 | ChipKind::Ecp5) =>
+            {
+                Some((SpecialIoKey::Di, false))
+            }
+            "TDI0" | "TDI1" | "TDI2" | "TDI3" | "TDI4" | "TDI5" | "TDI6" | "TDI7" | "TDO0"
+            | "TDO1" | "TDO2" | "TDO3" | "TDO4" | "TDO5" | "TDO6" | "TDO7"
+                if chip.kind == ChipKind::Ecp4 =>
+            {
+                None
+            }
+            "ATB_FORCE" | "ATB_SENSE" | "SCAN_SHFT_ENB" | "SCAN_SHFT_EN" | "ATB_SENSE_1"
+            | "ATB_SENSE_2" | "ATB_FORCE_1" | "ATB_FORCE_2" => None,
+            "TDIB" | "TDOB" | "TDOT" | "TDIL" | "TDIR" | "TDOR" => None,
+            "S0_IN" | "S1_IN" | "S2_IN" | "S3_IN" | "S4_IN" | "S5_IN" | "S6_IN" | "S7_IN"
+            | "S0_OUT" | "S1_OUT" | "S2_OUT" | "S3_OUT" | "S4_OUT" | "S5_OUT" | "S6_OUT"
+            | "S7_OUT"
+                if chip.kind == ChipKind::Ecp5 =>
+            {
+                None
+            }
+            // Crosslink
+            "MOSI_D0" => Some((SpecialIoKey::D(0), false)),
+            "MISO_D1" => Some((SpecialIoKey::D(1), false)),
+            "PMU_WKUPN" => Some((SpecialIoKey::PmuWakeupN, false)),
+            "SPI_SS" | "SCL" if chip.kind == ChipKind::Crosslink => {
+                Some((SpecialIoKey::CsN, false))
+            }
+            "SPI_SCK" | "MCK" | "SDA" if chip.kind == ChipKind::Crosslink => {
+                Some((SpecialIoKey::Cclk, false))
+            }
+            "MIPI_CLKT2_0" => Some((SpecialIoKey::MipiClk(DirH::W), false)),
+            "MIPI_CLKT1_0" => Some((SpecialIoKey::MipiClk(DirH::E), false)),
+            "MIPI_CLKC2_0" => Some((SpecialIoKey::MipiClk(DirH::W), true)),
+            "MIPI_CLKC1_0" => Some((SpecialIoKey::MipiClk(DirH::E), true)),
+            "GPLL_MFGOUT_1" | "GPLL_MFGOUT_2" if chip.kind == ChipKind::Crosslink => None,
+            "GPLLT2_0" if chip.kind == ChipKind::Crosslink => Some((
+                SpecialIoKey::Pll(PllPad::PllIn0, PllLoc::new(DirHV::SE, 0)),
+                false,
+            )),
+            "GPLLC2_0" if chip.kind == ChipKind::Crosslink => Some((
+                SpecialIoKey::Pll(PllPad::PllIn0, PllLoc::new(DirHV::SE, 0)),
+                true,
+            )),
+            "USER_SDA" => Some((SpecialIoKey::D(2), false)),
+            "USER_SCL" => Some((SpecialIoKey::D(3), false)),
+            _ => {
+                println!(
+                    "\t{name}: unknown spec {pin:5} {func} {bank} {io}",
+                    name = part.name
+                );
+                None
+            }
+        }
+    }
+}
+
 pub struct BondResult {
     pub bond: Bond,
     pub special_io: BTreeMap<SpecialIoKey, EdgeIoCoord>,
@@ -606,31 +1074,7 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
     };
     let mut special_io = BTreeMap::new();
     let mut bscan = vec![];
-    let mut pll_xlat = BTreeMap::new();
     let mut virt_io: BTreeMap<String, Vec<BondPad>> = BTreeMap::new();
-    for (&loc, &cell) in &chip.special_loc {
-        if let SpecialLocKey::Pll(loc) = loc {
-            pll_xlat.insert(cell, loc);
-        }
-    }
-    let pll_rows_s = if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
-        Vec::from_iter(chip.rows.ids().rev().filter(|&row| {
-            row < chip.row_clk && matches!(chip.rows[row].kind, RowKind::Ebr | RowKind::Dsp)
-        }))
-    } else {
-        Vec::from_iter(chip.rows.ids().filter(|&row| {
-            row < chip.row_clk && matches!(chip.rows[row].kind, RowKind::Ebr | RowKind::Dsp)
-        }))
-    };
-    let pll_rows_n = if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
-        Vec::from_iter(chip.rows.ids().filter(|&row| {
-            row >= chip.row_clk && matches!(chip.rows[row].kind, RowKind::Ebr | RowKind::Dsp)
-        }))
-    } else {
-        Vec::from_iter(chip.rows.ids().rev().filter(|&row| {
-            row >= chip.row_clk && matches!(chip.rows[row].kind, RowKind::Ebr | RowKind::Dsp)
-        }))
-    };
     let mut serdes_xlat = BTreeMap::new();
     for (col, cd) in &chip.columns {
         if cd.io_s == IoGroupKind::Serdes {
@@ -732,481 +1176,16 @@ pub fn process_bond(datadir: &Path, part: &Part, chip: &Chip, _naming: &ChipNami
                 }
             }
         } else if let Some(io) = parse_io(chip, func) {
-            let mut spec_io = io;
-            let mut spec = if let Some(pclk) = cfg.strip_prefix("PCLK") {
-                let pclk = pclk.strip_suffix("/INTEST_OVER").unwrap_or(pclk);
-                let pclk = pclk.split_once("/ATB_").map(|x| x.0).unwrap_or(pclk);
-                let pclk = pclk.split_once("/GR_").map(|x| x.0).unwrap_or(pclk);
-                let pclk = pclk.split_once("/S").map(|x| x.0).unwrap_or(pclk);
-                let pclk = pclk.split_once("/DEBUG_BUS").map(|x| x.0).unwrap_or(pclk);
-                let (which, idx) = pclk.split_once('_').unwrap();
-                let mut pclk_bank: i32 = if let Some(pclk_bank) = which.strip_prefix('T') {
-                    pclk_bank.parse().unwrap()
-                } else if let Some(pclk_bank) = which.strip_prefix('C') {
-                    spec_io = uncompl_io(chip, spec_io);
-                    pclk_bank.parse().unwrap()
-                } else {
-                    unreachable!();
+            for func in cfg.split('/') {
+                let Some((spec, uncompl)) =
+                    parse_io_special(part, &pin, io, bank as u32, chip, func)
+                else {
+                    continue;
                 };
-                let mut idx = idx.parse().unwrap();
-                if chip.kind == ChipKind::Scm {
-                    match pclk_bank {
-                        1 => (),
-                        5 => (),
-                        4 => idx += 8,
-                        6 | 3 => idx += 4,
-                        7 | 2 => (),
-                        _ => unreachable!(),
-                    }
-                }
-                if chip.kind == ChipKind::Ecp4 {
-                    match pclk_bank {
-                        0 => {
-                            pclk_bank = 1;
-                        }
-                        1 => {
-                            idx += 2;
-                        }
-                        2 => {
-                            idx += 4;
-                        }
-                        3 => {
-                            pclk_bank = 2;
-                            idx += 6;
-                        }
-                        4 | 7 => {
-                            idx += 2;
-                        }
-                        5 | 6 => (),
-                        _ => unreachable!(),
-                    }
-                }
-                if chip.kind == ChipKind::Ecp5 {
-                    match pclk_bank {
-                        0 => (),
-                        1 => {
-                            idx += 2;
-                        }
-                        2 | 7 => {
-                            idx += 2;
-                        }
-                        3 | 6 => (),
-                        _ => unreachable!(),
-                    }
-                }
-                if chip.kind == ChipKind::Crosslink {
-                    match pclk_bank {
-                        2 => (),
-                        1 => {
-                            idx += 2;
-                        }
-                        0 => {
-                            idx += 4;
-                        }
-                        _ => unreachable!(),
-                    }
-                }
-                if chip.kind != ChipKind::MachXo {
-                    assert_eq!(bank, pclk_bank);
-                }
-                if matches!(
-                    chip.kind,
-                    ChipKind::Ecp2
-                        | ChipKind::Ecp2M
-                        | ChipKind::Xp2
-                        | ChipKind::Ecp3
-                        | ChipKind::Ecp3A
-                ) {
-                    assert_eq!(idx, 0);
-                    idx = match bank {
-                        0 | 2 | 5 | 7 => 0,
-                        1 | 3 | 4 | 6 => 1,
-                        _ => unreachable!(),
-                    };
-                }
-                if matches!(chip.kind, ChipKind::MachXo2(_)) && bank >= 3 && chip.rows.len() >= 14 {
-                    idx = (bank - 3) as u8;
-                }
-                Some(SpecialIoKey::Clock(io.edge(), idx))
-            } else if let Some(vref_bank) = cfg.strip_prefix("VREF1_") {
-                let vref_bank = vref_bank
-                    .split_once("/DEBUG_BUS")
-                    .map(|(a, _)| a)
-                    .unwrap_or(vref_bank);
-                let vref_bank = vref_bank.parse().unwrap();
-                assert_eq!(bank as u32, vref_bank);
-                Some(SpecialIoKey::Vref1(vref_bank))
-            } else if let Some(vref_bank) = cfg.strip_prefix("VREF2_") {
-                let vref_bank = vref_bank
-                    .split_once("/DEBUG_BUS")
-                    .map(|(a, _)| a)
-                    .unwrap_or(vref_bank);
-                let vref_bank = vref_bank.parse().unwrap();
-                assert_eq!(bank as u32, vref_bank);
-                Some(SpecialIoKey::Vref2(vref_bank))
-            } else {
-                match cfg.as_str() {
-                    _ if (cfg.contains("PLL") || cfg.contains("DLL"))
-                        && chip.kind != ChipKind::Crosslink =>
-                    'pll: {
-                        if chip.kind == ChipKind::Scm {
-                            let (cfg, _) = cfg.split_once('/').unwrap();
-                            let (loc, sig) = cfg.split_once('_').unwrap();
-                            let hv = match loc {
-                                "LLC" => DirHV::SW,
-                                "ULC" => DirHV::NW,
-                                "LRC" => DirHV::SE,
-                                "URC" => DirHV::NE,
-                                _ => panic!("weird PLL loc {loc}"),
-                            };
-                            let (pad, is_c) = match sig {
-                                "PLLT_IN_A" => (PllPad::PllIn0, false),
-                                "PLLC_IN_A" => (PllPad::PllIn0, true),
-                                "PLLT_IN_B" => (PllPad::PllIn1, false),
-                                "PLLC_IN_B" => (PllPad::PllIn1, true),
-                                "DLLT_IN_C" => (PllPad::DllIn0, false),
-                                "DLLC_IN_C" => (PllPad::DllIn0, true),
-                                "DLLT_IN_D" => (PllPad::DllIn1, false),
-                                "DLLC_IN_D" => (PllPad::DllIn1, true),
-                                "DLLT_IN_E" => (PllPad::DllIn2, false),
-                                "DLLC_IN_E" => (PllPad::DllIn2, true),
-                                "DLLT_IN_F" => (PllPad::DllIn3, false),
-                                "DLLC_IN_F" => (PllPad::DllIn3, true),
-                                _ => unreachable!(),
-                            };
-                            if is_c {
-                                spec_io = uncompl_io(chip, spec_io);
-                            }
-                            Some(SpecialIoKey::Pll(pad, PllLoc::new(hv, 0)))
-                        } else if matches!(chip.kind, ChipKind::Ecp4 | ChipKind::Ecp5) {
-                            if cfg.contains("MFGOUT") {
-                                break 'pll None;
-                            }
-                            let (loc, sig) = cfg.split_once('_').unwrap();
-                            let hv = match loc {
-                                "LLC" => DirHV::SW,
-                                "ULC" => DirHV::NW,
-                                "LRC" => DirHV::SE,
-                                "URC" => DirHV::NE,
-                                _ => panic!("weird PLL loc {loc}"),
-                            };
-                            let (idx, pad, is_c) = match sig {
-                                "GPLL0T_IN" => (0, PllPad::PllIn0, false),
-                                "GPLL0C_IN" | "GPLL0C_IN/S7_OUT" | "GPLL0C_IN/S0_IN" => {
-                                    (0, PllPad::PllIn0, true)
-                                }
-                                "GPLL0T_FB" => (0, PllPad::PllFb, false),
-                                "GPLL0C_FB" => (0, PllPad::PllFb, true),
-                                "GPLL1T_IN" if chip.kind == ChipKind::Ecp4 => {
-                                    (1, PllPad::PllIn0, false)
-                                }
-                                "GPLL1C_IN" if chip.kind == ChipKind::Ecp4 => {
-                                    (1, PllPad::PllIn0, true)
-                                }
-                                "GPLL1T_IN" if chip.kind == ChipKind::Ecp5 => {
-                                    (0, PllPad::PllIn1, false)
-                                }
-                                "GPLL1C_IN" if chip.kind == ChipKind::Ecp5 => {
-                                    (0, PllPad::PllIn1, true)
-                                }
-                                "GPLL1T_FB" => (1, PllPad::PllFb, false),
-                                "GPLL1C_FB" => (1, PllPad::PllFb, true),
-                                _ => {
-                                    println!("weird PLL pin {sig}");
-                                    break 'pll None;
-                                }
-                            };
-                            if is_c {
-                                spec_io = uncompl_io(chip, spec_io);
-                            }
-                            Some(SpecialIoKey::Pll(pad, PllLoc::new(hv, idx)))
-                        } else {
-                            let (loc, sig) = cfg.split_once('_').unwrap();
-                            let (hv, idx) = if loc.len() < 4 {
-                                let hv = match loc {
-                                    "LLC" => DirHV::SW,
-                                    "ULC" => DirHV::NW,
-                                    "LRC" => DirHV::SE,
-                                    "URC" => DirHV::NE,
-                                    "L" if matches!(chip.kind, ChipKind::MachXo2(_)) => DirHV::NW,
-                                    "R" if matches!(chip.kind, ChipKind::MachXo2(_)) => DirHV::NE,
-                                    _ => panic!("weird PLL loc {loc}"),
-                                };
-                                (hv, 0)
-                            } else {
-                                let idx: u8 = loc[3..].parse().unwrap();
-                                let loc = &loc[..3];
-                                let hv = match loc {
-                                    "LLM" => DirHV::SW,
-                                    "LUM" => DirHV::NW,
-                                    "RLM" => DirHV::SE,
-                                    "RUM" => DirHV::NE,
-                                    _ => panic!("weird PLL loc {loc}"),
-                                };
-                                (hv, idx)
-                            };
-                            let loc = match chip.kind {
-                                ChipKind::Scm
-                                | ChipKind::Ecp
-                                | ChipKind::Xp
-                                | ChipKind::MachXo
-                                | ChipKind::Xp2
-                                | ChipKind::MachXo2(_)
-                                | ChipKind::Ecp4
-                                | ChipKind::Ecp5
-                                | ChipKind::Crosslink => PllLoc::new(hv, idx),
-                                ChipKind::Ecp2
-                                | ChipKind::Ecp2M
-                                | ChipKind::Ecp3
-                                | ChipKind::Ecp3A => {
-                                    let cell = CellCoord::new(
-                                        DieId::from_idx(0),
-                                        if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
-                                            match hv.h {
-                                                DirH::W => chip.col_w() + 1,
-                                                DirH::E => chip.col_e() - 1,
-                                            }
-                                        } else {
-                                            chip.col_edge(hv.h)
-                                        },
-                                        match hv.v {
-                                            DirV::S => pll_rows_s[idx as usize],
-                                            DirV::N => pll_rows_n[idx as usize],
-                                        },
-                                    );
-                                    pll_xlat[&cell]
-                                }
-                            };
-                            let (pad, is_c) = match sig {
-                                "PLLT_IN_A" => (PllPad::PllIn0, false),
-                                "PLLC_IN_A" => (PllPad::PllIn0, true),
-                                "PLLT_FB_A" => (PllPad::PllFb, false),
-                                "PLLC_FB_A" => (PllPad::PllFb, true),
-                                "GPLLT_IN_A" => (PllPad::PllIn0, false),
-                                "GPLLC_IN_A" | "GPLLT_IN_B" => (PllPad::PllIn0, true),
-                                "GPLLT_FB_A" => (PllPad::PllFb, false),
-                                "GPLLC_FB_A" | "GPLLT_FB_B" => (PllPad::PllFb, true),
-                                "SPLLT_IN_A" => (PllPad::PllIn0, false),
-                                "SPLLC_IN_A" => (PllPad::PllIn0, true),
-                                "SPLLT_FB_A" => (PllPad::PllFb, false),
-                                "SPLLC_FB_A" => (PllPad::PllFb, true),
-                                "GDLLT_IN_A" => (PllPad::DllIn0, false),
-                                "GDLLC_IN_A" | "GDLLT_IN_B" => (PllPad::DllIn0, true),
-                                "GDLLT_FB_A" => (PllPad::DllFb, false),
-                                "GDLLC_FB_A" | "GDLLT_FB_B" => (PllPad::DllFb, true),
-                                // bug? bug.
-                                "GDLLC_FB_D" => (PllPad::DllFb, true),
-                                "GPLLT_IN" => (PllPad::PllIn0, false),
-                                "GPLLC_IN" => (PllPad::PllIn0, true),
-                                "GPLLT_FB" => (PllPad::PllFb, false),
-                                "GPLLC_FB" => (PllPad::PllFb, true),
-                                "GPLLT_MFGOUT1" | "GPLLC_MFGOUT1" | "GPLLT_MFGOUT2"
-                                | "GPLLC_MFGOUT2" => break 'pll None,
-                                _ => panic!("weird PLL pin {sig}"),
-                            };
-                            if is_c {
-                                spec_io = uncompl_io(chip, spec_io);
-                            }
-                            Some(SpecialIoKey::Pll(pad, loc))
-                        }
-                    }
-                    "DQS" | "Unused" => None,
-                    "TSALLPAD" => Some(SpecialIoKey::TsAll),
-                    "GSR_PADN" => Some(SpecialIoKey::Gsr),
-                    "D0" | "D0/SPIFASTN" => Some(SpecialIoKey::D(0)),
-                    "D1" => Some(SpecialIoKey::D(1)),
-                    "D2" => Some(SpecialIoKey::D(2)),
-                    "D3" | "D3/SI" => Some(SpecialIoKey::D(3)),
-                    "D4" | "D4/SO" => Some(SpecialIoKey::D(4)),
-                    "D5" => Some(SpecialIoKey::D(5)),
-                    "D6" | "D6/SPID1" => Some(SpecialIoKey::D(6)),
-                    "D7" | "D7/SPID0" => Some(SpecialIoKey::D(7)),
-                    "CSN" | "CSN/SN/CONT1N/OEN" => Some(SpecialIoKey::CsN),
-                    "CS1N" | "CS1N/HOLDN/CONT2N/RDY" => Some(SpecialIoKey::Cs1N),
-                    "WRITEN" => Some(SpecialIoKey::WriteN),
-                    "DI" | "DI/CSSPI0N/CEN/CSSPIN" => Some(SpecialIoKey::Di),
-                    "DOUT" | "DOUT,CSON" | "DOUT_CSON" | "DOUT/CSON/CSSPI1N" => {
-                        Some(SpecialIoKey::Dout)
-                    }
-                    "BUSY" | "BUSY/SISPI/AVDN" => Some(SpecialIoKey::Busy),
-                    "MCLK" => Some(SpecialIoKey::MClk),
-                    // SCM
-                    "DP0" => Some(SpecialIoKey::DP(0)),
-                    "DP1" => Some(SpecialIoKey::DP(1)),
-                    "DP2" => Some(SpecialIoKey::DP(2)),
-                    "DP3/PCLKC1_4" => Some(SpecialIoKey::DP(3)),
-                    "D8" => Some(SpecialIoKey::D(8)),
-                    "D9" => Some(SpecialIoKey::D(9)),
-                    "D10" => Some(SpecialIoKey::D(10)),
-                    "D11" => Some(SpecialIoKey::D(11)),
-                    "D12" => Some(SpecialIoKey::D(12)),
-                    "D13" => Some(SpecialIoKey::D(13)),
-                    "D14" => Some(SpecialIoKey::D(14)),
-                    "D15" => Some(SpecialIoKey::D(15)),
-                    "D16/PCLKC1_3" => Some(SpecialIoKey::D(16)),
-                    "D17/PCLKT1_3" => Some(SpecialIoKey::D(17)),
-                    "D18" => Some(SpecialIoKey::D(18)),
-                    "D19/PCLKC1_2" => Some(SpecialIoKey::D(19)),
-                    "D20/PCLKT1_2" => Some(SpecialIoKey::D(20)),
-                    "D21/PCLKC1_1" => Some(SpecialIoKey::D(21)),
-                    "D22/PCLKT1_1" => Some(SpecialIoKey::D(22)),
-                    "D23" => Some(SpecialIoKey::D(23)),
-                    "D24/PCLKT1_4" => Some(SpecialIoKey::D(24)),
-                    "D25/PCLKC1_5" => Some(SpecialIoKey::D(25)),
-                    "D26/PCLKT1_5" => Some(SpecialIoKey::D(26)),
-                    "D27" => Some(SpecialIoKey::D(27)),
-                    "D28/PCLKC1_6" => Some(SpecialIoKey::D(28)),
-                    "D29/PCLKT1_6" => Some(SpecialIoKey::D(29)),
-                    "D30/PCLKC1_7" => Some(SpecialIoKey::D(30)),
-                    "D31/PCLKT1_7" => Some(SpecialIoKey::D(31)),
-                    "A0" => Some(SpecialIoKey::A(0)),
-                    "A1" => Some(SpecialIoKey::A(1)),
-                    "A2" => Some(SpecialIoKey::A(2)),
-                    "A3" => Some(SpecialIoKey::A(3)),
-                    "A4" => Some(SpecialIoKey::A(4)),
-                    "A5" => Some(SpecialIoKey::A(5)),
-                    "A6" => Some(SpecialIoKey::A(6)),
-                    "A7" => Some(SpecialIoKey::A(7)),
-                    "A8" => Some(SpecialIoKey::A(8)),
-                    "A9" => Some(SpecialIoKey::A(9)),
-                    "A10" => Some(SpecialIoKey::A(10)),
-                    "A11" => Some(SpecialIoKey::A(11)),
-                    "A12" => Some(SpecialIoKey::A(12)),
-                    "A13" => Some(SpecialIoKey::A(13)),
-                    "A14" => Some(SpecialIoKey::A(14)),
-                    "A15" => Some(SpecialIoKey::A(15)),
-                    "A16" => Some(SpecialIoKey::A(16)),
-                    "A17" => Some(SpecialIoKey::A(17)),
-                    "A18" => Some(SpecialIoKey::A(18)),
-                    "A19" => Some(SpecialIoKey::A(19)),
-                    "A20" => Some(SpecialIoKey::A(20)),
-                    "A21" => Some(SpecialIoKey::A(21)),
-                    "RDN" => Some(SpecialIoKey::ReadN),
-                    "WRN" => Some(SpecialIoKey::WriteN),
-                    "MPICLK/PCLKT1_0" => Some(SpecialIoKey::MpiClk),
-                    "QOUT" => Some(SpecialIoKey::Qout),
-                    "CS1" => Some(SpecialIoKey::Cs1),
-                    "CS0N" => Some(SpecialIoKey::CsN),
-                    "RDY" => Some(SpecialIoKey::Busy),
-                    "MPIACKN" => Some(SpecialIoKey::MpiAckN),
-                    "MPIRTRYN" => Some(SpecialIoKey::MpiRetryN),
-                    "MPITEAN" => Some(SpecialIoKey::MpiTeaN),
-                    "LDCN" => Some(SpecialIoKey::Ldc),
-                    "HDC" => Some(SpecialIoKey::Hdc),
-                    "EXTDONEI" => Some(SpecialIoKey::ExtDoneI),
-                    "EXTDONEO" => Some(SpecialIoKey::ExtDoneO),
-                    "EXTCLKP1I" => Some(SpecialIoKey::ExtClkI(1)),
-                    "EXTCLKP2I" => Some(SpecialIoKey::ExtClkI(2)),
-                    "EXTCLKP1O" => Some(SpecialIoKey::ExtClkO(1)),
-                    "EXTCLKP2O" => Some(SpecialIoKey::ExtClkO(2)),
-                    "DIFFR_2" => Some(SpecialIoKey::DiffR(2)),
-                    "DIFFR_3" => Some(SpecialIoKey::DiffR(3)),
-                    "DIFFR_6" => Some(SpecialIoKey::DiffR(6)),
-                    "DIFFR_7/DEBUG_BUS4" => Some(SpecialIoKey::DiffR(7)),
-                    "DEBUG_BUS7" | "DEBUG_BUS12" | "DEBUG_BUS13" | "TESTCFGN" => None,
-                    // XP2 stuff
-                    "INITN" => Some(SpecialIoKey::InitB),
-                    "SI" => Some(SpecialIoKey::SpiSdi),
-                    "SO" => Some(SpecialIoKey::SpiSdo),
-                    "CCLK" => Some(SpecialIoKey::Cclk),
-                    "CSSPIN" => Some(SpecialIoKey::SpiCCsB),
-                    "CSSPISN" => Some(SpecialIoKey::SpiPCsB),
-                    "CFG1" => Some(SpecialIoKey::M1),
-                    "DONE" => Some(SpecialIoKey::Done),
-                    "PROGRAMN" => Some(SpecialIoKey::ProgB),
-                    "MFG_EXT_CLK" | "FL_EXT_PULSE_D" | "FL_EXT_PULSE_G" => None,
-                    // MachXO2
-                    "MCLK/CCLK" => Some(SpecialIoKey::Cclk),
-                    "CSSPIN/MD4/TDOB" => Some(SpecialIoKey::SpiCCsB),
-                    "SN/MD5/SCAN_SHFT_ENB/TDIB" | "SN/MD5/SCAN_SHFT_ENB/TDIB/ATB_SENSE_1" => {
-                        Some(SpecialIoKey::SpiPCsB)
-                    }
-                    "SO/SPISO/IO1/MD1/TDIL" => Some(SpecialIoKey::SpiCipo),
-                    "SI/SISPI/IO0/MD0/TDOR" | "SI/SISPI/IO0/MD0/TDOR/ATB_FORCE_1" => {
-                        Some(SpecialIoKey::SpiCopi)
-                    }
-                    "SCL/IO2/MD2/ATB_SENSE/PCLKT0_0" => Some(SpecialIoKey::I2cScl),
-                    "SDA/IO3/MD3/ATB_FORCE/PCLKC0_0/TDOT" => Some(SpecialIoKey::I2cSda),
-                    "TCK/TEST_CLK" => Some(SpecialIoKey::Tck),
-                    "TMS" => Some(SpecialIoKey::Tms),
-                    "TDI/MD7" => Some(SpecialIoKey::Tdi),
-                    "TDO" => Some(SpecialIoKey::Tdo),
-                    "JTAGENB/MD6/TDIR" | "JTAGENB/MD6/TDIR/ATB_SENSE_2" => {
-                        Some(SpecialIoKey::JtagEn)
-                    }
-                    "PROGRAMN/ATB_FORCE_2" => Some(SpecialIoKey::ProgB),
-                    // ECP4, ECP5
-                    "D0/SI/SISPI1/IO0" | "D0/MOSI/IO0" => Some(SpecialIoKey::D(0)),
-                    "D1/SO/SPISO1/IO1" | "D1/MISO/IO1" => Some(SpecialIoKey::D(1)),
-                    "D2/IO2" => Some(SpecialIoKey::D(2)),
-                    "D3/IO3" => Some(SpecialIoKey::D(3)),
-                    "D4/SISPI2/IO4" | "D4/MOSI2/IO4" => Some(SpecialIoKey::D(4)),
-                    "D5/SPISO2/IO5" | "D5/MISO2/IO5" => Some(SpecialIoKey::D(5)),
-                    "D6/IO6" => Some(SpecialIoKey::D(6)),
-                    "D7/IO7" => Some(SpecialIoKey::D(7)),
-                    "D8/IO8" => Some(SpecialIoKey::D(8)),
-                    "D9/IO9" => Some(SpecialIoKey::D(9)),
-                    "D10/IO10" => Some(SpecialIoKey::D(10)),
-                    "D11/IO11" => Some(SpecialIoKey::D(11)),
-                    "D12/IO12" => Some(SpecialIoKey::D(12)),
-                    "D13/IO13" => Some(SpecialIoKey::D(13)),
-                    "D14/IO14" => Some(SpecialIoKey::D(14)),
-                    "D15/IO15" => Some(SpecialIoKey::D(15)),
-                    "SN/CSN" | "SN/CSN/SCAN_SHFT_EN" => Some(SpecialIoKey::CsN),
-                    "SDA/CS1N" => Some(SpecialIoKey::Cs1N),
-                    "HOLDN/DI/BUSY/CSSPIN/CEN" => Some(SpecialIoKey::Di),
-                    "DOUT/CSON" | "DOUT/CSON/ATB_FORCE" => Some(SpecialIoKey::Dout),
-                    "SCL/WRITEN" | "WRITEN/ATB_SENSE" => Some(SpecialIoKey::WriteN),
-                    "TDI0" | "TDI1" | "TDI2" | "TDI3" | "TDI4" | "TDI5" | "TDI6" | "TDI7"
-                    | "TDO0" | "TDO1" | "TDO2" | "TDO3" | "TDO4" | "TDO5" | "TDO6" | "TDO7"
-                    | "TDIB" | "ATB_FORCE" | "ATB_SENSE"
-                        if chip.kind == ChipKind::Ecp4 =>
-                    {
-                        None
-                    }
-                    "S0_IN" | "S1_IN" | "S2_IN" | "S3_IN" | "S4_IN" | "S5_IN" | "S6_IN"
-                    | "S7_IN" | "S0_OUT" | "S1_OUT" | "S2_OUT" | "S3_OUT" | "S4_OUT" | "S5_OUT"
-                    | "S6_OUT" | "S7_OUT" | "GR_PCLK0_0" | "GR_PCLK0_1" | "GR_PCLK1_0"
-                    | "GR_PCLK1_1" | "GR_PCLK2_0" | "GR_PCLK2_1" | "GR_PCLK3_0" | "GR_PCLK3_1"
-                    | "GR_PCLK6_0" | "GR_PCLK6_1" | "GR_PCLK7_0" | "GR_PCLK7_1"
-                        if chip.kind == ChipKind::Ecp5 =>
-                    {
-                        None
-                    }
-                    // Crosslink
-                    "MOSI_D0" => Some(SpecialIoKey::D(0)),
-                    "MISO_D1" => Some(SpecialIoKey::D(1)),
-                    "PMU_WKUPN" => Some(SpecialIoKey::PmuWakeupN),
-                    "SPI_SS/CSN/SCL" => Some(SpecialIoKey::CsN),
-                    "SPI_SCK/MCK/SDA" => Some(SpecialIoKey::Cclk),
-                    "MIPI_CLKT2_0" => Some(SpecialIoKey::MipiClk(DirH::W)),
-                    "MIPI_CLKT1_0" => Some(SpecialIoKey::MipiClk(DirH::E)),
-                    "MIPI_CLKC2_0" | "MIPI_CLKC1_0" => None,
-                    "GPLL_MFGOUT_1/GR_PCLK2_0" => None,
-                    "GPLL_MFGOUT_2/GR_PCLK1_0" => None,
-                    "GPLLT2_0" if chip.kind == ChipKind::Crosslink => {
-                        Some(SpecialIoKey::Pll(PllPad::PllIn0, PllLoc::new(DirHV::SE, 0)))
-                    }
-                    "GPLLC2_0" if chip.kind == ChipKind::Crosslink => None,
-                    _ => {
-                        println!("\tPIN {pin:5} {func:8} {cfg:20} {bank} {io}");
-                        None
-                    }
-                }
-            };
-            if matches!(spec, Some(SpecialIoKey::D(_))) && chip.kind == ChipKind::MachXo {
-                spec = None;
-            }
-            if let Some(spec) = spec {
+                let spec_io = if uncompl { uncompl_io(chip, io) } else { io };
                 // well.
                 if let Some(prev_io) = special_io.insert(spec, spec_io) {
                     assert_eq!(prev_io, spec_io, "fail on {spec}");
-                }
-                if matches!(chip.kind, ChipKind::MachXo2(_)) && spec == SpecialIoKey::I2cScl {
-                    let spec = SpecialIoKey::Clock(Dir::N, 0);
-                    if let Some(prev_io) = special_io.insert(spec, spec_io) {
-                        assert_eq!(prev_io, spec_io, "fail on {spec}");
-                    }
                 }
             }
             let io_bank = chip.get_io_bank(io);
