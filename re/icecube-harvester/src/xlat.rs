@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use prjcombine_interconnect::{
-    db::WireId,
+    db::WireSlotId,
     dir::Dir,
     grid::{CellCoord, ColId, DieId, RowId, WireCoord},
 };
@@ -577,7 +577,7 @@ pub fn xlat_mux_in(
     wb: WireCoord,
     na: (u32, u32, &str),
     nb: (u32, u32, &str),
-) -> (CellCoord, WireId, WireId) {
+) -> (CellCoord, WireSlotId, WireSlotId) {
     let wna = edev.egrid.db.wires.key(wa.slot);
     let wnb = edev.egrid.db.wires.key(wb.slot);
     if wna.starts_with("GLOBAL") {

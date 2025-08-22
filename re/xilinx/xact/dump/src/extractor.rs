@@ -7,7 +7,7 @@ use ndarray::Array2;
 use prjcombine_interconnect::{
     db::{
         BelInfo, BelSlotId, BiPass, Buf, IntDb, Mux, Pass, SwitchBoxItem, TileClassId, TileSlotId,
-        TileWireCoord, WireId,
+        TileWireCoord, WireSlotId,
     },
     dir::Dir,
     grid::{BelCoord, CellCoord, ExpandedGrid, TileCoord, WireCoord},
@@ -72,7 +72,7 @@ pub struct Extractor<'a> {
     pub tcls_pips: EntityPartVec<TileClassId, BTreeSet<(TileWireCoord, TileWireCoord)>>,
     pub int_pips:
         EntityPartVec<TileNamingId, BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>>,
-    pub net_by_cell_override: BTreeMap<CellCoord, BTreeMap<NetId, WireId>>,
+    pub net_by_cell_override: BTreeMap<CellCoord, BTreeMap<NetId, WireSlotId>>,
     pub junk_prim_names: BTreeSet<String>,
 }
 

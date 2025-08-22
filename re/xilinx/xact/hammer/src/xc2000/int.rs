@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{BelInfo, CellSlotId, ConnectorWire, SwitchBoxItem, TileWireCoord, WireId},
+    db::{BelInfo, CellSlotId, ConnectorWire, SwitchBoxItem, TileWireCoord, WireSlotId},
     dir::Dir,
     grid::{TileCoord, WireCoord},
 };
@@ -259,12 +259,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for IntPip {
 
 #[derive(Debug, Clone)]
 struct SingleBidi {
-    wire: WireId,
+    wire: WireSlotId,
     dir: Dir,
 }
 
 impl SingleBidi {
-    fn new(wire: WireId, dir: Dir) -> Self {
+    fn new(wire: WireSlotId, dir: Dir) -> Self {
         Self { wire, dir }
     }
 }

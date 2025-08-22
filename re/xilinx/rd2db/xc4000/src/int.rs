@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
 use prjcombine_interconnect::{
-    db::{ConnectorClass, ConnectorWire, IntDb, TileWireCoord, WireId, WireKind},
+    db::{ConnectorClass, ConnectorWire, IntDb, TileWireCoord, WireSlotId, WireKind},
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{NamingDb, TileClassNamingId};
@@ -21,10 +21,10 @@ const RT_KINDS: [&str; 8] = ["RT", "RTS", "RTSB", "RTT", "RTF", "RTF1", "RTSF", 
 mod xc4000e_wires;
 
 struct CnrTerms {
-    term_ll_w: Vec<(WireId, WireId)>,
-    term_lr_s: Vec<(WireId, WireId)>,
-    term_ul_n: Vec<(WireId, WireId)>,
-    term_ur_e: Vec<(WireId, WireId)>,
+    term_ll_w: Vec<(WireSlotId, WireSlotId)>,
+    term_lr_s: Vec<(WireSlotId, WireSlotId)>,
+    term_ul_n: Vec<(WireSlotId, WireSlotId)>,
+    term_ur_e: Vec<(WireSlotId, WireSlotId)>,
 }
 
 fn fill_tie_wires(builder: &mut IntBuilder) {
@@ -719,7 +719,7 @@ fn fill_clk_wires(builder: &mut IntBuilder) {
     }
 }
 
-fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<TileWireCoord>) {
+fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireSlotId>, Vec<TileWireCoord>) {
     let mut imux_wires = vec![];
     let mut imux_nw = vec![];
     for (pin, opin) in [("F1", "O_2"), ("G1", "O_1"), ("C1", "TXIN2")] {
@@ -1134,9 +1134,9 @@ fn fill_xc4000e_wirenames(builder: &mut IntBuilder) {
 
 fn extract_clb(
     builder: &mut IntBuilder,
-    imux_wires: &[WireId],
+    imux_wires: &[WireSlotId],
     imux_nw: &[TileWireCoord],
-    force_names: &[(usize, String, WireId)],
+    force_names: &[(usize, String, WireSlotId)],
 ) {
     let is_xv = builder.rd.family == "xc4000xv";
     let tbuf_wires = [
@@ -1235,9 +1235,9 @@ fn extract_clb(
 
 fn extract_bot(
     builder: &mut IntBuilder,
-    imux_wires: &[WireId],
+    imux_wires: &[WireSlotId],
     imux_nw: &[TileWireCoord],
-    force_names: &[(usize, String, WireId)],
+    force_names: &[(usize, String, WireSlotId)],
 ) {
     let is_xv = builder.rd.family == "xc4000xv";
     let eclk_h = builder.db.wires.get("ECLK.H").map(|x| x.0);
@@ -1318,7 +1318,7 @@ fn extract_bot(
     }
 }
 
-fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWireCoord]) {
+fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[TileWireCoord]) {
     let is_xv = builder.rd.family == "xc4000xv";
     let eclk_h = builder.db.wires.get("ECLK.H").map(|x| x.0);
     let long_io = [
@@ -1389,7 +1389,7 @@ fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileW
     }
 }
 
-fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWireCoord]) {
+fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[TileWireCoord]) {
     let is_xv = builder.rd.family == "xc4000xv";
     let is_e = builder.rd.family == "xc4000e";
     let eclk_v = builder.db.wires.get("ECLK.V").map(|x| x.0);
@@ -1490,7 +1490,7 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWi
     }
 }
 
-fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWireCoord]) {
+fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[TileWireCoord]) {
     let is_xv = builder.rd.family == "xc4000xv";
     let eclk_v = builder.db.wires.get("ECLK.V").map(|x| x.0);
     let tbuf_wires = [
@@ -1569,7 +1569,7 @@ fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[Tile
     }
 }
 
-fn extract_lr(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWireCoord]) {
+fn extract_lr(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[TileWireCoord]) {
     for &crd in builder.rd.tiles_by_kind_name("LR") {
         let mut bels = vec![];
         match &*builder.rd.family {
@@ -1648,7 +1648,7 @@ fn extract_lr(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWi
     }
 }
 
-fn extract_ur(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWireCoord]) {
+fn extract_ur(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[TileWireCoord]) {
     let eclk_v = builder.db.wires.get("ECLK.V").map(|x| x.0);
     for &crd in builder.rd.tiles_by_kind_name("UR") {
         let mut bels = vec![];
@@ -1738,7 +1738,7 @@ fn extract_ur(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWi
     }
 }
 
-fn extract_ll(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWireCoord]) {
+fn extract_ll(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[TileWireCoord]) {
     let eclk_h = builder.db.wires.get("ECLK.H").map(|x| x.0);
     for &crd in builder.rd.tiles_by_kind_name("LL") {
         let xy_e = builder.walk_to_int(crd, Dir::E, true).unwrap();
@@ -1828,7 +1828,7 @@ fn extract_ll(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWi
     }
 }
 
-fn extract_ul(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[TileWireCoord]) {
+fn extract_ul(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[TileWireCoord]) {
     let eclk_h = builder.db.wires.get("ECLK.H").map(|x| x.0);
     let eclk_v = builder.db.wires.get("ECLK.V").map(|x| x.0);
     for &crd in builder.rd.tiles_by_kind_name("UL") {

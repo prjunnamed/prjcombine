@@ -2,7 +2,7 @@
 
 use prjcombine_interconnect::db::{
     Bel, BelInfo, BelSlotId, ConnectorWire, IntDb, IntfInfo, PinDir, SwitchBoxItem, TileClassId,
-    TileWireCoord, WireId, WireKind,
+    TileWireCoord, WireSlotId, WireKind,
 };
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, Tile, TileCoord,
@@ -673,7 +673,7 @@ impl<'a> Verifier<'a> {
         )
     }
 
-    fn print_w(&self, w: WireId) -> String {
+    fn print_w(&self, w: WireSlotId) -> String {
         self.db.wires.key(w).to_string()
     }
 

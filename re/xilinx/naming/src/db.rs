@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
-use prjcombine_interconnect::db::{BelSlotId, IntDb, TileWireCoord, WireId};
+use prjcombine_interconnect::db::{BelSlotId, IntDb, TileWireCoord, WireSlotId};
 use unnamed_entity::{
     EntityId, EntityMap, EntityPartVec,
     id::{EntityIdU16, EntityTag},
@@ -111,9 +111,9 @@ pub enum IntfWireInNaming {
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct ConnectorClassNaming {
-    pub wires_out: EntityPartVec<WireId, ConnectorWireOutNaming>,
-    pub wires_in_near: EntityPartVec<WireId, String>,
-    pub wires_in_far: EntityPartVec<WireId, ConnectorWireInFarNaming>,
+    pub wires_out: EntityPartVec<WireSlotId, ConnectorWireOutNaming>,
+    pub wires_in_near: EntityPartVec<WireSlotId, String>,
+    pub wires_in_far: EntityPartVec<WireSlotId, ConnectorWireInFarNaming>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]

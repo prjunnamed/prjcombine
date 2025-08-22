@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use prjcombine_interconnect::{
     db::{
         BelInfo, CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord,
-        WireId, WireKind,
+        WireSlotId, WireKind,
     },
     dir::{Dir, DirMap, DirPartMap},
 };
@@ -26,15 +26,15 @@ const BUFCE_LEAF_SWIZZLE: [[usize; 16]; 2] = [
 
 trait IntBuilderExt {
     fn mux_out_pair(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>; 2])
-    -> WireId;
+    -> WireSlotId;
 
     fn branch_pair(
         &mut self,
-        src: WireId,
+        src: WireSlotId,
         dir: Dir,
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>; 2],
-    ) -> WireId;
+    ) -> WireSlotId;
 }
 
 impl IntBuilderExt for IntBuilder<'_> {
@@ -42,7 +42,7 @@ impl IntBuilderExt for IntBuilder<'_> {
         &mut self,
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>; 2],
-    ) -> WireId {
+    ) -> WireSlotId {
         let w = self.mux_out(name, &[""]);
         for (sub, name) in raw_names.iter().enumerate() {
             self.extra_name_sub(name.as_ref(), sub, w);
@@ -52,11 +52,11 @@ impl IntBuilderExt for IntBuilder<'_> {
 
     fn branch_pair(
         &mut self,
-        src: WireId,
+        src: WireSlotId,
         dir: Dir,
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>; 2],
-    ) -> WireId {
+    ) -> WireSlotId {
         let w = self.branch(src, dir, name, &[""]);
         for (sub, name) in raw_names.iter().enumerate() {
             self.extra_name_sub(name.as_ref(), sub, w);
@@ -95,10 +95,10 @@ struct IntMaker<'a> {
     long_main_passes: DirPartMap<ConnectorClass>,
     // how many mental illnesses do you think I could be diagnosed with just from this repo?
     sng_fixup_map: BTreeMap<TileWireCoord, TileWireCoord>,
-    term_wires_w: EntityPartVec<WireId, ConnectorWire>,
-    term_wires_e: EntityPartVec<WireId, ConnectorWire>,
-    term_wires_lw: EntityPartVec<WireId, ConnectorWire>,
-    term_wires_le: EntityPartVec<WireId, ConnectorWire>,
+    term_wires_w: EntityPartVec<WireSlotId, ConnectorWire>,
+    term_wires_e: EntityPartVec<WireSlotId, ConnectorWire>,
+    term_wires_lw: EntityPartVec<WireSlotId, ConnectorWire>,
+    term_wires_le: EntityPartVec<WireSlotId, ConnectorWire>,
     dev_naming: &'a DeviceNaming,
 }
 

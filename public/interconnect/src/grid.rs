@@ -114,7 +114,7 @@ impl CellCoord {
         TileCoord { cell: self, slot }
     }
 
-    pub fn wire(self, slot: WireId) -> WireCoord {
+    pub fn wire(self, slot: WireSlotId) -> WireCoord {
         WireCoord { cell: self, slot }
     }
 
@@ -244,7 +244,7 @@ impl std::ops::DerefMut for ConnectorCoord {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub struct WireCoord {
     pub cell: CellCoord,
-    pub slot: WireId,
+    pub slot: WireSlotId,
 }
 
 impl WireCoord {

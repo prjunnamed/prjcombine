@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use prjcombine_interconnect::{
-    db::{BelInfo, PinDir, TileClassId, WireId},
+    db::{BelInfo, PinDir, TileClassId, WireSlotId},
     dir::{Dir, DirH, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
 };
@@ -67,7 +67,7 @@ pub fn make_sample(
     rows_colbuf: &[(RowId, RowId, RowId)],
     extra_wire_names: &BTreeMap<(u32, u32, String), WireCoord>,
     special_tiles: &BTreeMap<SpecialTileKey, Vec<RawLoc>>,
-) -> (Sample<BitOwner>, HashSet<(TileClassId, WireId, WireId)>) {
+) -> (Sample<BitOwner>, HashSet<(TileClassId, WireSlotId, WireSlotId)>) {
     let mut sample = Sample::default();
     let mut pips = HashSet::new();
     let diff = Bitstream::diff(&pkg_info.empty_run.bitstream, &runres.bitstream);

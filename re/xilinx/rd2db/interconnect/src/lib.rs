@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, BelSlotId, BiPass, Buf, CellSlotId, ConnectorClass, ConnectorSlotId,
         ConnectorWire, IntDb, IntfInfo, Mux, Pass, PinDir, ProgDelay, SwitchBox, SwitchBoxItem,
-        TileClass, TileClassId, TileSlotId, TileWireCoord, WireId, WireKind,
+        TileClass, TileClassId, TileSlotId, TileWireCoord, WireSlotId, WireKind,
     },
     dir::{Dir, DirMap},
 };
@@ -67,8 +67,8 @@ pub struct XTileInfo<'a, 'b> {
     pub extract_intfs: bool,
     pub delay_sb: Option<BelSlotId>,
     pub has_intf_out_bufs: bool,
-    pub skip_muxes: BTreeSet<WireId>,
-    pub optin_muxes: BTreeSet<WireId>,
+    pub skip_muxes: BTreeSet<WireSlotId>,
+    pub optin_muxes: BTreeSet<WireSlotId>,
     pub optin_muxes_tile: BTreeSet<TileWireCoord>,
     pub bels: Vec<ExtrBelInfo>,
     pub force_names: HashMap<(usize, rawdump::WireId), (IntConnKind, TileWireCoord)>,
@@ -323,12 +323,12 @@ impl XTileInfo<'_, '_> {
         self
     }
 
-    pub fn skip_muxes<'a>(mut self, wires: impl IntoIterator<Item = &'a WireId>) -> Self {
+    pub fn skip_muxes<'a>(mut self, wires: impl IntoIterator<Item = &'a WireSlotId>) -> Self {
         self.skip_muxes.extend(wires.into_iter().copied());
         self
     }
 
-    pub fn optin_muxes<'a>(mut self, wires: impl IntoIterator<Item = &'a WireId>) -> Self {
+    pub fn optin_muxes<'a>(mut self, wires: impl IntoIterator<Item = &'a WireSlotId>) -> Self {
         self.optin_muxes.extend(wires.into_iter().copied());
         self
     }
@@ -1296,17 +1296,17 @@ pub struct IntBuilder<'a> {
     pub ndb: NamingDb,
     pub term_slots: DirMap<ConnectorSlotId>,
     pub pips: BTreeMap<(TileClassId, BelSlotId), Pips>,
-    permabuf_wires: BTreeSet<WireId>,
-    delay_wires: BTreeMap<WireId, WireId>,
+    permabuf_wires: BTreeSet<WireSlotId>,
+    delay_wires: BTreeMap<WireSlotId, WireSlotId>,
     is_mirror_square: bool,
     allow_mux_to_branch: bool,
-    main_passes: DirMap<EntityPartVec<WireId, WireId>>,
+    main_passes: DirMap<EntityPartVec<WireSlotId, WireSlotId>>,
     int_types: Vec<IntType>,
     injected_int_types: Vec<rawdump::TileKindId>,
     stub_outs: HashSet<String>,
     extra_names: HashMap<String, TileWireCoord>,
     extra_names_tile: HashMap<rawdump::TileKindId, HashMap<String, TileWireCoord>>,
-    test_mux_pass: HashSet<WireId>,
+    test_mux_pass: HashSet<WireSlotId>,
 }
 
 impl<'a> IntBuilder<'a> {
@@ -1343,7 +1343,7 @@ impl<'a> IntBuilder<'a> {
         self.allow_mux_to_branch = true;
     }
 
-    pub fn test_mux_pass(&mut self, wire: WireId) {
+    pub fn test_mux_pass(&mut self, wire: WireSlotId) {
         self.test_mux_pass.insert(wire);
     }
 
@@ -1411,7 +1411,7 @@ impl<'a> IntBuilder<'a> {
     pub fn name_term_in_near_wire(
         &mut self,
         naming: ConnectorClassNamingId,
-        wire: WireId,
+        wire: WireSlotId,
         name: impl AsRef<str>,
     ) {
         let name = name.as_ref();
@@ -1426,7 +1426,7 @@ impl<'a> IntBuilder<'a> {
     pub fn name_term_in_far_wire(
         &mut self,
         naming: ConnectorClassNamingId,
-        wire: WireId,
+        wire: WireSlotId,
         name: impl AsRef<str>,
     ) {
         let name = name.as_ref();
@@ -1446,7 +1446,7 @@ impl<'a> IntBuilder<'a> {
     pub fn name_term_in_far_buf_wire(
         &mut self,
         naming: ConnectorClassNamingId,
-        wire: WireId,
+        wire: WireSlotId,
         name_out: impl AsRef<str>,
         name_in: impl AsRef<str>,
     ) {
@@ -1469,7 +1469,7 @@ impl<'a> IntBuilder<'a> {
     pub fn name_term_in_far_buf_far_wire(
         &mut self,
         naming: ConnectorClassNamingId,
-        wire: WireId,
+        wire: WireSlotId,
         name: impl AsRef<str>,
         name_out: impl AsRef<str>,
         name_in: impl AsRef<str>,
@@ -1495,7 +1495,7 @@ impl<'a> IntBuilder<'a> {
     pub fn name_term_out_wire(
         &mut self,
         naming: ConnectorClassNamingId,
-        wire: WireId,
+        wire: WireSlotId,
         name: impl AsRef<str>,
     ) {
         let name = name.as_ref();
@@ -1515,7 +1515,7 @@ impl<'a> IntBuilder<'a> {
     pub fn name_term_out_buf_wire(
         &mut self,
         naming: ConnectorClassNamingId,
-        wire: WireId,
+        wire: WireSlotId,
         name_out: impl AsRef<str>,
         name_in: impl AsRef<str>,
     ) {
@@ -1535,7 +1535,7 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn find_wire(&mut self, name: impl AsRef<str>) -> WireId {
+    pub fn find_wire(&mut self, name: impl AsRef<str>) -> WireSlotId {
         for (i, k, _) in &self.db.wires {
             if k == name.as_ref() {
                 return i;
@@ -1549,7 +1549,7 @@ impl<'a> IntBuilder<'a> {
         name: impl Into<String>,
         kind: WireKind,
         raw_names: &[impl AsRef<str>],
-    ) -> WireId {
+    ) -> WireSlotId {
         let res = self.db.wires.insert_new(name.into(), kind);
         for rn in raw_names {
             let rn = rn.as_ref();
@@ -1560,11 +1560,11 @@ impl<'a> IntBuilder<'a> {
         res
     }
 
-    pub fn mux_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireId {
+    pub fn mux_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireSlotId {
         self.wire(name, WireKind::MuxOut, raw_names)
     }
 
-    pub fn permabuf(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireId {
+    pub fn permabuf(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireSlotId {
         let w = self.wire(name, WireKind::MuxOut, raw_names);
         self.permabuf_wires.insert(w);
         w
@@ -1572,32 +1572,32 @@ impl<'a> IntBuilder<'a> {
 
     pub fn delay(
         &mut self,
-        wire: WireId,
+        wire: WireSlotId,
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>],
-    ) -> WireId {
+    ) -> WireSlotId {
         let w = self.wire(name, WireKind::MuxOut, raw_names);
         self.delay_wires.insert(wire, w);
         w
     }
 
-    pub fn logic_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireId {
+    pub fn logic_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireSlotId {
         self.wire(name, WireKind::LogicOut, raw_names)
     }
 
-    pub fn multi_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireId {
+    pub fn multi_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireSlotId {
         self.wire(name, WireKind::MultiOut, raw_names)
     }
 
-    pub fn test_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireId {
+    pub fn test_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireSlotId {
         self.wire(name, WireKind::TestOut, raw_names)
     }
 
-    pub fn conn_branch(&mut self, src: WireId, dir: Dir, dst: WireId) {
+    pub fn conn_branch(&mut self, src: WireSlotId, dir: Dir, dst: WireSlotId) {
         self.main_passes[!dir].insert(dst, src);
     }
 
-    fn pip_mode(&self, dst: WireId) -> PipMode {
+    fn pip_mode(&self, dst: WireSlotId) -> PipMode {
         if self.permabuf_wires.contains(&dst) {
             PipMode::PermaBuf
         } else {
@@ -1607,11 +1607,11 @@ impl<'a> IntBuilder<'a> {
 
     pub fn branch(
         &mut self,
-        src: WireId,
+        src: WireSlotId,
         dir: Dir,
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>],
-    ) -> WireId {
+    ) -> WireSlotId {
         let res = self.wire(name, WireKind::Branch(self.term_slots[!dir]), raw_names);
         self.conn_branch(src, dir, res);
         res
@@ -1619,11 +1619,11 @@ impl<'a> IntBuilder<'a> {
 
     pub fn multi_branch(
         &mut self,
-        src: WireId,
+        src: WireSlotId,
         dir: Dir,
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>],
-    ) -> WireId {
+    ) -> WireSlotId {
         let res = self.wire(
             name,
             WireKind::MultiBranch(self.term_slots[!dir]),
@@ -1637,12 +1637,12 @@ impl<'a> IntBuilder<'a> {
         self.stub_outs.insert(name.into());
     }
 
-    pub fn extra_name(&mut self, name: impl Into<String>, wire: WireId) {
+    pub fn extra_name(&mut self, name: impl Into<String>, wire: WireSlotId) {
         self.extra_names
             .insert(name.into(), TileWireCoord::new_idx(0, wire));
     }
 
-    pub fn extra_name_sub(&mut self, name: impl Into<String>, sub: usize, wire: WireId) {
+    pub fn extra_name_sub(&mut self, name: impl Into<String>, sub: usize, wire: WireSlotId) {
         self.extra_names
             .insert(name.into(), TileWireCoord::new_idx(sub, wire));
     }
@@ -1651,7 +1651,7 @@ impl<'a> IntBuilder<'a> {
         &mut self,
         tile: impl AsRef<str>,
         name: impl Into<String>,
-        wire: WireId,
+        wire: WireSlotId,
     ) {
         if let Some((tki, _)) = self.rd.tile_kinds.get(tile.as_ref()) {
             self.extra_names_tile
@@ -1666,7 +1666,7 @@ impl<'a> IntBuilder<'a> {
         tile: impl AsRef<str>,
         name: impl Into<String>,
         sub: usize,
-        wire: WireId,
+        wire: WireSlotId,
     ) {
         if let Some((tki, _)) = self.rd.tile_kinds.get(tile.as_ref()) {
             self.extra_names_tile
@@ -2196,7 +2196,7 @@ impl<'a> IntBuilder<'a> {
         })
     }
 
-    fn get_int_rev_naming(&self, int_xy: Coord) -> HashMap<String, WireId> {
+    fn get_int_rev_naming(&self, int_xy: Coord) -> HashMap<String, WireSlotId> {
         if let Some(int_naming_id) = self.get_int_naming(int_xy) {
             let int_naming = &self.ndb.tile_class_namings[int_naming_id];
             int_naming
@@ -2229,7 +2229,7 @@ impl<'a> IntBuilder<'a> {
         None
     }
 
-    fn get_int_node2wires(&self, int_xy: Coord) -> HashMap<rawdump::NodeId, Vec<WireId>> {
+    fn get_int_node2wires(&self, int_xy: Coord) -> HashMap<rawdump::NodeId, Vec<WireSlotId>> {
         let int_tile = &self.rd.tiles[&int_xy];
         let int_tk = &self.rd.tile_kinds[int_tile.kind];
         let int_rev_naming = self.get_int_rev_naming(int_xy);
@@ -2249,7 +2249,7 @@ impl<'a> IntBuilder<'a> {
         &self,
         tile_xy: Coord,
         int_xy: Coord,
-    ) -> HashMap<rawdump::WireId, Vec<WireId>> {
+    ) -> HashMap<rawdump::WireId, Vec<WireSlotId>> {
         if tile_xy == int_xy {
             let int_tile = &self.rd.tiles[&int_xy];
             let int_tk = &self.rd.tile_kinds[int_tile.kind];
@@ -2285,8 +2285,8 @@ impl<'a> IntBuilder<'a> {
         &self,
         tile_xy: Coord,
         int_xy: Coord,
-        cands: &HashSet<WireId>,
-    ) -> HashMap<rawdump::WireId, WireId> {
+        cands: &HashSet<WireSlotId>,
+    ) -> HashMap<rawdump::WireId, WireSlotId> {
         self.recover_names(tile_xy, int_xy)
             .into_iter()
             .filter_map(|(k, v)| {
@@ -2448,7 +2448,7 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    fn get_pass_inps(&self, dir: Dir) -> HashSet<WireId> {
+    fn get_pass_inps(&self, dir: Dir) -> HashSet<WireSlotId> {
         self.main_passes[dir].values().copied().collect()
     }
 
@@ -2456,8 +2456,8 @@ impl<'a> IntBuilder<'a> {
         &self,
         dir: Dir,
         int_xy: Coord,
-        forced: &HashMap<WireId, WireId>,
-    ) -> EntityPartVec<WireId, ConnectorWire> {
+        forced: &HashMap<WireSlotId, WireSlotId>,
+    ) -> EntityPartVec<WireSlotId, ConnectorWire> {
         let mut res = EntityPartVec::new();
         let n2w = self.get_int_node2wires(int_xy);
         let cand_inps = self.get_pass_inps(!dir);
@@ -2506,7 +2506,7 @@ impl<'a> IntBuilder<'a> {
         let tile = &self.rd.tiles[&term_xy];
         let tk = &self.rd.tile_kinds[tile.kind];
         let tkn = self.rd.tile_kinds.key(tile.kind);
-        let mut muxes: HashMap<WireId, Vec<WireId>> = HashMap::new();
+        let mut muxes: HashMap<WireSlotId, Vec<WireSlotId>> = HashMap::new();
         let naming_id = self.make_term_naming(naming.as_ref());
         let mut tnames = EntityPartVec::new();
         for &(wfi, wti) in tk.pips.keys() {
@@ -2623,7 +2623,7 @@ impl<'a> IntBuilder<'a> {
         term_xy: Coord,
         naming: impl AsRef<str>,
         int_xy: Coord,
-        forced: &[(WireId, WireId)],
+        forced: &[(WireSlotId, WireSlotId)],
     ) {
         let forced: HashMap<_, _> = forced.iter().copied().collect();
         let cand_inps = self.get_pass_inps(!dir);
@@ -2705,7 +2705,7 @@ impl<'a> IntBuilder<'a> {
         name: impl AsRef<str>,
         dir: Dir,
         int_xy: Coord,
-        forced: &[(WireId, WireId)],
+        forced: &[(WireSlotId, WireSlotId)],
     ) {
         let forced: HashMap<_, _> = forced.iter().copied().collect();
         let wires = self.extract_term_tile_conn(dir, int_xy, &forced);
@@ -2804,7 +2804,7 @@ impl<'a> IntBuilder<'a> {
         dir: Dir,
         tkn: impl AsRef<str>,
         naming: impl AsRef<str>,
-        forced: &[(WireId, WireId)],
+        forced: &[(WireSlotId, WireSlotId)],
     ) {
         for &term_xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
             if let Some(int_xy) = self.walk_to_int(term_xy, !dir, false) {
@@ -2825,7 +2825,7 @@ impl<'a> IntBuilder<'a> {
         name: impl AsRef<str>,
         dir: Dir,
         tkn: impl AsRef<str>,
-        forced: &[(WireId, WireId)],
+        forced: &[(WireSlotId, WireSlotId)],
     ) {
         for &term_xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
             if let Some(int_xy) = self.walk_to_int(term_xy, !dir, false) {
@@ -2856,7 +2856,7 @@ impl<'a> IntBuilder<'a> {
         tcls: Option<(TileSlotId, BelSlotId, &str, &str)>,
         splitter_tcls: Option<(TileSlotId, BelSlotId, &str, &str)>,
         src_xy: Coord,
-        force_pass: &[WireId],
+        force_pass: &[WireSlotId],
     ) {
         let cand_inps_far = self.get_pass_inps(dir);
         let int_tile = &self.rd.tiles[&int_xy];
@@ -2931,8 +2931,8 @@ impl<'a> IntBuilder<'a> {
             }
             #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
             enum WireIn {
-                Near(WireId),
-                Far(WireId),
+                Near(WireSlotId),
+                Far(WireSlotId),
             }
             #[derive(Clone, Copy)]
             enum FarNaming<'b> {
@@ -2940,7 +2940,7 @@ impl<'a> IntBuilder<'a> {
                 BufNear(&'b str, &'b str),
                 BufFar(&'b str, &'b str, &'b str),
             }
-            let mut muxes: HashMap<WireId, Vec<WireIn>> = HashMap::new();
+            let mut muxes: HashMap<WireSlotId, Vec<WireIn>> = HashMap::new();
             let mut names_out = EntityPartVec::new();
             let mut names_in_near = EntityPartVec::new();
             let mut names_in_far = EntityPartVec::new();
@@ -3237,7 +3237,7 @@ impl<'a> IntBuilder<'a> {
         name: impl AsRef<str>,
         dir: Dir,
         tkn: impl AsRef<str>,
-        force_pass: &[WireId],
+        force_pass: &[WireSlotId],
     ) {
         for &xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
             if let Some(int_fwd_xy) = self.walk_to_int(xy, dir, false)
@@ -3277,7 +3277,7 @@ impl<'a> IntBuilder<'a> {
         dir: Dir,
         tkn: impl AsRef<str>,
         naming: impl AsRef<str>,
-        force_pass: &[WireId],
+        force_pass: &[WireSlotId],
     ) {
         for &xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
             if let Some(int_fwd_xy) = self.walk_to_int(xy, dir, false)
@@ -3313,7 +3313,7 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn make_blackhole_term(&mut self, name: impl AsRef<str>, dir: Dir, wires: &[WireId]) {
+    pub fn make_blackhole_term(&mut self, name: impl AsRef<str>, dir: Dir, wires: &[WireSlotId]) {
         for &w in wires {
             assert!(self.main_passes[dir].contains_id(w));
         }
@@ -3404,7 +3404,7 @@ impl<'a> IntBuilder<'a> {
         int_xy: &[Coord],
         naming: &str,
         bels: &[ExtrBelInfo],
-        skip_wires: &[WireId],
+        skip_wires: &[WireSlotId],
     ) {
         let mut x = self
             .xtile(slot, name, naming, xy)

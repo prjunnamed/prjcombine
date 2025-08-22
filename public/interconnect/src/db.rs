@@ -26,7 +26,7 @@ pub struct CellSlotTag;
 impl EntityTag for CellSlotTag {
     const PREFIX: &'static str = "TCELL";
 }
-pub type WireId = EntityIdU16<WireKind>;
+pub type WireSlotId = EntityIdU16<WireKind>;
 pub type TileClassId = EntityIdU16<TileClass>;
 pub type RegionSlotId = EntityIdU8<RegionSlotTag>;
 pub type ConnectorSlotId = EntityIdU8<ConnectorSlot>;
@@ -115,7 +115,7 @@ impl std::fmt::Display for TileSlotId {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Encode, Decode)]
 pub struct IntDb {
-    pub wires: EntityMap<WireId, String, WireKind>,
+    pub wires: EntityMap<WireSlotId, String, WireKind>,
     pub tile_slots: EntitySet<TileSlotId, String>,
     pub bel_slots: EntityMap<BelSlotId, String, BelSlot>,
     pub region_slots: EntitySet<RegionSlotId, String>,
@@ -126,7 +126,7 @@ pub struct IntDb {
 
 impl IntDb {
     #[track_caller]
-    pub fn get_wire(&self, name: &str) -> WireId {
+    pub fn get_wire(&self, name: &str) -> WireSlotId {
         self.wires
             .get(name)
             .unwrap_or_else(|| panic!("no wire {name}"))
@@ -225,7 +225,7 @@ pub enum WireKind {
     LogicOut,
     TestOut,
     MultiOut,
-    Buf(WireId),
+    Buf(WireSlotId),
     MultiBranch(ConnectorSlotId),
     Branch(ConnectorSlotId),
 }
@@ -278,11 +278,11 @@ impl TileClass {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct TileWireCoord {
     pub cell: CellSlotId,
-    pub wire: WireId,
+    pub wire: WireSlotId,
 }
 
 impl TileWireCoord {
-    pub fn new_idx(cell_idx: usize, wire: WireId) -> Self {
+    pub fn new_idx(cell_idx: usize, wire: WireSlotId) -> Self {
         TileWireCoord {
             cell: CellSlotId::from_idx(cell_idx),
             wire,
@@ -460,7 +460,7 @@ pub enum IntfInfo {
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct ConnectorClass {
     pub slot: ConnectorSlotId,
-    pub wires: EntityPartVec<WireId, ConnectorWire>,
+    pub wires: EntityPartVec<WireSlotId, ConnectorWire>,
 }
 
 impl ConnectorClass {
@@ -475,8 +475,8 @@ impl ConnectorClass {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum ConnectorWire {
     BlackHole,
-    Reflect(WireId),
-    Pass(WireId),
+    Reflect(WireSlotId),
+    Pass(WireSlotId),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -500,8 +500,8 @@ pub struct TileClassIndex {
 
 #[derive(Clone, Debug)]
 pub struct ConnectorClassIndex {
-    pub wire_ins_far: EntityVec<WireId, HashSet<WireId>>,
-    pub wire_ins_near: EntityVec<WireId, HashSet<WireId>>,
+    pub wire_ins_far: EntityVec<WireSlotId, HashSet<WireSlotId>>,
+    pub wire_ins_near: EntityVec<WireSlotId, HashSet<WireSlotId>>,
 }
 
 impl IntDbIndex {

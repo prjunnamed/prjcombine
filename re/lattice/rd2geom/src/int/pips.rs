@@ -4,7 +4,7 @@ use prjcombine_ecp::{bels, chip::ChipKind, cslots, regions, tslots};
 use prjcombine_interconnect::{
     db::{
         BelInfo, Buf, ConnectorWire, Mux, ProgDelay, SwitchBox, SwitchBoxItem, TileClassId,
-        TileWireCoord, WireId, WireKind,
+        TileWireCoord, WireSlotId, WireKind,
     },
     grid::CellCoord,
 };
@@ -133,11 +133,11 @@ impl ChipContext<'_> {
         &mut self,
         mut term_pips: BTreeSet<(WireName, WireName)>,
     ) -> (
-        BTreeMap<CellCoord, BTreeSet<(WireId, WireId)>>,
-        BTreeMap<TileClassId, BTreeSet<(WireId, WireId)>>,
+        BTreeMap<CellCoord, BTreeSet<(WireSlotId, WireSlotId)>>,
+        BTreeMap<TileClassId, BTreeSet<(WireSlotId, WireSlotId)>>,
     ) {
-        let mut cell_pips: BTreeMap<CellCoord, BTreeSet<(WireId, WireId)>> = BTreeMap::new();
-        let mut sb_pips: BTreeMap<TileClassId, BTreeSet<(WireId, WireId)>> = BTreeMap::new();
+        let mut cell_pips: BTreeMap<CellCoord, BTreeSet<(WireSlotId, WireSlotId)>> = BTreeMap::new();
+        let mut sb_pips: BTreeMap<TileClassId, BTreeSet<(WireSlotId, WireSlotId)>> = BTreeMap::new();
 
         for &(nf, nt) in self.grid.pips.keys() {
             let wfn = self.nodes[nf];
@@ -347,8 +347,8 @@ impl ChipContext<'_> {
 
     fn create_switchboxes(
         &mut self,
-        mut cell_pips: BTreeMap<CellCoord, BTreeSet<(WireId, WireId)>>,
-        sb_pips: BTreeMap<TileClassId, BTreeSet<(WireId, WireId)>>,
+        mut cell_pips: BTreeMap<CellCoord, BTreeSet<(WireSlotId, WireSlotId)>>,
+        sb_pips: BTreeMap<TileClassId, BTreeSet<(WireSlotId, WireSlotId)>>,
     ) {
         for (tcid, pips) in sb_pips {
             for &tcrd in &self.edev.egrid.tile_index[tcid] {

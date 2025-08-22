@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::{
-    CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord, WireId,
+    CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord, WireSlotId,
     WireKind,
 };
 use prjcombine_interconnect::dir::{Dir, DirMap, DirPartMap};
@@ -17,15 +17,15 @@ use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XTileInfo, XTileRef};
 
 trait IntBuilderExt {
     fn mux_out_pair(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>; 2])
-    -> WireId;
+    -> WireSlotId;
 
     fn branch_pair(
         &mut self,
-        src: WireId,
+        src: WireSlotId,
         dir: Dir,
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>; 2],
-    ) -> WireId;
+    ) -> WireSlotId;
 }
 
 impl IntBuilderExt for IntBuilder<'_> {
@@ -33,7 +33,7 @@ impl IntBuilderExt for IntBuilder<'_> {
         &mut self,
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>; 2],
-    ) -> WireId {
+    ) -> WireSlotId {
         let w = self.mux_out(name, &[""]);
         for (sub, name) in raw_names.iter().enumerate() {
             self.extra_name_sub(name.as_ref(), sub, w);
@@ -43,11 +43,11 @@ impl IntBuilderExt for IntBuilder<'_> {
 
     fn branch_pair(
         &mut self,
-        src: WireId,
+        src: WireSlotId,
         dir: Dir,
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>; 2],
-    ) -> WireId {
+    ) -> WireSlotId {
         let w = self.branch(src, dir, name, &[""]);
         for (sub, name) in raw_names.iter().enumerate() {
             self.extra_name_sub(name.as_ref(), sub, w);
@@ -128,13 +128,13 @@ struct IntMaker<'a> {
     long_main_passes: DirPartMap<ConnectorClass>,
     // how many mental illnesses do you think I could be diagnosed with just from this repo?
     sng_fixup_map: BTreeMap<TileWireCoord, TileWireCoord>,
-    term_wires: DirMap<EntityPartVec<WireId, ConnectorWire>>,
-    term_wires_l: DirPartMap<EntityPartVec<WireId, ConnectorWire>>,
-    iri_wires: Vec<WireId>,
-    bnodes: Vec<WireId>,
-    bnode_outs: Vec<WireId>,
-    bounces: Vec<WireId>,
-    term_logic_outs: EntityPartVec<WireId, ConnectorWire>,
+    term_wires: DirMap<EntityPartVec<WireSlotId, ConnectorWire>>,
+    term_wires_l: DirPartMap<EntityPartVec<WireSlotId, ConnectorWire>>,
+    iri_wires: Vec<WireSlotId>,
+    bnodes: Vec<WireSlotId>,
+    bnode_outs: Vec<WireSlotId>,
+    bounces: Vec<WireSlotId>,
+    term_logic_outs: EntityPartVec<WireSlotId, ConnectorWire>,
     dev_naming: &'a DeviceNaming,
 }
 
