@@ -2945,18 +2945,18 @@ impl Expander<'_, '_> {
                 continue;
             }
             let int_kind = if has_ebr {
-                "INT_SIO_XW"
+                "INT_SIO_L_W"
             } else if cell.row >= self.chip.row_clk - 3 && cell.row < self.chip.row_clk + 3 {
-                "INT_SIO_W_CLK"
+                "INT_SIO_S_W_CLK"
             } else {
-                "INT_SIO_W"
+                "INT_SIO_S_W"
             };
             self.egrid.add_tile_single(cell, int_kind);
             let kind = match (has_ebr, rd.io_w) {
-                (true, IoGroupKind::Double) => "SIO_XW2",
-                (true, IoGroupKind::Quad | IoGroupKind::QuadReverse) => "SIO_XW4",
-                (false, IoGroupKind::Double) => "SIO_W2",
-                (false, IoGroupKind::Quad) => "SIO_W4",
+                (true, IoGroupKind::Double) => "SIO_L_W2",
+                (true, IoGroupKind::Quad | IoGroupKind::QuadReverse) => "SIO_L_W4",
+                (false, IoGroupKind::Double) => "SIO_S_W2",
+                (false, IoGroupKind::Quad) => "SIO_S_W4",
                 _ => unreachable!(),
             };
             self.egrid.add_tile_single(cell, kind);
@@ -2967,14 +2967,24 @@ impl Expander<'_, '_> {
                 continue;
             }
             let int_kind = if cell == self.chip.special_loc[&SpecialLocKey::Config] {
-                "INT_SIO_E_CFG"
+                if has_ebr {
+                    "INT_SIO_L_E_CFG"
+                } else {
+                    "INT_SIO_S_E_CFG"
+                }
             } else {
-                "INT_SIO_E"
+                if has_ebr {
+                    "INT_SIO_L_E"
+                } else {
+                    "INT_SIO_S_E"
+                }
             };
             self.egrid.add_tile_single(cell, int_kind);
-            let kind = match rd.io_e {
-                IoGroupKind::Double => "SIO_E2",
-                IoGroupKind::Quad => "SIO_E4",
+            let kind = match (has_ebr, rd.io_e) {
+                (false, IoGroupKind::Double) => "SIO_S_E2",
+                (false, IoGroupKind::Quad) => "SIO_S_E4",
+                (true, IoGroupKind::Double) => "SIO_L_E2",
+                (true, IoGroupKind::Quad) => "SIO_L_E4",
                 _ => unreachable!(),
             };
             self.egrid.add_tile_single(cell, kind);
@@ -2984,9 +2994,11 @@ impl Expander<'_, '_> {
             if cell.col == self.chip.col_w() || cell.col == self.chip.col_e() {
                 continue;
             }
-            let (int_kind, kind) = match cd.io_s {
-                IoGroupKind::Quad => ("INT_SIO_S4", "SIO_S4"),
-                IoGroupKind::Hex | IoGroupKind::HexReverse => ("INT_SIO_S6", "SIO_S6"),
+            let (int_kind, kind) = match (has_ebr, cd.io_s) {
+                (false, IoGroupKind::Quad) => ("INT_SIO_S_S4", "SIO_S_S4"),
+                (false, IoGroupKind::Hex | IoGroupKind::HexReverse) => ("INT_SIO_S_S6", "SIO_S_S6"),
+                (true, IoGroupKind::Quad) => ("INT_SIO_L_S4", "SIO_L_S4"),
+                (true, IoGroupKind::Hex | IoGroupKind::HexReverse) => ("INT_SIO_L_S6", "SIO_L_S6"),
                 _ => unreachable!(),
             };
             self.egrid.add_tile_single(cell, int_kind);
@@ -2997,9 +3009,11 @@ impl Expander<'_, '_> {
             if cell.col == self.chip.col_w() || cell.col == self.chip.col_e() {
                 continue;
             }
-            let (int_kind, kind) = match cd.io_n {
-                IoGroupKind::Quad => ("INT_SIO_N4", "SIO_N4"),
-                IoGroupKind::Hex | IoGroupKind::HexReverse => ("INT_SIO_N6", "SIO_N6"),
+            let (int_kind, kind) = match (has_ebr, cd.io_n) {
+                (false, IoGroupKind::Quad) => ("INT_SIO_S_N4", "SIO_S_N4"),
+                (false, IoGroupKind::Hex | IoGroupKind::HexReverse) => ("INT_SIO_S_N6", "SIO_S_N6"),
+                (true, IoGroupKind::Quad) => ("INT_SIO_L_N4", "SIO_L_N4"),
+                (true, IoGroupKind::Hex | IoGroupKind::HexReverse) => ("INT_SIO_L_N6", "SIO_L_N6"),
                 _ => unreachable!(),
             };
             self.egrid.add_tile_single(cell, int_kind);

@@ -36,7 +36,7 @@ impl ChipContext<'_> {
             };
             let tcname = self.intdb.tile_classes.key(tile.class);
             let has_cibtest = if self.chip.kind == ChipKind::MachXo {
-                tcname == "INT_SIO_XW"
+                tcname == "INT_SIO_L_W"
             } else {
                 tcname != "INT_PLC"
             };
