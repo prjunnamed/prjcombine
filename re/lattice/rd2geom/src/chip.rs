@@ -635,6 +635,35 @@ impl ChipBuilder<'_> {
         }
     }
 
+    fn fill_frames_xp(&mut self) {
+        match self.chip.rows.len() {
+            19 => {
+                self.chip.extra_frames_w = 3;
+                self.chip.extra_frames_e = 3;
+            }
+            27 => {
+                self.chip.extra_frames_w = 3;
+                self.chip.extra_frames_e = 11;
+            }
+            36 => {
+                self.chip.extra_frames_w = 3;
+                self.chip.extra_frames_e = 3;
+                self.chip.double_frames = true;
+            }
+            44 => {
+                self.chip.extra_frames_w = 5;
+                self.chip.extra_frames_e = 5;
+                self.chip.double_frames = true;
+            }
+            48 => {
+                self.chip.extra_frames_w = 1;
+                self.chip.extra_frames_e = 1;
+                self.chip.double_frames = true;
+            }
+            _ => unreachable!(),
+        }
+    }
+
     fn fill_pll_scm(&mut self) {
         for hv in DirHV::DIRS {
             let col = self.chip.col_edge(hv.h);
@@ -3688,6 +3717,9 @@ fn init_chip(kind: ChipKind, naming: &ChipNaming, nodes: &EntityVec<NodeId, Wire
         special_loc: BTreeMap::new(),
         special_io: BTreeMap::new(),
         io_direct_plc: BTreeMap::new(),
+        extra_frames_w: 0,
+        extra_frames_e: 0,
+        double_frames: false,
     }
 }
 
@@ -3731,6 +3763,7 @@ pub fn make_chip(
             builder.fill_clk_ecp();
             builder.fill_config_loc_ecp();
             builder.fill_config_bits_loc_xp();
+            builder.fill_frames_xp();
             builder.fill_pll_ecp();
             builder.fill_io_xp();
             builder.fill_io_banks_8();

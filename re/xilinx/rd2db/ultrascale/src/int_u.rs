@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 
 use prjcombine_interconnect::{
     db::{
-        CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord, WireSlotId,
-        WireKind,
+        CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord, WireKind,
+        WireSlotId,
     },
     dir::{Dir, DirPartMap},
 };
@@ -16,8 +16,11 @@ use prjcombine_ultrascale::{bels, cslots, regions, tslots};
 use unnamed_entity::{EntityId, EntityPartVec};
 
 trait IntBuilderExt {
-    fn mux_out_pair(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>; 2])
-    -> WireSlotId;
+    fn mux_out_pair(
+        &mut self,
+        name: impl Into<String>,
+        raw_names: &[impl AsRef<str>; 2],
+    ) -> WireSlotId;
 
     fn branch_pair(
         &mut self,

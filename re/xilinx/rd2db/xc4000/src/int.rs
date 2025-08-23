@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
 use prjcombine_interconnect::{
-    db::{ConnectorClass, ConnectorWire, IntDb, TileWireCoord, WireSlotId, WireKind},
+    db::{ConnectorClass, ConnectorWire, IntDb, TileWireCoord, WireKind, WireSlotId},
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{NamingDb, TileClassNamingId};

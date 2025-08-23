@@ -2,7 +2,7 @@
 
 use prjcombine_interconnect::db::{
     Bel, BelInfo, BelSlotId, ConnectorWire, IntDb, IntfInfo, PinDir, SwitchBoxItem, TileClassId,
-    TileWireCoord, WireSlotId, WireKind,
+    TileWireCoord, WireKind, WireSlotId,
 };
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, Tile, TileCoord,

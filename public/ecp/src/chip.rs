@@ -133,6 +133,9 @@ pub struct Chip {
     pub special_loc: BTreeMap<SpecialLocKey, CellCoord>,
     pub special_io: BTreeMap<SpecialIoKey, EdgeIoCoord>,
     pub io_direct_plc: BTreeMap<EdgeIoCoord, (CellCoord, u8)>,
+    pub extra_frames_w: usize,
+    pub extra_frames_e: usize,
+    pub double_frames: bool,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
@@ -823,6 +826,102 @@ impl Chip {
         assert_eq!(self.kind, ChipKind::Crosslink);
         CellCoord::new(DieId::from_idx(0), col, self.row_n()).bel(bels::MIPI)
     }
+
+    pub fn btile_term_width(&self, _col: ColId) -> usize {
+        match self.kind {
+            ChipKind::Scm => todo!(),
+            ChipKind::Ecp | ChipKind::Xp => 2,
+            ChipKind::MachXo => 0,
+            ChipKind::Ecp2 => todo!(),
+            ChipKind::Ecp2M => todo!(),
+            ChipKind::Xp2 => todo!(),
+            ChipKind::Ecp3 => todo!(),
+            ChipKind::Ecp3A => todo!(),
+            ChipKind::MachXo2(_) => todo!(),
+            ChipKind::Ecp4 => todo!(),
+            ChipKind::Ecp5 => todo!(),
+            ChipKind::Crosslink => todo!(),
+        }
+    }
+
+    pub fn btile_clk_width(&self) -> usize {
+        match self.kind {
+            ChipKind::Scm => todo!(),
+            ChipKind::Ecp | ChipKind::Xp => 6,
+            ChipKind::MachXo => 1,
+            ChipKind::Ecp2 => todo!(),
+            ChipKind::Ecp2M => todo!(),
+            ChipKind::Xp2 => todo!(),
+            ChipKind::Ecp3 => todo!(),
+            ChipKind::Ecp3A => todo!(),
+            ChipKind::MachXo2(_) => todo!(),
+            ChipKind::Ecp4 => todo!(),
+            ChipKind::Ecp5 => todo!(),
+            ChipKind::Crosslink => todo!(),
+        }
+    }
+
+    pub fn btile_width(&self, col: ColId) -> usize {
+        match self.kind {
+            ChipKind::Scm => todo!(),
+            ChipKind::Ecp | ChipKind::Xp => 64,
+            ChipKind::MachXo => {
+                let has_ebr = self.special_loc.contains_key(&SpecialLocKey::Ebr(0));
+                if col == self.col_w() {
+                    if has_ebr { 135 } else { 19 }
+                } else if col == self.col_e() {
+                    if has_ebr { 20 } else { 19 }
+                } else {
+                    64
+                }
+            }
+            ChipKind::Ecp2 => todo!(),
+            ChipKind::Ecp2M => todo!(),
+            ChipKind::Xp2 => todo!(),
+            ChipKind::Ecp3 => todo!(),
+            ChipKind::Ecp3A => todo!(),
+            ChipKind::MachXo2(_) => todo!(),
+            ChipKind::Ecp4 => todo!(),
+            ChipKind::Ecp5 => todo!(),
+            ChipKind::Crosslink => todo!(),
+        }
+    }
+
+    pub fn btile_height(&self, row: RowId) -> usize {
+        let rd = &self.rows[row];
+        match self.kind {
+            ChipKind::Scm => todo!(),
+            ChipKind::Ecp | ChipKind::Xp => match rd.kind {
+                RowKind::Plc | RowKind::Fplc => 22,
+                RowKind::Io => 21,
+                RowKind::Dsp => 20,
+                RowKind::Ebr => 20,
+            },
+            ChipKind::MachXo => {
+                let has_ebr = self.special_loc.contains_key(&SpecialLocKey::Ebr(0));
+                match rd.kind {
+                    RowKind::Plc | RowKind::Fplc => 22,
+                    RowKind::Io => {
+                        if has_ebr {
+                            9
+                        } else {
+                            8
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            ChipKind::Ecp2 => todo!(),
+            ChipKind::Ecp2M => todo!(),
+            ChipKind::Xp2 => todo!(),
+            ChipKind::Ecp3 => todo!(),
+            ChipKind::Ecp3A => todo!(),
+            ChipKind::MachXo2(_) => todo!(),
+            ChipKind::Ecp4 => todo!(),
+            ChipKind::Ecp5 => todo!(),
+            ChipKind::Crosslink => todo!(),
+        }
+    }
 }
 
 impl From<&Column> for JsonValue {
@@ -867,6 +966,9 @@ impl From<&Chip> for JsonValue {
             special_loc: jzon::object::Object::from_iter(chip.special_loc.iter().map(|(k, v)| (k.to_string(), v.to_string()))),
             special_io: jzon::object::Object::from_iter(chip.special_io.iter().map(|(k, v)| (k.to_string(), v.to_string()))),
             io_direct_plc: jzon::object::Object::from_iter(chip.io_direct_plc.iter().map(|(k, (cell, lut))| (k.to_string(), format!("{cell}_{lut}")))),
+            extra_frames_w: chip.extra_frames_w,
+            extra_frames_e: chip.extra_frames_e,
+            double_frames: chip.double_frames,
         }
     }
 }

@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId},
 };
-use unnamed_entity::{EntityId, EntityVec};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::{
     bels,
@@ -20,6 +20,13 @@ struct Expander<'a, 'b> {
     egrid: &'a mut ExpandedGrid<'b>,
     bel_holes: Vec<Rect>,
     dqs: BTreeMap<CellCoord, CellCoord>,
+    frame_len: usize,
+    frames_num: usize,
+    clk_frame: usize,
+    col_frame: EntityVec<ColId, usize>,
+    col_term_frame: EntityPartVec<ColId, usize>,
+    row_bit: EntityVec<RowId, usize>,
+    row_ebr_bit: EntityPartVec<RowId, usize>,
 }
 
 impl Expander<'_, '_> {
@@ -3114,6 +3121,36 @@ impl Expander<'_, '_> {
             }
         }
     }
+
+    fn fill_bs_ecp(&mut self) {
+        self.row_bit = self.chip.rows.map_values(|_| 0);
+        for row in self.chip.rows.ids().rev() {
+            self.row_bit[row] = self.frame_len;
+            self.frame_len += self.chip.btile_height(row);
+            if self.chip.rows[row].kind == RowKind::Ebr {
+                self.row_ebr_bit.insert(row, self.frame_len);
+                self.frame_len += 144;
+            }
+        }
+        self.frames_num += self.chip.extra_frames_w;
+        for col in self.chip.columns.ids() {
+            if col == self.chip.col_w() {
+                self.col_term_frame.insert(col, self.frames_num);
+                self.frames_num += self.chip.btile_term_width(col);
+            }
+            if col == self.chip.col_clk {
+                self.clk_frame = self.frames_num;
+                self.frames_num += self.chip.btile_clk_width();
+            }
+            self.col_frame.push(self.frames_num);
+            self.frames_num += self.chip.btile_width(col);
+            if col == self.chip.col_e() {
+                self.col_term_frame.insert(col, self.frames_num);
+                self.frames_num += self.chip.btile_term_width(col);
+            }
+        }
+        self.frames_num += self.chip.extra_frames_e;
+    }
 }
 
 impl Chip {
@@ -3126,6 +3163,13 @@ impl Chip {
             die,
             bel_holes: vec![],
             dqs: BTreeMap::new(),
+            frame_len: 0,
+            frames_num: 0,
+            clk_frame: 0,
+            col_frame: Default::default(),
+            col_term_frame: Default::default(),
+            row_bit: Default::default(),
+            row_ebr_bit: Default::default(),
         };
 
         match self.kind {
@@ -3146,6 +3190,7 @@ impl Chip {
                 expander.fill_dsp_ecp();
                 expander.fill_io_ecp();
                 expander.fill_clk_ecp();
+                expander.fill_bs_ecp();
             }
             ChipKind::Xp => {
                 expander.fill_pll_xp();
@@ -3154,12 +3199,14 @@ impl Chip {
                 expander.fill_config_xp();
                 expander.fill_io_ecp();
                 expander.fill_clk_ecp();
+                expander.fill_bs_ecp();
             }
             ChipKind::MachXo => {
                 expander.fill_plc();
                 expander.fill_io_machxo();
                 expander.fill_special_machxo();
                 expander.fill_clk_machxo();
+                expander.fill_bs_ecp();
             }
             ChipKind::Ecp2 | ChipKind::Ecp2M => {
                 expander.fill_config_ecp2();
@@ -3231,6 +3278,13 @@ impl Chip {
 
         let bel_holes = expander.bel_holes;
         let dqs = expander.dqs;
+        let frame_len = expander.frame_len;
+        let frames_num = expander.frames_num;
+        let clk_frame = expander.clk_frame;
+        let col_frame = expander.col_frame;
+        let col_term_frame = expander.col_term_frame;
+        let row_bit = expander.row_bit;
+        let row_ebr_bit = expander.row_ebr_bit;
 
         egrid.finish();
         ExpandedDevice {
@@ -3238,6 +3292,13 @@ impl Chip {
             egrid,
             bel_holes,
             dqs,
+            frame_len,
+            frames_num,
+            clk_frame,
+            col_frame,
+            col_term_frame,
+            row_bit,
+            row_ebr_bit,
         }
     }
 }

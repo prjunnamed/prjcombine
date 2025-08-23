@@ -4,7 +4,7 @@ use prjcombine_ecp::{bels, chip::ChipKind, cslots, regions, tslots};
 use prjcombine_interconnect::{
     db::{
         BelInfo, Buf, ConnectorWire, Mux, ProgDelay, SwitchBox, SwitchBoxItem, TileClassId,
-        TileWireCoord, WireSlotId, WireKind,
+        TileWireCoord, WireKind, WireSlotId,
     },
     grid::CellCoord,
 };
@@ -136,8 +136,10 @@ impl ChipContext<'_> {
         BTreeMap<CellCoord, BTreeSet<(WireSlotId, WireSlotId)>>,
         BTreeMap<TileClassId, BTreeSet<(WireSlotId, WireSlotId)>>,
     ) {
-        let mut cell_pips: BTreeMap<CellCoord, BTreeSet<(WireSlotId, WireSlotId)>> = BTreeMap::new();
-        let mut sb_pips: BTreeMap<TileClassId, BTreeSet<(WireSlotId, WireSlotId)>> = BTreeMap::new();
+        let mut cell_pips: BTreeMap<CellCoord, BTreeSet<(WireSlotId, WireSlotId)>> =
+            BTreeMap::new();
+        let mut sb_pips: BTreeMap<TileClassId, BTreeSet<(WireSlotId, WireSlotId)>> =
+            BTreeMap::new();
 
         for &(nf, nt) in self.grid.pips.keys() {
             let wfn = self.nodes[nf];

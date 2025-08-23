@@ -1,6 +1,6 @@
 use prjcombine_interconnect::db::{
-    CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord, WireSlotId,
-    WireKind,
+    CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord, WireKind,
+    WireSlotId,
 };
 use prjcombine_interconnect::dir::{Dir, DirMap, DirPartMap};
 use prjcombine_re_xilinx_naming::db::NamingDb;
@@ -16,8 +16,11 @@ use unnamed_entity::{EntityId, EntityPartVec};
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XTileInfo, XTileRef};
 
 trait IntBuilderExt {
-    fn mux_out_pair(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>; 2])
-    -> WireSlotId;
+    fn mux_out_pair(
+        &mut self,
+        name: impl Into<String>,
+        raw_names: &[impl AsRef<str>; 2],
+    ) -> WireSlotId;
 
     fn branch_pair(
         &mut self,

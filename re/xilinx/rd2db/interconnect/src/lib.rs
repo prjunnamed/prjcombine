@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, BelSlotId, BiPass, Buf, CellSlotId, ConnectorClass, ConnectorSlotId,
         ConnectorWire, IntDb, IntfInfo, Mux, Pass, PinDir, ProgDelay, SwitchBox, SwitchBoxItem,
-        TileClass, TileClassId, TileSlotId, TileWireCoord, WireSlotId, WireKind,
+        TileClass, TileClassId, TileSlotId, TileWireCoord, WireKind, WireSlotId,
     },
     dir::{Dir, DirMap},
 };
@@ -1560,11 +1560,19 @@ impl<'a> IntBuilder<'a> {
         res
     }
 
-    pub fn mux_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireSlotId {
+    pub fn mux_out(
+        &mut self,
+        name: impl Into<String>,
+        raw_names: &[impl AsRef<str>],
+    ) -> WireSlotId {
         self.wire(name, WireKind::MuxOut, raw_names)
     }
 
-    pub fn permabuf(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireSlotId {
+    pub fn permabuf(
+        &mut self,
+        name: impl Into<String>,
+        raw_names: &[impl AsRef<str>],
+    ) -> WireSlotId {
         let w = self.wire(name, WireKind::MuxOut, raw_names);
         self.permabuf_wires.insert(w);
         w
@@ -1581,15 +1589,27 @@ impl<'a> IntBuilder<'a> {
         w
     }
 
-    pub fn logic_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireSlotId {
+    pub fn logic_out(
+        &mut self,
+        name: impl Into<String>,
+        raw_names: &[impl AsRef<str>],
+    ) -> WireSlotId {
         self.wire(name, WireKind::LogicOut, raw_names)
     }
 
-    pub fn multi_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireSlotId {
+    pub fn multi_out(
+        &mut self,
+        name: impl Into<String>,
+        raw_names: &[impl AsRef<str>],
+    ) -> WireSlotId {
         self.wire(name, WireKind::MultiOut, raw_names)
     }
 
-    pub fn test_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> WireSlotId {
+    pub fn test_out(
+        &mut self,
+        name: impl Into<String>,
+        raw_names: &[impl AsRef<str>],
+    ) -> WireSlotId {
         self.wire(name, WireKind::TestOut, raw_names)
     }
 

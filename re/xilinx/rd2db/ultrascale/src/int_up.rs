@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use prjcombine_interconnect::{
     db::{
         BelInfo, CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord,
-        WireSlotId, WireKind,
+        WireKind, WireSlotId,
     },
     dir::{Dir, DirMap, DirPartMap},
 };
@@ -25,8 +25,11 @@ const BUFCE_LEAF_SWIZZLE: [[usize; 16]; 2] = [
 ];
 
 trait IntBuilderExt {
-    fn mux_out_pair(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>; 2])
-    -> WireSlotId;
+    fn mux_out_pair(
+        &mut self,
+        name: impl Into<String>,
+        raw_names: &[impl AsRef<str>; 2],
+    ) -> WireSlotId;
 
     fn branch_pair(
         &mut self,
