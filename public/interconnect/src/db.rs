@@ -210,6 +210,30 @@ impl IntDb {
     }
 }
 
+impl std::ops::Index<WireSlotId> for IntDb {
+    type Output = WireKind;
+
+    fn index(&self, index: WireSlotId) -> &Self::Output {
+        &self.wires[index]
+    }
+}
+
+impl std::ops::Index<TileClassId> for IntDb {
+    type Output = TileClass;
+
+    fn index(&self, index: TileClassId) -> &Self::Output {
+        &self.tile_classes[index]
+    }
+}
+
+impl std::ops::Index<ConnectorClassId> for IntDb {
+    type Output = ConnectorClass;
+
+    fn index(&self, index: ConnectorClassId) -> &Self::Output {
+        &self.conn_classes[index]
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct BelSlot {
     pub tile_slot: TileSlotId,
@@ -488,6 +512,22 @@ pub struct ConnectorSlot {
 pub struct IntDbIndex {
     pub tile_classes: EntityVec<TileClassId, TileClassIndex>,
     pub conn_classes: EntityVec<ConnectorClassId, ConnectorClassIndex>,
+}
+
+impl std::ops::Index<TileClassId> for IntDbIndex {
+    type Output = TileClassIndex;
+
+    fn index(&self, index: TileClassId) -> &Self::Output {
+        &self.tile_classes[index]
+    }
+}
+
+impl std::ops::Index<ConnectorClassId> for IntDbIndex {
+    type Output = ConnectorClassIndex;
+
+    fn index(&self, index: ConnectorClassId) -> &Self::Output {
+        &self.conn_classes[index]
+    }
 }
 
 #[derive(Clone, Debug)]

@@ -93,7 +93,7 @@ impl ChipContext<'_> {
             if ccrd.slot == cslots::EBR_W || ccrd.slot == cslots::EBR_E {
                 let cell_to = ccrd.cell;
                 let cell_from = conn.target.unwrap();
-                let ccls = &self.intdb.conn_classes[conn.class];
+                let ccls = &self.intdb[conn.class];
                 for (wt, &wf) in &ccls.wires {
                     let ConnectorWire::Pass(wf) = wf else {
                         unreachable!()
@@ -167,7 +167,7 @@ impl ChipContext<'_> {
                 DirH::E => 'R',
             };
             let tcid = self.intdb.get_tile_class(tcname);
-            let tcls = &self.intdb.tile_classes[tcid];
+            let tcls = &self.intdb[tcid];
             for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::MACO);
                 let bcrd_int = tcrd.bel(bels::MACO_INT);

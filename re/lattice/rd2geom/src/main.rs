@@ -602,7 +602,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 int.tile_classes[tcid].bels.insert(bid, bel);
             } else {
                 assert_eq!(
-                    int.tile_classes[tcid].bels[bid],
+                    int[tcid].bels[bid],
                     bel,
                     "MERGE FAILED {chip_id} {tc} {bel}",
                     tc = int.tile_classes.key(tcid),

@@ -510,7 +510,7 @@ impl<'a> ExpandedGrid<'a> {
     pub fn has_bel(&self, bel: BelCoord) -> bool {
         let tslot = self.db.bel_slots[bel.slot].tile_slot;
         if let Some(tile) = self[bel.cell].tiles.get(tslot) {
-            let nk = &self.db.tile_classes[tile.class];
+            let nk = &self.db[tile.class];
             if nk.bels.contains_id(bel.slot) {
                 return true;
             }
@@ -533,7 +533,7 @@ impl<'a> ExpandedGrid<'a> {
     pub fn get_bel_pin(&self, bel: BelCoord, pin: &str) -> Vec<WireCoord> {
         let tcrd = self.get_tile_by_bel(bel);
         let tile = &self[tcrd];
-        let BelInfo::Bel(ref bel) = self.db.tile_classes[tile.class].bels[bel.slot] else {
+        let BelInfo::Bel(ref bel) = self.db[tile.class].bels[bel.slot] else {
             unreachable!()
         };
         let pin_info = &bel.pins[pin];
@@ -677,22 +677,22 @@ impl ExpandedGrid<'_> {
     pub fn resolve_wire(&self, mut wire: WireCoord) -> Option<WireCoord> {
         loop {
             let cell = &self[wire.cell];
-            let wi = self.db.wires[wire.slot];
+            let wi = self.db[wire.slot];
             match wi {
                 WireKind::Regional(rslot) => {
                     wire.cell = cell.region_root[rslot];
                     break;
                 }
                 WireKind::MultiBranch(slot) | WireKind::Branch(slot) => {
-                    if let Some(t) = cell.conns.get(slot) {
-                        let ccls = &self.db.conn_classes[t.class];
+                    if let Some(conn) = cell.conns.get(slot) {
+                        let ccls = &self.db[conn.class];
                         match ccls.wires.get(wire.slot) {
                             Some(&ConnectorWire::BlackHole) => return None,
                             Some(&ConnectorWire::Reflect(wf)) => {
                                 wire.slot = wf;
                             }
                             Some(&ConnectorWire::Pass(wf)) => {
-                                wire.cell = t.target.unwrap();
+                                wire.cell = conn.target.unwrap();
                                 wire.slot = wf;
                             }
                             None => break,
@@ -726,7 +726,7 @@ impl ExpandedGrid<'_> {
         while let Some(wire) = queue.pop() {
             let tile = &self[wire.cell];
             res.push(wire);
-            if let WireKind::Regional(rslot) = self.db.wires[wire.slot]
+            if let WireKind::Regional(rslot) = self.db[wire.slot]
                 && tile.region_root[rslot] == wire.cell
             {
                 for &cell in &self.region_root_cells[rslot][&wire.cell] {
@@ -737,12 +737,12 @@ impl ExpandedGrid<'_> {
             }
             for (slot, conn) in &tile.conns {
                 let oslot = self.db.conn_slots[slot].opposite;
-                for &wt in &self.db_index.conn_classes[conn.class].wire_ins_near[wire.slot] {
+                for &wt in &self.db_index[conn.class].wire_ins_near[wire.slot] {
                     queue.push(wire.cell.wire(wt));
                 }
                 if let Some(ocrd) = conn.target {
                     let oconn = &self[ocrd].conns[oslot];
-                    for &wt in &self.db_index.conn_classes[oconn.class].wire_ins_far[wire.slot] {
+                    for &wt in &self.db_index[oconn.class].wire_ins_far[wire.slot] {
                         queue.push(ocrd.wire(wt));
                     }
                 }
@@ -754,7 +754,7 @@ impl ExpandedGrid<'_> {
     pub fn wire_pips_bwd(&self, wire: WireCoord) -> Vec<TilePip> {
         let mut wires = vec![wire];
         if matches!(
-            self.db.wires[wire.slot],
+            self.db[wire.slot],
             WireKind::MultiOut | WireKind::MultiBranch(_)
         ) {
             wires = self.wire_tree(wire);
@@ -762,7 +762,7 @@ impl ExpandedGrid<'_> {
         let mut res = vec![];
         for w in wires {
             for &(tcrd, cid) in &self[w.cell].tile_index {
-                let tcls = &self.db_index.tile_classes[self[tcrd].class];
+                let tcls = &self.db_index[self[tcrd].class];
                 let tcw = TileWireCoord {
                     cell: cid,
                     wire: w.slot,
@@ -794,7 +794,7 @@ impl ExpandedGrid<'_> {
         let mut res = vec![];
         for w in wires {
             for &(tcrd, cid) in &self[w.cell].tile_index {
-                let tcls = &self.db_index.tile_classes[self[tcrd].class];
+                let tcls = &self.db_index[self[tcrd].class];
                 let tcw = TileWireCoord {
                     cell: cid,
                     wire: w.slot,
@@ -823,7 +823,7 @@ impl ExpandedGrid<'_> {
 
     pub fn add_tile(&mut self, anchor: CellCoord, kind: &str, cells: &[CellCoord]) -> &mut Tile {
         let tcid = self.db.get_tile_class(kind);
-        let tcls = &self.db.tile_classes[tcid];
+        let tcls = &self.db[tcid];
         let tcrd = anchor.tile(tcls.slot);
         let cells: EntityVec<_, _> = cells.iter().copied().collect();
         assert_eq!(cells.len(), tcls.cells.len());
@@ -888,15 +888,15 @@ impl ExpandedGrid<'_> {
         };
         let a = bwd.target.unwrap();
         let b = fwd.target.unwrap();
-        let fwd_slot = this.db.conn_classes[fwd.class].slot;
-        let bwd_slot = this.db.conn_classes[bwd.class].slot;
+        let fwd_slot = this.db[fwd.class].slot;
+        let bwd_slot = this.db[bwd.class].slot;
         this[a].conns.insert(fwd_slot, fwd);
         this[b].conns.insert(bwd_slot, bwd);
     }
 
     pub fn fill_conn_term(&mut self, xy: CellCoord, kind: &str) {
         let ccls = self.db.get_conn_class(kind);
-        let slot = self.db.conn_classes[ccls].slot;
+        let slot = self.db[ccls].slot;
         self[xy].conns.insert(
             slot,
             Connector {

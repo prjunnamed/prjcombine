@@ -10,7 +10,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let intdb = backend.edev.db;
     for tile in ["GIGABIT10.B", "GIGABIT10.T"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        let bel_data = &intdb.tile_classes[ctx.tile_class.unwrap()].bels[bels::GT10];
+        let bel_data = &intdb[ctx.tile_class.unwrap()].bels[bels::GT10];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
@@ -170,7 +170,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tcid = ctx.edev.db.get_tile_class(tile);
         let bel = "GT10";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
-        let bel_data = &ctx.edev.db.tile_classes[tcid].bels[bels::GT10];
+        let bel_data = &ctx.edev.db[tcid].bels[bels::GT10];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };

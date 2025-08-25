@@ -92,7 +92,7 @@ pub fn make_sample(
         for key in [SpecialTileKey::LsOsc, SpecialTileKey::HsOsc] {
             let crd = *edev.chip.special_tiles[&key].cells.first().unwrap();
             let tile = &edev[crd.tile(tslots::OSC)];
-            let tcls = &edev.db.tile_classes[tile.class];
+            let tcls = &edev.db[tile.class];
             for (bslot, bel) in &tcls.bels {
                 let BelInfo::Bel(bel) = bel else {
                     unreachable!()

@@ -67,7 +67,7 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_tbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "TBUF", &[], &[]);
     if endev.chip.kind == ChipKind::Xc4000E {
-        let node = &vrf.grid.db_index.tile_classes[bel.tile.class];
+        let node = &vrf.grid.db_index[bel.tile.class];
         let naming = &vrf.ndb.tile_class_namings[bel.ntile.naming];
         let i = &bel.info.pins["I"];
         let wire = *i.wires.iter().next().unwrap();

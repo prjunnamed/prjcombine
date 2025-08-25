@@ -43,7 +43,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let tile = &backend.edev[tcrd];
-        let tcls = &backend.edev.db.tile_classes[tile.class];
+        let tcls = &backend.edev.db[tile.class];
         let bel_data = &tcls.bels[self.slot];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
@@ -57,7 +57,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
         if self.drive {
             let otcrd = res_wire.cell.tile(tslots::MAIN);
             let otile = &backend.edev[otcrd];
-            let otcls = &backend.edev.db_index.tile_classes[otile.class];
+            let otcls = &backend.edev.db_index[otile.class];
             let wt = TileWireCoord::new_idx(0, res_wire.slot);
             let ins = &otcls.pips_bwd[&wt];
             let wf = ins.iter().next().unwrap().tw;

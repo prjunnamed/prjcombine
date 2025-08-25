@@ -85,7 +85,7 @@ fn drive_wire<'a>(
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.edev[tcrd];
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if backend.edev.db.wires.key(inp.wire).starts_with("OUT") {
@@ -100,7 +100,7 @@ fn drive_wire<'a>(
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.edev[tcrd];
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if backend.edev.db.wires.key(inp.wire).starts_with("SINGLE.V") {
@@ -124,7 +124,7 @@ fn drive_wire<'a>(
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.edev[tcrd];
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if backend.edev.db.wires.key(inp.wire).starts_with("SINGLE.V") {
@@ -405,7 +405,7 @@ impl HasBidi {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, tile, _) in &intdb.tile_classes {
-        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index[tcid];
         if tcls_index.pips_bwd.is_empty() {
             continue;
         }
@@ -424,10 +424,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                     && matches!(&tile[..], "CLB" | "CLB.B" | "CLB.T")
                 {
                     let (dir, wire) = if mux_name.ends_with(".E") {
-                        let term = intdb.get_conn_class("MAIN.W");
-                        let ConnectorWire::Pass(wire) =
-                            intdb.conn_classes[term].wires[wire_to.wire]
-                        else {
+                        let ccid = intdb.get_conn_class("MAIN.W");
+                        let ConnectorWire::Pass(wire) = intdb[ccid].wires[wire_to.wire] else {
                             unreachable!()
                         };
                         (Dir::W, wire)
@@ -448,10 +446,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                     && matches!(&tile[..], "CLB" | "CLB.L" | "CLB.R")
                 {
                     let (dir, wire) = if mux_name.ends_with(".S") {
-                        let term = intdb.get_conn_class("MAIN.N");
-                        let ConnectorWire::Pass(wire) =
-                            intdb.conn_classes[term].wires[wire_to.wire]
-                        else {
+                        let ccid = intdb.get_conn_class("MAIN.N");
+                        let ConnectorWire::Pass(wire) = intdb[ccid].wires[wire_to.wire] else {
                             unreachable!()
                         };
                         (Dir::N, wire)
@@ -483,7 +479,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "SINGLE.V"
         };
         let stcid = intdb.get_tile_class(stile);
-        let stcls = &ctx.edev.db_index.tile_classes[stcid];
+        let stcls = &ctx.edev.db_index[stcid];
         for (wire, ins) in &stcls.pips_bwd {
             let wn = intdb.wires.key(wire.wire);
             if wn.starts_with(filter) && !wn.ends_with(".E") && !wn.ends_with(".S") {

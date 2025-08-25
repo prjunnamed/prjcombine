@@ -133,7 +133,7 @@ impl ChipContext<'_> {
                 }
                 ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
                     if is_sclk {
-                        let WireKind::Regional(region) = self.intdb.wires[wire] else {
+                        let WireKind::Regional(region) = self.intdb[wire] else {
                             unreachable!()
                         };
                         let root = self.edev[cell].region_root[region];
@@ -177,7 +177,7 @@ impl ChipContext<'_> {
                     }
                 }
                 ChipKind::Ecp3 | ChipKind::Ecp3A | ChipKind::MachXo2(_) => {
-                    let WireKind::Regional(region) = self.intdb.wires[wire] else {
+                    let WireKind::Regional(region) = self.intdb[wire] else {
                         unreachable!()
                     };
                     let root = self.edev[cell].region_root[region];
@@ -628,7 +628,7 @@ impl ChipContext<'_> {
                             cur = wn.to_string(&self.naming),
                         );
                     }
-                    if !self.intdb.wires[wire.slot].is_tie() {
+                    if !self.intdb[wire.slot].is_tie() {
                         let rwire = self.edev.resolve_wire(wire).unwrap();
                         assert_eq!(
                             rwire,

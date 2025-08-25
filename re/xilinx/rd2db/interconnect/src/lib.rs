@@ -410,7 +410,7 @@ impl XTileInfo<'_, '_> {
                 for (&k, v) in &naming.wires {
                     if round == 0
                         && matches!(
-                            self.builder.db.wires[k.wire],
+                            self.builder.db[k.wire],
                             WireKind::Branch(_) | WireKind::MultiBranch(_)
                         )
                     {
@@ -498,7 +498,7 @@ impl XTileInfo<'_, '_> {
                     {
                         if round == 0
                             && matches!(
-                                self.builder.db.wires[w.wire],
+                                self.builder.db[w.wire],
                                 WireKind::Branch(_) | WireKind::MultiBranch(_)
                             )
                         {
@@ -1088,7 +1088,7 @@ impl XTileExtractor<'_, '_, '_> {
             for &(wfi, wti) in tk.pips.keys() {
                 if let Some(wt) = self.get_wire_by_name(i, wti) {
                     let mut pass = rt.extract_muxes
-                        && !matches!(self.db.wires[wt.wire], WireKind::LogicOut)
+                        && !matches!(self.db[wt.wire], WireKind::LogicOut)
                         && !self.xtile.skip_muxes.contains(&wt.wire);
                     if self.xtile.optin_muxes.contains(&wt.wire) {
                         pass = true;
@@ -1161,7 +1161,7 @@ impl XTileExtractor<'_, '_, '_> {
                 }
                 let nwt = self.rd.lookup_wire_raw_force(crd, wti);
                 if let Some(&(_, wf)) = self.names.get(&nwf) {
-                    if !matches!(self.db.wires[wf.wire], WireKind::MuxOut) {
+                    if !matches!(self.db[wf.wire], WireKind::MuxOut) {
                         continue;
                     }
                     let Some(&wtw) = self.xtile.builder.delay_wires.get(&wf.wire) else {
@@ -1205,7 +1205,7 @@ impl XTileExtractor<'_, '_, '_> {
         for &(wfi, wti) in tk.pips.keys() {
             let nwt = self.rd.lookup_wire_raw_force(crd, wti);
             if let Some(&(_, wt)) = self.names.get(&nwt) {
-                if !matches!(self.db.wires[wt.wire], WireKind::LogicOut) {
+                if !matches!(self.db[wt.wire], WireKind::LogicOut) {
                     continue;
                 }
                 self.tcls_naming
@@ -1223,7 +1223,7 @@ impl XTileExtractor<'_, '_, '_> {
                         },
                     );
                     assert!(!self.tcls.intfs.contains_key(&wf));
-                    if self.db.wires[wf.wire] == WireKind::LogicOut
+                    if self.db[wf.wire] == WireKind::LogicOut
                         || self.xtile.builder.test_mux_pass.contains(&wf.wire)
                     {
                         assert!(out_muxes.entry(wt).or_default().1.replace(wf).is_none());
@@ -2125,7 +2125,7 @@ impl<'a> IntBuilder<'a> {
 
             for &(wfi, wti) in tk.pips.keys() {
                 if let Some(&(_, wt)) = names.get(&wti) {
-                    match self.db.wires[wt.wire] {
+                    match self.db[wt.wire] {
                         WireKind::MultiBranch(_) | WireKind::MultiOut | WireKind::MuxOut => (),
                         WireKind::Branch(_) => {
                             if !self.allow_mux_to_branch {
@@ -2532,7 +2532,7 @@ impl<'a> IntBuilder<'a> {
         for &(wfi, wti) in tk.pips.keys() {
             if let Some(wtl) = names.get(&wti) {
                 for &wt in wtl {
-                    match self.db.wires[wt] {
+                    match self.db[wt] {
                         WireKind::Branch(slot) => {
                             if slot != self.term_slots[dir] {
                                 continue;
@@ -2657,7 +2657,7 @@ impl<'a> IntBuilder<'a> {
         for &(wfi, wti) in tk.pips.keys() {
             if let Some(wtl) = names.get(&wti) {
                 for &wt in wtl {
-                    match self.db.wires[wt] {
+                    match self.db[wt] {
                         WireKind::Branch(slot) => {
                             if slot != self.term_slots[dir] {
                                 continue;
@@ -2967,7 +2967,7 @@ impl<'a> IntBuilder<'a> {
             for &(wfi, wti) in tk.pips.keys() {
                 if let Some(wtl) = names.get(&wti) {
                     for &wt in wtl {
-                        match self.db.wires[wt] {
+                        match self.db[wt] {
                             WireKind::Branch(slot) => {
                                 if slot != self.term_slots[dir] {
                                     continue;
@@ -3183,7 +3183,7 @@ impl<'a> IntBuilder<'a> {
                 }
                 if let Some(wtl) = names.get(&wti) {
                     for &wt in wtl {
-                        if self.db.wires[wt] != WireKind::MultiBranch(self.term_slots[dir]) {
+                        if self.db[wt] != WireKind::MultiBranch(self.term_slots[dir]) {
                             continue;
                         }
                         let wf = self.main_passes[dir][wt];

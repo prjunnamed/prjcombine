@@ -86,7 +86,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinLh {
             .with_col(ColId::from_idx(0))
             .tile(tslots::MAIN);
         let tile = &backend.edev[tcrd];
-        let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+        let tcls_index = &backend.edev.db_index[tile.class];
         for i in 0..12 {
             let wire_pin = TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("LH.{i}")));
             let resolved_pin = backend.edev.resolve_wire(tcrd.wire(wire_pin.wire)).unwrap();
@@ -195,7 +195,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
                     "IO.L" | "IO.R" | "IO.B" | "IO.T" | "CLB" | "CNR.BR" | "CNR.TR"
                 )
             {
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
@@ -267,7 +267,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
                     "IO.L" | "IO.R" | "CLB" | "IO.B" | "IO.T"
                 )
             {
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
@@ -338,7 +338,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
                     "IO.L" | "IO.R" | "IO.B" | "IO.T" | "CLB"
                 )
             {
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
@@ -415,7 +415,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
                     "IO.L" | "IO.R" | "CLB" | "IO.B" | "IO.T"
                 )
             {
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
@@ -461,7 +461,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
-        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index[tcid];
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
             continue;
         };
@@ -485,7 +485,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         props.push(Box::new(BaseBelPin::new(bels::IO[i], "I".into())));
                     }
                     let clb_id = intdb.get_tile_class("CLB");
-                    let clb_index = &backend.edev.db_index.tile_classes[clb_id];
+                    let clb_index = &backend.edev.db_index[clb_id];
                     let wire_name = intdb.wires.key(wire_to.wire);
                     let clb_wire = if tcname == "IO.L" {
                         format!("{wire_name}.W")

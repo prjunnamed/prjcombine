@@ -924,7 +924,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if ctx.edev.tile_index[tcid].is_empty() {
             continue;
         }
-        for &wire in ctx.edev.db_index.tile_classes[tcid].pips_bwd.keys() {
+        for &wire in ctx.edev.db_index[tcid].pips_bwd.keys() {
             let wire_name = ctx.edev.db.wires.key(wire.wire);
             if name == "INT.GT.CLKPAD"
                 && matches!(

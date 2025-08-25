@@ -765,7 +765,7 @@ impl IntMaker<'_> {
     }
 
     fn extract_sn_term(&mut self, dir: Dir, int_xy: Coord) {
-        let pass_rev = &self.builder.db.conn_classes[self
+        let pass_rev = &self.builder.db[self
             .builder
             .db
             .get_conn_class(&format!("MAIN.{rd}", rd = !dir))];
@@ -832,7 +832,7 @@ impl IntMaker<'_> {
     fn fill_io_term_short(&mut self, xy_w: Coord, xy_e: Coord) {
         let mut e2w = EntityPartVec::new();
         let mut w2e = EntityPartVec::new();
-        let pass_w = &self.builder.db.conn_classes[self.builder.db.get_conn_class("MAIN.W")];
+        let pass_w = &self.builder.db[self.builder.db.get_conn_class("MAIN.W")];
         for (wt, &ti) in &pass_w.wires {
             let ConnectorWire::Pass(wf) = ti else {
                 unreachable!()
@@ -840,7 +840,7 @@ impl IntMaker<'_> {
             w2e.insert(wf, wt);
             e2w.insert(wt, wf);
         }
-        let pass_e = &self.builder.db.conn_classes[self.builder.db.get_conn_class("MAIN.E")];
+        let pass_e = &self.builder.db[self.builder.db.get_conn_class("MAIN.E")];
         for (wt, &ti) in &pass_e.wires {
             let ConnectorWire::Pass(wf) = ti else {
                 unreachable!()

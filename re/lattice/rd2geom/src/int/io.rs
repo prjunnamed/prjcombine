@@ -263,7 +263,7 @@ impl ChipContext<'_> {
         ] {
             let cell = CellCoord::new(DieId::from_idx(0), col, row);
             let conn = &self.edev[cell].conns[slot];
-            let ccls = &self.intdb.conn_classes[conn.class];
+            let ccls = &self.intdb[conn.class];
             let target = conn.target.unwrap();
             for (wt, &wf) in &ccls.wires {
                 let ConnectorWire::Pass(wf) = wf else {

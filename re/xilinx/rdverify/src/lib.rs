@@ -108,7 +108,7 @@ pub struct Verifier<'a> {
     claimed_sites: HashMap<Coord, EntityBitVec<rawdump::TkSiteId>>,
     vcc_nodes: HashSet<NodeOrWire>,
     int_wire_data: HashMap<WireCoord, IntWireData>,
-    node_used: EntityVec<TileClassId, NodeUsedInfo>,
+    node_used: EntityVec<TileClassId, TileClassUsedInfo>,
     skip_residual_sites: bool,
     skip_residual_pips: bool,
     skip_residual_nodes: bool,
@@ -132,16 +132,16 @@ struct IntWireData {
 }
 
 #[derive(Debug)]
-struct NodeUsedInfo {
+struct TileClassUsedInfo {
     used_o: HashSet<TileWireCoord>,
     used_i: HashSet<TileWireCoord>,
 }
 
-fn prep_node_used_info(db: &IntDb, nid: TileClassId) -> NodeUsedInfo {
-    let node = &db.tile_classes[nid];
+fn prep_tile_class_used_info(db: &IntDb, tcid: TileClassId) -> TileClassUsedInfo {
+    let tcls = &db[tcid];
     let mut used_o = HashSet::new();
     let mut used_i = HashSet::new();
-    for bel in node.bels.values() {
+    for bel in tcls.bels.values() {
         match bel {
             BelInfo::SwitchBox(sb) => {
                 for item in &sb.items {
@@ -149,14 +149,14 @@ fn prep_node_used_info(db: &IntDb, nid: TileClassId) -> NodeUsedInfo {
                         SwitchBoxItem::Mux(mux) => {
                             used_o.insert(mux.dst);
                             for &w in &mux.src {
-                                if !db.wires[w.wire].is_tie() {
+                                if !db[w.wire].is_tie() {
                                     used_i.insert(w.tw);
                                 }
                             }
                         }
                         SwitchBoxItem::ProgBuf(buf) => {
                             used_o.insert(buf.dst);
-                            if !db.wires[buf.src.wire].is_tie() {
+                            if !db[buf.src.wire].is_tie() {
                                 used_i.insert(buf.src.tw);
                             }
                         }
@@ -205,14 +205,14 @@ fn prep_node_used_info(db: &IntDb, nid: TileClassId) -> NodeUsedInfo {
             }
         }
     }
-    NodeUsedInfo { used_o, used_i }
+    TileClassUsedInfo { used_o, used_i }
 }
 
 impl<'a> Verifier<'a> {
     fn new(rd: &'a Part, ngrid: &'a ExpandedGridNaming) -> Self {
         let mut node_used = EntityVec::new();
         for nid in ngrid.egrid.db.tile_classes.ids() {
-            node_used.push(prep_node_used_info(ngrid.egrid.db, nid));
+            node_used.push(prep_tile_class_used_info(ngrid.egrid.db, nid));
         }
         Self {
             rd,
@@ -277,7 +277,7 @@ impl<'a> Verifier<'a> {
     fn prep_int_wires(&mut self) {
         for (tcrd, tile) in self.grid.tiles() {
             let nui = &self.node_used[tile.class];
-            let nk = &self.db.tile_classes[tile.class];
+            let nk = &self.db[tile.class];
             let Some(ntile) = self.ngrid.tiles.get(&tcrd) else {
                 continue;
             };
@@ -344,13 +344,13 @@ impl<'a> Verifier<'a> {
         for (ccrd, conn) in self.grid.connectors() {
             if let Some(nt) = self.ngrid.conns.get(&ccrd) {
                 let tn = &self.ndb.conn_class_namings[nt.naming];
-                let tk = &self.db.conn_classes[conn.class];
+                let ccls = &self.db[conn.class];
                 for w in tn.wires_out.ids() {
                     let wt = ccrd.cell.wire(w);
                     if let Some(wt) = self.ngrid.resolve_wire_raw(wt) {
                         self.int_wire_data.entry(wt).or_default().used_o = true;
                     }
-                    let wf = match tk.wires[w] {
+                    let wf = match ccls.wires[w] {
                         ConnectorWire::Reflect(wf) => ccrd.cell.wire(wf),
                         ConnectorWire::Pass(wf) => conn.target.unwrap().wire(wf),
                         _ => unreachable!(),
@@ -689,7 +689,7 @@ impl<'a> Verifier<'a> {
             return;
         };
         let def_rt = RawTileId::from_idx(0);
-        let kind = &self.db.tile_classes[tile.class];
+        let kind = &self.db[tile.class];
         let naming = &self.ndb.tile_class_namings[nnode.naming];
         let nui = &self.node_used[tile.class];
         let mut wire_lut = HashMap::new();
@@ -764,7 +764,7 @@ impl<'a> Verifier<'a> {
         }
         for (wt, wf) in pips {
             let Some(wti) = wire_lut[&wt] else { continue };
-            let wftie = self.db.wires[wf.wire].is_tie();
+            let wftie = self.db[wf.wire].is_tie();
             let pip_found;
             if let Some(en) = naming.ext_pips.get(&(wt, wf)) {
                 if !crds.contains_id(en.tile) {
@@ -870,7 +870,7 @@ impl<'a> Verifier<'a> {
         if let Some(ref tn) = nnode.tie_name {
             let mut pins = vec![];
             for (&k, v) in &naming.wires {
-                let pin = match self.db.wires[k.wire] {
+                let pin = match self.db[k.wire] {
                     WireKind::Tie0 => self.ngrid.tie_pin_gnd.as_ref().unwrap(),
                     WireKind::Tie1 => self.ngrid.tie_pin_vcc.as_ref().unwrap(),
                     WireKind::TiePullup => self.ngrid.tie_pin_pullup.as_ref().unwrap(),
@@ -886,7 +886,7 @@ impl<'a> Verifier<'a> {
                 });
             }
             for (k, v) in tie_pins_extra {
-                let pin = match self.db.wires[k] {
+                let pin = match self.db[k] {
                     WireKind::Tie0 => self.ngrid.tie_pin_gnd.as_ref().unwrap(),
                     WireKind::Tie1 => self.ngrid.tie_pin_vcc.as_ref().unwrap(),
                     WireKind::TiePullup => self.ngrid.tie_pin_pullup.as_ref().unwrap(),
@@ -1101,7 +1101,7 @@ impl<'a> Verifier<'a> {
             return;
         };
         let tn = &self.ndb.conn_class_namings[nconn.naming];
-        let tk = &self.db.conn_classes[conn.class];
+        let tk = &self.db[conn.class];
         let crd;
         if let Some(c) = self.xlat_tile(&nconn.tile) {
             crd = c;
@@ -1297,7 +1297,7 @@ impl<'a> Verifier<'a> {
         let tcrd = self.grid.find_tile_by_bel(bel)?;
         let tile = &self.grid[tcrd];
         let crds = self.get_node_crds(tcrd).unwrap();
-        let nk = &self.db.tile_classes[tile.class];
+        let nk = &self.db[tile.class];
         let ntile = &self.ngrid.tiles[&tcrd];
         let nn = &self.ndb.tile_class_namings[ntile.naming];
         let BelInfo::Bel(info) = &nk.bels[bel.slot] else {
@@ -1559,7 +1559,7 @@ pub fn verify(
     vrf.prep_int_wires();
     vrf.handle_int();
     for (tcrd, tile) in grid.egrid.tiles() {
-        let nk = &grid.egrid.db.tile_classes[tile.class];
+        let nk = &grid.egrid.db[tile.class];
         for (slot, bel) in &nk.bels {
             if matches!(bel, BelInfo::Bel(_)) {
                 let ctx = vrf.get_bel(tcrd.bel(slot));

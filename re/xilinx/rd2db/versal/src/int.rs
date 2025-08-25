@@ -1013,10 +1013,10 @@ impl IntMaker<'_> {
     fn fill_tiles_int(&mut self) {
         self.builder
             .int_type(tslots::INT, bels::INT, "INT", "INT", "INT");
-        let nk = self.builder.db.get_tile_class("INT");
-        let node = &mut self.builder.db.tile_classes[nk];
-        node.cells.push(());
-        let pips = self.builder.pips.get_mut(&(nk, bels::INT)).unwrap();
+        let tcid = self.builder.db.get_tile_class("INT");
+        let tcls = &mut self.builder.db.tile_classes[tcid];
+        tcls.cells.push(());
+        let pips = self.builder.pips.get_mut(&(tcid, bels::INT)).unwrap();
         pips.pips = pips
             .pips
             .iter()
@@ -1122,7 +1122,7 @@ impl IntMaker<'_> {
                     }
                     let mut wires = EntityPartVec::new();
                     for &w in &self.bnodes {
-                        if self.builder.db.wires[w] != WireKind::Branch(cslots::INTF) {
+                        if self.builder.db[w] != WireKind::Branch(cslots::INTF) {
                             continue;
                         }
                         if let Some(n) = int_naming.wires.get(&TileWireCoord {

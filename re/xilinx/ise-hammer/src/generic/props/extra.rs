@@ -208,7 +208,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         for (tcls, locs) in &backend.edev.tile_index {
-            let tcls = &backend.edev.db.tile_classes[tcls];
+            let tcls = &backend.edev.db[tcls];
             if !tcls.bels.contains_id(self.slot) {
                 continue;
             }

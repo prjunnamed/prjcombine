@@ -175,7 +175,7 @@ fn drive_wire<'a>(
     } else if wtn.starts_with("CLB.M") || wtn.starts_with("IO.M") {
         let tcrd = cell.tile(tslots::MAIN);
         let tile = &backend.edev[tcrd];
-        let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+        let tcls_index = &backend.edev.db_index[tile.class];
         'a: {
             for &inp in &tcls_index.pips_bwd[&TileWireCoord::new_idx(0, wire_target.slot)] {
                 if backend.edev.db.wires.key(inp.wire).starts_with("LONG")
@@ -191,7 +191,7 @@ fn drive_wire<'a>(
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.edev[tcrd];
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if backend.edev.db.wires.key(inp.wire).starts_with("CLB.M")
@@ -379,7 +379,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for AllColumnIo {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
-        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index[tcid];
         if tcls_index.pips_bwd.is_empty() {
             continue;
         }

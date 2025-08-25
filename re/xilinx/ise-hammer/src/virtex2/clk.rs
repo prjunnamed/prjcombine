@@ -515,7 +515,7 @@ pub fn add_fuzzers<'a>(
                 let mut ctx = FuzzCtx::new(session, backend, tile);
                 let tcid = backend.edev.db.get_tile_class(tile);
                 let mut bctx = ctx.bel(bels::PTE2OMUX[i]);
-                let bel_data = &backend.edev.db.tile_classes[tcid].bels[bels::PTE2OMUX[i]];
+                let bel_data = &backend.edev.db[tcid].bels[bels::PTE2OMUX[i]];
                 let BelInfo::Bel(bel_data) = bel_data else {
                     unreachable!()
                 };
@@ -591,7 +591,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         for i in 0..bufg_num {
             if edev.chip.kind != ChipKind::FpgaCore {
                 let tcid = intdb.get_tile_class(tile);
-                let bel = &intdb.tile_classes[tcid].bels[bels::BUFGMUX[i]];
+                let bel = &intdb[tcid].bels[bels::BUFGMUX[i]];
                 let BelInfo::Bel(bel) = bel else {
                     unreachable!()
                 };
@@ -790,7 +790,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let bel = "PTE2OMUX";
             for i in 0..4 {
                 let bel_id = bels::PTE2OMUX[i];
-                let bel_data = &intdb.tile_classes[tcid].bels[bel_id];
+                let bel_data = &intdb[tcid].bels[bel_id];
                 let BelInfo::Bel(bel_data) = bel_data else {
                     unreachable!()
                 };

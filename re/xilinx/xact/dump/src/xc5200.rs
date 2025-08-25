@@ -623,7 +623,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     for (tcrd, tile) in edev.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
-        let tcls = &intdb.tile_classes[tile.class];
+        let tcls = &intdb[tile.class];
         let ntile = &endev.ngrid.tiles[&tcrd];
         if !ntile.tie_names.is_empty() {
             let mut tie = extractor.grab_prim_a(&ntile.tie_names[0]);
@@ -830,7 +830,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
 
     for (tcrd, tile) in edev.tiles() {
         let ntile = &endev.ngrid.tiles[&tcrd];
-        let tcls = &intdb.tile_classes[tile.class];
+        let tcls = &intdb[tile.class];
         for (slot, _) in &tcls.bels {
             if slot == bels::BUFR {
                 let bel = tcrd.bel(slot);

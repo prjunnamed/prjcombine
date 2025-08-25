@@ -29,7 +29,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         return;
     };
     let tcid = intdb.get_tile_class(tile);
-    let tcls = &intdb.tile_classes[tcid];
+    let tcls = &intdb[tcid];
     for (slot, bel_data) in &tcls.bels {
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
@@ -71,7 +71,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if !ctx.has_tile(tile) {
         return;
     }
-    let tcls = &ctx.edev.db.tile_classes[tcid];
+    let tcls = &ctx.edev.db[tcid];
     for (slot, bel_data) in &tcls.bels {
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()

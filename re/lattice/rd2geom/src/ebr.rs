@@ -38,7 +38,7 @@ impl ChipContext<'_> {
         }
         for tcname in ["EBR_W", "EBR_E"] {
             let tcid = self.intdb.get_tile_class(tcname);
-            let tcls = &self.intdb.tile_classes[tcid];
+            let tcls = &self.intdb[tcid];
             let mut ebr_from_int = BTreeMap::new();
             let mut ebr_to_int = BTreeMap::new();
             let mut x10_from_x10 = BTreeMap::new();

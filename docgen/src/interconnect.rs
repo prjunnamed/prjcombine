@@ -204,7 +204,7 @@ fn gen_intdb_basics(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb) {
 
 fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClassId) {
     let tname = intdb.tile_classes.key(tcid);
-    let tcls = &intdb.tile_classes[tcid];
+    let tcls = &intdb[tcid];
     let mut buf = String::new();
 
     writeln!(buf, r#"## Tile {tname}"#).unwrap();

@@ -357,7 +357,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     ] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         let tcid = backend.edev.db.get_tile_class(tile);
-        let tcls = &backend.edev.db.tile_classes[tcid];
+        let tcls = &backend.edev.db[tcid];
         if tcls.bels.contains_id(bels::RCLK) {
             let mut bctx = ctx.bel(bels::RCLK);
             for opin in ["RCLK0", "RCLK1"] {
@@ -744,7 +744,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "HCLK_CENTER_ABOVE_CFG",
     ] {
         let tcid = ctx.edev.db.get_tile_class(tile);
-        let tcls = &ctx.edev.db.tile_classes[tcid];
+        let tcls = &ctx.edev.db[tcid];
         if tcls.bels.contains_id(bels::RCLK) {
             let bel = "RCLK";
             for mux in ["MUX.RCLK0", "MUX.RCLK1"] {

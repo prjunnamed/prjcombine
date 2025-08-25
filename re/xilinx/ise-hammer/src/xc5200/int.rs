@@ -61,7 +61,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
         let mut ctx = FuzzCtx::new(session, backend, tcname);
-        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index[tcid];
         for (&wire_to, ins) in &tcls_index.pips_bwd {
             let mux_name = if tcls.cells.len() == 1 {
                 format!("MUX.{}", intdb.wires.key(wire_to.wire))

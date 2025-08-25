@@ -109,7 +109,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                         }
                     }
                     let (bram_tile, idx) = tgt.unwrap();
-                    let bram_tcls = &intdb.tile_classes[bram_tile.class];
+                    let bram_tcls = &intdb[bram_tile.class];
                     if (edev.chip.kind.is_virtex2()
                         || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3)
                         && (wire_name.starts_with("IMUX.CLK")
@@ -430,9 +430,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                         .tile(prjcombine_xc2000::tslots::MAIN);
                     if let Some(src_tile) = backend.edev.get_tile(int_tcrd) {
                         let dwire = TileWireCoord::new_idx(0, self.wire.wire);
-                        if let Some(ins) = backend.edev.db_index.tile_classes[src_tile.class]
-                            .pips_bwd
-                            .get(&dwire)
+                        if let Some(ins) =
+                            backend.edev.db_index[src_tile.class].pips_bwd.get(&dwire)
                         {
                             let Some(drwire) = backend
                                 .edev
@@ -468,9 +467,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                         .with_col(src_col)
                         .tile(prjcombine_virtex2::tslots::INT);
                     if let Some(src_tile) = backend.edev.get_tile(int_tcrd) {
-                        for (&dwire, ins) in
-                            &backend.edev.db_index.tile_classes[src_tile.class].pips_bwd
-                        {
+                        for (&dwire, ins) in &backend.edev.db_index[src_tile.class].pips_bwd {
                             if !backend.edev.db.wires.key(dwire.wire).starts_with("LH") {
                                 continue;
                             }
@@ -545,9 +542,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                         .tile(prjcombine_xc2000::tslots::MAIN);
                     if let Some(src_tile) = backend.edev.get_tile(int_tcrd) {
                         let dwire = TileWireCoord::new_idx(0, self.wire.wire);
-                        if let Some(ins) = backend.edev.db_index.tile_classes[src_tile.class]
-                            .pips_bwd
-                            .get(&dwire)
+                        if let Some(ins) =
+                            backend.edev.db_index[src_tile.class].pips_bwd.get(&dwire)
                         {
                             let Some(drwire) = backend
                                 .edev
@@ -583,9 +579,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                         .with_row(src_row)
                         .tile(prjcombine_virtex2::tslots::INT);
                     if let Some(src_tile) = backend.edev.get_tile(int_tcrd) {
-                        for (&dwire, ins) in
-                            &backend.edev.db_index.tile_classes[src_tile.class].pips_bwd
-                        {
+                        for (&dwire, ins) in &backend.edev.db_index[src_tile.class].pips_bwd {
                             if !backend.edev.db.wires.key(dwire.wire).starts_with("LV") {
                                 continue;
                             }
@@ -710,7 +704,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
             }
         }
-        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index[tcid];
         for (&wire_to, ins) in &tcls_index.pips_bwd {
             let mux_name = if tcls.cells.len() == 1 {
                 format!("MUX.{}", intdb.wires.key(wire_to.wire))
@@ -820,7 +814,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             }
                             if diff.bits.is_empty() {
                                 if intdb.wires.key(mux.dst.wire).starts_with("IMUX")
-                                    && !intdb.wires[wire_from.wire].is_tie()
+                                    && !intdb[wire_from.wire].is_tie()
                                 {
                                     // suppress message on known offenders.
                                     if tcname == "INT.BRAM.S3A.03"

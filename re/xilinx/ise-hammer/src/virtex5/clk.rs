@@ -287,7 +287,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             continue;
         };
         let tcid = backend.edev.db.get_tile_class(tile);
-        let tcls = &backend.edev.db.tile_classes[tcid];
+        let tcls = &backend.edev.db[tcid];
 
         for i in 0..4 {
             let bel = bels::BUFIO[i];
@@ -610,7 +610,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "HCLK_CMT_IOI",
     ] {
         let tcid = edev.db.get_tile_class(tile);
-        let tcls = &edev.db.tile_classes[tcid];
+        let tcls = &edev.db[tcid];
 
         if !ctx.has_tile(tile) {
             continue;

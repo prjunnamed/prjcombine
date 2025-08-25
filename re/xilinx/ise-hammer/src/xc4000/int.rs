@@ -535,7 +535,7 @@ fn drive_xc4000_wire<'a>(
             .resolve_wire(backend.edev.tile_wire(tcrd, mwt))
             .unwrap();
         assert_eq!(res, wire_target);
-        let ins = &backend.edev.db_index.tile_classes[tile.class].pips_bwd[&mwt];
+        let ins = &backend.edev.db_index[tile.class].pips_bwd[&mwt];
         for &mwf in ins {
             let wfname = backend.edev.db.wires.key(mwf.wire);
             if let Some(filter) = filter {
@@ -573,7 +573,7 @@ fn drive_xc4000_wire<'a>(
     } else if wname.starts_with("IO.DOUBLE") {
         let (tcrd, mwt) = orig_target.unwrap();
         let tile = &backend.edev[tcrd];
-        let ins = &backend.edev.db_index.tile_classes[tile.class].pips_bwd[&mwt];
+        let ins = &backend.edev.db_index[tile.class].pips_bwd[&mwt];
         for &mwf in ins {
             let wfname = backend.edev.db.wires.key(mwf.wire);
             if !wfname.starts_with("SINGLE") {
@@ -744,7 +744,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let tile = &backend.edev[tcrd];
         let ntile = &backend.ngrid.tiles[&tcrd];
-        let tcls = &backend.edev.db.tile_classes[tile.class];
+        let tcls = &backend.edev.db[tile.class];
         let bel_data = &tcls.bels[self.slot];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
@@ -819,7 +819,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let kind = edev.chip.kind;
     let intdb = backend.edev.db;
     for (tcid, tcname, _) in &intdb.tile_classes {
-        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index[tcid];
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
             continue;
         };

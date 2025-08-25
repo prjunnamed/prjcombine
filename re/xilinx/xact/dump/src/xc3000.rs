@@ -531,7 +531,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
 
     let die = DieId::from_idx(0);
     for (tcrd, tile) in edev.tiles() {
-        let tcld = &intdb.tile_classes[tile.class];
+        let tcld = &intdb[tile.class];
         let ntile = &endev.ngrid.tiles[&tcrd];
         for (slot, bel_info) in &tcld.bels {
             let BelInfo::Bel(bel_info) = bel_info else {

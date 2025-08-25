@@ -133,7 +133,7 @@ fn drive_wire<'a>(
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.edev[tcrd];
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if backend.edev.db.wires.key(inp.wire).ends_with("CLK") {
@@ -155,7 +155,7 @@ fn drive_wire<'a>(
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.edev[tcrd];
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if backend.edev.db.wires.key(inp.wire).starts_with("SINGLE") {
@@ -174,7 +174,7 @@ fn drive_wire<'a>(
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.edev[tcrd];
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if backend.edev.db.wires.key(inp.wire).starts_with("OUT")
@@ -195,7 +195,7 @@ fn drive_wire<'a>(
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.edev[tcrd];
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if (backend.edev.db.wires.key(inp.wire).starts_with("SINGLE.V")
@@ -213,7 +213,7 @@ fn drive_wire<'a>(
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.edev[tcrd];
-                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
+                let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if backend.edev.db.wires.key(inp.wire).starts_with("SINGLE.H") {
@@ -272,7 +272,7 @@ fn apply_imux_finish<'a>(
         let cell = cell.with_cr(col, row);
         let tcrd = cell.tile(tslots::MAIN);
         let tile = &backend.edev[tcrd];
-        let tcls = &backend.edev.db.tile_classes[tile.class];
+        let tcls = &backend.edev.db[tile.class];
         let ntile = &backend.ngrid.tiles[&tcrd];
         let block = &ntile.bels[slot][0];
         let bel_data = &tcls.bels[slot];
@@ -488,7 +488,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ProhibitInt {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, tile, tcls) in &intdb.tile_classes {
-        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index[tcid];
         if tcls_index.pips_bwd.is_empty() {
             continue;
         }

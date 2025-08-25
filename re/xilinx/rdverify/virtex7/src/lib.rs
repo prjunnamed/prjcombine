@@ -3890,7 +3890,7 @@ fn verify_pre(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
     if vrf.rd.source == Source::Vivado {
         for (tcrd, tile) in endev.edev.tiles() {
             if endev.edev.db.tile_classes.key(tile.class) == "CLK_BUFG" {
-                for bel in endev.edev.db.tile_classes[tile.class].bels.ids() {
+                for bel in endev.edev.db[tile.class].bels.ids() {
                     vrf.skip_bel_pin(tcrd.bel(bel), "FB_TEST0");
                     vrf.skip_bel_pin(tcrd.bel(bel), "FB_TEST1");
                 }

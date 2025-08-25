@@ -15,7 +15,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(bels::PPC405);
         let mode = "PPC405";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
-        let bel_data = &intdb.tile_classes[tcid].bels[bels::PPC405];
+        let bel_data = &intdb[tcid].bels[bels::PPC405];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
@@ -43,7 +43,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let bel = "PPC405";
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-        let bel_data = &ctx.edev.db.tile_classes[tcid].bels[bels::PPC405];
+        let bel_data = &ctx.edev.db[tcid].bels[bels::PPC405];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };

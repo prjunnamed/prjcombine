@@ -104,7 +104,7 @@ impl ChipContext<'_> {
                         }
                     }
                 } else {
-                    let ccls = &self.intdb.conn_classes[conn.class];
+                    let ccls = &self.intdb[conn.class];
                     for (wt, &wf) in &ccls.wires {
                         let ConnectorWire::Reflect(wf) = wf else {
                             unreachable!()
@@ -164,11 +164,10 @@ impl ChipContext<'_> {
                 && let mut wt = wires_t[0]
                 && let wtsn = self.intdb.wires.key(wt.slot)
                 && (!wtsn.starts_with("SCLK") || self.chip.kind == ChipKind::Scm)
-                && !(wtsn.starts_with("HSDCLK") && self.intdb.wires[wires_f[0].slot].is_tie())
+                && !(wtsn.starts_with("HSDCLK") && self.intdb[wires_f[0].slot].is_tie())
                 && !(wtsn.ends_with("_DELAY"))
             {
-                if matches!(self.intdb.wires[wt.slot], WireKind::Branch(_))
-                    && !wtsn.starts_with("HSDCLK")
+                if matches!(self.intdb[wt.slot], WireKind::Branch(_)) && !wtsn.starts_with("HSDCLK")
                 {
                     println!(
                         "{name}: extra term pip {wtn} / {wt} <- {wfn} / {wf}",
@@ -281,7 +280,7 @@ impl ChipContext<'_> {
                         wt.slot = self.intdb.get_wire(&format!("{wtsn}_N"));
                     }
                     if matches!(self.chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A)
-                        && self.intdb.wires[wf.slot].is_tie()
+                        && self.intdb[wf.slot].is_tie()
                         && wf.cell.row <= self.chip.row_s() + 9
                     {
                         wf.cell.row = self.chip.row_s();
@@ -292,7 +291,7 @@ impl ChipContext<'_> {
                     }
                     wf
                 } else {
-                    let wf = if let WireKind::Regional(region) = self.intdb.wires[wires_f[0].slot] {
+                    let wf = if let WireKind::Regional(region) = self.intdb[wires_f[0].slot] {
                         let wf_root = self.edev[wires_f[0].cell].region_root[region];
                         let wt_root = self.edev[wt.cell].region_root[region];
                         let wfsn = self.intdb.wires.key(wires_f[0].slot);
@@ -306,7 +305,7 @@ impl ChipContext<'_> {
                         } else {
                             None
                         }
-                    } else if self.intdb.wires[wires_f[0].slot].is_tie() {
+                    } else if self.intdb[wires_f[0].slot].is_tie() {
                         Some(wt.cell.wire(wires_f[0].slot))
                     } else {
                         wires_f.iter().find(|w| w.cell == wt.cell).copied()

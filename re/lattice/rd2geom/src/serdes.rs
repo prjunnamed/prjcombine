@@ -238,7 +238,7 @@ impl ChipContext<'_> {
             let bcrd = self.chip.special_loc[&SpecialLocKey::Pll(PllLoc::new(hv, 0))]
                 .bel(bels::SERDES_CORNER);
             let tcrd = self.edev.get_tile_by_bel(bcrd);
-            let tcls = &self.intdb.tile_classes[self.edev[tcrd].class];
+            let tcls = &self.intdb[self.edev[tcrd].class];
             let cell = bcrd.with_row(self.chip.row_n());
             let dir_s = !hv.h;
             let dir_n = hv.h;

@@ -83,7 +83,7 @@ impl<'a> ExpandedGridNaming<'a> {
     pub fn resolve_wire_raw(&self, mut wire: WireCoord) -> Option<WireCoord> {
         loop {
             let cell = &self.egrid[wire.cell];
-            let wi = self.egrid.db.wires[wire.slot];
+            let wi = self.egrid.db[wire.slot];
             match wi {
                 WireKind::Regional(rslot) => {
                     wire.cell = cell.region_root[rslot];
@@ -91,7 +91,7 @@ impl<'a> ExpandedGridNaming<'a> {
                 }
                 WireKind::MultiBranch(slot) | WireKind::Branch(slot) => {
                     if let Some(t) = cell.conns.get(slot) {
-                        let ccls = &self.egrid.db.conn_classes[t.class];
+                        let ccls = &self.egrid.db[t.class];
                         match ccls.wires.get(wire.slot) {
                             Some(&ConnectorWire::BlackHole) => return None,
                             Some(&ConnectorWire::Reflect(wf)) => {
@@ -139,7 +139,7 @@ impl<'a> ExpandedGridNaming<'a> {
         let mut trace = vec![];
         loop {
             let tile = &self.egrid[wire.cell];
-            let wi = self.egrid.db.wires[wire.slot];
+            let wi = self.egrid.db[wire.slot];
             match wi {
                 WireKind::Regional(rslot) => {
                     wire.cell = tile.region_root[rslot];
@@ -147,8 +147,8 @@ impl<'a> ExpandedGridNaming<'a> {
                 }
                 WireKind::MultiBranch(slot) | WireKind::Branch(slot) => {
                     if let Some(t) = tile.conns.get(slot) {
-                        let term = &self.egrid.db.conn_classes[t.class];
-                        match term.wires.get(wire.slot) {
+                        let ccls = &self.egrid.db[t.class];
+                        match ccls.wires.get(wire.slot) {
                             Some(&ConnectorWire::BlackHole) => return None,
                             Some(&ConnectorWire::Reflect(wf)) => {
                                 if let Some(naming) = self.conns.get(&wire.cell.connector(slot)) {

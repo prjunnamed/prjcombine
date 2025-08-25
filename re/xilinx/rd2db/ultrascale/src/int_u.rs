@@ -830,7 +830,7 @@ impl IntMaker<'_> {
     }
 
     fn extract_sn_term(&mut self, dir: Dir, int_xy: Coord) {
-        let pass_rev = &self.builder.db.conn_classes[self
+        let pass_rev = &self.builder.db[self
             .builder
             .db
             .get_conn_class(&format!("MAIN.{rd}", rd = !dir))];
