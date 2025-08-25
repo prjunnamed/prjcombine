@@ -124,7 +124,7 @@ impl ChipContext<'_> {
                     Dir::S => unreachable!(),
                 };
                 let bcrd = cell_tile.bel(bels::ECLKSYNC[bank_idx * 4 + eclk_idx]);
-                if !self.edev.egrid.has_bel(bcrd) {
+                if !self.edev.has_bel(bcrd) {
                     continue;
                 }
                 self.name_bel(bcrd, [format!("ECLKSYNC{eclk_idx}_BK{bank}")]);
@@ -147,7 +147,7 @@ impl ChipContext<'_> {
                     .insert("ECLKI".into(), self.xlat_int_wire(bcrd, eclki_int));
 
                 for i in 0..8 {
-                    if !self.edev.egrid.has_bel(bcrd.bel(bels::DLLDEL[i])) {
+                    if !self.edev.has_bel(bcrd.bel(bels::DLLDEL[i])) {
                         continue;
                     }
                     let name = match edge {
@@ -239,7 +239,6 @@ impl ChipContext<'_> {
                     if bank_idx != 0
                         && self
                             .edev
-                            .egrid
                             .has_bel(bcrd.bel(bels::ECLKSYNC[(bank_idx - 1) * 4]))
                     {
                         let cell_prev = cell.delta(-1, 0);
@@ -253,7 +252,6 @@ impl ChipContext<'_> {
                     if bank_idx != 3
                         && self
                             .edev
-                            .egrid
                             .has_bel(bcrd.bel(bels::ECLKSYNC[(bank_idx + 1) * 4]))
                     {
                         let cell_next = cell.delta(1, 0);
@@ -585,7 +583,7 @@ impl ChipContext<'_> {
     pub(super) fn process_dtr_ecp4(&mut self) {
         for (tcname, name) in [("DTR_S", "DTR_BR"), ("DTR_N", "DTR_TL")] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::DTR);
                 self.name_bel(bcrd, [name]);
                 self.insert_simple_bel(bcrd, bcrd.cell, "DTR");
@@ -595,8 +593,8 @@ impl ChipContext<'_> {
 
     pub fn xlat_io_loc_ecp4(&self, io: EdgeIoCoord) -> (CellCoord, &'static str) {
         let bcrd = self.chip.get_io_loc(io);
-        let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
-        let mut cell = self.edev.egrid[tcrd].cells[CellSlotId::from_idx(io.iob().to_idx() % 4)];
+        let tcrd = self.edev.get_tile_by_bel(bcrd);
+        let mut cell = self.edev[tcrd].cells[CellSlotId::from_idx(io.iob().to_idx() % 4)];
         let mut abcd = "";
         if let Dir::H(edge) = io.edge()
             && cell.col != self.chip.col_edge(edge)
@@ -925,7 +923,7 @@ impl ChipContext<'_> {
             "DQS_N",
         ] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::DQS0);
                 self.process_dqs_ecp4(bcrd);
             }
@@ -944,7 +942,7 @@ impl ChipContext<'_> {
             "IO_N",
         ] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 for i in 0..4 {
                     let bcrd = tcrd.bel(bels::IO[i]);
                     self.process_single_io_ecp4(bcrd);
@@ -980,7 +978,7 @@ impl ChipContext<'_> {
 
                 for bank_idx in 0..4 {
                     let bcrd_eclk = bcrd.bel(bels::ECLKSYNC[bank_idx * 4 + i]);
-                    if !self.edev.egrid.has_bel(bcrd_eclk) {
+                    if !self.edev.has_bel(bcrd_eclk) {
                         continue;
                     }
                     let wire_eclk = self.naming.bel_wire(bcrd_eclk, "ECLK");

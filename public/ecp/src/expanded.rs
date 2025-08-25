@@ -21,7 +21,7 @@ pub struct ExpandedDevice<'a> {
 
 impl ExpandedDevice<'_> {
     pub fn is_in_int_hole(&self, cell: CellCoord) -> bool {
-        !self.egrid.has_bel(cell.bel(bels::INT))
+        !self.has_bel(cell.bel(bels::INT))
     }
 
     pub fn is_in_bel_hole(&self, cell: CellCoord) -> bool {
@@ -31,5 +31,13 @@ impl ExpandedDevice<'_> {
             }
         }
         false
+    }
+}
+
+impl<'a> std::ops::Deref for ExpandedDevice<'a> {
+    type Target = ExpandedGrid<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.egrid
     }
 }

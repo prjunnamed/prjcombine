@@ -188,18 +188,6 @@ pub enum ExpandedDevice<'a> {
 }
 
 impl<'a> ExpandedDevice<'a> {
-    pub fn egrid(&self) -> &ExpandedGrid<'a> {
-        match self {
-            ExpandedDevice::Xc2000(edev) => &edev.egrid,
-            ExpandedDevice::Virtex(edev) => &edev.egrid,
-            ExpandedDevice::Virtex2(edev) => &edev.egrid,
-            ExpandedDevice::Spartan6(edev) => &edev.egrid,
-            ExpandedDevice::Virtex4(edev) => &edev.egrid,
-            ExpandedDevice::Ultrascale(edev) => &edev.egrid,
-            ExpandedDevice::Versal(edev) => &edev.egrid,
-        }
-    }
-
     pub fn bs_geom(&self) -> &BitstreamGeom {
         match self {
             ExpandedDevice::Xc2000(edev) => &edev.bs_geom,
@@ -221,6 +209,22 @@ impl<'a> ExpandedDevice<'a> {
             ExpandedDevice::Virtex4(edev) => edev.tile_bits(tcrd),
             ExpandedDevice::Ultrascale(_) => todo!(),
             ExpandedDevice::Versal(_) => todo!(),
+        }
+    }
+}
+
+impl<'a> std::ops::Deref for ExpandedDevice<'a> {
+    type Target = ExpandedGrid<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            ExpandedDevice::Xc2000(edev) => edev,
+            ExpandedDevice::Virtex(edev) => edev,
+            ExpandedDevice::Virtex2(edev) => &edev.egrid,
+            ExpandedDevice::Spartan6(edev) => &edev.egrid,
+            ExpandedDevice::Virtex4(edev) => &edev.egrid,
+            ExpandedDevice::Ultrascale(edev) => &edev.egrid,
+            ExpandedDevice::Versal(edev) => &edev.egrid,
         }
     }
 }

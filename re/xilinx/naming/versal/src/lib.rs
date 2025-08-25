@@ -133,9 +133,9 @@ fn make_grid_complex(
         for die in edev.chips.ids() {
             let mut cols = BTreeMap::new();
             let mut rows = BTreeMap::new();
-            for (tcid, tcname, tcls) in &edev.egrid.db.tile_classes {
+            for (tcid, tcname, tcls) in &edev.db.tile_classes {
                 if f(tcid, tcname, tcls) {
-                    for &tcrd in &edev.egrid.tile_index[tcid] {
+                    for &tcrd in &edev.tile_index[tcid] {
                         if tcrd.die != die {
                             continue;
                         }
@@ -166,9 +166,9 @@ fn make_grid_complex(
     } else {
         let mut cols: EntityVec<_, _> = edev.chips.ids().map(|_| BTreeMap::new()).collect();
         let mut rows = BTreeMap::new();
-        for (tcid, tcname, tcls) in &edev.egrid.db.tile_classes {
+        for (tcid, tcname, tcls) in &edev.db.tile_classes {
             if f(tcid, tcname, tcls) {
-                for &tcrd in &edev.egrid.tile_index[tcid] {
+                for &tcrd in &edev.tile_index[tcid] {
                     let (n_x, n_y) = n(tcid, tcname, tcls, tcrd);
                     let v_c = cols[tcrd.die].entry(tcrd.col).or_default();
                     *v_c = max(*v_c, n_x);
@@ -224,7 +224,6 @@ pub fn name_device<'a>(
     ndb: &'a NamingDb,
     dev_naming: &DeviceNaming,
 ) -> ExpandedNamedDevice<'a> {
-    let egrid = &edev.egrid;
     let mut int_grid = make_grid(edev, |_, tcname, _| tcname == "INT", (1, 1));
     for (die, &chip) in &edev.chips {
         for col in chip.columns.ids() {
@@ -364,13 +363,13 @@ pub fn name_device<'a>(
     let vdu_grid = make_grid(edev, |_, tcname, _| tcname == "VDU.E", (1, 1));
     let bfr_b_grid = make_grid(edev, |_, tcname, _| tcname == "BFR_B.E", (1, 1));
 
-    let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
+    let mut ngrid = ExpandedGridNaming::new(ndb, edev);
 
-    for (tcrd, tile) in edev.egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let chip = edev.chips[tcrd.die];
         let reg = chip.row_to_reg(tcrd.row);
         let CellCoord { die, col, row } = tcrd.cell;
-        let kind = egrid.db.tile_classes.key(tile.class);
+        let kind = edev.db.tile_classes.key(tile.class);
         match &kind[..] {
             "INT" => {
                 ngrid.name_tile(tcrd, "INT", [int_grid.name("INT", die, col, row, 0, 0)]);

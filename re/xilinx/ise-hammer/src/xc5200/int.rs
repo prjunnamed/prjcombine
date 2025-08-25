@@ -44,7 +44,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllColumnIo {
             unreachable!()
         };
         let id = fuzzer.info.features.pop().unwrap().id;
-        for row in backend.egrid.rows(tcrd.die) {
+        for row in backend.edev.rows(tcrd.die) {
             if row == edev.chip.row_s() || row == edev.chip.row_n() {
                 continue;
             }
@@ -58,10 +58,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllColumnIo {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let intdb = backend.egrid.db;
+    let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
         let mut ctx = FuzzCtx::new(session, backend, tcname);
-        let tcls_index = &backend.egrid.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
         for (&wire_to, ins) in &tcls_index.pips_bwd {
             let mux_name = if tcls.cells.len() == 1 {
                 format!("MUX.{}", intdb.wires.key(wire_to.wire))
@@ -170,8 +170,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let egrid = ctx.edev.egrid();
-    let intdb = egrid.db;
+    let intdb = ctx.edev.db;
     for (_, tcname, tcls) in &intdb.tile_classes {
         if !ctx.has_tile(tcname) {
             continue;

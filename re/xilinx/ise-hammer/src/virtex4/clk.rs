@@ -143,7 +143,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
         let mut sad = true;
         for row in rows {
             if let Some(ntcrd) = backend
-                .egrid
+                .edev
                 .find_tile_by_class(tcrd.with_row(row), |kind| kind == self.1)
             {
                 fuzzer.info.features.push(FuzzerFeature {
@@ -356,8 +356,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         "HCLK_CENTER_ABOVE_CFG",
     ] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        let tcid = backend.egrid.db.get_tile_class(tile);
-        let tcls = &backend.egrid.db.tile_classes[tcid];
+        let tcid = backend.edev.db.get_tile_class(tile);
+        let tcls = &backend.edev.db.tile_classes[tcid];
         if tcls.bels.contains_id(bels::RCLK) {
             let mut bctx = ctx.bel(bels::RCLK);
             for opin in ["RCLK0", "RCLK1"] {
@@ -491,10 +491,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    let ccm = backend.egrid.db.get_tile_class("CCM");
-    let num_ccms = backend.egrid.tile_index[ccm].len();
-    let sysmon = backend.egrid.db.get_tile_class("SYSMON");
-    let has_hclk_dcm = !backend.egrid.tile_index[sysmon].is_empty();
+    let ccm = backend.edev.db.get_tile_class("CCM");
+    let num_ccms = backend.edev.tile_index[ccm].len();
+    let sysmon = backend.edev.db.get_tile_class("SYSMON");
+    let has_hclk_dcm = !backend.edev.tile_index[sysmon].is_empty();
     let has_gt = edev.col_lgt.is_some();
     for (tile, bel) in [
         ("HCLK_DCM", bels::HCLK_DCM),
@@ -743,8 +743,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "HCLK_CENTER",
         "HCLK_CENTER_ABOVE_CFG",
     ] {
-        let tcid = ctx.edev.egrid().db.get_tile_class(tile);
-        let tcls = &ctx.edev.egrid().db.tile_classes[tcid];
+        let tcid = ctx.edev.db.get_tile_class(tile);
+        let tcls = &ctx.edev.db.tile_classes[tcid];
         if tcls.bels.contains_id(bels::RCLK) {
             let bel = "RCLK";
             for mux in ["MUX.RCLK0", "MUX.RCLK1"] {
@@ -956,8 +956,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bit(tile, bel, &format!("ENABLE.MGT{i}"), "1");
         }
     }
-    let ccm = edev.egrid.db.get_tile_class("CCM");
-    let num_ccms = edev.egrid.tile_index[ccm].len();
+    let ccm = edev.db.get_tile_class("CCM");
+    let num_ccms = edev.tile_index[ccm].len();
     if num_ccms != 0 {
         let tile = "CCM";
         let bel = "CCM";

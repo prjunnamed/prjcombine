@@ -36,7 +36,7 @@ struct Namer<'a> {
 impl Namer<'_> {
     fn fill_rlut(&mut self) {
         let n = self.chip.rows;
-        for row in self.edev.egrid.rows(self.die) {
+        for row in self.edev.rows(self.die) {
             self.rlut.push(n - row.to_idx() - 1);
         }
     }
@@ -45,7 +45,7 @@ impl Namer<'_> {
         let mut c = 0;
         let mut bramc = 0;
         let mut brambelc = 0;
-        for col in self.edev.egrid.cols(self.die) {
+        for col in self.edev.cols(self.die) {
             if self.chip.cols_bram.contains(&col) {
                 self.bramclut.insert(col, bramc);
                 bramc += 1;
@@ -77,7 +77,7 @@ impl Namer<'_> {
         let mut ctr_pad = 1;
         let mut ctr_empty = 1;
         let die = DieId::from_idx(0);
-        for col in self.edev.egrid.cols(self.die) {
+        for col in self.edev.cols(self.die) {
             let row = self.chip.row_n();
             if self.chip.cols_bram.contains(&col) {
                 continue;
@@ -99,7 +99,7 @@ impl Namer<'_> {
             ntile.add_bel(bels::IO0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
         }
-        for row in self.edev.egrid.rows(self.die).rev() {
+        for row in self.edev.rows(self.die).rev() {
             let col = self.chip.col_e();
             if row == self.chip.row_s() || row == self.chip.row_n() {
                 continue;
@@ -118,7 +118,7 @@ impl Namer<'_> {
             ntile.add_bel(bels::IO3, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
         }
-        for col in self.edev.egrid.cols(self.die).rev() {
+        for col in self.edev.cols(self.die).rev() {
             let row = self.chip.row_s();
             if self.chip.cols_bram.contains(&col) {
                 continue;
@@ -140,7 +140,7 @@ impl Namer<'_> {
             ntile.add_bel(bels::IO3, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
         }
-        for row in self.edev.egrid.rows(self.die) {
+        for row in self.edev.rows(self.die) {
             let col = self.chip.col_w();
             if row == self.chip.row_s() || row == self.chip.row_n() {
                 continue;
@@ -163,13 +163,12 @@ impl Namer<'_> {
 }
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
-    let egrid = &edev.egrid;
     let chip = edev.chip;
     let mut namer = Namer {
         edev,
         chip,
         die: DieId::from_idx(0),
-        ngrid: ExpandedGridNaming::new(ndb, egrid),
+        ngrid: ExpandedGridNaming::new(ndb, edev),
         clut: EntityPartVec::new(),
         bramclut: EntityPartVec::new(),
         brambelclut: EntityPartVec::new(),
@@ -182,9 +181,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     namer.fill_rlut();
     let bram_mid = chip.cols_bram.len() / 2;
 
-    for (tcrd, tile) in egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let CellCoord { col, row, .. } = tcrd.cell;
-        let kind = egrid.db.tile_classes.key(tile.class);
+        let kind = edev.db.tile_classes.key(tile.class);
         match &kind[..] {
             "CNR.BL" => {
                 let ntile = namer.ngrid.name_tile(tcrd, "CNR.BL", ["BL".into()]);

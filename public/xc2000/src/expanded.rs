@@ -18,8 +18,8 @@ impl ExpandedDevice<'_> {
     pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
         let col = tcrd.col;
         let row = tcrd.row;
-        let tile = &self.egrid[tcrd];
-        let kind = self.egrid.db.tile_classes.key(tile.class);
+        let tile = &self[tcrd];
+        let kind = self.db.tile_classes.key(tile.class);
         match self.chip.kind {
             ChipKind::Xc2000 => {
                 if kind.starts_with("BIDI") {
@@ -198,5 +198,13 @@ impl ExpandedDevice<'_> {
             self.chip.btile_height_main(row),
             false,
         )
+    }
+}
+
+impl<'a> std::ops::Deref for ExpandedDevice<'a> {
+    type Target = ExpandedGrid<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.egrid
     }
 }

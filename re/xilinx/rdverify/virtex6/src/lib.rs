@@ -2081,7 +2081,7 @@ pub fn verify_mgt_buf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
+    let slot_name = endev.edev.db.bel_slots.key(bel.slot);
     match bel.slot {
         bels::SLICE0 | bels::SLICE1 => verify_slice(vrf, bel),
         bels::DSP0 | bels::DSP1 => verify_dsp(vrf, bel),

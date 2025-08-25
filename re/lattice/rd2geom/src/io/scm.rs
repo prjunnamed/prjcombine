@@ -296,7 +296,7 @@ impl ChipContext<'_> {
                 } else {
                     bels::DLL[idx - 2]
                 });
-                if !self.edev.egrid.has_bel(bcrd) {
+                if !self.edev.has_bel(bcrd) {
                     continue;
                 }
                 let abcd = ['A', 'B', 'C', 'D', 'E', 'F'][idx];
@@ -661,8 +661,8 @@ impl ChipContext<'_> {
             for w in ["IO_T_W", "IO_T_E"] {
                 let wire = TileWireCoord::new_idx(0, self.intdb.get_wire(w));
                 bpin.wires.insert(wire);
-                let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
-                let wire = self.io_int_names[&self.edev.egrid.tile_wire(tcrd, wire)];
+                let tcrd = self.edev.get_tile_by_bel(bcrd);
+                let wire = self.io_int_names[&self.edev.tile_wire(tcrd, wire)];
                 self.claim_pip(td_int, wire);
             }
         }
@@ -784,7 +784,7 @@ impl ChipContext<'_> {
             ("IO_N12", 12),
         ] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 for i in 0..num_io {
                     let bcrd = tcrd.bel(bels::IO[i]);
                     self.process_single_io_scm(bcrd);

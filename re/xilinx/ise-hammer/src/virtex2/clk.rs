@@ -36,11 +36,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for StabilizeGclkc {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
-        for (tcid, tcname, _) in &backend.egrid.db.tile_classes {
+        for (tcid, tcname, _) in &backend.edev.db.tile_classes {
             if !tcname.starts_with("GCLKC") {
                 continue;
             }
-            for &tcrd in &backend.egrid.tile_index[tcid] {
+            for &tcrd in &backend.edev.tile_index[tcid] {
                 for (o, i) in [
                     ("OUT_L0", "IN_B0"),
                     ("OUT_R0", "IN_B0"),
@@ -507,15 +507,15 @@ pub fn add_fuzzers<'a>(
     if !grid_kind.is_virtex2() && grid_kind != ChipKind::FpgaCore {
         // PTE2OMUX
         for tile in ["INT.DCM", "INT.DCM.S3E.DUMMY"] {
-            let tcls = backend.egrid.db.get_tile_class(tile);
-            if backend.egrid.tile_index[tcls].is_empty() {
+            let tcls = backend.edev.db.get_tile_class(tile);
+            if backend.edev.tile_index[tcls].is_empty() {
                 continue;
             }
             for i in 0..4 {
                 let mut ctx = FuzzCtx::new(session, backend, tile);
-                let tcid = backend.egrid.db.get_tile_class(tile);
+                let tcid = backend.edev.db.get_tile_class(tile);
                 let mut bctx = ctx.bel(bels::PTE2OMUX[i]);
-                let bel_data = &backend.egrid.db.tile_classes[tcid].bels[bels::PTE2OMUX[i]];
+                let bel_data = &backend.edev.db.tile_classes[tcid].bels[bels::PTE2OMUX[i]];
                 let BelInfo::Bel(bel_data) = bel_data else {
                     unreachable!()
                 };
@@ -541,7 +541,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ExpandedDevice::Virtex2(edev) => (edev, edev.chip.kind),
         _ => unreachable!(),
     };
-    let intdb = ctx.edev.egrid().db;
+    let intdb = ctx.edev.db;
 
     if devdata_only {
         if grid_kind.is_spartan3a() {

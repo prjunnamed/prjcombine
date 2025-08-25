@@ -9,7 +9,7 @@ use prjcombine_xc2000::bels::xc2000 as bels;
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    for tile in backend.egrid.db.tile_classes.keys() {
+    for tile in backend.edev.db.tile_classes.keys() {
         if !tile.starts_with("CLB") {
             continue;
         }
@@ -169,7 +169,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tile in ctx.edev.egrid.db.tile_classes.keys() {
+    for tile in ctx.edev.db.tile_classes.keys() {
         if !tile.starts_with("CLB") {
             continue;
         }

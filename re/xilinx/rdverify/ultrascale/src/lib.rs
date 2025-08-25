@@ -373,9 +373,8 @@ fn verify_laguna(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelConte
 
     if bel.row.to_idx() < Chip::ROWS_PER_REG && !skip {
         let odie = bel.die - 1;
-        let orow = RowId::from_idx(
-            endev.edev.egrid.rows(odie).len() - Chip::ROWS_PER_REG + bel.row.to_idx(),
-        );
+        let orow =
+            RowId::from_idx(endev.edev.rows(odie).len() - Chip::ROWS_PER_REG + bel.row.to_idx());
         obel = vrf.find_bel(CellCoord::new(odie, bel.col, orow).bel(bel.slot));
         assert!(obel.is_some());
     }
@@ -446,9 +445,8 @@ fn verify_laguna_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
 
     if bel.row.to_idx() < Chip::ROWS_PER_REG && !skip {
         let odie = bel.die - 1;
-        let orow = RowId::from_idx(
-            endev.edev.egrid.rows(odie).len() - Chip::ROWS_PER_REG + bel.row.to_idx(),
-        );
+        let orow =
+            RowId::from_idx(endev.edev.rows(odie).len() - Chip::ROWS_PER_REG + bel.row.to_idx());
         obel = vrf.find_bel(CellCoord::new(odie, bel.col, orow).bel(bel.slot));
         assert!(obel.is_some());
     }
@@ -2549,7 +2547,7 @@ fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
                 .find_bel_delta(bel, 0, dy, hpio_slot)
                 .or_else(|| vrf.find_bel_delta(bel, 0, dy, hrio_slot))
             {
-                let obel_slot = endev.edev.egrid.db.bel_slots.key(obel.slot);
+                let obel_slot = endev.edev.db.bel_slots.key(obel.slot);
                 vrf.verify_net(&[
                     bel.fwire(&format!("CCIO{i}")),
                     obel.fwire(if obel_slot.starts_with("HRIO") {
@@ -4800,7 +4798,7 @@ fn verify_gtm_refclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
 
 fn verify_hsadc_hsdac(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let chip = endev.edev.chips[bel.die];
-    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
+    let slot_name = endev.edev.db.bel_slots.key(bel.slot);
     let mut pins = vec![
         // to/from north/south
         ("SYSREF_IN_SOUTH_P", SitePinDir::In),
@@ -4959,7 +4957,7 @@ fn verify_rclk_gt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
+    let slot_name = endev.edev.db.bel_slots.key(bel.slot);
     match bel.slot {
         bels::SLICE => verify_slice(endev, vrf, bel),
         bels::DSP0 | bels::DSP1 => verify_dsp(endev, vrf, bel),

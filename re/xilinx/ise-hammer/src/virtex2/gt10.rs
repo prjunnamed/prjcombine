@@ -7,7 +7,7 @@ use prjcombine_virtex2::bels;
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let intdb = backend.egrid.db;
+    let intdb = backend.edev.db;
     for tile in ["GIGABIT10.B", "GIGABIT10.T"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         let bel_data = &intdb.tile_classes[ctx.tile_class.unwrap()].bels[bels::GT10];
@@ -166,12 +166,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let egrid = ctx.edev.egrid();
     for tile in ["GIGABIT10.B", "GIGABIT10.T"] {
-        let tcid = egrid.db.get_tile_class(tile);
+        let tcid = ctx.edev.db.get_tile_class(tile);
         let bel = "GT10";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
-        let bel_data = &egrid.db.tile_classes[tcid].bels[bels::GT10];
+        let bel_data = &ctx.edev.db.tile_classes[tcid].bels[bels::GT10];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
@@ -181,7 +180,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             assert_eq!(pin_data.wires.len(), 1);
             let wire = *pin_data.wires.first().unwrap();
-            if egrid.db.wires.key(wire.wire).starts_with("IMUX.G") {
+            if ctx.edev.db.wires.key(wire.wire).starts_with("IMUX.G") {
                 continue;
             }
             let int_tiles = &[
@@ -195,7 +194,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "INT.PPC",
                 "INT.PPC",
             ];
-            let flip = egrid.db.wires.key(wire.wire).starts_with("IMUX.SR");
+            let flip = ctx.edev.db.wires.key(wire.wire).starts_with("IMUX.SR");
             ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
         }
         for attr in [

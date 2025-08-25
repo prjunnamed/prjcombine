@@ -6,7 +6,7 @@ use crate::ChipContext;
 impl ChipContext<'_> {
     pub(super) fn process_dsp_ecp3(&mut self) {
         let tcid = self.intdb.get_tile_class("DSP");
-        for &tcrd in &self.edev.egrid.tile_index[tcid] {
+        for &tcrd in &self.edev.tile_index[tcid] {
             for idx in 0..2 {
                 let bcrd = tcrd.bel(bels::DSP[idx]);
                 let (r, c) = self.rc(tcrd.cell);

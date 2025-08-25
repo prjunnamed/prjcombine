@@ -693,7 +693,7 @@ pub fn find_bel_pins(
                 ColId::from_idx(v.0 as usize),
                 RowId::from_idx(v.1 as usize),
             )
-            .wire(edev.egrid.db.get_wire("IMUX.IO.EXTRA"));
+            .wire(edev.db.get_wire("IMUX.IO.EXTRA"));
             match k {
                 InstPin::Simple(pin) => {
                     if pin == "LATCHINPUTVALUE" {
@@ -716,7 +716,7 @@ pub fn find_bel_pins(
             for (pin, col) in [("LOCK", edev.chip.col_w()), ("SDO", edev.chip.col_e())] {
                 let iws = Vec::from_iter((0..8).map(|idx| {
                     CellCoord::new(DieId::from_idx(0), col, row)
-                        .wire(edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))
+                        .wire(edev.db.get_wire(&format!("OUT.LC{idx}")))
                 }));
                 result
                     .wire_names
@@ -1065,10 +1065,10 @@ pub fn find_bel_pins(
                         continue;
                     };
                     if wtn.starts_with("IMUX") {
-                        let wf = cell.wire(edev.egrid.db.get_wire(wfn));
-                        let wf = edev.egrid.resolve_wire(wf).unwrap();
+                        let wf = cell.wire(edev.db.get_wire(wfn));
+                        let wf = edev.resolve_wire(wf).unwrap();
                         if let Some(pin) = iwmap_in.get(&wf) {
-                            let wt = cell.wire(edev.egrid.db.get_wire(wtn));
+                            let wt = cell.wire(edev.db.get_wire(wtn));
                             if let Some(wnames) = wnmap.get(pin) {
                                 for wn in wnames {
                                     result.wire_names.insert(wn.clone(), wt);
@@ -1079,35 +1079,33 @@ pub fn find_bel_pins(
                                 InstPin::Indexed(pin, index) => format!("{pin}_{index}"),
                             };
                             let mut wt = wt;
-                            if edev.egrid.db.wires.key(wt.slot) == "IMUX.CLK" {
-                                wt.slot = edev.egrid.db.get_wire("IMUX.CLK.OPTINV");
+                            if edev.db.wires.key(wt.slot) == "IMUX.CLK" {
+                                wt.slot = edev.db.get_wire("IMUX.CLK.OPTINV");
                             }
                             result.ins.insert(pin, wt);
                         }
                     }
                     if wfn.starts_with("OUT") {
-                        let wt = cell.wire(edev.egrid.db.get_wire(wtn));
-                        let wt = edev.egrid.resolve_wire(wt).unwrap();
+                        let wt = cell.wire(edev.db.get_wire(wtn));
+                        let wt = edev.resolve_wire(wt).unwrap();
                         if let Some(pin) = iwmap_out.get(&wt) {
-                            let wf = cell.wire(edev.egrid.db.get_wire(wfn));
-                            let wf = edev.egrid.resolve_wire(wf).unwrap();
+                            let wf = cell.wire(edev.db.get_wire(wfn));
+                            let wf = edev.resolve_wire(wf).unwrap();
                             let is_lr = wf.cell.col == edev.chip.col_w()
                                 || wf.cell.col == edev.chip.col_e();
                             let is_bt = wf.cell.row == edev.chip.row_s()
                                 || wf.cell.row == edev.chip.row_n();
                             let wfs = if is_lr && is_bt {
                                 Vec::from_iter((0..8).map(|idx| {
-                                    wf.cell
-                                        .wire(edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))
+                                    wf.cell.wire(edev.db.get_wire(&format!("OUT.LC{idx}")))
                                 }))
                             } else if (is_lr && edev.chip.kind.has_ioi_we()) || is_bt {
-                                let wfn = edev.egrid.db.wires.key(wf.slot);
+                                let wfn = edev.db.wires.key(wf.slot);
                                 let idx: usize =
                                     wfn.strip_prefix("OUT.LC").unwrap().parse().unwrap();
                                 let idx = idx & 3;
                                 Vec::from_iter([idx, idx + 4].map(|idx| {
-                                    wf.cell
-                                        .wire(edev.egrid.db.get_wire(&format!("OUT.LC{idx}")))
+                                    wf.cell.wire(edev.db.get_wire(&format!("OUT.LC{idx}")))
                                 }))
                             } else {
                                 vec![wf]

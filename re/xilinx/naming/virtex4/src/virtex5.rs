@@ -43,8 +43,7 @@ impl Namer<'_> {
 }
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
-    let egrid = &edev.egrid;
-    let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
+    let mut ngrid = ExpandedGridNaming::new(ndb, edev);
 
     ngrid.tie_kind = Some("TIEOFF".to_string());
     ngrid.tie_pin_pullup = Some("KEEP1".to_string());
@@ -71,12 +70,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     namer.fill_rxlut();
 
     let mgt = if edev.col_lgt.is_some() { "_MGT" } else { "" };
-    for (tcrd, tile) in egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
 
         let chip = edev.chips[cell.die];
-        let kind = egrid.db.tile_classes.key(tile.class);
+        let kind = edev.db.tile_classes.key(tile.class);
         let x = col.to_idx();
         let y = row.to_idx();
         match &kind[..] {
@@ -515,11 +514,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         }
     }
 
-    for (ccrd, conn) in egrid.connectors() {
+    for (ccrd, conn) in edev.connectors() {
         let cell = ccrd.cell;
         let CellCoord { col, row, .. } = cell;
 
-        let kind = egrid.db.conn_classes.key(conn.class);
+        let kind = edev.db.conn_classes.key(conn.class);
         let x = col.to_idx();
         let y = row.to_idx();
 

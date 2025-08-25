@@ -30,7 +30,7 @@ impl ChipContext<'_> {
     }
 
     fn process_cibtest(&mut self) {
-        for (cell, cell_data) in self.edev.egrid.cells() {
+        for (cell, cell_data) in self.edev.cells() {
             let Some(tile) = cell_data.tiles.get(tslots::INT) else {
                 continue;
             };
@@ -147,8 +147,8 @@ impl ChipContext<'_> {
 
     fn process_int_misc(&mut self) {
         let conn_w = self.intdb.get_conn_slot("W");
-        for (cell, cell_data) in self.edev.egrid.cells() {
-            if !self.edev.egrid.has_bel(cell.bel(bels::INT)) {
+        for (cell, cell_data) in self.edev.cells() {
+            if !self.edev.has_bel(cell.bel(bels::INT)) {
                 continue;
             }
             let has_cin = if matches!(self.chip.kind, ChipKind::MachXo | ChipKind::MachXo2(_)) {
@@ -173,7 +173,7 @@ impl ChipContext<'_> {
         if self.chip.kind != ChipKind::Ecp4 {
             return;
         }
-        for (cell, cell_data) in self.edev.egrid.cells() {
+        for (cell, cell_data) in self.edev.cells() {
             let Some(tile) = cell_data.tiles.get(tslots::INT) else {
                 continue;
             };
@@ -208,7 +208,7 @@ impl ChipContext<'_> {
         if !self.chip.kind.has_distributed_sclk() {
             return;
         }
-        for (cell, cell_data) in self.edev.egrid.cells() {
+        for (cell, cell_data) in self.edev.cells() {
             let idx = self.chip.col_sclk_idx(cell.col);
             let has_int = cell_data.tiles.contains_id(tslots::INT);
             let mut clocks = vec![(idx, 0, 0), (idx + 4, 4, 1)];

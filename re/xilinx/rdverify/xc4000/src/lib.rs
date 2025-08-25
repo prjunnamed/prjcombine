@@ -337,7 +337,7 @@ fn verify_clkq(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
+    let slot_name = endev.edev.db.bel_slots.key(bel.slot);
     match bel.slot {
         bels::CLB => verify_clb(endev, vrf, bel),
         bels::IO0 | bels::IO1 => verify_iob(vrf, bel),

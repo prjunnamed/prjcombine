@@ -2318,8 +2318,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 } else {
                     "IOSTD:S3A.TB:LVDSBIAS"
                 };
-                let kind = edev.egrid.db.get_tile_class(tile);
-                let tcrd = edev.egrid.tile_index[kind][0];
+                let kind = edev.db.get_tile_class(tile);
+                let tcrd = edev.tile_index[kind][0];
                 let btile = edev.btile_lrterm(tcrd.cell);
                 let base: BitVec = lvdsbias_0
                     .bits

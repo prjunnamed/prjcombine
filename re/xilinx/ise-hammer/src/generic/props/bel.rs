@@ -306,8 +306,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinIntPips {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let tile = &backend.egrid[tcrd];
-        let tcls = &backend.egrid.db.tile_classes[tile.class];
+        let tile = &backend.edev[tcrd];
+        let tcls = &backend.edev.db.tile_classes[tile.class];
         let ntile = &backend.ngrid.tiles[&tcrd];
         let tile_naming = &backend.ngrid.db.tile_class_namings[ntile.naming];
         let bel_data = &tcls.bels[self.bel];

@@ -5,13 +5,13 @@ use prjcombine_types::bsdata::{TileBit, TileItem};
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    for (_, tcname, tcls) in &backend.egrid.db.tile_classes {
+    for (_, tcname, tcls) in &backend.edev.db.tile_classes {
         if !tcname.starts_with("CLB") {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tcname);
         for slot in tcls.bels.ids() {
-            let slot_name = backend.egrid.db.bel_slots.key(slot);
+            let slot_name = backend.edev.db.bel_slots.key(slot);
             if !slot_name.starts_with("IO") {
                 continue;
             }
@@ -33,12 +33,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for (_, tcname, tcls) in &ctx.edev.egrid.db.tile_classes {
+    for (_, tcname, tcls) in &ctx.edev.db.tile_classes {
         if !tcname.starts_with("CLB") {
             continue;
         }
         for slot in tcls.bels.ids() {
-            let bel = ctx.edev.egrid.db.bel_slots.key(slot);
+            let bel = ctx.edev.db.bel_slots.key(slot);
             if !bel.starts_with("IO") {
                 continue;
             }

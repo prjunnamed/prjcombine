@@ -44,7 +44,7 @@ impl ChipContext<'_> {
                 self.intdb.get_wire(&format!("OUT_{w}")),
             )
         }));
-        for (cell, cell_data) in self.edev.egrid.cells() {
+        for (cell, cell_data) in self.edev.cells() {
             for (slot, conn) in &cell_data.conns {
                 if let Some(target) = conn.target {
                     let cell_sio = self.chip.kind == ChipKind::MachXo
@@ -268,13 +268,13 @@ impl ChipContext<'_> {
                     wires_f[0]
                 } else if wtsn.starts_with("VSDCLK") {
                     let mut wf = wires_f.iter().find(|w| w.col == wt.col).copied().unwrap();
-                    let wt_root = self.edev.egrid[wt.cell].region_root[regions::VSDCLK];
-                    let wf_root = self.edev.egrid[wf.cell].region_root[regions::VSDCLK];
+                    let wt_root = self.edev[wt.cell].region_root[regions::VSDCLK];
+                    let wf_root = self.edev[wf.cell].region_root[regions::VSDCLK];
                     if wt_root == wf_root {
                         wt.cell = wf.cell;
                     } else {
                         assert_eq!(
-                            self.edev.egrid[wf.cell.delta(0, -1)].region_root[regions::VSDCLK],
+                            self.edev[wf.cell.delta(0, -1)].region_root[regions::VSDCLK],
                             wt_root
                         );
                         wt.cell = wf.cell;
@@ -285,7 +285,7 @@ impl ChipContext<'_> {
                         && wf.cell.row <= self.chip.row_s() + 9
                     {
                         wf.cell.row = self.chip.row_s();
-                        if !self.edev.egrid.has_bel(wf.cell.bel(bels::INT)) {
+                        if !self.edev.has_bel(wf.cell.bel(bels::INT)) {
                             wf.cell.row += 9;
                         }
                         wt.cell = wf.cell;
@@ -293,13 +293,13 @@ impl ChipContext<'_> {
                     wf
                 } else {
                     let wf = if let WireKind::Regional(region) = self.intdb.wires[wires_f[0].slot] {
-                        let wf_root = self.edev.egrid[wires_f[0].cell].region_root[region];
-                        let wt_root = self.edev.egrid[wt.cell].region_root[region];
+                        let wf_root = self.edev[wires_f[0].cell].region_root[region];
+                        let wt_root = self.edev[wt.cell].region_root[region];
                         let wfsn = self.intdb.wires.key(wires_f[0].slot);
                         if wf_root == wt_root {
                             Some(wt.cell.wire(wires_f[0].slot))
                         } else if wfsn.starts_with("VSDCLK")
-                            && self.edev.egrid[wt.cell.delta(0, -1)].region_root[regions::VSDCLK]
+                            && self.edev[wt.cell.delta(0, -1)].region_root[regions::VSDCLK]
                                 == wf_root
                         {
                             Some(wt.cell.wire(self.intdb.get_wire(&format!("{wfsn}_N"))))
@@ -328,7 +328,7 @@ impl ChipContext<'_> {
                     .entry(wt.cell)
                     .or_default()
                     .insert((wt.slot, wf.slot));
-                let tcid = self.edev.egrid[wt.cell.tile(tslots::INT)].class;
+                let tcid = self.edev[wt.cell.tile(tslots::INT)].class;
                 sb_pips.entry(tcid).or_default().insert((wt.slot, wf.slot));
             } else {
                 self.unclaimed_pips.insert((wtn, wfn));
@@ -353,7 +353,7 @@ impl ChipContext<'_> {
         sb_pips: BTreeMap<TileClassId, BTreeSet<(WireSlotId, WireSlotId)>>,
     ) {
         for (tcid, pips) in sb_pips {
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let tile_pips = cell_pips.remove(&tcrd.cell).unwrap();
                 for &(wt, wf) in &pips {
                     if tile_pips.contains(&(wt, wf)) {
@@ -376,16 +376,15 @@ impl ChipContext<'_> {
                     if self.chip.kind == ChipKind::Scm {
                         if wtsn == "VSDCLK0"
                             && (wfsn == "VSDCLK6" || wfsn.starts_with("HSDCLK"))
-                            && self.edev.egrid[tcrd.cell].conns[cslots::N].target.is_none()
+                            && self.edev[tcrd.cell].conns[cslots::N].target.is_none()
                         {
                             continue;
                         }
                         if matches!(wtsn, "VSDCLK0" | "VSDCLK6")
                             && matches!(wfsn, "HSDCLK0" | "HSDCLK6")
-                            && self.edev.egrid.resolve_wire(wf)
+                            && self.edev.resolve_wire(wf)
                                 == self
                                     .edev
-                                    .egrid
                                     .resolve_wire(wf.wire(self.intdb.get_wire("HSDCLK3")))
                         {
                             continue;

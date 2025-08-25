@@ -57,9 +57,9 @@ impl Delta {
 
 impl TileRelation for Delta {
     fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
-        let cell = backend.egrid.cell_delta(tcrd.cell, self.dx, self.dy)?;
+        let cell = backend.edev.cell_delta(tcrd.cell, self.dx, self.dy)?;
         backend
-            .egrid
+            .edev
             .find_tile_by_class(cell, |tcname| self.tcnames.iter().any(|x| x == tcname))
     }
 }

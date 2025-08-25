@@ -42,28 +42,28 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let tile = &backend.egrid[tcrd];
-        let tcls = &backend.egrid.db.tile_classes[tile.class];
+        let tile = &backend.edev[tcrd];
+        let tcls = &backend.edev.db.tile_classes[tile.class];
         let bel_data = &tcls.bels[self.slot];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
         let wire = *bel_data.pins[self.pin].wires.iter().next().unwrap();
         let res_wire = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, wire))
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, wire))
             .unwrap();
         fuzzer = fuzzer.fuzz(Key::WireMutex(res_wire), None, "EXCLUSIVE");
         if self.drive {
             let otcrd = res_wire.cell.tile(tslots::MAIN);
-            let otile = &backend.egrid[otcrd];
-            let otcls = &backend.egrid.db_index.tile_classes[otile.class];
+            let otile = &backend.edev[otcrd];
+            let otcls = &backend.edev.db_index.tile_classes[otile.class];
             let wt = TileWireCoord::new_idx(0, res_wire.slot);
             let ins = &otcls.pips_bwd[&wt];
             let wf = ins.iter().next().unwrap().tw;
             let res_wf = backend
-                .egrid
-                .resolve_wire(backend.egrid.tile_wire(otcrd, wf))
+                .edev
+                .resolve_wire(backend.edev.tile_wire(otcrd, wf))
                 .unwrap();
             let (tile, wt, wf) = resolve_int_pip(backend, otcrd, wt, wf).unwrap();
             fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true).fuzz(
@@ -80,7 +80,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
     };
-    for tile in backend.egrid.db.tile_classes.keys() {
+    for tile in backend.edev.db.tile_classes.keys() {
         if !tile.starts_with("IO") {
             continue;
         }
@@ -186,7 +186,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Xc2000(edev) = ctx.edev else {
         unreachable!()
     };
-    for tile in edev.egrid.db.tile_classes.keys() {
+    for tile in edev.db.tile_classes.keys() {
         if !tile.starts_with("IO") {
             continue;
         }

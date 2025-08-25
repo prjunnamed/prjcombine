@@ -20,9 +20,9 @@ impl ChipContext<'_> {
             }
             col_group.push(idx);
         }
-        for cell in self.edev.egrid.die_cells(DieId::from_idx(0)) {
+        for cell in self.edev.die_cells(DieId::from_idx(0)) {
             let bcrd = cell.bel(bels::IO_INT);
-            if self.edev.egrid.has_bel(bcrd) {
+            if self.edev.has_bel(bcrd) {
                 self.name_bel_null(bcrd);
             }
         }
@@ -102,7 +102,7 @@ impl ChipContext<'_> {
                     _ => unreachable!(),
                 };
                 while seg > 0
-                    && let Some(conn) = self.edev.egrid[cell].conns.get(match dir {
+                    && let Some(conn) = self.edev[cell].conns.get(match dir {
                         DirH::W => cslots::IO_E,
                         DirH::E => cslots::IO_W,
                     })
@@ -116,7 +116,7 @@ impl ChipContext<'_> {
                 while seg <= 8 {
                     let wire = cell.wire(self.intdb.get_wire(&format!("IO_{dir}{idx}_{seg}")));
                     wires.push(wire);
-                    if let Some(conn) = self.edev.egrid[cell].conns.get(match dir {
+                    if let Some(conn) = self.edev[cell].conns.get(match dir {
                         DirH::W => cslots::IO_W,
                         DirH::E => cslots::IO_E,
                     }) && let target = conn.target.unwrap()
@@ -171,7 +171,7 @@ impl ChipContext<'_> {
                     }
                     _ => unreachable!(),
                 };
-                while let Some(conn) = self.edev.egrid[cell].conns.get(match dir {
+                while let Some(conn) = self.edev[cell].conns.get(match dir {
                     DirH::W => cslots::IO_E,
                     DirH::E => cslots::IO_W,
                 }) && let target = conn.target.unwrap()
@@ -184,7 +184,7 @@ impl ChipContext<'_> {
                 loop {
                     let wire = cell.wire(self.intdb.get_wire(&format!("IO_T_{dir}")));
                     wires.push(wire);
-                    if let Some(conn) = self.edev.egrid[cell].conns.get(match dir {
+                    if let Some(conn) = self.edev[cell].conns.get(match dir {
                         DirH::W => cslots::IO_W,
                         DirH::E => cslots::IO_E,
                     }) && let target = conn.target.unwrap()
@@ -262,7 +262,7 @@ impl ChipContext<'_> {
             (self.chip.col_e() - 2, self.chip.row_s(), cslots::IO_E),
         ] {
             let cell = CellCoord::new(DieId::from_idx(0), col, row);
-            let conn = &self.edev.egrid[cell].conns[slot];
+            let conn = &self.edev[cell].conns[slot];
             let ccls = &self.intdb.conn_classes[conn.class];
             let target = conn.target.unwrap();
             for (wt, &wf) in &ccls.wires {
@@ -305,7 +305,7 @@ impl ChipContext<'_> {
                 let Some(wf) = wires_f.iter().copied().find(|w| w.cell == wt.cell) else {
                     continue;
                 };
-                if self.edev.egrid[wt.cell.tile(tslots::BEL)].class != tcid {
+                if self.edev[wt.cell.tile(tslots::BEL)].class != tcid {
                     continue;
                 }
 
@@ -315,7 +315,7 @@ impl ChipContext<'_> {
             }
             let mut missing_dst = BTreeSet::new();
             let mut missing_src = BTreeSet::new();
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::IO_INT);
                 for (&wt, wfs) in &sb_pips {
                     let Some(wt) = self

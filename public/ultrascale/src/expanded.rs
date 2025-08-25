@@ -373,3 +373,11 @@ impl ExpandedDevice<'_> {
         }
     }
 }
+
+impl<'a> std::ops::Deref for ExpandedDevice<'a> {
+    type Target = ExpandedGrid<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.egrid
+    }
+}

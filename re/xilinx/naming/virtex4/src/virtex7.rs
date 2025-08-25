@@ -76,13 +76,13 @@ fn make_raw_grid(edev: &ExpandedDevice) -> BelMultiGrid {
         }
     }
 
-    let mut ylut: EntityVec<_, _> = edev.egrid.die.ids().map(|_| EntityPartVec::new()).collect();
+    let mut ylut: EntityVec<_, _> = edev.die.ids().map(|_| EntityPartVec::new()).collect();
     let mut ry = 0;
     if edev.interposer.unwrap().gtz_bot {
         ry += 2;
     }
     for (die, dylut) in &mut ylut {
-        for row in edev.egrid.rows(die) {
+        for row in edev.rows(die) {
             if row.to_idx().is_multiple_of(25) {
                 ry += 1;
             }
@@ -132,14 +132,14 @@ fn make_ipad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
         }
     }
 
-    let mut ylut: EntityVec<_, _> = edev.egrid.die.ids().map(|_| EntityPartVec::new()).collect();
+    let mut ylut: EntityVec<_, _> = edev.die.ids().map(|_| EntityPartVec::new()).collect();
     let mut ipy = 0;
     if edev.interposer.unwrap().gtz_bot {
         ipy += 6;
     }
     for (die, dylut) in &mut ylut {
         let chip = edev.chips[die];
-        for row in edev.egrid.rows(die) {
+        for row in edev.rows(die) {
             if matches!(row.to_idx() % 50, 0 | 11 | 22 | 28 | 39) {
                 let reg = chip.row_to_reg(row);
                 let mut has_gt = false;
@@ -186,14 +186,14 @@ fn make_opad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
         }
     }
 
-    let mut ylut: EntityVec<_, _> = edev.egrid.die.ids().map(|_| EntityPartVec::new()).collect();
+    let mut ylut: EntityVec<_, _> = edev.die.ids().map(|_| EntityPartVec::new()).collect();
     let mut opy = 0;
     if edev.interposer.unwrap().gtz_bot {
         opy += 2;
     }
     for (die, dylut) in &mut ylut {
         let chip = edev.chips[die];
-        for row in edev.egrid.rows(die) {
+        for row in edev.rows(die) {
             let reg = chip.row_to_reg(row);
             if matches!(row.to_idx() % 50, 0 | 11 | 28 | 39) {
                 let mut has_gt = false;
@@ -215,8 +215,7 @@ fn make_opad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let interposer = edev.interposer.unwrap();
-    let egrid = &edev.egrid;
-    let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
+    let mut ngrid = ExpandedGridNaming::new(ndb, edev);
     ngrid.tie_kind = Some("TIEOFF".to_string());
     ngrid.tie_pin_gnd = Some("HARD0".to_string());
     ngrid.tie_pin_vcc = Some("HARD1".to_string());
@@ -346,7 +345,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             },
         );
     }
-    for (tcrd, tile) in egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, die } = cell;
         let chip = edev.chips[die];
@@ -356,7 +355,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let has_gtz_u = die == edev.chips.last_id().unwrap() && edev.interposer.unwrap().gtz_top;
 
         let reg = chip.row_to_reg(row);
-        let kind = egrid.db.tile_classes.key(tile.class);
+        let kind = edev.db.tile_classes.key(tile.class);
         let x = int_grid.xlut[col];
         let y = int_grid.ylut[die][row];
         let int_lr = match edev.col_side(col) {
@@ -1394,11 +1393,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             _ => panic!("how to {kind}"),
         }
     }
-    for (ccrd, conn) in egrid.connectors() {
+    for (ccrd, conn) in edev.connectors() {
         let cell = ccrd.cell;
         let CellCoord { col, row, die } = cell;
 
-        let kind = egrid.db.conn_classes.key(conn.class);
+        let kind = edev.db.conn_classes.key(conn.class);
         let x = int_grid.xlut[col];
         let y = int_grid.ylut[die][row];
 

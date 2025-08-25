@@ -114,9 +114,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("STARTUP")
             .pin("GSR")
             .test_enum("GSRMUX", &["0", "1", "GSR", "GSR_B"]);
-        let wire_gwe = TileWireCoord::new_idx(0, backend.egrid.db.get_wire("IMUX.STARTUP.GWE"));
-        let wire_gts = TileWireCoord::new_idx(0, backend.egrid.db.get_wire("IMUX.STARTUP.GTS"));
-        let wire_gsr = TileWireCoord::new_idx(0, backend.egrid.db.get_wire("IMUX.STARTUP.GSR"));
+        let wire_gwe = TileWireCoord::new_idx(0, backend.edev.db.get_wire("IMUX.STARTUP.GWE"));
+        let wire_gts = TileWireCoord::new_idx(0, backend.edev.db.get_wire("IMUX.STARTUP.GTS"));
+        let wire_gsr = TileWireCoord::new_idx(0, backend.edev.db.get_wire("IMUX.STARTUP.GSR"));
         bctx.mode("STARTUP")
             .no_pin("GTS")
             .no_pin("GWE")

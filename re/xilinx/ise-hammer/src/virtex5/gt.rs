@@ -504,7 +504,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             continue;
         };
         let mut bctx = ctx.bel(bel);
-        let mode = backend.egrid.db.bel_slots.key(bel).as_str();
+        let mode = backend.edev.db.bel_slots.key(bel).as_str();
         bctx.test_manual("ENABLE", "1").mode(mode).commit();
         for pin in ["RXUSRCLK0", "RXUSRCLK1", "TXUSRCLK0", "TXUSRCLK1"] {
             bctx.mode(mode)

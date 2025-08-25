@@ -24,7 +24,6 @@ pub struct IseBackend<'a> {
     pub db: &'a GeomDb,
     pub device: &'a Device,
     pub bs_geom: &'a BitstreamGeom,
-    pub egrid: &'a ExpandedGrid<'a>,
     pub ngrid: &'a ExpandedGridNaming<'a>,
     pub edev: &'a ExpandedDevice<'a>,
     pub endev: &'a ExpandedNamedDevice<'a>,
@@ -784,6 +783,6 @@ impl FpgaBackend for IseBackend<'_> {
     }
 
     fn egrid(&self) -> &ExpandedGrid<'_> {
-        self.egrid
+        self.edev
     }
 }

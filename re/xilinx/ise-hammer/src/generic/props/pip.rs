@@ -88,14 +88,14 @@ impl BelIntoPipWire for PipWire {
 
 impl BelIntoPipWire for (PipInt, usize, &str) {
     fn into_pip_wire(self, backend: &IseBackend, _slot: BelSlotId) -> PipWire {
-        let wire = backend.egrid.db.get_wire(self.2);
+        let wire = backend.edev.db.get_wire(self.2);
         PipWire::Int(TileWireCoord::new_idx(self.1, wire))
     }
 }
 
 impl BelIntoPipWire for (PipInt, usize, String) {
     fn into_pip_wire(self, backend: &IseBackend, _slot: BelSlotId) -> PipWire {
-        let wire = backend.egrid.db.get_wire(&self.2);
+        let wire = backend.edev.db.get_wire(&self.2);
         PipWire::Int(TileWireCoord::new_idx(self.1, wire))
     }
 }
@@ -113,15 +113,15 @@ impl PipWire {
         backend: &IseBackend<'a>,
         tcrd: TileCoord,
     ) -> Option<(&'a str, &'a str)> {
-        let tile = &backend.egrid[tcrd];
+        let tile = &backend.edev[tcrd];
         let ndb = backend.ngrid.db;
         let ntile = &backend.ngrid.tiles[&tcrd];
         let tile_naming = &ndb.tile_class_namings[ntile.naming];
         Some(match self {
             PipWire::Int(wire) => {
                 backend
-                    .egrid
-                    .resolve_wire(backend.egrid.tile_wire(tcrd, *wire))?;
+                    .edev
+                    .resolve_wire(backend.edev.tile_wire(tcrd, *wire))?;
                 (
                     &ntile.names[RawTileId::from_idx(0)],
                     tile_naming.wires.get(wire)?,
@@ -139,8 +139,8 @@ impl PipWire {
                         .unwrap_or_else(|| {
                             panic!(
                                 "missing pin {pin} in bel {bel} tile {tile}",
-                                bel = backend.egrid.db.bel_slots.key(*bel),
-                                tile = backend.egrid.db.tile_classes.key(tile.class),
+                                bel = backend.edev.db.bel_slots.key(*bel),
+                                tile = backend.edev.db.tile_classes.key(tile.class),
                             )
                         })
                         .name,
@@ -158,8 +158,8 @@ impl PipWire {
                         .unwrap_or_else(|| {
                             panic!(
                                 "missing pin {pin} in bel {bel} tile {tile}",
-                                bel = backend.egrid.db.bel_slots.key(*bel),
-                                tile = backend.egrid.db.tile_classes.key(tile.class),
+                                bel = backend.edev.db.bel_slots.key(*bel),
+                                tile = backend.edev.db.tile_classes.key(tile.class),
                             )
                         })
                         .name_far,

@@ -2233,8 +2233,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.tiledb
         .insert_misc_data("IOSTD:LVDSBIAS:OFF", bits![0; 10]);
 
-    let hclk_center_cnt =
-        ctx.edev.egrid().tile_index[ctx.edev.egrid().db.get_tile_class("HCLK_CENTER")].len();
+    let hclk_center_cnt = ctx.edev.tile_index[ctx.edev.db.get_tile_class("HCLK_CENTER")].len();
     for tile in [
         "HCLK_IOIS_DCI",
         "HCLK_CENTER",

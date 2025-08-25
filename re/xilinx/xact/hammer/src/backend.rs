@@ -21,7 +21,6 @@ pub struct XactBackend<'a> {
     pub xact_path: &'a Path,
     pub device: &'a Device,
     pub bs_geom: &'a BitstreamGeom,
-    pub egrid: &'a ExpandedGrid<'a>,
     pub ngrid: &'a ExpandedGridNaming<'a>,
     pub edev: &'a ExpandedDevice<'a>,
 }
@@ -380,6 +379,6 @@ impl FpgaBackend for XactBackend<'_> {
     }
 
     fn egrid(&self) -> &ExpandedGrid<'_> {
-        self.egrid
+        self.edev
     }
 }

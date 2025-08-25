@@ -42,9 +42,8 @@ fn name_b(grid: &Chip, prefix: &str, suffix: &str, col: ColId, row: RowId) -> St
 }
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
-    let egrid = &edev.egrid;
     let grid = edev.chip;
-    let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
+    let mut ngrid = ExpandedGridNaming::new(ndb, edev);
     ngrid.tie_pin_gnd = Some("O".to_string());
 
     let die = DieId::from_idx(0);
@@ -53,7 +52,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     let mut clk_x = 0..0;
     let mut clk_y = 0..0;
     let mut x = 0;
-    for col in egrid.cols(die) {
+    for col in edev.cols(die) {
         if col == grid.col_mid() {
             let ox = x;
             x += ndb.tile_widths["CLK"];
@@ -70,7 +69,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         col_x.push(ox..x);
     }
     let mut y = 0;
-    for row in egrid.rows(die) {
+    for row in edev.rows(die) {
         if row == grid.row_mid() {
             let oy = y;
             y += ndb.tile_heights["CLK"];
@@ -86,10 +85,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         };
         row_y.push(oy..y);
     }
-    for (tcrd, tile) in egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let col = tcrd.col;
         let row = tcrd.row;
-        let kind = egrid.db.tile_classes.key(tile.class);
+        let kind = edev.db.tile_classes.key(tile.class);
         match &kind[..] {
             "CLB.LB" | "CLB.B" | "CLB.RB" | "CLB.L" | "CLB" | "CLB.R" | "CLB.LT" | "CLB.T"
             | "CLB.RT" => {

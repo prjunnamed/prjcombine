@@ -180,7 +180,7 @@ pub fn collect(
     };
 
     for (&tcid, tile_sb) in sbs {
-        let tile = edev.egrid.db.tile_classes.key(tcid);
+        let tile = edev.db.tile_classes.key(tcid);
         let bel = "INT";
         if !tile.starts_with("IO") {
             collector.collect_bit(tile, bel, "INV.IMUX.CLK.OPTINV", "");
@@ -188,7 +188,7 @@ pub fn collect(
         let mut gout_mux = BTreeMap::new();
         for item in &tile_sb.items {
             if let SwitchBoxItem::Mux(mux) = item {
-                let wtn = edev.egrid.db.wires.key(mux.dst.wire);
+                let wtn = edev.db.wires.key(mux.dst.wire);
                 if wtn.starts_with("GOUT") {
                     gout_mux.insert(mux.dst, mux);
                 }
@@ -200,7 +200,7 @@ pub fn collect(
                     if gout_mux.contains_key(&mux.dst) {
                         continue;
                     }
-                    let wtn = edev.egrid.db.wires.key(mux.dst.wire);
+                    let wtn = edev.db.wires.key(mux.dst.wire);
                     let mux_name = format!("MUX.{wtn}");
                     let mut values = vec![];
                     let mut diffs = vec![];
@@ -214,14 +214,14 @@ pub fn collect(
                     diffs.push(("NONE", Diff::default()));
                     for &wf in &mux.src {
                         if !gout_mux.contains_key(&wf) {
-                            let wfn = edev.egrid.db.wires.key(wf.wire);
+                            let wfn = edev.db.wires.key(wf.wire);
                             values.push(wfn);
                             diffs.push((wfn, collector.state.get_diff(tile, bel, &mux_name, wfn)));
                         }
                     }
                     for &wg in &mux.src {
                         if let Some(gmux) = gout_mux.get(&wg) {
-                            let wgn = edev.egrid.db.wires.key(gmux.dst.wire);
+                            let wgn = edev.db.wires.key(gmux.dst.wire);
                             let mut bits_nog2l = HashSet::new();
                             for (_, diff) in &diffs {
                                 for &bit in diff.bits.keys() {
@@ -230,7 +230,7 @@ pub fn collect(
                             }
                             let mut diffs_gout = vec![];
                             for &wf in &gmux.src {
-                                let wfn = edev.egrid.db.wires.key(wf.wire).as_str();
+                                let wfn = edev.db.wires.key(wf.wire).as_str();
                                 let mut diff_gout =
                                     collector.state.get_diff(tile, bel, &mux_name, wfn);
                                 let diff = diff_gout.split_bits(&bits_nog2l);
@@ -256,8 +256,8 @@ pub fn collect(
                     );
                 }
                 SwitchBoxItem::ProgBuf(buf) => {
-                    let wtn = edev.egrid.db.wires.key(buf.dst.wire);
-                    let wfn = edev.egrid.db.wires.key(buf.src.wire);
+                    let wtn = edev.db.wires.key(buf.dst.wire);
+                    let wfn = edev.db.wires.key(buf.src.wire);
                     let mux_name = format!("MUX.{wtn}");
                     let item = collector.extract_bit(tile, bel, &mux_name, wfn);
                     collector

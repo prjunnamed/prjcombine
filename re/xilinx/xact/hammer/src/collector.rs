@@ -29,8 +29,7 @@ impl DerefMut for CollectorCtx<'_, '_> {
 
 impl CollectorCtx<'_, '_> {
     pub fn has_tile(&self, tile: &str) -> bool {
-        let egrid = &self.edev.egrid;
-        let tcid = egrid.db.get_tile_class(tile);
-        !egrid.tile_index[tcid].is_empty()
+        let tcid = self.edev.db.get_tile_class(tile);
+        !self.edev.tile_index[tcid].is_empty()
     }
 }

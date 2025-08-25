@@ -42,7 +42,7 @@ impl ChipContext<'_> {
                 while row_n != (self.chip.row_n() + 1) && !self.chip.rows[row_n].pclk_break {
                     row_n += 1;
                 }
-                for cell_src in self.edev.egrid.row(DieId::from_idx(0), row_src) {
+                for cell_src in self.edev.row(DieId::from_idx(0), row_src) {
                     for (sn, range) in [('S', row_s.range(row_mid)), ('N', row_mid.range(row_n))] {
                         let mut vptx = None;
                         for row in range {
@@ -237,7 +237,7 @@ impl ChipContext<'_> {
 
             let mut io_ins = BTreeMap::new();
             for i in 0..8 {
-                if !self.edev.egrid.has_bel(bcrd.bel(bels::DLLDEL[i])) {
+                if !self.edev.has_bel(bcrd.bel(bels::DLLDEL[i])) {
                     continue;
                 }
                 let name = match edge {

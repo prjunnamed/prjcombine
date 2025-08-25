@@ -773,10 +773,10 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
     let edev = chip.expand_grid(&intdb);
     let endev = name_device(&edev, &ndb);
 
-    let mut extractor = Extractor::new(die, &edev.egrid, &endev.ngrid);
+    let mut extractor = Extractor::new(die, &edev, &endev.ngrid);
 
     let die = DieId::from_idx(0);
-    for (tcrd, tile) in edev.egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
         let tcls = &intdb.tile_classes[tile.class];
@@ -992,7 +992,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
     extractor.grab_prim_a("_cfg4000_");
 
     // long verticals + GCLK
-    for col in edev.egrid.cols(die) {
+    for col in edev.cols(die) {
         let mut queue = vec![];
         for row in [chip.row_mid() - 1, chip.row_mid()] {
             let by = endev.row_y[row].start;
@@ -1088,7 +1088,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         }
     }
     // long horizontals
-    for row in edev.egrid.rows(die) {
+    for row in edev.rows(die) {
         let mut queue = vec![];
         for col in [chip.col_mid() - 1, chip.col_mid()] {
             let lx = endev.col_x[col].start;
@@ -1153,11 +1153,11 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
     }
 
     // boxes — pin single and double wires
-    for col in edev.egrid.cols(die) {
+    for col in edev.cols(die) {
         if col == chip.col_w() {
             continue;
         }
-        for row in edev.egrid.rows(die) {
+        for row in edev.rows(die) {
             if row == chip.row_n() {
                 continue;
             }
@@ -1203,7 +1203,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
 
     // io doubles
     let mut queue = vec![];
-    for col in edev.egrid.cols(die) {
+    for col in edev.cols(die) {
         if col == chip.col_w() {
             continue;
         }
@@ -1283,7 +1283,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             }
         }
     }
-    for row in edev.egrid.rows(die) {
+    for row in edev.rows(die) {
         if row == chip.row_s() {
             continue;
         }
@@ -1368,7 +1368,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
     }
 
     // DBUF
-    for col in edev.egrid.cols(die) {
+    for col in edev.cols(die) {
         if col == chip.col_w() {
             continue;
         }
@@ -1396,7 +1396,6 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 let w_anchor = intdb.get_wire(w_anchor);
                 let w_dbuf = intdb.get_wire(w_dbuf);
                 let rw_anchor = edev
-                    .egrid
                     .resolve_wire(CellCoord::new(die, col, row).wire(w_anchor))
                     .unwrap();
                 let net = extractor.int_nets[&rw_anchor];
@@ -1419,7 +1418,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             }
         }
     }
-    for row in edev.egrid.rows(die) {
+    for row in edev.rows(die) {
         if row == chip.row_n() {
             continue;
         }
@@ -1447,7 +1446,6 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 let w_anchor = intdb.get_wire(w_anchor);
                 let w_dbuf = intdb.get_wire(w_dbuf);
                 let rw_anchor = edev
-                    .egrid
                     .resolve_wire(CellCoord::new(die, col, row).wire(w_anchor))
                     .unwrap();
                 let net = extractor.int_nets[&rw_anchor];
@@ -1478,8 +1476,8 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         if kind != WireKind::MuxOut {
             continue;
         }
-        for (cell, _) in edev.egrid.cells() {
-            let rw = edev.egrid.resolve_wire(cell.wire(wire)).unwrap();
+        for (cell, _) in edev.cells() {
+            let rw = edev.resolve_wire(cell.wire(wire)).unwrap();
             if extractor.int_nets.contains_key(&rw) {
                 extractor.own_mux(rw, cell.tile(tslots::MAIN));
             }
@@ -1498,7 +1496,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
     let i_lr_v = extractor.get_bel_net(crd_lr.bel(bels::BUFGLS_V), "O");
     let i_ur_h = extractor.get_bel_net(crd_ur.bel(bels::BUFGLS_H), "O");
     let i_ur_v = extractor.get_bel_net(crd_ur.bel(bels::BUFGLS_V), "O");
-    for (tcrd, tile) in edev.egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
         let ntile = &endev.ngrid.tiles[&tcrd];

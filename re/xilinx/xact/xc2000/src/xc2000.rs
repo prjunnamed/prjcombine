@@ -6,15 +6,14 @@ use unnamed_entity::{EntityId, EntityVec};
 use crate::ExpandedNamedDevice;
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
-    let egrid = &edev.egrid;
     let grid = edev.chip;
-    let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
+    let mut ngrid = ExpandedGridNaming::new(ndb, edev);
 
     let die = DieId::from_idx(0);
     let mut col_x = EntityVec::new();
     let mut row_y = EntityVec::new();
     let mut x = 0;
-    for col in egrid.cols(die) {
+    for col in edev.cols(die) {
         let ox = x;
         x += if col == grid.col_w() {
             ndb.tile_widths["L"]
@@ -26,7 +25,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         col_x.push(ox..x);
     }
     let mut y = 0;
-    for row in egrid.rows(die) {
+    for row in edev.rows(die) {
         let oy = y;
         y += if row == grid.row_s() {
             ndb.tile_heights["B"]
@@ -37,8 +36,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         };
         row_y.push(oy..y);
     }
-    for (tcrd, tile) in egrid.tiles() {
-        let kind = egrid.db.tile_classes.key(tile.class);
+    for (tcrd, tile) in edev.tiles() {
+        let kind = edev.db.tile_classes.key(tile.class);
         if kind.starts_with("BIDI") {
             ngrid.name_tile(tcrd, kind, []);
             continue;

@@ -25,8 +25,8 @@ fn apply_int_pip<'a>(
     pin: &'static str,
     mut fuzzer: Fuzzer<XactBackend<'a>>,
 ) -> Fuzzer<XactBackend<'a>> {
-    let rwf = backend.egrid.resolve_tile_wire(tcrd, wire_from).unwrap();
-    let rwt = backend.egrid.resolve_tile_wire(tcrd, wire_to).unwrap();
+    let rwf = backend.edev.resolve_tile_wire(tcrd, wire_from).unwrap();
+    let rwt = backend.edev.resolve_tile_wire(tcrd, wire_to).unwrap();
     fuzzer = fuzzer.base(Key::WireMutex(rwt), rwf);
     let crd = backend.ngrid.int_pip(tcrd, wire_to, wire_from);
     fuzzer.base(Key::Pip(crd), Value::FromPin(block, pin.into()))
@@ -41,7 +41,7 @@ fn drive_wire<'a>(
     let grid = backend.edev.chip;
     let mut cell = wire_target.cell;
     let wt = wire_target.slot;
-    let wtn = &backend.egrid.db.wires.key(wt)[..];
+    let wtn = &backend.edev.db.wires.key(wt)[..];
     let (ploc, pwt, pwf) = if wtn.starts_with("OUT") {
         let (slot, pin) = match wtn {
             "OUT.LC0.X" => (bels::LC0, "LC0.X"),
@@ -106,10 +106,10 @@ fn drive_wire<'a>(
     } else if matches!(wtn, "GLOBAL.B" | "GLOBAL.T" | "GLOBAL.L" | "GLOBAL.R") {
         let tcrd = cell.tile(tslots::MAIN);
         let nwt = backend
-            .egrid
+            .edev
             .resolve_tile_wire(
                 tcrd,
-                TileWireCoord::new_idx(0, backend.egrid.db.get_wire("IMUX.GIN")),
+                TileWireCoord::new_idx(0, backend.edev.db.get_wire("IMUX.GIN")),
             )
             .unwrap();
         let (fuzzer, block, pin) = drive_wire(backend, fuzzer, nwt, wire_avoid);
@@ -129,13 +129,13 @@ fn drive_wire<'a>(
         (
             cell.tile(tslots::MAIN),
             TileWireCoord::new_idx(0, wire_target.slot),
-            TileWireCoord::new_idx(0, backend.egrid.db.get_wire("GND")),
+            TileWireCoord::new_idx(0, backend.edev.db.get_wire("GND")),
         )
     } else if let Some(nwt) = wtn.strip_suffix(".BUF") {
         (
             cell.tile(tslots::MAIN),
             TileWireCoord::new_idx(0, wire_target.slot),
-            TileWireCoord::new_idx(0, backend.egrid.db.get_wire(nwt)),
+            TileWireCoord::new_idx(0, backend.edev.db.get_wire(nwt)),
         )
     } else if wtn.starts_with("OMUX") {
         let nwt = if cell.col == grid.col_w()
@@ -150,7 +150,7 @@ fn drive_wire<'a>(
         (
             cell.tile(tslots::MAIN),
             TileWireCoord::new_idx(0, wire_target.slot),
-            TileWireCoord::new_idx(0, backend.egrid.db.get_wire(nwt)),
+            TileWireCoord::new_idx(0, backend.edev.db.get_wire(nwt)),
         )
     } else if wtn.starts_with("LONG") {
         if wtn.starts_with("LONG.H") {
@@ -170,16 +170,16 @@ fn drive_wire<'a>(
         (
             cell.tile(tslots::MAIN),
             TileWireCoord::new_idx(0, wire_target.slot),
-            TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("OUT.TBUF{idx}"))),
+            TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("OUT.TBUF{idx}"))),
         )
     } else if wtn.starts_with("CLB.M") || wtn.starts_with("IO.M") {
         let tcrd = cell.tile(tslots::MAIN);
-        let tile = &backend.egrid[tcrd];
-        let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+        let tile = &backend.edev[tcrd];
+        let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
         'a: {
             for &inp in &tcls_index.pips_bwd[&TileWireCoord::new_idx(0, wire_target.slot)] {
-                if backend.egrid.db.wires.key(inp.wire).starts_with("LONG")
-                    || backend.egrid.db.wires.key(inp.wire).starts_with("GLOBAL")
+                if backend.edev.db.wires.key(inp.wire).starts_with("LONG")
+                    || backend.edev.db.wires.key(inp.wire).starts_with("GLOBAL")
                 {
                     break 'a (tcrd, TileWireCoord::new_idx(0, wire_target.slot), inp.tw);
                 }
@@ -188,16 +188,16 @@ fn drive_wire<'a>(
         }
     } else if wtn.starts_with("SINGLE") || wtn.starts_with("IO.SINGLE") || wtn.starts_with("DBL") {
         'a: {
-            for w in backend.egrid.wire_tree(wire_target) {
+            for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let tile = &backend.egrid[tcrd];
-                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                let tile = &backend.edev[tcrd];
+                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
-                        if backend.egrid.db.wires.key(inp.wire).starts_with("CLB.M")
-                            || backend.egrid.db.wires.key(inp.wire).starts_with("IO.M")
+                        if backend.edev.db.wires.key(inp.wire).starts_with("CLB.M")
+                            || backend.edev.db.wires.key(inp.wire).starts_with("IO.M")
                         {
-                            let rwf = backend.egrid.resolve_tile_wire(tcrd, inp.tw).unwrap();
+                            let rwf = backend.edev.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (tcrd, TileWireCoord::new_idx(0, w.slot), inp.tw);
                             }
@@ -210,7 +210,7 @@ fn drive_wire<'a>(
     } else {
         panic!("umm wtf is {wtn}")
     };
-    let nwt = backend.egrid.resolve_tile_wire(ploc, pwf).unwrap();
+    let nwt = backend.edev.resolve_tile_wire(ploc, pwf).unwrap();
     let (fuzzer, block, pin) = drive_wire(backend, fuzzer, nwt, wire_avoid);
     let fuzzer = apply_int_pip(backend, ploc, pwt, pwf, block, pin, fuzzer);
     (fuzzer, block, pin)
@@ -226,7 +226,7 @@ fn apply_imux_finish<'a>(
 ) -> Fuzzer<XactBackend<'a>> {
     let mut cell = wire.cell;
     let w = wire.slot;
-    let wn = &backend.egrid.db.wires.key(w)[..];
+    let wn = &backend.edev.db.wires.key(w)[..];
     if !wn.starts_with("IMUX") || wn == "IMUX.GIN" || wn == "IMUX.TS" {
         return fuzzer;
     }
@@ -334,9 +334,9 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for IntPip {
         tcrd: prjcombine_interconnect::grid::TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let rwt = backend.egrid.resolve_tile_wire(tcrd, self.wire_to).unwrap();
+        let rwt = backend.edev.resolve_tile_wire(tcrd, self.wire_to).unwrap();
         let rwf = backend
-            .egrid
+            .edev
             .resolve_tile_wire(tcrd, self.wire_from)
             .unwrap();
         let (mut fuzzer, block, pin) = drive_wire(backend, fuzzer, rwf, rwt);
@@ -363,7 +363,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for AllColumnIo {
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let id = fuzzer.info.features.pop().unwrap().id;
-        for row in backend.egrid.rows(tcrd.die) {
+        for row in backend.edev.rows(tcrd.die) {
             if row == backend.edev.chip.row_s() || row == backend.edev.chip.row_n() {
                 continue;
             }
@@ -377,9 +377,9 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for AllColumnIo {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let intdb = backend.egrid.db;
+    let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
-        let tcls_index = &backend.egrid.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
         if tcls_index.pips_bwd.is_empty() {
             continue;
         }
@@ -430,8 +430,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let egrid = &ctx.edev.egrid;
-    let intdb = egrid.db;
+    let intdb = ctx.edev.db;
     for (_, tcname, tcls) in &intdb.tile_classes {
         for (bslot, bel) in &tcls.bels {
             let BelInfo::SwitchBox(sb) = bel else {

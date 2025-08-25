@@ -55,7 +55,6 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: 
         xact_path,
         device: part,
         bs_geom: &edev.bs_geom,
-        egrid: &edev.egrid,
         ngrid: &endev.ngrid,
         edev: &edev,
     };

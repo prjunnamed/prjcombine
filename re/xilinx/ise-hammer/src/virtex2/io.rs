@@ -391,7 +391,7 @@ struct IobRelation(CellSlotId);
 
 impl TileRelation for IobRelation {
     fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
-        let cell = backend.egrid.tile_cell(tcrd, self.0);
+        let cell = backend.edev.tile_cell(tcrd, self.0);
         Some(cell.tile(tslots::BEL))
     }
 }
@@ -426,7 +426,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Iobify {
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let id = &mut fuzzer.info.features[0].id;
-        assert_eq!(id.bel, *backend.egrid.db.bel_slots.key(self.0.bel));
+        assert_eq!(id.bel, *backend.edev.db.bel_slots.key(self.0.bel));
         id.bel = format!("IOB{}", self.0.index);
         Some((fuzzer, false))
     }
@@ -455,7 +455,7 @@ fn has_any_vref<'a>(
     tile: &str,
     iob_idx: usize,
 ) -> Option<&'a str> {
-    let tcls = edev.egrid.db.get_tile_class(tile);
+    let tcls = edev.db.get_tile_class(tile);
     let iobs = get_iob_data(tile).iobs;
     let ioi_cell = iobs[iob_idx].tile;
     let ioi_bel = iobs[iob_idx].bel;
@@ -469,8 +469,8 @@ fn has_any_vref<'a>(
             bonded_ios.insert(io, &devbond.name[..]);
         }
     }
-    for &tcrd in &edev.egrid.tile_index[tcls] {
-        let cell = edev.egrid.tile_cell(tcrd, ioi_cell);
+    for &tcrd in &edev.tile_index[tcls] {
+        let cell = edev.tile_cell(tcrd, ioi_cell);
         let crd = edev.chip.get_io_crd(cell.bel(ioi_bel));
         if let Some(&pkg) = bonded_ios.get(&crd) {
             return Some(pkg);
@@ -486,7 +486,7 @@ fn has_any_vr<'a>(
     tile: &str,
     iob_idx: usize,
 ) -> Option<(&'a str, Option<bool>)> {
-    let tcls = edev.egrid.db.get_tile_class(tile);
+    let tcls = edev.db.get_tile_class(tile);
     let iobs = get_iob_data(tile).iobs;
     let ioi_cell = iobs[iob_idx].tile;
     let ioi_bel = iobs[iob_idx].bel;
@@ -502,8 +502,8 @@ fn has_any_vr<'a>(
             }
         }
     }
-    for &tcrd in &edev.egrid.tile_index[tcls] {
-        let cell = edev.egrid.tile_cell(tcrd, ioi_cell);
+    for &tcrd in &edev.tile_index[tcls] {
+        let cell = edev.tile_cell(tcrd, ioi_cell);
         let crd = edev.chip.get_io_crd(cell.bel(ioi_bel));
         if let Some(&pkg) = bonded_ios.get(&crd) {
             for bank in 0..8 {
@@ -866,7 +866,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Virtex2(edev) = backend.edev else {
         unreachable!()
     };
-    let intdb = backend.egrid.db;
+    let intdb = backend.edev.db;
     let package = backend
         .device
         .bonds
@@ -2434,14 +2434,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Virtex2(edev) = ctx.edev else {
         unreachable!()
     };
-    let intdb = ctx.edev.egrid().db;
+    let intdb = ctx.edev.db;
 
     // IOI
     for (tcid, tile, tcls) in &intdb.tile_classes {
         if !tile.starts_with("IOI") {
             continue;
         }
-        if ctx.edev.egrid().tile_index[tcid].is_empty() {
+        if ctx.edev.tile_index[tcid].is_empty() {
             continue;
         }
         let int_tiles = &[match edev.chip.kind {
@@ -2806,7 +2806,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if !tile.starts_with("IOB") {
             continue;
         }
-        if ctx.edev.egrid().tile_index[tcls].is_empty() {
+        if ctx.edev.tile_index[tcls].is_empty() {
             continue;
         }
         let iob_data = get_iob_data(tile);

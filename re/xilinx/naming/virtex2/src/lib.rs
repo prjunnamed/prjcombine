@@ -90,7 +90,7 @@ impl Namer<'_> {
 
     fn fill_rlut(&mut self) {
         let n = self.chip.rows.len();
-        for row in self.edev.egrid.rows(self.die) {
+        for row in self.edev.rows(self.die) {
             self.rlut.push(n - row.to_idx() - 1);
         }
     }
@@ -1433,9 +1433,8 @@ impl Namer<'_> {
 }
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
-    let egrid = &edev.egrid;
     let chip = edev.chip;
-    let ngrid = ExpandedGridNaming::new(ndb, egrid);
+    let ngrid = ExpandedGridNaming::new(ndb, edev);
     let dcm_grid = ngrid.bel_grid(|_, name, _| name.starts_with("DCM."));
     let bram_grid = ngrid.bel_grid(|_, name, _| name.starts_with("BRAM"));
     let mut namer = Namer {
@@ -1470,9 +1469,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     namer.ngrid.tie_kind = Some("VCC".to_string());
     namer.ngrid.tie_pin_pullup = Some("VCCOUT".to_string());
 
-    for (tcrd, tile) in egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let CellCoord { col, row, .. } = tcrd.cell;
-        let kind = egrid.db.tile_classes.key(tile.class);
+        let kind = edev.db.tile_classes.key(tile.class);
         match &kind[..] {
             _ if kind.starts_with("INT.") => {
                 let (naming, name) = namer.get_int_name(tcrd.cell);
@@ -2368,9 +2367,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             _ => panic!("ummm {kind}?"),
         }
     }
-    for (ccrd, conn) in egrid.connectors() {
+    for (ccrd, conn) in edev.connectors() {
         let CellCoord { col, row, .. } = ccrd.cell;
-        let kind = egrid.db.conn_classes.key(conn.class);
+        let kind = edev.db.conn_classes.key(conn.class);
 
         match &kind[..] {
             "TERM.W" => {

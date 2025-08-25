@@ -27,7 +27,7 @@ impl ChipContext<'_> {
             self.intdb.get_wire("HSDCLK0"),
             self.intdb.get_wire("HSDCLK4"),
         ];
-        for (tcrd, tile) in self.edev.egrid.tiles() {
+        for (tcrd, tile) in self.edev.tiles() {
             if tcrd.slot != tslots::HSDCLK_SPLITTER {
                 continue;
             }
@@ -59,7 +59,7 @@ impl ChipContext<'_> {
                     continue;
                 }
                 let mut cell = CellCoord::new(DieId::from_idx(0), col, row);
-                if !self.edev.egrid.has_bel(cell.bel(bels::INT)) {
+                if !self.edev.has_bel(cell.bel(bels::INT)) {
                     cell.row += 9;
                 }
                 for i in 0..8 {

@@ -47,7 +47,7 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let tcrd = self.relation.resolve(backend, tcrd)?;
-        let tile = backend.egrid.db.tile_classes.key(backend.egrid[tcrd].class);
+        let tile = backend.edev.db.tile_classes.key(backend.edev[tcrd].class);
         let main_id = &fuzzer.info.features[0].id;
         let id = FeatureId {
             tile: tile.into(),
@@ -101,7 +101,7 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe
         let Some(tcrd) = self.relation.resolve(backend, tcrd) else {
             return Some((fuzzer, true));
         };
-        let tile = backend.egrid.db.tile_classes.key(backend.egrid[tcrd].class);
+        let tile = backend.edev.db.tile_classes.key(backend.edev[tcrd].class);
         let main_id = &fuzzer.info.features[0].id;
         let id = FeatureId {
             tile: tile.into(),
@@ -152,9 +152,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        if let Some(locs) = backend.egrid.tile_index.get(self.kind) {
+        if let Some(locs) = backend.edev.tile_index.get(self.kind) {
             for &tcrd in locs {
-                let tile = backend.egrid.db.tile_classes.key(backend.egrid[tcrd].class);
+                let tile = backend.edev.db.tile_classes.key(backend.edev[tcrd].class);
                 let main_id = &fuzzer.info.features[0].id;
                 let id = FeatureId {
                     tile: tile.into(),
@@ -207,13 +207,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        for (tcls, locs) in &backend.egrid.tile_index {
-            let tcls = &backend.egrid.db.tile_classes[tcls];
+        for (tcls, locs) in &backend.edev.tile_index {
+            let tcls = &backend.edev.db.tile_classes[tcls];
             if !tcls.bels.contains_id(self.slot) {
                 continue;
             }
             for &tcrd in locs {
-                let tile = backend.egrid.db.tile_classes.key(backend.egrid[tcrd].class);
+                let tile = backend.edev.db.tile_classes.key(backend.edev[tcrd].class);
                 let main_id = &fuzzer.info.features[0].id;
                 let id = FeatureId {
                     tile: tile.into(),
@@ -272,7 +272,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraReg {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        for die in backend.egrid.die.ids() {
+        for die in backend.edev.die.ids() {
             let main_id = &fuzzer.info.features[0].id;
             let id = FeatureId {
                 tile: self.tile.clone(),

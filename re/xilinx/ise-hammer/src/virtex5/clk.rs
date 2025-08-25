@@ -109,7 +109,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
         let mut sad = true;
         if tcrd.col <= edev.col_clk
             && let Some(ntcrd) = backend
-                .egrid
+                .edev
                 .find_tile_by_class(tcrd.with_col(edev.col_clk), |kind| kind == self.0)
         {
             fuzzer.info.features.push(FuzzerFeature {
@@ -148,10 +148,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllIodelay {
         let bot = chip.row_reg_bot(chip.row_to_reg(tcrd.row));
         for i in 0..chip.rows_per_reg() {
             let row = bot + i;
-            let Some(ntcrd) = edev
-                .egrid
-                .find_tile_by_bel(tcrd.with_row(row).bel(bels::IODELAY0))
-            else {
+            let Some(ntcrd) = edev.find_tile_by_bel(tcrd.with_row(row).bel(bels::IODELAY0)) else {
                 continue;
             };
             for bel in [bels::IODELAY0, bels::IODELAY1] {
@@ -289,8 +286,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
-        let tcid = backend.egrid.db.get_tile_class(tile);
-        let tcls = &backend.egrid.db.tile_classes[tcid];
+        let tcid = backend.edev.db.get_tile_class(tile);
+        let tcls = &backend.edev.db.tile_classes[tcid];
 
         for i in 0..4 {
             let bel = bels::BUFIO[i];
@@ -364,8 +361,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             "HCLK_IOI_CMT",
                             "HCLK_CMT_IOI",
                         ] {
-                            let otcls = backend.egrid.db.get_tile_class(otile);
-                            if !backend.egrid.tile_index[otcls].is_empty() {
+                            let otcls = backend.edev.db.get_tile_class(otile);
+                            if !backend.edev.tile_index[otcls].is_empty() {
                                 extras.push(Box::new(HclkIoiCenter(
                                     otile,
                                     "IOCLK",
@@ -612,8 +609,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "HCLK_IOI_CMT",
         "HCLK_CMT_IOI",
     ] {
-        let tcid = edev.egrid.db.get_tile_class(tile);
-        let tcls = &edev.egrid.db.tile_classes[tcid];
+        let tcid = edev.db.get_tile_class(tile);
+        let tcls = &edev.db.tile_classes[tcid];
 
         if !ctx.has_tile(tile) {
             continue;

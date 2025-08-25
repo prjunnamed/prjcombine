@@ -25,7 +25,7 @@ impl ChipContext<'_> {
             if row == self.chip.row_n() - 12 {
                 continue;
             }
-            for cell in self.edev.egrid.row(DieId::from_idx(0), row) {
+            for cell in self.edev.row(DieId::from_idx(0), row) {
                 if cell.col < self.chip.col_w() + 4 {
                     continue;
                 }
@@ -89,7 +89,7 @@ impl ChipContext<'_> {
     }
 
     fn process_ebr_conns(&mut self) {
-        for (ccrd, conn) in self.edev.egrid.connectors() {
+        for (ccrd, conn) in self.edev.connectors() {
             if ccrd.slot == cslots::EBR_W || ccrd.slot == cslots::EBR_E {
                 let cell_to = ccrd.cell;
                 let cell_from = conn.target.unwrap();
@@ -168,7 +168,7 @@ impl ChipContext<'_> {
             };
             let tcid = self.intdb.get_tile_class(tcname);
             let tcls = &self.intdb.tile_classes[tcid];
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::MACO);
                 let bcrd_int = tcrd.bel(bels::MACO_INT);
                 let cell = bcrd.delta(0, 1);
@@ -225,7 +225,7 @@ impl ChipContext<'_> {
                         );
                         bel.pins
                             .insert(format!("EBRO{i}{j:02}"), BelPin::new_out(int_wire));
-                        let wire_ebr = self.ebr_wires[&self.edev.egrid.tile_wire(tcrd, int_wire)];
+                        let wire_ebr = self.ebr_wires[&self.edev.tile_wire(tcrd, int_wire)];
                         self.claim_pip(wire_ebr, wire_out_out);
                     }
                     for j in 0..48 {
@@ -241,10 +241,7 @@ impl ChipContext<'_> {
                         );
                         bel.pins
                             .insert(format!("EBRI{i}{j:02}"), BelPin::new_in(int_wire));
-                        match self
-                            .ebr_wires
-                            .entry(self.edev.egrid.tile_wire(tcrd, int_wire))
-                        {
+                        match self.ebr_wires.entry(self.edev.tile_wire(tcrd, int_wire)) {
                             btree_map::Entry::Vacant(e) => {
                                 e.insert(wire_ebr);
                             }
@@ -310,7 +307,7 @@ impl ChipContext<'_> {
                             );
                             let wire_out = self
                                 .io_int_names
-                                .get(&self.edev.egrid.tile_wire(tcrd, twire_out))
+                                .get(&self.edev.tile_wire(tcrd, twire_out))
                                 .copied();
                             if let Some(wire_out) = wire_out {
                                 self.add_bel_wire_no_claim(
@@ -329,7 +326,7 @@ impl ChipContext<'_> {
                             );
                             let wire_in = self
                                 .io_int_names
-                                .get(&self.edev.egrid.tile_wire(tcrd, twire_in))
+                                .get(&self.edev.tile_wire(tcrd, twire_in))
                                 .copied();
                             if let Some(wire_in) = wire_in {
                                 self.add_bel_wire_no_claim(
@@ -404,7 +401,7 @@ impl ChipContext<'_> {
                         },
                         wire,
                     );
-                    let wire_out = self.io_int_names[&self.edev.egrid.tile_wire(tcrd, twire_out)];
+                    let wire_out = self.io_int_names[&self.edev.tile_wire(tcrd, twire_out)];
                     self.add_bel_wire_no_claim(
                         bcrd_int,
                         twire_out.to_string(self.intdb, tcls),
@@ -418,7 +415,7 @@ impl ChipContext<'_> {
                         },
                         wire,
                     );
-                    let wire_in = self.io_int_names[&self.edev.egrid.tile_wire(tcrd, twire_in)];
+                    let wire_in = self.io_int_names[&self.edev.tile_wire(tcrd, twire_in)];
                     self.add_bel_wire_no_claim(
                         bcrd_int,
                         twire_in.to_string(self.intdb, tcls),

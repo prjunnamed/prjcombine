@@ -16,7 +16,7 @@ use crate::ChipContext;
 impl ChipContext<'_> {
     pub(super) fn process_clk_ecp(&mut self) {
         let bcrd = self.chip.bel_clk_root();
-        let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
+        let tcrd = self.edev.get_tile_by_bel(bcrd);
         let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_clk - 1, self.chip.row_clk);
         self.name_bel_null(bcrd);
 
@@ -107,7 +107,7 @@ impl ChipContext<'_> {
                 let wire = TileWireCoord::new_idx(cell_idx, self.intdb.get_wire(wname));
                 bel.pins
                     .insert(format!("{wname}_{hv}"), BelPin::new_in(wire));
-                let wire = self.edev.egrid.tile_wire(tcrd, wire);
+                let wire = self.edev.tile_wire(tcrd, wire);
                 let idx: u8 = wname[4..].parse().unwrap();
                 if wname.starts_with("PCLK") {
                     for &wf in pll_in.values().flatten() {
@@ -179,7 +179,7 @@ impl ChipContext<'_> {
             let wire =
                 TileWireCoord::new_idx(bidx / 2, self.intdb.get_wire(&format!("PCLK{}", i + 2)));
             bel.pins.insert("OUT".into(), BelPin::new_in(wire));
-            let pclk = self.edev.egrid.tile_wire(tcrd, wire);
+            let pclk = self.edev.tile_wire(tcrd, wire);
             self.claim_pip_int_out(pclk, out);
 
             let clka = self.rc_wire(cell, &format!("{ll}CLK{i}A_DCS"));

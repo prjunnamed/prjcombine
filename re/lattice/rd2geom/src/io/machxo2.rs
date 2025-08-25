@@ -40,7 +40,7 @@ impl ChipContext<'_> {
                 (bels::BCSLEWRATE, "BCSLEWRATE", "SLEWRATEENO", "SLEWRATEENI"),
             ] {
                 let bcrd = cell_loc.bel(bel);
-                if self.edev.egrid.has_bel(bcrd) {
+                if self.edev.has_bel(bcrd) {
                     if bel == bels::BCLVDSO {
                         self.name_bel(bcrd, ["BCLVDSO"]);
                     } else {
@@ -503,7 +503,7 @@ impl ChipContext<'_> {
         ] {
             let cell_rc = self.chip.special_loc[&SpecialLocKey::Bc(bank)];
             let bcrd_rc = cell_rc.bel(bslot_rc);
-            if !self.edev.egrid.has_bel(bcrd_rc) {
+            if !self.edev.has_bel(bcrd_rc) {
                 continue;
             }
             let wire_src = self.naming.bel_wire(bcrd_rc, pin_src);

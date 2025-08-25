@@ -23,7 +23,7 @@ const EMAC_INVPINS: &[&str] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let intdb = backend.egrid.db;
+    let intdb = backend.edev.db;
     let tile = "PPC";
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
         return;
@@ -66,18 +66,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let egrid = ctx.edev.egrid();
     let tile = "PPC";
-    let tcid = egrid.db.get_tile_class(tile);
+    let tcid = ctx.edev.db.get_tile_class(tile);
     if !ctx.has_tile(tile) {
         return;
     }
-    let tcls = &egrid.db.tile_classes[tcid];
+    let tcls = &ctx.edev.db.tile_classes[tcid];
     for (slot, bel_data) in &tcls.bels {
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
-        let bel = egrid.db.bel_slots.key(slot);
+        let bel = ctx.edev.db.bel_slots.key(slot);
         if slot == bels::PPC {
             let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "1");
             for pin in bel_data.pins.keys() {
@@ -108,7 +107,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             assert_eq!(pin_data.wires.len(), 1);
             let wire = *pin_data.wires.first().unwrap();
-            if egrid.db.wires.key(wire.wire).starts_with("IMUX.IMUX") {
+            if ctx.edev.db.wires.key(wire.wire).starts_with("IMUX.IMUX") {
                 continue;
             }
             let int_tiles = &["INT"; 62];

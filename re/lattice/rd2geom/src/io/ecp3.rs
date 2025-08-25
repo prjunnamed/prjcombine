@@ -633,7 +633,7 @@ impl ChipContext<'_> {
 
     pub(super) fn process_eclk_tap_ecp3(&mut self) {
         let tcid = self.intdb.get_tile_class("ECLK_TAP");
-        for &tcrd in &self.edev.egrid.tile_index[tcid] {
+        for &tcrd in &self.edev.tile_index[tcid] {
             let bcrd = tcrd.bel(bels::ECLK_TAP);
             let edge = if tcrd.col == self.chip.col_w() {
                 Dir::W
@@ -646,7 +646,7 @@ impl ChipContext<'_> {
             };
             for i in 0..2 {
                 let bel_eclksync = self.chip.bel_eclksync(edge, i);
-                let eclk_out = self.edev.egrid.get_bel_pin(bcrd, &format!("ECLK{i}"))[0];
+                let eclk_out = self.edev.get_bel_pin(bcrd, &format!("ECLK{i}"))[0];
                 let eclk = self.naming.bel_wire(bel_eclksync, "ECLKO_OUT");
                 self.claim_pip_int_out(eclk_out, eclk);
             }

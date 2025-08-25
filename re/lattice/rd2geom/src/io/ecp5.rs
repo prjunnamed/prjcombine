@@ -30,7 +30,7 @@ impl ChipContext<'_> {
                 (bels::BCLVDSO, "BCLVDSO", "LVDSENO", "LVDSENI"),
             ] {
                 let bcrd = cell_loc.bel(bel);
-                if !self.edev.egrid.has_bel(bcrd) {
+                if !self.edev.has_bel(bcrd) {
                     continue;
                 }
                 self.name_bel(bcrd, [format!("{name}{bank}")]);
@@ -404,7 +404,7 @@ impl ChipContext<'_> {
 
     pub(super) fn process_dtr_ecp5(&mut self) {
         let tcid = self.intdb.get_tile_class("DTR");
-        for &tcrd in &self.edev.egrid.tile_index[tcid] {
+        for &tcrd in &self.edev.tile_index[tcid] {
             let bcrd = tcrd.bel(bels::DTR);
             self.name_bel(bcrd, ["DTR"]);
             self.insert_simple_bel(bcrd, bcrd.cell, "DTR");
@@ -623,7 +623,7 @@ impl ChipContext<'_> {
             self.add_bel_wire(bcrd, pin, wire);
             let cell_rc = self.chip.special_loc[&SpecialLocKey::Bc(bank)];
             let bcrd_rc = cell_rc.bel(bslot_rc);
-            if self.edev.egrid.has_bel(bcrd_rc) {
+            if self.edev.has_bel(bcrd_rc) {
                 let wire_src = self.naming.bel_wire(bcrd_rc, pin_src);
                 self.claim_pip(wire, wire_src);
             }
@@ -662,7 +662,7 @@ impl ChipContext<'_> {
     pub(super) fn process_io_ecp5(&mut self) {
         for tcname in ["DQS_W", "DQS_E"] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 self.process_dqs_ecp5(tcrd.bel(bels::DQS0));
             }
         }
@@ -674,7 +674,7 @@ impl ChipContext<'_> {
             ("IO_S1", 1),
         ] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 for i in 0..num_io {
                     let bcrd = tcrd.bel(bels::IO[i]);
                     self.process_single_io_ecp5(bcrd);

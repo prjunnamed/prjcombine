@@ -91,14 +91,14 @@ pub fn make_sample(
     if edev.chip.kind == ChipKind::Ice40R04 {
         for key in [SpecialTileKey::LsOsc, SpecialTileKey::HsOsc] {
             let crd = *edev.chip.special_tiles[&key].cells.first().unwrap();
-            let tile = &edev.egrid[crd.tile(tslots::OSC)];
-            let tcls = &edev.egrid.db.tile_classes[tile.class];
+            let tile = &edev[crd.tile(tslots::OSC)];
+            let tcls = &edev.db.tile_classes[tile.class];
             for (bslot, bel) in &tcls.bels {
                 let BelInfo::Bel(bel) = bel else {
                     unreachable!()
                 };
                 for (pin, pin_info) in &bel.pins {
-                    for wire in edev.egrid.get_bel_pin(crd.bel(bslot), pin) {
+                    for wire in edev.get_bel_pin(crd.bel(bslot), pin) {
                         if pin_info.dir == PinDir::Output {
                             io_hardip_outs.insert(wire);
                         }
@@ -109,8 +109,8 @@ pub fn make_sample(
     }
     let mut unoptinv = HashMap::new();
     for w in ["IMUX.CLK", "IMUX.IO.ICLK", "IMUX.IO.OCLK"] {
-        let wo = edev.egrid.db.get_wire(&format!("{w}.OPTINV"));
-        let wi = edev.egrid.db.get_wire(w);
+        let wo = edev.db.get_wire(&format!("{w}.OPTINV"));
+        let wi = edev.db.get_wire(w);
         unoptinv.insert(wo, wi);
     }
     let mut int_source: HashMap<WireCoord, (InstId, InstPin)> = HashMap::new();
@@ -141,9 +141,9 @@ pub fn make_sample(
                         let (cell, wa, wb) =
                             xlat_mux_in(edev, iwa, iwb, (ax, ay, aw), (bx, by, bw));
                         let tile_name = get_main_tile_kind(edev, cell.col, cell.row);
-                        let tile = &edev.egrid[cell.tile(tslots::MAIN)];
-                        let wan = edev.egrid.db.wires.key(wa);
-                        let wbn = edev.egrid.db.wires.key(wb);
+                        let tile = &edev[cell.tile(tslots::MAIN)];
+                        let wan = edev.db.wires.key(wa);
+                        let wbn = edev.db.wires.key(wb);
                         if let Some(idx) = wbn.strip_prefix("GLOBAL.") {
                             if wan != "IMUX.IO.EXTRA" {
                                 let tcls_gb_root = edev.chip.kind.tile_class_gb_root();
@@ -206,7 +206,7 @@ pub fn make_sample(
                         }
                         if io_hardip_outs.contains(&iwa) {
                             let crd = iwa.cell;
-                            let wn = edev.egrid.db.wires.key(iwa.slot).as_str();
+                            let wn = edev.db.wires.key(iwa.slot).as_str();
                             let io = match wn {
                                 "OUT.LC0" | "OUT.LC4" => 0,
                                 "OUT.LC2" | "OUT.LC6" => 1,
@@ -223,15 +223,13 @@ pub fn make_sample(
                         let dst_lc = if lc == 7 {
                             println!("long ltout edge {ax}:{ay}:{aw} -> {bx}:{by}:{bw}");
                             assert_eq!(cell.delta(0, 1), iwb.cell);
-                            assert_eq!(iwb.slot, edev.egrid.db.get_wire("IMUX.LC0.I2"));
+                            assert_eq!(iwb.slot, edev.db.get_wire("IMUX.LC0.I2"));
                             0
                         } else {
                             assert_eq!(cell, iwb.cell);
                             assert_eq!(
                                 iwb.slot,
-                                edev.egrid
-                                    .db
-                                    .get_wire(&format!("IMUX.LC{i}.I2", i = lc + 1))
+                                edev.db.get_wire(&format!("IMUX.LC{i}.I2", i = lc + 1))
                             );
                             lc + 1
                         };
@@ -246,10 +244,7 @@ pub fn make_sample(
                         assert_ne!(lc, 7);
                         assert_eq!(cell, iwb.cell);
                         let dst_lc = lc + 1;
-                        assert_eq!(
-                            iwb.slot,
-                            edev.egrid.db.get_wire(&format!("IMUX.LC{dst_lc}.I3"))
-                        );
+                        assert_eq!(iwb.slot, edev.db.get_wire(&format!("IMUX.LC{dst_lc}.I3")));
                         let tcls = edev.chip.kind.tile_class_plb();
                         sample.add_tiled_pattern(
                             &[BitOwner::Main(iwb.cell.col, iwb.cell.row)],
@@ -266,10 +261,7 @@ pub fn make_sample(
                         };
                         let lc = xi % 8;
                         let ii = if xi >= 8 { 2 } else { 0 };
-                        assert_eq!(
-                            *edev.egrid.db.wires.key(iwa.slot),
-                            format!("IMUX.LC{lc}.I{ii}")
-                        );
+                        assert_eq!(*edev.db.wires.key(iwa.slot), format!("IMUX.LC{lc}.I{ii}"));
                         let (row, which) = if cell.row.to_idx() % 2 == 1 {
                             (
                                 cell.row,
@@ -308,10 +300,7 @@ pub fn make_sample(
                         };
                         let lc = xi % 8;
                         let ii = if xi >= 8 { 2 } else { 0 };
-                        assert_eq!(
-                            *edev.egrid.db.wires.key(iwb.slot),
-                            format!("IMUX.LC{lc}.I{ii}")
-                        );
+                        assert_eq!(*edev.db.wires.key(iwb.slot), format!("IMUX.LC{lc}.I{ii}"));
                         let (row, which) = if cell.row.to_idx() % 2 == 1 {
                             (
                                 cell.row - 2,
@@ -353,13 +342,7 @@ pub fn make_sample(
                         | GenericNet::GlobalClkh,
                         GenericNet::Int(iw),
                     ) => {
-                        let idx = edev
-                            .egrid
-                            .db
-                            .wires
-                            .key(iw.slot)
-                            .strip_prefix("GLOBAL.")
-                            .unwrap();
+                        let idx = edev.db.wires.key(iw.slot).strip_prefix("GLOBAL.").unwrap();
                         let idx: usize = idx.parse().unwrap();
                         let tcls_gb_root = edev.chip.kind.tile_class_gb_root();
                         sample.add_tiled_pattern(
@@ -415,9 +398,9 @@ pub fn make_sample(
                             })
                             .collect();
                         let swz_to_orig = Vec::from_iter((0..4).map(|idx| {
-                            if let Some(src) = int_source.get(
-                                &crd.wire(edev.egrid.db.get_wire(&format!("IMUX.LC{lc}.I{idx}"))),
-                            ) {
+                            if let Some(src) = int_source
+                                .get(&crd.wire(edev.db.get_wire(&format!("IMUX.LC{lc}.I{idx}"))))
+                            {
                                 pin_to_orig[src]
                             } else if idx == 3 {
                                 let InstPinSource::FromInst(_cid, cpin) =
@@ -497,7 +480,7 @@ pub fn make_sample(
                     let bel = edev.chip.get_io_loc(io);
                     let btile = BitOwner::Main(bel.col, bel.row);
                     let iob = io.iob();
-                    let slot_name = edev.egrid.db.bel_slots.key(bel.slot).as_str();
+                    let slot_name = edev.db.bel_slots.key(bel.slot).as_str();
                     let tcls_ioi = edev.chip.kind.tile_class_ioi(io.edge()).unwrap();
                     let tcls_iob = edev.chip.kind.tile_class_iob(io.edge()).unwrap();
                     let mut global_idx = None;
@@ -771,7 +754,7 @@ pub fn make_sample(
                         BitOwner::Main(crd.col, crd.row + 1),
                     ];
                     for (key, pin, pinn) in [("NW", "WCLK", "WCLKN"), ("NR", "RCLK", "RCLKN")] {
-                        let mut wire = edev.egrid.get_bel_pin(bel, pin)[0];
+                        let mut wire = edev.get_bel_pin(bel, pin)[0];
                         wire.slot = unoptinv[&wire.slot];
                         if kind.contains(key) {
                             let pin = InstPin::Simple(pinn.into());
@@ -792,7 +775,7 @@ pub fn make_sample(
                         }
                     }
                     for pin in ["WE", "RE", "WCLKE", "RCLKE"] {
-                        let wire = edev.egrid.get_bel_pin(bel, pin)[0];
+                        let wire = edev.get_bel_pin(bel, pin)[0];
                         let pin = InstPin::Simple(pin.into());
                         if inst.pins.contains_key(&pin) {
                             let src = int_source[&wire].clone();
@@ -802,7 +785,7 @@ pub fn make_sample(
                     let abits = if edev.chip.kind.is_ice40() { 11 } else { 8 };
                     for pin in ["WADDR", "RADDR"] {
                         for idx in 0..abits {
-                            let wire = edev.egrid.get_bel_pin(bel, &format!("{pin}{idx}"))[0];
+                            let wire = edev.get_bel_pin(bel, &format!("{pin}{idx}"))[0];
                             let pin = InstPin::Indexed(pin.into(), idx);
                             if inst.pins.contains_key(&pin) {
                                 let Some(src) = int_source.get(&wire) else {
@@ -816,7 +799,7 @@ pub fn make_sample(
                     }
                     for pin in ["RDATA", "WDATA", "MASK"] {
                         for idx in 0..16 {
-                            let wire = edev.egrid.get_bel_pin(bel, &format!("{pin}{idx}"))[0];
+                            let wire = edev.get_bel_pin(bel, &format!("{pin}{idx}"))[0];
                             let pin = InstPin::Indexed(pin.into(), idx);
                             if inst.pins.contains_key(&pin) {
                                 let Some(src) = int_source.get(&wire) else {
@@ -1463,7 +1446,7 @@ pub fn make_sample(
                             }
                             if edev.chip.kind == ChipKind::Ice40R04 {
                                 let tcname = key.tile_class(edev.chip.kind);
-                                let tcls = edev.egrid.db.tile_classes.get(&tcname).unwrap().1;
+                                let tcls = edev.db.tile_classes.get(&tcname).unwrap().1;
                                 let bslot = match key {
                                     SpecialTileKey::Spi(_) => bels::SPI,
                                     SpecialTileKey::I2c(_) => bels::I2C,
@@ -1507,12 +1490,11 @@ pub fn make_sample(
                                         continue;
                                     }
                                     if pin_info.dir == PinDir::Input {
-                                        let iob =
-                                            match edev.egrid.db.wires.key(pin_wire.wire).as_str() {
-                                                "IMUX.IO0.DOUT0" => 0,
-                                                "IMUX.IO1.DOUT0" => 1,
-                                                _ => unreachable!(),
-                                            };
+                                        let iob = match edev.db.wires.key(pin_wire.wire).as_str() {
+                                            "IMUX.IO0.DOUT0" => 0,
+                                            "IMUX.IO1.DOUT0" => 1,
+                                            _ => unreachable!(),
+                                        };
                                         let io_tile_kind =
                                             get_main_tile_kind(edev, pin_crd.col, pin_crd.row);
                                         sample.add_tiled_pattern_single(
@@ -1524,12 +1506,11 @@ pub fn make_sample(
                                             format!("{io_tile_kind}:IO{iob}:PIN_TYPE:BIT4"),
                                         );
                                     } else {
-                                        let iob =
-                                            match edev.egrid.db.wires.key(pin_wire.wire).as_str() {
-                                                "OUT.LC0" | "OUT.LC4" => 0,
-                                                "OUT.LC2" | "OUT.LC6" => 1,
-                                                _ => unreachable!(),
-                                            };
+                                        let iob = match edev.db.wires.key(pin_wire.wire).as_str() {
+                                            "OUT.LC0" | "OUT.LC4" => 0,
+                                            "OUT.LC2" | "OUT.LC6" => 1,
+                                            _ => unreachable!(),
+                                        };
                                         let io_tile_kind =
                                             get_main_tile_kind(edev, pin_crd.col, pin_crd.row);
                                         sample.add_tiled_pattern_single(

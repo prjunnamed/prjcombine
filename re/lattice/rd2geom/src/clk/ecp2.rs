@@ -27,7 +27,7 @@ impl ChipContext<'_> {
                 self.name_bel_null(bcrd);
                 for h in [DirH::W, DirH::E] {
                     for i in 0..8 {
-                        let wire = self.edev.egrid.get_bel_pin(bcrd, &format!("OUT_{h}{i}"))[0];
+                        let wire = self.edev.get_bel_pin(bcrd, &format!("OUT_{h}{i}"))[0];
                         let wire = self.naming.interconnect[&wire];
                         let wire_out = self.pips_bwd[&wire]
                             .iter()
@@ -43,7 +43,7 @@ impl ChipContext<'_> {
         }
 
         let bcrd = self.chip.bel_clk_root();
-        let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
+        let tcrd = self.edev.get_tile_by_bel(bcrd);
         let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_clk - 1, self.chip.row_clk);
         self.name_bel_null(bcrd);
 
@@ -351,7 +351,7 @@ impl ChipContext<'_> {
         if self.chip.kind == ChipKind::Ecp2M {
             for tcname in ["SERDES_S", "SERDES_N"] {
                 let tcid = self.intdb.get_tile_class(tcname);
-                for &tcrd in &self.edev.egrid.tile_index[tcid] {
+                for &tcrd in &self.edev.tile_index[tcid] {
                     let bcrd_pcs = tcrd.bel(bels::SERDES);
                     let hv = DirHV {
                         h: if bcrd_pcs.col < self.chip.col_clk {
@@ -403,7 +403,7 @@ impl ChipContext<'_> {
                     TileWireCoord::new_idx(cell_idx, self.intdb.get_wire(&format!("PCLK{i}")));
                 bel.pins
                     .insert(format!("PCLK{i}_{hv}"), BelPin::new_in(wire));
-                let wire = self.edev.egrid.tile_wire(tcrd, wire);
+                let wire = self.edev.tile_wire(tcrd, wire);
                 let wire = self.naming.interconnect[&wire];
                 let wire_out = self.find_single_in(wire);
                 self.add_bel_wire(bcrd, format!("PCLK{i}_{hv}"), wire_out);
@@ -603,14 +603,14 @@ impl ChipContext<'_> {
             } else {
                 DirH::E
             };
-            'cells: for mut cell in self.edev.egrid.column(cell.die, col) {
+            'cells: for mut cell in self.edev.column(cell.die, col) {
                 let v = if cell.row < self.chip.row_clk {
                     DirV::S
                 } else {
                     DirV::N
                 };
                 let hv = DirHV { h, v };
-                while !self.edev.egrid.has_bel(cell.bel(bels::INT)) {
+                while !self.edev.has_bel(cell.bel(bels::INT)) {
                     if cell.col == self.chip.col_e() {
                         continue 'cells;
                     }

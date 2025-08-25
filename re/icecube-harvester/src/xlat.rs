@@ -152,7 +152,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
         }
         "wire_pll/outglobalb" => return GenericNet::GlobalPadIn(cell.delta(1, 0)),
         "hold" | "wire_io_cluster/io_0/hold" | "wire_io_cluster/io_1/hold" => {
-            let wire = edev.egrid.db.get_wire("IMUX.IO.EXTRA");
+            let wire = edev.db.get_wire("IMUX.IO.EXTRA");
             let edge = if cell.col == edev.chip.col_w() {
                 Dir::W
             } else if cell.col == edev.chip.col_e() {
@@ -278,7 +278,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 wname = format!("GLOBAL.{idx}");
             } else if let Some(idx) = name.strip_prefix("fabout_") {
                 let idx: usize = idx.parse().unwrap();
-                let wire = edev.egrid.db.get_wire("IMUX.IO.EXTRA");
+                let wire = edev.db.get_wire("IMUX.IO.EXTRA");
                 let special = &edev.chip.special_tiles[&SpecialTileKey::GbFabric(idx)];
                 return GenericNet::Int(special.cells.first().unwrap().wire(wire));
             } else if let Some(idx) = name.strip_prefix("padin_") {
@@ -548,9 +548,9 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             }
         }
     };
-    let wire = edev.egrid.db.get_wire(&wname);
-    let mut wire = edev.egrid.resolve_wire(cell.wire(wire)).unwrap();
-    let wname = edev.egrid.db.wires.key(wire.slot);
+    let wire = edev.db.get_wire(&wname);
+    let mut wire = edev.resolve_wire(cell.wire(wire)).unwrap();
+    let wname = edev.db.wires.key(wire.slot);
     if let Some(suf) = wname.strip_prefix("OUT.LC")
         && !suf.contains('.')
     {
@@ -558,14 +558,14 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
         if (wire.cell.col == edev.chip.col_w() || wire.cell.col == edev.chip.col_e())
             && (wire.cell.row == edev.chip.row_s() || wire.cell.row == edev.chip.row_n())
         {
-            wire.slot = edev.egrid.db.get_wire("OUT.LC0");
+            wire.slot = edev.db.get_wire("OUT.LC0");
         } else if wire.cell.row == edev.chip.row_s()
             || wire.cell.row == edev.chip.row_n()
             || (wire.cell.col == edev.chip.col_w() && edev.chip.kind.has_ioi_we())
             || (wire.cell.col == edev.chip.col_e() && edev.chip.kind.has_ioi_we())
         {
             idx %= 4;
-            wire.slot = edev.egrid.db.get_wire(&format!("OUT.LC{idx}"));
+            wire.slot = edev.db.get_wire(&format!("OUT.LC{idx}"));
         }
     }
     GenericNet::Int(wire)
@@ -578,8 +578,8 @@ pub fn xlat_mux_in(
     na: (u32, u32, &str),
     nb: (u32, u32, &str),
 ) -> (CellCoord, WireSlotId, WireSlotId) {
-    let wna = edev.egrid.db.wires.key(wa.slot);
-    let wnb = edev.egrid.db.wires.key(wb.slot);
+    let wna = edev.db.wires.key(wa.slot);
+    let wnb = edev.db.wires.key(wb.slot);
     if wna.starts_with("GLOBAL") {
         return (wb.cell, wa.slot, wb.slot);
     }
@@ -595,15 +595,15 @@ pub fn xlat_mux_in(
         } else {
             assert_eq!(out_idx, local_idx);
         }
-        wa.slot = edev.egrid.db.get_wire(&format!("OUT.LC{local_idx}"));
+        wa.slot = edev.db.get_wire(&format!("OUT.LC{local_idx}"));
     }
-    let wna = edev.egrid.db.wires.key(wa.slot);
+    let wna = edev.db.wires.key(wa.slot);
     let mut locs_a: HashMap<_, HashSet<_>> = HashMap::new();
-    for wire in edev.egrid.wire_tree(wa) {
+    for wire in edev.wire_tree(wa) {
         locs_a.entry(wire.cell).or_default().insert(wire.slot);
     }
     let mut locs_b: HashMap<_, HashSet<_>> = HashMap::new();
-    for wire in edev.egrid.wire_tree(wb) {
+    for wire in edev.wire_tree(wb) {
         locs_b.entry(wire.cell).or_default().insert(wire.slot);
     }
     for locs in [&mut locs_a, &mut locs_b] {
@@ -615,7 +615,7 @@ pub fn xlat_mux_in(
         for wires in locs.values_mut() {
             if wires.len() > 1 {
                 wires.retain(|&wire| {
-                    let wn = edev.egrid.db.wires.key(wire);
+                    let wn = edev.db.wires.key(wire);
                     !(wn.starts_with("QUAD.V") && wn.ends_with(".W"))
                 });
             }
@@ -638,20 +638,20 @@ pub fn xlat_mux_in(
         if wna.starts_with("OUT.LC") {
             locs = HashSet::from_iter([wa.cell]);
         } else if wna.starts_with("LONG.H") && wnb.starts_with("QUAD.H") {
-            locs_b.retain(|_, &mut wire| edev.egrid.db.wires.key(wire).ends_with(".1"));
+            locs_b.retain(|_, &mut wire| edev.db.wires.key(wire).ends_with(".1"));
             locs.retain(|&loc| locs_b.contains_key(&loc));
         } else if wna.starts_with("LONG.V") && wnb.starts_with("QUAD.V") {
-            locs_b.retain(|_, &mut wire| edev.egrid.db.wires.key(wire).ends_with(".3"));
+            locs_b.retain(|_, &mut wire| edev.db.wires.key(wire).ends_with(".3"));
             locs.retain(|&loc| locs_b.contains_key(&loc));
         } else if wna.starts_with("QUAD.H") && wnb.starts_with("QUAD.H") {
             locs.retain(|&cell| cell.col == edev.chip.col_w() || cell.col == edev.chip.col_e());
         } else if wna.starts_with("QUAD.V") && wnb.starts_with("QUAD.V") {
             locs_a.retain(|_, &mut wire| {
-                let wn = edev.egrid.db.wires.key(wire);
+                let wn = edev.db.wires.key(wire);
                 !(wn.starts_with("QUAD.V") && wn.ends_with(".W"))
             });
             locs_b.retain(|_, &mut wire| {
-                let wn = edev.egrid.db.wires.key(wire);
+                let wn = edev.db.wires.key(wire);
                 !(wn.starts_with("QUAD.V") && wn.ends_with(".W"))
             });
             locs.retain(|&loc| locs_a.contains_key(&loc));
@@ -659,11 +659,11 @@ pub fn xlat_mux_in(
             locs.retain(|&cell| cell.row == edev.chip.row_s() || cell.row == edev.chip.row_n());
         } else {
             locs_a.retain(|_, &mut wire| {
-                let wn = edev.egrid.db.wires.key(wire);
+                let wn = edev.db.wires.key(wire);
                 !(wn.starts_with("QUAD.V") && wn.ends_with(".W"))
             });
             locs_b.retain(|_, &mut wire| {
-                let wn = edev.egrid.db.wires.key(wire);
+                let wn = edev.db.wires.key(wire);
                 !(wn.starts_with("QUAD.V") && wn.ends_with(".W"))
             });
             locs.retain(|&loc| locs_a.contains_key(&loc));
@@ -675,11 +675,11 @@ pub fn xlat_mux_in(
             println!("UHHHHHHHHHHH MANY POSSIBILITIES HERE {ax}:{ay}:{aw} vs {bx}:{by}:{bw}");
             println!("{wa:?} ({wna}):");
             for (&cell, &wire) in &locs_a {
-                println!("  {wire}", wire = cell.wire(wire).to_string(edev.egrid.db));
+                println!("  {wire}", wire = cell.wire(wire).to_string(edev.db));
             }
             println!("{wb:?} ({wnb}):");
             for (&cell, &wire) in &locs_b {
-                println!("  {wire}", wire = cell.wire(wire).to_string(edev.egrid.db));
+                println!("  {wire}", wire = cell.wire(wire).to_string(edev.db));
             }
             println!("common {locs:?}");
             panic!("welp");
@@ -691,11 +691,11 @@ pub fn xlat_mux_in(
         println!("NO SPEAKA ENGLISH {ax}:{ay}:{aw} vs {bx}:{by}:{bw}");
         println!("{wa:?} ({wna}):");
         for (&cell, &wire) in &locs_a {
-            println!("  {wire}", wire = cell.wire(wire).to_string(edev.egrid.db));
+            println!("  {wire}", wire = cell.wire(wire).to_string(edev.db));
         }
         println!("{wb:?} ({wnb}):");
         for (&cell, &wire) in &locs_b {
-            println!("  {wire}", wire = cell.wire(wire).to_string(edev.egrid.db));
+            println!("  {wire}", wire = cell.wire(wire).to_string(edev.db));
         }
         println!("common {locs:?}");
     }

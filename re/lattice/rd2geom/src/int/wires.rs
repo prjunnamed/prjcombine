@@ -33,7 +33,7 @@ impl ChipContext<'_> {
             let mut cell = self.chip.xlat_rc_wire(wn);
             let conn_bwd = self.intdb.get_conn_slot(&(!dir).to_string());
             if seg != 0 {
-                if let Some(conn) = self.edev.egrid[cell].conns.get(conn_bwd)
+                if let Some(conn) = self.edev[cell].conns.get(conn_bwd)
                     && let Some(target) = conn.target
                 {
                     cell = target;
@@ -75,7 +75,7 @@ impl ChipContext<'_> {
                 seg = 3;
             }
             while seg != 0 {
-                if let Some(conn) = self.edev.egrid[cell].conns.get(conn_bwd)
+                if let Some(conn) = self.edev[cell].conns.get(conn_bwd)
                     && let Some(target) = conn.target
                 {
                     cell = target;
@@ -87,7 +87,7 @@ impl ChipContext<'_> {
             while seg <= len {
                 let wire = cell.wire(self.intdb.get_wire(&format!("X{len}_{dir}{idx}_{seg}")));
                 result.push(wire);
-                if let Some(conn) = self.edev.egrid[cell].conns.get(conn_fwd)
+                if let Some(conn) = self.edev[cell].conns.get(conn_fwd)
                     && let Some(target) = conn.target
                 {
                     cell = target;
@@ -128,26 +128,26 @@ impl ChipContext<'_> {
             match self.chip.kind {
                 ChipKind::Ecp | ChipKind::Xp | ChipKind::MachXo => {
                     let wire = cell.wire(wire);
-                    let wire = self.edev.egrid.resolve_wire(wire).unwrap();
-                    self.edev.egrid.wire_tree(wire)
+                    let wire = self.edev.resolve_wire(wire).unwrap();
+                    self.edev.wire_tree(wire)
                 }
                 ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2 => {
                     if is_sclk {
                         let WireKind::Regional(region) = self.intdb.wires[wire] else {
                             unreachable!()
                         };
-                        let root = self.edev.egrid[cell].region_root[region];
+                        let root = self.edev[cell].region_root[region];
                         let mut cell_start = cell;
                         let mut cell_end = cell;
-                        while let Some(cell_new) = self.edev.egrid.cell_delta(cell_start, -1, 0)
-                            && self.edev.egrid.has_bel(cell_new.bel(bels::INT))
-                            && self.edev.egrid[cell_new].region_root[region] == root
+                        while let Some(cell_new) = self.edev.cell_delta(cell_start, -1, 0)
+                            && self.edev.has_bel(cell_new.bel(bels::INT))
+                            && self.edev[cell_new].region_root[region] == root
                         {
                             cell_start = cell_new;
                         }
-                        while let Some(cell_new) = self.edev.egrid.cell_delta(cell_end, 1, 0)
-                            && self.edev.egrid.has_bel(cell_new.bel(bels::INT))
-                            && self.edev.egrid[cell_new].region_root[region] == root
+                        while let Some(cell_new) = self.edev.cell_delta(cell_end, 1, 0)
+                            && self.edev.has_bel(cell_new.bel(bels::INT))
+                            && self.edev[cell_new].region_root[region] == root
                         {
                             cell_end = cell_new;
                         }
@@ -180,16 +180,16 @@ impl ChipContext<'_> {
                     let WireKind::Regional(region) = self.intdb.wires[wire] else {
                         unreachable!()
                     };
-                    let root = self.edev.egrid[cell].region_root[region];
+                    let root = self.edev[cell].region_root[region];
                     let mut cell_start = cell;
                     let mut cell_end = cell;
-                    while let Some(cell_new) = self.edev.egrid.cell_delta(cell_start, -1, 0)
-                        && self.edev.egrid[cell_new].region_root[region] == root
+                    while let Some(cell_new) = self.edev.cell_delta(cell_start, -1, 0)
+                        && self.edev[cell_new].region_root[region] == root
                     {
                         cell_start = cell_new;
                     }
-                    while let Some(cell_new) = self.edev.egrid.cell_delta(cell_end, 1, 0)
-                        && self.edev.egrid[cell_new].region_root[region] == root
+                    while let Some(cell_new) = self.edev.cell_delta(cell_end, 1, 0)
+                        && self.edev[cell_new].region_root[region] == root
                     {
                         cell_end = cell_new;
                     }
@@ -227,15 +227,15 @@ impl ChipContext<'_> {
             let wire = self.intdb.get_wire(&format!("SCLK{idx}"));
             let wire = cell.wire(wire);
             let mut res = vec![wire];
-            if let Some(cell_w) = self.edev.egrid.cell_delta(cell, -1, 0)
-                && self.edev.egrid.has_bel(cell_w.bel(bels::INT))
+            if let Some(cell_w) = self.edev.cell_delta(cell, -1, 0)
+                && self.edev.has_bel(cell_w.bel(bels::INT))
             {
                 let wire = self.intdb.get_wire(&format!("SCLK{idx}_W"));
                 let wire = cell_w.wire(wire);
                 res.push(wire);
             }
-            if let Some(cell_e) = self.edev.egrid.cell_delta(cell, 1, 0)
-                && self.edev.egrid.has_bel(cell_e.bel(bels::INT))
+            if let Some(cell_e) = self.edev.cell_delta(cell, 1, 0)
+                && self.edev.has_bel(cell_e.bel(bels::INT))
             {
                 let wire = self.intdb.get_wire(&format!("SCLK{idx}_E"));
                 let wire = cell_e.wire(wire);
@@ -257,7 +257,7 @@ impl ChipContext<'_> {
             }
             let mut cell = self.chip.xlat_rc_wire(wn);
             while seg != 0 {
-                if let Some(conn) = self.edev.egrid[cell].conns.get(cslots::S)
+                if let Some(conn) = self.edev[cell].conns.get(cslots::S)
                     && let Some(target) = conn.target
                 {
                     cell = target;
@@ -270,7 +270,7 @@ impl ChipContext<'_> {
             while seg <= 6 {
                 let wire = cell.wire(self.intdb.get_wire(&format!("VSDCLK{seg}")));
                 result.push(wire);
-                if let Some(conn) = self.edev.egrid[cell].conns.get(cslots::N)
+                if let Some(conn) = self.edev[cell].conns.get(cslots::N)
                     && let Some(target) = conn.target
                 {
                     cell = target;
@@ -294,8 +294,8 @@ impl ChipContext<'_> {
             }
             let cell = self.chip.xlat_rc_wire(wn);
             let wire = cell.wire(self.intdb.get_wire(&format!("HSDCLK{seg}")));
-            let wire = self.edev.egrid.resolve_wire(wire).unwrap();
-            self.edev.egrid.wire_tree(wire)
+            let wire = self.edev.resolve_wire(wire).unwrap();
+            self.edev.wire_tree(wire)
         } else if suffix.starts_with("HSSX") && suffix.len() == 8 {
             assert!(suffix.ends_with("00"));
             let cell = self.hsdclk_locs[&wn];
@@ -309,8 +309,8 @@ impl ChipContext<'_> {
             };
             let wire = self.intdb.get_wire(&format!("HSDCLK{idx}"));
             let wire = cell.wire(wire);
-            let wire = self.edev.egrid.resolve_wire(wire).unwrap();
-            self.edev.egrid.wire_tree(wire)
+            let wire = self.edev.resolve_wire(wire).unwrap();
+            self.edev.wire_tree(wire)
         } else if suffix.starts_with("VSTX") && suffix.len() == 8 {
             assert!(suffix.ends_with("00"));
             let idx: usize = suffix[4..6].parse().unwrap();
@@ -339,8 +339,8 @@ impl ChipContext<'_> {
             };
             let wire = self.intdb.get_wire(&format!("VSDCLK{idx}"));
             let wire = cell.wire(wire);
-            let wire = self.edev.egrid.resolve_wire(wire).unwrap();
-            self.edev.egrid.wire_tree(wire)
+            let wire = self.edev.resolve_wire(wire).unwrap();
+            self.edev.wire_tree(wire)
         } else if let Some(w) = match suffix.as_str() {
             "HL7W0000" if self.chip.kind.has_ecp_plc() && self.chip.kind.has_out_ofx_branch() => {
                 Some("OUT_OFX3_W")
@@ -374,7 +374,7 @@ impl ChipContext<'_> {
                         self.chip
                             .row_s()
                             .range(self.chip.row_s() + 10)
-                            .flat_map(|row| self.edev.egrid.row(cell.die, row))
+                            .flat_map(|row| self.edev.row(cell.die, row))
                             .filter(|cell| cell.col < self.chip.col_clk)
                             .map(|cell| cell.wire(w)),
                     )
@@ -383,7 +383,7 @@ impl ChipContext<'_> {
                         self.chip
                             .row_s()
                             .range(self.chip.row_s() + 10)
-                            .flat_map(|row| self.edev.egrid.row(cell.die, row))
+                            .flat_map(|row| self.edev.row(cell.die, row))
                             .filter(|cell| cell.col >= self.chip.col_clk)
                             .map(|cell| cell.wire(w)),
                     )
@@ -392,7 +392,6 @@ impl ChipContext<'_> {
                 if cell.col < self.chip.col_clk {
                     Vec::from_iter(
                         self.edev
-                            .egrid
                             .row(cell.die, cell.row)
                             .filter(|cell| cell.col < self.chip.col_clk)
                             .map(|cell| cell.wire(w)),
@@ -400,7 +399,6 @@ impl ChipContext<'_> {
                 } else {
                     Vec::from_iter(
                         self.edev
-                            .egrid
                             .row(cell.die, cell.row)
                             .filter(|cell| cell.col >= self.chip.col_clk)
                             .map(|cell| cell.wire(w)),
@@ -620,7 +618,7 @@ impl ChipContext<'_> {
                     self.unclaimed_nodes.insert(wn);
                 }
             } else {
-                let rwire0 = self.edev.egrid.resolve_wire(wires[0]).unwrap();
+                let rwire0 = self.edev.resolve_wire(wires[0]).unwrap();
                 for &wire in &wires {
                     if let Some(prev) = self.naming.interconnect.insert(wire, wn) {
                         panic!(
@@ -631,7 +629,7 @@ impl ChipContext<'_> {
                         );
                     }
                     if !self.intdb.wires[wire.slot].is_tie() {
-                        let rwire = self.edev.egrid.resolve_wire(wire).unwrap();
+                        let rwire = self.edev.resolve_wire(wire).unwrap();
                         assert_eq!(
                             rwire,
                             rwire0,
@@ -655,8 +653,8 @@ impl ChipContext<'_> {
         wire: WireName,
         filter: bool,
     ) -> Option<BelPin> {
-        let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
-        let tile = &self.edev.egrid[tcrd];
+        let tcrd = self.edev.get_tile_by_bel(bcrd);
+        let tile = &self.edev[tcrd];
         for &wfn in self.pips_bwd.get(&wire).into_iter().flatten() {
             if let Some(wires_f) = self
                 .int_wires

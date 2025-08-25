@@ -21,8 +21,8 @@ impl ChipContext<'_> {
         let mut vpsx = BTreeMap::new();
         for i in 0..12 {
             let pclk = self.intdb.get_wire(&format!("PCLK{i}"));
-            for cell in self.edev.egrid.die_cells(DieId::from_idx(0)) {
-                if !self.edev.egrid.has_bel(cell.bel(bels::INT)) {
+            for cell in self.edev.die_cells(DieId::from_idx(0)) {
+                if !self.edev.has_bel(cell.bel(bels::INT)) {
                     continue;
                 }
                 let pclk = self.naming.interconnect[&cell.wire(pclk)];
@@ -38,7 +38,7 @@ impl ChipContext<'_> {
                     }
                 }
             }
-            for cell in self.edev.egrid.die_cells(DieId::from_idx(0)) {
+            for cell in self.edev.die_cells(DieId::from_idx(0)) {
                 if !self.chip.columns[cell.col].pclk_drive {
                     continue;
                 }
@@ -48,7 +48,7 @@ impl ChipContext<'_> {
                     continue;
                 };
                 let bcrd = cell.bel(bels::INT);
-                if !self.edev.egrid.has_bel(bcrd) && i == 0 {
+                if !self.edev.has_bel(bcrd) && i == 0 {
                     self.name_bel_null(bcrd);
                 }
                 self.add_bel_wire(bcrd, format!("PCLK{i}"), cur_hpbx);

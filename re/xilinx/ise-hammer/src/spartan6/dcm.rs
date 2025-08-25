@@ -36,8 +36,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllOtherDcms {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let tcid = backend.egrid.db.get_tile_class("CMT_DCM");
-        for &ntcrd in &backend.egrid.tile_index[tcid] {
+        let tcid = backend.edev.db.get_tile_class("CMT_DCM");
+        for &ntcrd in &backend.edev.tile_index[tcid] {
             if tcrd == ntcrd {
                 continue;
             }

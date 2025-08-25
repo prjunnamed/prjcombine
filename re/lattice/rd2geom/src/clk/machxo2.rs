@@ -26,7 +26,7 @@ impl ChipContext<'_> {
             self.name_bel_null(bcrd);
             for i in 0..8 {
                 for h in [DirH::W, DirH::E] {
-                    let wire = self.edev.egrid.get_bel_pin(bcrd, &format!("OUT_{h}{i}"))[0];
+                    let wire = self.edev.get_bel_pin(bcrd, &format!("OUT_{h}{i}"))[0];
                     let wire = self.naming.interconnect[&wire];
                     let wire_out = self.pips_bwd[&wire]
                         .iter()
@@ -73,7 +73,7 @@ impl ChipContext<'_> {
             let mut vptx_wires_n: BTreeMap<(ColId, usize), WireName> = BTreeMap::new();
             let mut vptx_wires_s: BTreeMap<(ColId, usize), WireName> = BTreeMap::new();
             let mut col_hpsx = self.chip.col_w();
-            for cell in self.edev.egrid.row(DieId::from_idx(0), row) {
+            for cell in self.edev.row(DieId::from_idx(0), row) {
                 let cell_nom = if cell.row == self.chip.row_s() {
                     cell.with_row(self.chip.row_clk)
                 } else {
@@ -84,7 +84,7 @@ impl ChipContext<'_> {
                 }
                 let idx = self.chip.col_sclk_idx(cell.col);
                 let mut pclk_idx = vec![idx, idx + 4];
-                if self.edev.egrid.has_bel(cell.bel(bels::PCLK_SOURCE_W)) {
+                if self.edev.has_bel(cell.bel(bels::PCLK_SOURCE_W)) {
                     pclk_idx.extend([
                         (idx + 3) % 4,
                         (idx + 3) % 4 + 4,
@@ -92,7 +92,7 @@ impl ChipContext<'_> {
                         (idx + 2) % 4 + 4,
                     ]);
                 }
-                if self.edev.egrid.has_bel(cell.bel(bels::PCLK_SOURCE_E)) {
+                if self.edev.has_bel(cell.bel(bels::PCLK_SOURCE_E)) {
                     pclk_idx.extend([(idx + 1) % 4, (idx + 1) % 4 + 4]);
                 }
                 for &i in &pclk_idx {
@@ -226,12 +226,12 @@ impl ChipContext<'_> {
             }
 
             let mut col_hpsx = self.chip.col_w();
-            for cell in self.edev.egrid.row(DieId::from_idx(0), row) {
+            for cell in self.edev.row(DieId::from_idx(0), row) {
                 if self.chip.columns[cell.col].sdclk_break {
                     col_hpsx = cell.col;
                 }
                 let idx = self.chip.col_sclk_idx(cell.col);
-                let (bcrd, pclk_idx) = if self.edev.egrid.has_bel(cell.bel(bels::PCLK_SOURCE_W)) {
+                let (bcrd, pclk_idx) = if self.edev.has_bel(cell.bel(bels::PCLK_SOURCE_W)) {
                     (
                         cell.bel(bels::PCLK_SOURCE_W),
                         vec![
@@ -241,7 +241,7 @@ impl ChipContext<'_> {
                             (idx + 2) % 4 + 4,
                         ],
                     )
-                } else if self.edev.egrid.has_bel(cell.bel(bels::PCLK_SOURCE_E)) {
+                } else if self.edev.has_bel(cell.bel(bels::PCLK_SOURCE_E)) {
                     (
                         cell.bel(bels::PCLK_SOURCE_E),
                         vec![(idx + 1) % 4, (idx + 1) % 4 + 4],

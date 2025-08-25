@@ -42,8 +42,8 @@ fn drive_xc4000_wire<'a>(
     let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
     };
-    let wname = backend.egrid.db.wires.key(wire_target.slot);
-    let aname = backend.egrid.db.wires.key(wire_avoid.slot);
+    let wname = backend.edev.db.wires.key(wire_target.slot);
+    let aname = backend.edev.db.wires.key(wire_avoid.slot);
     let mut cell = wire_target.cell;
     let mut wt = wire_target.slot;
     let fuzzer = fuzzer.fuzz(Key::WireMutex(wire_target), None, "EXCLUSIVE");
@@ -87,7 +87,7 @@ fn drive_xc4000_wire<'a>(
         (fuzzer, site_name, "O")
     } else if wname.starts_with("OUT.CLB") && (wname.ends_with(".V") || wname.ends_with(".H")) {
         let owname = &wname[..(wname.len() - 2)];
-        let nwt = cell.wire(backend.egrid.db.get_wire(owname));
+        let nwt = cell.wire(backend.edev.db.get_wire(owname));
         let (fuzzer, site_name, pin_name) =
             drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
         let (tile, wt, wf) = resolve_int_pip(
@@ -168,7 +168,7 @@ fn drive_xc4000_wire<'a>(
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 cell.delta(1, 0).tile(tslots::MAIN),
-                TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("SINGLE.H{idx}.E"))),
+                TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("SINGLE.H{idx}.E"))),
                 TileWireCoord::new_idx(0, wt),
             )
             .unwrap();
@@ -185,7 +185,7 @@ fn drive_xc4000_wire<'a>(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
-                TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("SINGLE.H{idx}.E"))),
+                TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("SINGLE.H{idx}.E"))),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -196,14 +196,14 @@ fn drive_xc4000_wire<'a>(
         } else if cell.row == edev.chip.row_s() {
             let nwt = cell
                 .delta(0, 1)
-                .wire(backend.egrid.db.get_wire(&format!("SINGLE.V{idx}")));
+                .wire(backend.edev.db.get_wire(&format!("SINGLE.V{idx}")));
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
-                TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("SINGLE.V{idx}.S"))),
+                TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("SINGLE.V{idx}.S"))),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -212,7 +212,7 @@ fn drive_xc4000_wire<'a>(
             );
             (fuzzer, site_name, pin_name)
         } else if cell.row == edev.chip.row_n() - 1 {
-            let nwt = cell.wire(backend.egrid.db.get_wire(&format!("SINGLE.V{idx}")));
+            let nwt = cell.wire(backend.edev.db.get_wire(&format!("SINGLE.V{idx}")));
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
@@ -242,14 +242,14 @@ fn drive_xc4000_wire<'a>(
                 (3 | 7, false) => ("OUT.CLB.FX.S", "OUT.CLB.FX.V", 1),
                 _ => unreachable!(),
             };
-            let nwt = cell.delta(0, dy).wire(backend.egrid.db.get_wire(sout));
+            let nwt = cell.delta(0, dy).wire(backend.edev.db.get_wire(sout));
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
-                TileWireCoord::new_idx(0, backend.egrid.db.get_wire(out)),
+                TileWireCoord::new_idx(0, backend.edev.db.get_wire(out)),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -269,7 +269,7 @@ fn drive_xc4000_wire<'a>(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
-                TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("SINGLE.V{idx}.S"))),
+                TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("SINGLE.V{idx}.S"))),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -287,7 +287,7 @@ fn drive_xc4000_wire<'a>(
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 cell.delta(0, -1).tile(tslots::MAIN),
-                TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("SINGLE.V{idx}.S"))),
+                TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("SINGLE.V{idx}.S"))),
                 TileWireCoord::new_idx(0, wt),
             )
             .unwrap();
@@ -297,7 +297,7 @@ fn drive_xc4000_wire<'a>(
             );
             (fuzzer, site_name, pin_name)
         } else if cell.col == edev.chip.col_w() + 1 {
-            let nwt = cell.wire(backend.egrid.db.get_wire(&format!("SINGLE.H{idx}")));
+            let nwt = cell.wire(backend.edev.db.get_wire(&format!("SINGLE.H{idx}")));
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
@@ -315,14 +315,14 @@ fn drive_xc4000_wire<'a>(
         } else if cell.col == edev.chip.col_e() {
             let nwt = cell
                 .delta(-1, 0)
-                .wire(backend.egrid.db.get_wire(&format!("SINGLE.H{idx}")));
+                .wire(backend.edev.db.get_wire(&format!("SINGLE.H{idx}")));
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
-                TileWireCoord::new_idx(0, backend.egrid.db.get_wire(&format!("SINGLE.H{idx}.E"))),
+                TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("SINGLE.H{idx}.E"))),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -345,14 +345,14 @@ fn drive_xc4000_wire<'a>(
                 (3 | 7, false) => ("OUT.CLB.GYQ.E", "OUT.CLB.GYQ.H", -1),
                 _ => unreachable!(),
             };
-            let nwt = cell.delta(dx, 0).wire(backend.egrid.db.get_wire(sout));
+            let nwt = cell.delta(dx, 0).wire(backend.edev.db.get_wire(sout));
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
             let (tile, wt, wf) = resolve_int_pip(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
-                TileWireCoord::new_idx(0, backend.egrid.db.get_wire(out)),
+                TileWireCoord::new_idx(0, backend.edev.db.get_wire(out)),
             )
             .unwrap();
             let fuzzer = fuzzer.base(
@@ -392,9 +392,9 @@ fn drive_xc4000_wire<'a>(
                 "IO.OCTAL.E.0" => {
                     assert_ne!(cell.row, edev.chip.row_n());
                     cell.row += 1;
-                    wt = backend.egrid.db.get_wire("IO.OCTAL.E.1");
+                    wt = backend.edev.db.get_wire("IO.OCTAL.E.1");
                     if cell.row == edev.chip.row_n() {
-                        wt = backend.egrid.db.get_wire("IO.OCTAL.N.1");
+                        wt = backend.edev.db.get_wire("IO.OCTAL.N.1");
                         cell.col -= 1;
                     }
                 }
@@ -402,9 +402,9 @@ fn drive_xc4000_wire<'a>(
                 "IO.OCTAL.N.0" => {
                     assert_ne!(cell.col, edev.chip.col_w());
                     cell.col -= 1;
-                    wt = backend.egrid.db.get_wire("IO.OCTAL.N.1");
+                    wt = backend.edev.db.get_wire("IO.OCTAL.N.1");
                     if cell.col == edev.chip.col_w() {
-                        wt = backend.egrid.db.get_wire("IO.OCTAL.W.1");
+                        wt = backend.edev.db.get_wire("IO.OCTAL.W.1");
                         cell.row -= 1;
                     }
                 }
@@ -418,15 +418,15 @@ fn drive_xc4000_wire<'a>(
                         match &wname[..] {
                             "QUAD.H0.3" => {
                                 filter = Some("QUAD.H0.0");
-                                wt = backend.egrid.db.get_wire("QUAD.H0.4");
+                                wt = backend.edev.db.get_wire("QUAD.H0.4");
                             }
                             "QUAD.H1.3" => {
                                 filter = Some("QUAD.H1.0");
-                                wt = backend.egrid.db.get_wire("QUAD.H1.4");
+                                wt = backend.edev.db.get_wire("QUAD.H1.4");
                             }
                             "QUAD.H2.3" => {
                                 filter = Some("QUAD.H2.0");
-                                wt = backend.egrid.db.get_wire("QUAD.H2.4");
+                                wt = backend.edev.db.get_wire("QUAD.H2.4");
                             }
                             _ => unreachable!(),
                         }
@@ -435,7 +435,7 @@ fn drive_xc4000_wire<'a>(
                     }
                 } else if wname == "QUAD.H1.0" {
                     cell.col += 1;
-                    wt = backend.egrid.db.get_wire("QUAD.H1.1");
+                    wt = backend.edev.db.get_wire("QUAD.H1.1");
                 }
             } else if wname == "QUAD.H2.0" {
                 if cell.col == edev.chip.col_e() {
@@ -446,7 +446,7 @@ fn drive_xc4000_wire<'a>(
                     }
                 } else {
                     cell.col += 1;
-                    wt = backend.egrid.db.get_wire("QUAD.H2.1");
+                    wt = backend.edev.db.get_wire("QUAD.H2.1");
                 }
             }
         } else if wname.starts_with("QUAD.V") {
@@ -457,15 +457,15 @@ fn drive_xc4000_wire<'a>(
                         match &wname[..] {
                             "QUAD.V0.3" => {
                                 filter = Some("QUAD.V0.0");
-                                wt = backend.egrid.db.get_wire("QUAD.V0.4");
+                                wt = backend.edev.db.get_wire("QUAD.V0.4");
                             }
                             "QUAD.V1.3" => {
                                 filter = Some("QUAD.V1.0");
-                                wt = backend.egrid.db.get_wire("QUAD.V1.4");
+                                wt = backend.edev.db.get_wire("QUAD.V1.4");
                             }
                             "QUAD.V2.3" => {
                                 filter = Some("QUAD.V2.0");
-                                wt = backend.egrid.db.get_wire("QUAD.V2.4");
+                                wt = backend.edev.db.get_wire("QUAD.V2.4");
                             }
                             _ => unreachable!(),
                         }
@@ -474,7 +474,7 @@ fn drive_xc4000_wire<'a>(
                     }
                 } else if wname == "QUAD.V2.2" {
                     cell.row -= 1;
-                    wt = backend.egrid.db.get_wire("QUAD.V2.3");
+                    wt = backend.edev.db.get_wire("QUAD.V2.3");
                 }
             } else if wname == "QUAD.V0.0" {
                 if cell.row == edev.chip.row_s() {
@@ -485,20 +485,20 @@ fn drive_xc4000_wire<'a>(
                     }
                 } else {
                     cell.row -= 1;
-                    wt = backend.egrid.db.get_wire("QUAD.V0.1");
+                    wt = backend.edev.db.get_wire("QUAD.V0.1");
                 }
             }
         } else if let Some(idx) = wname.strip_prefix("OCTAL.H.") {
             if cell.col == edev.chip.col_w() {
                 let idx: usize = idx.parse().unwrap();
                 cell.col += 7 - idx;
-                wt = backend.egrid.db.get_wire("OCTAL.H.7");
+                wt = backend.edev.db.get_wire("OCTAL.H.7");
             }
         } else if let Some(idx) = wname.strip_prefix("OCTAL.V.") {
             if cell.row == edev.chip.row_n() {
                 let idx: usize = idx.parse().unwrap();
                 cell.row -= 7 - idx;
-                wt = backend.egrid.db.get_wire("OCTAL.V.7");
+                wt = backend.edev.db.get_wire("OCTAL.V.7");
             }
         } else if wname.starts_with("GCLK") {
             if cell.row == edev.chip.row_s() {
@@ -525,19 +525,19 @@ fn drive_xc4000_wire<'a>(
             unreachable!()
         }
         let tcrd = cell.tile(tslot);
-        let tile = &backend.egrid[tcrd];
+        let tile = &backend.edev[tcrd];
         let mwt = TileWireCoord {
             cell: twt,
             wire: wt,
         };
         let res = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, mwt))
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, mwt))
             .unwrap();
         assert_eq!(res, wire_target);
-        let ins = &backend.egrid.db_index.tile_classes[tile.class].pips_bwd[&mwt];
+        let ins = &backend.edev.db_index.tile_classes[tile.class].pips_bwd[&mwt];
         for &mwf in ins {
-            let wfname = backend.egrid.db.wires.key(mwf.wire);
+            let wfname = backend.edev.db.wires.key(mwf.wire);
             if let Some(filter) = filter {
                 if !wfname.starts_with(filter) {
                     continue;
@@ -554,8 +554,8 @@ fn drive_xc4000_wire<'a>(
                 }
             }
             let nwt = backend
-                .egrid
-                .resolve_wire(backend.egrid.tile_wire(tcrd, mwf.tw))
+                .edev
+                .resolve_wire(backend.edev.tile_wire(tcrd, mwf.tw))
                 .unwrap();
             if nwt == wire_avoid {
                 continue;
@@ -572,16 +572,16 @@ fn drive_xc4000_wire<'a>(
         panic!("umm failed at {wire_target:?} {wname}");
     } else if wname.starts_with("IO.DOUBLE") {
         let (tcrd, mwt) = orig_target.unwrap();
-        let tile = &backend.egrid[tcrd];
-        let ins = &backend.egrid.db_index.tile_classes[tile.class].pips_bwd[&mwt];
+        let tile = &backend.edev[tcrd];
+        let ins = &backend.edev.db_index.tile_classes[tile.class].pips_bwd[&mwt];
         for &mwf in ins {
-            let wfname = backend.egrid.db.wires.key(mwf.wire);
+            let wfname = backend.edev.db.wires.key(mwf.wire);
             if !wfname.starts_with("SINGLE") {
                 continue;
             }
             let nwt = backend
-                .egrid
-                .resolve_wire(backend.egrid.tile_wire(tcrd, mwf.tw))
+                .edev
+                .resolve_wire(backend.edev.tile_wire(tcrd, mwf.tw))
                 .unwrap();
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
@@ -627,16 +627,16 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DoublePip {
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let res_from = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire_from))
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, self.wire_from))
             .unwrap();
         let res_mid = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire_mid))
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, self.wire_mid))
             .unwrap();
         let res_to = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire_to))
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, self.wire_to))
             .unwrap();
         let fuzzer = fuzzer
             .fuzz(Key::WireMutex(res_to), None, "EXCLUSIVE-TGT")
@@ -691,12 +691,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000BiPip {
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let res_from = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire_from))
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, self.wire_from))
             .unwrap();
         let res_to = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire_to))
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, self.wire_to))
             .unwrap();
         let fuzzer = fuzzer.fuzz(Key::WireMutex(res_to), None, "EXCLUSIVE-TGT");
         let (fuzzer, src_site, src_pin) = drive_xc4000_wire(
@@ -742,9 +742,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let tile = &backend.egrid[tcrd];
+        let tile = &backend.edev[tcrd];
         let ntile = &backend.ngrid.tiles[&tcrd];
-        let tcls = &backend.egrid.db.tile_classes[tile.class];
+        let tcls = &backend.edev.db.tile_classes[tile.class];
         let bel_data = &tcls.bels[self.slot];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
@@ -773,12 +773,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
             ),
         };
         let res_from = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, wire_from))
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, wire_from))
             .unwrap();
         let res_to = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, wire_to))
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, wire_to))
             .unwrap();
         let fuzzer = fuzzer.fuzz(Key::WireMutex(res_to), None, "EXCLUSIVE-TGT");
         let (fuzzer, src_site, src_pin) =
@@ -817,9 +817,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         unreachable!()
     };
     let kind = edev.chip.kind;
-    let intdb = backend.egrid.db;
+    let intdb = backend.edev.db;
     for (tcid, tcname, _) in &intdb.tile_classes {
-        let tcls_index = &backend.egrid.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
             continue;
         };
@@ -886,7 +886,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     None
                 };
                 if let Some(tbuf_i_wire) = tbuf_i_wire {
-                    let tbuf_i_wire = backend.egrid.db.get_wire(tbuf_i_wire);
+                    let tbuf_i_wire = backend.edev.db.get_wire(tbuf_i_wire);
                     if let Some(mux) = tcls_index
                         .pips_bwd
                         .get(&TileWireCoord::new_idx(0, tbuf_i_wire))
@@ -1024,7 +1024,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 ))
                 .prop(WireMutexExclusive::new(TileWireCoord::new_idx(
                     0,
-                    backend.egrid.db.get_wire("IMUX.CLB.F4"),
+                    backend.edev.db.get_wire("IMUX.CLB.F4"),
                 )))
                 .commit();
         }
@@ -1061,7 +1061,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 ))
                 .prop(WireMutexExclusive::new(TileWireCoord::new_idx(
                     0,
-                    backend.egrid.db.get_wire("IMUX.CLB.G3"),
+                    backend.edev.db.get_wire("IMUX.CLB.G3"),
                 )))
                 .commit();
         }
@@ -1096,7 +1096,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 ))
                 .prop(WireMutexExclusive::new(TileWireCoord::new_idx(
                     0,
-                    backend.egrid.db.get_wire("IMUX.CLB.G2"),
+                    backend.edev.db.get_wire("IMUX.CLB.G2"),
                 )))
                 .commit();
         }
@@ -1114,7 +1114,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     ))
                     .prop(WireMutexExclusive::new(TileWireCoord::new_idx(
                         0,
-                        backend.egrid.db.get_wire(&format!("IMUX.TBUF{idx}.TS")),
+                        backend.edev.db.get_wire(&format!("IMUX.TBUF{idx}.TS")),
                     )))
                     .commit();
             }
@@ -1124,9 +1124,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 if kind.is_clb_xl() && tcname.starts_with("CLB") {
                     let wt = TileWireCoord::new_idx(
                         0,
-                        backend.egrid.db.get_wire(&format!("IMUX.TBUF{idx}.TS")),
+                        backend.edev.db.get_wire(&format!("IMUX.TBUF{idx}.TS")),
                     );
-                    let wf = TileWireCoord::new_idx(0, backend.egrid.db.get_wire("LONG.V0"));
+                    let wf = TileWireCoord::new_idx(0, backend.edev.db.get_wire("LONG.V0"));
                     bctx.mode("TBUF")
                         .prop(BaseIntPip::new(wt, wf))
                         .test_manual("DRIVE1", "1")
@@ -1254,8 +1254,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         continue;
                     }
                     let mut bctx = ctx.bel(bel);
-                    let wt = TileWireCoord::new_idx(0, backend.egrid.db.get_wire(out));
-                    let wf = TileWireCoord::new_idx(0, backend.egrid.db.get_wire(inp));
+                    let wt = TileWireCoord::new_idx(0, backend.edev.db.get_wire(out));
+                    let wf = TileWireCoord::new_idx(0, backend.edev.db.get_wire(inp));
                     bctx.build()
                         .prop(BaseIntPip::new(wt, wf))
                         .test_manual("ALT_PAD", "1")
@@ -1375,8 +1375,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         unreachable!()
     };
     let kind = edev.chip.kind;
-    let egrid = ctx.edev.egrid();
-    let intdb = egrid.db;
+    let intdb = edev.db;
     for (_, tcname, tcls) in &intdb.tile_classes {
         if !ctx.has_tile(tcname) {
             continue;
@@ -1823,13 +1822,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
 
             for (wire_to, ins) in obuf_diffs {
-                let out_name = edev.egrid.db.wires.key(wire_to.wire);
+                let out_name = edev.db.wires.key(wire_to.wire);
                 let mut odiff = ins.iter().next().unwrap().1.clone();
                 for diff in ins.values() {
                     odiff.bits.retain(|bit, _| diff.bits.contains_key(bit));
                 }
                 for (wire_from, diff) in ins {
-                    let wfname = edev.egrid.db.wires.key(wire_from.wire);
+                    let wfname = edev.db.wires.key(wire_from.wire);
                     let in_name = format!("{:#}.{}", wire_from.cell, wfname);
                     let diff = diff.combine(&!&odiff);
                     ctx.tiledb
@@ -1845,12 +1844,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             let mut handled = HashSet::new();
             for (&wire_to, ins) in &mux_diffs {
-                let wtname = edev.egrid.db.wires.key(wire_to.wire);
+                let wtname = edev.db.wires.key(wire_to.wire);
                 for (&wire_from, diff) in ins {
                     if handled.contains(&(wire_to, wire_from)) {
                         continue;
                     }
-                    let wfname = edev.egrid.db.wires.key(wire_from.wire);
+                    let wfname = edev.db.wires.key(wire_from.wire);
                     if diff.bits.len() != 1 {
                         continue;
                     }
@@ -1878,7 +1877,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
 
             for (wire_to, ins) in mux_diffs {
-                let out_name = edev.egrid.db.wires.key(wire_to.wire);
+                let out_name = edev.db.wires.key(wire_to.wire);
                 let mux_name = if tcname.starts_with("LL") {
                     format!("MUX.{wtt:#}.{out_name}", wtt = wire_to.cell)
                 } else {
@@ -1890,7 +1889,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     if handled.contains(&(wire_to, wire_from)) {
                         continue;
                     }
-                    let wfname = edev.egrid.db.wires.key(wire_from.wire);
+                    let wfname = edev.db.wires.key(wire_from.wire);
                     let in_name = format!("{:#}.{}", wire_from.cell, wfname);
                     if diff.bits.is_empty() {
                         got_empty = true;

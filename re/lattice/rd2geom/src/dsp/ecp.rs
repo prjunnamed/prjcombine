@@ -7,7 +7,7 @@ impl ChipContext<'_> {
     pub(super) fn process_dsp_ecp(&mut self) {
         let tcid = self.intdb.get_tile_class("DSP");
         let is_ecp2 = self.chip.kind != ChipKind::Ecp;
-        for &tcrd in &self.edev.egrid.tile_index[tcid] {
+        for &tcrd in &self.edev.tile_index[tcid] {
             let bcrd = tcrd.bel(bels::DSP0);
             let (r, c) = self.rc(tcrd.cell);
             self.name_bel(

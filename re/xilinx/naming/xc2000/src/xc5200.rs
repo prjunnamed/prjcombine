@@ -6,16 +6,15 @@ use unnamed_entity::EntityId;
 use crate::ExpandedNamedDevice;
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
-    let egrid = &edev.egrid;
-    let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
+    let mut ngrid = ExpandedGridNaming::new(ndb, edev);
     ngrid.tie_kind = Some("GND".to_string());
     ngrid.tie_pin_gnd = Some("O".to_string());
 
-    for (tcrd, tile) in egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
 
-        let kind = egrid.db.tile_classes.key(tile.class);
+        let kind = edev.db.tile_classes.key(tile.class);
         let c = col.to_idx();
         let r = edev.chip.row_n() - row;
         match &kind[..] {

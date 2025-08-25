@@ -488,8 +488,8 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for PinMutexExclusive {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        for wire in backend.egrid.get_bel_pin(tcrd.bel(self.bel), &self.pin) {
-            let rw = backend.egrid.resolve_wire(wire)?;
+        for wire in backend.edev.get_bel_pin(tcrd.bel(self.bel), &self.pin) {
+            let rw = backend.edev.resolve_wire(wire)?;
             fuzzer = fuzzer.fuzz(Key::WireMutex(rw), false, true);
         }
         Some((fuzzer, false))
@@ -591,8 +591,8 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ExtraTile {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let tile = &backend.egrid[self.tcrd];
-        let tile = backend.egrid.db.tile_classes.key(tile.class);
+        let tile = &backend.edev[self.tcrd];
+        let tile = backend.edev.db.tile_classes.key(tile.class);
         fuzzer.info.features.push(FuzzerFeature {
             id: FeatureId {
                 tile: tile.into(),

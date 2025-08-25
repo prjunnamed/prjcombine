@@ -34,7 +34,7 @@ impl TileRelation for ColPair {
             DirH::E => tcrd.col - 1,
         };
         backend
-            .egrid
+            .edev
             .find_tile_by_class(tcrd.with_col(col), |kind| kind == self.0)
     }
 }
@@ -52,7 +52,7 @@ impl TileRelation for CmtDir {
             DirH::E => edev.col_rio.unwrap() - 1,
         };
         backend
-            .egrid
+            .edev
             .find_tile_by_class(tcrd.with_col(scol), |kind| kind == "CMT")
     }
 }
@@ -71,16 +71,16 @@ impl TileRelation for ClkRebuf {
                             return None;
                         }
                         cell.die -= 1;
-                        cell.row = backend.egrid.rows(cell.die).next_back().unwrap();
+                        cell.row = backend.edev.rows(cell.die).next_back().unwrap();
                     } else {
                         cell.row -= 1;
                     }
                 }
                 DirV::N => {
-                    if cell.row == backend.egrid.rows(cell.die).next_back().unwrap() {
+                    if cell.row == backend.edev.rows(cell.die).next_back().unwrap() {
                         cell.row = RowId::from_idx(0);
                         cell.die += 1;
-                        if cell.die == backend.egrid.die.next_id() {
+                        if cell.die == backend.edev.die.next_id() {
                             return None;
                         }
                     } else {
@@ -88,7 +88,7 @@ impl TileRelation for ClkRebuf {
                     }
                 }
             }
-            if let Some(ntcrd) = backend.egrid.find_tile_by_class(cell, |kind| {
+            if let Some(ntcrd) = backend.edev.find_tile_by_class(cell, |kind| {
                 matches!(kind, "CLK_BUFG_REBUF" | "CLK_BALI_REBUF")
             }) {
                 return Some(ntcrd);
@@ -505,11 +505,11 @@ pub fn add_fuzzers<'a>(
         }
         {
             let mut bctx = ctx.bel(bels::CLK_HROW);
-            let cmt = backend.egrid.db.get_tile_class("CMT");
-            let has_lio = backend.egrid.tile_index[cmt]
+            let cmt = backend.edev.db.get_tile_class("CMT");
+            let has_lio = backend.edev.tile_index[cmt]
                 .iter()
                 .any(|loc| loc.cell.col <= edev.col_clk);
-            let has_rio = backend.egrid.tile_index[cmt]
+            let has_rio = backend.edev.tile_index[cmt]
                 .iter()
                 .any(|loc| loc.cell.col > edev.col_clk);
             for i in 0..32 {

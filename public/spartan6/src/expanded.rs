@@ -80,8 +80,8 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
-        let tile = &self.egrid[tcrd];
-        let kind = self.egrid.db.tile_classes.key(tile.class).as_str();
+        let tile = &self[tcrd];
+        let kind = self.db.tile_classes.key(tile.class).as_str();
         if kind == "BRAM" {
             vec![
                 self.btile_main(tcrd.col, tcrd.row),
@@ -122,5 +122,13 @@ impl ExpandedDevice<'_> {
                     .map(|&cell| self.btile_main(cell.col, cell.row)),
             )
         }
+    }
+}
+
+impl<'a> std::ops::Deref for ExpandedDevice<'a> {
+    type Target = ExpandedGrid<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.egrid
     }
 }

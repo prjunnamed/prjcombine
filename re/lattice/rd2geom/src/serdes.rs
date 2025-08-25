@@ -13,7 +13,7 @@ impl ChipContext<'_> {
     fn process_serdes_scm(&mut self) {
         for tcname in ["SERDES_W", "SERDES_E"] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::SERDES);
                 let bank = self.chip.columns[bcrd.col].bank_n.unwrap();
                 let (edge, quad) = match bank {
@@ -237,8 +237,8 @@ impl ChipContext<'_> {
         for hv in [DirHV::NW, DirHV::NE] {
             let bcrd = self.chip.special_loc[&SpecialLocKey::Pll(PllLoc::new(hv, 0))]
                 .bel(bels::SERDES_CORNER);
-            let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
-            let tcls = &self.intdb.tile_classes[self.edev.egrid[tcrd].class];
+            let tcrd = self.edev.get_tile_by_bel(bcrd);
+            let tcls = &self.intdb.tile_classes[self.edev[tcrd].class];
             let cell = bcrd.with_row(self.chip.row_n());
             let dir_s = !hv.h;
             let dir_n = hv.h;
@@ -267,7 +267,7 @@ impl ChipContext<'_> {
                 let twire =
                     TileWireCoord::new_idx(2, self.intdb.get_wire(&format!("IO_{dir_n}{i}_1")));
                 bel.pins.insert(format!("CIN_{i}"), BelPin::new_in(twire));
-                let wire_int = self.io_int_names[&self.edev.egrid.tile_wire(tcrd, twire)];
+                let wire_int = self.io_int_names[&self.edev.tile_wire(tcrd, twire)];
                 let wire = self.rc_corner_wire(cell, &format!("JVMAN01{i:02}"));
                 self.claim_pip_bi(wire, wire_int);
                 self.add_bel_wire(bcrd, twire.to_string(self.intdb, tcls), wire);
@@ -281,7 +281,7 @@ impl ChipContext<'_> {
                     TileWireCoord::new_idx(2, self.intdb.get_wire(&format!("IO_{dir_n}14_1")));
                 bel.pins
                     .insert("TESTCLK_MACO".into(), BelPin::new_in(twire));
-                let wire_int = self.io_int_names[&self.edev.egrid.tile_wire(tcrd, twire)];
+                let wire_int = self.io_int_names[&self.edev.tile_wire(tcrd, twire)];
                 let wire = self.rc_corner_wire(cell, "JVMAN0114");
                 self.claim_pip_bi(wire, wire_int);
                 self.add_bel_wire(bcrd, twire.to_string(self.intdb, tcls), wire);
@@ -338,7 +338,7 @@ impl ChipContext<'_> {
                 );
                 bel.pins.insert(pin, BelPin::new_out(twire));
                 if let Some(cell_serdes) = cell_serdes {
-                    let wire_int = self.io_int_names[&self.edev.egrid.tile_wire(tcrd, twire)];
+                    let wire_int = self.io_int_names[&self.edev.tile_wire(tcrd, twire)];
                     let wire = self.rc_corner_wire(cell, &format!("JVMAS{seg:02}{idx:02}"));
                     self.claim_pip_bi(wire, wire_int);
                     self.add_bel_wire(bcrd, twire.to_string(self.intdb, tcls), wire);
@@ -354,7 +354,7 @@ impl ChipContext<'_> {
     fn process_serdes_ecp2(&mut self) {
         for tcname in ["SERDES_S", "SERDES_N"] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::SERDES);
                 let hv = DirHV {
                     h: if bcrd.col < self.chip.col_clk {
@@ -479,7 +479,7 @@ impl ChipContext<'_> {
 
     fn process_serdes_ecp3(&mut self) {
         let tcid = self.intdb.get_tile_class("SERDES");
-        for &tcrd in &self.edev.egrid.tile_index[tcid] {
+        for &tcrd in &self.edev.tile_index[tcid] {
             let bcrd = tcrd.bel(bels::SERDES);
             let bank = self.chip.columns[bcrd.cell.col].bank_s.unwrap();
             let name = match bank {
@@ -572,8 +572,8 @@ impl ChipContext<'_> {
             self.add_bel_wire(bcrd, "REFCLK_TO_NQ_PCS", wire);
             let wire = self.rc_wire(cell, "JREFCLK_FROM_NQ_PCS");
             self.add_bel_wire(bcrd, "REFCLK_FROM_NQ_PCS", wire);
-            if let Some(cell_prev) = self.edev.egrid.cell_delta(bcrd.cell, -36, 0)
-                && self.edev.egrid.has_bel(cell_prev.bel(bels::SERDES))
+            if let Some(cell_prev) = self.edev.cell_delta(bcrd.cell, -36, 0)
+                && self.edev.has_bel(cell_prev.bel(bels::SERDES))
             {
                 let wire_prev = self.rc_wire(cell.delta(-36, 0), "JREFCLK_TO_NQ_PCS");
                 self.claim_pip(wire, wire_prev);
@@ -1114,7 +1114,7 @@ impl ChipContext<'_> {
             return;
         }
         let tcid = self.intdb.get_tile_class("SERDES");
-        for &tcrd in &self.edev.egrid.tile_index[tcid] {
+        for &tcrd in &self.edev.tile_index[tcid] {
             let bcrd = tcrd.bel(bels::SERDES);
             let cell = bcrd.cell;
             let bank = self.chip.columns[bcrd.cell.col].bank_s.unwrap();
@@ -1298,7 +1298,7 @@ impl ChipContext<'_> {
     fn process_mipi_crosslink(&mut self) {
         for tcname in ["MIPI_W", "MIPI_E"] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::MIPI);
                 let cell = bcrd.cell;
                 let bank = self.chip.columns[bcrd.cell.col].bank_n.unwrap();

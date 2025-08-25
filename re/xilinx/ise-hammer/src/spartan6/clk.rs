@@ -28,7 +28,7 @@ struct HclkInt(DirV);
 
 impl TileRelation for HclkInt {
     fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
-        backend.egrid.find_tile_by_class(
+        backend.edev.find_tile_by_class(
             tcrd.delta(
                 0,
                 match self.0 {
@@ -99,10 +99,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
                 }
             }
             if let Some(ntcrd) = backend
-                .egrid
+                .edev
                 .find_tile_by_class(cell, |kind| kind.starts_with("PLL_BUFPLL"))
             {
-                if edev.egrid.db.tile_classes.key(edev.egrid[ntcrd].class) != self.1 {
+                if edev.db.tile_classes.key(edev[ntcrd].class) != self.1 {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {

@@ -3473,7 +3473,7 @@ fn verify_brkh_gtx(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
+    let slot_name = endev.edev.db.bel_slots.key(bel.slot);
     match bel.slot {
         bels::SLICE0 | bels::SLICE1 => verify_slice(vrf, bel),
         bels::DSP0 | bels::DSP1 => verify_dsp(vrf, bel),
@@ -3745,7 +3745,7 @@ fn verify_gtz(
         };
         vrf.verify_net(&[obel_rebuf.fwire(&dwire), (crd_clk, &owire)]);
     }
-    let sll_wire = endev.edev.egrid.db.get_wire("LVB.6");
+    let sll_wire = endev.edev.db.get_wire("LVB.6");
     for icol in egt.cols.ids() {
         let crd = vrf.xlat_tile(&ngt.int_tiles[icol]).unwrap();
         let is_last = icol == egt.cols.last_id().unwrap();
@@ -3888,9 +3888,9 @@ fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
 
 fn verify_pre(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
     if vrf.rd.source == Source::Vivado {
-        for (tcrd, tile) in endev.edev.egrid.tiles() {
-            if endev.edev.egrid.db.tile_classes.key(tile.class) == "CLK_BUFG" {
-                for bel in endev.edev.egrid.db.tile_classes[tile.class].bels.ids() {
+        for (tcrd, tile) in endev.edev.tiles() {
+            if endev.edev.db.tile_classes.key(tile.class) == "CLK_BUFG" {
+                for bel in endev.edev.db.tile_classes[tile.class].bels.ids() {
                     vrf.skip_bel_pin(tcrd.bel(bel), "FB_TEST0");
                     vrf.skip_bel_pin(tcrd.bel(bel), "FB_TEST1");
                 }

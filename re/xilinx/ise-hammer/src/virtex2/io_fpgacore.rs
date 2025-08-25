@@ -49,11 +49,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IobExtra {
             Dir::N => tcrd.row == edev.chip.row_n(),
         };
         if edge_match {
-            let tile = &backend.egrid[tcrd];
+            let tile = &backend.edev[tcrd];
             let fuzzer_id = fuzzer.info.features[0].id.clone();
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
-                    tile: backend.egrid.db.tile_classes.key(tile.class).clone(),
+                    tile: backend.edev.db.tile_classes.key(tile.class).clone(),
                     ..fuzzer_id
                 },
                 tiles: backend.edev.tile_bits(tcrd),

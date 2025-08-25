@@ -73,8 +73,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for PinWireMutexShared {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let tile = &backend.egrid[tcrd];
-        let tcls = &backend.egrid.db.tile_classes[tile.class];
+        let tile = &backend.edev[tcrd];
+        let tcls = &backend.edev.db.tile_classes[tile.class];
         let bel_data = &tcls.bels[self.0];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
@@ -82,8 +82,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for PinWireMutexShared {
         let pin_data = &bel_data.pins[self.1];
         for &wire in &pin_data.wires {
             let wire = backend
-                .egrid
-                .resolve_wire(backend.egrid.tile_wire(tcrd, wire))?;
+                .edev
+                .resolve_wire(backend.edev.tile_wire(tcrd, wire))?;
             fuzzer = fuzzer.base(Key::WireMutex(wire), "SHARED");
         }
         Some((fuzzer, false))

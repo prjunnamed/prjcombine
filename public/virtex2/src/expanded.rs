@@ -225,8 +225,8 @@ impl ExpandedDevice<'_> {
     pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
         let col = tcrd.col;
         let row = tcrd.row;
-        let tile = &self.egrid[tcrd];
-        let kind = self.egrid.db.tile_classes.key(tile.class).as_str();
+        let tile = &self[tcrd];
+        let kind = self.db.tile_classes.key(tile.class).as_str();
         if kind.starts_with("BRAM") {
             vec![
                 self.btile_main(tcrd.delta(0, 0)),
@@ -281,14 +281,12 @@ impl ExpandedDevice<'_> {
         } else if kind.starts_with("IOBS") {
             if col == self.chip.col_w() || col == self.chip.col_e() {
                 Vec::from_iter(
-                    self.egrid
-                        .tile_cells(tcrd)
+                    self.tile_cells(tcrd)
                         .map(|(_, cell)| self.btile_lrterm(cell)),
                 )
             } else {
                 Vec::from_iter(
-                    self.egrid
-                        .tile_cells(tcrd)
+                    self.tile_cells(tcrd)
                         .map(|(_, cell)| self.btile_btterm(cell)),
                 )
             }
@@ -370,11 +368,15 @@ impl ExpandedDevice<'_> {
         } else if kind.starts_with("LLH") {
             vec![self.btile_spine(row)]
         } else {
-            Vec::from_iter(
-                self.egrid
-                    .tile_cells(tcrd)
-                    .map(|(_, cell)| self.btile_main(cell)),
-            )
+            Vec::from_iter(self.tile_cells(tcrd).map(|(_, cell)| self.btile_main(cell)))
         }
+    }
+}
+
+impl<'a> std::ops::Deref for ExpandedDevice<'a> {
+    type Target = ExpandedGrid<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.egrid
     }
 }

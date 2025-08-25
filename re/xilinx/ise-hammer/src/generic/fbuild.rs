@@ -36,7 +36,7 @@ impl<'sm, 'b> FuzzCtx<'sm, 'b> {
         tile: impl Into<String>,
     ) -> Self {
         let tile = tile.into();
-        let tile_class = backend.egrid.db.get_tile_class(&tile);
+        let tile_class = backend.edev.db.get_tile_class(&tile);
         Self {
             session,
             backend,
@@ -50,8 +50,8 @@ impl<'sm, 'b> FuzzCtx<'sm, 'b> {
         tile: impl Into<String>,
     ) -> Option<Self> {
         let tile = tile.into();
-        let tile_class = backend.egrid.db.get_tile_class(&tile);
-        if backend.egrid.tile_index[tile_class].is_empty() {
+        let tile_class = backend.edev.db.get_tile_class(&tile);
+        if backend.edev.tile_index[tile_class].is_empty() {
             return None;
         }
         Some(Self {
@@ -215,7 +215,7 @@ pub trait FuzzBuilderBase<'b>: Sized {
     }
 
     fn extra_tiles_by_kind(self, kind: impl AsRef<str>, bel: impl Into<String>) -> Self {
-        let kind = self.backend().egrid.db.get_tile_class(kind.as_ref());
+        let kind = self.backend().edev.db.get_tile_class(kind.as_ref());
         self.prop(ExtraTilesByKind::new(kind, Some(bel.into()), None, None))
     }
 
@@ -226,7 +226,7 @@ pub trait FuzzBuilderBase<'b>: Sized {
         attr: impl Into<String>,
         val: impl Into<String>,
     ) -> Self {
-        let kind = self.backend().egrid.db.get_tile_class(kind.as_ref());
+        let kind = self.backend().edev.db.get_tile_class(kind.as_ref());
         self.prop(ExtraTilesByKind::new(
             kind,
             Some(bel.into()),
@@ -341,7 +341,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
         let val = val.as_ref();
         let feature = FeatureId {
             tile: if let Some(tile_class) = self.tile_class {
-                self.backend.egrid.db.tile_classes.key(tile_class).clone()
+                self.backend.edev.db.tile_classes.key(tile_class).clone()
             } else {
                 "NULL".into()
             },
@@ -707,12 +707,12 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let feature = FeatureId {
             tile: self
                 .backend
-                .egrid
+                .edev
                 .db
                 .tile_classes
                 .key(self.tile_class)
                 .clone(),
-            bel: self.backend.egrid.db.bel_slots.key(self.bel).clone(),
+            bel: self.backend.edev.db.bel_slots.key(self.bel).clone(),
             attr: attr.into(),
             val: val.into(),
         };

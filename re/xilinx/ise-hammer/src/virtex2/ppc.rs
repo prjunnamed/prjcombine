@@ -5,10 +5,10 @@ use prjcombine_virtex2::bels;
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let intdb = backend.egrid.db;
+    let intdb = backend.edev.db;
     for tile in ["RBPPC", "LBPPC"] {
         let tcid = intdb.get_tile_class(tile);
-        if backend.egrid.tile_index[tcid].is_empty() {
+        if backend.edev.tile_index[tcid].is_empty() {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tile);
@@ -36,15 +36,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let egrid = ctx.edev.egrid();
     for tile in ["RBPPC", "LBPPC"] {
-        let tcid = egrid.db.get_tile_class(tile);
-        if egrid.tile_index[tcid].is_empty() {
+        let tcid = ctx.edev.db.get_tile_class(tile);
+        if ctx.edev.tile_index[tcid].is_empty() {
             continue;
         }
         let bel = "PPC405";
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-        let bel_data = &egrid.db.tile_classes[tcid].bels[bels::PPC405];
+        let bel_data = &ctx.edev.db.tile_classes[tcid].bels[bels::PPC405];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
@@ -54,11 +53,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             assert_eq!(pin_data.wires.len(), 1);
             let wire = *pin_data.wires.first().unwrap();
-            if egrid.db.wires.key(wire.wire).starts_with("IMUX.G") {
+            if ctx.edev.db.wires.key(wire.wire).starts_with("IMUX.G") {
                 continue;
             }
             let int_tiles = &["INT.PPC"; 48];
-            let flip = egrid.db.wires.key(wire.wire).starts_with("IMUX.SR");
+            let flip = ctx.edev.db.wires.key(wire.wire).starts_with("IMUX.SR");
             ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
         }
         ctx.state

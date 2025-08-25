@@ -17,7 +17,7 @@ use crate::{
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let grid = backend.edev.chip;
-    for (_, tcname, tcls) in &backend.egrid.db.tile_classes {
+    for (_, tcname, tcls) in &backend.edev.db.tile_classes {
         if !tcname.starts_with("CLB") {
             continue;
         }
@@ -25,7 +25,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             continue;
         };
         for slot in tcls.bels.ids() {
-            let slot_name = backend.egrid.db.bel_slots.key(slot).as_str();
+            let slot_name = backend.edev.db.bel_slots.key(slot).as_str();
             if !slot_name.starts_with("IO") {
                 continue;
             }
@@ -64,11 +64,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             ctx.test_global("MISC", "RESETTIME", &["BEFORE", "AFTER"]);
             let tcrd =
                 CellCoord::new(DieId::from_idx(0), grid.col_e(), grid.row_s()).tile(tslots::MAIN);
-            let wt = TileWireCoord::new_idx(0, backend.egrid.db.get_wire("IMUX.BUFG"));
-            let wf = TileWireCoord::new_idx(0, backend.egrid.db.get_wire("OUT.OSC"));
+            let wt = TileWireCoord::new_idx(0, backend.edev.db.get_wire("IMUX.BUFG"));
+            let wf = TileWireCoord::new_idx(0, backend.edev.db.get_wire("OUT.OSC"));
             let crd = backend.ngrid.int_pip(tcrd, wt, wf);
-            let rwt = backend.egrid.resolve_tile_wire(tcrd, wt).unwrap();
-            let rwf = backend.egrid.resolve_tile_wire(tcrd, wf).unwrap();
+            let rwt = backend.edev.resolve_tile_wire(tcrd, wt).unwrap();
+            let rwf = backend.edev.resolve_tile_wire(tcrd, wf).unwrap();
             for val in ["ENABLE", "DIV2"] {
                 ctx.build()
                     .raw(Key::WireMutex(rwt), "OSC_SPECIAL")
@@ -96,7 +96,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for (_, tcname, tcls) in &ctx.edev.egrid.db.tile_classes {
+    for (_, tcname, tcls) in &ctx.edev.db.tile_classes {
         if tcname == "LLV.RS" {
             let bel = "MISC";
             ctx.tiledb.insert(
@@ -121,7 +121,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         for slot in tcls.bels.ids() {
-            let bel = ctx.edev.egrid.db.bel_slots.key(slot).as_str();
+            let bel = ctx.edev.db.bel_slots.key(slot).as_str();
             if !bel.starts_with("IO") {
                 continue;
             }

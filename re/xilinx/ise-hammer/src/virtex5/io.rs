@@ -212,9 +212,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {
         let chip = edev.chips[tcrd.die];
         let hclk_row = chip.row_hclk(tcrd.row);
         // Take exclusive mutex on VREF.
-        let hclk_ioi = edev
-            .egrid
-            .find_tile_by_class(tcrd.with_row(hclk_row), |kind| kind == self.0)?;
+        let hclk_ioi = edev.find_tile_by_class(tcrd.with_row(hclk_row), |kind| kind == self.0)?;
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_ioi, "VREF".to_string()),
             None,
@@ -358,13 +356,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
             "EXCLUSIVE",
         );
 
-        let hclk_ioi_tile = &edev.egrid[hclk_ioi];
+        let hclk_ioi_tile = &edev[hclk_ioi];
         fuzzer.info.features.push(FuzzerFeature {
             id: FeatureId {
                 tile: if edev.kind == ChipKind::Virtex5 {
                     "HCLK_IOI".into()
                 } else {
-                    edev.egrid.db.tile_classes.key(hclk_ioi_tile.class).clone()
+                    edev.db.tile_classes.key(hclk_ioi_tile.class).clone()
                 },
                 bel: "LVDS".into(),
                 attr: self.0.into(),

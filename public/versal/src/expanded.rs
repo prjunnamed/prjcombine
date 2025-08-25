@@ -25,3 +25,11 @@ pub struct ExpandedDevice<'a> {
     pub col_cfrm: EntityVec<DieId, ColId>,
     pub sll: HashMap<(DieId, ColId, RowId), SllConns>,
 }
+
+impl<'a> std::ops::Deref for ExpandedDevice<'a> {
+    type Target = ExpandedGrid<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.egrid
+    }
+}

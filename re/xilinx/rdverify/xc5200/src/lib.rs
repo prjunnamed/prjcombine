@@ -84,7 +84,7 @@ fn verify_bot_cin(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let slot_name = endev.edev.egrid.db.bel_slots.key(bel.slot);
+    let slot_name = endev.edev.db.bel_slots.key(bel.slot);
     match bel.slot {
         _ if slot_name.starts_with("LC") => verify_lc(vrf, bel),
         _ if slot_name.starts_with("IO") => verify_iob(endev, vrf, bel),

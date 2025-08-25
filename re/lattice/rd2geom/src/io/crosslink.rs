@@ -462,7 +462,7 @@ impl ChipContext<'_> {
     pub(super) fn process_io_crosslink(&mut self) {
         for (tcname, num_io) in [("IO_S4", 4), ("IO_S1A", 1), ("IO_S1B", 1)] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 for i in 0..num_io {
                     let bcrd = tcrd.bel(bels::IO[i]);
                     self.process_single_io_crosslink(bcrd);

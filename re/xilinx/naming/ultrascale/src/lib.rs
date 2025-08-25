@@ -794,8 +794,7 @@ pub fn name_device<'a>(
     ndb: &'a NamingDb,
     dev_naming: &DeviceNaming,
 ) -> ExpandedNamedDevice<'a> {
-    let egrid = &edev.egrid;
-    let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
+    let mut ngrid = ExpandedGridNaming::new(ndb, edev);
 
     let mut int_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "INT");
     for col in edev.chips[edev.interposer.primary].columns.ids() {
@@ -910,12 +909,12 @@ pub fn name_device<'a>(
         }) && !chip.is_nocfg()
     });
 
-    for (tcrd, tile) in egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let cell = tcrd.cell;
         let CellCoord { die, col, row } = cell;
         let chip = edev.chips[die];
         let reg = chip.row_to_reg(row);
-        let kind = egrid.db.tile_classes.key(tile.class);
+        let kind = edev.db.tile_classes.key(tile.class);
         let x = int_grid.xlut[col];
         let y = int_grid.ylut[die][row];
         match &kind[..] {

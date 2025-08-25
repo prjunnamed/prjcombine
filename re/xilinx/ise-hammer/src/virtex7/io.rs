@@ -219,12 +219,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
             if self.0 {
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
-                        tile: edev
-                            .egrid
-                            .db
-                            .tile_classes
-                            .key(edev.egrid[vref].class)
-                            .clone(),
+                        tile: edev.db.tile_classes.key(edev[vref].class).clone(),
                         bel: "IOB0".into(),
                         attr: "PRESENT".into(),
                         val: "VREF".into(),
@@ -276,12 +271,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
             if self.0.is_some() {
                 fuzzer.info.features.push(FuzzerFeature {
                     id: FeatureId {
-                        tile: edev
-                            .egrid
-                            .db
-                            .tile_classes
-                            .key(edev.egrid[vr_tile].class)
-                            .clone(),
+                        tile: edev.db.tile_classes.key(edev[vr_tile].class).clone(),
                         bel: "IOB0".into(),
                         attr: "PRESENT".into(),
                         val: "VR".into(),

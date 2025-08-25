@@ -242,10 +242,10 @@ impl HarvestContext<'_> {
         let pips = self.pips.lock().unwrap();
         for (&tcname, pips) in &*pips {
             let mut stats: BTreeMap<String, usize> = BTreeMap::new();
-            let tcid = self.edev.egrid.db.tile_classes.key(tcname);
+            let tcid = self.edev.db.tile_classes.key(tcname);
             for &(wt, wf) in pips {
-                let wtn = self.edev.egrid.db.wires.key(wt.wire);
-                let wfn = self.edev.egrid.db.wires.key(wf.wire);
+                let wtn = self.edev.db.wires.key(wt.wire);
+                let wfn = self.edev.db.wires.key(wf.wire);
                 let bucket = if wtn.starts_with("QUAD.V") && wfn.starts_with("QUAD") {
                     "QUAD-QUAD.V"
                 } else if wtn.starts_with("QUAD.H") && wfn.starts_with("QUAD") {

@@ -42,8 +42,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RandorInit {
         }
         if tcrd.col == edev.chip.col_w() + 1 {
             let tcrd = tcrd.delta(-1, 0).tile(tslots::RANDOR);
-            let tile = &backend.egrid[tcrd];
-            let tcls = backend.egrid.db.tile_classes.key(tile.class);
+            let tile = &backend.edev[tcrd];
+            let tcls = backend.edev.db.tile_classes.key(tile.class);
             let first_feature_id = fuzzer.info.features.first().unwrap().id.clone();
             fuzzer.info.features.push(FuzzerFeature {
                 id: FeatureId {
@@ -914,19 +914,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ]);
         ctx.tiledb.insert(tile, bel, "MODE", item);
     }
-    let egrid = ctx.edev.egrid();
-    for (tcid, name, _) in &egrid.db.tile_classes {
+    for (tcid, name, _) in &ctx.edev.db.tile_classes {
         if !name.starts_with("INT.") {
             continue;
         }
         if name == "INT.CLB" {
             continue;
         }
-        if egrid.tile_index[tcid].is_empty() {
+        if ctx.edev.tile_index[tcid].is_empty() {
             continue;
         }
-        for &wire in egrid.db_index.tile_classes[tcid].pips_bwd.keys() {
-            let wire_name = egrid.db.wires.key(wire.wire);
+        for &wire in ctx.edev.db_index.tile_classes[tcid].pips_bwd.keys() {
+            let wire_name = ctx.edev.db.wires.key(wire.wire);
             if name == "INT.GT.CLKPAD"
                 && matches!(
                     &wire_name[..],

@@ -1054,7 +1054,7 @@ impl ChipContext<'_> {
     fn process_config_crosslink(&mut self) {
         for tcname in ["I2C_W", "I2C_E"] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::I2C);
                 let cell = bcrd.cell;
                 self.name_bel(bcrd, [if tcname == "I2C_W" { "I2C1" } else { "I2C0" }]);

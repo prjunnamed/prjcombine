@@ -6,7 +6,7 @@ use crate::ChipContext;
 impl ChipContext<'_> {
     pub(super) fn process_dsp_ecp4(&mut self) {
         let tcid = self.intdb.get_tile_class("DSP");
-        for &tcrd in &self.edev.egrid.tile_index[tcid] {
+        for &tcrd in &self.edev.tile_index[tcid] {
             for idx in 0..2 {
                 let bcrd = tcrd.bel(bels::DSP[idx]);
                 let (r, c) = self.rc(tcrd.cell);
@@ -36,8 +36,8 @@ impl ChipContext<'_> {
                     Some(bcrd.cell)
                 } else if bcrd.col == self.chip.col_clk + 1 {
                     Some(bcrd.delta(-11, 0).delta(4, 0))
-                } else if let Some(cell_prev) = self.edev.egrid.cell_delta(bcrd.cell, -9, 0)
-                    && self.edev.egrid.has_bel(cell_prev.bel(bels::DSP0))
+                } else if let Some(cell_prev) = self.edev.cell_delta(bcrd.cell, -9, 0)
+                    && self.edev.has_bel(cell_prev.bel(bels::DSP0))
                 {
                     Some(cell_prev.delta(4, 0))
                 } else {
@@ -51,8 +51,8 @@ impl ChipContext<'_> {
                     Some(bcrd.cell.delta(4, 0))
                 } else if bcrd.col == self.chip.col_clk - 10 {
                     Some(bcrd.delta(11, 0))
-                } else if let Some(cell_next) = self.edev.egrid.cell_delta(bcrd.cell, 9, 0)
-                    && self.edev.egrid.has_bel(cell_next.bel(bels::DSP0))
+                } else if let Some(cell_next) = self.edev.cell_delta(bcrd.cell, 9, 0)
+                    && self.edev.has_bel(cell_next.bel(bels::DSP0))
                 {
                     Some(cell_next)
                 } else {

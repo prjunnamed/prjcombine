@@ -394,48 +394,48 @@ impl ChipContext<'_> {
 
     pub(super) fn process_io_ecp(&mut self) {
         let die = DieId::from_idx(0);
-        for cell in self.edev.egrid.column(die, self.chip.col_w()) {
+        for cell in self.edev.column(die, self.chip.col_w()) {
             if self.chip.rows[cell.row].io_w == IoGroupKind::DoubleDqs {
                 self.process_dqs_ecp(cell.bel(bels::DQS0));
             }
         }
-        for cell in self.edev.egrid.column(die, self.chip.col_e()) {
+        for cell in self.edev.column(die, self.chip.col_e()) {
             if self.chip.rows[cell.row].io_e == IoGroupKind::DoubleDqs {
                 self.process_dqs_ecp(cell.bel(bels::DQS0));
             }
         }
-        for cell in self.edev.egrid.row(die, self.chip.row_s()) {
+        for cell in self.edev.row(die, self.chip.row_s()) {
             if self.chip.columns[cell.col].io_s == IoGroupKind::DoubleDqs {
                 self.process_dqs_ecp(cell.bel(bels::DQS0));
             }
         }
-        for cell in self.edev.egrid.row(die, self.chip.row_n()) {
+        for cell in self.edev.row(die, self.chip.row_n()) {
             if self.chip.columns[cell.col].io_n == IoGroupKind::DoubleDqs {
                 self.process_dqs_ecp(cell.bel(bels::DQS0));
             }
         }
-        for cell in self.edev.egrid.column(die, self.chip.col_w()) {
+        for cell in self.edev.column(die, self.chip.col_w()) {
             let rd = &self.chip.rows[cell.row];
             if !matches!(rd.kind, RowKind::Plc | RowKind::Fplc) {
                 continue;
             }
             self.process_io_cell_ecp(cell, rd.io_w);
         }
-        for cell in self.edev.egrid.column(die, self.chip.col_e()) {
+        for cell in self.edev.column(die, self.chip.col_e()) {
             let rd = &self.chip.rows[cell.row];
             if !matches!(rd.kind, RowKind::Plc | RowKind::Fplc) {
                 continue;
             }
             self.process_io_cell_ecp(cell, rd.io_e);
         }
-        for cell in self.edev.egrid.row(die, self.chip.row_s()) {
+        for cell in self.edev.row(die, self.chip.row_s()) {
             if cell.col == self.chip.col_w() || cell.col == self.chip.col_e() {
                 continue;
             }
             let cd = &self.chip.columns[cell.col];
             self.process_io_cell_ecp(cell, cd.io_s);
         }
-        for cell in self.edev.egrid.row(die, self.chip.row_n()) {
+        for cell in self.edev.row(die, self.chip.row_n()) {
             if cell.col == self.chip.col_w() || cell.col == self.chip.col_e() {
                 continue;
             }
@@ -450,7 +450,6 @@ impl ChipContext<'_> {
             (
                 Dir::W,
                 self.edev
-                    .egrid
                     .column(die, self.chip.col_w())
                     .find(|cell| self.chip.rows[cell.row].io_w == IoGroupKind::Double)
                     .unwrap(),
@@ -458,7 +457,6 @@ impl ChipContext<'_> {
             (
                 Dir::E,
                 self.edev
-                    .egrid
                     .column(die, self.chip.col_e())
                     .find(|cell| self.chip.rows[cell.row].io_e == IoGroupKind::Double)
                     .unwrap(),
@@ -466,7 +464,6 @@ impl ChipContext<'_> {
             (
                 Dir::S,
                 self.edev
-                    .egrid
                     .row(die, self.chip.row_s())
                     .find(|cell| self.chip.columns[cell.col].io_s == IoGroupKind::Double)
                     .unwrap(),
@@ -474,7 +471,6 @@ impl ChipContext<'_> {
             (
                 Dir::N,
                 self.edev
-                    .egrid
                     .row(die, self.chip.row_n())
                     .find(|cell| self.chip.columns[cell.col].io_n == IoGroupKind::Double)
                     .unwrap(),
@@ -483,7 +479,7 @@ impl ChipContext<'_> {
             let eclki = self.rc_io_wire(io, "JECLKIA");
             let eclks = self.pips_bwd[&eclki].clone();
             let bcrd = self.chip.bel_eclk_root(edge);
-            let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
+            let tcrd = self.edev.get_tile_by_bel(bcrd);
             let mut bel = Bel::default();
             self.name_bel_null(bcrd);
             for i in 0..2 {
@@ -532,7 +528,7 @@ impl ChipContext<'_> {
                     let wire = TileWireCoord::new_idx(0, wire);
                     bel.pins
                         .insert(format!("PAD{i}_OUT"), BelPin::new_out(wire));
-                    let wire = self.edev.egrid.tile_wire(tcrd, wire);
+                    let wire = self.edev.tile_wire(tcrd, wire);
                     self.claim_pip_int_out(wire, wire_io);
                 } else {
                     for ci in 0..2 {
@@ -540,7 +536,7 @@ impl ChipContext<'_> {
                         let wire = TileWireCoord::new_idx(ci, wire);
                         bel.pins
                             .insert(format!("PAD{i}_OUT{ci}"), BelPin::new_out(wire));
-                        let wire = self.edev.egrid.tile_wire(tcrd, wire);
+                        let wire = self.edev.tile_wire(tcrd, wire);
                         self.claim_pip_int_out(wire, wire_io);
                     }
                 }
@@ -554,7 +550,7 @@ impl ChipContext<'_> {
     pub(super) fn process_eclk_xp2(&mut self) {
         for (lrbt, edge) in [('L', Dir::W), ('R', Dir::E), ('B', Dir::S), ('T', Dir::N)] {
             let bcrd = self.chip.bel_eclk_root(edge);
-            let tcrd = self.edev.egrid.get_tile_by_bel(bcrd);
+            let tcrd = self.edev.get_tile_by_bel(bcrd);
             let cell = match edge {
                 Dir::H(_) => bcrd.cell,
                 Dir::V(_) => bcrd.cell.delta(-1, 0),
@@ -645,7 +641,7 @@ impl ChipContext<'_> {
                     let wire = TileWireCoord::new_idx(0, wire);
                     bel.pins
                         .insert(format!("PAD{i}_OUT"), BelPin::new_out(wire));
-                    let wire = self.edev.egrid.tile_wire(tcrd, wire);
+                    let wire = self.edev.tile_wire(tcrd, wire);
                     self.claim_pip_int_out(wire, wire_io);
                 } else {
                     for ci in 0..2 {
@@ -653,7 +649,7 @@ impl ChipContext<'_> {
                         let wire = TileWireCoord::new_idx(ci, wire);
                         bel.pins
                             .insert(format!("PAD{i}_OUT{ci}"), BelPin::new_out(wire));
-                        let wire = self.edev.egrid.tile_wire(tcrd, wire);
+                        let wire = self.edev.tile_wire(tcrd, wire);
                         self.claim_pip_int_out(wire, wire_io);
                     }
                 }
@@ -664,7 +660,7 @@ impl ChipContext<'_> {
 
     pub(super) fn process_eclk_tap_ecp2(&mut self) {
         let tcid = self.intdb.get_tile_class("ECLK_TAP");
-        for &tcrd in &self.edev.egrid.tile_index[tcid] {
+        for &tcrd in &self.edev.tile_index[tcid] {
             let bcrd = tcrd.bel(bels::ECLK_TAP);
             let edge = if tcrd.row == self.chip.row_s() {
                 Dir::S
@@ -680,8 +676,8 @@ impl ChipContext<'_> {
             let bel_eclk = self.chip.bel_eclk_root(edge);
             let eclk0 = self.naming.bel_wire(bel_eclk, "ECLK0");
             let eclk1 = self.naming.bel_wire(bel_eclk, "ECLK1");
-            let eclk0_out = self.edev.egrid.get_bel_pin(bcrd, "ECLK0")[0];
-            let eclk1_out = self.edev.egrid.get_bel_pin(bcrd, "ECLK1")[0];
+            let eclk0_out = self.edev.get_bel_pin(bcrd, "ECLK0")[0];
+            let eclk1_out = self.edev.get_bel_pin(bcrd, "ECLK1")[0];
             self.claim_pip_int_out(eclk0_out, eclk0);
             self.claim_pip_int_out(eclk1_out, eclk1);
         }

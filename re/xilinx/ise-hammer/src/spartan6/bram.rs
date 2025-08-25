@@ -187,7 +187,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for bel in [bels::BRAM_H0, bels::BRAM_H1] {
         let mut bctx = ctx.bel(bel);
         let mode = "RAMB8BWER";
-        let bel_name = backend.egrid.db.bel_slots.key(bel).as_str();
+        let bel_name = backend.edev.db.bel_slots.key(bel).as_str();
         bctx.build()
             .global_mutex("BRAM", "MULTI")
             .tile_mutex("MODE", bel_name)

@@ -61,7 +61,7 @@ impl ChipContext<'_> {
                 }
             }
 
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::EBR0);
                 let bcrd_int = tcrd.bel(bels::EBR_INT);
                 let cell_w = bcrd.cell;
@@ -261,7 +261,7 @@ impl ChipContext<'_> {
         };
         for &tcname in tiles {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let bcrd = tcrd.bel(bels::EBR0);
                 let cell = if self.chip.kind == ChipKind::MachXo {
                     tcrd.cell.delta(0, 3)
@@ -277,7 +277,7 @@ impl ChipContext<'_> {
 
     fn process_ebr_ecp4(&mut self) {
         let tcid = self.intdb.get_tile_class("EBR");
-        for &tcrd in &self.edev.egrid.tile_index[tcid] {
+        for &tcrd in &self.edev.tile_index[tcid] {
             for i in 0..4 {
                 let bcrd = tcrd.bel(bels::EBR[i]);
                 let cell = tcrd.delta(2 * (i as i32), 0);

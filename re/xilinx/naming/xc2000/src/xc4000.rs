@@ -133,15 +133,14 @@ fn get_tile_name(chip: &Chip, col: ColId, row: RowId) -> String {
 }
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
-    let egrid = &edev.egrid;
     let chip = edev.chip;
-    let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
+    let mut ngrid = ExpandedGridNaming::new(ndb, edev);
     ngrid.tie_kind = Some("TIE".to_string());
     ngrid.tie_pin_gnd = Some("O".to_string());
-    for (tcrd, tile) in egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
-        let kind = egrid.db.tile_classes.key(tile.class);
+        let kind = edev.db.tile_classes.key(tile.class);
         let c = col.to_idx();
         let r = chip.row_n() - row;
         match &kind[..] {

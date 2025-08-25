@@ -27,15 +27,15 @@ fn resolve_intf_test_pip<'a>(
     wire_from: TileWireCoord,
 ) -> Option<(&'a str, &'a str, &'a str)> {
     let ntile = &backend.ngrid.tiles[&tcrd];
-    let intdb = backend.egrid.db;
+    let intdb = backend.edev.db;
     let ndb = backend.ngrid.db;
     let tile_naming = &ndb.tile_class_namings[ntile.naming];
     backend
-        .egrid
-        .resolve_wire(backend.egrid.tile_wire(tcrd, wire_to))?;
+        .edev
+        .resolve_wire(backend.edev.tile_wire(tcrd, wire_to))?;
     backend
-        .egrid
-        .resolve_wire(backend.egrid.tile_wire(tcrd, wire_from))?;
+        .edev
+        .resolve_wire(backend.edev.tile_wire(tcrd, wire_from))?;
     if let ExpandedDevice::Virtex4(edev) = backend.edev
         && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5
         && ndb.tile_class_namings.key(ntile.naming) == "INTF.PPC_R"
@@ -85,7 +85,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfTestPip {
         if let ExpandedDevice::Virtex4(edev) = backend.edev
             && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4
             && backend
-                .egrid
+                .edev
                 .db
                 .wires
                 .key(self.wire_from.wire)
@@ -101,12 +101,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfTestPip {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let intdb = backend.egrid.db;
+    let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
         if tcls.intfs.is_empty() {
             continue;
         }
-        if backend.egrid.tile_index[tcid].is_empty() {
+        if backend.edev.tile_index[tcid].is_empty() {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tcname);
@@ -141,13 +141,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let egrid = ctx.edev.egrid();
-    let intdb = egrid.db;
+    let intdb = ctx.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
         if tcls.intfs.is_empty() {
             continue;
         }
-        if egrid.tile_index[tcid].is_empty() {
+        if ctx.edev.tile_index[tcid].is_empty() {
             continue;
         }
         let mut test_muxes = vec![];

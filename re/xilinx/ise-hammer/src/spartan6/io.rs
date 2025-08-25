@@ -171,7 +171,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllMcbIoi {
             unreachable!()
         };
 
-        for row in backend.egrid.rows(tcrd.die) {
+        for row in backend.edev.rows(tcrd.die) {
             if let Some(split) = edev.chip.row_mcb_split {
                 if tcrd.row < split && row >= split {
                     continue;
@@ -181,7 +181,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllMcbIoi {
                 }
             }
             if let Some(ntcrd) = backend
-                .egrid
+                .edev
                 .find_tile_by_class(tcrd.with_row(row), |kind| kind == "IOI.LR")
             {
                 fuzzer.info.features.push(FuzzerFeature {

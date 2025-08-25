@@ -10,7 +10,7 @@ impl ChipContext<'_> {
     pub(super) fn process_pll_machxo(&mut self) {
         for tcname in ["PLL_S", "PLL_N"] {
             let tcid = self.intdb.get_tile_class(tcname);
-            for &tcrd in &self.edev.egrid.tile_index[tcid] {
+            for &tcrd in &self.edev.tile_index[tcid] {
                 let cell = tcrd.cell;
                 let bcrd = cell.bel(bels::PLL0);
                 let (r, c) = self.rc(tcrd.cell);

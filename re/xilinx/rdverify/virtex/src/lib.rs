@@ -211,7 +211,7 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         bels::TBUS => verify_tbus(endev, vrf, bel),
         bels::BRAM => vrf.verify_bel(bel, "BLOCKRAM", &[], &[]),
         bels::STARTUP | bels::CAPTURE | bels::BSCAN => {
-            vrf.verify_bel(bel, endev.edev.egrid.db.bel_slots.key(bel.slot), &[], &[])
+            vrf.verify_bel(bel, endev.edev.db.bel_slots.key(bel.slot), &[], &[])
         }
         bels::GCLK_IO0 | bels::GCLK_IO1 => vrf.verify_bel(bel, "GCLKIOB", &[], &[]),
         bels::BUFG0 | bels::BUFG1 => verify_bufg(vrf, bel),

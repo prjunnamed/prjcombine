@@ -1575,8 +1575,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_manual("QPLLREFCLKSEL_MODE", "DYNAMIC")
             .pip("GTREFCLK0", (PinFar, "GTREFCLK0"))
             .commit();
-        let tcid = backend.egrid.db.get_tile_class(tile);
-        if backend.egrid.tile_index[tcid].len() > 1 {
+        let tcid = backend.edev.db.get_tile_class(tile);
+        if backend.edev.tile_index[tcid].len() > 1 {
             for i in 0..2 {
                 bctx.build()
                     .mutex(format!("MUX.NORTHREFCLK{i}_N"), format!("NORTHREFCLK{i}"))
@@ -2030,8 +2030,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             OcdMode::BitOrderDrpV6,
         );
         ctx.collect_enum_default(tile, bel, "QPLLREFCLKSEL_MODE", &["DYNAMIC"], "STATIC");
-        let tcid = ctx.edev.egrid().db.get_tile_class(tile);
-        if ctx.edev.egrid().tile_index[tcid].len() > 1 {
+        let tcid = ctx.edev.db.get_tile_class(tile);
+        if ctx.edev.tile_index[tcid].len() > 1 {
             ctx.collect_enum_default_ocd(
                 tile,
                 bel,

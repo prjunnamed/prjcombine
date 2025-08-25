@@ -28,7 +28,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IntMutex {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        for (_, cell) in backend.egrid.tile_cells(tcrd) {
+        for (_, cell) in backend.edev.tile_cells(tcrd) {
             fuzzer = fuzzer.base(Key::IntMutex(cell), self.val.clone());
         }
         Some((fuzzer, false))
@@ -147,8 +147,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireMutexShared {
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let wire = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire))?;
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, self.wire))?;
         Some((fuzzer.base(Key::WireMutex(wire), "SHARED"), false))
     }
 }
@@ -176,8 +176,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireMutexExclusive {
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let wire = backend
-            .egrid
-            .resolve_wire(backend.egrid.tile_wire(tcrd, self.wire))?;
+            .edev
+            .resolve_wire(backend.edev.tile_wire(tcrd, self.wire))?;
         Some((fuzzer.fuzz(Key::WireMutex(wire), None, "EXCLUSIVE"), false))
     }
 }

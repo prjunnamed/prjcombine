@@ -22,14 +22,14 @@ impl TileRelation for ClbTbusRight {
     fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let mut cell = tcrd.cell;
         loop {
-            if cell.col == backend.egrid.cols(cell.die).next_back().unwrap() {
+            if cell.col == backend.edev.cols(cell.die).next_back().unwrap() {
                 return None;
             }
             cell.col += 1;
             match backend.edev {
                 ExpandedDevice::Virtex(_) => {
                     if backend
-                        .egrid
+                        .edev
                         .has_bel(cell.bel(prjcombine_virtex::bels::SLICE0))
                     {
                         return Some(cell.tile(prjcombine_virtex::tslots::MAIN));
@@ -40,7 +40,7 @@ impl TileRelation for ClbTbusRight {
                         return None;
                     }
                     if backend
-                        .egrid
+                        .edev
                         .has_bel(cell.bel(prjcombine_virtex2::bels::SLICE0))
                     {
                         return Some(cell.tile(prjcombine_virtex2::tslots::BEL));

@@ -26,8 +26,8 @@ fn apply_int_pip<'a>(
     pin: &'static str,
     mut fuzzer: Fuzzer<XactBackend<'a>>,
 ) -> Fuzzer<XactBackend<'a>> {
-    let rwf = backend.egrid.resolve_tile_wire(tcrd, wire_from).unwrap();
-    let rwt = backend.egrid.resolve_tile_wire(tcrd, wire_to).unwrap();
+    let rwf = backend.edev.resolve_tile_wire(tcrd, wire_from).unwrap();
+    let rwt = backend.edev.resolve_tile_wire(tcrd, wire_to).unwrap();
     fuzzer = fuzzer.base(Key::WireMutex(rwt), rwf);
     let crd = backend.ngrid.int_pip(tcrd, wire_to, wire_from);
     fuzzer.base(Key::Pip(crd), Value::FromPin(block, pin.into()))
@@ -42,7 +42,7 @@ fn drive_wire<'a>(
     let grid = backend.edev.chip;
     let mut cell = wire_target.cell;
     let wt = wire_target.slot;
-    let wtn = &backend.egrid.db.wires.key(wt)[..];
+    let wtn = &backend.edev.db.wires.key(wt)[..];
     let (ploc, pwt, pwf) = if wtn.starts_with("OUT") || wtn == "GCLK" || wtn == "ACLK" {
         let (slot, pin) = match wtn {
             "OUT.CLB.X" => (bels::CLB, "X"),
@@ -82,14 +82,14 @@ fn drive_wire<'a>(
         || wtn == "LONG.IO.R"
     {
         'a: {
-            for w in backend.egrid.wire_tree(wire_target) {
+            for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let tile = &backend.egrid[tcrd];
-                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                let tile = &backend.edev[tcrd];
+                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
-                        if backend.egrid.db.wires.key(inp.wire).starts_with("OUT") {
-                            let rwf = backend.egrid.resolve_tile_wire(tcrd, inp.tw).unwrap();
+                        if backend.edev.db.wires.key(inp.wire).starts_with("OUT") {
+                            let rwf = backend.edev.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (tcrd, TileWireCoord::new_idx(0, w.slot), inp.tw);
                             }
@@ -97,14 +97,14 @@ fn drive_wire<'a>(
                     }
                 }
             }
-            for w in backend.egrid.wire_tree(wire_target) {
+            for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let tile = &backend.egrid[tcrd];
-                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                let tile = &backend.edev[tcrd];
+                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
-                        if backend.egrid.db.wires.key(inp.wire).starts_with("SINGLE.V") {
-                            let rwf = backend.egrid.resolve_tile_wire(tcrd, inp.tw).unwrap();
+                        if backend.edev.db.wires.key(inp.wire).starts_with("SINGLE.V") {
+                            let rwf = backend.edev.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (tcrd, TileWireCoord::new_idx(0, w.slot), inp.tw);
                             }
@@ -121,14 +121,14 @@ fn drive_wire<'a>(
         || wtn == "LONG.IO.T"
     {
         'a: {
-            for w in backend.egrid.wire_tree(wire_target) {
+            for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
-                let tile = &backend.egrid[tcrd];
-                let tcls_index = &backend.egrid.db_index.tile_classes[tile.class];
+                let tile = &backend.edev[tcrd];
+                let tcls_index = &backend.edev.db_index.tile_classes[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
-                        if backend.egrid.db.wires.key(inp.wire).starts_with("SINGLE.V") {
-                            let rwf = backend.egrid.resolve_tile_wire(tcrd, inp.tw).unwrap();
+                        if backend.edev.db.wires.key(inp.wire).starts_with("SINGLE.V") {
+                            let rwf = backend.edev.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if rwf != wire_avoid {
                                 break 'a (tcrd, TileWireCoord::new_idx(0, w.slot), inp.tw);
                             }
@@ -141,7 +141,7 @@ fn drive_wire<'a>(
     } else {
         panic!("umm wtf is {wtn}")
     };
-    let nwt = backend.egrid.resolve_tile_wire(ploc, pwf).unwrap();
+    let nwt = backend.edev.resolve_tile_wire(ploc, pwf).unwrap();
     let (fuzzer, block, pin) = drive_wire(backend, fuzzer, nwt, wire_avoid);
     let fuzzer = apply_int_pip(backend, ploc, pwt, pwf, block, pin, fuzzer);
     (fuzzer, block, pin)
@@ -156,7 +156,7 @@ fn apply_imux_finish<'a>(
 ) -> Fuzzer<XactBackend<'a>> {
     let mut cell = wire.cell;
     let w = wire.slot;
-    let wn = &backend.egrid.db.wires.key(w)[..];
+    let wn = &backend.edev.db.wires.key(w)[..];
     if !wn.starts_with("IMUX") {
         return fuzzer;
     }
@@ -243,9 +243,9 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for IntPip {
         tcrd: prjcombine_interconnect::grid::TileCoord,
         fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let rwt = backend.egrid.resolve_tile_wire(tcrd, self.wire_to).unwrap();
+        let rwt = backend.edev.resolve_tile_wire(tcrd, self.wire_to).unwrap();
         let rwf = backend
-            .egrid
+            .edev
             .resolve_tile_wire(tcrd, self.wire_from)
             .unwrap();
         let (mut fuzzer, block, pin) = drive_wire(backend, fuzzer, rwf, rwt);
@@ -280,7 +280,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let wn = backend.egrid.db.wires.key(self.wire);
+        let wn = backend.edev.db.wires.key(self.wire);
         let bidi_tile = match self.dir {
             Dir::W | Dir::E => {
                 if tcrd.row == backend.edev.chip.row_s() {
@@ -403,9 +403,9 @@ impl HasBidi {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let intdb = backend.egrid.db;
+    let intdb = backend.edev.db;
     for (tcid, tile, _) in &intdb.tile_classes {
-        let tcls_index = &backend.egrid.db_index.tile_classes[tcid];
+        let tcls_index = &backend.edev.db_index.tile_classes[tcid];
         if tcls_index.pips_bwd.is_empty() {
             continue;
         }
@@ -467,7 +467,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let intdb = ctx.edev.egrid.db;
+    let intdb = ctx.edev.db;
     for (tile, stile) in [
         ("BIDIH", "CLB"),
         ("BIDIH.B", "CLB.B"),
@@ -483,7 +483,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "SINGLE.V"
         };
         let stcid = intdb.get_tile_class(stile);
-        let stcls = &ctx.edev.egrid.db_index.tile_classes[stcid];
+        let stcls = &ctx.edev.db_index.tile_classes[stcid];
         for (wire, ins) in &stcls.pips_bwd {
             let wn = intdb.wires.key(wire.wire);
             if wn.starts_with(filter) && !wn.ends_with(".E") && !wn.ends_with(".S") {
@@ -561,7 +561,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 "TIOB1" => bels::IO_N[1],
                                 _ => unreachable!(),
                             };
-                            let bel = ctx.edev.egrid.db.bel_slots.key(slot);
+                            let bel = ctx.edev.db.bel_slots.key(slot);
                             assert!(!got_empty);
                             inps.push(("VCC".to_string(), Diff::default()));
                             inps.push((

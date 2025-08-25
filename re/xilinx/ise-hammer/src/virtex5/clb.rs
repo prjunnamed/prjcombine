@@ -34,7 +34,7 @@ impl TileRelation for ClbCinDown {
                 return None;
             }
             tcrd.row -= 1;
-            if let Some(ntcrd) = backend.egrid.find_tile_by_class(tcrd.cell, |kind| {
+            if let Some(ntcrd) = backend.edev.find_tile_by_class(tcrd.cell, |kind| {
                 kind.starts_with("CLB") || kind.starts_with("CLEX")
             }) {
                 return Some(ntcrd);
@@ -765,8 +765,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     } else {
         ["CLBLL", "CLBLM"]
     } {
-        let tcls = ctx.edev.egrid().db.get_tile_class(tile);
-        if ctx.edev.egrid().tile_index[tcls].is_empty() {
+        let tcls = ctx.edev.db.get_tile_class(tile);
+        if ctx.edev.tile_index[tcls].is_empty() {
             continue;
         }
         for (idx, bel) in ["SLICE0", "SLICE1"].into_iter().enumerate() {

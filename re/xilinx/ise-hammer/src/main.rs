@@ -118,7 +118,6 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &R
         db,
         device: part,
         bs_geom: gedev.bs_geom(),
-        egrid: gedev.egrid(),
         ngrid: gendev.ngrid(),
         edev: &gedev,
         endev: &gendev,

@@ -805,8 +805,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         },
     );
 
-    let sysmon = edev.egrid.db.get_tile_class("SYSMON");
-    if !edev.egrid.tile_index[sysmon].is_empty() {
+    let sysmon = edev.db.get_tile_class("SYSMON");
+    if !edev.tile_index[sysmon].is_empty() {
         let tile = "SYSMON";
         let bel = "SYSMON";
         ctx.collect_enum(tile, bel, "MONITOR_MODE", &["TEST", "MONITOR", "ADC"]);

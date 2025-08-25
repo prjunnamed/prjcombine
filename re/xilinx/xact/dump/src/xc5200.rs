@@ -617,10 +617,10 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     let edev = chip.expand_grid(&intdb);
     let endev = name_device(&edev, &ndb);
 
-    let mut extractor = Extractor::new(die, &edev.egrid, &endev.ngrid);
+    let mut extractor = Extractor::new(die, &edev, &endev.ngrid);
 
     let die = DieId::from_idx(0);
-    for (tcrd, tile) in edev.egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
         let tcls = &intdb.tile_classes[tile.class];
@@ -828,7 +828,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     }
     extractor.grab_prim_a("_cfg5200_");
 
-    for (tcrd, tile) in edev.egrid.tiles() {
+    for (tcrd, tile) in edev.tiles() {
         let ntile = &endev.ngrid.tiles[&tcrd];
         let tcls = &intdb.tile_classes[tile.class];
         for (slot, _) in &tcls.bels {
@@ -843,7 +843,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     }
 
     // long verticals + GCLK
-    for col in edev.egrid.cols(die) {
+    for col in edev.cols(die) {
         let mut queue = vec![];
         for row in [chip.row_mid() - 1, chip.row_mid()] {
             let by = endev.row_y[row].start;
@@ -873,7 +873,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         }
     }
     // long horizontals
-    for row in edev.egrid.rows(die) {
+    for row in edev.rows(die) {
         let mut queue = vec![];
         for col in [chip.col_mid() - 1, chip.col_mid()] {
             let lx = endev.col_x[col].start;
@@ -904,12 +904,12 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
 
     // horizontal single and double
     let mut queue = vec![];
-    for col in edev.egrid.cols(die) {
+    for col in edev.cols(die) {
         if col == chip.col_w() {
             continue;
         }
         let x = endev.col_x[col].start;
-        for row in edev.egrid.rows(die) {
+        for row in edev.rows(die) {
             let mut nets = vec![];
             for y in endev.row_y[row].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_l else {
@@ -968,12 +968,12 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         }
     }
     // vertical single and double
-    for row in edev.egrid.rows(die) {
+    for row in edev.rows(die) {
         if row == chip.row_s() {
             continue;
         }
         let y = endev.row_y[row].start;
-        for col in edev.egrid.cols(die) {
+        for col in edev.cols(die) {
             let mut nets = vec![];
             for x in endev.col_x[col].clone() {
                 let Some(net) = extractor.matrix_nets[(x, y)].net_b else {
@@ -1035,7 +1035,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         extractor.net_int(net, wire);
     }
 
-    for (cell, _) in edev.egrid.cells() {
+    for (cell, _) in edev.cells() {
         let CellCoord { col, row, .. } = cell;
         if row == chip.row_s() || row == chip.row_n() {
             if col == chip.col_w() || col == chip.col_e() {
@@ -1120,7 +1120,6 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     for i in 0..8 {
         let wire = intdb.get_wire(&format!("IO.SINGLE.L.N{i}"));
         let rw = edev
-            .egrid
             .resolve_wire(CellCoord::new(die, chip.col_w(), chip.row_s()).wire(wire))
             .unwrap();
         let net = extractor.int_nets[&rw];
