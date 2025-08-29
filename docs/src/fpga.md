@@ -128,20 +128,43 @@ The usual convention is to consider the segment where the wire is driven (here: 
 
 ## Wires, wire segments, connectors — Project Combine model
 
-In Project Combine, the interconnect database describes a number (usually between ~100 and ~1000) of *wire slots*, which are identified by `WireSlotId`.  A *wire segment* is uniquely identified by a tuple of `(CellCoord, WireSlotId)`, which is also known as `WireCoord`.  A *wire* is identified by the `WireCoord` of its canonical segment.
+In Project Combine, the interconnect database describes a number (usually between ~100 and ~1000) of *wire slots*, which are identified by `WireSlotId`.  A *wire segment* is uniquely identified by a tuple of `(CellCoord, WireSlotId)`, which is also known as `WireCoord`.  Thus, logically, a *wire slot* is replicated across all cells.
+
+As mentioned before, a *wire* is identified by the `WireCoord` of its canonical segment.
+
+To make this clearer, consider [example 1](#example-1--simple-bidirectional-quad-wire) again:
+
+![Example device](wires-1-light.svg#light-only)
+![Example device](wires-1-dark.svg#dark-only)
+
+Here, there are five *wire slots*, named `QUAD_H_[0-4]`. Notice how the combination of wire slot and cell coordinates uniquely identifies a specific wire segment.
+
+In order to figure out which wire segments are actually connected together (and therefore to find the canonical segment of the wire), we need to consider the *wire kind* of the segment. The interconnect database specifies the *wire kind* of each *wire slot*, thus each wire segment with a particular `WireSlotId` has the same wire kind.
 
 ### Regions
 
-Since the device may contain many kinds of regional wires with varying scopes, the interconnect database describes a number of *region slots*, identified by `RegionSlotId`.  Every regional wire slot is associated with such a region slot, and every cell of the expanded grid contains a mapping from `RegionSlotId` to a `CellCoord` where the canonical segment of all associated regional wires is located.  Thus, to describe [example 4](#example-4--regional-wires) above, one would allocate a single region slot, associate wire slot `GCLK0` with it, then store the following canonical coordinate for each cell:
+One of the simpler wire kinds are *regional wires*. Because regional wires tend to come in "bundles", wherein a group of wires runs in parallel across an entire region, it is these regions that are actually represented within the database.
 
-- `X[0-3]Y[0-3]`: `X3Y3` is the canonical cell
-- `X[4-7]Y[0-3]`: `X4Y3` is the canonical cell
-- `X[0-3]Y[4-7]`: `X3Y4` is the canonical cell
-- `X[4-7]Y[4-7]`: `X4Y4` is the canonical cell
+However, since a wire slot and its wire kind is global across all cells, `WireKind::Regional` cannot directly point to a specific region. Instead, it specifies a `RegionSlotId`. A *region slot* can be thought as the "type" of a region, or its place in some kind of hierarchy.
+
+![Example device with a region hierarchy being described with two region slots](region-slots-light.svg#light-only)
+![Example device with a region hierarchy being described with two region slots](region-slots-dark.svg#dark-only)
+
+However, the region structure doesn't necessarily need to be hierarchical. For example, some devices have interconnect which can be described with a set of staggered region slots:
+
+![Example device with two region slots being interleaved](region-slots-staggered-light.svg#light-only)
+![Example device with two region slots being interleaved](region-slots-staggered-dark.svg#dark-only)
+
+Thus, to describe [example 4](#example-4--regional-wires), we would:
+ - allocate a region slot, e.g. `RSLOT0`;
+ - in each cell, store the coordinates of the canonical wire segment as the *region root* for `RSLOT0`;
+ - assign wire slot `GCLK0` to wire kind `Regional(RSLOT0)`.
 
 ### Connectors
 
-For other kinds of wires, the connections between wire segments in (usually adjacent) cells are described by *connectors* and *connector classes*.
+KEY OBSERVATION: There is a lot of complexity here, however it is motivated by *the desire to deduplicate data*.
+
+For wire kinds other than regional, the connections between wire segments in (usually adjacent) cells are described by *connectors* and *connector classes*.
 
 The interconnect database describes a small number of *connector slots*, identified by `ConnectorSlotId`.  For most databases, there are four connector slots, corresponding to the four directions, but some devices (such as versal) require more complex descriptions.
 
