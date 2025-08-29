@@ -262,7 +262,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     for i in 0..24 {
-        builder.logic_out(format!("OUT{i}"), &[format!("LOGIC_OUTS{i}")]);
+        let w = builder.logic_out(format!("OUT{i}"), &[format!("LOGIC_OUTS{i}")]);
+        builder.test_mux_in(format!("OUT{i}.TMIN"), w);
     }
 
     for i in 0..4 {
@@ -309,6 +310,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         Dir::E,
         "INT_INTERFACE",
         "INTF",
+        bels::INTF_TESTMUX,
         true,
         None,
     );
@@ -318,6 +320,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         Dir::E,
         "IOI_L_INT_INTERFACE",
         "INTF.IOI_L",
+        bels::INTF_TESTMUX,
         true,
         None,
     );
@@ -334,6 +337,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             Dir::E,
             tkn,
             format!("INTF.{n}"),
+            bels::INTF_TESTMUX,
             true,
             Some(bels::INTF_DELAY),
         );
@@ -362,6 +366,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .pin_name_only("CIN", 0)
                         .pin_name_only("COUT", 1),
                 ],
+                false,
             );
         }
     }

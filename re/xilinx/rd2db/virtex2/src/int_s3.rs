@@ -1,7 +1,7 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_interconnect::{
-    db::{Bel, BelInfo, BelPin, IntDb, TileWireCoord, WireKind},
+    db::{Bel, BelInfo, BelPin, GroupTestMux, GroupTestMuxWire, IntDb, TileWireCoord, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{
@@ -505,7 +505,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     for i in 0..8 {
-        builder.logic_out(
+        let w = builder.logic_out(
             format!("OUT.FAN{i}"),
             &[
                 // In CLBs, used for combinatorial outputs.
@@ -559,10 +559,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &format!("CNR_D_O_FAN_B{i}")[..],
             ],
         );
+        builder.test_mux_in(format!("OUT.FAN{i}.TMIN"), w);
     }
 
     for i in 0..16 {
-        builder.logic_out(
+        let w = builder.logic_out(
             format!("OUT.SEC{i}"),
             &[
                 [
@@ -671,6 +672,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &format!("CNR_D_OUT_B{i}")[..],
             ],
         );
+        builder.test_mux_in(format!("OUT.SEC{i}.TMIN"), w);
     }
     builder.stub_out("STUB_IOIS_X3");
     builder.stub_out("STUB_IOIS_Y3");
@@ -679,7 +681,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for i in 0..4 {
         for j in 0..2 {
-            builder.logic_out(
+            let w = builder.logic_out(
                 format!("OUT.HALF{i}.{j}"),
                 &[
                     [
@@ -704,6 +706,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     ][i + j * 4],
                 ],
             );
+            builder.test_mux_in(format!("OUT.HALF{i}.{j}.TMIN"), w);
         }
     }
 
@@ -3242,6 +3245,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_int_in("OUT1", &["BTERM_OMUX3", "BTTERM_OMUX11"])
                     .extra_int_in("OUT2", &["BTERM_OMUX4", "BTTERM_OMUX12"])
                     .extra_int_in("OUT3", &["BTERM_OMUX5", "BTTERM_OMUX15"])],
+                false,
             );
         }
     }
@@ -3331,7 +3335,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         }
                     });
                 }
-                builder.extract_xtile_bels(tslots::CLK, &kind, xy, &buf_xy, &int_xy, &kind, &bels);
+                builder.extract_xtile_bels(
+                    tslots::CLK,
+                    &kind,
+                    xy,
+                    &buf_xy,
+                    &int_xy,
+                    &kind,
+                    &bels,
+                    false,
+                );
             }
         }
 
@@ -3348,6 +3361,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .bel_virtual(bels::PCI_CE_N)
                         .extra_wire("I", &["GCLKH_PCI_CE_IN"])
                         .extra_wire("O", &["GCLKH_PCI_CE_OUT"])],
+                    false,
                 );
             }
         }
@@ -3364,6 +3378,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .bel_virtual(bels::PCI_CE_S)
                         .extra_wire("I", &["GCLKH_PCI_CE_OUT"])
                         .extra_wire("O", &["GCLKH_PCI_CE_IN"])],
+                    false,
                 );
             }
         }
@@ -3400,6 +3415,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .bel_virtual(bels::PCI_CE_E)
                         .extra_wire("I", &["CLKV_PCI_CE_W"])
                         .extra_wire("O", &["CLKV_PCI_CE_E"])],
+                    false,
                 );
             }
             for &xy in rd.tiles_by_kind_name("GCLKV_IOISR") {
@@ -3414,6 +3430,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .bel_virtual(bels::PCI_CE_W)
                         .extra_wire("I", &["CLKV_PCI_CE_E"])
                         .extra_wire("O", &["CLKV_PCI_CE_W"])],
+                    false,
                 );
             }
         }
@@ -3439,6 +3456,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     &int_xy,
                     "BRAM.S3ADSP",
                     &[builder.bel_xy(bels::BRAM, "RAMB16", 0, 0)],
+                    false,
                 );
             }
         }
@@ -3467,18 +3485,66 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 for dy in 0..4 {
                     int_xy.push(xy.delta(-1, dy));
                 }
-                builder.extract_xtile_bels(tslots::BEL, "DSP", xy, &[], &int_xy, naming, &bels_dsp);
+                builder.extract_xtile_bels(
+                    tslots::BEL,
+                    "DSP",
+                    xy,
+                    &[],
+                    &int_xy,
+                    naming,
+                    &bels_dsp,
+                    true,
+                );
                 builder.extract_intf_tile_multi(
                     tslots::INTF,
                     "INTF.DSP",
                     xy,
                     &int_xy,
                     "INTF.DSP",
+                    bels::INTF_TESTMUX,
                     false,
                     None,
                 );
             }
         }
+        let mut wires_c = BTreeSet::new();
+        let tcls = builder.db.tile_classes.get("DSP").unwrap().1;
+        let BelInfo::Bel(ref bel) = tcls.bels[bels::DSP] else {
+            unreachable!()
+        };
+        for i in 0..48 {
+            for &w in &bel.pins[&format!("C{i}")].wires {
+                wires_c.insert(w);
+            }
+        }
+
+        let tcls = builder.db.tile_classes.get_mut("INTF.DSP").unwrap().1;
+        let BelInfo::TestMux(tm) = tcls.bels.remove(bels::INTF_TESTMUX).unwrap() else {
+            unreachable!()
+        };
+        let mut gtm = GroupTestMux {
+            num_groups: 2,
+            wires: Default::default(),
+        };
+        for (dst, tmux) in tm.wires {
+            let mut gtmux = GroupTestMuxWire {
+                primary_src: tmux.primary_src,
+                test_src: vec![None, None],
+            };
+            let num = tmux.test_src.len();
+            for src in tmux.test_src {
+                let group = if num == 2 && !wires_c.contains(&src.tw) {
+                    1
+                } else {
+                    0
+                };
+                assert_eq!(gtmux.test_src[group], None);
+                gtmux.test_src[group] = Some(src);
+            }
+            gtm.wires.insert(dst, gtmux);
+        }
+        tcls.bels
+            .insert(bels::INTF_TESTMUX, BelInfo::GroupTestMux(gtm));
     } else if rd.family != "fpgacore" {
         let kind = match &*rd.family {
             "spartan3" => "BRAM.S3",
@@ -3505,7 +3571,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 for dy in 0..4 {
                     int_xy.push(xy.delta(-1, dy));
                 }
-                builder.extract_xtile_bels(tslots::BEL, kind, xy, &[], &int_xy, naming, &bels_bram);
+                builder.extract_xtile_bels(
+                    tslots::BEL,
+                    kind,
+                    xy,
+                    &[],
+                    &int_xy,
+                    naming,
+                    &bels_bram,
+                    false,
+                );
             }
         }
     }
@@ -3521,7 +3596,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             for i in 0..8 {
                 bel = bel.extra_wire(format!("OUT{i}"), &[format!("CLKC_GCLK{i}")]);
             }
-            builder.extract_xtile_bels(tslots::CLK, "CLKC", xy, &[], &[], "CLKC", &[bel]);
+            builder.extract_xtile_bels(tslots::CLK, "CLKC", xy, &[], &[], "CLKC", &[bel], false);
         }
     }
 
@@ -3539,7 +3614,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_L{i}"), &[format!("CLKC_50A_GCLK_OUT_LH{i}")])
                 .extra_wire(format!("OUT_R{i}"), &[format!("CLKC_50A_GCLK_OUT_RH{i}")]);
         }
-        builder.extract_xtile_bels(tslots::CLK, "CLKC_50A", xy, &[], &[], "CLKC_50A", &[bel]);
+        builder.extract_xtile_bels(
+            tslots::CLK,
+            "CLKC_50A",
+            xy,
+            &[],
+            &[],
+            "CLKC_50A",
+            &[bel],
+            false,
+        );
     }
 
     for &xy in rd.tiles_by_kind_name("GCLKVM") {
@@ -3550,7 +3634,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_B{i}"), &[format!("GCLKVM_GCLK_DN{i}")])
                 .extra_wire(format!("OUT_T{i}"), &[format!("GCLKVM_GCLK_UP{i}")]);
         }
-        builder.extract_xtile_bels(tslots::CLK, "GCLKVM.S3", xy, &[], &[], "GCLKVM.S3", &[bel]);
+        builder.extract_xtile_bels(
+            tslots::CLK,
+            "GCLKVM.S3",
+            xy,
+            &[],
+            &[],
+            "GCLKVM.S3",
+            &[bel],
+            false,
+        );
     }
 
     for tkn in ["GCLKVML", "GCLKVMR"] {
@@ -3572,7 +3665,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire(format!("OUT_B{i}"), &[format!("GCLKVMLR_GCLK_DN{i}")])
                     .extra_wire(format!("OUT_T{i}"), &[format!("GCLKVMLR_GCLK_UP{i}")]);
             }
-            builder.extract_xtile_bels(tslots::CLK, "GCLKVM.S3E", xy, &[], &[], tkn, &[bel]);
+            builder.extract_xtile_bels(tslots::CLK, "GCLKVM.S3E", xy, &[], &[], tkn, &[bel], false);
         }
     }
 
@@ -3584,7 +3677,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLK_OUT_L{i}")])
                 .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLK_OUT_R{i}")]);
         }
-        builder.extract_xtile_bels(tslots::HROW, "GCLKVC", xy, &[], &[], "GCLKVC", &[bel]);
+        builder.extract_xtile_bels(
+            tslots::HROW,
+            "GCLKVC",
+            xy,
+            &[],
+            &[],
+            "GCLKVC",
+            &[bel],
+            false,
+        );
     }
 
     for tkn in [
@@ -3611,6 +3713,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &[int_s_xy, int_n_xy],
                 "GCLKH",
                 &[builder.bel_virtual(bels::GLOBALSIG), bel],
+                false,
             );
         }
     }
@@ -3645,6 +3748,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             &[dummy_xy, dummy_xy],
             "GCLKH.BRAM",
             &[bel_globalsig.clone(), bel],
+            false,
         );
         let mut bel = builder.bel_virtual(bels::GCLKH);
         for i in 0..8 {
@@ -3668,6 +3772,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             &[dummy_xy, dummy_xy],
             "GCLKH.BRAM.S",
             &[bel_globalsig.clone(), bel],
+            false,
         );
         let mut bel = builder.bel_virtual(bels::GCLKH);
         for i in 0..8 {
@@ -3691,6 +3796,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             &[dummy_xy, dummy_xy],
             "GCLKH.BRAM.N",
             &[bel_globalsig.clone(), bel],
+            false,
         );
         builder.extract_xtile_bels(
             tslots::HCLK,
@@ -3700,6 +3806,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             &[dummy_xy, dummy_xy],
             "GCLKH.0",
             &[bel_globalsig],
+            false,
         );
         builder.extract_xtile_bels(
             tslots::CLK,
@@ -3709,6 +3816,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             &[],
             "GCLKH.DSP",
             &[builder.bel_virtual(bels::GLOBALSIG_DSP)],
+            false,
         );
     }
 

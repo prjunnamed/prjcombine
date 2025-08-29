@@ -51,7 +51,6 @@ pub struct TileClassNaming {
     pub ext_pips: BTreeMap<(TileWireCoord, TileWireCoord), PipNaming>,
     pub delay_wires: BTreeMap<TileWireCoord, String>,
     pub bels: EntityPartVec<BelSlotId, BelNaming>,
-    pub intf_wires_out: BTreeMap<TileWireCoord, IntfWireOutNaming>,
     pub intf_wires_in: BTreeMap<TileWireCoord, IntfWireInNaming>,
 }
 
@@ -84,29 +83,10 @@ pub struct BelPinNaming {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
-pub enum IntfWireOutNaming {
+pub enum IntfWireInNaming {
     Simple { name: String },
     Buf { name_out: String, name_in: String },
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
-pub enum IntfWireInNaming {
-    Simple {
-        name: String,
-    },
-    Buf {
-        name_out: String,
-        name_in: String,
-    },
-    TestBuf {
-        name_out: String,
-        name_in: String,
-    },
-    Delay {
-        name_out: String,
-        name_in: String,
-        name_delay: String,
-    },
+    TestBuf { name_out: String, name_in: String },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
@@ -226,20 +206,6 @@ impl NamingDb {
                     }
                 }
             }
-            for (w, wn) in &naming.intf_wires_out {
-                write!(
-                    o,
-                    "\t\tINTF.OUT {wt:3}.{wn:20}: ",
-                    wt = w.cell.to_idx(),
-                    wn = intdb.wires.key(w.wire)
-                )?;
-                match wn {
-                    IntfWireOutNaming::Simple { name } => writeln!(o, "SIMPLE {name}")?,
-                    IntfWireOutNaming::Buf { name_out, name_in } => {
-                        writeln!(o, "BUF {name_out} <- {name_in}")?
-                    }
-                }
-            }
             for (w, wn) in &naming.intf_wires_in {
                 write!(
                     o,
@@ -255,11 +221,6 @@ impl NamingDb {
                     IntfWireInNaming::TestBuf { name_out, name_in } => {
                         writeln!(o, "TESTBUF {name_out} <- {name_in}")?
                     }
-                    IntfWireInNaming::Delay {
-                        name_out,
-                        name_delay,
-                        name_in,
-                    } => writeln!(o, "DELAY {name_out} <- {name_delay} <- {name_in}")?,
                 }
             }
         }

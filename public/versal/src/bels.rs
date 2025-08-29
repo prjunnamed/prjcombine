@@ -6,6 +6,7 @@ bels![
     INT: tslots::INT,
     CLE_BC_INT: tslots::CLE_BC,
     INTF_INT: tslots::INTF,
+    INTF_TESTMUX: tslots::INTF,
     INTF_DELAY: tslots::INTF,
     RCLK_INT: tslots::RCLK_INT,
     IRI0: tslots::INTF,

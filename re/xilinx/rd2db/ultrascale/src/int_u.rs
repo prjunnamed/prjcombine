@@ -742,6 +742,7 @@ impl IntMaker<'_> {
             let w = self
                 .builder
                 .logic_out(format!("OUT.{i}"), &[format!("LOGIC_OUTS_W{i}")]);
+            self.builder.test_mux_in(format!("OUT.{i}.TMIN"), w);
             self.builder
                 .extra_name_sub(format!("LOGIC_OUTS_E{i}"), 1, w);
         }
@@ -982,7 +983,7 @@ impl IntMaker<'_> {
                 let mut xn = self
                     .builder
                     .xtile(tslots::INTF, kind, naming, xy)
-                    .extract_intfs(true)
+                    .extract_intfs(bels::INTF_TESTMUX, true)
                     .ref_int_side(int_xy, dir, 0);
                 if let Some(sb) = sb_delay {
                     xn = xn.extract_delay(sb);

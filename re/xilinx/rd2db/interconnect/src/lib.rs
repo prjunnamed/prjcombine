@@ -5,15 +5,15 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map};
 use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, BelSlotId, BiPass, Buf, CellSlotId, ConnectorClass, ConnectorSlotId,
-        ConnectorWire, IntDb, IntfInfo, Mux, Pass, PinDir, ProgDelay, SwitchBox, SwitchBoxItem,
-        TileClass, TileClassId, TileSlotId, TileWireCoord, WireKind, WireSlotId,
+        ConnectorWire, IntDb, Mux, Pass, PinDir, ProgDelay, SwitchBox, SwitchBoxItem, TestMux,
+        TestMuxWire, TileClass, TileClassId, TileSlotId, TileWireCoord, WireKind, WireSlotId,
     },
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, BelPinNaming, ConnectorClassNamingId, ConnectorWireInFarNaming,
-    ConnectorWireOutNaming, IntfWireInNaming, IntfWireOutNaming, NamingDb, PipNaming,
-    ProperBelNaming, RawTileId, TileClassNaming, TileClassNamingId,
+    ConnectorWireOutNaming, IntfWireInNaming, NamingDb, PipNaming, ProperBelNaming, RawTileId,
+    TileClassNaming, TileClassNamingId,
 };
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -64,7 +64,7 @@ pub struct XTileInfo<'a, 'b> {
     pub raw_tiles: Vec<XTileRawTile>,
     pub num_tiles: usize,
     pub refs: Vec<XTileRef>,
-    pub extract_intfs: bool,
+    pub tmux_bel: Option<BelSlotId>,
     pub delay_sb: Option<BelSlotId>,
     pub has_intf_out_bufs: bool,
     pub skip_muxes: BTreeSet<WireSlotId>,
@@ -75,6 +75,7 @@ pub struct XTileInfo<'a, 'b> {
     pub force_skip_pips: HashSet<(TileWireCoord, TileWireCoord)>,
     pub force_pips: HashSet<(TileWireCoord, TileWireCoord)>,
     pub switchbox: Option<BelSlotId>,
+    pub force_test_mux_in: bool,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -305,8 +306,8 @@ impl XTileInfo<'_, '_> {
         self
     }
 
-    pub fn extract_intfs(mut self, has_out_bufs: bool) -> Self {
-        self.extract_intfs = true;
+    pub fn extract_intfs(mut self, bel: BelSlotId, has_out_bufs: bool) -> Self {
+        self.tmux_bel = Some(bel);
         self.has_intf_out_bufs = has_out_bufs;
         self
     }
@@ -363,6 +364,11 @@ impl XTileInfo<'_, '_> {
         self
     }
 
+    pub fn force_test_mux_in(mut self) -> Self {
+        self.force_test_mux_in = true;
+        self
+    }
+
     pub fn extract(self) {
         let rd = self.builder.rd;
 
@@ -416,6 +422,15 @@ impl XTileInfo<'_, '_> {
                     {
                         continue;
                     }
+                    if let Some(&wf) = self.builder.test_mux_ins.get(&k.wire) {
+                        let wf = TileWireCoord {
+                            cell: k.cell,
+                            wire: wf,
+                        };
+                        if naming.wires.get(&wf) == Some(v) {
+                            continue;
+                        }
+                    }
                     if let Some(nw) = rd.lookup_wire(r.xy, v)
                         && let Some(&ti) = r.tile_map.get(k.cell)
                     {
@@ -442,46 +457,10 @@ impl XTileInfo<'_, '_> {
                                 ));
                             }
                         }
-                        IntfWireInNaming::Buf { name_out: n, .. }
-                        | IntfWireInNaming::Delay { name_out: n, .. } => {
+                        IntfWireInNaming::Buf { name_out: n, .. } => {
                             if let Some(nw) = rd.lookup_wire(r.xy, n) {
                                 names.entry(nw).or_insert((
                                     IntConnKind::IntfIn,
-                                    TileWireCoord {
-                                        cell: r.tile_map[k.cell],
-                                        wire: k.wire,
-                                    },
-                                ));
-                            }
-                        }
-                    }
-                }
-                for (&k, v) in &naming.intf_wires_out {
-                    match v {
-                        IntfWireOutNaming::Simple { name } => {
-                            if let Some(nw) = rd.lookup_wire(r.xy, name) {
-                                names.entry(nw).or_insert((
-                                    IntConnKind::Raw,
-                                    TileWireCoord {
-                                        cell: r.tile_map[k.cell],
-                                        wire: k.wire,
-                                    },
-                                ));
-                            }
-                        }
-                        IntfWireOutNaming::Buf { name_out, name_in } => {
-                            if let Some(nw) = rd.lookup_wire(r.xy, name_out) {
-                                names.entry(nw).or_insert((
-                                    IntConnKind::Raw,
-                                    TileWireCoord {
-                                        cell: r.tile_map[k.cell],
-                                        wire: k.wire,
-                                    },
-                                ));
-                            }
-                            if let Some(nw) = rd.lookup_wire(r.xy, name_in) {
-                                names.entry(nw).or_insert((
-                                    IntConnKind::IntfOut,
                                     TileWireCoord {
                                         cell: r.tile_map[k.cell],
                                         wire: k.wire,
@@ -609,8 +588,8 @@ impl XTileInfo<'_, '_> {
         }
 
         extractor.extract_delay();
-        if self.extract_intfs {
-            extractor.extract_intfs();
+        if self.tmux_bel.is_some() {
+            extractor.extract_tmux();
         }
 
         for bel in &self.bels {
@@ -713,7 +692,12 @@ impl XTileExtractor<'_, '_, '_> {
                 PinDir::Output => {
                     if let Some(nxt) = self.int_out.get(&nw) {
                         if nxt.len() == 1 {
-                            let (ick, w, rt, wt, wf) = nxt[0];
+                            let (ick, mut w, rt, wt, wf) = nxt[0];
+                            if self.xtile.force_test_mux_in
+                                && let Some(&nw) = self.xtile.builder.test_mux_ins.get(&w.wire)
+                            {
+                                w.wire = nw;
+                            }
                             pips.push(PipNaming {
                                 tile: RawTileId::from_idx(rt),
                                 wire_to: self.rd.wires[wt].clone(),
@@ -727,8 +711,13 @@ impl XTileExtractor<'_, '_, '_> {
                             let mut wires = BTreeSet::new();
                             let mut int_pips = BTreeMap::new();
                             let mut ick = None;
-                            for &(cick, w, rt, wt, wf) in nxt {
+                            for &(cick, mut w, rt, wt, wf) in nxt {
                                 ick = Some(cick);
+                                if self.xtile.force_test_mux_in
+                                    && let Some(&nw) = self.xtile.builder.test_mux_ins.get(&w.wire)
+                                {
+                                    w.wire = nw;
+                                }
                                 wires.insert(w);
                                 int_pips.insert(
                                     w,
@@ -856,14 +845,7 @@ impl XTileExtractor<'_, '_, '_> {
                                 is_intf: ick != IntConnKind::Raw,
                             },
                         );
-                        pins.insert(
-                            name.clone(),
-                            BelPin {
-                                wires,
-                                dir,
-                                is_intf_in: false,
-                            },
-                        );
+                        pins.insert(name.clone(), BelPin { wires, dir });
                     }
                     &BelPinInfo::ForceInt(wire, ref wname) => {
                         let dir = match tksp.dir {
@@ -886,7 +868,6 @@ impl XTileExtractor<'_, '_, '_> {
                             BelPin {
                                 wires: [wire].into_iter().collect(),
                                 dir,
-                                is_intf_in: false,
                             },
                         );
                     }
@@ -969,14 +950,7 @@ impl XTileExtractor<'_, '_, '_> {
                             is_intf: ick != IntConnKind::Raw,
                         },
                     );
-                    pins.insert(
-                        name.clone(),
-                        BelPin {
-                            wires,
-                            dir,
-                            is_intf_in: false,
-                        },
-                    );
+                    pins.insert(name.clone(), BelPin { wires, dir });
                 }
                 BelPinInfo::ExtraIntForce(dir, wire, ref wname) => {
                     naming_pins.insert(
@@ -994,7 +968,6 @@ impl XTileExtractor<'_, '_, '_> {
                         BelPin {
                             wires: [wire].into_iter().collect(),
                             dir,
-                            is_intf_in: false,
                         },
                     );
                 }
@@ -1196,7 +1169,7 @@ impl XTileExtractor<'_, '_, '_> {
         }
     }
 
-    fn extract_intfs(&mut self) {
+    fn extract_tmux(&mut self) {
         let crd = self.xtile.raw_tiles[0].xy;
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
@@ -1209,11 +1182,18 @@ impl XTileExtractor<'_, '_, '_> {
                     continue;
                 }
                 self.tcls_naming
-                    .intf_wires_out
+                    .wires
                     .entry(wt)
-                    .or_insert_with(|| IntfWireOutNaming::Simple {
-                        name: self.rd.wires[wti].clone(),
-                    });
+                    .or_insert_with(|| self.rd.wires[wti].clone());
+                if !self.xtile.has_intf_out_bufs {
+                    let wf = TileWireCoord {
+                        cell: wt.cell,
+                        wire: self.xtile.builder.test_mux_ins[&wt.wire],
+                    };
+                    self.tcls_naming
+                        .wires
+                        .insert(wf, self.rd.wires[wti].clone());
+                }
                 let nwf = self.rd.lookup_wire_raw_force(crd, wfi);
                 if let Some(&(_, wf)) = self.names.get(&nwf) {
                     self.tcls_naming.intf_wires_in.insert(
@@ -1222,7 +1202,6 @@ impl XTileExtractor<'_, '_, '_> {
                             name: self.rd.wires[wfi].clone(),
                         },
                     );
-                    assert!(!self.tcls.intfs.contains_key(&wf));
                     if self.db[wf.wire] == WireKind::LogicOut
                         || self.xtile.builder.test_mux_pass.contains(&wf.wire)
                     {
@@ -1244,30 +1223,37 @@ impl XTileExtractor<'_, '_, '_> {
                             name_in: self.rd.wires[bwfi].clone(),
                         },
                     );
-                    assert!(!self.tcls.intfs.contains_key(&wf));
                     out_muxes.entry(wt).or_default().0.push(wf);
                 } else if self.xtile.has_intf_out_bufs {
                     out_muxes.entry(wt).or_default();
-                    self.tcls_naming.intf_wires_out.insert(
-                        wt,
-                        IntfWireOutNaming::Buf {
-                            name_out: self.rd.wires[wti].clone(),
-                            name_in: self.rd.wires[wfi].clone(),
-                        },
-                    );
+                    let wf = TileWireCoord {
+                        cell: wt.cell,
+                        wire: self.xtile.builder.test_mux_ins[&wt.wire],
+                    };
+                    self.tcls_naming
+                        .wires
+                        .insert(wf, self.rd.wires[wfi].clone());
                 }
             }
         }
+        let mut tm = TestMux::default();
         for (wt, (wfs, pwf)) in out_muxes {
-            let wfs = wfs.into_iter().collect();
-            self.tcls.intfs.insert(
+            let wfs = wfs.into_iter().map(|x| x.pos()).collect();
+            let pwf = pwf.unwrap_or_else(|| TileWireCoord {
+                cell: wt.cell,
+                wire: self.xtile.builder.test_mux_ins[&wt.wire],
+            });
+            tm.wires.insert(
                 wt,
-                match pwf {
-                    None => IntfInfo::OutputTestMux(wfs),
-                    Some(pwf) => IntfInfo::OutputTestMuxPass(wfs, pwf),
+                TestMuxWire {
+                    primary_src: pwf.pos(),
+                    test_src: wfs,
                 },
             );
         }
+        self.tcls
+            .bels
+            .insert(self.xtile.tmux_bel.unwrap(), BelInfo::TestMux(tm));
     }
 }
 
@@ -1307,6 +1293,7 @@ pub struct IntBuilder<'a> {
     extra_names: HashMap<String, TileWireCoord>,
     extra_names_tile: HashMap<rawdump::TileKindId, HashMap<String, TileWireCoord>>,
     test_mux_pass: HashSet<WireSlotId>,
+    test_mux_ins: HashMap<WireSlotId, WireSlotId>,
 }
 
 impl<'a> IntBuilder<'a> {
@@ -1336,6 +1323,7 @@ impl<'a> IntBuilder<'a> {
             extra_names: Default::default(),
             extra_names_tile: Default::default(),
             test_mux_pass: Default::default(),
+            test_mux_ins: Default::default(),
         }
     }
 
@@ -1595,6 +1583,12 @@ impl<'a> IntBuilder<'a> {
         raw_names: &[impl AsRef<str>],
     ) -> WireSlotId {
         self.wire(name, WireKind::LogicOut, raw_names)
+    }
+
+    pub fn test_mux_in(&mut self, name: impl Into<String>, wire: WireSlotId) -> WireSlotId {
+        let tmin = self.logic_out(name, &[""]);
+        self.test_mux_ins.insert(wire, tmin);
+        tmin
     }
 
     pub fn multi_out(
@@ -1920,14 +1914,7 @@ impl<'a> IntBuilder<'a> {
                                     is_intf: ick != IntConnKind::Raw,
                                 },
                             );
-                            pins.insert(
-                                name.clone(),
-                                BelPin {
-                                    wires,
-                                    dir,
-                                    is_intf_in: false,
-                                },
-                            );
+                            pins.insert(name.clone(), BelPin { wires, dir });
                         }
                         &BelPinInfo::ForceInt(wire, ref wname) => {
                             let dir = match tksp.dir {
@@ -1950,7 +1937,6 @@ impl<'a> IntBuilder<'a> {
                                 BelPin {
                                     wires: [wire].into_iter().collect(),
                                     dir,
-                                    is_intf_in: false,
                                 },
                             );
                         }
@@ -2017,14 +2003,7 @@ impl<'a> IntBuilder<'a> {
                                 is_intf: ick != IntConnKind::Raw,
                             },
                         );
-                        pins.insert(
-                            name.clone(),
-                            BelPin {
-                                wires,
-                                dir,
-                                is_intf_in: false,
-                            },
-                        );
+                        pins.insert(name.clone(), BelPin { wires, dir });
                     }
                     BelPinInfo::ExtraIntForce(dir, wire, ref wname) => {
                         naming_pins.insert(
@@ -2042,7 +2021,6 @@ impl<'a> IntBuilder<'a> {
                             BelPin {
                                 wires: [wire].into_iter().collect(),
                                 dir,
-                                is_intf_in: false,
                             },
                         );
                     }
@@ -2334,9 +2312,30 @@ impl<'a> IntBuilder<'a> {
                 }
                 tcls
             }
-            Some((id, cnode)) => {
-                assert_eq!(tcls.cells, cnode.cells);
-                assert_eq!(tcls.bels, cnode.bels);
+            Some((id, cur_tcls)) => {
+                assert_eq!(tcls.cells, cur_tcls.cells);
+                for slot in cur_tcls.bels.ids() {
+                    assert!(tcls.bels.contains_id(slot));
+                }
+                for (slot, bel) in tcls.bels {
+                    let cur_bel = &mut cur_tcls.bels[slot];
+                    if let BelInfo::TestMux(cur_tm) = cur_bel
+                        && let BelInfo::TestMux(tm) = bel
+                    {
+                        for &dst in cur_tm.wires.keys() {
+                            assert!(tm.wires.contains_key(&dst));
+                        }
+                        for (dst, tmux) in tm.wires {
+                            let cur_tmux = cur_tm.wires.get_mut(&dst).unwrap();
+                            assert_eq!(cur_tmux.primary_src, tmux.primary_src);
+                            for w in tmux.test_src {
+                                cur_tmux.test_src.insert(w);
+                            }
+                        }
+                    } else {
+                        assert_eq!(bel, *cur_bel);
+                    }
+                }
                 for (slot, sb_pips) in pips {
                     match self.pips.entry((id, slot)) {
                         btree_map::Entry::Vacant(e) => {
@@ -2353,33 +2352,6 @@ impl<'a> IntBuilder<'a> {
                                         assert_eq!(*ee.get(), mode);
                                     }
                                 }
-                            }
-                        }
-                    }
-                }
-                for &k in cnode.intfs.keys() {
-                    assert!(tcls.intfs.contains_key(&k));
-                }
-                for (k, v) in tcls.intfs {
-                    let cv = cnode.intfs.get_mut(&k).unwrap();
-                    match v {
-                        IntfInfo::OutputTestMux(ref wfs) => {
-                            if let IntfInfo::OutputTestMux(cwfs) = cv {
-                                for &wf in wfs {
-                                    cwfs.insert(wf);
-                                }
-                            } else {
-                                assert_eq!(*cv, v);
-                            }
-                        }
-                        IntfInfo::OutputTestMuxPass(ref wfs, pwf) => {
-                            if let IntfInfo::OutputTestMuxPass(cwfs, cpwf) = cv {
-                                assert_eq!(pwf, *cpwf);
-                                for &wf in wfs {
-                                    cwfs.insert(wf);
-                                }
-                            } else {
-                                assert_eq!(*cv, v);
                             }
                         }
                     }
@@ -2419,25 +2391,6 @@ impl<'a> IntBuilder<'a> {
                         }
                         Some(cv) => {
                             assert_eq!(v, *cv);
-                        }
-                    }
-                }
-                for (k, v) in naming.intf_wires_out {
-                    match cnaming.intf_wires_out.get(&k) {
-                        None => {
-                            cnaming.intf_wires_out.insert(k, v);
-                        }
-                        Some(cv @ IntfWireOutNaming::Buf { name_out, .. }) => match v {
-                            IntfWireOutNaming::Buf { .. } => assert_eq!(&v, cv),
-                            IntfWireOutNaming::Simple { name } => assert_eq!(&name, name_out),
-                        },
-                        Some(cv @ IntfWireOutNaming::Simple { name }) => {
-                            if let IntfWireOutNaming::Buf { name_out, .. } = &v {
-                                assert_eq!(name_out, name);
-                                cnaming.intf_wires_out.insert(k, v);
-                            } else {
-                                assert_eq!(v, *cv);
-                            }
                         }
                     }
                 }
@@ -2623,7 +2576,6 @@ impl<'a> IntBuilder<'a> {
                     delay_wires: Default::default(),
                     bels: Default::default(),
                     intf_wires_in: Default::default(),
-                    intf_wires_out: Default::default(),
                 },
             );
         } else {
@@ -3164,7 +3116,6 @@ impl<'a> IntBuilder<'a> {
                         delay_wires: Default::default(),
                         bels: Default::default(),
                         intf_wires_in: Default::default(),
-                        intf_wires_out: Default::default(),
                     },
                 );
             } else {
@@ -3237,7 +3188,6 @@ impl<'a> IntBuilder<'a> {
                         delay_wires: Default::default(),
                         bels: Default::default(),
                         intf_wires_in: Default::default(),
-                        intf_wires_out: Default::default(),
                     },
                 );
             } else {
@@ -3361,13 +3311,14 @@ impl<'a> IntBuilder<'a> {
         xy: Coord,
         int_xy: &[Coord],
         naming: impl AsRef<str>,
+        bel: BelSlotId,
         has_out_bufs: bool,
         sb_delay: Option<BelSlotId>,
     ) {
         let mut x = self
             .xtile(slot, name.as_ref(), naming.as_ref(), xy)
             .num_tiles(int_xy.len())
-            .extract_intfs(has_out_bufs);
+            .extract_intfs(bel, has_out_bufs);
         if let Some(sb) = sb_delay {
             x = x.extract_delay(sb);
         }
@@ -3384,10 +3335,20 @@ impl<'a> IntBuilder<'a> {
         xy: Coord,
         int_xy: Coord,
         naming: impl AsRef<str>,
+        bel: BelSlotId,
         has_out_bufs: bool,
         sb_delay: Option<BelSlotId>,
     ) {
-        self.extract_intf_tile_multi(slot, name, xy, &[int_xy], naming, has_out_bufs, sb_delay);
+        self.extract_intf_tile_multi(
+            slot,
+            name,
+            xy,
+            &[int_xy],
+            naming,
+            bel,
+            has_out_bufs,
+            sb_delay,
+        );
     }
 
     pub fn extract_intf(
@@ -3397,6 +3358,7 @@ impl<'a> IntBuilder<'a> {
         dir: Dir,
         tkn: impl AsRef<str>,
         naming: impl AsRef<str>,
+        bel: BelSlotId,
         has_out_bufs: bool,
         sb_delay: Option<BelSlotId>,
     ) {
@@ -3408,6 +3370,7 @@ impl<'a> IntBuilder<'a> {
                 xy,
                 int_xy,
                 naming.as_ref(),
+                bel,
                 has_out_bufs,
                 sb_delay,
             );
@@ -3452,6 +3415,7 @@ impl<'a> IntBuilder<'a> {
         int_xy: &[Coord],
         naming: &str,
         bels: &[ExtrBelInfo],
+        force_test_mux_in: bool,
     ) {
         let mut x = self.xtile(slot, name, naming, xy).num_tiles(int_xy.len());
         for &xy in buf_xy {
@@ -3462,6 +3426,9 @@ impl<'a> IntBuilder<'a> {
         }
         for bel in bels {
             x = x.bel(bel.clone());
+        }
+        if force_test_mux_in {
+            x = x.force_test_mux_in();
         }
         x.extract();
     }
@@ -3527,7 +3494,6 @@ impl<'a> IntBuilder<'a> {
             delay_wires: Default::default(),
             bels: naming_bels,
             intf_wires_in: Default::default(),
-            intf_wires_out: Default::default(),
         };
         self.insert_tcls_merge(name, tcls, BTreeMap::new());
         self.insert_tcls_naming(naming, tcls_naming);
@@ -3557,7 +3523,7 @@ impl<'a> IntBuilder<'a> {
             }],
             num_tiles: 1,
             refs: vec![],
-            extract_intfs: false,
+            tmux_bel: None,
             delay_sb: None,
             has_intf_out_bufs: false,
             skip_muxes: BTreeSet::new(),
@@ -3568,6 +3534,7 @@ impl<'a> IntBuilder<'a> {
             force_skip_pips: HashSet::new(),
             force_pips: HashSet::new(),
             switchbox: None,
+            force_test_mux_in: false,
         }
     }
 

@@ -198,16 +198,20 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     for i in 0..8 {
-        builder.logic_out(format!("OUT.BEST{i}"), &[format!("BEST_LOGIC_OUTS{i}")]);
+        let w = builder.logic_out(format!("OUT.BEST{i}"), &[format!("BEST_LOGIC_OUTS{i}")]);
+        builder.test_mux_in(format!("OUT.BEST{i}.TMIN"), w);
     }
     for i in 0..8 {
-        builder.logic_out(format!("OUT.SEC{i}"), &[format!("SECONDARY_LOGIC_OUTS{i}")]);
+        let w = builder.logic_out(format!("OUT.SEC{i}"), &[format!("SECONDARY_LOGIC_OUTS{i}")]);
+        builder.test_mux_in(format!("OUT.SEC{i}.TMIN"), w);
     }
     for i in 0..8 {
-        builder.logic_out(format!("OUT.HALF.BOT{i}"), &[format!("HALF_OMUX_BOT{i}")]);
+        let w = builder.logic_out(format!("OUT.HALF.BOT{i}"), &[format!("HALF_OMUX_BOT{i}")]);
+        builder.test_mux_in(format!("OUT.HALF.BOT{i}.TMIN"), w);
     }
     for i in 0..8 {
-        builder.logic_out(format!("OUT.HALF.TOP{i}"), &[format!("HALF_OMUX_TOP{i}")]);
+        let w = builder.logic_out(format!("OUT.HALF.TOP{i}"), &[format!("HALF_OMUX_TOP{i}")]);
+        builder.test_mux_in(format!("OUT.HALT.TOP{i}.TMIN"), w);
     }
 
     for i in 0..4 {
@@ -396,6 +400,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     xy,
                     int_xy,
                     format!("INTF.{n}.{i}"),
+                    bels::INTF_TESTMUX,
                     false,
                     None,
                 );
@@ -403,7 +408,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
     for tkn in ["IOIS_LC", "IOIS_NC"] {
-        builder.extract_intf(tslots::INTF, "INTF", Dir::E, tkn, "INTF.IOIS", false, None);
+        builder.extract_intf(
+            tslots::INTF,
+            "INTF",
+            Dir::E,
+            tkn,
+            "INTF.IOIS",
+            bels::INTF_TESTMUX,
+            false,
+            None,
+        );
     }
     for &xy in rd.tiles_by_kind_name("CFG_CENTER") {
         for i in 0..16 {
@@ -414,6 +428,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 xy,
                 int_xy,
                 format!("INTF.CFG.{i}"),
+                bels::INTF_TESTMUX,
                 false,
                 None,
             );
@@ -441,6 +456,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     xy,
                     int_xy,
                     format!("INTF.MGT.{i}"),
+                    bels::INTF_TESTMUX,
                     false,
                     None,
                 );
@@ -465,6 +481,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 xy,
                 int_w_xy,
                 format!("INTF.PPC.L{i}"),
+                bels::INTF_TESTMUX,
                 false,
                 None,
             );
@@ -474,6 +491,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 xy,
                 int_e_xy,
                 format!("INTF.PPC.R{i}"),
+                bels::INTF_TESTMUX,
                 false,
                 None,
             );
@@ -487,6 +505,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 pb_xy,
                 int_s_xy,
                 format!("INTF.PPC.B{i}"),
+                bels::INTF_TESTMUX,
                 false,
                 None,
             );
@@ -496,6 +515,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 pt_xy,
                 int_n_xy,
                 format!("INTF.PPC.T{i}"),
+                bels::INTF_TESTMUX,
                 false,
                 None,
             );
@@ -533,6 +553,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .pins_name_only(&slicel_name_only)
                     .extra_wire("COUT_N", &["COUT_N3"]),
             ],
+            false,
         );
     }
 
@@ -556,6 +577,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .pin_name_only("CASCADEINB", 1),
                 builder.bel_xy(bels::FIFO, "FIFO16", 0, 0),
             ],
+            true,
         );
     }
 
@@ -583,7 +605,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for dy in 0..4 {
             int_xy.push(xy.delta(-1, dy));
         }
-        builder.extract_xtile_bels(tslots::BEL, "DSP", xy, &[], &int_xy, "DSP", &bels_dsp);
+        builder.extract_xtile_bels(tslots::BEL, "DSP", xy, &[], &int_xy, "DSP", &bels_dsp, true);
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("CFG_CENTER").iter().next() {
@@ -715,7 +737,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .raw_tile(xy.delta(1, 9))
             .raw_tile(xy.delta(0, -9))
             .raw_tile(xy.delta(0, 9))
-            .num_tiles(16);
+            .num_tiles(16)
+            .force_test_mux_in();
         for i in 0..8 {
             xn = xn.ref_int(xy.delta(-1, -8 + (i as i32)), i);
         }
@@ -775,6 +798,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .bel_xy(bels::EMAC, "EMAC", 0, 0)
                     .pins_name_only(&dcr_pins),
             ],
+            true,
         );
     }
 
@@ -980,7 +1004,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .raw_tile(xy.delta(0, 1))
                 .ref_int(xy.delta(-1, -2), 0)
                 .ref_int(xy.delta(-1, -1), 1)
-                .ref_int(xy.delta(-1, 1), 2);
+                .ref_int(xy.delta(-1, 1), 2)
+                .force_test_mux_in();
             for bel in bels {
                 xn = xn.bel(bel);
             }
@@ -1111,7 +1136,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
                 _ => (),
             }
-            let mut xn = builder.xtile(tslots::HCLK_BEL, tkn, tkn, xy).num_tiles(2);
+            let mut xn = builder
+                .xtile(tslots::HCLK_BEL, tkn, tkn, xy)
+                .num_tiles(2)
+                .force_test_mux_in();
             if ioloc == 'S' {
                 xn = xn
                     .raw_tile(xy.delta(0, -2))
@@ -1307,6 +1335,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .extra_wire("IOCLK_S0", &["IOIS_IOCLKP_S0"])
                         .extra_wire("IOCLK_S1", &["IOIS_IOCLKP_S1"]),
                 ],
+                true,
             );
         }
     }
@@ -1356,7 +1385,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             for i in 0..4 {
                 bel = bel.extra_wire(format!("MGT{i}"), &[format!("DCM_MGT{i}")]);
             }
-            builder.extract_xtile_bels(tslots::BEL, "DCM", xy, &[], &int_xy, tkn, &[bel]);
+            builder.extract_xtile_bels(tslots::BEL, "DCM", xy, &[], &int_xy, tkn, &[bel], true);
         }
     }
 
@@ -1449,7 +1478,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bel = bel.extra_wire(format!("MGT{i}"), &[format!("CCM_MGT{i}")]);
         }
         bels.push(bel);
-        builder.extract_xtile_bels(tslots::BEL, "CCM", xy, &[], &int_xy, "CCM", &bels);
+        builder.extract_xtile_bels(tslots::BEL, "CCM", xy, &[], &int_xy, "CCM", &bels, true);
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("SYS_MON").iter().next() {
@@ -1487,6 +1516,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .bel_xy(bels::IPAD_VN, "IPAD", 0, 1)
                     .pins_name_only(&["O"]),
             ],
+            true,
         );
     }
 
@@ -1683,7 +1713,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .xtile(tslots::BEL, "MGT", naming, xy.delta(0, -18))
                 .raw_tile(xy)
                 .raw_tile(xy.delta(0, -10))
-                .num_tiles(32);
+                .num_tiles(32)
+                .force_test_mux_in();
             for i in 0..32 {
                 xn = xn.ref_int(
                     xy.delta(if xy.x == 0 { 1 } else { -1 }, -27 + (i + i / 8) as i32),

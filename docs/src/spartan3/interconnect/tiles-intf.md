@@ -7,7 +7,3 @@ This tile, unusually, takes up four interconnect tiles. It shares its bitstream 
 
 {{tile spartan3 INTF.DSP}}
 
-The associated groups are:
-
-.. raw:: html
-   :file: ../gen/xc3s-INTF.DSP.html

@@ -4,7 +4,7 @@ use prjcombine_re_xilinx_geom::{
     Bond, Chip, Device, DeviceBond, DeviceCombo, DeviceNaming, DeviceNamingId, DisabledPart,
     GeomDb, Interposer,
 };
-use prjcombine_re_xilinx_naming::db::{IntfWireOutNaming, NamingDb};
+use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_types::db::{BondId, ChipId, DevBondId, DevSpeedId, InterposerId};
 use prjcombine_virtex4::gtz::GtzDb;
@@ -251,30 +251,6 @@ impl DbBuilder {
                                     }
                                     Some(vv2) => {
                                         assert_eq!(&vv, vv2);
-                                    }
-                                }
-                            }
-                            for (kk, vv) in v.intf_wires_out {
-                                match v2.intf_wires_out.get(&kk) {
-                                    None => {
-                                        v2.intf_wires_out.insert(kk, vv);
-                                    }
-                                    Some(vv2 @ IntfWireOutNaming::Buf { name_out, .. }) => match vv
-                                    {
-                                        IntfWireOutNaming::Buf { .. } => {
-                                            assert_eq!(&vv, vv2)
-                                        }
-                                        IntfWireOutNaming::Simple { name } => {
-                                            assert_eq!(name_out, &name)
-                                        }
-                                    },
-                                    Some(vv2 @ IntfWireOutNaming::Simple { name }) => {
-                                        if let IntfWireOutNaming::Buf { name_out, .. } = &vv {
-                                            assert_eq!(name_out, name);
-                                            v2.intf_wires_out.insert(kk, vv);
-                                        } else {
-                                            assert_eq!(&vv, vv2);
-                                        }
                                     }
                                 }
                             }

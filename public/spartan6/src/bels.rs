@@ -4,6 +4,7 @@ use crate::tslots;
 
 bels![
     INT: tslots::INT,
+    INTF_TESTMUX: tslots::INTF,
     REG_INT: tslots::REG,
     SLICE0: tslots::BEL,
     SLICE1: tslots::BEL,

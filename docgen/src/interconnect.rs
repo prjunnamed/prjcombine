@@ -5,8 +5,7 @@ use std::{
 
 use itertools::Itertools;
 use prjcombine_interconnect::db::{
-    BelInfo, ConnectorWire, IntDb, IntfInfo, PinDir, SwitchBoxItem, TileClassId, TileWireCoord,
-    WireKind,
+    BelInfo, ConnectorWire, IntDb, PinDir, SwitchBoxItem, TileClassId, TileWireCoord, WireKind,
 };
 
 use crate::DocgenContext;
@@ -214,66 +213,9 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
 
     let single_cell = tcls.cells.len() == 1;
 
-    if !tcls.intfs.is_empty() {
-        writeln!(buf, r#"### Intf"#).unwrap();
-        writeln!(buf).unwrap();
-        writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
-        writeln!(buf, r#"<caption>{dbname} {tname} intfs</caption>"#).unwrap();
-        writeln!(buf, r#"<thead>"#).unwrap();
-        writeln!(buf, r#"<tr><th>Wire</th><th>Interface</th></tr>"#).unwrap();
-        writeln!(buf, r#"</thead>"#).unwrap();
-        writeln!(buf, r#"<tbody>"#).unwrap();
-        for (wire, intf) in &tcls.intfs {
-            let wire = if single_cell {
-                intdb.wires.key(wire.wire).to_string()
-            } else {
-                format!("{}:{}", wire.cell, intdb.wires.key(wire.wire))
-            };
-            let intf = match intf {
-                IntfInfo::OutputTestMux(srcs) => {
-                    let srcs = srcs
-                        .iter()
-                        .map(|wsrc| {
-                            if single_cell {
-                                intdb.wires.key(wsrc.wire).to_string()
-                            } else {
-                                format!("{}:{}", wsrc.cell, intdb.wires.key(wsrc.wire))
-                            }
-                        })
-                        .join(", ");
-                    format!("TEST_MUX {srcs}")
-                }
-                IntfInfo::OutputTestMuxPass(srcs, base) => {
-                    let srcs = srcs
-                        .iter()
-                        .map(|wsrc| {
-                            if single_cell {
-                                intdb.wires.key(wsrc.wire).to_string()
-                            } else {
-                                format!("{}:{}", wsrc.cell, intdb.wires.key(wsrc.wire))
-                            }
-                        })
-                        .join(", ");
-                    let base = if single_cell {
-                        intdb.wires.key(base.wire).to_string()
-                    } else {
-                        format!("{}:{}", base.cell, intdb.wires.key(base.wire))
-                    };
-                    format!("TEST_MUX BASE {base} TEST {srcs}")
-                }
-            };
-            writeln!(buf, r#"<tr><td>{wire}</td><td>{intf}</td></tr>"#).unwrap();
-        }
-        writeln!(buf, r#"</tbody>"#).unwrap();
-        writeln!(buf, r#"</table></div>"#).unwrap();
-        writeln!(buf).unwrap();
-    }
-
     let mut wmap: BTreeMap<_, Vec<_>> = BTreeMap::new();
     for (slot, bel) in &tcls.bels {
         let bname = intdb.bel_slots.key(slot).as_str();
-        writeln!(buf, r#"### Bel {bname}"#).unwrap();
-        writeln!(buf).unwrap();
         match bel {
             BelInfo::SwitchBox(sb) => {
                 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -390,6 +332,8 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                 writeln!(buf).unwrap();
             }
             BelInfo::Bel(bel) => {
+                writeln!(buf, r#"### Bel {bname}"#).unwrap();
+                writeln!(buf).unwrap();
                 writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
                 writeln!(buf, r#"<caption>{dbname} {tname} bel {bname}</caption>"#).unwrap();
                 writeln!(buf, r#"<thead>"#).unwrap();
@@ -425,6 +369,102 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                     for &wire in &pin.wires {
                         wmap.entry(wire).or_default().push((slot, pname));
                     }
+                }
+                writeln!(buf, r#"</tbody>"#).unwrap();
+                writeln!(buf, r#"</table></div>"#).unwrap();
+                writeln!(buf).unwrap();
+            }
+            BelInfo::TestMux(bel) => {
+                writeln!(buf, r#"### Test mux {bname}"#).unwrap();
+                writeln!(buf).unwrap();
+                writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+                writeln!(buf, r#"<caption>{dbname} {tname} {bname} mux</caption>"#).unwrap();
+                writeln!(buf, r#"<thead>"#).unwrap();
+                writeln!(
+                    buf,
+                    r#"<tr><th>Destination</th><th>Primary source</th><th>Test sources</th></tr>"#
+                )
+                .unwrap();
+                writeln!(buf, r#"</thead>"#).unwrap();
+                writeln!(buf, r#"<tbody>"#).unwrap();
+                for (dst, tmux) in &bel.wires {
+                    let dst = if single_cell {
+                        intdb.wires.key(dst.wire).to_string()
+                    } else {
+                        format!("{}:{}", dst.cell, intdb.wires.key(dst.wire))
+                    };
+                    let primary_src = if single_cell {
+                        intdb.wires.key(tmux.primary_src.wire).to_string()
+                    } else {
+                        format!(
+                            "{}:{}",
+                            tmux.primary_src.cell,
+                            intdb.wires.key(tmux.primary_src.wire)
+                        )
+                    };
+                    let test_srcs = tmux
+                        .test_src
+                        .iter()
+                        .map(|wsrc| {
+                            if single_cell {
+                                intdb.wires.key(wsrc.wire).to_string()
+                            } else {
+                                format!("{}:{}", wsrc.cell, intdb.wires.key(wsrc.wire))
+                            }
+                        })
+                        .join(", ");
+                    writeln!(
+                        buf,
+                        r#"<tr><td>{dst}</td><td>{primary_src}</td><td>{test_srcs}</td></tr>"#
+                    )
+                    .unwrap();
+                }
+                writeln!(buf, r#"</tbody>"#).unwrap();
+                writeln!(buf, r#"</table></div>"#).unwrap();
+                writeln!(buf).unwrap();
+            }
+            BelInfo::GroupTestMux(bel) => {
+                writeln!(buf, r#"### Test mux {bname}"#).unwrap();
+                writeln!(buf).unwrap();
+                writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+                writeln!(buf, r#"<caption>{dbname} {tname} {bname} mux</caption>"#).unwrap();
+                writeln!(buf, r#"<thead>"#).unwrap();
+                writeln!(buf, r#"<tr><th>Destination</th><th>Primary source</th>"#).unwrap();
+                for i in 0..bel.num_groups {
+                    writeln!(buf, r#"<th>Test source {i}</th>"#).unwrap();
+                }
+                writeln!(buf, r#"</tr>"#).unwrap();
+                writeln!(buf, r#"</thead>"#).unwrap();
+                writeln!(buf, r#"<tbody>"#).unwrap();
+                for (dst, tmux) in &bel.wires {
+                    let dst = if single_cell {
+                        intdb.wires.key(dst.wire).to_string()
+                    } else {
+                        format!("{}:{}", dst.cell, intdb.wires.key(dst.wire))
+                    };
+                    let primary_src = if single_cell {
+                        intdb.wires.key(tmux.primary_src.wire).to_string()
+                    } else {
+                        format!(
+                            "{}:{}",
+                            tmux.primary_src.cell,
+                            intdb.wires.key(tmux.primary_src.wire)
+                        )
+                    };
+                    writeln!(buf, r#"<tr><td>{dst}</td><td>{primary_src}</td>"#).unwrap();
+                    for &src in &tmux.test_src {
+                        if let Some(src) = src {
+                            let src = if single_cell {
+                                intdb.wires.key(src.wire).to_string()
+                            } else {
+                                format!("{}:{}", src.cell, intdb.wires.key(src.wire))
+                            };
+                            writeln!(buf, r#"<td>{src}</td>"#).unwrap();
+                        } else {
+                            writeln!(buf, r#"<td>-</td>"#).unwrap();
+                        }
+                    }
+                    writeln!(buf, r#"</tr>"#).unwrap();
                 }
                 writeln!(buf, r#"</tbody>"#).unwrap();
                 writeln!(buf, r#"</table></div>"#).unwrap();

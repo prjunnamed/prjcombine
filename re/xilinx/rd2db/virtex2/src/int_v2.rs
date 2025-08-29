@@ -578,6 +578,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &format!("GIGABIT_INT_PPC1{i}"),
             ],
         );
+        builder.test_mux_in(format!("OUT.FAN{i}.TMIN"), w);
         if i == 0 {
             builder.extra_name_tile("MK_T_IOIS", "IOIS_BREFCLK_SE", w);
         }
@@ -588,7 +589,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     // We call secondary outputs by their OMUX index.
     for i in 2..24 {
-        builder.logic_out(
+        let w = builder.logic_out(
             format!("OUT.SEC{i}"),
             &[
                 [
@@ -674,6 +675,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 },
             ],
         );
+        builder.test_mux_in(format!("OUT.SEC{i}.TMIN"), w);
     }
 
     // Same for tertiary.
@@ -1681,7 +1683,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("TPPC_X0Y0_INT", "INTF.PPC", "INTF.PPC.T"),
         ("TPPC_X1Y0_INT", "INTF.PPC", "INTF.PPC.T"),
     ] {
-        builder.extract_intf(tslots::INTF, name, Dir::E, tkn, naming, false, None);
+        builder.extract_intf(
+            tslots::INTF,
+            name,
+            Dir::E,
+            tkn,
+            naming,
+            bels::INTF_TESTMUX,
+            false,
+            None,
+        );
     }
 
     for (nn, tkn) in [
@@ -1904,7 +1915,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire(format!("OUT_B{i}"), &[format!("CLKC_GCLKB{i}")])
                 .extra_wire(format!("OUT_T{i}"), &[format!("CLKC_GCLKT{i}")]);
         }
-        builder.extract_xtile_bels(tslots::CLK, "CLKC", xy, &[], &[], "CLKC", &[bel]);
+        builder.extract_xtile_bels(tslots::CLK, "CLKC", xy, &[], &[], "CLKC", &[bel], false);
     }
 
     for &xy in rd.tiles_by_kind_name("GCLKC") {
@@ -1917,7 +1928,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLKL{i}")])
                     .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLKR{i}")]);
             }
-            builder.extract_xtile_bels(tslots::HROW, nn, xy, &[], &[], "GCLKC", &[bel]);
+            builder.extract_xtile_bels(tslots::HROW, nn, xy, &[], &[], "GCLKC", &[bel], false);
         }
     }
 
@@ -1940,6 +1951,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &[int_s_xy, int_n_xy],
                 "GCLKH",
                 &[builder.bel_virtual(bels::GLOBALSIG), bel],
+                false,
             );
         }
     }
@@ -1960,6 +1972,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder.bel_xy(bels::BRAM, "RAMB16", 0, 0),
                 builder.bel_xy(bels::MULT, "MULT18X18", 0, 0),
             ],
+            false,
         );
     }
 
@@ -2003,6 +2016,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_int_in("OUT1", &["BTERM_OMUX3", "BTTERM_OMUX11"])
                     .extra_int_in("OUT2", &["BTERM_OMUX4", "BTTERM_OMUX12"])
                     .extra_int_in("OUT3", &["BTERM_OMUX5", "BTTERM_OMUX15"])],
+                false,
             );
         }
     }
@@ -2039,6 +2053,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .bel_indexed(bels::OPAD_TXN, "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
+            true,
         );
     }
 
@@ -2074,6 +2089,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .bel_indexed(bels::OPAD_TXN, "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
+            true,
         );
     }
 
@@ -2109,6 +2125,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .bel_indexed(bels::OPAD_TXN, "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
+            true,
         );
     }
 
@@ -2144,6 +2161,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .bel_indexed(bels::OPAD_TXN, "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
+            true,
         );
     }
 
@@ -2170,6 +2188,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &int_xy,
                 tkn,
                 &[builder.bel_xy(bels::PPC405, "PPC405", 0, 0)],
+                true,
             );
         }
     }
@@ -2203,6 +2222,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &int_xy,
                 tkn,
                 &[builder.bel_xy(bels::PCILOGIC, "PCILOGIC", 0, 0)],
+                false,
             );
         }
     }

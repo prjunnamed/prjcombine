@@ -675,6 +675,7 @@ impl IntMaker<'_> {
         // wires belonging to interconnect left/right half-nodes
         for i in 0..48 {
             let w = self.builder.logic_out(format!("OUT.{i}"), &[""]);
+            self.builder.test_mux_in(format!("OUT.{i}.TMIN"), w);
             self.builder
                 .extra_name_tile_sub("INT", format!("LOGIC_OUTS_W{i}"), 0, w);
             self.builder
@@ -1193,7 +1194,7 @@ impl IntMaker<'_> {
                     .xtile(tslots::INTF, name, name, xy)
                     .ref_int_side(int_xy, side, 0)
                     .extract_muxes(bels::INTF_INT)
-                    .extract_intfs(true)
+                    .extract_intfs(bels::INTF_TESTMUX, true)
                     .skip_muxes(&self.iri_wires)
                     .bels(bels);
                 if delay {
@@ -1238,7 +1239,7 @@ impl IntMaker<'_> {
                             },
                             cle_bc,
                         )
-                        .extract_intfs(true)
+                        .extract_intfs(bels::INTF_TESTMUX, true)
                         .skip_muxes(&self.iri_wires)
                         .bels(bels)
                         .extract();

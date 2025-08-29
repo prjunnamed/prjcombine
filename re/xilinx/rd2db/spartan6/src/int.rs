@@ -182,10 +182,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.mux_out("IMUX.LOGICIN63", &["FAN_B"]);
 
     for i in 0..24 {
-        builder.logic_out(
+        let w = builder.logic_out(
             format!("OUT{i}"),
             &[format!("LOGICOUT{i}"), format!("INT_TERM_LOGICOUT{i}")],
         );
+        builder.test_mux_in(format!("OUT{i}.TMIN"), w);
     }
 
     let regb_clk: Vec<_> = (0..2)
@@ -311,7 +312,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         (Dir::E, "UR_LOWER", "INTF.CNR"),
         (Dir::E, "UR_UPPER", "INTF.CNR"),
     ] {
-        builder.extract_intf(tslots::INTF, "INTF", dir, tkn, naming, true, None);
+        builder.extract_intf(
+            tslots::INTF,
+            "INTF",
+            dir,
+            tkn,
+            naming,
+            bels::INTF_TESTMUX,
+            true,
+            None,
+        );
     }
     builder.extract_intf(
         tslots::INTF,
@@ -319,6 +329,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         Dir::E,
         "INT_INTERFACE_CARRY",
         "INTF",
+        bels::INTF_TESTMUX,
         true,
         None,
     );
@@ -329,6 +340,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             Dir::E,
             tkn,
             "INTF",
+            bels::INTF_TESTMUX,
             true,
             None,
         );
@@ -349,6 +361,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             Dir::E,
             tkn,
             "INTF.IOI",
+            bels::INTF_TESTMUX,
             true,
             None,
         );
@@ -370,6 +383,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .pin_name_only("COUT", 1),
                     builder.bel_xy(bels::SLICE1, "SLICE", 1, 0),
                 ],
+                false,
             );
         }
     }

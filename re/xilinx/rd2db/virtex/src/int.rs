@@ -1267,6 +1267,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("OUT2", &["CLKC_VGCLK2"])
                     .extra_wire("OUT3", &["CLKC_VGCLK3"]),
             ],
+            false,
         );
     }
 
@@ -1288,6 +1289,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire_force("OUT1", "GCLKC_VGCLK1")
                 .extra_wire_force("OUT2", "GCLKC_VGCLK2")
                 .extra_wire_force("OUT3", "GCLKC_VGCLK3")],
+            false,
         );
     }
 
@@ -1325,6 +1327,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     TileWireCoord::new_idx(0, gclk[3]),
                     "BRAM_CLKH_VGCLK3",
                 )],
+            false,
         );
     }
 
@@ -1387,6 +1390,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &[int_xy_l, int_xy_r],
                 naming,
                 &[bel],
+                false,
             );
         }
     }
@@ -1427,6 +1431,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &[xy, int_xy_l, bram_xy],
                 kind,
                 &[bel],
+                false,
             );
         }
     }

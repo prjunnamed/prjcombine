@@ -1,5 +1,4 @@
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use unnamed_entity::{
     EntityId, EntityMap, EntityPartVec, EntitySet, EntityVec,
@@ -249,7 +248,6 @@ pub enum WireKind {
     LogicOut,
     TestOut,
     MultiOut,
-    Buf(WireSlotId),
     MultiBranch(ConnectorSlotId),
     Branch(ConnectorSlotId),
 }
@@ -265,7 +263,6 @@ impl WireKind {
             WireKind::LogicOut => "LOGIC_OUT".into(),
             WireKind::TestOut => "TEST_OUT".into(),
             WireKind::MultiOut => "MULTI_OUT".into(),
-            WireKind::Buf(wire_id) => format!("BUF:{}", db.wires.key(*wire_id)),
             WireKind::MultiBranch(slot) => {
                 format!("MULTI_BRANCH:{slot}", slot = db.conn_slots.key(*slot))
             }
@@ -284,7 +281,6 @@ impl WireKind {
 pub struct TileClass {
     pub slot: TileSlotId,
     pub cells: EntityVec<CellSlotId, ()>,
-    pub intfs: BTreeMap<TileWireCoord, IntfInfo>,
     pub bels: EntityPartVec<BelSlotId, BelInfo>,
 }
 
@@ -293,7 +289,6 @@ impl TileClass {
         TileClass {
             slot,
             cells: EntityVec::from_iter(std::iter::repeat_n((), num_cells)),
-            intfs: Default::default(),
             bels: Default::default(),
         }
     }
@@ -375,6 +370,8 @@ impl std::ops::DerefMut for PolTileWireCoord {
 pub enum BelInfo {
     SwitchBox(SwitchBox),
     Bel(Bel),
+    TestMux(TestMux),
+    GroupTestMux(GroupTestMux),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
@@ -435,11 +432,33 @@ pub struct ProgDelay {
     pub num_steps: u8,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, Default)]
+pub struct TestMux {
+    pub wires: BTreeMap<TileWireCoord, TestMuxWire>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+pub struct TestMuxWire {
+    pub primary_src: PolTileWireCoord,
+    pub test_src: BTreeSet<PolTileWireCoord>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, Default)]
+pub struct GroupTestMux {
+    pub num_groups: usize,
+    pub wires: BTreeMap<TileWireCoord, GroupTestMuxWire>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+pub struct GroupTestMuxWire {
+    pub primary_src: PolTileWireCoord,
+    pub test_src: Vec<Option<PolTileWireCoord>>,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct BelPin {
     pub wires: BTreeSet<TileWireCoord>,
     pub dir: PinDir,
-    pub is_intf_in: bool,
 }
 
 impl BelPin {
@@ -447,7 +466,6 @@ impl BelPin {
         BelPin {
             wires: BTreeSet::from_iter([wire]),
             dir: PinDir::Input,
-            is_intf_in: false,
         }
     }
 
@@ -455,7 +473,6 @@ impl BelPin {
         BelPin {
             wires: BTreeSet::from_iter([wire]),
             dir: PinDir::Output,
-            is_intf_in: false,
         }
     }
 
@@ -463,7 +480,6 @@ impl BelPin {
         BelPin {
             wires: BTreeSet::from_iter(wires),
             dir: PinDir::Output,
-            is_intf_in: false,
         }
     }
 }
@@ -473,12 +489,6 @@ pub enum PinDir {
     Input,
     Output,
     Inout,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
-pub enum IntfInfo {
-    OutputTestMux(BTreeSet<TileWireCoord>),
-    OutputTestMuxPass(BTreeSet<TileWireCoord>, TileWireCoord),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
@@ -534,8 +544,6 @@ impl std::ops::Index<ConnectorClassId> for IntDbIndex {
 pub struct TileClassIndex {
     pub pips_fwd: BTreeMap<TileWireCoord, BTreeSet<PolTileWireCoord>>,
     pub pips_bwd: BTreeMap<TileWireCoord, BTreeSet<PolTileWireCoord>>,
-    pub intf_ins: BTreeMap<TileWireCoord, BTreeSet<TileWireCoord>>,
-    pub intf_ins_pass: BTreeMap<TileWireCoord, BTreeSet<TileWireCoord>>,
 }
 
 #[derive(Clone, Debug)]
@@ -628,30 +636,7 @@ impl TileClassIndex {
             }
         }
 
-        let mut intf_ins: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
-        let mut intf_ins_pass: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
-        for (&wo, intf) in &tcls.intfs {
-            match *intf {
-                IntfInfo::OutputTestMux(ref ins) => {
-                    for &wi in ins {
-                        intf_ins.entry(wi).or_default().insert(wo);
-                    }
-                }
-                IntfInfo::OutputTestMuxPass(ref ins, main_in) => {
-                    for &wi in ins {
-                        intf_ins.entry(wi).or_default().insert(wo);
-                    }
-                    intf_ins_pass.entry(main_in).or_default().insert(wo);
-                }
-            }
-        }
-
-        TileClassIndex {
-            pips_fwd,
-            pips_bwd,
-            intf_ins,
-            intf_ins_pass,
-        }
+        TileClassIndex { pips_fwd, pips_bwd }
     }
 }
 
@@ -673,201 +658,6 @@ impl ConnectorClassIndex {
         ConnectorClassIndex {
             wire_ins_far,
             wire_ins_near,
-        }
-    }
-}
-
-impl IntfInfo {
-    pub fn to_json(&self, db: &IntDb) -> JsonValue {
-        match self {
-            IntfInfo::OutputTestMux(ins) => jzon::object! {
-                kind: "OUTPUT_TEST_MUX",
-                ins: Vec::from_iter(ins.iter().map(|wf| format!(
-                    "{:#}:{}", wf.cell, db.wires.key(wf.wire)
-                ))),
-            },
-            IntfInfo::OutputTestMuxPass(ins, def) => jzon::object! {
-                kind: "OUTPUT_TEST_MUX_PASS",
-                ins: Vec::from_iter(ins.iter().map(|wf| format!(
-                    "{:#}:{}", wf.cell, db.wires.key(wf.wire)
-                ))),
-                default: format!("{:#}:{}", def.cell, db.wires.key(def.wire)),
-            },
-        }
-    }
-}
-
-impl BelPin {
-    pub fn to_json(&self, db: &IntDb, tcls: &TileClass) -> JsonValue {
-        jzon::object! {
-            wires: Vec::from_iter(self.wires.iter().map(|wf| wf.to_string(db, tcls))),
-            dir: match self.dir {
-                PinDir::Input => "INPUT",
-                PinDir::Output => "OUTPUT",
-                PinDir::Inout => "INOUT",
-            },
-            is_intf_in: self.is_intf_in,
-        }
-    }
-}
-
-impl BelInfo {
-    pub fn to_json(&self, db: &IntDb, tcls: &TileClass) -> JsonValue {
-        match self {
-            BelInfo::SwitchBox(sb) => sb.to_json(db, tcls),
-            BelInfo::Bel(bel) => bel.to_json(db, tcls),
-        }
-    }
-}
-
-impl SwitchBox {
-    pub fn to_json(&self, db: &IntDb, tcls: &TileClass) -> JsonValue {
-        jzon::object! {
-            kind: "switchbox",
-            items: Vec::from_iter(self.items.iter().map(|item| item.to_json(db, tcls))),
-        }
-    }
-}
-
-impl SwitchBoxItem {
-    pub fn to_json(&self, db: &IntDb, tcls: &TileClass) -> JsonValue {
-        match self {
-            SwitchBoxItem::Mux(mux) => jzon::object! {
-                kind: "mux",
-                dst: mux.dst.to_string(db, tcls),
-                src: Vec::from_iter(mux.src.iter().map(|w| w.to_string(db, tcls))),
-            },
-            SwitchBoxItem::ProgBuf(buf) => jzon::object! {
-                kind: "progbuf",
-                dst: buf.dst.to_string(db, tcls),
-                src: buf.src.to_string(db, tcls),
-            },
-            SwitchBoxItem::PermaBuf(buf) => jzon::object! {
-                kind: "permabuf",
-                dst: buf.dst.to_string(db, tcls),
-                src: buf.src.to_string(db, tcls),
-            },
-            SwitchBoxItem::Pass(pass) => jzon::object! {
-                kind: "pass",
-                dst: pass.dst.to_string(db, tcls),
-                src: pass.src.to_string(db, tcls),
-            },
-            SwitchBoxItem::BiPass(pass) => jzon::object! {
-                kind: "pass",
-                wires: [
-                    pass.a.to_string(db, tcls),
-                    pass.b.to_string(db, tcls),
-                ],
-            },
-            SwitchBoxItem::ProgInv(inv) => jzon::object! {
-                kind: "proginv",
-                dst: inv.dst.to_string(db, tcls),
-                src: inv.src.to_string(db, tcls),
-            },
-            SwitchBoxItem::ProgDelay(delay) => jzon::object! {
-                kind: "progdelay",
-                dst: delay.dst.to_string(db, tcls),
-                src: delay.src.to_string(db, tcls),
-                num_steps: delay.num_steps,
-            },
-        }
-    }
-}
-
-impl Bel {
-    pub fn to_json(&self, db: &IntDb, tcls: &TileClass) -> JsonValue {
-        jzon::object! {
-            kind: "bel",
-            pins: jzon::object::Object::from_iter(self.pins.iter().map(|(pname, pin)| (pname.as_str(), pin.to_json(db, tcls)))),
-        }
-    }
-}
-
-impl TileClass {
-    pub fn to_json(&self, db: &IntDb) -> JsonValue {
-        jzon::object! {
-            slot: db.tile_slots[self.slot].as_str(),
-            cells: self.cells.len(),
-            intfs: jzon::object::Object::from_iter(self.intfs.iter().map(|(wt, intf)| (
-                format!("{:#}:{}", wt.cell, db.wires.key(wt.wire)),
-                intf.to_json(db),
-            ))),
-            bels: jzon::object::Object::from_iter(self.bels.iter().map(|(slot, bel)| (
-                db.bel_slots.key(slot).as_str(),
-                bel.to_json(db, self),
-            ))),
-        }
-    }
-}
-
-impl BelSlot {
-    pub fn to_json(self, db: &IntDb) -> JsonValue {
-        jzon::object! {
-            tile_slot: db.tile_slots[self.tile_slot].as_str(),
-        }
-    }
-}
-
-impl ConnectorSlot {
-    pub fn to_json(self, db: &IntDb) -> JsonValue {
-        jzon::object! {
-            opposite: db.conn_slots.key(self.opposite).as_str(),
-        }
-    }
-}
-
-impl ConnectorWire {
-    pub fn to_json(self, db: &IntDb) -> JsonValue {
-        match self {
-            ConnectorWire::BlackHole => jzon::object! {
-                kind: "BLACKHOLE",
-            },
-            ConnectorWire::Reflect(wf) => jzon::object! {
-                kind: "REFLECT",
-                wire: db.wires.key(wf).as_str(),
-            },
-            ConnectorWire::Pass(wf) => jzon::object! {
-                kind: "PASS",
-                wire: db.wires.key(wf).as_str(),
-            },
-        }
-    }
-}
-
-impl ConnectorClass {
-    pub fn to_json(&self, db: &IntDb) -> JsonValue {
-        jzon::object! {
-            slot: db.conn_slots.key(self.slot).as_str(),
-            wires: jzon::object::Object::from_iter(self.wires.iter().map(|(wire, ti)|
-                (db.wires.key(wire).to_string(), ti.to_json(db))
-            ))
-        }
-    }
-}
-
-impl From<&IntDb> for JsonValue {
-    fn from(db: &IntDb) -> Self {
-        jzon::object! {
-            wires: Vec::from_iter(db.wires.iter().map(|(_, name, wire)| {
-                jzon::object! {
-                    name: name.as_str(),
-                    kind: wire.to_string(db),
-                }
-            })),
-            region_slots: Vec::from_iter(db.region_slots.values().map(|name| name.as_str())),
-            tile_slots: Vec::from_iter(db.tile_slots.values().map(|name| name.as_str())),
-            bel_slots: jzon::object::Object::from_iter(db.bel_slots.iter().map(|(_, name, bslot)| {
-                (name.as_str(), bslot.to_json(db))
-            })),
-            tile_classes: jzon::object::Object::from_iter(db.tile_classes.iter().map(|(_, name, tcls)| {
-                (name.as_str(), tcls.to_json(db))
-            })),
-            conn_slots: jzon::object::Object::from_iter(db.conn_slots.iter().map(|(_, name, cslot)| {
-                (name.as_str(), cslot.to_json(db))
-            })),
-            conn_classes: jzon::object::Object::from_iter(db.conn_classes.iter().map(|(_, name, ccls)| {
-                (name.as_str(), ccls.to_json(db))
-            })),
         }
     }
 }

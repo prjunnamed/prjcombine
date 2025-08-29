@@ -34,7 +34,6 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
                 } else {
                     PinDir::Output
                 },
-                is_intf_in: false,
             },
         );
     }
