@@ -161,7 +161,7 @@ prjcombine-re-xilinx-cpld = { path = "re/xilinx/cpld" }
 prjcombine-re-lattice-rawdump = { path = "re/lattice/rawdump" }
 prjcombine-re-lattice-naming = { path = "re/lattice/naming" }
 serde = { version = "1.0", features = ["derive"] }
-enum-map = { version = "2.4", features = ["serde"] }
+enum-map = { version = "2.7", features = ["serde"] }
 indexmap = { version = "2", features = ["serde"] }
 rand = { version = "0.9", features = ["small_rng"] }
 nix = { version = "0.30", features = ["fs"] }

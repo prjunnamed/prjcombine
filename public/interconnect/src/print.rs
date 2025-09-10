@@ -166,7 +166,7 @@ impl IntDb {
                 slot = self.tile_slots[tcls.slot],
                 nt = tcls.cells.len()
             )?;
-            tcls.print(&self, o)?;
+            tcls.print(self, o)?;
         }
         for (_, name, slot) in &self.conn_slots {
             writeln!(
